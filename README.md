@@ -278,7 +278,7 @@ In this player, a weak addon structure has been created, so that one can write a
 				
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 
-3. Using **setup.py** located in **Python-SETUP** directory: 
+3. **Using setup.py**: 
    
 		$ git clone https://github.com/kanishka-linux/kawaii-player
 		$ cd kawaii-player
