@@ -127,7 +127,7 @@ For opening torrents within this player, goto Addons->Torrent->Open and enter to
 
 Alternatively, Torrent file can be directly played by opening it with kawaii-player using right-click context menu. If you've installed kawaii-player using .deb or AUR package, then you can use command 'kawaii-player path_to.torrent' to open torrent file, or 'kawaii-player magnet_link' for opening magnet links. Those who have installed the player using common method, have to use the command 'python -B ~/.config/kawaii-player/src/kawaii_player.py path_to.torrent_or_magnet_link'.
 
-This feature is based on libtorrent-rasterbar {which is being used by bittorrent clients like qBittorrent and deluge} and it's python3 bindings. If you've installed latest version of libtorrent-rasterbar then python3 bindings are included along with it. In systems where older version of libtorrent-rasterbar is installed (for example in Ubuntu 14.04) , users need to install python3-libtorrent to use this feature.  
+This feature is based on libtorrent-rasterbar {which is being used by bittorrent clients like qBittorrent and deluge} and it's python3 bindings. If you've installed latest version of libtorrent-rasterbar then python3 bindings are included along with it. In systems where older version of libtorrent-rasterbar is installed, users need to install python3-libtorrent to use this feature.  
 
 Once Torrent streaming will start, a progress bar will appear to the right side, which will show basic information about torrent.
 If user will click on this progress bar then they will get controls for stopping torrent and for setting upload/download speed.
@@ -246,7 +246,7 @@ Note: Once user logs out from cookie and password enabled session, he/she can't 
 ######[Index](#index)
 ![kawaii-player](/Images/YT.png)
 
-This player provides a wrapper around youtube site using qtwebengine (since version 2.8.0-0). If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
+This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
 ## Addon Structure
 ######[Index](#index)
@@ -323,9 +323,9 @@ ffmpegthumbnailer(Thumbnail Generator for Local Files)
 
 **For extra features such as Youtube support, torrent streaming, MPRIS D-Bus support, desktop notifications and HTTPS:**
 
-libtorrent-rasterbar {since version 2.5.0-0, For Torrent Streaming Support}
+libtorrent-rasterbar {For Torrent Streaming Support}
 
-python3-libtorrent (for Ubuntu 14.04 and 16.04, since version 2.5.0-0)
+python3-libtorrent (for Ubuntu)
 
 youtube-dl {for YouTube Support}
 
