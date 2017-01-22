@@ -35,7 +35,7 @@ setup(
     license='GPLv3',
     author='kanishka-linux',
     author_email='kanishka.linux@gmail.com',
-    url='https://github.com/kanishka-linux/Kawaii-Player',
+    url='https://github.com/kanishka-linux/kawaii-player',
     long_description="README.md",
     packages=['kawaii_player','kawaii_player.Plugins'],
     include_package_data=True,
