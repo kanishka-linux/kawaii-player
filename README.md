@@ -256,6 +256,7 @@ In this player, a weak addon structure has been created, so that one can write a
 ######[Index](#index)
 
 1. For Arch Linux users, PKGBUILD is available in arch folder.
+
 		1. First install pytaglib from AUR
 		2. Create pacakge from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
 
