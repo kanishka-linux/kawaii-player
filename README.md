@@ -104,7 +104,7 @@ In thumbnail mode, Thumbnails of local video files are automatically generated w
 ######[Index](#index)
 ![kawaii-player](/Images/Music.png)
 
-It supports certain MPRIS D-bus functionalities. Therefore if you have created global keyboard shortcuts for play/pause,Next,Previous or Stop then they can work with this player also. Make sure python-dbus is installed on ststem to use this feature.
+It supports certain MPRIS D-bus functionalities. Therefore if you have created global keyboard shortcuts for play/pause,Next,Previous or Stop then they can work with this player also. Make sure python-dbus is installed on system to use this feature.
 
 It is not very powerful music organizer, but provide certain decent functionalities. When using with mplayer, it's cpu usage is just 1-2 % which makes it very ideal for low end machines.
 
@@ -143,7 +143,7 @@ The media server functionality can be started by clicking 'More' button, and sel
 For example, if server address is set to '192.168.1.1:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.1.1:9001/play' or 'http://192.168.2.1:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the media server in it's playlist.
 
 
-**A very simple web interface** has been provided for media server in the latest git commit, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.1.1:9001', then web interface can be opened at **192.168.1.1:9001/stream_continue.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.1.1:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
+**A very simple web interface** has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.1.1:9001', then web interface can be opened at **192.168.1.1:9001/stream_continue.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.1.1:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
 
 In local home network, if cookie and https is not enabled for media server then, one can access various media server playlists directly from vlc using simple urls.  
 
