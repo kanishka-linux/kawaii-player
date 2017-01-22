@@ -26,9 +26,9 @@ import os
 import shutil
 
 if os.name == 'posix':
-	install_dependencies = ['pycurl','bs4','Pillow','pytaglib','lxml','youtube_dl','dbus-python','psutil']
+	install_dependencies = ['pycurl','bs4','Pillow','pytaglib','lxml','youtube_dl']
 elif os.name == 'nt':
-	install_dependencies = ['PyQt5','pycurl','bs4','Pillow','mutagen','lxml','youtube_dl','psutil','certifi']
+	install_dependencies = ['PyQt5','pycurl','bs4','Pillow','mutagen','lxml','youtube_dl','certifi']
 setup(
     name='kawaii-player',
     version='1.0.0',
