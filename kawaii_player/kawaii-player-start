@@ -1,0 +1,2 @@
+#!/bin/bash
+if [ -z "$1" ]; then python3 -B kawaii_player.py; else python3 -B kawaii_player.py "$(pwd)/$1"; fi

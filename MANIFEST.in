@@ -1,0 +1,10 @@
+include kawaii_player/default.jpg
+include kawaii_player/kawaii-player-start
+include kawaii_player/introspect.xml
+include kawaii_player/kawaii-player.desktop
+include kawaii_player/Instructions
+include kawaii_player/1.png
+include kawaii_player/input.conf
+include kawaii_player/tray.png
+include kawaii_player/kawaii-player
+include kawaii_player/playlist.html

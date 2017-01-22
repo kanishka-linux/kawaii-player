@@ -1,0 +1,2 @@
+In order to create .deb package from the source, open terminal in the current working directory and execute following command:
+"python3 create_deb.py". It'll create .deb package in current working directory.
