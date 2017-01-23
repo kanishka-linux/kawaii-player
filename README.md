@@ -1,6 +1,6 @@
 ﻿# Kawaii-Player
 
-Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly.
+Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly. 
 
 ## Index
 
@@ -606,3 +606,6 @@ You can explore Right click menu of both Playlist Column and Title List Column f
 5. If users want to remove temporary directory automatically once the programme quits, then they should edit 'TMP_REMOVE' field in the '~/.config/kawaii-player/other_options.txt' and change it to 'yes' from 'no'.
 
 6. By default, the background image follows fit to screen mode without thinking about original aspect ratio of the image. If user want to change it to fit to width or fit to height without changing aspect ratio, then they should try Ctrl+2 or Ctrl+3 global key combination. Users can also try Ctrl+4 to Ctrl+8 shortcuts, to experiment with various available background image modes.
+
+7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). Currently both projects share more or less same code base, hence addons and settings of AnimeWatch player will work as it is in kawaii-player.
+If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '~/.config/AnimeWatch' to '~/.config/kawaii-player'.
