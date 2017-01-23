@@ -270,7 +270,7 @@ In this player, a weak addon structure has been created, so that one can write a
 
    If user want to install directly from source:
 		
-		$ git clone https://github.com/kanishka-linux/kawaii-player
+		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it, if user wants stable release)
 		$ cd kawaii-player/ubuntu
 		$ python3 create_deb.py
 		
@@ -279,8 +279,8 @@ In this player, a weak addon structure has been created, so that one can write a
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 
 3. **Using setup.py**: 
-   
-		$ git clone https://github.com/kanishka-linux/kawaii-player
+		
+		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it,if user wants stable release)
 		$ cd kawaii-player
 		$ python setup.py sdist (or python3 setup.py sdist)
 		$ cd dist
