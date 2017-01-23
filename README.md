@@ -304,9 +304,9 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 **Minimum Dependencies on GNU/Linux:** 
 
-python3 {Main Language}
+python3 {Main Language, version 3.5+}
 
-python-pyqt5 (Main GUI Builder)
+python-pyqt5 {Main GUI Builder, version 5.5+}
 
 python-pillow {For Image Processing}
 
