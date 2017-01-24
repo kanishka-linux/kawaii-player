@@ -53,15 +53,4 @@ class NetWorkManager(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
 			if l in lower_path:
 				block = True
 				break
-		if block:
-			info.block(True)
-			
-			
-		
-
-
-
-
-
-
-             
+		info.block(block)
