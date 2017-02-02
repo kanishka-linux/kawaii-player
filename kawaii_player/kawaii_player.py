@@ -1435,7 +1435,7 @@ class ThreadServerLocal(QtCore.QThread):
 			elif ui.https_media_server and os.path.exists(cert):
 				server_address = (self.ip,self.port)
 				httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
-				httpd.socket = ssl.wrap_socket(httpd.socket,certfile=cert,ssl_version=ssl.PROTOCOL_TLSv1_1)
+				httpd.socket = ssl.wrap_socket(httpd.socket,certfile=cert,ssl_version=ssl.PROTOCOL_TLSv1_2)
 				self.media_server_start.emit('https')
 			#httpd = MyTCPServer(server_address, HTTPServer_RequestHandler)
 		except OSError as e:
