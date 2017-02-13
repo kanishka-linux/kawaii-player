@@ -519,6 +519,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		if nm.startswith('http'):
 			self.send_response(303)
 			self.send_header('Location',nm)
+			self.send_header('Connection', 'close')
 			self.end_headers()
 		else:
 			if '.' in nm:
@@ -539,6 +540,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				nsize = size - get_bytes + 1
 			else:
 				nsize = size
+			
 			self.send_header('Accept-Ranges', 'bytes')
 			self.send_header('Content-Length', str(size))
 			if get_bytes or upper_range is not None:
@@ -547,7 +549,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				logger.info('...sending range...{0}-{1}/{2}'.format(get_bytes,upper_range,size))
 				self.send_header(
 					'Content-Range', 'bytes ' +str(get_bytes)+'-'+str(upper_range)+'/'+str(size))
-			self.send_header('Connection', 'close')
+			if get_bytes and 'firefox' in user_agent:
+				self.send_header('Connection','keep-alive')
+			else:
+				self.send_header('Connection', 'close')
 			self.end_headers()
 			
 			print(get_bytes,'--get--bytes--',nm_ext)
