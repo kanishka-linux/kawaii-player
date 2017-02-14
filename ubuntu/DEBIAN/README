@@ -1,6 +1,6 @@
-﻿# Kawaii-Player
+# Kawaii-Player
 
-Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly.
+Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly. 
 
 ## Index
 
@@ -125,8 +125,6 @@ Now with inclusion of torrent streaming feature, it's possible to write addons b
 
 For opening torrents within this player, goto Addons->Torrent->Open and enter torrent file name or torent url or magnet link inside the input dialog box, and then select appropriate entry which will appear in either Title list or Playlist. Your list of visited torrents will be accessible from the 'History' section. 
 
-Alternatively, Torrent file can be directly played by opening it with kawaii-player using right-click context menu. If you've installed kawaii-player using .deb or AUR package, then you can use command 'kawaii-player path_to.torrent' to open torrent file, or 'kawaii-player magnet_link' for opening magnet links. Those who have installed the player using common method, have to use the command 'python -B ~/.config/kawaii-player/src/kawaii_player.py path_to.torrent_or_magnet_link'.
-
 This feature is based on libtorrent-rasterbar {which is being used by bittorrent clients like qBittorrent and deluge} and it's python3 bindings. If you've installed latest version of libtorrent-rasterbar then python3 bindings are included along with it. In systems where older version of libtorrent-rasterbar is installed, users need to install python3-libtorrent to use this feature.  
 
 Once Torrent streaming will start, a progress bar will appear to the right side, which will show basic information about torrent.
@@ -138,7 +136,7 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 
 ## Media Server
 ######[Index](#index)
-The media server functionality can be started by clicking 'More' button, and selecting 'Start Media Server' option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. You can check, default local network address using cli tools like 'ifconfig' on any gnu/linux based systems. Once you know local network address of your server, then manually edit '~/.config/kawaii-player/other_options.txt' file and change the field "LOCAL_STREAM_IP" appropriately with local network address. Once you've set up the 'LOCAL_STREAM_IP' field properly, then you should be able to access the current playlist on the kawaii-player, from any device on the network. 
+The media server functionality can be started by clicking 'More' button, and selecting 'Start Media Server' option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. You can check, default local network address using cli tools like 'ifconfig' on any gnu/linux based systems. Once you know local network address of your server, then manually edit '~/.config/kawaii-player/other_options.txt' file and change the field "LOCAL_STREAM_IP" appropriately with local network address (or user can change it from settings menu). Once you've set up the 'LOCAL_STREAM_IP' field properly, then you should be able to access the current playlist on the kawaii-player, from any device on the network. 
 
 For example, if server address is set to '192.168.1.1:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.1.1:9001/play' or 'http://192.168.2.1:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the media server in it's playlist.
 
@@ -180,10 +178,12 @@ In short, Recommanded settings for external access to media server are as follow
 		COOKIE_EXPIRY_LIMIT=24
 		COOKIE_PLAYLIST_EXPIRY_LIMIT=24 
 
-Once https enabled, users will find that many media players might not play playlist generated from the browser due to self signed certificates. From popular players, I had some success with vlc and kodi. vlc sometimes work and sometimes won't play anything. kodi plays playlist very well but can't handle redirected url. mpv works perfectly with https streams in the playlist. kawaii-player player by default uses mpv as backend, hence generated playlist works well in it. mplayer can also play https streams but can't handle redirected url of the media server. In kawaii-player player, playlist can be anything from audio, video, youtube urls or addons url or even torrent streams. If playlist contains youtube url, then the server will return url of the video stream with the help of youtube-dl, and many players can't handle such redirection. In case of torrent streams (yes, users can start torrent streams directly on the media server, from any client playlist, which will be streamed back to client again), media server will send you redirected url, since torrent streams will start on different port (default 8001) than that of media server port (default 9001). Both kodi and mplayer can't handle it. But mpv (hence kawaii-player) and vlc can handle it perfectly well. kawaii-player player is optimized for streaming specially, hence users might get good streaming experience with it. It also contains offline mode, which might be useful for downloading, media server content to client for offline viewing.
+Once https enabled, users will find that many media players might not play playlist generated from the browser due to self signed certificates. From popular players, vlc,kodi,mplayer,mpv can play self signed https streams well. vlc sometimes work and sometimes won't play anything. kodi plays playlist very well but can't handle redirection. mpv works perfectly with https streams in the playlist. kawaii-player player by default uses mpv as backend, hence generated playlist works well in it. mplayer can also play https streams along with redirection. In kawaii-player, playlist can be anything from audio, video, youtube urls or addons url or even torrent streams. If playlist contains youtube url, then the server will return url of the video stream with the help of youtube-dl. In case of torrent streams (yes, users can start torrent streams directly on the media server, from any client playlist, which will be streamed back to client again), media server will send you redirected url, since torrent streams will start on different port (default 8001) than that of media server port (default 9001). 
+
+kawaii-player player is optimized for streaming specially, hence users might get good streaming experience with it. It also contains offline mode, which might be useful for downloading, media server content to client for offline viewing.
 
 
-kawaii-player player allows user to start media server on the fly. Basically I never thought of it as 24x7 on media server. (Therefore, I can't tell about it's performance if it is used 24x7.). I wanted to create a portable media server which user can start at any time and anywhere for a brief period so as to share content with family members, friends or colleagues with the help of simple playlist or simple urls, without depending on any third party. And sometimes we just want to enjoy the content, which we have piled up on our working computer, from other devices quickly, without much set up. Creating web interface was not even on my mind, but later I found that web interface might be good for generating playlist, hence at last I created a very simple (but dry and boaring) web interface just for easy playlist creation. Users can play media on the browser itself, but they won't be able to play all the media formats, because application does not use any kind of transcoding. Media server feature is implemented using python's inbuilt http.server module, hence it doesn't require any other external dependency.
+kawaii-player player allows user to start media server on the fly. Basically I never thought of it as 24x7 on media server. (Therefore, I can't tell about it's performance if it is used 24x7.). I wanted to create a portable media server which user can start at any time and anywhere for a brief period so as to share content with family members, friends or colleagues with the help of simple playlist or simple urls, without depending on any third party. And sometimes we just want to enjoy the content, which we have piled up on our working computer, from other devices quickly, without much set up. Creating web interface was not even on my mind, but later I found that web interface might be good for generating playlist, hence at last I created a very simple (but dry and boring) web interface just for easy playlist creation. Users can play media on the browser itself, but they won't be able to play all the media formats, because application does not use any kind of transcoding. Media server feature is implemented using python's inbuilt http.server module, hence it doesn't require any other external dependency.
 
 Note: Users need to use separate port number for media server and torrent streaming feature. Port number along with local IP for torrent streaming feature needs to be set in 'torrent_config.txt' (TORRENT_STREAM_IP field) and that of media server in 'other_options.txt' (LOCAL_STREAM_IP field). Default Settings: 'TORRENT_STREAM_IP=127.0.0.1:8001' and 'LOCAL_STREAM_IP=127.0.0.1:9001'. In default settings one can't access local media from another computer. Users need to change default loopback address to local ip address. Users have to set local IP address and port once only. If local IP address of the media server changes dynamically next time, then the kawaii-player application will try to find out new address automatically. If the application can't find new address then users have to manually change the config files again.
 
@@ -257,6 +257,9 @@ In this player, a weak addon structure has been created, so that one can write a
 
 1. For Arch Linux users, PKGBUILD is available in arch folder.
 
+		1. First install pytaglib from AUR
+		2. Create package from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
+
 2. Ubuntu or Debian based distro users can directly go to Release section or package directory,download appropriate .deb package and install it using
  
 		sudo gdebi pkg_name.deb. 
@@ -267,7 +270,7 @@ In this player, a weak addon structure has been created, so that one can write a
 
    If user want to install directly from source:
 		
-		$ git clone https://github.com/kanishka-linux/kawaii-player
+		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it, if user wants stable release)
 		$ cd kawaii-player/ubuntu
 		$ python3 create_deb.py
 		
@@ -275,9 +278,9 @@ In this player, a weak addon structure has been created, so that one can write a
 				
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 
-3. Using **setup.py** located in **Python-SETUP** directory: 
-   
-		$ git clone https://github.com/kanishka-linux/kawaii-player
+3. **Using setup.py**: 
+		
+		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it,if user wants stable release)
 		$ cd kawaii-player
 		$ python setup.py sdist (or python3 setup.py sdist)
 		$ cd dist
@@ -301,9 +304,9 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 **Minimum Dependencies on GNU/Linux:** 
 
-python3 {Main Language}
+python3 {Main Language, version 3.5+}
 
-python-pyqt5 (Main GUI Builder)
+python-pyqt5 {Main GUI Builder, version 5.5+}
 
 python-pillow {For Image Processing}
 
@@ -603,3 +606,6 @@ You can explore Right click menu of both Playlist Column and Title List Column f
 5. If users want to remove temporary directory automatically once the programme quits, then they should edit 'TMP_REMOVE' field in the '~/.config/kawaii-player/other_options.txt' and change it to 'yes' from 'no'.
 
 6. By default, the background image follows fit to screen mode without thinking about original aspect ratio of the image. If user want to change it to fit to width or fit to height without changing aspect ratio, then they should try Ctrl+2 or Ctrl+3 global key combination. Users can also try Ctrl+4 to Ctrl+8 shortcuts, to experiment with various available background image modes.
+
+7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). Currently both projects share more or less same code base, hence addons and settings of AnimeWatch player will work as it is in kawaii-player.
+If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '~/.config/AnimeWatch' to '~/.config/kawaii-player'.
