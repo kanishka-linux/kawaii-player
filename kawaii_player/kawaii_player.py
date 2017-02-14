@@ -3460,27 +3460,31 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 		elif action == list_mode:
 			ui.thumbnailHide('none')
 		elif action == removeThumb:
-			nm = (ui.list1.currentItem().text())
+			if ui.list1.currentItem():
+				nm = ui.list1.currentItem().text()
+			else:
+				nm = ''
 			if site != "Local" and finalUrlFound == False:
 				if '	' in epnArrList[num]:
 					a = epnArrList[num].split('	')[0]
 					a = a.replace('#','',1)
 					if a.startswith(ui.check_symbol):
 						a = a[1:]
-					picn = os.path.join(home,'thumbnails',nm,a+'.jpg')
+					#picn = os.path.join(home,'thumbnails',nm,a+'.jpg')
 				else:
 					a = (str(epnArrList[num])).replace('#','',1)
 					if a.startswith(ui.check_symbol):
 						a = a[1:]
-					picn = os.path.join(home,'thumbnails',nm,name+'-'+a+'.jpg')
+					#picn = os.path.join(home,'thumbnails',nm,name+'-'+a+'.jpg')
+				if ui.list3.currentItem() and site == 'Music':
+					if ui.list3.currentItem().text() == 'Playlist':
+						picn = os.path.join(home,'thumbnails','PlayLists',nm,a+'.jpg')
+					else:
+						picn = os.path.join(home,'thumbnails',site,nm,a+'.jpg')
+				else:
+					picn = os.path.join(home,'thumbnails',site,nm,a+'.jpg')
 				if os.path.exists(picn):
 					os.remove(picn)
-					if thumbnail_grid:
-						q1="ui.label_epn_"+str(num)+".clear()"
-					else:
-						q1="ui.label.clear()"
-					exec(q1)
-				if os.path.exists(picn):
 					small_nm_1,new_title = os.path.split(picn)
 					small_nm_2 = '128px.'+new_title
 					#small_nm_2 = '128px.'+picn.rsplit('/',1)[-1]
@@ -3488,6 +3492,12 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 					logger.info(new_small_thumb)
 					if os.path.exists(new_small_thumb):
 						os.remove(new_small_thumb)
+					if thumbnail_grid:
+						q1="ui.label_epn_"+str(num)+".clear()"
+					else:
+						q1="ui.label.clear()"
+					exec(q1)
+					
 			elif site =="Local" or finalUrlFound == True or site=="PlayLists":
 				if '	' in epnArrList[num]:
 					a = (epnArrList[num]).split('	')[0]
@@ -3626,6 +3636,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 					if not os.path.exists(picnD):
 						os.makedirs(picnD)
 					picn = os.path.join(picnD,a1)+'.jpg'
+					picn_new = picn
 					ui.generate_thumbnail_method(picn,inter,path)
 				picn = ui.image_fit_option(picn,'',fit_size=6,widget_size=(int(width),int(height)))
 				img = QtGui.QPixmap(picn, "1")			
@@ -3636,66 +3647,73 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 				exec (q1)
 				if interval == 100:
 					interval = 10
+				if os.path.exists(picn_new):
+					small_nm_1,new_title = os.path.split(picn_new)
+					small_nm_2 = '128px.'+new_title
+					new_small_thumb = os.path.join(small_nm_1,small_nm_2)
+					logger.info(new_small_thumb)
+					if os.path.exists(new_small_thumb):
+						os.remove(new_small_thumb)
 			else:
-					width = ui.label.width()
-					height = ui.label.height()
-					print("num="+str(num))
-					ui.list2.setCurrentRow(num)
-					if memory_num_arr:
-						t_num = memory_num_arr.pop()
-					else:
-						t_num = -1
+				width = ui.label.width()
+				height = ui.label.height()
+				print("num="+str(num))
+				ui.list2.setCurrentRow(num)
+				if memory_num_arr:
+					t_num = memory_num_arr.pop()
+				else:
+					t_num = -1
+			
+				if t_num != num:
+					#ui.epnfound_return()
+					path_final_Url = ui.epn_return(num)
+					interval = 10
+				memory_num_arr.append(num)
+				if '	' in epnArrList[num]:
+					a = (((epnArrList[num])).split('	')[0])
+				else:			
+					a = ((epnArrList[num]))
+				a = a.replace('#','',1)
+				if a.startswith(ui.check_symbol):
+					a = a[1:]
+				picnD = os.path.join(home,'thumbnails',name)
+				if not os.path.exists(picnD):
+					os.makedirs(picnD)
+				picn = os.path.join(picnD,a+'.jpg')
+				interval = (interval + 10)
+				inter = str(interval)+'s'
+				path_final_Url = str(path_final_Url)
+				path_final_Url = path_final_Url.replace('"','')
+				if path_final_Url.startswith('/'):
+					path_final_Url = '"'+path_final_Url+'"'
+				subprocess.call(
+						["mpv","--no-sub","--ytdl=no","--quiet","--no-audio",
+						"--vo=image:outdir="+TMPDIR,
+						"--start="+str(interval)+"%","--frames=1",
+						path_final_Url])
+				tmp_img = os.path.join(TMPDIR,'00000001.jpg')
+				if os.path.exists(tmp_img):
+					tmp_new_img = ui.change_aspect_only(tmp_img)
+					shutil.copy(tmp_new_img,picn)
+					os.remove(tmp_img)
+				print(width,height)
+				#picn = ui.image_fit_option(picn,'',fit_size=6,widget_size=(int(width),int(height)))
 				
-					if t_num != num:
-						#ui.epnfound_return()
-						path_final_Url = ui.epn_return(num)
-						interval = 10
-					memory_num_arr.append(num)
-					if '	' in epnArrList[num]:
-						a = (((epnArrList[num])).split('	')[0])
-					else:			
-						a = ((epnArrList[num]))
-					a = a.replace('#','',1)
-					if a.startswith(ui.check_symbol):
-						a = a[1:]
-					picnD = os.path.join(home,'thumbnails',name)
-					if not os.path.exists(picnD):
-						os.makedirs(picnD)
-					picn = os.path.join(picnD,a+'.jpg')
-					interval = (interval + 10)
-					inter = str(interval)+'s'
-					path_final_Url = str(path_final_Url)
-					path_final_Url = path_final_Url.replace('"','')
-					if path_final_Url.startswith('/'):
-						path_final_Url = '"'+path_final_Url+'"'
-					subprocess.call(
-							["mpv","--no-sub","--ytdl=no","--quiet","--no-audio",
-							"--vo=image:outdir="+TMPDIR,
-							"--start="+str(interval)+"%","--frames=1",
-							path_final_Url])
-					tmp_img = os.path.join(TMPDIR,'00000001.jpg')
-					if os.path.exists(tmp_img):
-						tmp_new_img = ui.change_aspect_only(tmp_img)
-						shutil.copy(tmp_new_img,picn)
-						os.remove(tmp_img)
-					print(width,height)
-					#picn = ui.image_fit_option(picn,'',fit_size=6,widget_size=(int(width),int(height)))
-					
-					img = QtGui.QPixmap(picn, "1")			
-					if thumbnail_grid:
-						q1="ui.label_epn_"+str(num)+".setPixmap(img)"
-					else:
-						q1="ui.label.setPixmap(img)"
-					exec (q1)
-					if interval == 100:
-						interval = 10
-			if os.path.exists(picn):
-				small_nm_1,new_title = os.path.split(picn)
-				small_nm_2 = '128px.'+new_title
-				new_small_thumb = os.path.join(small_nm_1,small_nm_2)
-				logger.info(new_small_thumb)
-				if os.path.exists(new_small_thumb):
-					os.remove(new_small_thumb)
+				img = QtGui.QPixmap(picn, "1")			
+				if thumbnail_grid:
+					q1="ui.label_epn_"+str(num)+".setPixmap(img)"
+				else:
+					q1="ui.label.setPixmap(img)"
+				exec (q1)
+				if interval == 100:
+					interval = 10
+				if os.path.exists(picn):
+					small_nm_1,new_title = os.path.split(picn)
+					small_nm_2 = '128px.'+new_title
+					new_small_thumb = os.path.join(small_nm_1,small_nm_2)
+					logger.info(new_small_thumb)
+					if os.path.exists(new_small_thumb):
+						os.remove(new_small_thumb)
 
 
 class MySlider(QtWidgets.QSlider):
@@ -4357,7 +4375,7 @@ class List1(QtWidgets.QListWidget):
 				submenu = QtWidgets.QMenu(menu)
 				submenu.setTitle("Bookmark Options")
 				menu.addMenu(submenu)
-				if 'AnimeWatch' in home:
+				if 'AnimeWatch' in home or ui.anime_review_site:
 					submenu_arr_dict = {
 						'mal':'MyAnimeList','ap':'Anime-Planet',
 						'ans':'Anime-Source','tvdb':'TVDB',
@@ -8096,6 +8114,7 @@ class Ui_MainWindow(object):
 		self.cookie_playlist_expiry_limit = 24
 		self.logging_module = False
 		self.ytdl_path = 'default'
+		self.anime_review_site = False
 		self.https_cert_file = os.path.join(home,'cert.pem')
 		self.progress_counter = 0
 		self.posterfound_arr = []
@@ -13440,7 +13459,7 @@ class Ui_MainWindow(object):
 		new_url = ''
 		if srch_txt:
 			srch_txt = srch_txt.replace('"','')
-		if 'AnimeWatch' in home:
+		if 'AnimeWatch' in home or self.anime_review_site:
 			web_arr_dict = {
 				'mal':'MyAnimeList','ap':'Anime-Planet',
 				'ans':'Anime-Source','tvdb':'TVDB','ann':'ANN',
@@ -21334,6 +21353,17 @@ def main():
 				except Exception as e:
 					print(e)
 					ui.logging_module = False
+			elif i.startswith('ANIME_REVIEW_SITE='):
+				try:
+					k = j.lower()
+					if k:
+						if k == 'yes' or k == 'true' or k == '1':
+							ui.anime_review_site = True
+						else:
+							ui.anime_review_site = False
+				except Exception as e:
+					print(e)
+					ui.anime_review_site = False
 			elif i.startswith('YTDL_PATH='):
 				try:
 					k = j.lower()
@@ -21369,13 +21399,18 @@ def main():
 		f.write("\nCOOKIE_PLAYLIST_EXPIRY_LIMIT=24")
 		f.write("\nLOGGING=Off")
 		f.write("\nYTDL_PATH=DEFAULT")
+		f.write("\nANIME_REVIEW_SITE=False")
 		f.close()
 		ui.local_ip_stream = '127.0.0.1'
 		ui.local_port_stream = 9001
 		
 	print(ui.torrent_download_limit,ui.torrent_upload_limit)
 	
-	
+	anime_review_arr = ["MyAnimeList","Anime-Planet","Anime-Source","AniDB",
+						"Zerochan"]
+	if ui.anime_review_site and 'AnimeWatch' not in home:
+		for i in anime_review_arr:
+			ui.btnWebReviews.addItem(i)
 	if not ui.logging_module:
 		logger.disabled = True
 	arr_setting = []
