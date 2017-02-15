@@ -2300,6 +2300,19 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 		global fullscr,idwMain,idw,quitReally,new_epn,toggleCache,quitReally
 		global pause_indicator,iconv_r,tab_6_size_indicator,ui,MainWindow
 		global mpv_indicator
+		if Player == 'mplayer':
+			if site == "Local" or site == "None" or site == "PlayLists":
+				pass
+			else:
+				try:
+					if self.seek_timer.isActive():
+						logger.info('--seek-timer-available--')
+				except Exception as e:
+					print(e,'--2309--')
+					logger.info('seek timer variable not available, creating new seek timer')
+					self.seek_timer = QtCore.QTimer()
+					self.seek_timer.timeout.connect(self.seek_mplayer)
+					self.seek_timer.setSingleShot(True)
 		if mpvplayer:
 			if mpvplayer.processId() > 0:
 					#self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
