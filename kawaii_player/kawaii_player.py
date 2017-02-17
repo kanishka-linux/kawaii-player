@@ -2014,13 +2014,13 @@ class find_poster_thread(QtCore.QThread):
 				poster_text = os.path.join(TMPDIR,name+'-poster.txt')
 				fanart_text = os.path.join(TMPDIR,name+'-fanart.txt')
 				
-				if os.path.isfile(poster_text):
+				if os.path.isfile(poster_text) and os.stat(poster_text).st_size:
 					lines = open_files(poster_text,True)
 					logger.info(lines)
 					url1 = re.sub('\n|#','',lines[0])
 					url = "http://thetvdb.com/" + url1
 					ccurl(url+'#'+'-o'+'#'+thumb)
-				if os.path.isfile(fanart_text):
+				if os.path.isfile(fanart_text) and os.stat(fanart_text).st_size:
 					lines = open_files(fanart_text,True)
 					logger.info(lines)
 					url1 = re.sub('\n|#','',lines[0])
@@ -4435,7 +4435,15 @@ class List1(QtWidgets.QListWidget):
 						
 				for i in range(len(reviews)):
 					if action == reviews[i]:
-						st = list(submenu_arr_dict.keys())[list(submenu_arr_dict.values()).index(reviews[i].text())]
+						new_review = reviews[i].text()
+						if new_review.startswith('&'):
+							new_review = new_review[1:]
+						try:
+							st = list(submenu_arr_dict.keys())[list(submenu_arr_dict.values()).index(new_review)]
+							logger.info('review-site: {0}'.format(st))
+						except ValueError as e:
+							print(e,'--key--not--found--')
+							st = 'ddg'
 						ui.reviewsWeb(srch_txt=name,review_site=st,action='context_menu')
 						
 				if action == new_pls:
