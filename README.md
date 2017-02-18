@@ -4,6 +4,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ## Index
 
+[Why Another Media Player/Organizer/Server?](#why-another-media-player)
+
 [Features](#features)
 
 [Normal Mode](#normal-mode)
@@ -31,6 +33,20 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 [Troubleshooting](#troubleshooting)
 
 [Brief Documentation](#documentation)
+
+## Why Another Media Player?
+
+Initially the application started as simple combined audio/video player/manager with support for custom addons for gnu/linux system. GNU/Linux ecosystem has many good music players/managers and video players. But I felt that, a simple lightweight combine audio/video player and library manager which is free and open, with mpv/mplayer as backend, was missing. Hence, I decided to write one with support for custom addons. 
+
+After developing decent combined audio/video management facility within the application, I thought that, once our media collection is organised by particular application, there are instances when we want to access it from other devices. There are many solutions to it in the market but most of them required static centralized 24x7 ON media servers; but I wanted a lightweight, portable and no-heavy setup kind of solution; hence I built media server within the media-player itself, which one can switch on and off anytime from anywhere with just one click. Therefore, now the application is audio/video player including youtube videos and torrent streams (using mpv/mplayer as playback engine) , library manager (with custom fanart and posters support), custom addons support and portable media server combined.
+
+### Why complicate things by creating media-server within media player itself?
+
+Actually, Instead of complicating anything, the built-in media-server can simplify many things, because now-a-days we are surrounded by portable devices everywhere, from which we want to access our media with as little effort as possible.
+
+The built-in media server of this application can have many use cases. If your family members or friends use different operating systems and you want to share some content which is lying on your working computer quickly, then you can simply create a streaming web interface out of your collection managed by kawaii-player instantly with just one click, for others to stream the content, irrespective of their OS. Alternatively you can generate universal playlist from media server and set expiry limit to it, contents of which can be played/streamed on any device with any popular media player, subject to hardware capacity of mobile device. It doesn't do any transcoding since popular media-players like mpv/mplayer/vlc/kodi can handle anything in the universal playlist. On long journey or travel also, this portable media server can come handy by converting any laptop/netbook as streaming media server for other portable devices surrounding you. 
+
+Moreover media-server of this application has been designed in such a manner that, user don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort. User can access their own media managed by kawaii-player from outside the network, by configuring port forwarding on router.
 
 ## Features
 
