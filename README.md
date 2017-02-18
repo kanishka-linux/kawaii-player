@@ -40,7 +40,7 @@ Initially the application started as simple combined audio/video player/manager 
 
 After developing decent combined audio/video management facility within the application, I thought that, once our media collection is organised by particular application, there are instances when we want to access it from other devices. There are many solutions to it in the market but most of them required static centralized 24x7 ON media servers; but I wanted a lightweight, portable and no-heavy setup kind of solution; hence I built media server within the media-player itself, which one can switch on and off anytime from anywhere with just one click. Therefore, now the application is audio/video player including youtube videos and torrent streams (using mpv/mplayer as playback engine) , library manager (with custom fanart and posters support), custom addons support and portable media server combined.
 
-### Why complicate things by creating media-server within media player itself?
+### Why complicate things by building media-server within media player itself?
 
 Actually, Instead of complicating anything, the built-in media-server can simplify many things, because now-a-days we are surrounded by portable devices everywhere, from which we want to access our media with as little effort as possible.
 
