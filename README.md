@@ -2,7 +2,7 @@
 
 Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly. 
 
-[But Why Another Media Player/Organizer/Server?](#why-another-media-player?)
+[But Why Another Media Player/Organizer/Server?](#why-another-media-player)
 
 ## Index
 
@@ -34,7 +34,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Brief Documentation](#documentation)
 
-## Why Another Media Player?
+## Why Another Media Player
 
 Initially the application started as simple combined audio/video player/manager with support for custom addons for gnu/linux system. GNU/Linux ecosystem has many good music players/managers and video players. But I felt that, a simple lightweight combine audio/video player and library manager which is free and open, with mpv/mplayer as backend, was missing. Hence, I decided to write one with support for custom addons. 
 
