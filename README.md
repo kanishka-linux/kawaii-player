@@ -2,13 +2,13 @@
 
 Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly. 
 
+![kawaii-player](/Images/Video.png)
+
 [But Why Another Media Player/Organizer/Server?](#why-another-media-player)
 
 ## Index
 
 [Features](#features)
-
-[Normal Mode](#normal-mode)
 
 [Playing Mode](#playing-mode)
 
@@ -48,7 +48,7 @@ The built-in media server of this application can have many use cases. If your f
 
 Moreover media-server of this application has been designed in such a manner that, user don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort. User can access their own media managed by kawaii-player from outside the network, by configuring port forwarding on router.
 
-**Note:**Even though, the application has been mainly developed for GNU/Linux systems, theoretically it is possible to install it on any operating system which supports installation of python 3.5+ and pyqt5 5.5+.
+**Note:**In the beginning, the application was mainly developed for GNU/Linux systems, but later on I adjusted code so that it should run on any platform. Therefore now it is possible to install it on any operating system which supports installation of python 3.5+ and pyqt5 5.5+.
 
 ## Features
 
@@ -78,27 +78,22 @@ Moreover media-server of this application has been designed in such a manner tha
 
 13. Proper History Manager for both addons and local content.
 
-14. Bookmark support for both Audio, Video and Addons.
+14. mplayer/mpv internal player.
 
-15. mplayer/mpv internal player.
+15. Better buffer management for mplayer on low bandwidth network.
 
-16. Better buffer management for mplayer on low bandwidth network.
+16. Support for opening video in external players like vlc, smplayer or kodi.
 
-17. Support for opening video in external players like vlc, smplayer or kodi.
+17. Torrent streaming player.
 
-18. Torrent streaming player.
+18. Media Server capability.
 
-19. Media Server capability.
+19. Youtube wrapper using qtwebengine/qtwebkit.
 
-20. Youtube wrapper using qtwebengine/qtwebkit.
+20. Detached Video Mode.
 
-21. Detached Video Mode.
+21. Universal Playlist Generation.
 
-22. Universal Playlist Generation.
-
-## Normal Mode 
-######[Index](#index)
-![kawaii-player](/Images/Video.png)
 
 ## Playing Mode
 ######[Index](#index)
