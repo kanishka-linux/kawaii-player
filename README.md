@@ -48,6 +48,8 @@ The built-in media server of this application can have many use cases. If your f
 
 Moreover media-server of this application has been designed in such a manner that, user don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort. User can access their own media managed by kawaii-player from outside the network, by configuring port forwarding on router.
 
+**Note:**Even though, the application has been mainly developed for GNU/Linux systems, theoretically it is possible to install it on any operating system which supports installation of python 3.5+ and pyqt5 5.5+.
+
 ## Features
 
 1.  Combine Audio-Video Player and Manager.
