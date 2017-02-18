@@ -14651,6 +14651,7 @@ class Ui_MainWindow(object):
 				if str(self.list3.currentItem().text()) == "Artist":
 					nm = self.list1.item(row).text()
 				else:
+					row = self.list2.currentRow()
 					nm = epnArrList[row].split('	')[2]
 					nm = nm.replace('"','')
 			except Exception as e:
