@@ -16758,7 +16758,7 @@ class Ui_MainWindow(object):
 		
 	def finishedM(self,nm):
 		global name,epnArrList,site
-		if site == "Music" and self.list3.currentItem():
+		if (site == "Music" and self.list3.currentItem()) or (site == 'PlayLists'):
 			if nm:
 				m_path = os.path.join(home,'Music','Artist',nm,'poster.jpg')
 				t_path = os.path.join(home,'Music','Artist',nm,'thumbnail.jpg')
