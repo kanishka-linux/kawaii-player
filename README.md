@@ -49,7 +49,7 @@ The built-in media server of this application can have many use cases. If your f
 
 Moreover media-server of this application has been designed in such a manner that, user don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort. User can access their own media managed by kawaii-player from outside the network, by configuring port forwarding on router.
 
-**Note:** The application was initially developed for gnu/linux systems, but now it is possible to install it on any operating system which supports installation of python 3.5+ and pyqt5 5.5+, **using setup.py script**. 
+**Note:** The application was initially developed for gnu/linux systems, but now it is possible to install it on any operating system (using **setup.py** script) which supports installation of python 3.5+ and pyqt5 5.5+. 
 
 ## Features
 ######[Index](#index)
@@ -294,7 +294,7 @@ In this player, a weak addon structure has been created, so that one can write a
 				
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 
-3. **Using setup.py**: 
+3. **Using setup.py** (Common method for all): 
 		
 		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it,if user wants stable release)
 		$ cd kawaii-player
@@ -311,7 +311,7 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	Once application is installed, launch the application using command **kawaii-player** or **kawaii-player-console** from the terminal.
 
-4. Common Method: Users have to manually install all the dependencies listed below. Then they should clone the repository and go to kawaii_player. Open terminal in that directory and run 'python3 install.py' (or 'python install.py' if default python points to python3). Application launcher will be created in '~/.local/share/applications/'.
+4. Alternative Method (only for gnu/linux systems): Users have to manually install all the dependencies listed below. Then they should clone the repository and go to kawaii_player. Open terminal in that directory and run 'python3 install.py' (or 'python install.py' if default python points to python3). Application launcher will be created in '~/.local/share/applications/'.
 Or they can simply click (or execute using command line) **'kawaii-player-start'** shell script located in the directory to start the player directly **without copying files anywhere**.
 
 
