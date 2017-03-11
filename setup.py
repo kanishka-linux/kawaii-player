@@ -26,7 +26,7 @@ import os
 import shutil
 
 if os.name == 'posix':
-	install_dependencies = ['pycurl','bs4','Pillow','pytaglib','lxml','youtube_dl']
+	install_dependencies = ['PyQt5','pycurl','bs4','Pillow','mutagen','lxml','youtube_dl']
 elif os.name == 'nt':
 	install_dependencies = ['PyQt5','pycurl','bs4','Pillow','mutagen','lxml','youtube_dl','certifi']
 setup(
@@ -42,5 +42,5 @@ setup(
     entry_points={'gui_scripts':['kawaii-player = kawaii_player.kawaii_player:main'],'console_scripts':['kawaii-player-console = kawaii_player.kawaii_player:main']},
     package_data={'kawaii_player':['tray.png','default.jpg','kawaii-player.desktop','input.conf','kawaii-player-start','1.png','Instructions','playlist.html']},
     install_requires=install_dependencies,
-    description="A Audio/Video manager and Front End for mpv/mplayer with special emphasis on Anime Collection",
+    description="A Audio/Video manager, multimedia player and portable media server",
 )
