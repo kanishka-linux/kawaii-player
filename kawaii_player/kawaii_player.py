@@ -8156,6 +8156,7 @@ class Ui_MainWindow(object):
 		self.tmp_download_folder = TMPDIR
 		self.logger = logger
 		self.epn_name_in_list = ''
+		self.review_site_code = 'g'
 		self.external_url = False
 		self.subtitle_new_added = False
 		self.window_frame = 'true'
@@ -13513,7 +13514,7 @@ class Ui_MainWindow(object):
 					review_site = i
 					break
 			#review_site = list(web_arr_dict.keys())[list(web_arr_dict.values()).index(review_site_tmp)]
-			
+		self.review_site_code = review_site
 		print(self.web,'0')
 		if not self.web and review_site:
 			try:
@@ -13609,6 +13610,7 @@ class Ui_MainWindow(object):
 		logger.info(self.web)
 		self.webStyle(self.web)
 		logger.info('--13527---{0}-{1}'.format(review_site,name1))
+		self.review_site_code = review_site
 		if review_site == "ap":
 			self.web.load(QUrl("http://www.anime-planet.com/anime/all?name="+name1))
 		elif review_site == "mal":
