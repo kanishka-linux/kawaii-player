@@ -369,7 +369,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 ## Troubleshooting
 ######[Index](#index)
 
-1. If you've installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'anime-watch' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
+1. If you've installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'kawaii-player' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
 
 2. If addons are not working after some time or fanart/poster are not fetched properly, then try clearing the cache directory '~/.config/kawaii-player/tmp/'. If users have some problems in using qtwebengine, then try clearing cache directory for qtwebengine '~/.config/kawaii-player/Cache/'.
 
@@ -377,7 +377,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 4. In order to update addons manually , download or clone the github kawaii_player directory, then go to github 'kawaii_player/Plugins' directory, and simply copy content of 'Plugins' directory into '~/.config/kawaii-player/src/Plugins'.
 
-5. Sometimes application launcher does not launch the application because of some configuration issues in .desktop file. In such cases try changing 'Terminal=True' to 'Terminal=false' in the file '/usr/share/applications/kawaii-player.desktop'. If it does not solve the problem then open terminal and execute the command 'anime-watch' to see the error output.
+5. Sometimes application launcher does not launch the application because of some configuration issues in .desktop file. In such cases try changing 'Terminal=True' to 'Terminal=false' in the file '/usr/share/applications/kawaii-player.desktop'. If it does not solve the problem then open terminal and execute the command 'kawaii-player' to see the error output.
 
 6. In Plsma 5.8+, the application does not close even after clicking on close button on title bar or using ALT+F4. Therefore, plasma users have to exit application by right clicking the tray icon and selecting the exit option, or using exit button in player itself. Tray icon remains hidden in the plasma panel, which users need to first un-hide by manually adjusting plasma tray settings. 
 
@@ -507,7 +507,7 @@ vo=gl
 
 You can change the parameters as per your choice.
 
-Similarly, most of the properties of mpv global config file '~/.mpv/config/' will work with this player. If possible you should add following line in mpv config file.
+Similarly, most of the properties of mpv global config file '~/.config/mpv/config/' will work with this player. If possible you should add following line in mpv config file.
 
 user-agent="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:43.0) Gecko/20100101 Firefox/43.0" {or any other user-agent}
 
