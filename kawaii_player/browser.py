@@ -144,7 +144,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 		try:
 			row = ui.list2.currentRow()
 			url_name = self.epnArrList[row].split('	')[1]
-			if 'youtube.com' in url_name:
+			if 'youtube.com' in url_name or self.ui.review_site_code == 'yt':
 				yt_url = True
 		except:
 			pass
@@ -347,7 +347,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 				self.ui.watchDirectly(final_url,self.epn_name_in_list,'no')
 				self.ui.tab_5.show()
 				self.ui.frame1.show()
-				self.ui.tab_2.setMaximumWidth(400)
+				self.ui.tab_2.setMaximumWidth(self.ui.width_allowed+50)
 				
 	def custom_links(self,q_url):
 		url = q_url
