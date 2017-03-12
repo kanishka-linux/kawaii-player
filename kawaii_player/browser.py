@@ -205,7 +205,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 			self.ui.watchDirectly(final_url,self.epn_name_in_list,'no')
 			self.ui.tab_5.show()
 			self.ui.frame1.show()
-			self.ui.tab_2.setMaximumWidth(400)
+			self.ui.tab_2.setMaximumWidth(self.ui.width_allowed+50)
 			
 	@pyqtSlot(str)
 	def got_playlist_html(self,final_url):
