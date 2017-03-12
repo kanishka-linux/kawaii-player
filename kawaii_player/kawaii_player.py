@@ -11429,13 +11429,12 @@ class Ui_MainWindow(object):
 			print('--stretch -- added--to --label and text widget--')
 		
 		self.tmp_web_srch = ''
-		
+		self.web.setHtml('<html>Reviews:</html>')
 		if platform_name == 'ubuntu':
-			self.web.setHtml('<html>Reviews:</html>')
 			print('--page--cleared--')
 		else:
 			try:
-				self.web.setHtml('<html>Reviews:</html>')
+				QtCore.QTimer.singleShot(2000, partial(self.delete_web_instance,self.web))
 				#self.web.close()
 				#self.web.deleteLater()
 				#del self.web
@@ -11451,6 +11450,12 @@ class Ui_MainWindow(object):
 		self.label.show()
 		self.text.show()
 		self.frame1.show()
+		
+	def delete_web_instance(self,web):
+		web.close()
+		web.deleteLater()
+		#del self.web
+		self.web = None
 		
 	def webHide(self):
 		global mpvplayer
