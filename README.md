@@ -405,7 +405,9 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 2. If you do not find application launcher in the menu then try copying manually "~/.config/kawaii-player/kawaii-player.desktop" to either "~/.local/share/applications/" or "/usr/share/applications/"
 
-3. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
+3. If copying of application launcher is failing due not existing of "~/.local/share/applications/" folder, then create one and repeat installation process.
+
+4. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
 
 ## Documentation
 ######[Index](#index)
