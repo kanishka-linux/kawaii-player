@@ -9632,25 +9632,28 @@ class Ui_MainWindow(object):
 			self.gridLayout.setSpacing(5)
 			
 	def webStyle(self,web):
-		web.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
-		web.setStyleSheet("""
-		QMenu{
-			font: bold 12px;color:black;background-image:url('1.png');
-		}
-		""")
+		global platform_name
+		if platform_name.lower() != 'plasma':
+			web.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
+			web.setStyleSheet("""
+			QMenu{
+				font: bold 12px;color:black;background-image:url('1.png');
+			}
+			""")
 		
 	def buttonStyle(self,widget=None):
-		global home,BASEDIR
+		global home,BASEDIR,platform_name
 		png_home = os.path.join(BASEDIR,'1.png')
 		if not widget:
 			self.dockWidget_3.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
 			self.tab_6.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
-			self.tab_2.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
+			if platform_name.lower() != 'plasma':
+				self.tab_2.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
 			self.tab_5.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
-			self.btnWebClose.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
-			self.btnWebHide.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
-			self.btnWebPrev.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
-			self.btnWebNext.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
+			#self.btnWebClose.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
+			#self.btnWebHide.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
+			#self.btnWebPrev.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
+			#self.btnWebNext.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
 			self.btn20.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
 			self.btn201.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
 			self.btnOpt.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
@@ -9904,24 +9907,24 @@ class Ui_MainWindow(object):
 			width: 10px;
 			margin: 0.5px;
 			}}""")
-
-			self.btnWebReviews.setStyleSheet("""QComboBox {
-			min-height:0px;
-			max-height:50px;
-			border-radius: 3px;
-			font-size:10px;
-			padding: 1px 1px 1px 1px;
-			font:bold 10px;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
-			}
-			QComboBox::drop-down {
-			width: 47px;
-			border: 0px;
-			color:white;
-			}
-			QComboBox::down-arrow {
-			width: 2px;
-			height: 2px;
-			}""")
+			if platform_name.lower() != 'plasma':
+				self.btnWebReviews.setStyleSheet("""QComboBox {
+				min-height:0px;
+				max-height:50px;
+				border-radius: 3px;
+				font-size:10px;
+				padding: 1px 1px 1px 1px;
+				font:bold 10px;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+				}
+				QComboBox::drop-down {
+				width: 47px;
+				border: 0px;
+				color:white;
+				}
+				QComboBox::down-arrow {
+				width: 2px;
+				height: 2px;
+				}""")
 		
 			self.btn30.setStyleSheet("""QComboBox {
 			min-height:20px;
@@ -11432,11 +11435,14 @@ class Ui_MainWindow(object):
 			print('--page--cleared--')
 		else:
 			try:
-				self.web.close()
-				self.web.deleteLater()
+				self.web.setHtml('<html>Reviews:</html>')
+				#self.web.close()
+				#self.web.deleteLater()
+				#del self.web
+				#self.web = None
 			except Exception as e:
 				print(e)
-			self.web = ''
+			#self.web = None
 			print('--web closed--')
 			
 		self.tab_2.hide()
@@ -20888,7 +20894,8 @@ def main():
 		dbus.mainloop.pyqt5.DBusQtMainLoop(set_as_default=True)
 	except:
 		pass
-	
+	platform_name = os.getenv('DESKTOP_SESSION')
+	print(OSNAME,platform_name)
 	app = QtWidgets.QApplication(sys.argv)
 	screen_resolution = app.desktop().screenGeometry()
 	screen_width = screen_resolution.width()
@@ -21568,8 +21575,7 @@ def main():
 	#myFilter	 = MyEventFilter()
 	#app.installEventFilter(myFilter)
 	
-	platform_name = os.getenv('DESKTOP_SESSION')
-	print(platform_name)
+	
 	try:
 		tray = SystemAppIndicator()
 		tray.show()
