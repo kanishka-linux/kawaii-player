@@ -403,11 +403,9 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 1. If Application Launcher in the menu is not working or programme is crashing then directly go to "~/.config/kawaii-player/src/", open terminal there and run "python3 kawaii_player.py" or "python kawaii_player.py" as per your default python setup. If there is some problem in installation, then you will get idea about it, whether it is missing dependency or something else, or you can report the error as per the message in terminal.
 
-2. If you do not find application launcher in the menu then try copying manually "~/.config/kawaii-player/kawaii-player.desktop" to either "~/.local/share/applications/" or "/usr/share/applications/"
+2. If the installation process does not create application launcher then find out whether the destination folder "~/.local/share/applications/" exists or not. If it does not exists then create one and repeat the process again. Otherwise users can try copying manually "~/.config/kawaii-player/kawaii-player.desktop" to either "~/.local/share/applications/" or "/usr/share/applications/"
 
-3. If copying of application launcher is failing due not existing of "~/.local/share/applications/" folder, then create one and repeat installation process.
-
-4. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
+3. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
 
 ## Documentation
 ######[Index](#index)
