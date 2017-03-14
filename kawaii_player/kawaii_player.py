@@ -183,6 +183,18 @@ def set_mainwindow_palette(fanart,first_time=None):
 			MainWindow.setPalette(palette)
 			ui.current_background = fanart
 
+#def my_decorator(main_function):
+#	def new_function(*args, **kwds): 
+#		try:
+#			print('--decorator--')
+#			print(len(args),'--args--')
+#			if len(args) == 2:
+#				main_function(args[0]) 
+#			else:
+#				main_function(*args) 
+#		except UnicodeEncodeError as e:
+#			print(e)
+#	return new_function
 
 class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 	
@@ -11430,7 +11442,8 @@ class Ui_MainWindow(object):
 			print('--stretch -- added--to --label and text widget--')
 		
 		self.tmp_web_srch = ''
-		self.web.setHtml('<html>Reviews:</html>')
+		if self.web:
+			self.web.setHtml('<html>Reviews:</html>')
 		if platform_name == 'ubuntu':
 			print('--page--cleared--')
 		else:
@@ -12748,7 +12761,7 @@ class Ui_MainWindow(object):
 		else:
 			QtCore.QTimer.singleShot(100, partial(self.set_icon_list2,epnArrList,
 									self.list_with_thumbnail,update_pl_thumb))
-			
+	
 	def set_icon_list2(self,epnArr,list_thumb,update_pl):
 		for k in range(len(epnArr)):
 			if list_thumb and update_pl:
@@ -12903,7 +12916,7 @@ class Ui_MainWindow(object):
 			d = dict(m)
 			img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
 			return img_url
-			
+	
 	def epn_highlight(self):
 		global epnArrList,home,site
 		num = self.list2.currentRow()
@@ -20744,7 +20757,8 @@ def watch_external_video(var):
 		site = 'None'
 		ui.watchDirectly(urllib.parse.unquote(t),'','no')
 		ui.dockWidget_3.hide()
-	
+
+
 	
 def main():
 	global ui,MainWindow,tray,hdr,name,pgn,genre_num,site,name,epn,base_url
