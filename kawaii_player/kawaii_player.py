@@ -11466,10 +11466,10 @@ class Ui_MainWindow(object):
 		self.frame1.show()
 		
 	def delete_web_instance(self,web):
-		web.close()
-		web.deleteLater()
-		#del self.web
-		self.web = None
+		if web:
+			web.close()
+			web.deleteLater()
+			self.web = None
 		
 	def webHide(self):
 		global mpvplayer
