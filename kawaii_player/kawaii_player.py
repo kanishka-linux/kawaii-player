@@ -21119,7 +21119,7 @@ def main():
 					elif quality == 'sd480p':
 						ui.sd_hd.setText("480")
 					elif quality == 'BEST':
-						ui.sd_hd.setText("Best")
+						ui.sd_hd.setText("BEST")
 					else:
 						ui.sd_hd.setText("SD")
 				elif "Dock_Option" in i:
