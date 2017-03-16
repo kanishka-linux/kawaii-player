@@ -36,7 +36,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ## Why Another Media Player
 
-######[Index](#index)
+###### [Index](#index)
 
 Initially the application started as simple combined audio/video player/manager with support for custom addons for gnu/linux system. GNU/Linux ecosystem has many good music players/managers and video players. But I felt that, a simple lightweight combine audio/video player and library manager which is free and open, with mpv/mplayer as backend, was missing. Hence, I decided to write one with support for custom addons. 
 
@@ -54,7 +54,7 @@ Moreover media-server of this application has been designed in such a manner tha
 
 ## Features
 
-######[Index](#index)
+###### [Index](#index)
 
 1.  Combine Audio-Video Player and Manager.
 
@@ -101,7 +101,7 @@ Moreover media-server of this application has been designed in such a manner tha
 
 ## Playing Mode
 
-######[Index](#index)
+###### [Index](#index)
 
 ![kawaii-player](/Images/Watch.png)
 
@@ -113,7 +113,7 @@ User can make as many playlists as possible. It is possible to merge various pla
 
 ## Thumbnail Mode
 
-######[Index](#index)
+###### [Index](#index)
 
 ![kawaii-player](/Images/Thumbnail.png)
 
@@ -123,7 +123,7 @@ In thumbnail mode, Thumbnails of local video files are automatically generated w
 
 ## Minimal Music Player
 
-######[Index](#index)
+###### [Index](#index)
 
 ![kawaii-player](/Images/Music.png)
 
@@ -133,7 +133,7 @@ It is not very powerful music organizer, but provide certain decent functionalit
 
 ## Detached Video Mode
 
-######[Index](#index)
+###### [Index](#index)
 
 ![kawaii-player](/Images/Detached_Mode.png)
 
@@ -142,7 +142,7 @@ In this mode, video will be detached from the main application window and can fl
 
 ## Torrent Streaming
 
-######[Index](#index)
+###### [Index](#index)
 
 It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at 'http://127.0.0.1:8001', which is loop-back address of your local machine. You can change this default streaming IP and port location by manually editing 'torrent_config.txt' file located in '~/.config/kawaii-player'. If you set 'TORRENT_STREAM_IP' field to your local network IP address which normally starts with something like '192.168.x.y' (You can check default ip using 'ifconfig' command), then it is possible to access the playing media from any device on your local network. For example, if the media is being played at computer A with TORRENT_STREAM_IP set to your default local ip address '192.168.1.1:8001', then you can access that media from computer B on the same network by simply connecting to 'http://192.168.2.1:8001'. If you have mplayer or mpv installed on computer B , then you can simply type the command 'mplayer http://192.168.2.1:8001' on that computer, to access the media which is being streamed on computer A. 
 
@@ -163,7 +163,7 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 
 ## Media Server
 
-######[Index](#index)
+###### [Index](#index)
 
 The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Settings->Check'** menu. **After changing the address user needs to restart the player**. Alternatively, user can check default local network address using cli tools like 'ifconfig' on any gnu/linux based systems ,and then manually edit '~/.config/kawaii-player/other_options.txt' file and change the field "LOCAL_STREAM_IP" appropriately with local network address, and then restart the player. Once you've set up the 'LOCAL_STREAM_IP' field properly, then you should be able to access the current playlist on the kawaii-player, from any device on the network. 
 
@@ -219,7 +219,7 @@ Note: Users need to use separate port number for media server and torrent stream
 
 ## Universal Playlist Generation
 
-######[Index](#index)
+###### [Index](#index)
 
 Universal playlist generation is the by-product of the way media server is implemented in this application. Media server of this application, allows creation of playlist in either m3u or pls format, on the fly, which can be played on any client supporting http streaming. (For more details about playlist creation, see Media Server Section.) This playlist can be anything from local audio, local video, some youtube urls, internet radio stations or addon urls or even torrent streams, or any mix of various media formats. (While creating playlist of mixed media format and content, torrent streams should not be mixed with them. Torrent streams should be in separate playlist.) As the playlist can be played on any client which supports http streaming, users do not have to attach themselves to particular client application specified by media server for accessing their files. They can use any client of their choice for playing playlist, from any platform. 
 
@@ -276,19 +276,21 @@ Note: Once user logs out from cookie and password enabled session, he/she can't 
 
 ## YouTube Support
 
-######[Index](#index)
+###### [Index](#index)
 
 ![kawaii-player](/Images/YT.png)
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
 ## Addon Structure
-######[Index](#index)
+
+###### [Index](#index)
+
 In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player,similar to Kodi or Plex, so that you don't have to deal with horrible flash player of the web. 
 
 ## Dependencies and Installation
 
-######[Index](#index)
+###### [Index](#index)
 
 1. For Arch Linux users, PKGBUILD is available in arch folder.
 
@@ -338,9 +340,9 @@ In this player, a weak addon structure has been created, so that one can write a
 Or they can simply click (or execute using command line) **'kawaii-player-start'** shell script located in the directory to start the player directly **without copying files anywhere**.
 
 
-#Dependencies
+# Dependencies
 
-######[Index](#index)
+###### [Index](#index)
 
 **Minimum Dependencies on GNU/Linux:** 
 
@@ -391,7 +393,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 ## Troubleshooting
 
-######[Index](#index)
+###### [Index](#index)
 
 1. If you've installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'kawaii-player' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
 
@@ -423,7 +425,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 15. If there are some other problems, then turn on logging by setting 'LOGGING' to 'ON', in other_options.txt. It will create 'kawaii-player.log' file in '~/.config/kawaii-player/tmp' folder. Users can analyse the log on their own or can post the log on github issues section. Or alternatively users can post console output if application was started from console.
 
-####Troubleshooting for alternative method
+#### Troubleshooting for alternative method
 
 1. If Application Launcher in the menu is not working or programme is crashing then directly go to "~/.config/kawaii-player/src/", open terminal there and run "python3 kawaii_player.py" or "python kawaii_player.py" as per your default python setup. If there is some problem in installation, then you will get idea about it, whether it is missing dependency or something else, or you can report the error as per the message in terminal.
 
@@ -433,7 +435,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 ## Documentation
 
-######[Index](#index)
+###### [Index](#index)
 
 If everything goes well and if you are able to open the player, then you will come across Three Columns.
 
@@ -447,13 +449,13 @@ If you are still not satisfied with mpv or mplayer, then you can also launch any
 Middle column, is the “Title Column”, It will consists of name of the series.
 Last Column to the extreme right, is the “Playlist column”, which will contain playlist items which will be played sequentially in the default mode, you will just have to select entry and press enter or double click.
 
-###KeyBoard Shortcuts:
+### KeyBoard Shortcuts:
 
 Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, it's volume will be in sync with global volume. So global volume key will work. If you've setup d-bus shortcut keys for play/pause/next/previous then they will also work.
 
 There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen). It is not full fledge front end, the player has been written with different aim in mind. Therefore, i've tried to reduce buttons as much as possible so as not to clutter the interface, especially with respect to player. But if you still feel the need for more buttons or full fledged UI then you can select smplayer or vlc or kodi from settings menu instead of mpv or mplayer. 
 
-###Player Shortcuts(once video is focussed, if it's not focussed take mouse pointer over the playing video):
+### Player Shortcuts(once video is focussed, if it's not focussed take mouse pointer over the playing video):
 
 q : quit
 
@@ -542,7 +544,7 @@ vo=opengl {or anything that works on your system}
 
 cache-secs=120
 
-###Some global Shortcuts:
+### Some global Shortcuts:
 
 Shift + L : show/hide Player
 
@@ -562,7 +564,7 @@ Right,Left: set focus alternate between Option column, Title column and Playlist
 
 Ctrl+1 to Ctrl+8 : Change aspect ratio of background image
 
-###Title Column:(if Title list is focussed)
+### Title Column:(if Title list is focussed)
 
 h : show history (history of watched series)
 
@@ -584,7 +586,7 @@ shift+c : copy summary
 
 ctrl+c : copy poster
 
-###Playlist Column:(If playlist column is focussed)
+### Playlist Column:(If playlist column is focussed)
 
 q : queue the item
 
@@ -620,22 +622,23 @@ Ctrl+Down: Move to last entry
 
 F2 : Rename entry
 
-###Thumbnail Mode:
+### Thumbnail Mode:
 
 '=' (Remember '+' key) : increase size of Thumbnails
 
 '-' : decrease size of Thumbnails
 
-###Summary Text Browser
+### Summary Text Browser
 
 Ctrl+A : to select and save save edited summary.
 
-###Thumbnail mode occupies pretty good memory. If you want to get out of thumbnail mode and free up the memory then click 'close' button which is available in the mode.
+### Thumbnail mode occupies pretty good memory. If you want to get out of thumbnail mode and free up the memory then click 'close' button which is available in the mode.
 
-###Apart from shortcuts:
+### Apart from shortcuts:
+
 You can explore Right click menu of both Playlist Column and Title List Column for getting TVDB, Last.fm profiles for your collection either manually or automatically. If you are getting some problem while setting profiles from TVDB or Last.fm , or having problems accessing addons,then empty the cache directory '~/.config/kawaii-player/tmp', This option is available with right click menu of Title List and Playlist column also.
 
-###Other Things for convenience:
+### Other Things for convenience:
 
 1. Please Enable Vertical Scrolling of Touchpad, because there are no scrollbars in this application, because they were looking very ugly in the total setup.
 
