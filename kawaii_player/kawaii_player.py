@@ -21129,11 +21129,12 @@ def main():
 					print(option_val,'--option--')
 				elif "Quality" in i:
 					quality = re.sub('\n','',j)
+					print(quality,'----quality---')
 					if quality == "hd":
 						ui.sd_hd.setText("HD")
 					elif quality == 'sd480p':
 						ui.sd_hd.setText("480")
-					elif quality == 'BEST':
+					elif quality == 'best':
 						ui.sd_hd.setText("BEST")
 					else:
 						ui.sd_hd.setText("SD")
