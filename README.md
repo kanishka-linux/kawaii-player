@@ -18,7 +18,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Detached Video Mode](#detached-video-mode)
 
-[Torrent Streaming Player] (#torrent-streaming)
+[Torrent Streaming Player](#torrent-streaming)
 
 [Media Server](#media-server)
 
@@ -26,7 +26,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [YouTube Player](#youtube-support)
 
-[Addons (Plugins) Structure] (#addon-structure)
+[Addons (Plugins) Structure](#addon-structure)
 
 [Dependencies and Installation](#dependencies-and-installation)
 
@@ -35,6 +35,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 [Brief Documentation](#documentation)
 
 ## Why Another Media Player
+
 ######[Index](#index)
 
 Initially the application started as simple combined audio/video player/manager with support for custom addons for gnu/linux system. GNU/Linux ecosystem has many good music players/managers and video players. But I felt that, a simple lightweight combine audio/video player and library manager which is free and open, with mpv/mplayer as backend, was missing. Hence, I decided to write one with support for custom addons. 
@@ -52,6 +53,7 @@ Moreover media-server of this application has been designed in such a manner tha
 **Note:** The application was initially developed for gnu/linux systems, but now it is possible to install it on any operating system (using **setup.py** script) which supports installation of python 3.5+ and pyqt5 5.5+. 
 
 ## Features
+
 ######[Index](#index)
 
 1.  Combine Audio-Video Player and Manager.
@@ -98,7 +100,9 @@ Moreover media-server of this application has been designed in such a manner tha
 
 
 ## Playing Mode
+
 ######[Index](#index)
+
 ![kawaii-player](/Images/Watch.png)
 
 It tries to be a simple media manager for your audio and video collection, along with powerful playing capabilities of mpv and mplayer. You can organise your collection properly into various groups and categories such as watching,incomplete etc.. You can create your own group also for any special category in the bookmark section.  It will also keep track of number of episodes that you have watched in a series. It will also manage history ,and you will have complete control over it.
@@ -108,7 +112,9 @@ You can fetch fanart and posters from TVDB website. If proper match is not found
 User can make as many playlists as possible. It is possible to merge various playlists. Users can combine local audio, local video and external url into the playlist.
 
 ## Thumbnail Mode
+
 ######[Index](#index)
+
 ![kawaii-player](/Images/Thumbnail.png)
 
 Users can see their entire collection in Thumbnail mode in Grid Layout, once your collection is ready with appropriate fanart or posters. Use this thumbnail mode if you have more than 2 GB of RAM. Otherwise your system may slow down. 
@@ -116,7 +122,9 @@ Users can see their entire collection in Thumbnail mode in Grid Layout, once you
 In thumbnail mode, Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. **Users can watch video in thumbnail itself by selecting right mode from 2 to 4**. If you don't like generated thumbnail then you can change it by right clicking and selecting appropriate option from the context menu.
 
 ## Minimal Music Player
+
 ######[Index](#index)
+
 ![kawaii-player](/Images/Music.png)
 
 It supports certain MPRIS D-bus functionalities. Therefore if you have created global keyboard shortcuts for play/pause,Next,Previous or Stop then they can work with this player also. Make sure python-dbus is installed on system to use this feature.
@@ -124,14 +132,18 @@ It supports certain MPRIS D-bus functionalities. Therefore if you have created g
 It is not very powerful music organizer, but provide certain decent functionalities. When using with mplayer, it's cpu usage is just 1-2 % which makes it very ideal for low end machines.
 
 ## Detached Video Mode
+
 ######[Index](#index)
+
 ![kawaii-player](/Images/Detached_Mode.png)
 
 The Player contains Detached video mode, which can be activated by right clicking tray icon and selecting appropriate entry.
 In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of Unity or GNOME.
 
 ## Torrent Streaming
+
 ######[Index](#index)
+
 It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at 'http://127.0.0.1:8001', which is loop-back address of your local machine. You can change this default streaming IP and port location by manually editing 'torrent_config.txt' file located in '~/.config/kawaii-player'. If you set 'TORRENT_STREAM_IP' field to your local network IP address which normally starts with something like '192.168.x.y' (You can check default ip using 'ifconfig' command), then it is possible to access the playing media from any device on your local network. For example, if the media is being played at computer A with TORRENT_STREAM_IP set to your default local ip address '192.168.1.1:8001', then you can access that media from computer B on the same network by simply connecting to 'http://192.168.2.1:8001'. If you have mplayer or mpv installed on computer B , then you can simply type the command 'mplayer http://192.168.2.1:8001' on that computer, to access the media which is being streamed on computer A. 
 
 In 'torrent_config.txt' you can set some other fields like upload , download rate in (KBps) and default download location.
@@ -150,7 +162,9 @@ If torrent contains multiple files then users can enqueue the desired files by s
 Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
 
 ## Media Server
+
 ######[Index](#index)
+
 The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Settings->Check'** menu. **After changing the address user needs to restart the player**. Alternatively, user can check default local network address using cli tools like 'ifconfig' on any gnu/linux based systems ,and then manually edit '~/.config/kawaii-player/other_options.txt' file and change the field "LOCAL_STREAM_IP" appropriately with local network address, and then restart the player. Once you've set up the 'LOCAL_STREAM_IP' field properly, then you should be able to access the current playlist on the kawaii-player, from any device on the network. 
 
 For example, if server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/play' or 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the media server in it's playlist.
@@ -204,6 +218,7 @@ kawaii-player allows user to start media server on the fly. Basically I never th
 Note: Users need to use separate port number for media server and torrent streaming feature. Port number along with local IP for torrent streaming feature needs to be set in 'torrent_config.txt' (TORRENT_STREAM_IP field) and that of media server in 'other_options.txt' (LOCAL_STREAM_IP field). Default Settings: 'TORRENT_STREAM_IP=127.0.0.1:8001' and 'LOCAL_STREAM_IP=127.0.0.1:9001'. In default settings one can't access local media from another computer. Users need to change default loopback address to local ip address. Users have to set local IP address and port once only. If local IP address of the media server changes dynamically next time, then the kawaii-player application will try to find out new address automatically. If the application can't find new address then users have to manually change the config files again.
 
 ## Universal Playlist Generation
+
 ######[Index](#index)
 
 Universal playlist generation is the by-product of the way media server is implemented in this application. Media server of this application, allows creation of playlist in either m3u or pls format, on the fly, which can be played on any client supporting http streaming. (For more details about playlist creation, see Media Server Section.) This playlist can be anything from local audio, local video, some youtube urls, internet radio stations or addon urls or even torrent streams, or any mix of various media formats. (While creating playlist of mixed media format and content, torrent streams should not be mixed with them. Torrent streams should be in separate playlist.) As the playlist can be played on any client which supports http streaming, users do not have to attach themselves to particular client application specified by media server for accessing their files. They can use any client of their choice for playing playlist, from any platform. 
@@ -260,7 +275,9 @@ Note: Once user logs out from cookie and password enabled session, he/she can't 
 
 
 ## YouTube Support
+
 ######[Index](#index)
+
 ![kawaii-player](/Images/YT.png)
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
@@ -270,6 +287,7 @@ This player provides a wrapper around youtube site using qtwebengine. If your GN
 In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player,similar to Kodi or Plex, so that you don't have to deal with horrible flash player of the web. 
 
 ## Dependencies and Installation
+
 ######[Index](#index)
 
 1. For Arch Linux users, PKGBUILD is available in arch folder.
@@ -321,6 +339,7 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 
 #Dependencies
+
 ######[Index](#index)
 
 **Minimum Dependencies on GNU/Linux:** 
@@ -371,6 +390,7 @@ sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl pytho
 sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python3-pil python3-bs4 python3-lxml python3-psutil python3-taglib curl wget libnotify-bin mpv mplayer ffmpegthumbnailer sqlite3 python3-libtorrent youtube-dl python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebkit python3-dbus
 
 ## Troubleshooting
+
 ######[Index](#index)
 
 1. If you've installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'kawaii-player' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
@@ -412,6 +432,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 3. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
 
 ## Documentation
+
 ######[Index](#index)
 
 If everything goes well and if you are able to open the player, then you will come across Three Columns.
@@ -522,6 +543,7 @@ vo=opengl {or anything that works on your system}
 cache-secs=120
 
 ###Some global Shortcuts:
+
 Shift + L : show/hide Player
 
 shift + G : show/hide Settings column
