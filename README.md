@@ -294,7 +294,11 @@ In this player, a weak addon structure has been created, so that one can write a
 		Above three steps will create .deb package from latest source, which users can install using gdebi.
 				
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
-
+	
+	**Note:** PyQt5 available in official ubuntu repository does not contain qtwebengine, which is backend for internal browser. As an alternative, the application falls back to qtwebkit which has been deprecated since qt version 5.7+. Therefore, if ubuntu users want to use latest PyQt5 with qtwebengine backend for better and faster browsing experience, then they should install PyQt5 using pip3 using following command.
+	
+		$ sudo pip3 install PyQt5
+	
 3. **Using setup.py** (Common method for all): 
 		
 		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it,if user wants stable release)
