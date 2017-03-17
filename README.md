@@ -396,7 +396,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 2. If addons are not working after some time or fanart/poster are not fetched properly, then try clearing the cache directory **'~/.config/kawaii-player/tmp/'**. If users have some problems in using qtwebengine, then try clearing cache directory for qtwebengine **'~/.config/kawaii-player/Cache/'**.
 
-3. If application is crashing after certain update, then it might be possible that it may be due to incompatibility or mismatch between addons of different versions, or certain configuration issues or addition/deletion of certain addons. In such cases remove config file '~/.config/kawaii-player/src/config.txt' manually, and then restart the application. If removing only config file doesn't work then remove both addons directory '/.config/kawaii-player/src/' and config file '/.config/kawaii-player/src/config.txt' manually, and then restart the application.
+3. If application is crashing after certain update, then it might be possible that it may be due to incompatibility or mismatch between addons of different versions, or certain configuration issues or addition/deletion of certain addons. In such cases remove config file **'~/.config/kawaii-player/src/config.txt'** manually, and then restart the application. If removing only config file doesn't work then remove both addons directory **'~/.config/kawaii-player/src/'** and config file **'~/.config/kawaii-player/src/config.txt'** manually, and then restart the application.
 
 4. In order to update addons manually , download or clone the github kawaii_player directory, then go to github 'kawaii_player/Plugins' directory, and simply copy content of 'Plugins' directory into '~/.config/kawaii-player/src/Plugins'.
 
@@ -424,9 +424,9 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 #### Troubleshooting for alternative method
 
-1. If Application Launcher in the menu is not working or programme is crashing then directly go to "~/.config/kawaii-player/src/", open terminal there and run "python3 kawaii_player.py" or "python kawaii_player.py" as per your default python setup. If there is some problem in installation, then you will get idea about it, whether it is missing dependency or something else, or you can report the error as per the message in terminal.
+1. If Application Launcher in the menu is not working or programme is crashing then directly go to **"~/.config/kawaii-player/src/"**, open terminal there and run "python3 kawaii_player.py" or "python kawaii_player.py" as per your default python setup. If there is some problem in installation, then you will get idea about it, whether it is missing dependency or something else, or you can report the error as per the message in terminal.
 
-2. If the installation process does not create application launcher then find out whether the destination folder "~/.local/share/applications/" exists or not. If it does not exists then create one and repeat the process again. Otherwise users can try copying manually "~/.config/kawaii-player/kawaii-player.desktop" to either "~/.local/share/applications/" or "/usr/share/applications/"
+2. If the installation process does not create application launcher then find out whether the destination folder **"~/.local/share/applications/"** exists or not. If it does not exists then create one and repeat the process again. Otherwise users can try copying manually **"~/.config/kawaii-player/kawaii-player.desktop"** to either **"~/.local/share/applications/"** or "/usr/share/applications/"
 
 3. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
 
