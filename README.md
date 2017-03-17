@@ -394,7 +394,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 1. If you've installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'kawaii-player' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
 
-2. If addons are not working after some time or fanart/poster are not fetched properly, then try clearing the cache directory **'~/.config/kawaii-player/tmp/'**. If users have some problems in using qtwebengine, then try clearing cache directory for qtwebengine **'/.config/kawaii-player/Cache/'**.
+2. If addons are not working after some time or fanart/poster are not fetched properly, then try clearing the cache directory **'~/.config/kawaii-player/tmp/'**. If users have some problems in using qtwebengine, then try clearing cache directory for qtwebengine **'~/.config/kawaii-player/Cache/'**.
 
 3. If application is crashing after certain update, then it might be possible that it may be due to incompatibility or mismatch between addons of different versions, or certain configuration issues or addition/deletion of certain addons. In such cases remove config file '~/.config/kawaii-player/src/config.txt' manually, and then restart the application. If removing only config file doesn't work then remove both addons directory '/.config/kawaii-player/src/' and config file '/.config/kawaii-player/src/config.txt' manually, and then restart the application.
 
