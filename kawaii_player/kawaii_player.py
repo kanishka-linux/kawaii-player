@@ -16700,7 +16700,12 @@ class Ui_MainWindow(object):
 					self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
 					self.torrent_handle.set_download_limit(self.torrent_download_limit)
 				else:
-					finalUrl = si_te_var.getFinalUrl(na_me,ep_n,mirrorNo,self.quality_val)
+					finalUrlT = si_te_var.getFinalUrl(na_me,ep_n,mirrorNo,self.quality_val)
+					logger.info("finalUrl:::::16704::::{0}:::\n".format(finalUrlT))
+					if type(finalUrlT) is list:
+						finalUrl = finalUrlT[0]
+					else:
+						finalUrl = finalUrlT
 			except Exception as e:
 				print(e)
 				#return 0
