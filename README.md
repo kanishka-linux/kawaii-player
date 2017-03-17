@@ -297,7 +297,7 @@ In this player, a weak addon structure has been created, so that one can write a
 		1. First install pytaglib from AUR
 		2. Create package from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
 
-2. Ubuntu or Debian based distro users can directly go to Release section or package directory,download appropriate .deb package and install it using
+2. Ubuntu or Debian based distro users can directly go to [Release section](https://github.com/kanishka-linux/kawaii-player/releases)  or package directory, download appropriate .deb package and install it using
  
 		sudo gdebi pkg_name.deb. 
 
