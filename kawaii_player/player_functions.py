@@ -124,15 +124,17 @@ def get_config_options(file_name,value_field):
 	if os.path.exists(file_name):
 		lines = open_files(file_name,True)
 		for i in lines:
-			try:
-				i,j = i.split('=')
-			except Exception as e:
-				print(e,'wrong values in config file')
-				return req_val
-			j = j.strip()
-			if str(i.lower()) == str(value_field.lower()):
-				req_val = j
-				break
+			i = i.strip()
+			if i:
+				try:
+					i,j = i.split('=')
+				except Exception as e:
+					print(e,'wrong values in config file')
+					return req_val
+				j = j.strip()
+				if str(i.lower()) == str(value_field.lower()):
+					req_val = j
+					break
 	else:
 		req_val = 'file_not_exists'
 	return req_val
