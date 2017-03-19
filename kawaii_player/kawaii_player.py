@@ -8149,7 +8149,7 @@ class Ui_MainWindow(object):
 		self.mplayer_timer.timeout.connect(self.mplayer_unpause)
 		self.mplayer_timer.setSingleShot(True)
 		#self.frame_timer.start(5000)
-		self.version_number = (1,1,0,0)
+		self.version_number = (1,1,1,0)
 		self.threadPool = []
 		self.threadPoolthumb = []
 		self.thumbnail_cnt = 0

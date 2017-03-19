@@ -31,7 +31,7 @@ elif os.name == 'nt':
 	install_dependencies = ['PyQt5','pycurl','bs4','Pillow','mutagen','lxml','youtube_dl','certifi']
 setup(
     name='kawaii-player',
-    version='1.1.0',
+    version='1.1.1',
     license='GPLv3',
     author='kanishka-linux',
     author_email='kanishka.linux@gmail.com',
