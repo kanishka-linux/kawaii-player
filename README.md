@@ -178,6 +178,10 @@ The media server functionality can be started by selecting **'More->Start Media 
 		$ mplayer -loop 0 http://192.168.2.2:9001/
 		
 
+**Experimental Headless Mode using Xvfb:** It's possible to use the server in headless mode using xvfb (Available only in latest git commit, not in release section). Users need to install xvfb first and then should run following command:
+		
+		$ xvfb-run --server-args="-screen 0 640x480x16" kawaii-player --start-media-server --update-video-db --update-music-db
+
 In local home network, if cookie and https is not enabled for media server then, one can access various media server playlists directly from vlc using simple urls.  
 
 If url ends with .htm then media server will return html page which can be viewed with the help of browser. But if you attach '.m3u' or '.pls' to url then it will directly return the playlist which can be played by any player.If no extension is attached at the end, then m3u playlist will be sent to the client.
