@@ -20970,6 +20970,8 @@ def main():
 	except:
 		pass
 	platform_name = os.getenv('DESKTOP_SESSION')
+	if not platform_name:
+		platform_name = 'LXDE'
 	print(OSNAME,platform_name)
 	app = QtWidgets.QApplication(sys.argv)
 	screen_resolution = app.desktop().screenGeometry()
@@ -21718,8 +21720,22 @@ def main():
 	html_default_arr = html_default_arr + addons_option_arr
 	MainWindow.show()
 	
-	if len(sys.argv) == 2:
-		watch_external_video(sys.argv[1])
+	if len(sys.argv) >= 2:
+		logger.info(sys.argv)
+		if '--start-media-server' in sys.argv or '--start-media-server' in sys.argv[1]:
+			ui.playerPlaylist('Start Media Server')
+			if '--update-video-db' in sys.argv:
+				index = ui.btn1.findText('Video')
+				if index >= 0:
+					ui.btn1.setCurrentIndex(index)
+					ui.list3.setCurrentRow(3)
+			if '--update-music-db' in sys.argv:
+				index = ui.btn1.findText('Music')
+				if index >= 0:
+					ui.btn1.setCurrentIndex(index)
+					ui.list3.setCurrentRow(0)
+		elif os.path.exists(sys.argv[1]):
+			watch_external_video(sys.argv[1])
 	ui.quality_val = quality
 	#x = tray.showMessage
 	#x('hi','hello',1)
