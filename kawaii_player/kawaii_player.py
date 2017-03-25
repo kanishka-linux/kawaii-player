@@ -43,7 +43,8 @@ from tempfile import mkstemp,mkdtemp
 from player_functions import write_files,ccurl,send_notification
 from player_functions import wget_string,open_files,get_config_options
 from player_functions import get_tmp_dir,naturallysorted,set_logger
-from player_functions import get_home_dir,change_opt_file
+from player_functions import get_home_dir,change_opt_file,create_ssl_cert
+from player_functions import set_user_password
 from musicArtist import musicArtist
 from yt import get_yt_url
 
@@ -21734,6 +21735,20 @@ def main():
 				if index >= 0:
 					ui.btn1.setCurrentIndex(index)
 					ui.list3.setCurrentRow(0)
+			if '--user' in sys.argv:
+				index = sys.argv.index('--user')
+				if index+1 < len(sys.argv):
+					user_set = sys.argv[index+1]
+					if '--password' in sys.argv:
+						index = sys.argv.index('--password')
+						if index+1 < len(sys.argv):
+							pass_set = sys.argv[index+1]
+							set_user_password(user_set,pass_set)
+			if '--generate-ssl' in sys.argv:
+				index = sys.argv.index('--generate-ssl')
+				if index+1 < len(sys.argv):
+					pass_phrase = sys.argv[index+1]
+					create_ssl_cert(ui,TMPDIR,pass_phrase)
 		elif os.path.exists(sys.argv[1]):
 			watch_external_video(sys.argv[1])
 	ui.quality_val = quality
