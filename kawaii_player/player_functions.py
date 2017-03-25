@@ -31,6 +31,8 @@ import re
 from get_functions import wget_string,get_ca_certificate
 from PyQt5 import QtWidgets,QtGui,QtCore
 import logging
+import hashlib
+import base64
 #if os.name == 'nt':
 #import tkinter
 
@@ -200,6 +202,55 @@ def set_logger(file_name,TMPDIR):
 	log.addHandler(ch)
 	return log
 
+def set_user_password(text_val,pass_val):
+	if not text_val:
+		text_val = ''
+	if not pass_val:
+		pass_val = ''
+	new_combine = bytes(text_val+':'+pass_val,'utf-8')
+	new_txt = base64.b64encode(new_combine)
+	new_txt_str = 'Basic '+str(new_txt,'utf-8')
+	#print(new_txt,new_txt_str)
+	new_txt_bytes = bytes(str(new_txt_str),'utf-8')
+	#print(new_txt_bytes)
+	h = hashlib.sha256(new_txt_bytes)
+	h_digest = h.hexdigest()
+	new_pass = 'AUTH='+h_digest
+	config_file = os.path.join(get_home_dir(),'other_options.txt')
+	change_opt_file(config_file,'AUTH=',new_pass)
+
+
+def create_ssl_cert(ui,TMPDIR,pass_word):
+	if len(pass_word) >=8:
+		my_ip = str(ui.local_ip_stream)
+		server_key = os.path.join(TMPDIR,'server.key')
+		server_csr = os.path.join(TMPDIR,'server.csr')
+		server_crt = os.path.join(TMPDIR,'server.crt')
+		ssl_cert = os.path.join(get_home_dir(),'cert.pem')
+		cn = '/CN='+my_ip
+		if ui.my_public_ip and ui.access_from_outside_network:
+			my_ip = str(ui.my_public_ip)	
+		try:
+			subprocess.call(['openssl','genrsa','-des3','-passout','pass:'+pass_word,'-out',server_key,'2048'])
+			print('key--generated')
+			subprocess.call(['openssl','rsa', '-in', server_key, '-out', server_key, '-passin', 'pass:'+pass_word])
+			print('next')
+			subprocess.call(['openssl', 'req', '-sha256', '-new', '-key', server_key, '-out', server_csr, '-subj', cn])
+			print('req')
+			subprocess.call(['openssl', 'x509', '-req', '-sha256', '-days', '365', '-in', server_csr, '-signkey', server_key, '-out', server_crt])
+			print('final')
+			f = open(ssl_cert,'w')
+			content1 = open(server_crt).read()
+			content2 = open(server_key).read()
+			f.write(content1+'\n'+content2)
+			f.close()
+			print('ssl generated')
+			send_notification("Certificate Successfully Generated.\nNow Start Media Server Again.")
+		except Exception as e:
+			print(e)
+			send_notification("Error in Generating SSL Certificate. Either 'openssl' or 'openssl.cnf' is not available in system path! Create 'cert.pem' manually, and keep it in Kawaii-Player config directory.")
+	else:
+		print('Length of password less than 8 characters, Make it atleast 8')
 
 def write_files(file_name,content,line_by_line):
 	tmp_new_file = os.path.join(get_home_dir(),'tmp','tmp_write.txt')
