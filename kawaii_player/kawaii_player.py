@@ -707,10 +707,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			k = k+i
 		return k
 		
+	def write_to_tmp_playlist(self,epnArrList):
+		global home
+		if epnArrList:
+			#epnArrList = [i.replace('#','-') for i in epnArrList]
+			file_name = os.path.join(home,'Playlists','TMP_PLAYLIST')
+			f = open(file_name,'w').close()
+			write_files(file_name,epnArrList,True)
+			nav_signal = doGETSignal()
+			nav_signal.nav_remote.emit('TMP_PLAYLIST')
+			print('---718---')
+			
+			
+			
 	def create_playlist(
 			self,site,site_option,name,epnArrList,new_video_local_stream,
 			siteName,my_ipaddress,shuffle_list,play_id):
 		old_name = []
+		_new_epnArrList = []
 		n_url_name = 'unknown'
 		if self.path.endswith('.pls'):
 			pls_txt = '[playlist]'
@@ -825,11 +839,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					extra_fields = self.get_extra_fields()
 					logger.info(extra_fields)
 					pls_txt = re.sub('<div id="site_option" hidden></div>',extra_fields,pls_txt)
+					
+		if ui.remote_control and ui.remote_control_field:
+			self.write_to_tmp_playlist(epnArrList)
+			
 		return pls_txt
 		
 	def get_extra_fields(self):
-		global html_default_arr,home
-		extra_fields = ''
+		global html_default_arr,home,ui
+		#extra_fields = ''
+		extra_fields = 'RemoteField:{0};RemoteControl:{1};'.format(ui.remote_control_field,ui.remote_control)
 		for i in html_default_arr:
 			if i.lower() == 'video':
 				extra_fields = extra_fields+'Video:Available;Video:History;'
@@ -936,9 +955,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							else:
 								n_url = epnArrList[k].split('	')[1].replace('"','')
 							try:
-								n_art = epnArrList[k].split('	')[2]
+								n_art_arr = epnArrList[k].split('	')
+								if len(n_art_arr) > 2:
+									n_art = n_art_arr[2]
+								else:
+									if ui.list1.currentItem():
+										n_art = ui.list1.currentItem().text()
+									else:
+										n_art = 'NONE'
 							except Exception as e:
-								print(e)
+								print(e,'--960--')
 								if ui.list1.currentItem():
 									n_art = ui.list1.currentItem().text()
 								else:
@@ -959,7 +985,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							try:
 								n_art = ui.list1.currentItem().text()
 							except Exception as e:
-								print(e)
+								print(e,'--981--')
 								n_art = 'NONE'
 						n_url_name = os.path.basename(n_url)
 						n_url_new = base64.b64encode(bytes(n_url,'utf-8'))
@@ -981,7 +1007,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							try:
 								n_art = epnArrList[k].split('	')[2]
 							except Exception as e:
-								print(e)
+								print(e,'--1003--')
 								if ui.list1.currentItem():
 									n_art = ui.list1.currentItem().text()
 								else:
@@ -1006,7 +1032,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							try:
 								n_art = ui.list1.currentItem().text()
 							except Exception as e:
-								print(e)
+								print(e,'--1029--')
 								n_art = 'NONE'
 						if '&' in n_url:
 							n_url_name = n_url.split('&')[-1]
@@ -1059,7 +1085,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							else:
 								pls_txt = pls_txt+'#EXTINF:0,{0} - {1}\n{2}\n'.format(n_art,n_out,out)
 				except Exception as e:
-					print(e)
+					print(e,'--1081--')
 			if path.endswith('.pls'):
 				footer = '\nNumberOfEntries='+str(len(new_arr))+'\n'
 				pls_txt = pls_txt+footer
@@ -1094,6 +1120,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.wfile.write(pls_txt)
 			except Exception as e:
 				print(e)
+			if ui.remote_control and ui.remote_control_field:
+				self.write_to_tmp_playlist(epnArrList)
 		elif (path.lower().startswith('channel_sync.')):
 			if path.endswith('.html') or path.endswith('.htm'):
 				pls_txt = '<ol id="playlist">'
@@ -1239,6 +1267,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.wfile.write(pls_txt)
 			except Exception as e:
 				print(e)
+			
 		elif path.lower() == 'play' or not path:
 			self.row = ui.list2.currentRow()
 			if self.row < 0:
@@ -1260,8 +1289,41 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				if nm.startswith('"'):
 					nm = nm.replace('"','')
 				self.process_url(nm,get_bytes)
+				if ui.remote_control and ui.remote_control_field:
+					remote_signal = doGETSignal()
+					remote_signal.control_signal.emit(row_num)
 			except Exception as e:
 				print(e)
+		elif path.lower() == 'lock':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'locking file'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'loop')
+		elif path.lower() == 'playpause':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'playpause file'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'playpause')
+		elif path.lower() == 'playerstop':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'stop playing'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'stop')
+		elif path.lower() == 'playnext':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'Next File'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'next')
+		elif path.lower() == 'playprev':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'Prev File'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'prev')
 		elif path.startswith('abs_path='):
 			try:
 				path = path.split('abs_path=',1)[1]
@@ -1293,6 +1355,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					elif 'youtube.com' in nm:
 						nm = get_yt_url(nm,ui.quality_val,ui.ytdl_path,logger).strip()
 				self.process_url(nm,get_bytes,status=num_row)
+				print(ui.remote_control,ui.remote_control_field,path)
+				if ui.remote_control and ui.remote_control_field:
+					if 'playlist_index=' in self.path:
+						row_num_val = self.path.rsplit('playlist_index=',1)[1]
+						row_num = -1000
+						mode = 'normal'
+						if row_num_val.isnumeric():
+							row_num = int(row_num_val)
+						else:
+							mode = row_num_val
+						print(row_num,'--row--num--playlist--',mode)
+						remote_signal = doGETSignal()
+						remote_signal.control_signal.emit(row_num,mode)
 			except Exception as e:
 				print(e)
 		elif path.startswith('relative_path='):
@@ -1384,9 +1459,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			except Exception as e:
 				print(e)
 		elif path.startswith('index.htm'):
+			if ui.https_media_server:
+				https_val = 'https'
+			else:
+				https_val = 'http'
+			if not my_ip_addr:
+				nm = https_val+"://"+str(ui.local_ip)+':'+str(ui.local_port)+'/stream_continue.htm'
+			else:
+				nm = https_val+"://"+str(my_ip_addr)+':'+str(ui.local_port)+'/stream_continue.htm'
 			self.send_response(303)
-			self.send_header('Location','/stream_continue.htm')
+			self.send_header('Location',nm)
 			self.end_headers()
+		elif path.startswith('remote_'):
+			if path.endswith('_on.htm'):
+				ui.remote_control = True
+			elif path.endswith('_off.htm'):
+				ui.remote_control = False
+			
+			msg = 'Remote Control Set {0}'.format(ui.remote_control)
+			msg = bytes(msg,'utf-8')
+			self.final_message(msg)
 		else:
 			nm = 'index.html'
 			self.send_header('Content-type','text/html')
@@ -1423,11 +1515,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 class doGETSignal(QtCore.QObject):
 	new_signal = pyqtSignal(str)
 	stop_signal = pyqtSignal(str)
+	control_signal = pyqtSignal(int,str)
+	nav_remote = pyqtSignal(str)
 	def __init__(self):
 		QtCore.QObject.__init__(self)
 		self.new_signal.connect(goToUi_jump)
 		self.stop_signal.connect(stop_torrent_from_client)
-		
+		self.control_signal.connect(start_player_remotely)
+		self.nav_remote.connect(navigate_player_remotely)
 		
 @pyqtSlot(str)
 def goToUi_jump(nm):
@@ -1445,7 +1540,58 @@ def get_my_ip_regularly(nm):
 	new_thread = getIpThread(interval=ui.get_ip_interval,ip_file=ui.cloud_ip_file)
 	new_thread.start()
 	
+
+@pyqtSlot(int,str)
+def start_player_remotely(nm,mode):
+	global ui,curR
 	
+	if mode == 'normal':
+		if nm < ui.list2.count() and nm >= 0:
+			curR = nm
+		else:
+			curR = (nm%ui.list2.count())
+		ui.list2.setCurrentRow(curR)
+		item = ui.list2.item(curR)
+		if item:
+			ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+		print('---1523---')
+	else:
+		if mode == 'playpause':
+			ui.player_play_pause.clicked.emit()
+		elif mode == 'stop':
+			ui.player_stop.clicked.emit()
+		elif mode == 'loop':
+			ui.player_loop_file.clicked.emit()
+		elif mode == 'next':
+			ui.player_next.clicked.emit()
+		elif mode == 'prev':
+			ui.player_prev.clicked.emit()
+
+@pyqtSlot(str)
+def navigate_player_remotely(nm):
+	global site
+	index = ui.btn1.findText('PlayLists')
+	site = 'PlayLists'
+	if index >= 0:
+		ui.btn1.setCurrentIndex(0)
+		ui.btn1.setCurrentIndex(index)
+	time.sleep(0.5)
+	ui.list3.setFocus()
+	ui.list3.setCurrentRow(0)
+	list_item = ui.list1.findItems(nm,QtCore.Qt.MatchExactly)
+	if len(list_item) > 0:
+		for i in list_item:
+			row = ui.list1.row(i)
+			ui.list1.setFocus()
+			ui.list1.setCurrentRow(row)
+	
+
+@pyqtSlot(int)
+def start_new_pl(r):
+	print('----1539----')
+	#ui.list2.setCurrentRow(r)
+	#ui.epnfound()
+
 class ThreadedHTTPServerLocal(ThreadingMixIn, HTTPServer):
 	pass
 
@@ -8168,6 +8314,8 @@ class Ui_MainWindow(object):
 		self.local_port_stream = ''
 		self.search_term = ''
 		self.mpv_cnt = 0
+		self.remote_control = False
+		self.remote_control_field = False
 		self.local_file_index = []
 		self.quality_val = 'sd'
 		self.media_server_key = None
@@ -8183,6 +8331,7 @@ class Ui_MainWindow(object):
 		self.logging_module = False
 		self.ytdl_path = 'default'
 		self.anime_review_site = False
+		self.get_artist_metadata = False
 		self.https_cert_file = os.path.join(home,'cert.pem')
 		self.progress_counter = 0
 		self.posterfound_arr = []
@@ -15180,7 +15329,7 @@ class Ui_MainWindow(object):
 					poster = os.path.join(music_dir_art_name,'poster.jpg')
 					fan = os.path.join(music_dir_art_name,'fanart.jpg')
 					thumb = os.path.join(music_dir_art_name,'thumbnail.jpg')
-					if not os.path.exists(poster) and srch != "offline":	
+					if not os.path.exists(poster) and srch != "offline" and self.get_artist_metadata:	
 						self.threadPool.append( ThreadingExample(nm) )
 						self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
 						self.threadPool[len(self.threadPool)-1].start()
@@ -15224,7 +15373,7 @@ class Ui_MainWindow(object):
 				logger.info('poster={0}--srch={1}--artist={2}'.format(poster,srch,artist_name_mplayer))
 				if (not os.path.exists(poster) and srch != "offline" 
 						and artist_name_mplayer.lower() != "none" 
-						and artist_name_mplayer):	
+						and artist_name_mplayer and self.get_artist_metadata):	
 					print('--starting--thread--')
 					self.threadPool.append( ThreadingExample(nm) )
 					self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
@@ -15633,10 +15782,16 @@ class Ui_MainWindow(object):
 			arr = epnArrList[row].split('	')
 		except:
 			return False
+		audio_file = True
 		artist = ''
 		if len(arr) >=3 :
 			artist = arr[2].replace('"','')
-		if artist.lower() and (artist.lower() != 'none') and not artist.startswith('http'):
+			if '.' in arr[1]:
+				ext = arr[1].rsplit('.',1)[1]
+				ext = ext.replace('"','')
+				if ext != 'mp3' and ext != 'flac':
+					audio_file = False
+		if artist.lower() and (artist.lower() != 'none') and not artist.startswith('http') and audio_file:
 			return True
 		else:
 			return False
@@ -21461,6 +21616,20 @@ def main():
 				except Exception as e:
 					print(e)
 					ui.logging_module = False
+			elif i.startswith('GET_MUSIC_METADATA='):
+				try:
+					k = j.lower()
+					if k == 'on' or k == 'true' or k == 'yes':
+						ui.get_artist_metadata = True
+				except Exception as e:
+					print(e)
+			elif i.startswith('REMOTE_CONTROL='):
+				try:
+					k = j.lower()
+					if k == 'on' or k == 'true' or k == 'yes':
+						ui.remote_control_field = True
+				except Exception as e:
+					print(e)
 			elif i.startswith('ANIME_REVIEW_SITE='):
 				try:
 					k = j.lower()
@@ -21512,6 +21681,8 @@ def main():
 		f.write("\nLOGGING=Off")
 		f.write("\nYTDL_PATH=DEFAULT")
 		f.write("\nANIME_REVIEW_SITE=False")
+		f.write("\nGET_MUSIC_METADATA=False")
+		f.write("\nREMOTE_CONTROL=False")
 		f.close()
 		ui.local_ip_stream = '127.0.0.1'
 		ui.local_port_stream = 9001
