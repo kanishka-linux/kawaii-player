@@ -9,21 +9,27 @@
 <div id="title"></div>
 <br>
 <div class="Buttons">
-<button id="play">Play</button>
+<button id="play">Play/Pause</button>
 <button id="stop">Stop</button>
 <button id="loop">Lock</button>
 <button id="prev">Prev</button>
 <button id="next">Next</button>
 <button id="shuffle">Shuffle</button>
 <button id="m3u">Get M3U</button>
-<button id="logout">Logout</button>
+
 </div>
 <br>
 <div class="site_selection">
 <button id="home">Home</button>
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
+<select id="opt_val" onchange="optValChange()" hidden="hidden"></select>
 <input id="type_search" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+</div>
+<br>
+<div class="remote_selection">
+<button id="logout">Logout</button>
+<button id="remote_btn">Remote Off</button>
 </div>
 </div>
 <br>
@@ -65,6 +71,9 @@ var _player = document.getElementById("player"),
     _m3u = document.getElementById("m3u"),
     _logout = document.getElementById("logout"),
     _home = document.getElementById("home"),
+    _remote = document.getElementById("remote_btn"),
+    _remote_val = 'off',
+    _clicked_index = 0,
     _prev = document.getElementById("prev");
 
 // functions
@@ -92,17 +101,11 @@ function searchFunction(e){
 		new_url = st.concat(opt,srch);
 		console.log(new_url);
 		w = document.getElementById("opt");
-		//console.log(w);
-		//console.log(w.value);
-		
 		window.location.href = new_url;
-		//site.value = site_val;
-		//option.value = opt_val;
 		}
 	}
 
 function optChange(){
-	//location.reload();
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");
 	console.log(x);
@@ -112,12 +115,76 @@ function optChange(){
 		window.location.href = z;
 		}
 	}
+	
+function onDocReady(){
+	var old_var= _remote.innerHTML;
+	var x = document.getElementById("site").value;
+	console.log(x);
+	var y = document.getElementById("site_option");
+	var z = y.innerHTML;
+	var w = z.split(';');
+	console.log(w);
+	if (w[0].toLowerCase() == 'remotefield:false'){
+		_remote.hidden = "hidden";
+	}else if (w[0].toLowerCase() == 'remotefield:true'){
+		_remote.hidden = "";
+		}
+	
+	if (w[1].toLowerCase() == 'remotecontrol:false'){
+		_remote.innerHTML = 'Remote Off';
+		_remote_val = 'off';
+		
+	}else if (w[1].toLowerCase() == 'remotecontrol:true'){
+		_remote.innerHTML = 'Remote On';
+		_remote_val = 'on';
+		}
+	
+	var x = document.getElementById("site").value;
+	console.log(x);
+	
+	var cur_url = window.location.href;
+	if (cur_url.indexOf('site=') >= 0){
+		var site_split = cur_url.split('&');
+		var site_opt = (site_split[0]).split('=')[1];
+		x = site_opt;
+		document.getElementById("site").value = x;
+	}
+	if (cur_url.indexOf('opt=') >= 0){
+		var opt_split = cur_url.split('&');
+		var opt_opt = (opt_split[1]).split('=')[1];
+		op = 'opt_opt='+opt_opt
+		if (opt_opt.indexOf('%20') >= 0){
+			opt_opt = opt_opt.replace('%20',' ')
+			}
+		console.log(op);
+	}
+	var a = x.concat(":");
+	var req = document.getElementById("opt");
+	req.innerHTML = "";
+	for(i=0;i<w.length;i++){
+		j = w[i].toLowerCase();
+		if(j.indexOf(x) >=0){
+			console.log(j);
+			k=w[i].split(":");
+			l=j.split(":");
+			var new_opt = document.createElement("option");
+			new_opt.text = k[1];
+			new_opt.value = k[1].toLowerCase();
+			req.appendChild(new_opt);
+			console.log(new_opt.value+' :created');
+			}
+		}
+	var z1 = document.getElementById("opt");
+	z1.value = opt_opt;
+	var z = document.getElementById("type_search");
+	z.hidden = "";
+	
+}
 
 function siteChange(){
 	var x = document.getElementById("site").value;
 	console.log(x);
 	var y = document.getElementById("site_option");
-	//console.log(y.innerHTML)
 	var z = y.innerHTML;
 	var w = z.split(';');
 	console.log(w);
@@ -142,52 +209,63 @@ function siteChange(){
 	var z = document.getElementById("type_search");
 	z.hidden = "";
 }
-function playlistItemClick(clickedElement) {
+function playlistItemClick(clickedElement,mode) {
     var selected = _playlist.querySelector(".selected");
-   
+    console.log(mode)
     if (selected) {
         selected.classList.remove("selected");
     }
     clickedElement.classList.add("selected");
-	
-    _player.src = clickedElement.getAttribute("data-mp3");
-    _player.play();
-	
-    //window.alert(selected)
-     //document.write(selected)
+	var new_src = clickedElement.getAttribute("data-mp3");
+    if (_remote.innerHTML == 'Remote Off'){
+		_player.src = new_src;
+		_player.play();
+	}else{
+		
+		if (mode == 'nextplay' || mode == 'playlist'){
+		new_src += '&playlist_index=';
+		new_src += _clicked_index.toString();
+		
+		}else if (mode == 'next' || mode == 'prev'){
+			var client = new getRequest();
+			if (mode == 'next'){
+			client.get('playnext', function(response) {
+			console.log(response);
+			})
+			}else if (mode == 'prev'){
+				client.get('playprev', function(response) {
+				console.log(response);
+			})
+			} 
+		}
+		_player.src = new_src
+		console.log(new_src)
+	}
 }
 
-// functions
 function playNext() {
     var selected = _playlist.querySelector("li.selected");
     console.log(11);
     console.log(selected.innerHTML,selected.getAttribute('data-mp3'));
-   // console.log(selected.text);
-    //console.log(selected.nextSibling)
-    //console.log(selected.nextSibling.innerHTML)
+    if (_remote_val == 'on'){_clicked_index = _clicked_index + 1}
     if (selected && selected.nextSibling) {
 		if (_loop.innerHTML == '\u21BA'){
-			playlistItemClick(selected);
+			playlistItemClick(selected,'nextplay');
 			_title.innerHTML = selected.innerHTML;
-			//location.reload();
-			//_player.src = selected.getAttribute("data-mp3");
-			//_player.play();
 		}
 		else{
-			playlistItemClick(selected.nextSibling);
+			playlistItemClick(selected.nextSibling,'nextplay');
 			_title.innerHTML = selected.nextSibling.innerHTML;
 		}
     }else{
 		var first = _playlist.firstChild;
-		console.log('----next---');
 		console.log(first);
-		console.log('----next---');
-		playlistItemClick(first);
+		playlistItemClick(first,'nextplay');
 		_title.innerHTML = first.innerHTML;
 		}
+	
 }
 
-// event listeners
 _shuffle.addEventListener("click", function () {
     var cur_url = window.location.href;
     var shuf = cur_url.toLowerCase().indexOf("shuffle");
@@ -201,7 +279,6 @@ _shuffle.addEventListener("click", function () {
 		var new_shuffle = cur_url.replace("stream_continue","stream_shuffle");
 	}
 	else{
-		//var new_shuffle = cur_url.concat("&shuffle.htm");
 		var new_shuffle = cur_url;
 		console.log("hello shuffle");
 	}
@@ -215,77 +292,96 @@ _m3u.addEventListener("click", function () {
     window.location.href = x;
 });
 
+_remote.addEventListener("click", function () {
+	
+	var old_var= _remote.innerHTML;
+    if (old_var == 'Remote Off'){
+			_remote.innerHTML = 'Remote On';
+			_remote_val = 'on'
+			var client = new getRequest();
+			client.get('remote_on.htm', function(response) {
+			console.log(response);
+			
+	})
+		}
+	else {
+		_remote.innerHTML = 'Remote Off';
+		_remote_val = 'off'
+		var client = new getRequest();
+			client.get('remote_off.htm', function(response) {
+			console.log(response);
+	})
+	}
+});
+
 _home.addEventListener("click", function () {
     window.location.href = 'stream_continue.htm';
 });
 
 _logout.addEventListener("click", function () {
-    window.location.href = 'logout'
+    window.location.href = 'logout';
 });
 
 _stop.addEventListener("click", function () {
-    _player.pause();
+	if (_remote_val == 'off'){_player.pause();_player.src = "";}
+    else{
+    var client = new getRequest();
+		client.get('playerstop', function(response) {
+			console.log(response);
+	})
+    
+	}
 });
 
 _prev.addEventListener("click", function () {
 	var selected = _playlist.querySelector("li.selected");
+	if (_remote_val == 'on'){_clicked_index = _clicked_index - 1}
     if (selected && selected.previousSibling) {
-		if (_loop.innerHTML == '\u21BA'){
-			playlistItemClick(selected);
-			_title.innerHTML = selected.innerHTML;
-		}
-		else{
-			playlistItemClick(selected.previousSibling);
-			_title.innerHTML = selected.previousSibling.innerHTML;
-		}
+		playlistItemClick(selected.previousSibling,'prev');
+		_title.innerHTML = selected.previousSibling.innerHTML;
     }
+    
 });
 
 _next.addEventListener("click", function () {
 	var selected = _playlist.querySelector("li.selected");
+	if (_remote_val == 'on'){_clicked_index = _clicked_index + 1;}
     if (selected && selected.nextSibling) {
-		if (_loop.innerHTML == '\u21BA'){
-			playlistItemClick(selected);
-			_title.innerHTML = selected.innerHTML;
-		}
-		else{
-			playlistItemClick(selected.nextSibling);
+			playlistItemClick(selected.nextSibling,'next');
 			_title.innerHTML = selected.nextSibling.innerHTML;
-		}
-    } else {
+		} else {
 		var first = _playlist.firstChild;
 		console.log('----next---');
 		console.log(first);
 		console.log('----next---');
-		playlistItemClick(first);
+		playlistItemClick(first,'next');
 		_title.innerHTML = first.innerHTML;
 	}
+	
 });
 
 _play.addEventListener("click", function () {
 	var selected = _playlist.querySelector("li.selected");
-    //console.log(11)
-    //console.log(selected.innerHTML,selected.getAttribute('data-mp3'))
-    //console.log(selected.text);
-    //console.log(selected.nextSibling)
-    //console.log(selected.nextSibling.innerHTML)
-    if (selected && selected.nextSibling) {
-		if (_loop.innerHTML == '\u21BA'){
-			playlistItemClick(selected);
-			_title.innerHTML = selected.innerHTML;
+    
+    if (_remote_val == 'on'){
+		var client = new getRequest();
+		client.get('playpause', function(response) {
+			console.log(response);
+		// do something with response
+	})
+	}else{
+		if (_player.readyState == 4){
+			if (_player.paused){_player.play();}
+			else{_player.pause()}
+		} else {
+			if (selected){playlistItemClick(selected,'play');}
+			else{
+			var first = _playlist.firstChild;
+			console.log(first);
+			playlistItemClick(first,'play');
+			_title.innerHTML = first.innerHTML;}
+			}
 		}
-		else{
-			playlistItemClick(selected.nextSibling);
-			_title.innerHTML = selected.nextSibling.innerHTML;
-		}
-    } else {
-		var first = _playlist.firstChild;
-		console.log('----next---');
-		console.log(first);
-		console.log('----next---');
-		playlistItemClick(first);
-		_title.innerHTML = first.innerHTML;
-	}
 });
 
 _loop.addEventListener("click", function () {
@@ -295,6 +391,13 @@ _loop.addEventListener("click", function () {
 		}
 	else {
 		_loop.innerHTML = 'Lock';
+	}
+	if (_remote_val == 'on'){
+		var client = new getRequest();
+		client.get('lock', function(response) {
+			console.log(response);
+		// do something with response
+	})
 	}
 });
 
@@ -309,14 +412,42 @@ window.onscroll = function () {
 document.getElementById('backToTop').onclick = function()
 {
     window.scrollTo(0, 0);
-}
+};
 
 _player.addEventListener("ended", playNext);
 _playlist.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "LI") {
-        playlistItemClick(e.target);
-        _title.innerHTML = e.target.innerHTML;
+        
+        
+        if (_remote_val == 'on'){
+        var i = 0;
+        var child = e.target
+		while( (child = child.previousSibling) != null ){ 
+			console.log(i);
+			i++;
+		}
+		console.log(i);
+		_clicked_index = i;
+		}
+		playlistItemClick(e.target,'playlist');
+		console.log(e.target);
+		_title.innerHTML = e.target.innerHTML;
     }
-});
+})
+
+var getRequest = function() {
+    this.get = function(url, callbak) {
+        var http_req = new XMLHttpRequest();
+        http_req.onreadystatechange = function() { 
+            if (http_req.readyState == 4 && http_req.status == 200)
+                {callbak(http_req.responseText);}
+        }
+
+        http_req.open( "GET", url, true );            
+        http_req.send( null );
+    }
+};
+
+onDocReady();
 </script>
 </html>
