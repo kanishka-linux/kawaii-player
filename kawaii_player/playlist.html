@@ -36,6 +36,10 @@
 <div class="remote_selection">
 <button id="logout">Logout</button>
 <button id="remote_btn">Remote Off</button>
+<button id="seek10" hidden="hidden">10s+</button>
+<button id="seek_10" hidden="hidden">-10s+</button>
+<button id="vol5" hidden="hidden">vol++</button>
+<button id="vol_5" hidden="hidden">vol--</button>
 </div>
 </div>
 <br>
@@ -80,6 +84,11 @@ var _player = document.getElementById("player"),
     _remote = document.getElementById("remote_btn"),
     _opt_ok = document.getElementById("opt_ok"),
     _opt_val_ok = document.getElementById("opt_val_ok"),
+    _seek_10 = document.getElementById("seek10"),
+    _seek_10 = document.getElementById("seek10"),
+    _seek_10_ = document.getElementById("seek_10"),
+    _vol_5 = document.getElementById("vol5"),
+    _vol_5_ = document.getElementById("vol_5"),
     _remote_val = 'off',
     _clicked_index = 0,
     _prev = document.getElementById("prev");
@@ -391,7 +400,10 @@ _remote.addEventListener("click", function () {
 			var client = new getRequest();
 			client.get('remote_on.htm', function(response) {
 			console.log(response);
-			
+			_seek_10.hidden = "";
+			_seek_10_.hidden= "";
+			_vol_5.hidden = "";
+			_vol_5_.hidden = "";
 	})
 		}
 	else {
@@ -400,6 +412,10 @@ _remote.addEventListener("click", function () {
 		var client = new getRequest();
 			client.get('remote_off.htm', function(response) {
 			console.log(response);
+			_seek_10.hidden = "hidden";
+			_seek_10_.hidden = "hidden";
+			_vol_5.hidden = "hidden";
+			_vol_5_.hidden = "hidden";
 	})
 	}
 });
@@ -421,6 +437,38 @@ _stop.addEventListener("click", function () {
 	})
     
 	}
+});
+
+_seek_10.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('seek10', function(response) {
+	console.log(response);
+	})}
+});
+
+_seek_10_.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('seek_10', function(response) {
+	console.log(response);
+	})}
+});
+
+_vol_5.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('volume5', function(response) {
+	console.log(response);
+	})}
+});
+
+_vol_5_.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('volume_5', function(response) {
+	console.log(response);
+	})}
 });
 
 _prev.addEventListener("click", function () {
