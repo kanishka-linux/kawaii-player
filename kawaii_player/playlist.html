@@ -23,8 +23,14 @@
 <button id="home">Home</button>
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
-<select id="opt_val" onchange="optValChange()" hidden="hidden"></select>
+<button id="opt_ok">Go</button>
 <input id="type_search" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+
+</div>
+<br>
+<div class="option_display">
+<select id="opt_val" onchange="optValChange()" width = "640" hidden="hidden"></select>
+<button id="opt_val_ok" hidden="hidden">Go</button>
 </div>
 <br>
 <div class="remote_selection">
@@ -72,6 +78,8 @@ var _player = document.getElementById("player"),
     _logout = document.getElementById("logout"),
     _home = document.getElementById("home"),
     _remote = document.getElementById("remote_btn"),
+    _opt_ok = document.getElementById("opt_ok"),
+    _opt_val_ok = document.getElementById("opt_val_ok"),
     _remote_val = 'off',
     _clicked_index = 0,
     _prev = document.getElementById("prev");
@@ -111,11 +119,30 @@ function optChange(){
 	console.log(x);
 	var y = document.getElementById("site").value.toLowerCase();
 	if(y.indexOf("playlist") >=0){
-		var z = "site=".concat(y,"&opt=".concat(x),"&s=.htm");
+		var z = 'site='+y+'&opt='+x+'&s=.htm';
 		window.location.href = z;
+	}else{
+		var z = 'site='+y+'&opt='+x;
+		var client = new getRequest();
+		client.get(z, function(response) {
+		//console.log(response);
+		m = response.split('\n');
+		console.log(m);
+		r = document.getElementById('opt_val');
+		while(r.firstChild){r.removeChild(r.firstChild);}
+		for(i=0;i<m.length;i++){
+			var new_opt = document.createElement('option');
+			var txt = m[i].substring(0,80);
+			new_opt.text = txt;
+			new_opt.value = m[i].toLowerCase();
+			r.appendChild(new_opt);
 		}
+		r.hidden = "";
+		_opt_val_ok.hidden = "";
+		})
 	}
-	
+}
+
 function onDocReady(){
 	var old_var= _remote.innerHTML;
 	var x = document.getElementById("site").value;
@@ -158,17 +185,17 @@ function onDocReady(){
 			}
 		console.log(op);
 	}
-	var a = x.concat(":");
+	var a = x.toLowerCase();
 	var req = document.getElementById("opt");
 	req.innerHTML = "";
 	for(i=0;i<w.length;i++){
-		j = w[i].toLowerCase();
+		j = w[i].toLowerCase().split(':')[0];
 		if(j.indexOf(x) >=0){
 			console.log(j);
 			k=w[i].split(":");
 			l=j.split(":");
 			var new_opt = document.createElement("option");
-			new_opt.text = k[1];
+			new_opt.text = k[1].substring(0,30);
 			new_opt.value = k[1].toLowerCase();
 			req.appendChild(new_opt);
 			console.log(new_opt.value+' :created');
@@ -188,20 +215,20 @@ function siteChange(){
 	var z = y.innerHTML;
 	var w = z.split(';');
 	console.log(w);
-	var a = x.concat(":");
+	var a = x.toLowerCase();
 	var req = document.getElementById("opt");
 	//while(req.hasChildNodes){req.removeChild(req.lastChild);}
 	req.innerHTML = "";
 	for(i=0;i<w.length;i++){
 		//console.log(w[i])
-		j = w[i].toLowerCase();
-		if(j.indexOf(x) >=0){
+		j = w[i].toLowerCase().split(':')[0];
+		if(j.indexOf(x) >= 0){
 			console.log(j);
 			k=w[i].split(":");
 			l=j.split(":");
 			console.log(l[0].concat(k[1]));
 			var new_opt = document.createElement("option");
-			new_opt.text = k[1];
+			new_opt.text = k[1].substring(0,30);
 			new_opt.value = k[1].toLowerCase();
 			req.appendChild(new_opt);
 			}
@@ -209,6 +236,33 @@ function siteChange(){
 	var z = document.getElementById("type_search");
 	z.hidden = "";
 }
+
+
+function optValChange(){
+	var x = document.getElementById("site").value.toLowerCase();
+	var y = document.getElementById("opt").value.toLowerCase();
+	var z = document.getElementById("opt_val").value.toLowerCase();
+	console.log(z)
+	var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
+	var client = new getRequest();
+	client.get(new_url, function(response) {
+	console.log(response);
+	m = response.split('\n');
+	r = document.getElementById('playlist')
+	console.log(m)
+	while(r.firstChild){r.removeChild(r.firstChild);}
+	for(i=1;i<m.length-1;i+=2){
+		var a = m[i].substring(10,100);
+		var b = m[i+1];
+		var new_opt = document.createElement('li');
+		new_opt.innerHTML = a;
+		new_opt.setAttribute('data-mp3',b);
+		r.appendChild(new_opt);
+		}
+	})
+	//window.location.href = new_url;
+}
+
 function playlistItemClick(clickedElement,mode) {
     var selected = _playlist.querySelector(".selected");
     console.log(mode)
@@ -223,8 +277,11 @@ function playlistItemClick(clickedElement,mode) {
 	}else{
 		
 		if (mode == 'nextplay' || mode == 'playlist'){
-		new_src += '&playlist_index=';
-		new_src += _clicked_index.toString();
+		new_indx = 'playlist_'+_clicked_index.toString();
+		var client = new getRequest();
+			client.get(new_indx, function(response) {
+			console.log(response);
+			})
 		
 		}else if (mode == 'next' || mode == 'prev'){
 			var client = new getRequest();
@@ -267,29 +324,62 @@ function playNext() {
 }
 
 _shuffle.addEventListener("click", function () {
-    var cur_url = window.location.href;
-    var shuf = cur_url.toLowerCase().indexOf("shuffle");
-    var stream = cur_url.toLowerCase().indexOf("stream_shuffle");
-    var stream_continue = cur_url.toLowerCase().indexOf("stream_continue");
-    if (cur_url.toLowerCase().indexOf(".html")>0 && shuf < 0 && stream < 0 && stream_continue < 0){
-		var new_shuffle = cur_url.replace(".html","&shuffle.html");
-	} else if(cur_url.toLowerCase().indexOf(".htm")>0 && shuf <0 && stream < 0 && stream_continue < 0){
-		var new_shuffle = cur_url.replace(".htm","&shuffle.htm");
-	} else if(stream_continue >= 0){
-		var new_shuffle = cur_url.replace("stream_continue","stream_shuffle");
+	var new_url = 'stream_shuffle.m3u';
+	var x = document.getElementById("site").value.toLowerCase();
+    if (x != 'select'){
+		var y = document.getElementById("opt").value.toLowerCase();
+		var z = document.getElementById("opt_val").value.toLowerCase();
+		if (z){
+		var new_url = 'site='+x+'&opt='+y+'&s='+z+'&shuffle.m3u';
+		} else {
+			var y = window.location.href;
+			y = y.replace(".htm","");
+			new_url = y +'&shuffle.m3u';
+		}
 	}
-	else{
-		var new_shuffle = cur_url;
-		console.log("hello shuffle");
-	}
-	window.location.href = new_shuffle;
+	var client = new getRequest();
+	client.get(new_url, function(response) {
+	console.log(response);
+	
+	m = response.split('\n');
+	r = document.getElementById('playlist')
+	console.log(m)
+	while(r.firstChild){r.removeChild(r.firstChild);}
+	for(i=1;i<m.length-1;i+=2){
+		var a = m[i].substring(10,100);
+		var b = m[i+1];
+		var new_opt = document.createElement('li');
+		new_opt.innerHTML = a;
+		new_opt.setAttribute('data-mp3',b);
+		r.appendChild(new_opt);
+		}
+	})
+	
+	
 });
 
 _m3u.addEventListener("click", function () {
-    var x = window.location.href;
-    x = x.replace(".htm","");
-    x = x.concat(".m3u");
-    window.location.href = x;
+	
+	
+    var x = document.getElementById("site").value.toLowerCase();
+    if (x == 'select'){
+		var y = window.location.href;
+		y = y.replace(".htm","");
+		y = y +'.m3u';
+		window.location.href = y;
+		}
+    else{
+		var y = document.getElementById("opt").value.toLowerCase();
+		var z = document.getElementById("opt_val").value.toLowerCase();
+		if (z){
+		var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
+		} else {
+			var y = window.location.href;
+			y = y.replace(".htm","");
+			new_url = y +'.m3u';
+		}
+		window.location.href = new_url;
+	}
 });
 
 _remote.addEventListener("click", function () {
@@ -399,6 +489,14 @@ _loop.addEventListener("click", function () {
 		// do something with response
 	})
 	}
+});
+
+_opt_ok.addEventListener("click", function () {
+  optChange();  
+});
+
+_opt_val_ok.addEventListener("click", function () {
+  optValChange();
 });
 
 window.onscroll = function () {
