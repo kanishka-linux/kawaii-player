@@ -24,6 +24,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Universal Playlist Generation](#universal-playlist-generation)
 
+[Remote Control](#remote-control)
+
 [YouTube Player](#youtube-support)
 
 [Addons (Plugins) Structure](#addon-structure)
@@ -181,6 +183,10 @@ The media server functionality can be started by selecting **'More->Start Media 
 **Experimental Headless Mode using Xvfb:** It's possible to use the server in headless mode using xvfb (Available only in latest git commit, not in release section). Users need to install xvfb first and then should run following command:
 		
 		$ xvfb-run --server-args="-screen 0 640x480x16" kawaii-player --start-media-server --update-video-db --update-music-db
+		
+		In order to add user and password in headless mode append '--user {username} --password {password}' to above command.
+		
+		If openssl is installed then for generating ssl append '--generate-ssl {Atleast 8-character length passphrase}' to the above command.
 
 In local home network, if cookie and https is not enabled for media server then, one can access various media server playlists directly from vlc using simple urls.  
 
@@ -281,6 +287,15 @@ Another popular open and free Android client is Kodi, which can also play most o
 Performance of vlc or kodi on android devices also depends on the hardware of the device. Depending on the hardware of mobile device, sometimes they might play every kind of network stream you throw at them, while sometimes they won't play even a simple video.
 
 Note: Once user logs out from cookie and password enabled session, he/she can't search anything within the server without logging in again. But the generated playlist can be played by any player till the expiry of playlist even after log out. Expiry period for playlist can be set in other_options.txt file (COOKIE_PLAYLIST_EXPIRY_LIMIT field) in hours.
+
+## Remote Control
+
+###### [Index](#index)
+
+Remote Control support is experimental and available only in latest git commit and not in release section.
+
+In order to control the player remotely, one needs to add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**. Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, he/she will be able to see new button labeled **Remote Off**. By clicking on the button, user can enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling playing instance of kawaii-player.
+
 
 
 ## YouTube Support
