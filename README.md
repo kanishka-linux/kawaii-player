@@ -186,7 +186,7 @@ The media server functionality can be started by selecting **'More->Start Media 
 		
 		In order to add user and password in headless mode append '--user {username} --password {password}' to above command.
 		
-		If openssl is installed then for generating ssl append '--generate-ssl {Atleast 8-character length passphrase}' to the above command.
+		If openssl is installed then for generating ssl certificate append '--generate-ssl {Atleast 8-character length passphrase}' to the above command.
 
 In local home network, if cookie and https is not enabled for media server then, one can access various media server playlists directly from vlc using simple urls.  
 
