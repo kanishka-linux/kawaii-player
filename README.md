@@ -294,7 +294,7 @@ Note: Once user logs out from cookie and password enabled session, he/she can't 
 
 Remote Control support is experimental and available only in latest git commit and not in release section.
 
-In order to control the player remotely, one needs to add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**. Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, he/she will be able to see new button labeled **Remote Off**. By clicking on the button, user can enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling playing instance of kawaii-player.
+In order to control the player remotely, one needs to add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**. Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, he/she will be able to see new button labeled **'Remote Off'**. By clicking the button, user can enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling playing instance of kawaii-player.
 
 
 
