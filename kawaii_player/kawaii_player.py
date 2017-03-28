@@ -703,6 +703,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		k = ''
 		for i in original_path_name:
 			i = i.strip()
+			if '	' in i:
+				i = i.split('	')[0]
+			if site.lower() == 'music' and site_option.lower() == 'directory':
+				dir_m,i = os.path.split(i)
 			i = i+'\n'
 			k = k+i
 		return k
@@ -1281,17 +1285,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			if nm.startswith('"'):
 				nm = nm.replace('"','')
 			self.process_url(nm,get_bytes)
-		elif path.endswith('_playlist'):
+		elif path.startswith('playlist_'):
 			try:
-				row,pl = path.split('_',1)
-				row_num = int(row)
-				nm = ui.epn_return(row_num)
-				if nm.startswith('"'):
-					nm = nm.replace('"','')
-				self.process_url(nm,get_bytes)
+				pl,row = path.split('_',1)
+				if row.isnumeric():
+					row_num = int(row)
+				else:
+					row_num = -1000
 				if ui.remote_control and ui.remote_control_field:
+					b = b'locking file'
+					self.final_message(b)
 					remote_signal = doGETSignal()
-					remote_signal.control_signal.emit(row_num)
+					remote_signal.control_signal.emit(row_num,'normal')
+				else:
+					b = b'Remote Control Not Allowed'
+					self.final_message(b)
 			except Exception as e:
 				print(e)
 		elif path.lower() == 'lock':
@@ -1300,30 +1308,45 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.final_message(b)
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'loop')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.lower() == 'playpause':
 			if ui.remote_control and ui.remote_control_field:
 				b = b'playpause file'
 				self.final_message(b)
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'playpause')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.lower() == 'playerstop':
 			if ui.remote_control and ui.remote_control_field:
 				b = b'stop playing'
 				self.final_message(b)
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'stop')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.lower() == 'playnext':
 			if ui.remote_control and ui.remote_control_field:
 				b = b'Next File'
 				self.final_message(b)
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'next')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.lower() == 'playprev':
 			if ui.remote_control and ui.remote_control_field:
 				b = b'Prev File'
 				self.final_message(b)
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'prev')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.startswith('abs_path='):
 			try:
 				path = path.split('abs_path=',1)[1]
@@ -1368,6 +1391,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						print(row_num,'--row--num--playlist--',mode)
 						remote_signal = doGETSignal()
 						remote_signal.control_signal.emit(row_num,mode)
+					else:
+						b = b'Remote Control Not Allowed'
+						self.final_message(b)
 			except Exception as e:
 				print(e)
 		elif path.startswith('relative_path='):
