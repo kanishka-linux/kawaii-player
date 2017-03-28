@@ -1320,6 +1320,42 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			else:
 				b = b'Remote Control Not Allowed'
 				self.final_message(b)
+		elif path.lower() == 'seek10':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'seek +10s'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(10,'seek')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'seek_10':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'seek -10s'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-10,'seek')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'volume5':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'volume +5'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(5,'volume')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'volume_5':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'volume -5'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-5,'volume')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.lower() == 'playerstop':
 			if ui.remote_control and ui.remote_control_field:
 				b = b'stop playing'
@@ -1569,7 +1605,7 @@ def get_my_ip_regularly(nm):
 
 @pyqtSlot(int,str)
 def start_player_remotely(nm,mode):
-	global ui,curR
+	global ui,curR,mpvplayer,Player
 	
 	if mode == 'normal':
 		if nm < ui.list2.count() and nm >= 0:
@@ -1592,6 +1628,16 @@ def start_player_remotely(nm,mode):
 			ui.player_next.clicked.emit()
 		elif mode == 'prev':
 			ui.player_prev.clicked.emit()
+		elif mode == 'seek':
+			if nm == 10:
+				ui.player_seek_10.clicked.emit()
+			elif nm == -10:
+				ui.player_seek_10_.clicked.emit()
+		elif mode == 'volume':
+			if nm == 5:
+				ui.player_vol_5.clicked.emit()
+			elif nm == -5:
+				ui.player_vol_5_.clicked.emit()
 
 @pyqtSlot(str)
 def navigate_player_remotely(nm):
@@ -7769,6 +7815,8 @@ class Ui_MainWindow(object):
 		self.player_next.setText(self.player_buttons['next'])
 		self.player_next.setToolTip('>')
 		
+		
+		
 		self.player_showhide_title_list = QtWidgets.QPushButton(self.player_opt)
 		self.player_showhide_title_list.setObjectName(_fromUtf8("player_showhide_title_list"))
 		self.horizontalLayout_player_opt.insertWidget(9,self.player_showhide_title_list,0)
@@ -7827,7 +7875,35 @@ class Ui_MainWindow(object):
 			self.action_player_menu.append(
 				self.player_menu.addAction(i, lambda x=i:self.playerPlaylist(x)))
 				
-			
+		
+		self.player_seek_10 = QtWidgets.QPushButton(self.player_opt)
+		self.player_seek_10.setObjectName(_fromUtf8("player_seek_10"))
+		self.horizontalLayout_player_opt.insertWidget(15,self.player_seek_10,0)
+		self.player_seek_10.setText('+10s')
+		self.player_seek_10.clicked.connect(lambda x=0: self.seek_to_val(10))
+		self.player_seek_10.hide()
+		
+		self.player_seek_10_ = QtWidgets.QPushButton(self.player_opt)
+		self.player_seek_10_.setObjectName(_fromUtf8("player_seek_10_"))
+		self.horizontalLayout_player_opt.insertWidget(16,self.player_seek_10_,0)
+		self.player_seek_10_.setText('-10s')
+		self.player_seek_10_.clicked.connect(lambda x=0: self.seek_to_val(-10))
+		self.player_seek_10_.hide()
+		
+		self.player_vol_5 = QtWidgets.QPushButton(self.player_opt)
+		self.player_vol_5.setObjectName(_fromUtf8("player_vol_5"))
+		self.horizontalLayout_player_opt.insertWidget(17,self.player_vol_5,0)
+		self.player_vol_5.setText('+5')
+		self.player_vol_5.clicked.connect(lambda x=0: self.seek_to_vol_val(5))
+		self.player_vol_5.hide()
+		
+		self.player_vol_5_ = QtWidgets.QPushButton(self.player_opt)
+		self.player_vol_5_.setObjectName(_fromUtf8("player_vol_5_"))
+		self.horizontalLayout_player_opt.insertWidget(18,self.player_vol_5_,0)
+		self.player_vol_5_.setText('-5')
+		self.player_vol_5_.clicked.connect(lambda x=0: self.seek_to_vol_val(-5))
+		self.player_vol_5_.hide()
+		
 		self.player_playlist.setMenu(self.player_menu)
 		self.player_playlist.setCheckable(True)
 		
@@ -8685,6 +8761,28 @@ class Ui_MainWindow(object):
 		self.downloadWget_cnt = 0
 		self.lock_process = False
 		self.mpv_thumbnail_lock = False
+	
+	def seek_to_val(self,val):
+		global Player,mpvplayer
+		txt1 = '\n osd 1 \n'
+		if Player == "mplayer":
+			txt = '\n seek {0}\n'.format(val)
+		else:
+			txt = '\n seek {0} relative+exact \n'.format(val)
+			print(txt)
+		mpvplayer.write(bytes(txt1,'utf-8'))
+		mpvplayer.write(bytes(txt,'utf-8'))
+		
+	def seek_to_vol_val(self,val):
+		global Player,mpvplayer
+		txt1 = '\n osd 1 \n'
+		if Player == "mplayer":
+			txt = '\n volume {0} \n'.format(val)
+			mpvplayer.write(b'')
+		else:
+			txt = '\n add ao-volume {0} \n'.format(val)
+		mpvplayer.write(bytes(txt1,'utf-8'))
+		mpvplayer.write(bytes(txt,'utf-8'))				
 	
 	def float_activity(self):
 		global new_tray_widget
