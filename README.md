@@ -93,17 +93,21 @@ Moreover media-server of this application has been designed in such a manner tha
 
 17. [Torrent streaming player](#torrent-streaming)
 
-18. [Media Server capability](#media-server)
+18. [Media Server Capability](#media-server)
 
-19. [Youtube wrapper using qtwebengine/qtwebkit](#youtube-support)
+19. Headless Media Server mode using Xvfb
 
-20. [Detached Video Mode](#detached-video-mode)
+20. [Youtube wrapper using qtwebengine/qtwebkit](#youtube-support)
 
-21. [Universal Playlist Generation](#universal-playlist-generation)
+21. [Detached Video Mode](#detached-video-mode)
 
-22. Web Interface for accessing media server content
+22. [Universal Playlist Generation](#universal-playlist-generation)
 
-23. [Remote Control using web interface](#remote-control)
+23. Web Interface for accessing media server content
+
+24. [Remote Control using web interface](#remote-control)
+
+
 
 
 
