@@ -4,9 +4,10 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ![kawaii-player](/Images/Video.png)
 
-[But Why Another Media Player/Organizer/Server?](#why-another-media-player)
 
 ## Index
+
+[Why Another Media Player?](#why-another-media-player)
 
 [Features](#features)
 
@@ -99,6 +100,12 @@ Moreover media-server of this application has been designed in such a manner tha
 20. Detached Video Mode.
 
 21. Universal Playlist Generation.
+
+22. Web Interface for accessing media server content.
+
+23. Remote Control using web interface.
+
+
 
 
 ## Playing Mode
