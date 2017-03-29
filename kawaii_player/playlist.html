@@ -40,6 +40,7 @@
 <button id="seek_10" hidden="hidden">-10s+</button>
 <button id="vol5" hidden="hidden">vol++</button>
 <button id="vol_5" hidden="hidden">vol--</button>
+<button id="fullscreen" hidden="hidden">F</button>
 </div>
 </div>
 <br>
@@ -89,6 +90,7 @@ var _player = document.getElementById("player"),
     _seek_10_ = document.getElementById("seek_10"),
     _vol_5 = document.getElementById("vol5"),
     _vol_5_ = document.getElementById("vol_5"),
+    _fullscreen = document.getElementById("fullscreen"),
     _remote_val = 'off',
     _clicked_index = 0,
     _prev = document.getElementById("prev");
@@ -404,6 +406,7 @@ _remote.addEventListener("click", function () {
 			_seek_10_.hidden= "";
 			_vol_5.hidden = "";
 			_vol_5_.hidden = "";
+			_fullscreen.hidden = "";
 	})
 		}
 	else {
@@ -416,6 +419,7 @@ _remote.addEventListener("click", function () {
 			_seek_10_.hidden = "hidden";
 			_vol_5.hidden = "hidden";
 			_vol_5_.hidden = "hidden";
+			_fullscreen.hidden = "hidden";
 	})
 	}
 });
@@ -467,6 +471,14 @@ _vol_5_.addEventListener("click", function () {
 	if (_remote_val == 'on'){
 	var client = new getRequest();
 	client.get('volume_5', function(response) {
+	console.log(response);
+	})}
+});
+
+_fullscreen.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('fullscreen', function(response) {
 	console.log(response);
 	})}
 });
