@@ -103,11 +103,11 @@ function searchFunction(e){
 		console.log(z.value);
 		site = document.getElementById("site");
 		site_val = site.value;
-		st = "site=".concat(site.value.toLowerCase());
+		st = "site="+site.value.toLowerCase();
 		option = document.getElementById("opt");
 		opt_val = option.value;
-		opt = "&opt=".concat(option.value.toLowerCase());
-		srch = "&s=".concat(z.value.replace(" ","+"));
+		opt = "&opt="+option.value.toLowerCase();
+		srch = "&s="+z.value.replace(" ","+");
 		opt = opt.replace(/" "/g,"+")
 		console.log(opt);
 		srch_val = srch.toLowerCase();
@@ -138,15 +138,17 @@ function optChange(){
 		client.get(z, function(response) {
 		//console.log(response);
 		m = response.split('\n');
-		console.log(m);
+		//console.log(m);
 		r = document.getElementById('opt_val');
 		while(r.firstChild){r.removeChild(r.firstChild);}
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
 			var txt = m[i].substring(0,80);
+			if (txt){
 			new_opt.text = txt;
 			new_opt.value = m[i].toLowerCase();
-			r.appendChild(new_opt);
+			//console.log(i,txt);
+			r.appendChild(new_opt);}
 		}
 		r.hidden = "";
 		_opt_val_ok.hidden = "";
@@ -257,10 +259,10 @@ function optValChange(){
 	var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
 	var client = new getRequest();
 	client.get(new_url, function(response) {
-	console.log(response);
+	//console.log(response);
 	m = response.split('\n');
 	r = document.getElementById('playlist')
-	console.log(m)
+	//console.log(m)
 	while(r.firstChild){r.removeChild(r.firstChild);}
 	for(i=1;i<m.length-1;i+=2){
 		var a = m[i].substring(10,100);
