@@ -91,19 +91,19 @@ Moreover media-server of this application has been designed in such a manner tha
 
 16. Support for opening video in external players like vlc, smplayer or kodi.
 
-17. Torrent streaming player.
+17. [Torrent streaming player](#torrent-streaming)
 
-18. Media Server capability.
+18. [Media Server capability](#media-server)
 
-19. Youtube wrapper using qtwebengine/qtwebkit.
+19. [Youtube wrapper using qtwebengine/qtwebkit](#youtube-support)
 
-20. Detached Video Mode.
+20. [Detached Video Mode](#detached-video-mode)
 
-21. Universal Playlist Generation.
+21. [Universal Playlist Generation](#universal-playlist-generation)
 
-22. Web Interface for accessing media server content.
+22. Web Interface for accessing media server content
 
-23. Remote Control using web interface.
+23. [Remote Control using web interface](#remote-control)
 
 
 
