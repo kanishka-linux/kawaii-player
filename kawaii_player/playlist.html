@@ -37,7 +37,7 @@
 <button id="logout">Logout</button>
 <button id="remote_btn">Remote Off</button>
 <button id="seek10" hidden="hidden">10s+</button>
-<button id="seek_10" hidden="hidden">-10s+</button>
+<button id="seek_10" hidden="hidden">10s-</button>
 <button id="vol5" hidden="hidden">vol++</button>
 <button id="vol_5" hidden="hidden">vol--</button>
 <button id="fullscreen" hidden="hidden">F</button>
@@ -115,12 +115,29 @@ function searchFunction(e){
 			console.log(srch_val);
 		}
 		else{
-			srch = srch.concat(".htm");
+			srch = srch+'.m3u';
 		}
-		new_url = st.concat(opt,srch);
+		new_url = st+opt+srch;
 		console.log(new_url);
-		w = document.getElementById("opt");
-		window.location.href = new_url;
+		//window.location.href = new_url;
+		
+		
+		var client = new getRequest();
+		client.get(new_url, function(response) {
+		m = response.split('\n');
+		r = document.getElementById('playlist')
+		while(r.firstChild){r.removeChild(r.firstChild);}
+		for(i=1;i<m.length-1;i+=2){
+			var a = m[i].substring(10,100);
+			var b = m[i+1];
+			var new_opt = document.createElement('li');
+			new_opt.innerHTML = a;
+			new_opt.setAttribute('data-mp3',b);
+			r.appendChild(new_opt);
+			}
+		})
+		
+		
 		}
 	}
 
@@ -177,6 +194,11 @@ function onDocReady(){
 	}else if (w[1].toLowerCase() == 'remotecontrol:true'){
 		_remote.innerHTML = 'Remote On';
 		_remote_val = 'on';
+		_seek_10.hidden = "";
+		_seek_10_.hidden= "";
+		_vol_5.hidden = "";
+		_vol_5_.hidden = "";
+		_fullscreen.hidden = "";
 		}
 	
 	var x = document.getElementById("site").value;
@@ -274,6 +296,7 @@ function optValChange(){
 		}
 	})
 	//window.location.href = new_url;
+	document.getElementById("type_search").value = ""; 
 }
 
 function playlistItemClick(clickedElement,mode) {
@@ -373,7 +396,7 @@ _shuffle.addEventListener("click", function () {
 
 _m3u.addEventListener("click", function () {
 	
-	
+	var srch_txt = document.getElementById("type_search").value.toLowerCase();
     var x = document.getElementById("site").value.toLowerCase();
     if (x == 'select'){
 		var y = window.location.href;
@@ -384,6 +407,8 @@ _m3u.addEventListener("click", function () {
     else{
 		var y = document.getElementById("opt").value.toLowerCase();
 		var z = document.getElementById("opt_val").value.toLowerCase();
+		if (srch_txt){z = srch_txt;}
+			
 		if (z){
 		var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
 		} else {
@@ -554,11 +579,13 @@ _loop.addEventListener("click", function () {
 });
 
 _opt_ok.addEventListener("click", function () {
-  optChange();  
+  optChange();
+  document.getElementById("type_search").value = "";  
 });
 
 _opt_val_ok.addEventListener("click", function () {
   optValChange();
+  
 });
 
 window.onscroll = function () {
