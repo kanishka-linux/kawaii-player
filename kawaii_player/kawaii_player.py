@@ -1383,6 +1383,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			else:
 				b = b'Remote Control Not Allowed'
 				self.final_message(b)
+		elif path.lower() == 'fullscreen':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'Toggle Fullscreen'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'fullscreen')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.startswith('abs_path='):
 			try:
 				path = path.split('abs_path=',1)[1]
@@ -1618,26 +1627,31 @@ def start_player_remotely(nm,mode):
 			ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
 		print('---1523---')
 	else:
+		
 		if mode == 'playpause':
 			ui.player_play_pause.clicked.emit()
-		elif mode == 'stop':
-			ui.player_stop.clicked.emit()
-		elif mode == 'loop':
-			ui.player_loop_file.clicked.emit()
-		elif mode == 'next':
-			ui.player_next.clicked.emit()
-		elif mode == 'prev':
-			ui.player_prev.clicked.emit()
-		elif mode == 'seek':
-			if nm == 10:
-				ui.player_seek_10.clicked.emit()
-			elif nm == -10:
-				ui.player_seek_10_.clicked.emit()
-		elif mode == 'volume':
-			if nm == 5:
-				ui.player_vol_5.clicked.emit()
-			elif nm == -5:
-				ui.player_vol_5_.clicked.emit()
+		else:
+			if mpvplayer.processId() > 0:
+				if mode == 'stop':
+					ui.player_stop.clicked.emit()
+				elif mode == 'loop':
+					ui.player_loop_file.clicked.emit()
+				elif mode == 'next':
+					ui.player_next.clicked.emit()
+				elif mode == 'prev':
+					ui.player_prev.clicked.emit()
+				elif mode == 'seek':
+					if nm == 10:
+						ui.player_seek_10.clicked.emit()
+					elif nm == -10:
+						ui.player_seek_10_.clicked.emit()
+				elif mode == 'volume':
+					if nm == 5:
+						ui.player_vol_5.clicked.emit()
+					elif nm == -5:
+						ui.player_vol_5_.clicked.emit()
+				elif mode == 'fullscreen':
+					ui.player_fullscreen.clicked.emit()
 
 @pyqtSlot(str)
 def navigate_player_remotely(nm):
@@ -7904,6 +7918,13 @@ class Ui_MainWindow(object):
 		self.player_vol_5_.clicked.connect(lambda x=0: self.seek_to_vol_val(-5))
 		self.player_vol_5_.hide()
 		
+		self.player_fullscreen = QtWidgets.QPushButton(self.player_opt)
+		self.player_fullscreen.setObjectName(_fromUtf8("player_fullscreen"))
+		self.horizontalLayout_player_opt.insertWidget(19,self.player_fullscreen,0)
+		self.player_fullscreen.setText('F')
+		self.player_fullscreen.clicked.connect(self.remote_fullscreen)
+		self.player_fullscreen.hide()
+		
 		self.player_playlist.setMenu(self.player_menu)
 		self.player_playlist.setCheckable(True)
 		
@@ -8762,6 +8783,72 @@ class Ui_MainWindow(object):
 		self.lock_process = False
 		self.mpv_thumbnail_lock = False
 	
+	def remote_fullscreen(self):
+		global MainWindow,wget
+		if not MainWindow.isHidden():
+			if not MainWindow.isFullScreen():
+				if not self.tab_6.isHidden():
+					self.fullscreen_mode = 1
+				elif not self.float_window.isHidden():
+					self.fullscreen_mode = 2
+				else: 
+					fullscreen_mode = 0
+				self.gridLayout.setSpacing(0)
+				self.superGridLayout.setSpacing(0)
+				self.gridLayout.setContentsMargins(0,0,0,0)
+				self.superGridLayout.setContentsMargins(0,0,0,0)
+				self.text.hide()
+				self.label.hide()
+				self.frame1.hide()
+				self.tab_6.hide()
+				self.goto_epn.hide()
+				self.btn20.hide()
+				if wget.processId() > 0 or video_local_stream:
+					self.progress.hide()
+					if not self.torrent_frame.isHidden():
+						self.torrent_frame.hide()
+				self.list2.hide()
+				self.list6.hide()
+				self.list1.hide()
+				self.frame.hide()
+				self.dockWidget_3.hide()
+				self.tab_5.show()
+				self.tab_5.setFocus()
+				if not self.tab_2.isHidden():
+					self.tab_2.hide()
+				if (Player == "mplayer" or Player=="mpv"):
+					MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+				MainWindow.showFullScreen()
+			else:
+				self.gridLayout.setSpacing(5)
+				self.superGridLayout.setSpacing(0)
+				self.gridLayout.setContentsMargins(5,5,5,5)
+				self.superGridLayout.setContentsMargins(5,5,5,5)
+				self.list2.show()
+				self.btn20.show()
+				if wget.processId() > 0 or video_local_stream:
+					self.progress.show()
+				self.frame1.show()
+				if Player == "mplayer" or Player=="mpv":
+					MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+				MainWindow.showNormal()
+				MainWindow.showMaximized()
+				if total_till != 0 or self.fullscreen_mode == 1:
+					self.tab_6.show()
+					self.list2.hide()
+					self.goto_epn.hide()
+				if self.btn1.currentText().lower() == 'youtube':
+					self.list2.hide()
+					self.goto_epn.hide()
+					self.tab_2.show()
+				#QtW
+		else:
+			if not self.float_window.isHidden():
+				if not self.float_window.isFullScreen():
+					self.float_window.showFullScreen()
+				else:
+					self.float_window.showNormal()
+	
 	def seek_to_val(self,val):
 		global Player,mpvplayer
 		txt1 = '\n osd 1 \n'
@@ -9487,6 +9574,7 @@ class Ui_MainWindow(object):
 				
 	def playerPlayPause(self):
 		global mpvplayer,curR,idw,cur_label_num
+		
 		txt = self.player_play_pause.text() 
 		if txt == self.player_buttons['play']:
 			if mpvplayer.processId() > 0:
@@ -9495,6 +9583,8 @@ class Ui_MainWindow(object):
 				else:
 					mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
 				self.player_play_pause.setText(self.player_buttons['pause'])
+				txt_osd = '\n osd 1 \n'
+				mpvplayer.write(bytes(txt_osd,'utf-8'))
 			else:
 				
 				if self.list2.currentItem():
@@ -9516,12 +9606,16 @@ class Ui_MainWindow(object):
 				else:
 					mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
 				self.player_play_pause.setText(self.player_buttons['play'])
+				txt_osd = '\n osd 3 \n'
+				mpvplayer.write(bytes(txt_osd,'utf-8'))
 			else:
 				
 				if self.list2.currentItem():
 					curR = self.list2.currentRow()
 					self.epnfound()
-					
+		
+		
+		
 	def playerPlaylist(self,val):
 		global quitReally,playlist_show,mpvplayer,epnArrList,site
 		global show_hide_cover,show_hide_playlist,show_hide_titlelist
