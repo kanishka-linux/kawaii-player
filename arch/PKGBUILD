@@ -6,7 +6,7 @@ pkgdesc="An Audio/Video Manager and Front End for mpv/mplayer along with functio
 arch=(any)
 conflicts=('kawaii-player-git')
 license=('GPL3')
-depends=('python' 'qt5-webengine' 'python-pyqt5' 'python-pycurl' 'curl' 'libnotify' 'python-dbus' 'libtorrent-rasterbar'
+depends=('python' 'qt5-webengine' 'python-pyqt5' 'python-pycurl' 'curl' 'libnotify' 'python-dbus' 'libtorrent-rasterbar' 'python-mutagen'
         'python-beautifulsoup4' 'python-psutil' 'python-pillow' 'python-lxml' 'mpv' 'mplayer' 'ffmpegthumbnailer' 'sqlite3' 'python-pytaglib' 
 	 'youtube-dl' 'wget')
 
