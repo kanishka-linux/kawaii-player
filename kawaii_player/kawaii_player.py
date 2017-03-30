@@ -9563,32 +9563,36 @@ class Ui_MainWindow(object):
 			
 	def set_playerLoopFile(self):
 		global Player,quitReally,tray,new_tray_widget,mpvplayer
-		if Player == 'mpv':
-			mpvplayer.write(b'\n set loop-file inf \n')
-		else:
-			mpvplayer.write(b'\n set_property loop 0 \n')
+		if mpvplayer.processId() > 0:
+			if Player == 'mpv':
+				mpvplayer.write(b'\n set loop-file inf \n')
+			else:
+				mpvplayer.write(b'\n set_property loop 0 \n')
 				
 	def playerLoopFile(self,loop_widget):
 		global Player,quitReally,tray,new_tray_widget,mpvplayer
 		txt = loop_widget.text()
 		#txt = self.player_loop_file.text()
+		
 		if txt == self.player_buttons['unlock']:
 			self.player_setLoop_var = 1
 			self.player_loop_file.setText(self.player_buttons['lock'])
 			new_tray_widget.lock.setText(self.player_buttons['lock'])
 			quitReally = 'no'
-			if Player == 'mpv':
-				mpvplayer.write(b'\n set loop-file inf \n')
-			else:
-				mpvplayer.write(b'\n set_property loop 0 \n')
+			if mpvplayer.processId() > 0:
+				if Player == 'mpv':
+					mpvplayer.write(b'\n set loop-file inf \n')
+				else:
+					mpvplayer.write(b'\n set_property loop 0 \n')
 		else:
 			self.player_setLoop_var = 0
 			self.player_loop_file.setText(self.player_buttons['unlock'])
 			new_tray_widget.lock.setText(self.player_buttons['unlock'])
-			if Player == 'mpv':
-				mpvplayer.write(b'\n set loop-file no \n')
-			else:
-				mpvplayer.write(b'\n set_property loop -1 \n')
+			if mpvplayer.processId() > 0:
+				if Player == 'mpv':
+					mpvplayer.write(b'\n set loop-file no \n')
+				else:
+					mpvplayer.write(b'\n set_property loop -1 \n')
 				
 	def playerPlayPause(self):
 		global mpvplayer,curR,idw,cur_label_num
