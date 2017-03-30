@@ -810,6 +810,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				n_url = n_url.replace('"','')
 				n_art = n_art.replace('"','')
 				http_val = "http"
+				if '_' in n_art:
+					n_art = n_art.replace('_',' ')
+				if '_' in n_out:
+					n_out = n_out.replace('_',' ')
 				if ui.https_media_server:
 					http_val = "https" 
 				if play_id:
@@ -1065,7 +1069,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						n_url_new = base64.b64encode(bytes(n_url,'utf-8'))
 						n_url = str(n_url_new,'utf-8')
 						j = 'abs_path='+n_url
-						
+					if '_' in n_art:
+						n_art = n_art.replace('_',' ')
+					if '_' in n_out:
+						n_out = n_out.replace('_',' ')
 					if play_id:
 						out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'&pl_id='+play_id+'/'+urllib.parse.quote(n_url_name)
 					else:
