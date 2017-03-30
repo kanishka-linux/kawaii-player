@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <meta name="referrer" content="no-referrer">
 
 <div class= "video_section">
 
-<video id="player" width="640" height = "480" controls></video>
+<video id="player" width="640" height="480" controls></video>
 <br>
 <div id="title"></div>
 <br>
@@ -15,8 +18,14 @@
 <button id="prev">Prev</button>
 <button id="next">Next</button>
 <button id="shuffle">Shuffle</button>
+<button id="seek10" hidden="hidden">10s+</button>
+<button id="seek_10" hidden="hidden">10s-</button>
+<button id="vol5" hidden="hidden">vol++</button>
+<button id="vol_5" hidden="hidden">vol--</button>
+<button id="fullscreen" hidden="hidden">F</button>
 <button id="m3u">Get M3U</button>
-
+<button id="remote_btn">Remote Off</button>
+<button id="logout">Logout</button>
 </div>
 <br>
 <div class="site_selection">
@@ -29,18 +38,14 @@
 </div>
 <br>
 <div class="option_display">
-<select id="opt_val" onchange="optValChange()" width = "640" hidden="hidden"></select>
+<select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
 <button id="opt_val_ok" hidden="hidden">Go</button>
 </div>
 <br>
 <div class="remote_selection">
-<button id="logout">Logout</button>
-<button id="remote_btn">Remote Off</button>
-<button id="seek10" hidden="hidden">10s+</button>
-<button id="seek_10" hidden="hidden">10s-</button>
-<button id="vol5" hidden="hidden">vol++</button>
-<button id="vol_5" hidden="hidden">vol--</button>
-<button id="fullscreen" hidden="hidden">F</button>
+
+
+
 </div>
 </div>
 <br>
@@ -56,9 +61,72 @@
 .selected {font-weight: bold}
 div.toTop{position:fixed;bottom: 1em;right: 1em;}
 div.video_section{float:left;}
-div.video_section.div.site_selection{float:left}
+div.video_section.div.site_selection{float:left;}
 div.pls{max-width:640px;float:left;}
-div.title{max-width:640px;}
+div.title{max-width:100%;}
+
+.Buttons{max-width:100%;
+    margin: 2px;
+    padding: 2px;
+    float:left;
+    }
+
+.Buttons button{
+    background-color: gray;
+    border: none;
+    color: white;
+    padding:10px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+}
+
+.Buttons button:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.Buttons button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
+.site_selection{max-width:100%;
+    margin: 2px;
+    padding: 4px;
+    float:left;
+    }
+    
+
+
+
+    
+.option_display{max-width:100%;
+    margin: 2px;
+    padding: 2px;
+    float:left;}
+    
+
+
+.video_section{max-width:640px;}
+.pls ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    float:left;
+    max-width:100%;
+}
+.pls li {
+	max-width: 100;
+    padding: 8px;
+    margin-bottom: 7px;
+   
+}
+.pls li:hover {
+    background-color: yellow;
+}
+
+
 </style>
 
 <script type = 'text/javascript'>
@@ -128,7 +196,7 @@ function searchFunction(e){
 		r = document.getElementById('playlist')
 		while(r.firstChild){r.removeChild(r.firstChild);}
 		for(i=1;i<m.length-1;i+=2){
-			var a = m[i].substring(10,100);
+			var a = m[i].substring(10,500);
 			var b = m[i+1];
 			var new_opt = document.createElement('li');
 			new_opt.innerHTML = a;
@@ -149,6 +217,7 @@ function optChange(){
 	if(y.indexOf("playlist") >=0){
 		var z = 'site='+y+'&opt='+x+'&s=.htm';
 		window.location.href = z;
+		
 	}else{
 		var z = 'site='+y+'&opt='+x;
 		var client = new getRequest();
@@ -160,7 +229,7 @@ function optChange(){
 		while(r.firstChild){r.removeChild(r.firstChild);}
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
-			var txt = m[i].substring(0,80);
+			var txt = m[i].substring(0,30);
 			if (txt){
 			new_opt.text = txt;
 			new_opt.value = m[i].toLowerCase();
@@ -240,7 +309,11 @@ function onDocReady(){
 	z1.value = opt_opt;
 	var z = document.getElementById("type_search");
 	z.hidden = "";
-	
+	w = window.innerWidth;
+	if(w < 640)
+		{_player.width=(w-30).toString();
+		_player.height=parseInt((480/640)*w).toString();
+		console.log(screen.width);}
 }
 
 function siteChange(){
@@ -287,11 +360,12 @@ function optValChange(){
 	//console.log(m)
 	while(r.firstChild){r.removeChild(r.firstChild);}
 	for(i=1;i<m.length-1;i+=2){
-		var a = m[i].substring(10,100);
+		var a = m[i].substring(10,500);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
 		new_opt.innerHTML = a;
 		new_opt.setAttribute('data-mp3',b);
+		new_opt.setAttribute('width','100%');
 		r.appendChild(new_opt);
 		}
 	})
@@ -362,15 +436,20 @@ function playNext() {
 _shuffle.addEventListener("click", function () {
 	var new_url = 'stream_shuffle.m3u';
 	var x = document.getElementById("site").value.toLowerCase();
+	var srch_txt = document.getElementById("type_search").value.toLowerCase();
     if (x != 'select'){
 		var y = document.getElementById("opt").value.toLowerCase();
 		var z = document.getElementById("opt_val").value.toLowerCase();
+		if (srch_txt){z=srch_txt;}
+		if (x == 'playlists'){ z = "#";}
 		if (z){
-		var new_url = 'site='+x+'&opt='+y+'&s='+z+'&shuffle.m3u';
+			if (z=='#'){z="";}
+			var new_url = 'site='+x+'&opt='+y+'&s='+z+'&shuffle.m3u';
+		
 		} else {
 			var y = window.location.href;
 			y = y.replace(".htm","");
-			new_url = y +'&shuffle.m3u';
+			new_url = 'stream_shuffle.m3u';
 		}
 	}
 	var client = new getRequest();
@@ -601,6 +680,7 @@ document.getElementById('backToTop').onclick = function()
     window.scrollTo(0, 0);
 };
 
+window.addEventListener("resize", resizeWindowEvent);
 _player.addEventListener("ended", playNext);
 _playlist.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "LI") {
@@ -634,6 +714,17 @@ var getRequest = function() {
         http_req.send( null );
     }
 };
+
+function resizeWindowEvent(){
+	w = window.innerWidth;
+	if(w < 640)
+		{_player.width=(w-30).toString();
+		_player.height=parseInt((480/640)*w).toString();
+		console.log(screen.width);}
+	else {_player.width="640";_player.height="480";}
+}
+
+
 
 onDocReady();
 </script>
