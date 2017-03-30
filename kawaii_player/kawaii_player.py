@@ -134,11 +134,11 @@ import hashlib
 import uuid
 try:
 	try:
-		import taglib
-		SONG_TAGS = 'taglib'
-	except:	
 		import mutagen
 		SONG_TAGS = 'mutagen'
+	except:	
+		import taglib
+		SONG_TAGS = 'taglib'
 except:
 	SONG_TAGS = None
 	
@@ -7778,8 +7778,8 @@ class Ui_MainWindow(object):
 		self.player_opt.setObjectName(_fromUtf8("player_opt"))
 		self.horizontalLayout_player_opt = QtWidgets.QHBoxLayout(self.player_opt)
 		self.horizontalLayout_player_opt.setObjectName(_fromUtf8("horizontalLayout_player_opt"))
-		self.horizontalLayout_player_opt.setContentsMargins(0,2,0,2)
-		self.horizontalLayout_player_opt.setSpacing(2)
+		self.horizontalLayout_player_opt.setContentsMargins(0,0,0,0)
+		self.horizontalLayout_player_opt.setSpacing(0)
 		self.horizontalLayout_31.insertWidget(0,self.player_opt,0)
 		self.horizontalLayout_31.insertWidget(1,self.progressEpn,0)
 		self.horizontalLayout_31.insertWidget(2,self.slider,0)
@@ -9038,9 +9038,18 @@ class Ui_MainWindow(object):
 		if not self.mpv_thumbnail_lock:
 			if OSNAME == 'posix':
 				wd = str(self.width_allowed)
-				subprocess.call(["ffmpegthumbnailer","-i",path,"-o",picn,
+				if path.endswith('.mp3') or path.endswith('.flac'):
+					try:
+						f = mutagen.File(path)
+						artwork = f.tags['APIC:'].data
+						with open(picn, 'wb') as img:
+							img.write(artwork) 
+					except Exception as e:
+						print(e,'--9048--')
+				else:
+					subprocess.call(["ffmpegthumbnailer","-i",path,"-o",picn,
 								"-t",str(inter),'-q','10','-s',wd])
-				
+				logger.info("{0}:{1}".format(path,picn))
 				if os.path.exists(picn) and os.stat(picn).st_size:
 					self.image_fit_option(picn,picn,fit_size=6,widget=self.label)
 			else:
@@ -9049,14 +9058,16 @@ class Ui_MainWindow(object):
 				#self.progressEpn.setFormat('Generating Thumbnail Wait..')
 				self.mpv_thumbnail_lock = True
 				if 'youtube.com' in path:
-					subprocess.call(["mpv","--no-sub","--ytdl=yes","--quiet",
-									"--no-audio","--vo-image:outdir="+new_tmp,
+					new_tmp = new_tmp.replace('"','')
+					subprocess.call(["mpv","--vo=image","--no-sub","--ytdl=yes","--quiet",
+									"-aid=no","-sid=no","--vo-image-outdir="+new_tmp,
 									"--start="+str(inter)+"%","--frames=1"
-									,path],shell=True)
+									,path])
 				else:
 					if Player == 'mpv':
-						subprocess.call(["mpv","--no-sub","--ytdl=no",
-						"--quiet","--no-audio","--vo=image:outdir="+new_tmp,
+						new_tmp = new_tmp.replace('"','')
+						subprocess.call(["mpv","--vo=image","--no-sub","--ytdl=no",
+						"--quiet","-aid=no","-sid=no","--vo-image-outdir="+new_tmp,
 						"--start="+str(inter)+"%","--frames=1",path],shell=True)
 					elif Player == 'mplayer':
 						subprocess.call(["mplayer","-nosub","-nolirc","-nosound",
@@ -10064,7 +10075,7 @@ class Ui_MainWindow(object):
 			""")
 		
 	def buttonStyle(self,widget=None):
-		global home,BASEDIR,platform_name
+		global home,BASEDIR,platform_name,app
 		png_home = os.path.join(BASEDIR,'1.png')
 		if not widget:
 			self.dockWidget_3.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
@@ -10091,6 +10102,15 @@ class Ui_MainWindow(object):
 			self.float_window.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
 			self.player_opt.setStyleSheet("font:bold 11px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;height:20px")
 			
+			
+			self.player_opt.setStyleSheet("""
+			QFrame{background:rgba(0,0,0,0%);border:rgba(0,0,0,0%);}
+			QPushButton{border-radius:0px;max-height:30px;}
+			QPushButton::hover{background-color: yellow;color: black;}
+			QPushButton:pressed{background-color: violet;}""")
+			
+			
+			
 			self.btn1.setStyleSheet("""QComboBox {
 			min-height:30px;
 			max-height:63px;
@@ -10112,6 +10132,8 @@ class Ui_MainWindow(object):
 			width: 2px;
 			height: 2px;
 			}""")
+			
+			
 			self.btnAddon.setStyleSheet("""QComboBox {
 			min-height:20px;
 			max-height:63px;
@@ -10533,6 +10555,8 @@ class Ui_MainWindow(object):
 					QListWidget:item:selected:inactive {border:rgba(0,0,0,30%);}
 					QMenu{font: bold 12px;color:black;
 					background-image:url('1.png');}""")
+					
+		
 
 	def setPlayerFocus(self):
 		global player_focus
@@ -20306,7 +20330,13 @@ class FloatWindowWidget(QtWidgets.QWidget):
 		ui.float_window_layout.insertWidget(0,self,0)
 		self.hide()
 		
-		self.f.setStyleSheet("font: bold 15px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);height:25px;")
+		self.f.setStyleSheet("""QFrame{font: bold 15px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);height:25px;}
+		
+		QPushButton{border-radius:0px;max-height:30px;}
+		QPushButton::hover{background-color: yellow;color: black;}
+		QPushButton:pressed{background-color: violet;}
+		
+		""")
 		self.title.setStyleSheet("font:bold 10px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);height:15px;")
 		self.title1.setStyleSheet("font: bold 10px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);height:15px;")
 		#self.progress.setStyleSheet("font: bold 10px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);height:15px;")
@@ -21219,7 +21249,7 @@ def main():
 	global show_hide_player,layout_mode,current_playing_file_path
 	global music_arr_setting,default_arr_setting,video_local_stream
 	global local_torrent_file_path,wait_player,platform_name
-	global addons_option_arr,html_default_arr
+	global addons_option_arr,html_default_arr,app
 	
 	wait_player = False
 	local_torrent_file_path = ''
@@ -21355,6 +21385,7 @@ def main():
 		platform_name = 'LXDE'
 	print(OSNAME,platform_name)
 	app = QtWidgets.QApplication(sys.argv)
+	
 	screen_resolution = app.desktop().screenGeometry()
 	screen_width = screen_resolution.width()
 	screen_height = screen_resolution.height()
