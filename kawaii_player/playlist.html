@@ -11,7 +11,7 @@
 <br>
 <div id="title"></div>
 <br>
-<div class="Buttons">
+<div id="buttons_div" class="Buttons">
 <button id="play">Play/Pause</button>
 <button id="stop">Stop</button>
 <button id="loop">Lock</button>
@@ -25,11 +25,13 @@
 <button id="fullscreen" hidden="hidden">F</button>
 <button id="m3u">Get M3U</button>
 <button id="remote_btn">Remote Off</button>
+<button id="home">Home</button>
+<button id="minimal">Options</button>
+<button id="nothing">--</button>
 <button id="logout">Logout</button>
 </div>
 <br>
-<div class="site_selection">
-<button id="home">Home</button>
+<div id="selection_site" class="site_selection">
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
@@ -37,16 +39,11 @@
 
 </div>
 <br>
-<div class="option_display">
+<div id="display_option" class="option_display">
 <select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
 <button id="opt_val_ok" hidden="hidden">Go</button>
 </div>
 <br>
-<div class="remote_selection">
-
-
-
-</div>
 </div>
 <br>
 <div id="site_option" hidden></div>
@@ -69,16 +66,18 @@ div.title{max-width:100%;}
     margin: 2px;
     padding: 2px;
     float:left;
+    
     }
 
 .Buttons button{
     background-color: gray;
     border: none;
     color: white;
-    padding:10px;
+    padding:8px;
     text-align: center;
     text-decoration: none;
     float:left;
+    width:96px;
 }
 
 .Buttons button:hover {
@@ -153,14 +152,20 @@ var _player = document.getElementById("player"),
     _remote = document.getElementById("remote_btn"),
     _opt_ok = document.getElementById("opt_ok"),
     _opt_val_ok = document.getElementById("opt_val_ok"),
+    _opt_val = document.getElementById("opt_val"),
     _seek_10 = document.getElementById("seek10"),
     _seek_10 = document.getElementById("seek10"),
     _seek_10_ = document.getElementById("seek_10"),
     _vol_5 = document.getElementById("vol5"),
     _vol_5_ = document.getElementById("vol_5"),
     _fullscreen = document.getElementById("fullscreen"),
+    _selection_site = document.getElementById("selection_site"),
+    _minimal = document.getElementById("minimal"),
+    _display_option = document.getElementById("display_option"),
+    _buttons_div = document.getElementById("buttons_div"),
     _remote_val = 'off',
     _clicked_index = 0,
+    _old_height = '480',
     _prev = document.getElementById("prev");
 
 // functions
@@ -229,10 +234,10 @@ function optChange(){
 		while(r.firstChild){r.removeChild(r.firstChild);}
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
-			var txt = m[i].substring(0,30);
+			var txt = m[i].substring(0,45);
 			if (txt){
 			new_opt.text = txt;
-			new_opt.value = m[i].toLowerCase();
+			new_opt.value = m[i];
 			//console.log(i,txt);
 			r.appendChild(new_opt);}
 		}
@@ -299,7 +304,7 @@ function onDocReady(){
 			k=w[i].split(":");
 			l=j.split(":");
 			var new_opt = document.createElement("option");
-			new_opt.text = k[1].substring(0,30);
+			new_opt.text = k[1].substring(0,45);
 			new_opt.value = k[1].toLowerCase();
 			req.appendChild(new_opt);
 			console.log(new_opt.value+' :created');
@@ -309,6 +314,7 @@ function onDocReady(){
 	z1.value = opt_opt;
 	var z = document.getElementById("type_search");
 	z.hidden = "";
+	//_selection_site.hidden = "hidden";
 	w = window.innerWidth;
 	if(w < 640)
 		{_player.width=(w-30).toString();
@@ -336,7 +342,7 @@ function siteChange(){
 			l=j.split(":");
 			console.log(l[0].concat(k[1]));
 			var new_opt = document.createElement("option");
-			new_opt.text = k[1].substring(0,30);
+			new_opt.text = k[1].substring(0,45);
 			new_opt.value = k[1].toLowerCase();
 			req.appendChild(new_opt);
 			}
@@ -349,9 +355,9 @@ function siteChange(){
 function optValChange(){
 	var x = document.getElementById("site").value.toLowerCase();
 	var y = document.getElementById("opt").value.toLowerCase();
-	var z = document.getElementById("opt_val").value.toLowerCase();
+	var z = document.getElementById("opt_val").value;
 	console.log(z)
-	var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
+	var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact.m3u';
 	var client = new getRequest();
 	client.get(new_url, function(response) {
 	//console.log(response);
@@ -660,6 +666,16 @@ _loop.addEventListener("click", function () {
 _opt_ok.addEventListener("click", function () {
   optChange();
   document.getElementById("type_search").value = "";  
+});
+
+_minimal.addEventListener("click", function () {
+	if (_selection_site.hidden){
+		_selection_site.hidden="";
+		_display_option.hidden="";}
+	else{
+		_selection_site.hidden="hidden";
+		_display_option.hidden="hidden";
+		}
 });
 
 _opt_val_ok.addEventListener("click", function () {
