@@ -134,13 +134,19 @@ import hashlib
 import uuid
 try:
 	try:
-		import mutagen
-		SONG_TAGS = 'mutagen'
-	except:	
 		import taglib
 		SONG_TAGS = 'taglib'
+	except:	
+		import mutagen
+		SONG_TAGS = 'mutagen'
 except:
 	SONG_TAGS = None
+	
+try:
+	if SONG_TAGS == 'taglib':
+		import mutagen
+except:
+	pass
 	
 print(SONG_TAGS,'--tagging-module--')
 
@@ -342,15 +348,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		global current_playing_file_path,path_final_Url,ui,curR
 		global epnArrList
 		logger.info(self.path)
+		print(self.path)
 		path = self.path.replace('/','',1)
 		if '/' in path:
-			path = path.rsplit('/',1)[0]
+			if not path.startswith('site=') and'&s=' not in path:
+				path = path.rsplit('/',1)[0]
 		if path.startswith('relative_path=') or path.startswith('abs_path='):
 			pass
 		else:
 			path = urllib.parse.unquote(path)
 		#print(os.getcwd())
-		print('get__path__::{0}'.format(path))
+		#print('get__path__::{0}'.format(path))
 		logger.info(self.requestline)
 		#print(self.headers['Cookie'],'--cookie--')
 		playlist_id = None
@@ -358,22 +366,22 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			get_bytes = int(self.headers['Range'].split('=')[1].replace('-',''))
 		except Exception as e:
 			get_bytes = 0
-		print(get_bytes)
-		print(self.headers)
+		#print(get_bytes)
+		#print(self.headers)
 		cookie_verified = False
 		cookie_set = False
 		cookie_val = self.headers['Cookie']
-		print(cookie_val,'--cookie--')
+		#print(cookie_val,'--cookie--')
 		if cookie_val:
 			try:
 				uid_c = cookie_val.split('=')[1]
 				uid_val = (self.client_auth_dict[uid_c])
 				old_time,playlist_id = uid_val.split('&pl_id=')
-				print(old_time,playlist_id)
+				#print(old_time,playlist_id)
 				old_time = int(old_time)
 				cur_time = int(time.time())
-				print(self.client_auth_dict)
-				print(cur_time-old_time,'--time--')
+				#print(self.client_auth_dict)
+				#print(cur_time-old_time,'--time--')
 				if (cur_time - old_time) > ui.cookie_expiry_limit*3600:
 					cookie_verified = False
 					del self.client_auth_dict[uid_c]
@@ -1228,7 +1236,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				elif i.startswith('opt='):
 					st_o = i.split('=')[-1]
 				elif i.startswith('s='):
-					srch = i.split('=')[-1]
+					#srch = i.split('=')[-1]
+					srch = re.search('&s=[^"]*',path).group()
+					srch = srch.replace('&s=','',1)
+					if '&exact' in srch:
+						srch = srch.replace('&exact','')
 					if (srch.endswith('.pls') or srch.endswith('.m3u') 
 							or srch.endswith('.htm') or srch.endswith('.html')):
 						srch = srch.rsplit('.',1)[0]
@@ -1244,8 +1256,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					if st_o and not srch:
 						srch = st_o
 						#st_o = 'NONE'
+			print(st,st_o,srch)
 			if st and st_o and srch:
-				print(srch_exact,'=srch_exact')
+				print(srch_exact,'=srch_exact',st,st_o,srch)
 				epn_arr,st,st_o,new_str,st_nm = ui.options_from_bookmark(
 						st,st_o,srch,search_exact=srch_exact)
 				pls_txt = ''
@@ -9045,7 +9058,12 @@ class Ui_MainWindow(object):
 						with open(picn, 'wb') as img:
 							img.write(artwork) 
 					except Exception as e:
-						print(e,'--9048--')
+						try:
+							f = open(picn,'w').close()
+							print(e,'--9048--')
+						except Exception as e:
+							print(e,'--9065--')
+							
 				else:
 					subprocess.call(["ffmpegthumbnailer","-i",path,"-o",picn,
 								"-t",str(inter),'-q','10','-s',wd])
@@ -14510,62 +14528,82 @@ class Ui_MainWindow(object):
 			logger.info(line_a)
 			r = 0
 			k = 0
-			for i in line_a:
-				j = i.strip()
-				if j:
-					j = i.split(':')
+			book_arr = []
+			if search_term:
+				for i in line_a:
+					j = i.strip()
 					if j:
-						if search_term in j[5].lower():
-							site = j[0]
-							r = k
-							break
-				k = k+1
-			tmp = line_a[r]
-			tmp = tmp.strip()
-			tmp1 = tmp.split(':')
-			site = tmp1[0]
-			if site.lower() == "music" or site.lower() == "video":
-				opt = "Not Defined"
-				if site.lower() == "music":
-					music_opt = tmp1[1]
-				else:
-					video_opt = tmp1[1]
+						j = i.split(':')
+						if j:
+							print(j)
+							if search_term.lower() in j[5].lower():
+								site = j[0]
+								r = k
+								print(site,r)
+								site_option = j[1]
+								bookmark = False
+								break
+								
+					k = k+1
 			else:
-				opt = tmp1[1]
-			pre_opt = tmp1[2]
-			siteName = tmp1[2]
-			base_url = int(tmp1[3])
-			embed = int(tmp1[4])
-			name = tmp1[5]
-			new_name = name
-			if site.lower() == "local":
-				name_path = name
-			video_local_stream = False
-			logger.info(name)
-			if len(tmp1) > 6:
-				if tmp1[6] == "True":
-					finalUrlFound = True
+				for i in line_a:
+					j = i.strip()
+					if j:
+						j = i.split(':')
+						if j:
+							book_arr.append(j[5].strip())
+			if search_term:
+				tmp = line_a[r]
+				tmp = tmp.strip()
+				tmp1 = tmp.split(':')
+				site = tmp1[0]
+				if site.lower() == "music" or site.lower() == "video":
+					opt = "Not Defined"
+					if site.lower() == "music":
+						music_opt = tmp1[1]
+					else:
+						video_opt = tmp1[1]
 				else:
-					finalUrlFound = False
-				if tmp1[7] == "True":
-					refererNeeded = True
+					opt = tmp1[1]
+				pre_opt = tmp1[2]
+				siteName = tmp1[2]
+				base_url = int(tmp1[3])
+				embed = int(tmp1[4])
+				name = tmp1[5]
+				new_name = name
+				if site.lower() == "local":
+					name_path = name
+				video_local_stream = False
+				logger.info(name)
+				if len(tmp1) > 6:
+					if tmp1[6] == "True":
+						finalUrlFound = True
+					else:
+						finalUrlFound = False
+					if tmp1[7] == "True":
+						refererNeeded = True
+					else:
+						refererNeeded = False
+					if len(tmp1) >=9:
+						if tmp1[8] == "True":
+							video_local_stream = True
+						else:
+							video_local_stream = False
+					if len(tmp1) >=10:
+						new_dir_path = tmp1[9]
+					print(finalUrlFound)
+					print(refererNeeded)
+					
 				else:
 					refererNeeded = False
-				if len(tmp1) >=9:
-					if tmp1[8] == "True":
-						video_local_stream = True
-					else:
-						video_local_stream = False
-				if len(tmp1) >=10:
-					new_dir_path = tmp1[9]
-				print(finalUrlFound)
-				print(refererNeeded)
-				
+					finalUrlFound = False
+					
+				logger.info(site + ":"+opt)
 			else:
-				refererNeeded = False
-				finalUrlFound = False
-				
-			logger.info(site + ":"+opt)
+				site = 'None'
+				#send_list_direct = True
+				original_path_name = [i for i in book_arr]
+		
 		site_var = None
 		criteria = []
 		print(bookmark,status,site,opt)
@@ -14686,24 +14724,34 @@ class Ui_MainWindow(object):
 					for i in m:
 						artist.append(i)
 			else:
-				m = self.getMusicDB(music_db,music_opt,"")
-				for i in m:
-					artist.append(i[0])
+				if search_exact and music_opt.lower() != 'directory':
+					m = self.getMusicDB(music_db,music_opt,search_term)
+					for i in m:
+						artist.append(i[1]+'	'+i[2]+'	'+i[0])
+					send_list_direct = True
+				else:
+					m = self.getMusicDB(music_db,music_opt,"")
+					for i in m:
+						artist.append(i[0])
 			#print(m)
 			#print(artist)
-			print(music_opt)
-			original_path_name[:] = []
-			if (music_opt.lower() == "artist" or music_opt.lower() == "album" or music_opt.lower() == "title" 
-					or music_opt.lower() == "fav-artist" or music_opt.lower() == "fav-album"):
-				for i in artist:
-					original_path_name.append(i)
-			elif music_opt.lower() == "directory" or music_opt.lower() == "fav-directory":
-				for i in artist:
-					original_path_name.append(i)
-					i = os.path.basename(i)
-			elif music_opt.lower().startswith("playlist"):
-				for i in artist:
-					original_path_name.append(i.replace('.txt','')+'	'+os.path.join(home,'Playlists',i))
+			#print(music_opt)
+			if send_list_direct:
+				print('exact search on')
+				new_epnArrList = [i for i in artist]
+			else:
+				original_path_name[:] = []
+				if (music_opt.lower() == "artist" or music_opt.lower() == "album" or music_opt.lower() == "title" 
+						or music_opt.lower() == "fav-artist" or music_opt.lower() == "fav-album"):
+					for i in artist:
+						original_path_name.append(i)
+				elif music_opt.lower() == "directory" or music_opt.lower() == "fav-directory":
+					for i in artist:
+						original_path_name.append(i)
+						i = os.path.basename(i)
+				elif music_opt.lower().startswith("playlist"):
+					for i in artist:
+						original_path_name.append(i.replace('.txt','')+'	'+os.path.join(home,'Playlists',i))
 			#print(original_path_name)
 		elif site.lower() == "video":
 			video_dir = os.path.join(home,'VideoDB')
@@ -14731,6 +14779,7 @@ class Ui_MainWindow(object):
 				else:
 					video_opt = video_opt[0].upper()+video_opt[1:]
 					m = self.getVideoDB(video_db,video_opt,"")
+				#print(m)
 			else:
 				book_file = os.path.join(home,'Bookmark',status+'.txt')
 				if os.path.exists(book_file):
@@ -14763,7 +14812,8 @@ class Ui_MainWindow(object):
 				for i in m:
 					artist.append(i[0]+'	'+i[1])
 			else:
-				new_epnArrList = m
+				new_epnArrList = [i for i in m]
+				print('direct match:')
 			#original_path_name[:] = []
 			logger.info(artist)
 			if (video_opt.lower() == "available" or video_opt.lower() == "history") and not send_list_direct:
@@ -14929,6 +14979,7 @@ class Ui_MainWindow(object):
 					
 				for i in range(len(original_path_name)):
 					search_field = original_path_name[i].lower()
+					
 					if ((search_term in search_field and not search_exact) 
 							or (search_term == search_field and search_exact)):
 						cur_row = i
@@ -14980,8 +15031,12 @@ class Ui_MainWindow(object):
 			artist =[]
 			logger.info(original_path_name)
 			for index in range(len(original_path_name)):
-				search_field = os.path.basename(original_path_name[index]).lower()
-				if ((search_term in  search_field and not search_exact) or 
+				if music_opt.lower() == 'directory' or music_opt.lower() == 'fav-directory':
+					search_field = os.path.basename(original_path_name[index]).lower()
+				else:
+					search_field = original_path_name[index].lower()
+				#print('???????????????',search_field,search_term,music_opt,'?????????????')
+				if ((search_term in search_field and not search_exact) or 
 						(search_term == search_field and search_exact)):
 					if '	' in original_path_name[index].lower():
 						art_n = original_path_name[index].split('	')[0]
@@ -15011,9 +15066,15 @@ class Ui_MainWindow(object):
 							tmp = music_opt.split('-',1)
 							sub_tmp = tmp[1]
 							music_opt = tmp[0]+'-'+sub_tmp[0].upper()+sub_tmp[1:]
+						#print(music_opt,art_n)
 						m = self.getMusicDB(music_db,music_opt,art_n)
+						#print(m)
 						for i in m:
 							artist.append(i[1]+'	'+i[2]+'	'+i[0])
+					#print(search_field,search_term)
+					if (search_term == search_field and search_exact):
+						print('exact match:')
+						break
 			epnArrList[:]=[]
 			for i in artist:
 				epnArrList.append((i))
@@ -15036,13 +15097,16 @@ class Ui_MainWindow(object):
 		elif site.lower() == "video":
 			epnArrList = []
 			for index in range(len(original_path_name)):
-				search_field = original_path_name[index].lower()
+				#search_field = original_path_name[index].lower()
+				#print(search_field,search_term)
+				if '	' in original_path_name[index].lower():
+					art_n = original_path_name[index].split('	')[0]
+				else:
+					art_n = original_path_name[index].strip()
+				search_field = art_n.lower()
 				if ((search_term in  search_field and not search_exact) or 
 						(search_term == search_field and search_exact)):
-					if '	' in original_path_name[index].lower():
-						art_n = original_path_name[index].split('	')[0]
-					else:
-						art_n = original_path_name[index].strip()
+					
 					name = art_n
 					video_dir = os.path.join(home,'VideoDB')
 					logger.info('{0}--search-client--'.format(art_n))
@@ -15053,6 +15117,7 @@ class Ui_MainWindow(object):
 					artist =[]
 					if not bookmark:
 						video_opt = site_option[0].upper()+site_option[1:]
+						print(video_opt,'---15112----')
 						if video_opt == "Update" or video_opt == "UpdateAll":
 							video_opt = "Available"
 						if video_opt == "Available" or video_opt == "History":
@@ -15093,6 +15158,10 @@ class Ui_MainWindow(object):
 							summary = open_files(summary1,False)
 						else:
 							summary = "Not Available"
+					if (search_term == search_field and search_exact):
+						print('Exact Match:')
+						break
+		print(epnArrList)
 		return epnArrList
 	
 	def get_title_name(self,row):
@@ -15447,7 +15516,8 @@ class Ui_MainWindow(object):
 			else:
 				m = self.getMusicDB(music_db,music_opt,art_n)
 				for i in m:
-					artist.append(i[1]+'	'+i[2]+'	'+i[0])
+					if len(i) > 2:
+						artist.append(i[1]+'	'+i[2]+'	'+i[0])
 			epnArrList[:]=[]
 			self.list2.clear()
 			for i in artist:
@@ -19794,7 +19864,9 @@ class Ui_MainWindow(object):
 				cur.execute('SELECT Distinct Album FROM Music order by Album')
 			else:
 				#cur.execute('SELECT Artist,Title,Path FROM Music Where Album="'+qVal+'"')
+				
 				qr = 'SELECT Artist,Title,Path FROM Music Where Album=?'
+				#print(qr,qVal)
 				cur.execute(qr,(qVal,))
 		elif q == "Title":
 			if not qVal:
@@ -19860,7 +19932,9 @@ class Ui_MainWindow(object):
 			qv = '%'+str(qVal)+'%'
 			logger.info('{0} <----> {1}'.format(qr,qv))
 			cur.execute(qr,(qv,qv,qv,))
+		
 		rows = cur.fetchall()
+		#print(rows)
 		conn.commit()
 		conn.close()
 		return rows
@@ -19955,42 +20029,49 @@ class Ui_MainWindow(object):
 		
 	def getTaglib(self,path):
 		if SONG_TAGS:
-			if SONG_TAGS == 'taglib':
-				t = taglib.File(path)
-			elif SONG_TAGS == 'mutagen':
+			if SONG_TAGS == 'mutagen':
 				t = mutagen.File(path,easy=True)
+			elif SONG_TAGS == 'taglib':
+				t = taglib.File(path)
 		else:
 			t = {}
 		m = []
+		tags = t.tags
+		ar1 = 'Unknown'
+		al1 = 'Unknown'
+		ti1 = os.path.basename(path)
+		logger.info(tags)
 		try:
-			if SONG_TAGS == 'taglib':
-				ar = t.tags['ARTIST']
-			elif SONG_TAGS == 'mutagen':
-				ar = t.tags['artist']
-			ar1 = ar[0]
+			if tags:
+				if SONG_TAGS == 'mutagen':
+					if 'artist' in tags:
+						if tags['artist']:
+							ar1 = tags['artist'][0]
+					if 'album' in tags:
+						if tags['album']:
+							al1 = tags['album'][0]
+					if 'title' in tags:
+						if tags['title']:
+							ti1 = tags['title'][0]
+				elif SONG_TAGS == 'taglib':
+					if 'ARTIST' in tags:
+						if tags['ARTIST']:
+							ar1 = tags['ARTIST'][0]
+					if 'ALBUM' in tags:
+						if tags['ALBUM']:
+							al1 = tags['ALBUM'][0]
+					if 'TITLE' in tags:
+						if tags['TITLE']:
+							ti1 = tags['TITLE'][0]
+			else:
+				logger.info('Error No Tags: {0}'.format(path))
 		except Exception as e:
-			logger.info('error={0};path={1}'.format(e,path))
-			ar1 = "Unknown"
-		try:
-			if SONG_TAGS == 'taglib':
-				ti = t.tags['TITLE']
-			elif SONG_TAGS == 'mutagen':
-				ti = t.tags['title']
-			ti1 = ti[0]
-		except Exception as e:
-			logger.info('error={0};path={1}'.format(e,path))
-			#ti1 = path.split('/')[-1]
-			ti1 = os.path.basename(path)
+			print(e,'---20001')
 		
-		try:
-			if SONG_TAGS == 'taglib':
-				al = t.tags['ALBUM']
-			elif SONG_TAGS == 'mutagen':
-				al = t.tags['album']
-			al1 = al[0]
-		except Exception as e:
-			logger.info('error={0};path={1}'.format(e,path))
-			al1 = "Unknown"
+		if ar1 == 'Unknown' or al1 == 'Unknown':
+			logger.info('Error Artist={0}:Album={1}:Path={2}'.format(ar1,al1,path))
+		
+		
 		dir1,raw_title = os.path.split(path)
 		
 		r = ti1+':'+ar1+':'+al1
