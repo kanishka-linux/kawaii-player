@@ -25,6 +25,7 @@
 <button id="fullscreen" hidden="hidden">F</button>
 <button id="m3u">Get M3U</button>
 <button id="remote_btn">Remote Off</button>
+<button id="empty_btn">--</button>
 <button id="home">Home</button>
 <button id="minimal">Options</button>
 <button id="nothing">--</button>
@@ -163,6 +164,7 @@ var _player = document.getElementById("player"),
     _minimal = document.getElementById("minimal"),
     _display_option = document.getElementById("display_option"),
     _buttons_div = document.getElementById("buttons_div"),
+    _empty_btn = document.getElementById("empty_btn"),
     _remote_val = 'off',
     _clicked_index = 0,
     _old_height = '480',
@@ -200,13 +202,16 @@ function searchFunction(e){
 		m = response.split('\n');
 		r = document.getElementById('playlist')
 		while(r.firstChild){r.removeChild(r.firstChild);}
+		var indx = 1;
 		for(i=1;i<m.length-1;i+=2){
 			var a = m[i].substring(10,500);
 			var b = m[i+1];
 			var new_opt = document.createElement('li');
 			new_opt.innerHTML = a;
 			new_opt.setAttribute('data-mp3',b);
+			new_opt.setAttribute('data-num',indx.toString());
 			r.appendChild(new_opt);
+			indx += 1;
 			}
 		})
 		
@@ -256,9 +261,19 @@ function onDocReady(){
 	var w = z.split(';');
 	console.log(w);
 	if (w[0].toLowerCase() == 'remotefield:false'){
+		_seek_10.hidden = "hidden";
+		_seek_10_.hidden = "hidden";
+		_vol_5.hidden = "hidden";
+		_vol_5_.hidden = "hidden";
+		_fullscreen.hidden = "hidden";
 		_remote.hidden = "hidden";
+		_empty_btn.hidden = "";
+		_empty_btn.innerHTML = "--";
+		
 	}else if (w[0].toLowerCase() == 'remotefield:true'){
 		_remote.hidden = "";
+		_empty_btn.hidden = "hidden";
+		_empty_btn.innerHTML = "--";
 		}
 	
 	if (w[1].toLowerCase() == 'remotecontrol:false'){
@@ -331,7 +346,6 @@ function siteChange(){
 	console.log(w);
 	var a = x.toLowerCase();
 	var req = document.getElementById("opt");
-	//while(req.hasChildNodes){req.removeChild(req.lastChild);}
 	req.innerHTML = "";
 	for(i=0;i<w.length;i++){
 		//console.log(w[i])
@@ -365,14 +379,17 @@ function optValChange(){
 	r = document.getElementById('playlist')
 	//console.log(m)
 	while(r.firstChild){r.removeChild(r.firstChild);}
+	var indx = 1;
 	for(i=1;i<m.length-1;i+=2){
 		var a = m[i].substring(10,500);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
 		new_opt.innerHTML = a;
 		new_opt.setAttribute('data-mp3',b);
+		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('width','100%');
 		r.appendChild(new_opt);
+		indx += 1;
 		}
 	})
 	//window.location.href = new_url;
@@ -387,13 +404,16 @@ function playlistItemClick(clickedElement,mode) {
     }
     clickedElement.classList.add("selected");
 	var new_src = clickedElement.getAttribute("data-mp3");
+	var _clicked_num = clickedElement.getAttribute("data-num");
+	_title.innerHTML = _clicked_num+" "+clickedElement.innerHTML;
+	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'Remote Off'){
 		_player.src = new_src;
 		_player.play();
 	}else{
 		
 		if (mode == 'nextplay' || mode == 'playlist'){
-		new_indx = 'playlist_'+_clicked_index.toString();
+		new_indx = 'playlist_'+(_clicked_index-1).toString();
 		var client = new getRequest();
 			client.get(new_indx, function(response) {
 			console.log(response);
@@ -404,10 +424,14 @@ function playlistItemClick(clickedElement,mode) {
 			if (mode == 'next'){
 			client.get('playnext', function(response) {
 			console.log(response);
+			r = response.split(':')[1];
+			gotoChildNode(r);
 			})
 			}else if (mode == 'prev'){
 				client.get('playprev', function(response) {
 				console.log(response);
+				r = response.split(':')[1];
+				gotoChildNode(r);
 			})
 			} 
 		}
@@ -424,17 +448,17 @@ function playNext() {
     if (selected && selected.nextSibling) {
 		if (_loop.innerHTML == '\u21BA'){
 			playlistItemClick(selected,'nextplay');
-			_title.innerHTML = selected.innerHTML;
+			//_title.innerHTML = selected.innerHTML;
 		}
 		else{
 			playlistItemClick(selected.nextSibling,'nextplay');
-			_title.innerHTML = selected.nextSibling.innerHTML;
+			//_title.innerHTML = selected.nextSibling.innerHTML;
 		}
     }else{
 		var first = _playlist.firstChild;
 		console.log(first);
 		playlistItemClick(first,'nextplay');
-		_title.innerHTML = first.innerHTML;
+		//_title.innerHTML = first.innerHTML;
 		}
 	
 }
@@ -466,13 +490,16 @@ _shuffle.addEventListener("click", function () {
 	r = document.getElementById('playlist')
 	console.log(m)
 	while(r.firstChild){r.removeChild(r.firstChild);}
+	var indx = 1;
 	for(i=1;i<m.length-1;i+=2){
 		var a = m[i].substring(10,100);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
 		new_opt.innerHTML = a;
 		new_opt.setAttribute('data-mp3',b);
+		new_opt.setAttribute('data-num',indx.toString());
 		r.appendChild(new_opt);
+		indx += 1;
 		}
 	})
 	
@@ -600,7 +627,7 @@ _prev.addEventListener("click", function () {
 	if (_remote_val == 'on'){_clicked_index = _clicked_index - 1}
     if (selected && selected.previousSibling) {
 		playlistItemClick(selected.previousSibling,'prev');
-		_title.innerHTML = selected.previousSibling.innerHTML;
+		//_title.innerHTML = selected.previousSibling.innerHTML;
     }
     
 });
@@ -610,14 +637,14 @@ _next.addEventListener("click", function () {
 	if (_remote_val == 'on'){_clicked_index = _clicked_index + 1;}
     if (selected && selected.nextSibling) {
 			playlistItemClick(selected.nextSibling,'next');
-			_title.innerHTML = selected.nextSibling.innerHTML;
+			//_title.innerHTML = selected.nextSibling.innerHTML;
 		} else {
 		var first = _playlist.firstChild;
 		console.log('----next---');
 		console.log(first);
 		console.log('----next---');
 		playlistItemClick(first,'next');
-		_title.innerHTML = first.innerHTML;
+		//_title.innerHTML = first.innerHTML;
 	}
 	
 });
@@ -629,7 +656,8 @@ _play.addEventListener("click", function () {
 		var client = new getRequest();
 		client.get('playpause', function(response) {
 			console.log(response);
-		// do something with response
+			r = response.split(':')[1];
+			gotoChildNode(r);
 	})
 	}else{
 		if (_player.readyState == 4){
@@ -641,10 +669,50 @@ _play.addEventListener("click", function () {
 			var first = _playlist.firstChild;
 			console.log(first);
 			playlistItemClick(first,'play');
-			_title.innerHTML = first.innerHTML;}
+			//_title.innerHTML = first.innerHTML;
+			}
 			}
 		}
 });
+
+
+function gotoChildNode(num){
+	var selected = _playlist.querySelector(".selected");
+	if (!selected){
+		selected = _playlist.firstChild;
+	}
+	var _data_num_cur = selected.getAttribute('data-num');
+	var new_num = (parseInt(num)+1).toString();
+	var _next = "";
+	var _prev = "";
+	if (parseInt(new_num) > parseInt(_data_num_cur)){
+		_next = "next";
+	}else if (parseInt(new_num) < parseInt(_data_num_cur)) {
+		_prev = "prev";
+		}
+	console.log(new_num,_data_num_cur);
+	if(_next || _prev){
+		console.log(">>");
+		var _pls = selected;
+		_data_num = _pls.getAttribute('data-num');
+		while((_data_num != new_num) && (_pls != null)){
+				if (_next){
+					_pls = _pls.nextSibling;
+					console.log(">");
+				}else if(_prev){
+					_pls = _pls.previousSibling;
+					console.log("<");
+				}
+				_data_num = _pls.getAttribute('data-num');
+				
+		}
+		_title.innerHTML = _data_num+' '+ _pls.innerHTML;
+		if (selected) {
+			selected.classList.remove("selected");
+		}
+		_pls.classList.add("selected");
+	}
+}
 
 _loop.addEventListener("click", function () {
     var old_var= _loop.innerHTML;
@@ -703,18 +771,18 @@ _playlist.addEventListener("click", function (e) {
         
         
         if (_remote_val == 'on'){
-        var i = 0;
         var child = e.target
-		while( (child = child.previousSibling) != null ){ 
-			console.log(i);
-			i++;
-		}
-		console.log(i);
-		_clicked_index = i;
+		//while( (child = child.previousSibling) != null ){ 
+		//	console.log(i);
+		//	i++;
+		//}
+		//var i = parseInt(child.getAttribute("data-num"))
+		//console.log(i);
+		//_clicked_index = i;
 		}
 		playlistItemClick(e.target,'playlist');
 		console.log(e.target);
-		_title.innerHTML = e.target.innerHTML;
+		//_title.innerHTML = e.target.innerHTML;
     }
 })
 
