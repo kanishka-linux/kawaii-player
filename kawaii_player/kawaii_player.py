@@ -831,7 +831,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				if self.path.endswith('.pls'):
 					pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i),out,n_art,n_out)
 				elif self.path.endswith('.htm') or self.path.endswith('.html'):
-					pls_txt = pls_txt+'<li data-mp3="{2}">{0} - {1}</li>'.format(n_art,n_out,out)
+					pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}">{0} - {1}</li>'.format(n_art,n_out,out,str(i+1))
 				else:
 					pls_txt = pls_txt+'#EXTINF:0,{0} - {1}\n{2}\n'.format(n_art,n_out,out)
 			except Exception as e:
@@ -1088,7 +1088,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					if path.endswith('.pls'):
 						pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i),out,n_art,n_out)
 					elif path.endswith('.htm') or path.endswith('.html'):
-						pls_txt = pls_txt+'<li data-mp3="{2}">{0} - {1}</li>'.format(n_art,n_out,out)
+						pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}">{0} - {1}</li>'.format(n_art,n_out,out,str(i+1))
 					else:
 						pls_txt = pls_txt+'#EXTINF:0,{0} - {1}\n{2}\n'.format(n_art,n_out,out)
 					if k == len(epnArrList) - 1:
@@ -1241,6 +1241,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					srch = srch.replace('&s=','',1)
 					if '&exact' in srch:
 						srch = srch.replace('&exact','')
+					if '&shuffle' in srch:
+						srch = srch.replace('&shuffle','')
 					if (srch.endswith('.pls') or srch.endswith('.m3u') 
 							or srch.endswith('.htm') or srch.endswith('.html')):
 						srch = srch.rsplit('.',1)[0]
@@ -1313,7 +1315,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				else:
 					row_num = -1000
 				if ui.remote_control and ui.remote_control_field:
-					b = b'locking file'
+					b = b'Playing file'
 					self.final_message(b)
 					remote_signal = doGETSignal()
 					remote_signal.control_signal.emit(row_num,'normal')
@@ -1333,8 +1335,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.final_message(b)
 		elif path.lower() == 'playpause':
 			if ui.remote_control and ui.remote_control_field:
-				b = b'playpause file'
-				self.final_message(b)
+				b = 'playpause:{0}'.format(curR)
+				self.final_message(bytes(b,'utf-8'))
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'playpause')
 			else:
@@ -1387,8 +1389,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.final_message(b)
 		elif path.lower() == 'playnext':
 			if ui.remote_control and ui.remote_control_field:
-				b = b'Next File'
-				self.final_message(b)
+				b = 'Next:{0}'.format(str((curR+1)%ui.list2.count()))
+				self.final_message(bytes(b,'utf-8'))
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'next')
 			else:
@@ -1396,8 +1398,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.final_message(b)
 		elif path.lower() == 'playprev':
 			if ui.remote_control and ui.remote_control_field:
-				b = b'Prev File'
-				self.final_message(b)
+				b = 'Prev:{0}'.format(str((curR-1)%ui.list2.count()))
+				self.final_message(bytes(b,'utf-8'))
 				remote_signal = doGETSignal()
 				remote_signal.control_signal.emit(-1000,'prev')
 			else:
@@ -1544,28 +1546,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				print(self.client_auth_dict)
 				print(self.playlist_auth_dict)
 				print("client: {0} logged out".format(client_addr))
-				txt = "logged out. Now Clear Browser Cache, and ACTIVE LOGINS, to avoid auto-login"
+				txt = "logged out. Now Clear Browser Cache,ACTIVE LOGINS, and Restart The Browser to avoid auto-login."
 				txt_b = bytes(txt,'utf-8')
 				self.final_message(txt_b)
 			except Exception as e:
 				print(e)
 		elif path.startswith('index.htm'):
-			if ui.https_media_server:
-				https_val = 'https'
-			else:
-				https_val = 'http'
-			if not my_ip_addr:
-				nm = https_val+"://"+str(ui.local_ip)+':'+str(ui.local_port)+'/stream_continue.htm'
-			else:
-				nm = https_val+"://"+str(my_ip_addr)+':'+str(ui.local_port)+'/stream_continue.htm'
+			nm = 'stream_continue.htm'
 			self.send_response(303)
 			self.send_header('Location',nm)
+			self.send_header('Connection', 'close')
 			self.end_headers()
 		elif path.startswith('remote_'):
 			if path.endswith('_on.htm'):
-				ui.remote_control = True
+				if ui.remote_control_field:
+					ui.remote_control = True
 			elif path.endswith('_off.htm'):
-				ui.remote_control = False
+				if ui.remote_control_field:
+					ui.remote_control = False
 			
 			msg = 'Remote Control Set {0}'.format(ui.remote_control)
 			msg = bytes(msg,'utf-8')
@@ -7901,7 +7899,7 @@ class Ui_MainWindow(object):
 				'Show/Hide Video','Show/Hide Cover And Summary',
 				'Lock Playlist','Shuffle','Stop After Current File',
 				'Continue(default Mode)','Set Media Server User/PassWord',
-				'Start Media Server','Set Current Background As Default','Settings'
+				'Start Media Server','Turn ON Remote Control','Set Current Background As Default','Settings'
 				]
 								
 		self.action_player_menu =[]
@@ -9620,11 +9618,11 @@ class Ui_MainWindow(object):
 			if mpvplayer.processId() > 0:
 				if Player == "mpv":
 					mpvplayer.write(b'\n set pause no \n')
+					self.player_play_pause.setText(self.player_buttons['pause'])
+					txt_osd = '\n osd 1 \n'
+					mpvplayer.write(bytes(txt_osd,'utf-8'))
 				else:
 					mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
-				self.player_play_pause.setText(self.player_buttons['pause'])
-				txt_osd = '\n osd 1 \n'
-				mpvplayer.write(bytes(txt_osd,'utf-8'))
 			else:
 				
 				if self.list2.currentItem():
@@ -9643,11 +9641,11 @@ class Ui_MainWindow(object):
 			if mpvplayer.processId() > 0:
 				if Player == "mpv":
 					mpvplayer.write(b'\n set pause yes \n')
+					self.player_play_pause.setText(self.player_buttons['play'])
+					txt_osd = '\n osd 3 \n'
+					mpvplayer.write(bytes(txt_osd,'utf-8'))
 				else:
 					mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
-				self.player_play_pause.setText(self.player_buttons['play'])
-				txt_osd = '\n osd 3 \n'
-				mpvplayer.write(bytes(txt_osd,'utf-8'))
 			else:
 				
 				if self.list2.currentItem():
@@ -9665,7 +9663,7 @@ class Ui_MainWindow(object):
 			'Show/Hide Video','Show/Hide Cover And Summary',
 			'Lock Playlist','Shuffle','Stop After Current File',
 			'Continue(default Mode)','Set Media Server User/PassWord',
-			'Start Media Server','Set Current Background As Default','Settings'
+			'Start Media Server','Turn ON Remote Control','Set Current Background As Default','Settings'
 			]
 		
 		print(val)
@@ -9787,6 +9785,21 @@ class Ui_MainWindow(object):
 					msg = 'Stopping Media Server\n '+self.local_ip_stream+':'+str(self.local_port_stream)
 					#subprocess.Popen(["notify-send",msg])
 					send_notification(msg)
+		elif val.lower() == 'turn on remote control':
+			v= str(self.action_player_menu[8].text()).lower()
+			msg = "Not Able to Take Action"
+			if v == 'turn on remote control':
+				self.remote_control_field = True
+				self.action_player_menu[8].setText("Turn Off Remote Control")
+				change_opt_file(HOME_OPT_FILE,'REMOTE_CONTROL=','REMOTE_CONTROL=True')
+				msg = "Remote Control Mode Enabled, Now Start Media server to control the player remotely"
+			elif v == 'turn off remote control':
+				self.remote_control_field = False
+				self.remote_control = False
+				self.action_player_menu[8].setText("Turn ON Remote Control")
+				change_opt_file(HOME_OPT_FILE,'REMOTE_CONTROL=','REMOTE_CONTROL=False')
+				msg = "Remote Control Mode Disabled"
+			send_notification(msg)
 		elif val.lower() == 'set media server user/password':
 			new_set = LoginAuth(parent=MainWindow,media_server=True)
 		elif val.lower() == 'settings':
@@ -15161,7 +15174,7 @@ class Ui_MainWindow(object):
 					if (search_term == search_field and search_exact):
 						print('Exact Match:')
 						break
-		print(epnArrList)
+		#print(epnArrList)
 		return epnArrList
 	
 	def get_title_name(self,row):
@@ -21969,6 +21982,7 @@ def main():
 					k = j.lower()
 					if k == 'on' or k == 'true' or k == 'yes':
 						ui.remote_control_field = True
+						ui.action_player_menu[8].setText("Turn Off Remote Control")
 				except Exception as e:
 					print(e)
 			elif i.startswith('ANIME_REVIEW_SITE='):
