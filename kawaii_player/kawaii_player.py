@@ -514,10 +514,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					else:
 						self.final_message(b'Could not find your Public IP')
 				else:
-					txt = b'Access Not Allowed'
+					txt = b'Access Not Allowed, Authentication Failed'
 					self.final_message(txt)
 			else:
-				txt = b'Access Not Allowed'
+				txt = b'Access Not Allowed, Authentication Failed'
 				self.final_message(txt)
 		else:
 			client_addr = str(self.client_address[0])
@@ -1569,9 +1569,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			msg = bytes(msg,'utf-8')
 			self.final_message(msg)
 		else:
-			nm = 'index.html'
-			self.send_header('Content-type','text/html')
+			nm = 'stream_continue.htm'
+			self.send_response(303)
+			self.send_header('Location',nm)
+			self.send_header('Connection', 'close')
 			self.end_headers()
+			#nm = 'index.html'
+			#self.send_header('Content-type','text/html')
+			#self.end_headers()
 			
 	def final_message(self,txt,cookie=None):
 		self.send_response(200)
