@@ -191,7 +191,7 @@ The media server functionality can be started by selecting **'More->Start Media 
 		$ mplayer -loop 0 http://192.168.2.2:9001/
 		
 
-**Experimental Headless Mode using Xvfb:** It's possible to use the server in headless mode using xvfb (Available only in latest git commit, not in release section). Users need to install xvfb first and then should run following command:
+**Experimental Headless Mode using Xvfb:** It's possible to use the server in headless mode using xvfb. Users need to install **xvfb** first and then should run following command:
 		
 		$ xvfb-run --server-args="-screen 0 640x480x16" kawaii-player --start-media-server --update-video-db --update-music-db
 		
@@ -234,9 +234,7 @@ In short, Recommanded settings for external access to media server are as follow
 		COOKIE_EXPIRY_LIMIT=24
 		COOKIE_PLAYLIST_EXPIRY_LIMIT=24 
 
-Once https enabled, users will find that many media players might not play playlist generated from the browser due to self signed certificates. From popular players, vlc,kodi,mplayer,mpv can play self signed https streams well, but still their playing ability may vary. vlc sometimes work and sometimes won't play anything. kodi plays playlist very well but can't handle redirection. mpv works perfectly with https streams in the playlist. kawaii-player player by default uses mpv as backend, hence generated playlist works well in it. mplayer can also play https streams along with redirection. In kawaii-player, playlist can be anything from audio, video, youtube urls or addons url or even torrent streams. If playlist contains youtube url, then the server will return url of the video stream with the help of youtube-dl. In case of torrent streams (yes, users can start torrent streams directly on the media server, from any client playlist, which will be streamed back to client again), media server will send you redirected url, since torrent streams will start on different port (default 8001) than that of media server port (default 9001). 
-
-kawaii-player is optimized for streaming specially, hence users might get good streaming experience with it. It also contains offline mode, which might be useful for downloading, media server content to client for offline viewing.
+Once https enabled, users will find that many media players might not play playlist generated from the browser due to self signed certificates. From popular players, vlc,kodi,mplayer,mpv can play self signed https streams well, but still their playing ability may vary. 
 
 
 kawaii-player allows user to start media server on the fly. Basically I never thought of it as 24x7 on media server. (Therefore, I can't tell about it's performance if it is used 24x7.). I wanted to create a portable media server which user can start at any time and anywhere for a brief period so as to share content with family members, friends or colleagues with the help of simple playlist or simple urls, without depending on any third party. And sometimes we just want to enjoy the content, which we have piled up on our working computer, from other devices quickly, without much set up. Creating web interface was not even on my mind, but later I found that web interface might be good for generating playlist, hence at last I created a very simple (but dry and boring) web interface just for easy playlist creation. Users can play media on the browser itself, but they won't be able to play all the media formats, because application does not use any kind of transcoding. Media server feature is implemented using python's inbuilt http.server module, hence it doesn't require any other external dependency.
@@ -314,6 +312,7 @@ Remote Control can be activated by selecting **'More->Turn On Remote Control'**,
 ![kawaii-player](/Images/YT.png)
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
+
 
 ## Addon Structure
 
@@ -415,11 +414,11 @@ openssl {for enabling HTTPS}
 
 **Dependencies installation in Arch for pyqt5 version.**
 
-sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-urllib3 python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget
+sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-urllib3 python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen
 
 **Dependencies installation in Ubuntu 16.04**
 
-sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python3-pil python3-bs4 python3-lxml python3-taglib curl wget libnotify-bin mpv mplayer ffmpegthumbnailer sqlite3 python3-libtorrent youtube-dl python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebkit python3-dbus
+sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python3-pil python3-bs4 python3-lxml python3-taglib curl wget libnotify-bin mpv mplayer ffmpegthumbnailer sqlite3 python3-libtorrent youtube-dl python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebkit python3-dbus python3-mutagen
 
 ## Troubleshooting
 
