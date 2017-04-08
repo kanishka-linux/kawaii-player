@@ -39,6 +39,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
 
+[Contact](#contact)
+
 ## Why Another Media Player
 
 ###### [Index](#index)
@@ -331,7 +333,7 @@ In this player, a weak addon structure has been created, so that one can write a
 		1. First install pytaglib from AUR
 		2. Create package from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
 
-2. Ubuntu or Debian based distro users can directly go to Release section or package directory,download appropriate .deb package and install it using
+2. Ubuntu or Debian based distro users can directly go to Release section and download appropriate .deb package and install it using
  
 		sudo gdebi pkg_name.deb. 
 
@@ -350,7 +352,7 @@ In this player, a weak addon structure has been created, so that one can write a
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 	
 	
-3. **Using setup.py** (Common method for all): 
+3. **Using setup.py** (Common method for all including gnu/linux, windows and other unix like systems): 
 		
 		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it,if user wants stable release)
 		$ cd kawaii-player
@@ -696,3 +698,11 @@ You can explore Right click menu of both Playlist Column and Title List Column f
 
 7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). Currently both projects share more or less same code base, hence addons and settings of AnimeWatch player will work as it is in kawaii-player.
 If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '/.config/AnimeWatch' to '/.config/kawaii-player'.
+
+## Contact
+
+###### [Index](#index)
+
+[Issue Tracker](https://github.com/kanishka-linux/kawaii-player/issues)
+
+[E-mail](kanishka.linux@gmail.com)
