@@ -39,7 +39,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
 
-[Contact](#contact)
+[Contacts](#contacts)
 
 ## Why Another Media Player
 
@@ -699,10 +699,14 @@ You can explore Right click menu of both Playlist Column and Title List Column f
 7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). Currently both projects share more or less same code base, hence addons and settings of AnimeWatch player will work as it is in kawaii-player.
 If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '/.config/AnimeWatch' to '/.config/kawaii-player'.
 
-## Contact
+## Contacts
 
 ###### [Index](#index)
 
+New Issues can be opened at:
+
 [Issue Tracker](https://github.com/kanishka-linux/kawaii-player/issues)
 
-[E-mail](kanishka.linux@gmail.com)
+If users have some other queries or want to give feedback then they can use following e-mail
+
+[E-mail](mailto:kanishka.linux@gmail.com)
