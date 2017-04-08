@@ -197,6 +197,8 @@ The media server functionality can be started by selecting **'More->Start Media 
 
 **Experimental Headless Mode using Xvfb:** It's possible to use the server in headless mode using xvfb. Users need to install **xvfb** first and then should run following command:
 		
+		(First set multimedia library path manually in **~/.config/kawaii-player/local.txt**)
+		
 		$ xvfb-run --server-args="-screen 0 640x480x16" kawaii-player --start-media-server --update-video-db --update-music-db
 		
 		In order to add user and password in headless mode append '--user {username} --password {password}' to above command.
