@@ -405,7 +405,8 @@ def ccurl(url,external_cookie=None,user_auth=None):
 	#c.setopt(c.URL, url)
 	try:
 		c.setopt(c.URL, url)
-	except UnicodeEncodeError:
+	except UnicodeEncodeError as e:
+		print(e,'--409--')
 		c.setopt(c.URL, url.encode('utf-8'))
 	storage = BytesIO()
 	if os.name == 'nt':
