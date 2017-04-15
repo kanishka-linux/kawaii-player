@@ -3865,6 +3865,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 				if not os.path.exists(picnD):
 					os.makedirs(picnD)
 				picn = os.path.join(picnD,a1+'.jpg')
+				picn_new = picn
 				interval = (interval + 10)
 				inter = str(interval)+'s'
 				path = str(path)
@@ -3873,15 +3874,15 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 					rfr_url = path_final_Url[1]
 					rfr = "--referrer="+rfr_url
 					path = path.replace('"','')
-					path = '"'+path+'"'
+					print(rfr,path)
 					subprocess.call(
-							["mpv",rfr,"--ytdl=no","--quiet","--no-audio",
-							"--vo=image:outdir="+TMPDIR,
+							["mpv",rfr,"--vo=image","--no-sub","--ytdl=no","--quiet","--no-audio",
+							"--vo-image-outdir="+TMPDIR,"-sid=no","-aid=no",
 							"--start="+str(interval)+"%","--frames=1",
 							path
 							]
 							)
-					tpm_img = os.path.join(TMPDIR,'00000001.jpg')
+					tmp_img = os.path.join(TMPDIR,'00000001.jpg')
 					if os.path.exists(tmp_img):
 						shutil.copy(tmp_img,picn)
 						os.remove(tmp_img)
@@ -3905,12 +3906,12 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 							picn = str(picnD)+'.jpg'
 					if rfr_url1.lower().startswith('http'):
 						path = path.replace('"','')
-						path = '"'+path+'"'
+						path = path
 						rfr = "--referrer="+rfr_url
 						logger.info(rfr)
 						subprocess.call(
-								["mpv",rfr,"--ytdl=no","--quiet","--no-audio",
-								"--vo=image:outdir="+TMPDIR,
+								["mpv",rfr,"--vo=image","--no-sub","--ytdl=no","--quiet","--no-audio",
+								"--vo-image-outdir="+TMPDIR,"-sid=no","-aid=no",
 								"--start="+str(interval)+"%","--frames=1",
 								path
 								]
@@ -3923,8 +3924,8 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 						path1 = path.replace('"','')
 						if path1.startswith('http'):
 							subprocess.call(
-									["mpv","--ytdl=yes","--quiet","--no-audio",
-									"--vo=image:outdir="+TMPDIR,
+									["mpv","--vo=image","--no-sub","--ytdl=yes","--quiet","--no-audio",
+									"--vo-image-outdir="+TMPDIR,"-sid=no","-aid=no",
 									"--start="+str(interval)+"%","--frames=1",
 									path]
 									)
@@ -4002,8 +4003,8 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 				if path_final_Url.startswith('/'):
 					path_final_Url = '"'+path_final_Url+'"'
 				subprocess.call(
-						["mpv","--no-sub","--ytdl=no","--quiet","--no-audio",
-						"--vo=image:outdir="+TMPDIR,
+						["mpv","--vo=image","--no-sub","--ytdl=no","--quiet","--no-audio",
+						"--vo-image-outdir="+TMPDIR,"-aid=no","-sid=no",
 						"--start="+str(interval)+"%","--frames=1",
 						path_final_Url])
 				tmp_img = os.path.join(TMPDIR,'00000001.jpg')
