@@ -29,7 +29,7 @@ from tempfile import mkstemp
 from player_functions import send_notification,ccurl
 import time
 
-def get_yt_url(url,quality,ytdl_path,logger):
+def get_yt_url(url,quality,ytdl_path,logger,mode=None):
 	final_url = ''
 	url = url.replace('"','')
 	m = []
@@ -94,10 +94,24 @@ def get_yt_url(url,quality,ytdl_path,logger):
 							'18','-g','--playlist-end','1',url])
 				final_url = str(final_url,'utf-8')
 			elif quality == 'best':
-				final_url = subprocess.check_output(
-							[youtube_dl,'--youtube-skip-dash-manifest','-f',
-							'best','-g','--playlist-end','1',url])
-				final_url = str(final_url,'utf-8')
+				if mode:
+					if mode == 'offline':
+						final_url = subprocess.check_output(
+								[youtube_dl,'--youtube-skip-dash-manifest','-f',
+								'best','-g','--playlist-end','1',url])
+						final_url = str(final_url,'utf-8')
+					elif mode == 'music':
+						final_url = subprocess.check_output(
+								[youtube_dl,'-g',url])
+						final_url = str(final_url,'utf-8')
+						final_url = final_url.strip()
+						logger.info(final_url)
+						vid,aud = final_url.split('\n')
+						final_url = vid+'::'+aud
+					else:
+						final_url = url
+				else:
+					final_url = url
 			elif quality == 'hd':
 				try:
 					final_url = subprocess.check_output(
@@ -121,10 +135,24 @@ def get_yt_url(url,quality,ytdl_path,logger):
 							'18','-g','--playlist-end','1',url],shell=True)
 				final_url = str(final_url,'utf-8')
 			elif quality == 'best':
-				final_url = subprocess.check_output(
-							[youtube_dl,'--youtube-skip-dash-manifest','-f',
-							'best','-g','--playlist-end','1',url],shell=True)
-				final_url = str(final_url,'utf-8')
+				if mode:
+					if mode == 'offline':
+						final_url = subprocess.check_output(
+								[youtube_dl,'--youtube-skip-dash-manifest','-f',
+								'best','-g','--playlist-end','1',url],shell=True)
+						final_url = str(final_url,'utf-8')
+					elif mode == 'music':
+						final_url = subprocess.check_output(
+								[youtube_dl,'-g',url],shell=True)
+						final_url = str(final_url,'utf-8')
+						final_url = final_url.strip()
+						logger.info(final_url)
+						vid,aud = final_url.split('\n')
+						final_url = vid+'::'+aud
+					else:
+						final_url = url
+				else:
+					final_url = url
 			elif quality == 'hd':
 				try:
 					final_url = subprocess.check_output(
