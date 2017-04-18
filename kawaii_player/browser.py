@@ -673,7 +673,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 				quality = 'hd'
 			else:
 				quality = self.ui.quality_val
-			finalUrl = get_yt_url(url,quality,self.ui.ytdl_path,self.ui.logger)
+			finalUrl = get_yt_url(url,quality,self.ui.ytdl_path,self.ui.logger,mode='offline')
 			finalUrl = finalUrl.replace('\n','')
 			title = self.title_page+'.mp4'
 			title = title.replace('"','')
