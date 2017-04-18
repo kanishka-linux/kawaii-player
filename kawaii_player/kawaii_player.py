@@ -1443,7 +1443,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						if nm.startswith('"'):
 							nm = nm.replace('"','')
 					elif 'youtube.com' in nm:
-						nm = get_yt_url(nm,ui.quality_val,ui.ytdl_path,logger).strip()
+						nm = get_yt_url(nm,ui.quality_val,ui.ytdl_path,logger,mode='offline').strip()
 				self.process_url(nm,get_bytes,status=num_row)
 				print(ui.remote_control,ui.remote_control_field,path)
 				if ui.remote_control and ui.remote_control_field:
@@ -3302,15 +3302,18 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 					#		or site == "PlayLists" or site == "Video"):
 					#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 					#else:
-					command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+					#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+					command = ui.mplayermpv_command(idw,finalUrl,'mplayer')
 					logger.info(command)
 					ui.infoPlay(command)
 				elif Player == "mpv":
-					if (site == "Local" or site == "Music" 
-							or site == "PlayLists" or site == "Video"):
-						command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
-					else:
-						command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+					#if (site == "Local" or site == "Music" 
+					#		or site == "PlayLists" or site == "Video"):
+					#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+						
+					#else:
+					#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+					command = ui.mplayermpv_command(idw,finalUrl,'mpv')
 					logger.info(command)
 					ui.infoPlay(command)	
 			ui.labelFrame2.setText(ui.epn_name_in_list)
@@ -3404,15 +3407,17 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 					#		or site == "PlayLists" or site == "Video"):
 					#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 					#else:
-					command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+					#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+					command = ui.mplayermpv_command(idw,finalUrl,'mplayer')
 					logger.info(command)
 					ui.infoPlay(command)
 				elif Player == "mpv":
-					if (site == "Local" or site == "Music" 
-							or site == "PlayLists" or site == "Video"):
-						command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
-					else:	
-						command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+					#if (site == "Local" or site == "Music" 
+					#		or site == "PlayLists" or site == "Video"):
+					#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+					#else:	
+					#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+					command = ui.mplayermpv_command(idw,finalUrl,'mpv')
 					logger.info(command)
 					ui.infoPlay(command)	
 			ui.labelFrame2.setText(ui.epn_name_in_list)
@@ -3478,15 +3483,17 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 						#		or site == "PlayLists" or site == "Video"):
 						#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 						#else:
-						command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+						#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+						command = ui.mplayermpv_command(idw,finalUrl,'mplayer')
 						logger.info(command)
 						ui.infoPlay(command)
 					elif Player == "mpv":
-						if (site == "Local" or site == "Music" 
-								or site == "PlayLists" or site == "Video"):
-							command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
-						else:
-							command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+						#if (site == "Local" or site == "Music" 
+						#		or site == "PlayLists" or site == "Video"):
+						#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+						#else:
+						#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+						command = ui.mplayermpv_command(idw,finalUrl,'mpv')
 						logger.info(command)
 						ui.infoPlay(command)				
 			#Mode 2 Ends Here#
@@ -6970,6 +6977,8 @@ class tab5(QtWidgets.QWidget):
 				and event.key() == QtCore.Qt.Key_Right):
 			ui.list2.setFocus()
 		elif event.key() == QtCore.Qt.Key_Right:
+			txt = '\n osd 1 \n'
+			mpvplayer.write(bytes(txt,'utf-8'))
 			if Player == "mplayer":
 					self.set_slider_val(10)
 					if (site == "Local" or site == "None" or site == "PlayLists" 
@@ -6984,7 +6993,7 @@ class tab5(QtWidgets.QWidget):
 						self.seek_timer.start(500)
 			else:
 				mpvplayer.write(b'\n seek +10 relative+exact \n')
-			self.frameShowHide()
+			#self.frameShowHide()
 		elif event.key() == QtCore.Qt.Key_1:
 			mpvplayer.write(b'\n add chapter -1 \n')
 		elif event.key() == QtCore.Qt.Key_2:
@@ -6995,6 +7004,8 @@ class tab5(QtWidgets.QWidget):
 				and event.key() == QtCore.Qt.Key_V):
 			mpvplayer.write(b'\n cycle ass-vsfilter-aspect-compat \n')
 		elif event.key() == QtCore.Qt.Key_Left:
+			txt = '\n osd 1 \n'
+			mpvplayer.write(bytes(txt,'utf-8'))
 			if Player == "mplayer":
 					self.set_slider_val(-10)
 					if (site == "Local" or site == "None" or site == "PlayLists" 
@@ -7009,7 +7020,7 @@ class tab5(QtWidgets.QWidget):
 						self.seek_timer.start(500)
 			else:
 				mpvplayer.write(b'\n osd-msg-bar seek -10 \n')
-			self.frameShowHide()
+			#self.frameShowHide()
 		elif event.key() == QtCore.Qt.Key_BracketRight:
 			if Player == "mplayer":
 					mpvplayer.write(b'\n seek +90 \n')
@@ -7021,11 +7032,15 @@ class tab5(QtWidgets.QWidget):
 			else:
 					mpvplayer.write(b'\n osd-msg-bar seek -5 \n')
 		elif event.key() == QtCore.Qt.Key_0:
+			txt = '\n osd 1 \n'
+			mpvplayer.write(bytes(txt,'utf-8'))
 			if Player == "mplayer":
 					mpvplayer.write(b'\n volume +5 \n')
 			else:
 					mpvplayer.write(b'\n add ao-volume +5 \n')
 		elif event.key() == QtCore.Qt.Key_9:
+			txt = '\n osd 1 \n'
+			mpvplayer.write(bytes(txt,'utf-8'))
 			if Player == "mplayer":
 					mpvplayer.write(b'\n volume -5 \n')
 			else:
@@ -10106,8 +10121,8 @@ class Ui_MainWindow(object):
 			self.gridLayout.setSpacing(5)
 			
 	def webStyle(self,web):
-		global platform_name
-		if platform_name.lower() != 'plasma':
+		global desktop_session
+		if desktop_session.lower() != 'plasma':
 			web.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
 			web.setStyleSheet("""
 			QMenu{
@@ -10116,12 +10131,12 @@ class Ui_MainWindow(object):
 			""")
 		
 	def buttonStyle(self,widget=None):
-		global home,BASEDIR,platform_name,app
+		global home,BASEDIR,desktop_session,app
 		png_home = os.path.join(BASEDIR,'1.png')
 		if not widget:
 			self.dockWidget_3.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
 			self.tab_6.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
-			if platform_name.lower() != 'plasma':
+			if desktop_session.lower() != 'plasma':
 				self.tab_2.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
 			self.tab_5.setStyleSheet("font:bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);")
 			#self.btnWebClose.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);border-radius: 3px;")
@@ -10392,7 +10407,7 @@ class Ui_MainWindow(object):
 			width: 10px;
 			margin: 0.5px;
 			}}""")
-			if platform_name.lower() != 'plasma':
+			if desktop_session.lower() != 'plasma':
 				self.btnWebReviews.setStyleSheet("""QComboBox {
 				min-height:0px;
 				max-height:50px;
@@ -11909,7 +11924,7 @@ class Ui_MainWindow(object):
 				self.tab_5.show()
 				
 	def webClose(self):
-		global view_layout,platform_name
+		global view_layout,desktop_session
 		
 		if not self.VerticalLayoutLabel.itemAt(2):
 			self.VerticalLayoutLabel.addStretch(2)
@@ -11918,7 +11933,7 @@ class Ui_MainWindow(object):
 		self.tmp_web_srch = ''
 		if self.web:
 			self.web.setHtml('<html>Reviews:</html>')
-		if platform_name == 'ubuntu':
+		if desktop_session == 'ubuntu':
 			print('--page--cleared--')
 		else:
 			try:
@@ -16109,10 +16124,11 @@ class Ui_MainWindow(object):
 						idw = str(int(self.tab_5.winId()))
 				else:
 					idw = str(int(self.tab_5.winId()))
-			if Player == 'mpv':
-				command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
-			else:
-				command = "mplayer -identify -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+			command = self.mplayermpv_command(idw,finalUrl,Player)
+			#if Player == 'mpv':
+			#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+			#else:
+			#	command = "mplayer -identify -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 			logger.info('command: function_play_file_now = {0}'.format(command))
 			self.infoPlay(command)
 		if not self.external_SubTimer.isActive():
@@ -16624,7 +16640,8 @@ class Ui_MainWindow(object):
 			if mpvplayer.processId() > 0:
 				mpvplayer.kill()
 			if Player == "mpv":
-				command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+				#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+				command = self.mplayermpv_command(idw,finalUrl,Player)
 				logger.info(command)
 				self.infoPlay(command)
 			elif Player == "mplayer":
@@ -16640,10 +16657,11 @@ class Ui_MainWindow(object):
 				if site != "Music":
 					self.tab_5.show()
 					##self.tab_5.setFocus()
-				if finalUrl.startswith('"http'):
-					command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
-				else:
-					command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+				#if finalUrl.startswith('"http'):
+				#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+				#else:
+				#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+				command = self.mplayermpv_command(idw,finalUrl,Player)
 				logger.info(command)
 				self.infoPlay(command)
 			else:
@@ -16667,10 +16685,12 @@ class Ui_MainWindow(object):
 								rfr_url = finalUrl[1]
 								nepn = '"'+str(finalUrl[0])+'"'
 								
-								command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 --referrer "+rfr_url+" -wid "+idw+" "+nepn
+								#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 --referrer "+rfr_url+" -wid "+idw+" "+nepn
+								command = self.mplayermpv_command(idw,nepn,Player,rfr=rfr_url)
 							else:
 								nepn = str(finalUrl[0])
-								command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+nepn
+								#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+nepn
+								command = self.mplayermpv_command(idw,nepn,Player)
 							logger.info(command)
 						
 						else:
@@ -16681,8 +16701,8 @@ class Ui_MainWindow(object):
 								#epnShow = epnShow +' '+finalUrl[i+1]
 								self.queue_url_list.append(finalUrl[i+1])
 							self.queue_url_list.reverse()
-							command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+epnShow
-			
+							#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+epnShow
+							command = self.mplayermpv_command(idw,epnShow,Player)
 						self.infoPlay(command)
 				else:
 						if '""' in finalUrl:
@@ -16691,7 +16711,8 @@ class Ui_MainWindow(object):
 							finalUrl = str(finalUrl)
 						except:
 							finalUrl = finalUrl
-						command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+						#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+						command = self.mplayermpv_command(idw,finalUrl,Player)
 						self.infoPlay(command)
 			elif downloadVideo == 0 and Player != "mpv":
 				if mpvplayer.processId() > 0:
@@ -16717,7 +16738,8 @@ class Ui_MainWindow(object):
 									self.tab_5.show()
 									##self.tab_5.setFocus()
 									final_url = str(finalUrl[0])
-									command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -referrer "+rfr_url+" "+'"'+final_url+'"'
+									#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -referrer "+rfr_url+" "+'"'+final_url+'"'
+									command = self.mplayermpv_command(idw,final_url,Player,rfr=rfr_url)
 									logger.info(command)
 									self.infoPlay(command)
 								else:
@@ -16735,7 +16757,8 @@ class Ui_MainWindow(object):
 									self.tab_5.show()
 									##self.tab_5.setFocus()
 									final_url = str(finalUrl[0])
-									command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+'"'+final_url+'"'
+									#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+'"'+final_url+'"'
+									command = self.mplayermpv_command(idw,final_url,Player)
 									logger.info(command)
 									self.infoPlay(command)
 								else:
@@ -16752,7 +16775,8 @@ class Ui_MainWindow(object):
 							for i in range(len(finalUrl)-1):
 								self.queue_url_list.append(finalUrl[i+1])
 							self.queue_url_list.reverse()
-							command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+epnShow
+							#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+epnShow
+							command = self.mplayermpv_command(idw,epnShow,Player)
 							logger.info(command)
 							self.infoPlay(command)
 				else:
@@ -16772,7 +16796,8 @@ class Ui_MainWindow(object):
 							idw = str(int(self.tab_5.winId()))
 							self.tab_5.show()
 							##self.tab_5.setFocus()
-							command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+							#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+							command = self.mplayermpv_command(idw,finalUrl,Player)
 							logger.info(command)
 							self.infoPlay(command)
 						else:
@@ -17033,7 +17058,7 @@ class Ui_MainWindow(object):
 			
 			return url
 				
-	def epn_return(self,row):
+	def epn_return(self,row,mode=None):
 		global site,base_url,embed,epn_goto,mirrorNo,list2_items,quality
 		global finalUrl,home,hdr,path_Local_Dir,epnArrList,epn_name_in_list
 		global video_local_stream
@@ -17075,7 +17100,10 @@ class Ui_MainWindow(object):
 					refererNeeded = False
 				epn = arr[0]
 				if 'youtube.com' in finalUrl:
-					finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
+					if mode == 'offline':
+						finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger,mode='offline').strip()
+					else:
+						finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
 		
 		if (site != "SubbedAnime" and site!= "DubbedAnime" and site!="PlayLists" 
 				and finalUrlFound == False and site!= "None" and site != "Music" 
@@ -17157,11 +17185,17 @@ class Ui_MainWindow(object):
 				finalUrl = '"'+(epnArrList[row]).replace('#','',1)+'"'
 			if site == 'None' and self.btn1.currentText().lower() == 'youtube':
 					finalUrl = finalUrl.replace('"','')
-					finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
+					if mode == 'offline':
+						finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger,mode='offline').strip()
+					else:
+						finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
 					finalUrl = '"'+finalUrl+'"'
 			if 'youtube.com' in finalUrl.lower():
 				finalUrl = finalUrl.replace('"','')
-				finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
+				if mode == 'offline':
+					finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger,mode='offline').strip()
+				else:
+					finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
 		return finalUrl
 	
 	def epn_return_from_bookmark(self,tmp_bookmark,from_client=None):
@@ -17286,13 +17320,14 @@ class Ui_MainWindow(object):
 		finalUrl = str(finalUrl)
 		path_final_Url = finalUrl
 		current_playing_file_path = finalUrl
-		if Player == "mplayer":
-			if finalUrl.startswith('/'):
-				command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
-			else:
-				command = "mplayer -identify -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
-		else:
-			command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
+		command = self.mplayermpv_command(idw,finalUrl,Player)
+		#if Player == "mplayer":
+		#	if finalUrl.startswith('/'):
+		#		command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+		#	else:
+		#		command = "mplayer -identify -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
+		#else:
+		#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
 		if os.path.exists(title_sub_path):
 			if Player == 'mpv':
 				command = command+' --sub-file='+title_sub_path
@@ -17360,7 +17395,7 @@ class Ui_MainWindow(object):
 	def start_offline_mode(self,row):
 		global downloadVideo,site,name,hdr
 		if not self.if_file_path_exists_then_play(row,self.list2,False):
-			finalUrl = self.epn_return(row)
+			finalUrl = self.epn_return(row,mode='offline')
 			referer = False
 			if type(finalUrl) is not list:
 				finalUrl = finalUrl.replace('"','')
@@ -17500,7 +17535,7 @@ class Ui_MainWindow(object):
 				del t1
 				del self.queue_url_list[j]
 				print(t,'**************row------num-----------')
-				finalUrl = self.epn_return(t)
+				finalUrl = self.epn_return(t,mode='offline')
 				referer = False
 				if type(finalUrl) is not list:
 					finalUrl = finalUrl.replace('"','')
@@ -17544,12 +17579,16 @@ class Ui_MainWindow(object):
 		global fullscr,total_seek,artist_name_mplayer,layout_mode,server
 		global new_tray_widget,video_local_stream,pause_indicator
 		global epn_name_in_list,mpv_indicator,mpv_start,idw,cur_label_num
-		global sub_id,audio_id,current_playing_file_path,wget
+		global sub_id,audio_id,current_playing_file_path,wget,desktop_session
 		
 		try:
 			a = str(p.readAllStandardOutput(),'utf-8').strip()
 			if 'volume' in a:
 				print(a)
+			if 'Video' in a:
+				logger.info(a)
+			if 'Audio' in a:
+				logger.info(a)
 			#print(a)
 			#print(a)
 			if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
@@ -17639,7 +17678,7 @@ class Ui_MainWindow(object):
 								self.frame1.hide()
 							if self.frame_timer.isActive():
 								self.frame_timer.stop()
-							self.frame_timer.start(1000)
+							self.frame_timer.start(5000)
 					if ("Buffering" in a and not mpv_indicator 
 							and (site != "Local" or site != "Music" 
 							or site != "Video")):
@@ -17753,11 +17792,12 @@ class Ui_MainWindow(object):
 					t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
 					self.progressEpn.setFormat((t))
 					if MainWindow.isFullScreen() and layout_mode != "Music":
-						self.gridLayout.setSpacing(0)
-						self.frame1.show()
-						if self.frame_timer.isActive():
-							self.frame_timer.stop()
-						self.frame_timer.start(1000)
+						if desktop_session == 'lxde' or desktop_session == 'lxqt' or desktop_session == 'xfce':
+							self.gridLayout.setSpacing(0)
+							self.frame1.show()
+							if self.frame_timer.isActive():
+								self.frame_timer.stop()
+							self.frame_timer.start(1000)
 				if ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a):
 					if self.player_setLoop_var:
 						if current_playing_file_path.startswith('"'):
@@ -18103,46 +18143,51 @@ class Ui_MainWindow(object):
 		
 	def infoPlay(self,command):
 		global mpvplayer,Player,site,new_epn,mpv_indicator,cache_empty
-		if mpv_indicator:
-			mpv_indicator.pop()
-		cache_empty = 'no'
-		if command.startswith('mplayer'):
-			#command = command.replace(
-			#	'-msglevel all=4:statusline=5:global=6',
-			#	'-msglevel statusline=5:global=6'
-			#	)
-			if OSNAME == 'nt':
-				command = command + ' -vo gl'
-		if self.player_setLoop_var == 1:
-			if Player == 'mplayer':
-				command = command+' -loop 0'
-				
-		print('--line--15662--')
-		if mpvplayer.processId()>0:
-			mpvplayer.kill()
-			try:
-				if not self.mplayer_status_thread.isRunning():
-					self.mplayer_status_thread = PlayerWaitThread(command)
-					self.mplayer_status_thread.start()
-				else:
-					self.mpvplayer_command.append(command)
-			except Exception as e:
-				print(e)
+		if not command:
+			t = "Loading Failed: No Url/File Found. Try Again"
+			self.progressEpn.setFormat(t)
 		else:
-			#mpvplayer = QtCore.QProcess()
-			if self.mpvplayer_command:
-				command = self.mpvplayer_command[-1]
-				self.mpvplayer_command[:]=[]
-			self.mpvplayer_val = mpvplayer
-			mpvplayer.setProcessChannelMode(QtCore.QProcess.MergedChannels)
-			mpvplayer.started.connect(self.started)
-			mpvplayer.readyReadStandardOutput.connect(partial(self.dataReady,mpvplayer))
-			mpvplayer.finished.connect(self.finished)
-			QtCore.QTimer.singleShot(1000, partial(mpvplayer.start, command))
-			logger.info(command)
-			self.mpvplayer_started = True
-			if self.player_setLoop_var == 1 and Player == 'mpv':
-				QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
+			if mpv_indicator:
+				mpv_indicator.pop()
+			cache_empty = 'no'
+			if command.startswith('mplayer'):
+				#command = command.replace(
+				#	'-msglevel all=4:statusline=5:global=6',
+				#	'-msglevel statusline=5:global=6'
+				#	)
+				if OSNAME == 'nt':
+					command = command + ' -vo gl'
+			if self.player_setLoop_var == 1:
+				if Player == 'mplayer':
+					command = command+' -loop 0'
+					
+			print('--line--15662--')
+			if mpvplayer.processId()>0:
+				mpvplayer.kill()
+				try:
+					if not self.mplayer_status_thread.isRunning():
+						self.mplayer_status_thread = PlayerWaitThread(command)
+						self.mplayer_status_thread.start()
+					else:
+						self.mpvplayer_command.append(command)
+				except Exception as e:
+					print(e)
+			else:
+				#mpvplayer = QtCore.QProcess()
+				if self.mpvplayer_command:
+					command = self.mpvplayer_command[-1]
+					self.mpvplayer_command[:]=[]
+				self.mpvplayer_val = mpvplayer
+				mpvplayer.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+				mpvplayer.started.connect(self.started)
+				mpvplayer.readyReadStandardOutput.connect(partial(self.dataReady,mpvplayer))
+				mpvplayer.finished.connect(self.finished)
+				QtCore.QTimer.singleShot(1000, partial(mpvplayer.start, command))
+				logger.info(command)
+				logger.info('infoplay--18165--')
+				self.mpvplayer_started = True
+				if self.player_setLoop_var == 1 and Player == 'mpv':
+					QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
 				
 	def adjust_thumbnail_window(self,row):
 		global thumbnail_indicator,idw,ui,cur_label_num
@@ -18368,15 +18413,16 @@ class Ui_MainWindow(object):
 			
 		if mpvplayer.processId() > 0:
 			if Player == "mplayer":
-				if audio_id == "auto":
-					audio_id = "0"
-				if sub_id == "auto":
-					sub_id = "0"
-				command1 = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-				try:
-					command = str(command1,'utf-8')
-				except:
-					command = command1
+				#if audio_id == "auto":
+				#	audio_id = "0"
+				#if sub_id == "auto":
+				#	sub_id = "0"
+				#command1 = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
+				#try:
+				#	command = str(command1,'utf-8')
+				#except:
+				#	command = command1
+				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
 				if not self.external_url:
 					#try:
 					epnShow = '"' + "Queued:  "+ new_epn + '"'
@@ -18394,12 +18440,12 @@ class Ui_MainWindow(object):
 					#self.external_url = False
 					logger.info(command)
 			elif Player == "mpv":
-				command1 = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-				try:
-					command = str(command1,'utf-8')
-				except:
-					command = command1
-					
+				#command1 = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
+				#try:
+				#	command = str(command1,'utf-8')
+				#except:
+				#	command = command1
+				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
 				if not self.external_url:
 					epnShow = '"' + "Queued:  "+ new_epn + '"'
 					t1 = bytes('\n '+'show-text '+epnShow+' \n','utf-8')
@@ -18412,26 +18458,27 @@ class Ui_MainWindow(object):
 					self.infoPlay(command)
 					#self.external_url = False
 					logger.info(command)
-		
+			
 			print("mpv=" + str(mpvplayer.processId()))
 		else:
-			if Player == "mplayer":
-				if audio_id == "auto":
-					audio_id = "0"
-				if sub_id == "auto":
-					sub_id = "0"
-				command1 = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-				try:
-					command = str(command1,'utf-8')
-				except:
-					command = command1
+			command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
+			#if Player == "mplayer":
+			#	if audio_id == "auto":
+			#		audio_id = "0"
+			#	if sub_id == "auto":
+			#		sub_id = "0"
+			#	command1 = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
+			#	try:
+			#		command = str(command1,'utf-8')
+			#	except:
+			#		command = command1
 				
-			elif Player == "mpv":
-				command1 = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-				try:
-					command = str(command1,'utf-8')
-				except:
-					command = command1
+			#elif Player == "mpv":
+			#	command1 = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
+			#	try:
+			#		command = str(command1,'utf-8')
+			#	except:
+			#		command = command1
 				
 			self.infoPlay(command)
 		
@@ -18535,10 +18582,11 @@ class Ui_MainWindow(object):
 			
 		
 		epnShowN = '"'+epnShow.replace('"','')+'"'
-		if Player == "mplayer":
-				command = "mplayer -idle -identify -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+epnShowN
-		elif Player == "mpv":
-				command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+epnShowN
+		command = self.mplayermpv_command(idw,epnShowN,Player,a_id=audio_id,s_id=sub_id)
+		#if Player == "mplayer":
+		#		command = "mplayer -idle -identify -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+epnShowN
+		#elif Player == "mpv":
+		#		command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+epnShowN
 		if mpvplayer.processId() > 0:
 			epnShow = '"'+epnShow.replace('"','')+'"'
 			#if epnShow.startswith('"http'):
@@ -18587,6 +18635,74 @@ class Ui_MainWindow(object):
 			current_playing_file_path = epnShow
 		else:
 			current_playing_file_path = '"'+epnShow+'"'
+		
+	def mplayermpv_command(self,idw,finalUrl,player,a_id=None,s_id=None,rfr=None,a_url=None):
+		global site
+		finalUrl = finalUrl.replace('"','')
+		if player == 'mplayer':
+			if finalUrl.startswith('http'):
+				command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid {0}'.format(idw)
+			else:
+				command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 0 -slave -wid {0}'.format(idw)
+		elif player == "mpv":
+			command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid {0}'.format(idw)
+			
+		if a_id:
+			if a_id == "auto":
+				if player == 'mplayer':
+					command = command+" -aid 0"
+				elif player == 'mpv':
+					command = command+" -aid auto"
+			else:
+				command = command+" -aid {0}".format(a_id)
+			
+		if s_id:
+			if s_id == "auto":
+				if player == 'mplayer':
+					command = command+" -sid 0"
+				elif player == 'mpv':
+					command = command+" -sid auto"
+			else:
+				command = command+" -sid {0}".format(s_id)
+				
+		if rfr:
+			if player == 'mplayer':
+				command = command+" -referrer {0}".format(rfr)
+			elif player == 'mpv':
+				command = command+" --referrer={0}".format(rfr)
+				
+		if a_url:
+			if player == 'mplayer':
+				command = command+" -audiofile {0}".format(a_url)
+			elif player == 'mpv':
+				command = command+" --audio-file={0}".format(a_url)
+		
+		if site.lower() == 'music':
+			if player == 'mpv':
+				command = command + ' --no-video'
+			elif player == 'mplayer':
+				command = command + ' -novideo'
+		
+		if finalUrl:
+			if self.quality_val == 'best':
+				if 'youtube.com' in finalUrl and player == 'mpv':
+					if site.lower() == 'music':
+						final_url = get_yt_url(finalUrl,self.quality_val,self.ytdl_path,logger,mode="music").strip()
+						finalUrl = final_url.split('::')[-1]
+					else:
+						command = command.replace('ytdl=no','ytdl=yes')
+				elif 'youtube.com' in finalUrl and player == 'mplayer':
+					finalUrl = get_yt_url(finalUrl,self.quality_val,self.ytdl_path,logger,mode="offline").strip()
+			if finalUrl.startswith('http'):
+				command = command + ' ' + finalUrl
+			else:
+				finalUrl = '"'+ finalUrl + '"'
+				command = command + ' ' + finalUrl
+		else:
+			command = ''
+		
+		return command
+		
 		
 	def getNextInList(self):
 		global site,base_url,embed,epn,epn_goto,mirrorNo,list2_items,quality
@@ -18800,14 +18916,16 @@ class Ui_MainWindow(object):
 			except:
 				finalUrl = finalUrl
 				
-			if Player == "mplayer":
-				if audio_id == "auto":
-					audio_id = "0"
-				if sub_id == "auto":
-					sub_id = "0"
-				command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-			elif Player == "mpv":
-				command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
+			command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
+				
+			#if Player == "mplayer":
+			#	if audio_id == "auto":
+			#		audio_id = "0"
+			#	if sub_id == "auto":
+			#		sub_id = "0"
+			#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
+			#elif Player == "mpv":
+			#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
 			print("mpv=" + str(mpvplayer.processId()))
 			logger.info(command)
 			if mpvplayer.processId() > 0 :
@@ -18839,28 +18957,31 @@ class Ui_MainWindow(object):
 								rfr_url = finalUrl[1]
 								nepn = str(finalUrl[0])
 								epnShow = str(nepn)
-								if Player == "mplayer":
-									command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -referrer "+rfr_url+" "+nepn
-								elif Player == "mpv":
-									command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 --referrer "+rfr_url+" -wid "+idw+" "+nepn
+								command = self.mplayermpv_command(idw,nepn,Player,rfr=rfr_url)
+								#if Player == "mplayer":
+								#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -referrer "+rfr_url+" "+nepn
+								#elif Player == "mpv":
+								#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 --referrer "+rfr_url+" -wid "+idw+" "+nepn
 							else:
 								nepn = str(finalUrl[0])
 								epnShow = nepn
-								if Player == "mplayer":
-									command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+nepn
-								elif Player == "mpv":
-									command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+nepn
+								command = self.mplayermpv_command(idw,nepn,Player)
+								#if Player == "mplayer":
+								#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+nepn
+								#elif Player == "mpv":
+								#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+nepn
 						else:
 							self.queue_url_list[:]=[]
 							epnShow = finalUrl[0]
 							for i in range(len(finalUrl)-1):
 								self.queue_url_list.append(finalUrl[i+1])
 							self.queue_url_list.reverse()
-							if Player == "mpv":
-								command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+epnShow
-							elif Player == "mplayer":
+							command = self.mplayermpv_command(idw,epnShow,Player)
+							#if Player == "mpv":
+							#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+epnShow
+							#elif Player == "mplayer":
 								
-								command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+epnShow
+							#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+epnShow
 						logger.info(command)
 						if mpvplayer.processId() > 0:
 							mpvplayer.kill()
@@ -18877,15 +18998,16 @@ class Ui_MainWindow(object):
 					finalUrl = str(finalUrl)
 				except:
 					finalUrl = finalUrl
-				finalUrl = '"'+finalUrl+'"'
-				if Player == "mplayer":
-					if audio_id == "auto":
-						audio_id = "0"
-					if sub_id == "auto":
-						sub_id = "0"
-					command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+sub_id+" -aid "+audio_id+" "+finalUrl
-				elif Player == "mpv":
-					command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+sub_id+" -aid "+audio_id+" "+finalUrl
+				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
+				#finalUrl = '"'+finalUrl+'"'
+				#if Player == "mplayer":
+				#	if audio_id == "auto":
+				#		audio_id = "0"
+				#	if sub_id == "auto":
+				#		sub_id = "0"
+				#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+sub_id+" -aid "+audio_id+" "+finalUrl
+				#elif Player == "mpv":
+				#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+sub_id+" -aid "+audio_id+" "+finalUrl
 				print("mpv=" + str(mpvplayer.processId()))
 				print(Player,'---------state----'+str(mpvplayer.state()))
 				
@@ -21352,7 +21474,7 @@ def main():
 	global show_hide_cover,show_hide_playlist,show_hide_titlelist,server
 	global show_hide_player,layout_mode,current_playing_file_path
 	global music_arr_setting,default_arr_setting,video_local_stream
-	global local_torrent_file_path,wait_player,platform_name
+	global local_torrent_file_path,wait_player,desktop_session
 	global addons_option_arr,html_default_arr,app
 	
 	wait_player = False
@@ -21484,10 +21606,12 @@ def main():
 		dbus.mainloop.pyqt5.DBusQtMainLoop(set_as_default=True)
 	except:
 		pass
-	platform_name = os.getenv('DESKTOP_SESSION')
-	if not platform_name:
-		platform_name = 'LXDE'
-	print(OSNAME,platform_name)
+	desktop_session = os.getenv('DESKTOP_SESSION')
+	if desktop_session:
+		desktop_session = desktop_session.lower()
+	else:
+		desktop_session = 'lxde'
+	print(OSNAME,desktop_session)
 	app = QtWidgets.QApplication(sys.argv)
 	
 	screen_resolution = app.desktop().screenGeometry()
