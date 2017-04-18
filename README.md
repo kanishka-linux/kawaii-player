@@ -325,7 +325,7 @@ This player provides a wrapper around youtube site using qtwebengine. If your GN
 
 ###### [Index](#index)
 
-In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player,similar to Kodi or Plex, so that you don't have to deal with horrible flash player of the web. 
+In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player,similar to Kodi or Plex, so that you don't have to deal with horrible flash player of the web. Addons are needed to copy into folder *'~/.config/kawaii-player/src/Plugins'*, which are loaded automatically when player starts. 
 
 ## Dependencies and Installation
 
