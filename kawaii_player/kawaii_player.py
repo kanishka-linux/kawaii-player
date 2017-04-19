@@ -906,7 +906,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		return extra_fields
 		
 	def get_the_content(self,path,get_bytes,my_ip_addr=None,play_id=None):
-		global current_playing_file_path,path_final_Url,ui,curR
+		global current_playing_file_path,path_final_Url,ui,curR,home
 		global epnArrList,html_default_arr
 		if not my_ip_addr:
 			my_ipaddress = ui.local_ip_stream
@@ -1525,9 +1525,27 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						nm = https_val+"://"+str(ui.local_ip)+':'+str(ui.local_port)+'/'
 					else:
 						nm = https_val+"://"+str(my_ip_addr)+':'+str(ui.local_port)+'/'
-					new_torrent_signal.new_signal.emit(old_nm)
-					logger.info('--nm---{0}'.format(nm))
-					self.process_url(nm,get_bytes)
+					if ui.remote_control and ui.remote_control_field:
+						if 'playlist_index=' in self.path:
+							row_num_val = self.path.rsplit('playlist_index=',1)[1]
+							row_num = -1000
+							mode = 'normal'
+							if row_num_val.isnumeric():
+								row_num = int(row_num_val)
+							else:
+								mode = row_num_val
+							logger.info('{0}--row--num--playlist--{1}'.format(row_num,mode))
+							remote_signal = doGETSignal()
+							remote_signal.control_signal_external.emit(row_num,mode)
+							b = b'OK'
+							self.final_message(b)
+						else:
+							b = b'Remote Control Not Allowed'
+							self.final_message(b)
+					else:
+						new_torrent_signal.new_signal.emit(old_nm)
+						logger.info('--nm---{0}'.format(nm))
+						self.process_url(nm,get_bytes)
 				else:
 					print(ui.remote_control,ui.remote_control_field,path)
 					if ui.remote_control and ui.remote_control_field:
@@ -1555,16 +1573,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				print(e)
 		elif path.startswith('stop_torrent'):
 			try:
-				arr = b'<html>Trying To Stop Torrent</html>'
-				#size = sys.getsizeof(arr)
-				self.send_response(200)
-				self.send_header('Content-type','text/html')
-				self.send_header('Content-Length',len(arr))
-				self.send_header('Connection', 'close')
-				self.end_headers()
-				self.wfile.write(arr)
 				new_torrent_signal = doGETSignal()
 				new_torrent_signal.stop_signal.emit('from client')
+				msg = 'Torrent Stopped'
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
 			except Exception as e:
 				print(e)
 		elif path.startswith('clear_client_list'):
@@ -1630,6 +1643,33 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			msg = 'Remote Control Set {0}'.format(ui.remote_control)
 			msg = bytes(msg,'utf-8')
 			self.final_message(msg)
+		elif path.startswith('get_torrent='):
+			nm = self.path.replace('/get_torrent=','',1)
+			new_url = str(base64.b64decode(nm).decode('utf-8'))
+			logger.info(nm)
+			logger.info(new_url)
+			if new_url.startswith('http') or new_url.startswith('magnet'):
+				msg = 'Getting Torrent: Refresh Torrent->History Section after some time'
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
+				hist_folder = os.path.join(home,'History','Torrent')
+				ui.record_torrent(new_url,hist_folder)
+			elif new_url.startswith('delete'):
+				var_name = new_url.replace('delete&','',1)
+				if var_name:
+					msg = 'Deleting Torrent: {}, Refresh history'.format(var_name)
+					msg = bytes(msg,'utf-8')
+					self.final_message(msg)
+					new_torrent_signal = doGETSignal()
+					new_torrent_signal.delete_torrent_signal.emit(var_name)
+				else:
+					msg = "Wrong Parameters: Don't do that again without selecting Torrent from the list".format(var_name)
+					msg = bytes(msg,'utf-8')
+					self.final_message(msg)
+			else:
+				msg = 'Wrong Parameters, Try Again'
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
 		else:
 			nm = 'stream_continue.htm'
 			self.send_response(303)
@@ -1673,12 +1713,14 @@ class doGETSignal(QtCore.QObject):
 	stop_signal = pyqtSignal(str)
 	control_signal = pyqtSignal(int,str)
 	nav_remote = pyqtSignal(str)
+	delete_torrent_signal = pyqtSignal(str)
 	def __init__(self):
 		QtCore.QObject.__init__(self)
 		self.new_signal.connect(goToUi_jump)
 		self.stop_signal.connect(stop_torrent_from_client)
 		self.control_signal.connect(start_player_remotely)
 		self.nav_remote.connect(navigate_player_remotely)
+		self.delete_torrent_signal.connect(delete_torrent_history)
 		
 @pyqtSlot(str)
 def goToUi_jump(nm):
@@ -1767,6 +1809,43 @@ def navigate_player_remotely(nm):
 			ui.list1.setCurrentRow(row)
 	
 
+@pyqtSlot(str)
+def delete_torrent_history(nm):
+	global home,ui
+	if nm:
+		#ui.stop_torrent(from_client=True)
+		hist_folder = os.path.join(home,'History','Torrent')
+		hist_txt = os.path.join(hist_folder,'history.txt')
+		hist_torrent = os.path.join(hist_folder,nm+'.torrent')
+		hist_torrent_folder = os.path.join(hist_folder,nm)
+		down_location = os.path.join(ui.torrent_download_folder,nm)
+		if os.path.exists(hist_txt):
+			lines = open(hist_txt,'r').readlines()
+			new_lines = [i.strip() for i in lines]
+			try:
+				indx = new_lines.index(nm)
+			except ValueError as e:
+				print(e)
+				indx = -1
+			if indx != -1 and indx >= 0:
+				del new_lines[indx]
+				
+			write_files(hist_txt,new_lines,line_by_line=True)
+			if os.path.isdir(hist_torrent_folder):
+				shutil.rmtree(hist_torrent_folder)
+				logger.info('removed-folder:-{0}'.format(hist_torrent_folder))
+				if os.path.isfile(hist_torrent):
+					os.remove(hist_torrent)
+					logger.info('removed-torrent:-{0}'.format(hist_torrent))
+				if os.path.exists(down_location):
+					if os.path.isdir(down_location):
+						shutil.rmtree(down_location)
+					elif os.path.isfile(down_location):
+						os.remove(down_location)
+					logger.info('removed-torrent files:-{0}'.format(down_location))
+			else:
+				logger.info('nothing to delete: wrong file name')
+	
 @pyqtSlot(int)
 def start_new_pl(r):
 	print('----1539----')
@@ -9283,40 +9362,65 @@ class Ui_MainWindow(object):
 		self.progress.hide()
 		
 	def stop_torrent(self,from_client=None):
-		global video_local_stream,wget
-		stop_now = False
-		new_video_local_stream = False
-		if from_client:
-			if self.started_from_external_client:
+		global video_local_stream,wget,site
+		try:
+			stop_now = False
+			new_video_local_stream = False
+			if from_client:
+				if self.started_from_external_client:
+					stop_now = True
+					new_video_local_stream = True
+			else:
 				stop_now = True
-				new_video_local_stream = True
-		else:
-			stop_now = True
-		if stop_now:
-			if video_local_stream or new_video_local_stream:
-				if self.do_get_thread.isRunning():
-					print('----------stream-----pausing-----')
-					t_list = self.stream_session.get_torrents()
-					for i in t_list:
-						logger.info('--removing--{0}'.format(i.name()))
-						self.stream_session.remove_torrent(i)
-					self.stream_session.pause()
-					#self.stream_session = None
-				elif self.stream_session:
-					if not self.stream_session.is_paused():
+			if stop_now:
+				if video_local_stream or new_video_local_stream:
+					if self.do_get_thread.isRunning():
+						print('----------stream-----pausing-----')
+						t_list = self.stream_session.get_torrents()
+						for i in t_list:
+							logger.info('--removing--{0}'.format(i.name()))
+							self.stream_session.remove_torrent(i)
 						self.stream_session.pause()
 						#self.stream_session = None
-				txt = 'Torrent Stopped'
-				send_notification(txt)
-				self.torrent_frame.hide()
-			else:
-				if wget.processId() > 0:
-					wget.kill()
-				txt = 'Stopping download'
-				send_notification(txt)
-				self.torrent_frame.hide()
+					elif self.stream_session:
+						if not self.stream_session.is_paused():
+							self.stream_session.pause()
+							#self.stream_session = None
+					txt = 'Torrent Stopped'
+					send_notification(txt)
+					self.torrent_frame.hide()
+				else:
+					if wget.processId() > 0:
+						wget.kill()
+					txt = 'Stopping download'
+					send_notification(txt)
+					self.torrent_frame.hide()
+				self.progress.hide()
+		except Exception as e:
+			print(e,'--9349--')
+	
+	def stop_torrent_forcefully(self,from_client=None):
+		global video_local_stream,site
+		try:
+			if self.do_get_thread.isRunning():
+				print('----------stream-----pausing-----')
+				t_list = self.stream_session.get_torrents()
+				for i in t_list:
+					logger.info('--removing--{0}'.format(i.name()))
+					self.stream_session.remove_torrent(i)
+				self.stream_session.pause()
+				#self.stream_session = None
+			elif self.stream_session:
+				if not self.stream_session.is_paused():
+					self.stream_session.pause()
+					#self.stream_session = None
+			txt = 'Torrent Stopped'
+			send_notification(txt)
+			self.torrent_frame.hide()
 			self.progress.hide()
-			
+		except Exception as e:
+			print(e,'--9368--')
+	
 	def set_new_download_speed(self):
 		txt = self.label_down_speed.text()
 		try:
@@ -15305,6 +15409,78 @@ class Ui_MainWindow(object):
 		#print(epnArrList)
 		return epnArrList
 	
+	
+	def record_torrent(self,item,hist_folder):
+		tmp_dir = TMPDIR
+		name = ''
+		if not os.path.exists(hist_folder):
+			os.makedirs(hist_folder)
+		if (item.startswith('http')):
+			home = hist_folder
+			name1 = os.path.basename(item).replace('.torrent','')
+			torrent_dest1 = os.path.join(tmp_dir,name1+'.torrent')
+			if not os.path.exists(torrent_dest1):
+				if item.startswith('http'):
+					ccurl(item+'#'+'-o'+'#'+torrent_dest1)
+				else:
+					shutil.copy(item,torrent_dest1)
+			if os.path.exists(torrent_dest1):
+				info = lt.torrent_info(torrent_dest1)
+				name = info.name()
+				torrent_dest = os.path.join(home,name+'.torrent')
+				shutil.copy(torrent_dest1,torrent_dest)
+			logger.info(name)
+		elif item.startswith('magnet:'):
+			
+			torrent_handle,stream_session,info = get_torrent_info_magnet(item,tmp_dir,self,self.progress,tmp_dir)
+			torrent_file = lt.create_torrent(info)
+			
+			home = hist_folder
+			name = info.name()
+			torrent_dest = os.path.join(home,name+'.torrent')
+			
+			with open(torrent_dest, "wb") as f:
+				f.write(lt.bencode(torrent_file.generate()))
+				
+			torrent_handle.pause()
+			stream_session.pause()
+			self.stop_torrent_forcefully()
+		if name:
+			torrent_dest = os.path.join(home,name+'.torrent')
+			info = lt.torrent_info(torrent_dest)
+			file_arr = []
+			for f in info.files():
+				file_path = f.path
+				file_path = os.path.basename(file_path)	
+				file_arr.append(file_path)
+			if file_arr:
+				hist_path = os.path.join(home,'history.txt')
+				if not os.path.isfile(hist_path):
+					hist_dir,last_field = os.path.split(hist_path)
+					if not os.path.exists(hist_dir):
+						os.makedirs(hist_dir)
+					f = open(hist_path, 'w').close()
+				if os.path.isfile(hist_path):
+					if (os.stat(hist_path).st_size == 0):
+						write_files(hist_path,name,line_by_line=True)
+					else:
+						lines = open_files(hist_path,True)
+						line_list = []
+						for i in lines :
+							i = i.strip()
+							line_list.append(i)
+						if name not in line_list:
+							write_files(hist_path,name,line_by_line=True)
+				
+				hist_site = os.path.join(hist_folder,name)
+				if not os.path.exists(hist_site):
+					try:
+						os.makedirs(hist_site)
+						hist_epn = os.path.join(hist_site,'Ep.txt')
+						write_files(hist_epn,file_arr,line_by_line=True)
+					except Exception as e:
+						print(e)
+
 	def get_title_name(self,row):
 		global original_path_name,site
 		name = ''
