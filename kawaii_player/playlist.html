@@ -47,6 +47,10 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="shuffle">Shuffle</button>
 <button id="seek10" hidden="hidden">10s+</button>
 <button id="seek_10" hidden="hidden">10s-</button>
+<button id="seek60" hidden="hidden">60s+</button>
+<button id="seek_60" hidden="hidden">60s-</button>
+<button id="seek5m" hidden="hidden">5m+</button>
+<button id="seek_5m" hidden="hidden">5m-</button>
 <button id="vol5" hidden="hidden">vol++</button>
 <button id="vol_5" hidden="hidden">vol--</button>
 <button id="fullscreen" hidden="hidden">F</button>
@@ -182,8 +186,11 @@ var _player = document.getElementById("player"),
     _opt_val_ok = document.getElementById("opt_val_ok"),
     _opt_val = document.getElementById("opt_val"),
     _seek_10 = document.getElementById("seek10"),
-    _seek_10 = document.getElementById("seek10"),
     _seek_10_ = document.getElementById("seek_10"),
+    _seek_60 = document.getElementById("seek60"),
+    _seek_60_ = document.getElementById("seek_60"),
+    _seek_5m = document.getElementById("seek5m"),
+    _seek_5m_ = document.getElementById("seek_5m"),
     _vol_5 = document.getElementById("vol5"),
     _vol_5_ = document.getElementById("vol_5"),
     _fullscreen = document.getElementById("fullscreen"),
@@ -290,6 +297,10 @@ function onDocReady(){
 	if (w[0].toLowerCase() == 'remotefield:false'){
 		_seek_10.hidden = "hidden";
 		_seek_10_.hidden = "hidden";
+		_seek_60.hidden = "hidden";
+		_seek_60_.hidden = "hidden";
+		_seek_5m.hidden = "hidden";
+		_seek_5m_.hidden = "hidden";
 		_vol_5.hidden = "hidden";
 		_vol_5_.hidden = "hidden";
 		_fullscreen.hidden = "hidden";
@@ -312,6 +323,10 @@ function onDocReady(){
 		_remote_val = 'on';
 		_seek_10.hidden = "";
 		_seek_10_.hidden= "";
+		_seek_60.hidden = "";
+		_seek_60_.hidden = "";
+		_seek_5m.hidden = "";
+		_seek_5m_.hidden = "";
 		_vol_5.hidden = "";
 		_vol_5_.hidden = "";
 		_fullscreen.hidden = "";
@@ -570,6 +585,10 @@ _remote.addEventListener("click", function () {
 			console.log(response);
 			_seek_10.hidden = "";
 			_seek_10_.hidden= "";
+			_seek_60.hidden = "";
+			_seek_60_.hidden = "";
+			_seek_5m.hidden = "";
+			_seek_5m_.hidden = "";
 			_vol_5.hidden = "";
 			_vol_5_.hidden = "";
 			_fullscreen.hidden = "";
@@ -583,6 +602,10 @@ _remote.addEventListener("click", function () {
 			console.log(response);
 			_seek_10.hidden = "hidden";
 			_seek_10_.hidden = "hidden";
+			_seek_60.hidden = "hidden";
+			_seek_60_.hidden = "hidden";
+			_seek_5m.hidden = "hidden";
+			_seek_5m_.hidden = "hidden";
 			_vol_5.hidden = "hidden";
 			_vol_5_.hidden = "hidden";
 			_fullscreen.hidden = "hidden";
@@ -624,6 +647,39 @@ _seek_10_.addEventListener("click", function () {
 	console.log(response);
 	})}
 });
+
+_seek_60.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('seek60', function(response) {
+	console.log(response);
+	})}
+});
+
+_seek_60_.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('seek_60', function(response) {
+	console.log(response);
+	})}
+});
+
+_seek_5m.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('seek5m', function(response) {
+	console.log(response);
+	})}
+});
+
+_seek_5m_.addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('seek_5m', function(response) {
+	console.log(response);
+	})}
+});
+
 
 _vol_5.addEventListener("click", function () {
 	if (_remote_val == 'on'){
