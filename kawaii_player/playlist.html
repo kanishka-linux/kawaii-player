@@ -210,48 +210,84 @@ function searchFunction(e){
 	if(e.keyCode==13){
 		var z = document.getElementById("type_search");
 		console.log(z.value);
-		site = document.getElementById("site");
-		site_val = site.value;
-		st = "site="+site.value.toLowerCase();
-		option = document.getElementById("opt");
-		opt_val = option.value;
-		opt = "&opt="+option.value.toLowerCase();
-		srch = "&s="+z.value.replace(" ","+");
-		opt = opt.replace(/" "/g,"+")
-		console.log(opt);
-		srch_val = srch.toLowerCase();
-		if (srch_val.indexOf(".m3u") >=0 || srch_val.indexOf(".pls") >=0){
-			console.log(srch_val);
+		if (z.value.startsWith("torrent:")){
+			new_val = z.value.replace("torrent:","");
+			if (new_val.startsWith('http') || new_val.startsWith('magnet')){
+				new_url = 'get_torrent=' + btoa(new_val);
+				var client = new getRequest();
+				client.get(new_url, function(response) {
+				console.log(response);
+				_title.innerHTML = response;
+				})
+			}
+			else{
+				site = document.getElementById("site");
+				site_val = site.value.toLowerCase();
+				if (site_val == 'torrent'){
+					new_val = z.value.replace("torrent:","");
+					if (new_val == 'stop'){
+						new_url = 'stop_torrent';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
+					}
+					else if(new_val == 'delete'){
+						option_val = document.getElementById("opt_val");
+						console.log(option_val.value);
+						if (option_val != null && option_val != ''){
+							new_url = 'get_torrent='+btoa('delete&'+option_val.value)
+							var client = new getRequest();
+							client.get(new_url, function(response) {
+							console.log(response);
+							_title.innerHTML = response;
+						})
+						}
+					}
+				}
+			}
+			z.value = '';
 		}
 		else{
-			srch = srch+'.m3u';
-		}
-		new_url = st+opt+srch;
-		console.log(new_url);
-		//window.location.href = new_url;
-		
-		
-		var client = new getRequest();
-		client.get(new_url, function(response) {
-		m = response.split('\n');
-		r = document.getElementById('playlist')
-		while(r.firstChild){r.removeChild(r.firstChild);}
-		var indx = 1;
-		for(i=1;i<m.length-1;i+=2){
-			var a = m[i].substring(10,500);
-			var b = m[i+1];
-			var new_opt = document.createElement('li');
-			new_opt.innerHTML = a;
-			new_opt.setAttribute('data-mp3',b);
-			new_opt.setAttribute('data-num',indx.toString());
-			r.appendChild(new_opt);
-			indx += 1;
+			site = document.getElementById("site");
+			site_val = site.value;
+			st = "site="+site.value.toLowerCase();
+			option = document.getElementById("opt");
+			opt_val = option.value;
+			opt = "&opt="+option.value.toLowerCase();
+			srch = "&s="+z.value.replace(" ","+");
+			opt = opt.replace(/" "/g,"+")
+			console.log(opt);
+			srch_val = srch.toLowerCase();
+			if (srch_val.indexOf(".m3u") >=0 || srch_val.indexOf(".pls") >=0){
+				console.log(srch_val);
 			}
-		})
-		
-		
-		}
+			else{
+				srch = srch+'.m3u';
+			}
+			new_url = st+opt+srch;
+			console.log(new_url);
+			var client = new getRequest();
+			client.get(new_url, function(response) {
+			m = response.split('\n');
+			r = document.getElementById('playlist')
+			while(r.firstChild){r.removeChild(r.firstChild);}
+			var indx = 1;
+			for(i=1;i<m.length-1;i+=2){
+				var a = m[i].substring(10,500);
+				var b = m[i+1];
+				var new_opt = document.createElement('li');
+				new_opt.innerHTML = a;
+				new_opt.setAttribute('data-mp3',b);
+				new_opt.setAttribute('data-num',indx.toString());
+				r.appendChild(new_opt);
+				indx += 1;
+				}
+			})
+			}
 	}
+}
 
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
