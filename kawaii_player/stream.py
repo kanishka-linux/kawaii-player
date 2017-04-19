@@ -668,7 +668,7 @@ def get_torrent_info_magnet(v1,v3,u,p_bar,tmp_dir):
 		i = i+1
 		print('finding metadata')
 		if i > 300:
-			print('No Metadata Available')
+			print('No Metadata Available: {0}s'.format(i))
 			break
 	info = handle.get_torrent_info()
 
