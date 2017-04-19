@@ -719,13 +719,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			k = k+i
 		return k
 		
-	def write_to_tmp_playlist(self,epnArrList):
+	def write_to_tmp_playlist(self,epnArrList,_new_epnArrList=None):
 		global home
 		if epnArrList:
 			#epnArrList = [i.replace('#','-') for i in epnArrList]
 			file_name = os.path.join(home,'Playlists','TMP_PLAYLIST')
 			f = open(file_name,'w').close()
-			write_files(file_name,epnArrList,True)
+			if _new_epnArrList:
+				write_files(file_name,_new_epnArrList,True)
+			else:
+				write_files(file_name,epnArrList,True)
 			nav_signal = doGETSignal()
 			nav_signal.nav_remote.emit('TMP_PLAYLIST')
 			print('---718---')
@@ -814,6 +817,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					else:
 						j = 'relative_path='+n_url
 				#n_out = n_out.replace(' ','_')
+				
 				logger.info('create-playlist----{0}'.format(j))
 				n_url = n_url.replace('"','')
 				n_art = n_art.replace('"','')
@@ -834,6 +838,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}">{0} - {1}</li>'.format(n_art,n_out,out,str(i+1))
 				else:
 					pls_txt = pls_txt+'#EXTINF:0,{0} - {1}\n{2}\n'.format(n_art,n_out,out)
+				_new_epnArrList.append(n_out+'	'+j+'	'+n_art)
 			except Exception as e:
 				print(e)
 		if self.path.endswith('.pls'):
@@ -857,7 +862,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					pls_txt = re.sub('<div id="site_option" hidden></div>',extra_fields,pls_txt)
 					
 		if ui.remote_control and ui.remote_control_field:
-			self.write_to_tmp_playlist(epnArrList)
+			self.write_to_tmp_playlist(epnArrList,_new_epnArrList)
 			
 		return pls_txt
 		
@@ -1360,6 +1365,42 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			else:
 				b = b'Remote Control Not Allowed'
 				self.final_message(b)
+		elif path.lower() == 'seek60':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'seek 60s'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(60,'seek')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'seek_60':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'seek -60s'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-60,'seek')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'seek5m':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'seek 300s'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(300,'seek')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'seek_5m':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'seek -300s'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-300,'seek')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.lower() == 'volume5':
 			if ui.remote_control and ui.remote_control_field:
 				b = b'volume +5'
@@ -1486,9 +1527,30 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						nm = https_val+"://"+str(my_ip_addr)+':'+str(ui.local_port)+'/'
 					new_torrent_signal.new_signal.emit(old_nm)
 					logger.info('--nm---{0}'.format(nm))
+					self.process_url(nm,get_bytes)
 				else:
-					nm = ui.epn_return_from_bookmark(nm,from_client=True)
-				self.process_url(nm,get_bytes)
+					print(ui.remote_control,ui.remote_control_field,path)
+					if ui.remote_control and ui.remote_control_field:
+						if 'playlist_index=' in self.path:
+							row_num_val = self.path.rsplit('playlist_index=',1)[1]
+							row_num = -1000
+							mode = 'normal'
+							if row_num_val.isnumeric():
+								row_num = int(row_num_val)
+							else:
+								mode = row_num_val
+							logger.info('{0}--row--num--playlist--{1}'.format(row_num,mode))
+							remote_signal = doGETSignal()
+							remote_signal.control_signal_external.emit(row_num,mode)
+							b = b'OK'
+							self.final_message(b)
+						else:
+							b = b'Remote Control Not Allowed'
+							self.final_message(b)
+					else:
+						nm = ui.epn_return_from_bookmark(nm,from_client=True)
+						self.process_url(nm,get_bytes)
+						
 			except Exception as e:
 				print(e)
 		elif path.startswith('stop_torrent'):
@@ -1668,6 +1730,14 @@ def start_player_remotely(nm,mode):
 						ui.player_seek_10.clicked.emit()
 					elif nm == -10:
 						ui.player_seek_10_.clicked.emit()
+					elif nm == 60:
+						ui.player_seek_60.clicked.emit()
+					elif nm == -60:
+						ui.player_seek_60_.clicked.emit()
+					elif nm == 300:
+						ui.player_seek_5m.clicked.emit()
+					elif nm == -300:
+						ui.player_seek_5m_.clicked.emit()
 				elif mode == 'volume':
 					if nm == 5:
 						ui.player_vol_5.clicked.emit()
@@ -1675,6 +1745,8 @@ def start_player_remotely(nm,mode):
 						ui.player_vol_5_.clicked.emit()
 				elif mode == 'fullscreen':
 					ui.player_fullscreen.clicked.emit()
+					
+
 
 @pyqtSlot(str)
 def navigate_player_remotely(nm):
@@ -7964,6 +8036,34 @@ class Ui_MainWindow(object):
 		self.player_fullscreen.clicked.connect(self.remote_fullscreen)
 		self.player_fullscreen.hide()
 		
+		self.player_seek_60 = QtWidgets.QPushButton(self.player_opt)
+		self.player_seek_60.setObjectName(_fromUtf8("player_seek_60"))
+		self.horizontalLayout_player_opt.insertWidget(20,self.player_seek_60,0)
+		self.player_seek_60.setText('60s')
+		self.player_seek_60.clicked.connect(lambda x=0: self.seek_to_val(60))
+		self.player_seek_60.hide()
+		
+		self.player_seek_60_ = QtWidgets.QPushButton(self.player_opt)
+		self.player_seek_60_.setObjectName(_fromUtf8("player_seek_60_"))
+		self.horizontalLayout_player_opt.insertWidget(21,self.player_seek_60_,0)
+		self.player_seek_60_.setText('-60s')
+		self.player_seek_60_.clicked.connect(lambda x=0: self.seek_to_val(-60))
+		self.player_seek_60_.hide()
+		
+		self.player_seek_5m = QtWidgets.QPushButton(self.player_opt)
+		self.player_seek_5m.setObjectName(_fromUtf8("player_seek_5m"))
+		self.horizontalLayout_player_opt.insertWidget(22,self.player_seek_5m,0)
+		self.player_seek_5m.setText('5m')
+		self.player_seek_5m.clicked.connect(lambda x=0: self.seek_to_val(300))
+		self.player_seek_5m.hide()
+		
+		self.player_seek_5m_ = QtWidgets.QPushButton(self.player_opt)
+		self.player_seek_5m_.setObjectName(_fromUtf8("player_seek_5m_"))
+		self.horizontalLayout_player_opt.insertWidget(23,self.player_seek_5m_,0)
+		self.player_seek_5m_.setText('-5m')
+		self.player_seek_5m_.clicked.connect(lambda x=0: self.seek_to_val(-300))
+		self.player_seek_5m_.hide()
+		
 		self.player_playlist.setMenu(self.player_menu)
 		self.player_playlist.setCheckable(True)
 		
@@ -11783,8 +11883,15 @@ class Ui_MainWindow(object):
 				logger.info('--mpv--nextepn--{0}'.format(current_playing_file_path))
 				self.external_url = self.get_external_url_status(current_playing_file_path)
 				if self.external_url:
-					mpvplayer.kill()
-					self.mpvplayer_started = False
+					if '	' in epnArrList[curR]:
+						lnk_epn = epnArrList[curR].split('	')[1]
+					else:
+						lnk_epn = self.list2.currentItem().text()
+					if lnk_epn.startswith('abs_path=') or lnk_epn.startswith('relative_path='):
+						print(mpvplayer.processId())
+					else:
+						mpvplayer.kill()
+						self.mpvplayer_started = False
 				if len(self.queue_url_list)>0:
 					self.getQueueInList()
 				else:
@@ -16324,7 +16431,59 @@ class Ui_MainWindow(object):
 							default_arr_setting[3]=self.list2.currentRow()
 				if self.btnAddon.currentIndex() >= 0:
 					default_arr_setting[4]=self.btnAddon.currentIndex()
-			
+					
+	def if_path_is_rel(self,path):
+		global my_ipaddress
+		nm = ''
+		if path.startswith('abs_path='):
+			path = path.split('abs_path=',1)[1]
+			nm = path
+			nm = str(base64.b64decode(nm).decode('utf-8'))
+			logger.info(nm)
+			num_row = None
+			if nm.startswith('http'):
+				http_val = 'http'
+				if ui.https_media_server:
+					http_val = "https" 
+				n_url = http_val+'://'+str(self.local_ip_stream)+':'+str(self.local_port_stream)
+				logger.info('abs_path_playing={0}'.format(n_url))
+				if nm.startswith(n_url):
+					try:
+						num_row = self.path.rsplit('/',1)[-1]
+						if num_row == 'server' or num_row == 'now_playing':
+							row = curR
+						else:
+							row = int(num_row)
+					except Exception as err_val:
+						print(err_val,'--1112--')
+						row = 0
+					if row < 0:
+						row = 0
+					nm = self.epn_return(row)
+					if nm.startswith('"'):
+						nm = nm.replace('"','')
+				elif 'youtube.com' in nm:
+					nm = get_yt_url(nm,ui.quality_val,ui.ytdl_path,logger,mode='offline').strip()
+		elif path.startswith('relative_path='):
+			path = path.split('relative_path=',1)[1]
+			nm = path
+			nm = str(base64.b64decode(nm).decode('utf-8'))
+			logger.info('------------------{0}'.format(nm))
+			if nm.split('&')[4] == 'True':
+				old_nm = nm
+				#nm = ui.epn_return_from_bookmark(nm)
+				new_torrent_signal = doGETSignal()
+				if ui.https_media_server:
+					https_val = 'https'
+				else:
+					https_val = 'http'
+				nm = https_val+"://"+str(self.local_ip)+':'+str(self.local_port)+'/'
+				new_torrent_signal.new_signal.emit(old_nm)
+				logger.info('--nm---{0}'.format(nm))
+			else:
+				nm = self.epn_return_from_bookmark(nm,from_client=True)
+		return nm
+		
 	def epnfound(self):
 		global site,base_url,embed,epn,epn_goto,mirrorNo,list2_items,quality
 		global finalUrl,home,hdr,path_Local_Dir,epnArrList,epn_name_in_list
@@ -16461,6 +16620,10 @@ class Ui_MainWindow(object):
 			item = self.list2.item(row)
 			if item:
 				arr = epnArrList[row].split('	')
+				if len(arr) >= 2:
+					path_rel = arr[1]
+					if path_rel.startswith('abs_path=') or path_rel.startswith('relative_path='):
+						arr[1] = self.if_path_is_rel(path_rel)
 				if len(arr) > 2:
 					if arr[2].startswith('http') or arr[2].startswith('"http'):
 						finalUrl = []
@@ -17214,7 +17377,7 @@ class Ui_MainWindow(object):
 			vi_deo_local_stream = True
 		row = int(tmp_arr[5])
 		ep_n = tmp_arr[6]
-		
+		finalUrl = ''
 		plugin_path = os.path.join(home,'src','Plugins',si_te+'.py')
 		if os.path.exists(plugin_path):
 			module = imp.load_source(si_te,plugin_path)
@@ -18342,6 +18505,10 @@ class Ui_MainWindow(object):
 			item = self.list2.item(row)
 			if item:
 				arr = epnArrList[row].split('	')
+				if len(arr) >= 2:
+					path_rel = arr[1]
+					if path_rel.startswith('abs_path=') or path_rel.startswith('relative_path='):
+						arr[1] = self.if_path_is_rel(path_rel)
 				if len(arr) > 2:
 					if arr[2].startswith('http') or arr[2].startswith('"http'):
 						finalUrl = []
@@ -18354,35 +18521,16 @@ class Ui_MainWindow(object):
 				else:
 					finalUrl = arr[1]
 					refererNeeded = False
-				
-				
 				self.epn_name_in_list = arr[0]
 				epn = self.epn_name_in_list
 				self.playlistUpdate()
 				self.list2.setCurrentRow(row)
+				if 'youtube.com' in finalUrl:
+					finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
 		
 		self.adjust_thumbnail_window(row)
-		
-		if site=="Local":
 			
-			if opt == "History":
-				self.mark_History()
-			else:
-				i = str(self.list2.item(row).text())
-				if not i.startswith(self.check_symbol):
-					self.list2.item(row).setText(self.check_symbol+i)
-				else:
-					self.list2.item(row).setText(i)
-				self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
-				self.list2.setCurrentRow(row)
-			
-			if '	' in epnArrList[row]:
-				finalUrl = '"'+(epnArrList[row]).split('	')[1]+'"'
-			else:
-				finalUrl = '"'+(epnArrList[row]).replace('#','',1)+'"'
-			logger.info(finalUrl)
-			
-		elif site == "None" or site == "Music" or site == "Video" or site == 'PlayLists':
+		if site == "None" or site == "Music" or site == "Video":
 			
 			if '	' in epnArrList[row]:
 					finalUrl = '"'+(epnArrList[row]).split('	')[1]+'"'
@@ -18413,15 +18561,6 @@ class Ui_MainWindow(object):
 			
 		if mpvplayer.processId() > 0:
 			if Player == "mplayer":
-				#if audio_id == "auto":
-				#	audio_id = "0"
-				#if sub_id == "auto":
-				#	sub_id = "0"
-				#command1 = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-				#try:
-				#	command = str(command1,'utf-8')
-				#except:
-				#	command = command1
 				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
 				if not self.external_url:
 					#try:
@@ -18440,11 +18579,6 @@ class Ui_MainWindow(object):
 					#self.external_url = False
 					logger.info(command)
 			elif Player == "mpv":
-				#command1 = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-				#try:
-				#	command = str(command1,'utf-8')
-				#except:
-				#	command = command1
 				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
 				if not self.external_url:
 					epnShow = '"' + "Queued:  "+ new_epn + '"'
@@ -18462,24 +18596,6 @@ class Ui_MainWindow(object):
 			print("mpv=" + str(mpvplayer.processId()))
 		else:
 			command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
-			#if Player == "mplayer":
-			#	if audio_id == "auto":
-			#		audio_id = "0"
-			#	if sub_id == "auto":
-			#		sub_id = "0"
-			#	command1 = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-			#	try:
-			#		command = str(command1,'utf-8')
-			#	except:
-			#		command = command1
-				
-			#elif Player == "mpv":
-			#	command1 = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-			#	try:
-			#		command = str(command1,'utf-8')
-			#	except:
-			#		command = command1
-				
 			self.infoPlay(command)
 		
 			print("mpv=" + str(mpvplayer.processId()))
@@ -18917,19 +19033,10 @@ class Ui_MainWindow(object):
 				finalUrl = finalUrl
 				
 			command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
-				
-			#if Player == "mplayer":
-			#	if audio_id == "auto":
-			#		audio_id = "0"
-			#	if sub_id == "auto":
-			#		sub_id = "0"
-			#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
-			#elif Player == "mpv":
-			#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+finalUrl
 			print("mpv=" + str(mpvplayer.processId()))
 			logger.info(command)
 			if mpvplayer.processId() > 0 :
-				mpvplaye.kill()
+				mpvplayer.kill()
 			self.infoPlay(command)
 		else:
 			if type(finalUrl) is list:
@@ -18958,18 +19065,12 @@ class Ui_MainWindow(object):
 								nepn = str(finalUrl[0])
 								epnShow = str(nepn)
 								command = self.mplayermpv_command(idw,nepn,Player,rfr=rfr_url)
-								#if Player == "mplayer":
-								#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -referrer "+rfr_url+" "+nepn
-								#elif Player == "mpv":
-								#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 --referrer "+rfr_url+" -wid "+idw+" "+nepn
+								
 							else:
 								nepn = str(finalUrl[0])
 								epnShow = nepn
 								command = self.mplayermpv_command(idw,nepn,Player)
-								#if Player == "mplayer":
-								#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+nepn
-								#elif Player == "mpv":
-								#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+nepn
+								
 						else:
 							self.queue_url_list[:]=[]
 							epnShow = finalUrl[0]
@@ -18977,11 +19078,7 @@ class Ui_MainWindow(object):
 								self.queue_url_list.append(finalUrl[i+1])
 							self.queue_url_list.reverse()
 							command = self.mplayermpv_command(idw,epnShow,Player)
-							#if Player == "mpv":
-							#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+epnShow
-							#elif Player == "mplayer":
-								
-							#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+epnShow
+							
 						logger.info(command)
 						if mpvplayer.processId() > 0:
 							mpvplayer.kill()
@@ -18999,15 +19096,7 @@ class Ui_MainWindow(object):
 				except:
 					finalUrl = finalUrl
 				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
-				#finalUrl = '"'+finalUrl+'"'
-				#if Player == "mplayer":
-				#	if audio_id == "auto":
-				#		audio_id = "0"
-				#	if sub_id == "auto":
-				#		sub_id = "0"
-				#	command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -sid "+sub_id+" -aid "+audio_id+" "+finalUrl
-				#elif Player == "mpv":
-				#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+sub_id+" -aid "+audio_id+" "+finalUrl
+				
 				print("mpv=" + str(mpvplayer.processId()))
 				print(Player,'---------state----'+str(mpvplayer.state()))
 				
