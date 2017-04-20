@@ -67,7 +67,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
 <br>
@@ -80,9 +80,16 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <br>
 <div id="site_option" hidden></div>
 <br>
-<div class = "pls">
+<div class ="pls" contextmenu ="MyMenu">
 <ol id="playlist"></ol>
 </div>
+<menu type="context" id ="MyMenu"> 
+	<menu label="Add To Playlist" id ="menu_playlist"> 
+		<menuitem label='hello' onclick="menu_clicked(label)"> </menuitem>
+		<menuitem label='world' onclick="menu_clicked(label)"> </menuitem>
+	</menu>
+	<menuitem label='Remove From Playlist' onclick="menu_clicked_remove(label)"></menuitem>
+</menu>
 <div class="toTop">
 <div id="backToTop">Top</div>
 </div>
@@ -202,14 +209,56 @@ var _player = document.getElementById("player"),
     _remote_val = 'off',
     _clicked_index = 0,
     _old_height = '480',
+    _playlist_selected_element = "";
     _prev = document.getElementById("prev");
 
 // functions
+
+function menu_clicked(e){
+    var playlist = e;
+    var pl = _playlist_selected_element;
+    console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.innerHTML);
+    var new_url = 'add_to_playlist='+playlist+'&'+pl.innerHTML+'&'+pl.getAttribute('data-mp3');
+    console.log(new_url);
+    var client = new getRequest();
+	client.get(new_url, function(response) {
+	console.log(response);
+	_title.innerHTML = response;
+	})
+}
+
+function menu_clicked_remove(e){
+	var site_val = document.getElementById("site").value.toLowerCase();
+	var opt = document.getElementById("opt").value;
+	var pl = _playlist_selected_element;
+	if(site_val == 'playlists' && opt != null){
+		console.log(site_val,opt)
+		var playlist = opt;
+		console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.innerHTML);
+		var new_url = 'remove_from_playlist='+playlist+'&'+pl.getAttribute('data-num');
+		console.log(new_url);
+		var client = new getRequest();
+		client.get(new_url, function(response) {
+		console.log(response);
+		_title.innerHTML = response;
+		})
+		r = document.getElementById('playlist');
+		first = pl.nextSibling;
+		var num = parseInt(pl.getAttribute('data-num'));
+		r.removeChild(pl);
+		while(first){
+			first.setAttribute('data-num',num);
+			num = num +1;
+			first = first.nextSibling;
+		}
+	}
+}
 
 function searchFunction(e){
 	if(e.keyCode==13){
 		var z = document.getElementById("type_search");
 		console.log(z.value);
+		
 		if (z.value.startsWith("torrent:")){
 			new_val = z.value.replace("torrent:","");
 			if (new_val.startsWith('http') || new_val.startsWith('magnet')){
@@ -249,6 +298,37 @@ function searchFunction(e){
 			}
 			z.value = '';
 		}
+		else if(z.value.startsWith("create_playlist:")){
+			var new_z = z.value.replace("create_playlist:","");
+			if (new_z != null){
+				var new_url = "create_playlist="+new_z;
+				var client = new getRequest();
+				client.get(new_url, function(response) {
+				console.log(response);
+				_title.innerHTML = response;
+			})
+			}
+			z.value = '';
+		}
+		else if(z.value.startsWith("save_playlist:")){
+			var new_z = z.value.replace("save_playlist:","");
+			first = _playlist.firstChild;
+			var new_url = "save_playlist="+new_z;
+			dict = {};
+			while(first){
+				num = first.getAttribute('data-num');
+				data = first.getAttribute('data-mp3');
+				title = first.innerHTML;
+				dict[num] = {'title':title,'data':data};
+				first = first.nextSibling;
+			}
+			//console.log(JSON.stringify(dict));
+			var client = new postRequest();
+				client.post(new_url,dict,function(response) {
+					console.log(response);
+					_title.innerHTML = response;
+			})
+		}
 		else{
 			site = document.getElementById("site");
 			site_val = site.value;
@@ -280,6 +360,13 @@ function searchFunction(e){
 				var new_opt = document.createElement('li');
 				new_opt.innerHTML = a;
 				new_opt.setAttribute('data-mp3',b);
+				new_opt.setAttribute('draggable','true');
+				new_opt.setAttribute('ondragstart','drag_start(event)');
+				new_opt.setAttribute('ondrop','on_drop(event)');
+				new_opt.setAttribute('ondragover','drag_over(event)');
+				new_opt.setAttribute('ondragend','drag_end(event)');
+				new_opt.setAttribute('ondragenter','drag_enter(event)');
+				new_opt.setAttribute('ondragleave','drag_leave(event)');
 				new_opt.setAttribute('data-num',indx.toString());
 				r.appendChild(new_opt);
 				indx += 1;
@@ -294,9 +381,33 @@ function optChange(){
 	x = x.replace(/" "/g,"+");
 	console.log(x);
 	var y = document.getElementById("site").value.toLowerCase();
-	if(y.indexOf("playlist") >=0){
-		var z = 'site='+y+'&opt='+x+'&s=.htm';
-		window.location.href = z;
+	if(y.startsWith('playlists')){
+		var new_url = 'site='+y+'&opt='+x+'&s=.m3u';
+		var client = new getRequest();
+		client.get(new_url, function(response) {
+		m = response.split('\n');
+		r = document.getElementById('playlist')
+		while(r.firstChild){r.removeChild(r.firstChild);}
+		var indx = 1;
+		for(i=1;i<m.length-1;i+=2){
+			var a = m[i].substring(10,500);
+			var b = m[i+1];
+			var new_opt = document.createElement('li');
+			new_opt.innerHTML = a;
+			new_opt.setAttribute('data-mp3',b);
+			new_opt.setAttribute('data-num',indx.toString());
+			new_opt.setAttribute('draggable','true');
+			new_opt.setAttribute('ondragstart','drag_start(event)');
+			new_opt.setAttribute('ondrop','on_drop(event)');
+			new_opt.setAttribute('ondragover','drag_over(event)');
+			new_opt.setAttribute('ondragend','drag_end(event)');
+			new_opt.setAttribute('ondragenter','drag_enter(event)');
+			new_opt.setAttribute('ondragleave','drag_leave(event)');
+			r.appendChild(new_opt);
+			indx += 1;
+			}
+		})
+		_display_option.hidden = "hidden";
 		
 	}else{
 		var z = 'site='+y+'&opt='+x;
@@ -316,10 +427,114 @@ function optChange(){
 			//console.log(i,txt);
 			r.appendChild(new_opt);}
 		}
+		_display_option.hidden = "";
 		r.hidden = "";
 		_opt_val_ok.hidden = "";
+		
 		})
 	}
+}
+
+function drag_start(e){
+	console.log(e.target.getAttribute('data-num'));
+	e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData("link", e.target.getAttribute('data-mp3'));
+    e.dataTransfer.setData("num", e.target.getAttribute('data-num'));
+    e.dataTransfer.setData("text", e.target.innerHTML);
+    e.dataTransfer.setData("node", e.target);
+    e.dataTransfer.setDragImage(e.target,0,0);
+}
+
+function on_drop(e){
+	console.log('---on--drop---')
+	console.log(e);
+	e.preventDefault();
+	 var link_ = e.dataTransfer.getData("link");
+	 var num_ = e.dataTransfer.getData("num");
+	 var text_ = e.dataTransfer.getData("text");
+	 var node_ = e.dataTransfer.getData("node");
+	// console.log(link_);
+	// console.log(num_);
+	// console.log(text_);
+	var num_target = e.target.getAttribute('data-num');
+	 var new_opt = document.createElement('li');
+	console.log(node_);
+	new_opt.innerHTML = text_;
+	new_opt.setAttribute('data-mp3',link_);
+	new_opt.setAttribute('draggable','true');
+	new_opt.setAttribute('ondragstart','drag_start(event)');
+	new_opt.setAttribute('ondrop','on_drop(event)');
+	new_opt.setAttribute('ondragover','drag_over(event)');
+	new_opt.setAttribute('ondragend','drag_end(event)');
+	new_opt.setAttribute('ondragenter','drag_enter(event)');
+	new_opt.setAttribute('ondragleave','drag_leave(event)');
+	new_opt.setAttribute('data-num',num_target);
+	if (parseInt(num_) >= parseInt(num_target)){
+		_playlist.insertBefore(new_opt,e.target);
+	}
+	else{
+		if (e.target.nextSibling){
+			_playlist.insertBefore(new_opt,e.target.nextSibling);
+		}
+		else{
+			_playlist.appendChild(new_opt);
+		}
+	}
+	first = _playlist.firstChild;
+     e.stopPropagation();
+     //console.log(e.target);
+     indx = 1;
+     while(first){
+		cnt_indx = first.getAttribute('data-num');
+		if(cnt_indx == num_){
+			first.setAttribute('data-num','-1');
+			first = first.nextSibling;
+		}
+		else{
+			first.setAttribute('data-num',indx.toString());
+			first = first.nextSibling;
+			indx = indx +1; 
+		}
+	}
+	first = _playlist.firstChild;
+	while(first){
+		cnt_indx = first.getAttribute('data-num');
+		if(cnt_indx == '-1'){
+			_playlist.removeChild(first);
+			break;
+		}
+		first = first.nextSibling;
+	}
+	var site_val = document.getElementById("site").value.toLowerCase();
+	var opt = document.getElementById("opt").value;
+	if (site_val == 'playlists' && opt != null){
+		new_url = 'change_playlist_order='+opt+'&'+num_+'&'+num_target;
+		var client = new getRequest(new_url);
+		client.get(new_url, function(response) {
+		console.log(response);
+		_title.innerHTML = response;
+		})
+	}
+}
+
+function drag_over(e){
+	//console.log(e.target);
+	e.preventDefault();
+}
+
+function drag_end(e){
+	//console.log(e.target,'---drag--end--');
+	e.preventDefault();
+}
+
+function drag_enter(e){
+	//console.log(e.target,'drag----enter');
+	e.preventDefault();
+}
+
+function drag_leave(e){
+	//console.log(e.target,'drag--leave--');
+	e.preventDefault();
 }
 
 function onDocReady(){
@@ -390,15 +605,20 @@ function onDocReady(){
 	var a = x.toLowerCase();
 	var req = document.getElementById("opt");
 	req.innerHTML = "";
+	var pls_arr = [];
 	for(i=0;i<w.length;i++){
 		j = w[i].toLowerCase().split(':')[0];
+		m = w[i].split(':');
+		if (m[0].toLowerCase() == 'playlists'){
+			pls_arr.push(m[1]);
+		}
 		if(j.indexOf(x) >=0){
 			console.log(j);
 			k=w[i].split(":");
 			l=j.split(":");
 			var new_opt = document.createElement("option");
 			new_opt.text = k[1].substring(0,45);
-			new_opt.value = k[1].toLowerCase();
+			new_opt.value = k[1];
 			req.appendChild(new_opt);
 			console.log(new_opt.value+' :created');
 			}
@@ -413,6 +633,17 @@ function onDocReady(){
 		{_player.width=(w-30).toString();
 		_player.height=parseInt((480/640)*w).toString();
 		console.log(screen.width);}
+	console.log(pls_arr);
+	
+	
+	r = document.getElementById('menu_playlist')
+	while(r.firstChild){r.removeChild(r.firstChild);}
+	for(i=0;i<pls_arr.length;i+=1){
+		var new_opt = document.createElement('menuitem');
+		new_opt.setAttribute('label',pls_arr[i]);
+		new_opt.setAttribute('onclick','menu_clicked(label)');
+		r.appendChild(new_opt);
+		}
 }
 
 function siteChange(){
@@ -435,7 +666,7 @@ function siteChange(){
 			console.log(l[0].concat(k[1]));
 			var new_opt = document.createElement("option");
 			new_opt.text = k[1].substring(0,45);
-			new_opt.value = k[1].toLowerCase();
+			new_opt.value = k[1];
 			req.appendChild(new_opt);
 			}
 		}
@@ -465,6 +696,13 @@ function optValChange(){
 		new_opt.innerHTML = a;
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
+		new_opt.setAttribute('draggable','true');
+		new_opt.setAttribute('ondragstart','drag_start(event)');
+		new_opt.setAttribute('ondrop','on_drop(event)');
+		new_opt.setAttribute('ondragover','drag_over(event)');
+		new_opt.setAttribute('ondragend','drag_end(event)');
+		new_opt.setAttribute('ondragenter','drag_enter(event)');
+		new_opt.setAttribute('ondragleave','drag_leave(event)');
 		new_opt.setAttribute('width','100%');
 		r.appendChild(new_opt);
 		indx += 1;
@@ -576,6 +814,13 @@ _shuffle.addEventListener("click", function () {
 		new_opt.innerHTML = a;
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
+		new_opt.setAttribute('draggable','true');
+		new_opt.setAttribute('ondragstart','drag_start(event)');
+		new_opt.setAttribute('ondrop','on_drop(event)');
+		new_opt.setAttribute('ondragover','drag_over(event)');
+		new_opt.setAttribute('ondragend','drag_end(event)');
+		new_opt.setAttribute('ondragenter','drag_enter(event)');
+		new_opt.setAttribute('ondragleave','drag_leave(event)');
 		r.appendChild(new_opt);
 		indx += 1;
 		}
@@ -905,6 +1150,12 @@ _playlist.addEventListener("click", function (e) {
     }
 })
 
+_playlist.addEventListener("contextmenu", function (e) {
+    if (e.target && e.target.nodeName === "LI") {
+		_playlist_selected_element = e.target;
+    }
+})
+
 var getRequest = function() {
     this.get = function(url, callbak) {
         var http_req = new XMLHttpRequest();
@@ -915,6 +1166,19 @@ var getRequest = function() {
 
         http_req.open( "GET", url, true );            
         http_req.send( null );
+    }
+};
+
+var postRequest = function() {
+    this.post = function(url, params,callbak) {
+        var http_req = new XMLHttpRequest();
+        http_req.onreadystatechange = function() { 
+            if (http_req.readyState == 4 && http_req.status == 200)
+                {callbak(http_req.responseText);}
+        }
+		//http_req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        http_req.open( "POST", url, true );            
+        http_req.send(JSON.stringify(params));
     }
 };
 
