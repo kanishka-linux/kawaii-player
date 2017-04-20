@@ -343,7 +343,49 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		else:
 			self.send_response(404)
 			self.end_headers()
-	
+			
+	def process_playlist_object(self,new_dict):
+		arr = []
+		for i in new_dict:
+			print(i)
+			j = new_dict[i]
+			for k in j:
+				print(k,j[k])
+				if (k == 'title'):
+					new_title = j[k].split(' - ')[1]
+					new_artist = j[k].split(' - ')[0]
+				elif k == 'data':
+					m = re.search('abs_path=[^"]*|relative_path=[^"]*',j[k])
+					if m:
+						link = m.group()
+						if '&pl_id=' in link:
+							link,pl_id = link.rsplit('&pl_id=',1)
+						if '/' in link:
+							link = link.rsplit('/',1)[0]
+						new_line = new_title+'	'+link+'	'+new_artist
+						arr.append(new_line)
+		return arr
+		
+	def process_POST(self):
+		if self.path.startswith('/save_playlist='):
+			new_var = self.path.replace('/save_playlist=','',1)
+			logger.info(new_var)
+			self.data_string = self.rfile.read(int(self.headers['Content-Length']))
+			#logger.info(self.data_string)
+			new_dict = json.loads(self.data_string)
+			arr = self.process_playlist_object(new_dict)
+			created = False
+			if new_var and arr:
+				file_path = os.path.join(home,'Playlists',new_var)
+				if not os.path.exists(file_path):
+					write_files(file_path,arr,line_by_line=True)
+					created = True
+			if created:
+				msg = 'New Playlist: {0} created, now refresh browser'.format(new_var)
+			else:
+				msg = 'Playlist creation failed'
+			self.final_message(bytes(msg,'utf-8'))
+		
 	def do_init_function(self,type_request=None):
 		global current_playing_file_path,path_final_Url,ui,curR
 		global epnArrList
@@ -444,6 +486,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						self.get_the_content(path,get_bytes)
 					elif type_request == 'head':
 						self.process_HEAD()
+					elif type_request == 'post':
+						self.process_POST()
 				else:
 					self.final_message(b'Access from outside not allowed')
 			else:
@@ -491,6 +535,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						self.get_the_content(path,get_bytes,play_id=playlist_id)
 					elif type_request == 'head':
 						self.process_HEAD()
+					elif type_request == 'post':
+						self.process_POST()
 				elif ui.access_from_outside_network:
 					if not ui.my_public_ip:
 						try:
@@ -511,6 +557,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							self.get_the_content(path,get_bytes,my_ip_addr=my_ip,play_id=playlist_id)
 						elif type_request == 'head':
 							self.process_HEAD()
+						elif type_request == 'post':
+							self.process_POST()
 					else:
 						self.final_message(b'Could not find your Public IP')
 				else:
@@ -528,6 +576,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					self.get_the_content(path,get_bytes)
 				elif type_request == 'head':
 					self.process_HEAD()
+				elif type_request == 'post':
+					self.process_POST()
 			else:
 				txt = b'Access From Outside Network Not Allowed'
 				self.final_message(txt)
@@ -537,6 +587,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		
 	def do_GET(self):
 		self.do_init_function(type_request='get')
+		
+	def do_POST(self):
+		self.do_init_function(type_request='post')
 		
 	def process_url(self,nm,get_bytes,status=None):
 		global ui,mplayerLength,mpvplayer
@@ -760,7 +813,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				n_art = k.split('	')[-1]
 				if n_art.startswith('http') or n_art.startswith('"http') or n_art.lower() == 'none':
 					n_art = 'NONE'
-					
 				book_mark = site+'&'+site_option+'&'+siteName+'&'+n_art+'&'+str(new_video_local_stream)
 				if not old_name:
 					old_name.append(n_art)
@@ -794,6 +846,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					n_url_new = base64.b64encode(bytes(n_url,'utf-8'))
 					n_url = str(n_url_new,'utf-8')
 					j = 'abs_path='+n_url
+					if site_pls:
+						new_j = k.split('	')[1]
+						if new_j.startswith('abs_path') or new_j.startswith('relative_path'):
+							j = new_j
+							n_url_name = k.split('	')[0]
 				else:
 					if '	' in k:
 						n_out = k.split('	')[0]
@@ -1012,6 +1069,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						n_url_new = base64.b64encode(bytes(n_url,'utf-8'))
 						n_url = str(n_url_new,'utf-8')
 						j = 'abs_path='+n_url
+						if site.lower() == 'playlists':
+							new_j = epnArrList[k].split('	')[1]
+							if new_j.startswith('abs_path') or new_j.startswith('relative_path'):
+								j = new_j
+								n_url_name = epnArrList[k].split('	')[0]
 					else:
 						book_mark = self.triggerBookmark(k+1)
 						if '	' in epnArrList[k]:
@@ -1670,6 +1732,89 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				msg = 'Wrong Parameters, Try Again'
 				msg = bytes(msg,'utf-8')
 				self.final_message(msg)
+		elif path.startswith('add_to_playlist='):
+			n_path = path.replace('add_to_playlist=','',1)
+			arr = n_path.split('&')
+			pls_name = arr[0]
+			artist = arr[1].split(' - ')[0]
+			title = arr[1].split(' - ')[1]
+			data_link = re.search('abs_path=[^"]*|relative_path=[^"]*',n_path).group()
+			txt = 'artist={3}:\npls-name={0}:\ntitle={1}:\nlink={2}'.format(pls_name,title,data_link,artist)
+			logger.info(txt)
+			txt = '{0} added to {1}'.format(arr[1],arr[0])
+			msg = bytes(txt,'utf-8')
+			self.final_message(msg)
+			new_line = title+'	'+data_link+'	'+artist
+			file_path = os.path.join(home,'Playlists',pls_name)
+			write_files(file_path,new_line,line_by_line=True)
+		elif path.startswith('remove_from_playlist='):
+			n_path = path.replace('remove_from_playlist=','',1)
+			arr = n_path.split('&')
+			pls_name = arr[0]
+			pls_num = arr[1]
+			msg = 'Deleting Number {0} Entry from playlist: {1}'.format(pls_num,pls_name)
+			if pls_num.isnumeric():
+				pls_number = int(pls_num) - 1
+				file_path = os.path.join(home,'Playlists',pls_name)
+				if os.path.isfile(file_path):
+					lines = open(file_path,'r').readlines()
+					new_lines = [i.strip() for i in lines]
+					if pls_number < len(new_lines):
+						del new_lines[pls_number]
+						write_files(file_path,new_lines,line_by_line=True)
+			else:
+				msg = 'Nothing Changed: Wrong Parameters'
+			msg = bytes(msg,'utf-8')
+			self.final_message(msg)
+		elif path.startswith('create_playlist='):
+			n_path = path.replace('create_playlist=','',1)
+			n_path = n_path.strip()
+			msg = 'creating playlist: {0}\nrefresh browser'.format(n_path)
+			if n_path:
+				file_path = os.path.join(home,'Playlists',n_path)
+				if not os.path.exists(file_path):
+					f = open(file_path,'w').close()
+			else:
+				msg = 'Nothing Created: Wrong Parameters'
+			msg = bytes(msg,'utf-8')
+			self.final_message(msg)
+		elif path.startswith('change_playlist_order='):
+			n_path = path.replace('change_playlist_order=','',1)
+			n_path = n_path.strip()
+			arr = n_path.split('&')
+			modified = False
+			if len(arr) >= 3:
+				pls = arr[0]
+				try:
+					src = int(arr[1]) - 1
+					dest = int(arr[2]) - 1
+				except Exception as e:
+					print(e,'--1736--')
+					src = -1
+					dest = -1
+				if pls and src >=0 and dest >=0:
+					file_path = os.path.join(home,'Playlists',pls)
+					lines = open(file_path,'r').readlines()
+					new_lines = [i.strip() for i in lines]
+					if ((src >= dest and src < len(new_lines)) or 
+							(src < dest and dest <= len(new_lines))):
+						src_val = new_lines[src]
+						del new_lines[src]
+						if dest < len(new_lines):
+							new_lines.insert(dest,src_val)
+							modified = True
+						elif dest == len(new_lines):
+							new_lines.append(src_val) 
+							modified = False
+						if modified:
+							write_files(file_path,new_lines,line_by_line=True)
+							
+			if modified:
+				msg = 'Playlist Modified'
+			else:
+				msg = 'Playlist sync failed'
+			msg = bytes(msg,'utf-8')
+			self.final_message(msg)
 		else:
 			nm = 'stream_continue.htm'
 			self.send_response(303)
@@ -15336,7 +15481,7 @@ class Ui_MainWindow(object):
 							k = 0
 							for i in lines:
 								i = i.strip()
-								if i:	
+								if i:
 									i = i+'##'+pls
 									epnArrList.append(i)
 		elif site.lower() == "video":
