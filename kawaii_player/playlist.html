@@ -59,7 +59,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="empty_btn">--</button>
 <button id="home">Home</button>
 <button id="minimal">Options</button>
-<button id="nothing">--</button>
+<button id="custom_pls">Playlist</button>
 <button id="logout">Logout</button>
 </div>
 <br>
@@ -67,8 +67,17 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
+</div>
+<br>
+<div id="pls_custom" class ="pls_custom_" hidden="hidden">
+	<input id="create_playlist" title="Enter Custom New Playlist Name or select existing playlist from another side menu" type="search" placeholder="Create Custom Playlist OR" onkeypress="return _create_custom_playlist(event)">
+	<select id="only_playlist" onchange="_existing_playlist()"></select>
+	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
+	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
+	<h3 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Drag and drop playlist entries in this space which will be then appended to the selected playlist or newly created playlist</h3>
+	<ol id="playlist_custom"></ol>
 </div>
 <br>
 <div id="display_option" class="option_display">
@@ -99,6 +108,7 @@ div.toTop{position:fixed;bottom: 1em;right: 1em;}
 div.video_section{float:left;}
 div.video_section.div.site_selection{float:left;}
 div.pls{max-width:640px;float:left;}
+div.pls_custom_{max-width:640px;float:left;}
 div.title{max-width:100%;}
 
 .Buttons{max-width:100%;
@@ -165,6 +175,17 @@ div.title{max-width:100%;}
 }
 
 
+
+[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Required to make elements draggable in old WebKit */
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
+
 </style>
 
 <script type = 'text/javascript'>
@@ -206,11 +227,18 @@ var _player = document.getElementById("player"),
     _display_option = document.getElementById("display_option"),
     _buttons_div = document.getElementById("buttons_div"),
     _empty_btn = document.getElementById("empty_btn"),
+    _custom_pls = document.getElementById("custom_pls"),
+    _pls_custom = document.getElementById("pls_custom"),
+    _create_playlist = document.getElementById("create_playlist"),
+    _only_playlist = document.getElementById("only_playlist"),
+    _playlist_custom = document.getElementById("playlist_custom"),
     _remote_val = 'off',
     _clicked_index = 0,
     _old_height = '480',
     _playlist_selected_element = "";
+    _drag_start_y = 0;
     _prev = document.getElementById("prev");
+    
 
 // functions
 
@@ -226,6 +254,58 @@ function menu_clicked(e){
 	_title.innerHTML = response;
 	})
 }
+
+function _delete_pls(e){
+	console.log(e);
+	pls_name = _only_playlist.value;
+	var z = confirm("Are you sure want to delete playlist: "+pls_name);
+	console.log(z);
+	if(z){
+		if(pls_name && pls_name != "select_existing_playlist"){
+			var new_url = 'delete_playlist='+pls_name;
+			var client = new getRequest();
+			client.get(new_url, function(response) {
+			console.log(response);
+			_title.innerHTML = response;
+			console.log('ya');
+			})
+		}
+		else{
+			_title.innerHTML = 'Not deleted: Invalid Playlist';
+		}
+		
+	}
+	else{
+		_title.innerHTML = 'Not deleted: Invalid playlist';
+	}
+}
+
+function _existing_playlist(){
+	var val = _only_playlist.value;
+	if (val != 'select_existing_playlist'){
+		_create_playlist.value = val;
+	}
+	else{
+		_create_playlist.value = '';
+	}
+}
+
+_playlist_custom.addEventListener("click", function (e) {
+    if (e.target && e.target.nodeName === "LI") {
+        
+        
+        if (_remote_val == 'on'){
+        var child = e.target
+		
+		}
+		var selected = _playlist_custom.querySelector(".selected");
+    if (selected) {
+        selected.classList.remove("selected");
+    }
+		console.log(e.target);
+		//_title.innerHTML = e.target.innerHTML;
+    }
+})
 
 function menu_clicked_remove(e){
 	var site_val = document.getElementById("site").value.toLowerCase();
@@ -268,6 +348,7 @@ function searchFunction(e){
 				console.log(response);
 				_title.innerHTML = response;
 				})
+				z.value = '';
 			}
 			else{
 				site = document.getElementById("site");
@@ -281,6 +362,7 @@ function searchFunction(e){
 						console.log(response);
 						_title.innerHTML = response;
 						})
+						z.value = '';
 					}
 					else if(new_val == 'delete'){
 						option_val = document.getElementById("opt_val");
@@ -293,10 +375,31 @@ function searchFunction(e){
 							_title.innerHTML = response;
 						})
 						}
+						z.value = '';
+					}
+					else if (new_val == 'status'){
+						new_url = 'get_torrent_info';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
+					}
+					else if (new_val.startsWith('d:') || new_val.startsWith('u:')){
+						if (new_val.indexOf('::') >=0){
+							new_val = new_val.replace('::','&')
+						}
+						new_val = new_val.replace(/:/g,'=')
+						new_url = 'set_torrent_speed='+new_val;
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
 					}
 				}
 			}
-			z.value = '';
+			
 		}
 		else if(z.value.startsWith("create_playlist:")){
 			var new_z = z.value.replace("create_playlist:","");
@@ -376,13 +479,36 @@ function searchFunction(e){
 	}
 }
 
+function _sync_pls(){
+	new_z = _only_playlist.value;
+	if (new_z != null && new_z != 'select_existing_playlist'){
+		var new_url = "save_playlist="+new_z;
+		dict = {};
+		first = _playlist_custom.firstChild;
+		i = 1;
+		while(first){
+			num = i.toString();
+			data = first.getAttribute('data-mp3');
+			title = first.innerHTML;
+			dict[num] = {'title':title,'data':data};
+			first = first.nextSibling;
+			i += 1;
+		}
+		var client = new postRequest();
+			client.post(new_url,dict,function(response) {
+				console.log(response);
+				_title.innerHTML = response;
+		})
+	}
+}
+
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");
 	console.log(x);
 	var y = document.getElementById("site").value.toLowerCase();
 	if(y.startsWith('playlists')){
-		var new_url = 'site='+y+'&opt='+x+'&s=.m3u';
+		var new_url = 'site='+y+'&opt='+x+'&s=&exact.m3u';
 		var client = new getRequest();
 		client.get(new_url, function(response) {
 		m = response.split('\n');
@@ -443,9 +569,53 @@ function drag_start(e){
     e.dataTransfer.setData("text", e.target.innerHTML);
     e.dataTransfer.setData("node", e.target);
     e.dataTransfer.setDragImage(e.target,0,0);
+    _drag_start_y = e.clientY;
+}
+
+function custom_drop(e){
+	console.log('---on--drop---custom--')
+	console.log(e);
+	e.preventDefault();
+	 var link_ = e.dataTransfer.getData("link");
+	 var num_ = e.dataTransfer.getData("num");
+	 var text_ = e.dataTransfer.getData("text");
+	
+	 var new_opt = document.createElement('li');
+	new_opt.innerHTML = text_;
+	new_opt.setAttribute('data-mp3',link_);
+	new_opt.setAttribute('draggable','true');
+	new_opt.setAttribute('ondragstart','drag_start_remove(event)');
+	_playlist_custom.appendChild(new_opt);
+	e.target.style.border = "";
+}
+
+function _create_custom_playlist(e){
+	if(e.keyCode==13){
+		var z = document.getElementById("create_playlist");
+		console.log(z.value);
+		if (z.value != null){
+			var new_url = "create_playlist="+z.value;
+			var client = new getRequest();
+				client.get(new_url, function(response) {
+				console.log(response);
+				_title.innerHTML = response+', or refresh playlist section again';
+			})
+		}
+	}
+}
+
+function drag_start_remove(e){
+	e.dataTransfer.effectAllowed='move';
+	var node = e.target;
+	e.target.parentNode.removeChild(node);
 }
 
 function on_drop(e){
+	try{
+		e.target.style.border = "";}
+	catch(err){
+		console.log(err);
+	}
 	console.log('---on--drop---')
 	console.log(e);
 	e.preventDefault();
@@ -454,11 +624,12 @@ function on_drop(e){
 	 var text_ = e.dataTransfer.getData("text");
 	 var node_ = e.dataTransfer.getData("node");
 	// console.log(link_);
-	// console.log(num_);
+	
 	// console.log(text_);
 	var num_target = e.target.getAttribute('data-num');
 	 var new_opt = document.createElement('li');
 	console.log(node_);
+	 console.log(num_,num_target);
 	new_opt.innerHTML = text_;
 	new_opt.setAttribute('data-mp3',link_);
 	new_opt.setAttribute('draggable','true');
@@ -507,7 +678,8 @@ function on_drop(e){
 	}
 	var site_val = document.getElementById("site").value.toLowerCase();
 	var opt = document.getElementById("opt").value;
-	if (site_val == 'playlists' && opt != null){
+	console.log(opt,'--opt--');
+	if (site_val == 'playlists' && opt != null && opt){
 		new_url = 'change_playlist_order='+opt+'&'+num_+'&'+num_target;
 		var client = new getRequest(new_url);
 		client.get(new_url, function(response) {
@@ -528,13 +700,34 @@ function drag_end(e){
 }
 
 function drag_enter(e){
-	//console.log(e.target,'drag----enter');
+	console.log('drag----enter');
 	e.preventDefault();
+	
+	console.log(_drag_start_y,e.clientY);
+	if (_drag_start_y >= e.clientY){
+		try{
+			e.target.style.borderTop = "1px solid #cccccc";}
+		catch(err){
+			console.log(err);
+		}
+	}
+	else{
+		try{
+			e.target.style.borderBottom = "1px solid #cccccc";}
+		catch(err){
+			console.log(err);
+		}
+	}
 }
 
 function drag_leave(e){
 	//console.log(e.target,'drag--leave--');
 	e.preventDefault();
+	try{
+		e.target.style.border = "";}
+	catch(err){
+		console.log(err);
+	}
 }
 
 function onDocReady(){
@@ -790,7 +983,7 @@ _shuffle.addEventListener("click", function () {
 		if (x == 'playlists'){ z = "#";}
 		if (z){
 			if (z=='#'){z="";}
-			var new_url = 'site='+x+'&opt='+y+'&s='+z+'&shuffle.m3u';
+			var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact&shuffle.m3u';
 		
 		} else {
 			var y = window.location.href;
@@ -842,7 +1035,7 @@ _m3u.addEventListener("click", function () {
     else{
 		var y = document.getElementById("opt").value.toLowerCase();
 		var z = document.getElementById("opt_val").value.toLowerCase();
-		if (srch_txt){z = srch_txt;}
+		if (srch_txt && !srch_txt.startsWith('torrent:')){z = srch_txt;}
 			
 		if (z){
 		var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
@@ -1115,6 +1308,39 @@ _opt_val_ok.addEventListener("click", function () {
   
 });
 
+_custom_pls.addEventListener("click", function () {
+	if(_pls_custom.hidden){
+		
+		var client = new getRequest();
+		client.get('get_all_playlist', function(response) {
+			console.log(response);
+			var w = response.split('\n');
+			console.log(w);
+			req = document.getElementById("only_playlist");
+			req.innerHTML = '';
+			for(i=0;i<w.length;i++){
+				if (i == 0){
+					var new_opt = document.createElement("option");
+					new_opt.text = 'Select Existing Playlist';
+					new_opt.value = 'select_existing_playlist';
+					req.appendChild(new_opt);
+				}
+				k = w[i];
+				var new_opt = document.createElement("option");
+				new_opt.text = k.substring(0,45);
+				new_opt.value = k;
+				req.appendChild(new_opt);
+				//console.log(req);
+			}
+		})
+		_pls_custom.hidden = "";
+	} 
+	else{
+		_pls_custom.hidden = "hidden";
+	}
+  
+});
+
 window.onscroll = function () {
     if (pageYOffset >= 200) {
         document.getElementById('backToTop').style.visibility = "visible";
@@ -1130,7 +1356,7 @@ document.getElementById('backToTop').onclick = function()
 
 window.addEventListener("resize", resizeWindowEvent);
 _player.addEventListener("ended", playNext);
-_playlist.addEventListener("click", function (e) {
+_playlist.addEventListener("dblclick", function (e) {
     if (e.target && e.target.nodeName === "LI") {
         
         
