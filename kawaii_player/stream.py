@@ -480,7 +480,30 @@ def change_config_file(ip,port):
 	f = open(config_file,'w')
 	f.write(content)
 	f.close()
+
+def torrent_session_status(torrent_handle):
+	s = torrent_handle.status()
+	state_str = ['queued', 'checking', 'downloading metadata',
+				'DOWNLOADING', 'finished', 'seeding', 'allocating', 
+				'checking fastresume']
+				
+	if not torrent_handle.is_seed():
+		out = str(int(s.progress*100))+'%'
+	else:
+		out = 'SEEDING'
+	out_percent = int(s.progress*100)
 	
+	#print(out)
+	TD = str(int(s.total_download/(1024*1024)))+'M'
+	TU = str(int(s.total_upload/(1024*1024)))+'M'
+	TDR = u'\u2193'+str(int(s.download_rate/1024)) + 'K' + '('+TD+')'
+	TUR = u'\u2191'+str(int(s.upload_rate/1024)) + 'K'+'('+TU+')'
+	#TD_ALL = str(int(s.all_time_download/(1024*1024)))+'M'
+	out1 = str(out)+' '+total_size_content+' '+TDR +' '+TUR+' '+'P:'+str(s.num_peers)
+	if s.state == 1:
+		out1 = 'Checking Please Wait: '+str(out)
+	return out1
+
 def get_ip():
 	a = subprocess.check_output(['ip','addr','show'])
 	b = str(a,'utf-8')
