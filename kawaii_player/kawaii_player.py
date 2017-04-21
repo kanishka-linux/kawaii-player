@@ -171,7 +171,7 @@ try:
 	import libtorrent as lt
 	from stream import ThreadServer,TorrentThread,get_torrent_info
 	from stream import set_torrent_info,get_torrent_info_magnet
-	from stream import set_new_torrent_file_limit
+	from stream import set_new_torrent_file_limit,torrent_session_status
 except Exception as e:
 	print(e)
 	notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
@@ -367,6 +367,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		return arr
 		
 	def process_POST(self):
+		global home
 		if self.path.startswith('/save_playlist='):
 			new_var = self.path.replace('/save_playlist=','',1)
 			logger.info(new_var)
@@ -374,14 +375,28 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			#logger.info(self.data_string)
 			new_dict = json.loads(self.data_string)
 			arr = self.process_playlist_object(new_dict)
+			logger.info(arr)
+			logger.info(new_var)
 			created = False
+			pls_append = False
 			if new_var and arr:
+				new_var = urllib.parse.unquote(new_var)
 				file_path = os.path.join(home,'Playlists',new_var)
 				if not os.path.exists(file_path):
 					write_files(file_path,arr,line_by_line=True)
 					created = True
+				elif os.path.isfile(file_path):
+					lines = open_files(file_path,lines_read=True)
+					new_lines = [i.strip() for i in lines]
+					new_lines = new_lines + arr
+					write_files(file_path,new_lines,line_by_line=True)
+					created = True
+					pls_append = True
 			if created:
-				msg = 'New Playlist: {0} created, now refresh browser'.format(new_var)
+				if pls_append:
+					msg = 'Appended to Playlist: {0}, now refresh browser'.format(new_var)
+				else:
+					msg = 'New Playlist: {0} created, now refresh browser'.format(new_var)
 			else:
 				msg = 'Playlist creation failed'
 			self.final_message(bytes(msg,'utf-8'))
@@ -1155,7 +1170,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					if path.endswith('.pls'):
 						pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i),out,n_art,n_out)
 					elif path.endswith('.htm') or path.endswith('.html'):
-						pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}">{0} - {1}</li>'.format(n_art,n_out,out,str(i+1))
+						pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)" ondrop="on_drop(event)">{0} - {1}</li>'.format(n_art,n_out,out,str(i+1))
 					else:
 						pls_txt = pls_txt+'#EXTINF:0,{0} - {1}\n{2}\n'.format(n_art,n_out,out)
 					if k == len(epnArrList) - 1:
@@ -1642,6 +1657,54 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.final_message(msg)
 			except Exception as e:
 				print(e)
+		elif path.startswith('get_torrent_info'):
+			try:
+				if ui.torrent_handle:
+					msg = torrent_session_status(ui.torrent_handle)
+				else:
+					msg = 'no torrent handle'
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
+			except Exception as e:
+				print(e)
+		elif path.startswith('set_torrent_speed'):
+			d = ''
+			u = ''
+			try:
+				val = path.replace('set_torrent_speed=','',1)
+				if val:
+					if val.startswith('d=') or val.startswith('u='):
+						if '&' in val:
+							if val.startswith('d='):
+								d1,u1 = val.split('&')
+							else:
+								u1,d1 = val.split('&')
+							if d1:
+								d = d1.replace('d=','',1)
+							if u1:
+								u = u1.replace('u=','',1)
+						else:
+							if val.startswith('d='):
+								d = val.replace('d=','',1)
+							else:
+								u = val.replace('u=','',1)
+						if d.isnumeric():
+							ui.torrent_download_limit = int(d) * 1024
+						if u.isnumeric():
+							ui.torrent_upload_limit = int(u) * 1024
+							
+				down_speed = str(int((ui.torrent_download_limit)/1024)) + 'KB'
+				up_speed = str(int((ui.torrent_upload_limit)/1024)) + 'KB'
+				if ui.torrent_handle:
+					ui.torrent_handle.set_download_limit(ui.torrent_download_limit)
+					ui.torrent_handle.set_upload_limit(ui.torrent_upload_limit)
+				msg = 'Download Speed Limit:{0}, Upload Speed Limit:{1} SET'.format(down_speed,up_speed)
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
+			except Exception as e:
+				print(e)
+				msg = b'Some wrong parameters provided, Nothing changed'
+				self.final_message(msg)
 		elif path.startswith('clear_client_list'):
 			try:
 				arr = b'<html>Clearing Visited Client list</html>'
@@ -1778,6 +1841,30 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				msg = 'Nothing Created: Wrong Parameters'
 			msg = bytes(msg,'utf-8')
 			self.final_message(msg)
+		elif path.startswith('delete_playlist='):
+			n_path = path.replace('delete_playlist=','',1)
+			n_path = n_path.strip()
+			msg = 'Nothing deleted: Wrong Parameters'
+			if n_path:
+				file_path = os.path.join(home,'Playlists',n_path)
+				if os.path.isfile(file_path):
+					os.remove(file_path)
+					msg = 'deleted playlist: {0}\n. Refresh browser'.format(n_path)
+			msg = bytes(msg,'utf-8')
+			self.final_message(msg)
+		elif path.startswith('get_all_playlist'):
+			dir_path = os.path.join(home,'Playlists')
+			m = os.listdir(dir_path)
+			pls_txt = ''
+			j = 0
+			for i in m:
+				if j == len(m) - 1:
+					pls_txt = pls_txt + i
+				else:
+					pls_txt = pls_txt + i + '\n'
+				j = j + 1
+			pls_txt = bytes(pls_txt,'utf-8')
+			self.final_message(pls_txt)
 		elif path.startswith('change_playlist_order='):
 			n_path = path.replace('change_playlist_order=','',1)
 			n_path = n_path.strip()
@@ -1812,7 +1899,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			if modified:
 				msg = 'Playlist Modified'
 			else:
-				msg = 'Playlist sync failed'
+				if pls:
+					msg = 'Playlist sync failed'
+				else:
+					msg = "No Playlist was selected, hence can't sync arrangement"
 			msg = bytes(msg,'utf-8')
 			self.final_message(msg)
 		else:
@@ -15482,7 +15572,8 @@ class Ui_MainWindow(object):
 							for i in lines:
 								i = i.strip()
 								if i:
-									i = i+'##'+pls
+									if not search_exact:
+										i = i+'##'+pls
 									epnArrList.append(i)
 		elif site.lower() == "video":
 			epnArrList = []
