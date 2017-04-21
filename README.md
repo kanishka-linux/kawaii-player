@@ -161,11 +161,9 @@ In this mode, video will be detached from the main application window and can fl
 
 ###### [Index](#index)
 
-It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at 'http://127.0.0.1:8001', which is loop-back address of your local machine. You can change this default streaming IP and port location by manually editing 'torrent_config.txt' file located in '~/.config/kawaii-player'. If you set 'TORRENT_STREAM_IP' field to your local network IP address which normally starts with something like '192.168.x.y' (You can check default ip using 'ifconfig' command), then it is possible to access the playing media from any device on your local network. For example, if the media is being played at computer A with TORRENT_STREAM_IP set to your default local ip address '192.168.1.1:8001', then you can access that media from computer B on the same network by simply connecting to 'http://192.168.2.1:8001'. If you have mplayer or mpv installed on computer B , then you can simply type the command 'mplayer http://192.168.2.1:8001' on that computer, to access the media which is being streamed on computer A. 
+It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at 'http://127.0.0.1:8001', which is loop-back address of your local machine. User can change this default streaming IP and port location by manually editing *'torrent_config.txt'* file located in *'~/.config/kawaii-player'*, if they want to access the torrent stream remotely.
 
 In 'torrent_config.txt' you can set some other fields like upload , download rate in (KBps) and default download location.
-
-Now with inclusion of torrent streaming feature, it's possible to write addons based on torrenting capability.
 
 For opening torrents within this player, goto Addons->Torrent->Open and enter torrent file name or torent url or magnet link inside the input dialog box, and then select appropriate entry which will appear in either Title list or Playlist. Your list of visited torrents will be accessible from the 'History' section. 
 
@@ -178,6 +176,14 @@ If torrent contains multiple files then users can enqueue the desired files by s
  
 Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
 
+**Using Web Interface for managing and accessing Torrent Stream remotely:** First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files. Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent. (Before using following commands user needs to select *'Torrent'* section from select menu in web interface):
+
+		$ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
+		$ torrent:stop (for stopping torrent)
+		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
+		$ torrent:status (will show status of current running torrent)
+		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (Sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
+
 ## Media Server
 
 ###### [Index](#index)
@@ -188,6 +194,12 @@ The media server functionality can be started by selecting **'More->Start Media 
 
 **A very simple web interface** (as shown above) has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.2.2:9001', then web interface can be opened at **192.168.2.2:9001/stream_continue.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.2.2:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
 
+**Playlist Creation and Sync using web interface**: Web UI allows creation and syncing of the user generated playlist. In Firefox browser, user will get custom right click context menu using which, user can add or remove entry to and from playlist.
+Chrome, doesn't implement HTML5 compliant context menu creation, hence Chrome users will have to use traditional drg and drop method. Users can perform certain operations on playlists using *Text Search Box* using following commands.
+
+		$ create_playlist:playlist_name (This will create custom empty playlist with name *playlist_name* on the server, if it has already not been created)
+		$ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
+
 **Use like Streaming Radio:** The media server can be used similar to internet radio station without transcoding. It won't behave like exact internet streaming radio, but it can be made to mimic like one. If server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the kawaii-player in it's playlist. If mpv or mplayer are used as clients then their commands will looked like as below:
 
 		$ mpv --loop http://192.168.2.2:9001/
@@ -197,7 +209,7 @@ The media server functionality can be started by selecting **'More->Start Media 
 
 **Experimental Headless Mode using Xvfb:** It's possible to use the server in headless mode using xvfb. Users need to install **xvfb** first and then should run following command:
 		
-		(First set multimedia library path manually in **~/.config/kawaii-player/local.txt**)
+		(First set multimedia library path manually in *~/.config/kawaii-player/local.txt*)
 		
 		$ xvfb-run --server-args="-screen 0 640x480x16" kawaii-player --start-media-server --update-video-db --update-music-db
 		
@@ -320,6 +332,7 @@ Remote Control can be activated by selecting **'More->Turn On Remote Control'**,
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
+youtube-dl gets outdated quickly, hence there is option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user need to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
 
 ## Addon Structure
 
@@ -710,6 +723,6 @@ New Issues can be opened at:
 
 [Issue Tracker](https://github.com/kanishka-linux/kawaii-player/issues)
 
-If users have some other queries or want to give feedback then they can use following e-mail
+If users have some other queries or want to give feedback then they can use following e-mail:
 
 [E-mail](mailto:kanishka.linux@gmail.com)
