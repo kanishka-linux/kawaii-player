@@ -182,6 +182,7 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 		$ torrent:stop (for stopping torrent)
 		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
 		$ torrent:status (will show status of current running torrent)
+		$ torrent:status_stop (will stop showing status)
 		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
 
 HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opend and play with the help of any popular media players like mpv or vlc.
