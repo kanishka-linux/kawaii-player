@@ -67,12 +67,12 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
 <br>
 <div id="pls_custom" class ="pls_custom_" hidden="hidden">
-	<input id="create_playlist" title="Enter Custom New Playlist Name or select existing playlist from another side menu" type="search" placeholder="Create Custom Playlist OR" onkeypress="return _create_custom_playlist(event)">
+	<input id="create_playlist" title="Enter Custom Playlist Name which has to be created or select existing playlist from another side menu" type="search" placeholder="Create Custom Playlist OR" onkeypress="return _create_custom_playlist(event)">
 	<select id="only_playlist" onchange="_existing_playlist()"></select>
 	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
@@ -237,6 +237,7 @@ var _player = document.getElementById("player"),
     _old_height = '480',
     _playlist_selected_element = "";
     _drag_start_y = 0;
+    _get_torrent_status = "";
     _prev = document.getElementById("prev");
     
 
@@ -334,6 +335,15 @@ function menu_clicked_remove(e){
 	}
 }
 
+function torrent_status(){
+	new_url = 'get_torrent_info';
+	var client = new getRequest();
+	client.get(new_url, function(response) {
+	//console.log(response);
+	_title.innerHTML = response;
+	})
+}
+
 function searchFunction(e){
 	if(e.keyCode==13){
 		var z = document.getElementById("type_search");
@@ -378,12 +388,25 @@ function searchFunction(e){
 						z.value = '';
 					}
 					else if (new_val == 'status'){
-						new_url = 'get_torrent_info';
-						var client = new getRequest();
-						client.get(new_url, function(response) {
-						console.log(response);
-						_title.innerHTML = response;
-						})
+						if(!_get_torrent_status || _get_torrent_status == null){
+							torrent_status();
+							_get_torrent_status = setInterval(torrent_status,5000);
+						}
+						else{
+							console.log('Already updating');
+						}
+					}
+					else if (new_val == 'status_stop'){
+						if (_get_torrent_status){
+							console.log(_get_torrent_status,'--get--torrent--status--');
+							clearInterval(_get_torrent_status);
+							_title.innerHTML = 'Stopped Status updating';
+							_get_torrent_status = "";
+						}
+						else{
+							console.log(_get_torrent_status,'--get-torrent-status--');
+							console.log('nothing to stop');
+						}
 					}
 					else if (new_val.startsWith('d:') || new_val.startsWith('u:')){
 						if (new_val.indexOf('::') >=0){
