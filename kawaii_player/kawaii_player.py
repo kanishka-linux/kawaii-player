@@ -349,11 +349,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		new_title = ''
 		new_artist = ''
 		link = ''
-		for i in new_dict:
-			print(i)
-			j = new_dict[i]
+		sort_key_arr = [int(i) for i in new_dict]
+		sort_key_arr.sort()
+		logger.info(sort_key_arr)
+		for i in sort_key_arr:
+			logger.info(i)
+			j = new_dict[str(i)]
 			for k in j:
-				print(k,j[k])
+				logger.info('title={0},data={1}'.format(k,j[k]))
 				if (k == 'title'):
 					new_title = j[k].split(' - ')[1]
 					new_artist = j[k].split(' - ')[0]
