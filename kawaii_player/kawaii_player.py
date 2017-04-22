@@ -1897,7 +1897,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							write_files(file_path,new_lines,line_by_line=True)
 							
 			if modified:
-				msg = 'Playlist Modified'
+				msg = 'Playlist Modified Successfully'
 			else:
 				if pls:
 					msg = 'Playlist sync failed'
