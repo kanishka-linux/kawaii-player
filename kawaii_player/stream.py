@@ -437,8 +437,9 @@ class TorrentThread(QtCore.QThread):
 			if s.state == 1:
 				out1 = 'Checking Please Wait: '+str(out)
 			self.progress_signal.emit(out1,out_percent)
-			if self.from_client:
-				print(out1,out_percent,'from_client=',self.from_client,'start_next=',self.start_next)
+			#if self.from_client:
+			#print(out1,out_percent,'from_client=',self.from_client,'start_next=',self.start_next)
+				
 			#print(h.have_piece(cnt))
 			if cnt1+3 < cnt_limit:
 				if self.handle.have_piece(cnt1) and self.handle.have_piece(cnt1+1):
@@ -449,26 +450,23 @@ class TorrentThread(QtCore.QThread):
 			
 			if (s.progress * 100)>=99 and (s.state != 1):
 				if self.from_client:
-					print(self.start_next)
+					#print(self.start_next)
 					if not self.start_next:
 						self.start_next = True
 						self.process_next()
-					print(self.start_next)
+					#print(self.start_next)
 				else:
 					self.session_signal.emit('..Starting Next Download..')
 					time.sleep(5)
 			
-			if self.handle.is_seed():
-				print('Download Complete, Entered into seeding mode')
-				#break
+			#if self.handle.is_seed():
+			#print('Download Complete, Entered into seeding mode')
+			#break
 			time.sleep(1)
 			
 		
-		print (self.handle.name(), 'complete')
+		#print (self.handle.name(), 'complete')
 		self.progress_signal_end.emit('complete')
-		#progress.setValue(100)
-		#progress.hide()
-		#self.session_signal.emit('..Finished..')
 		
 def change_config_file(ip,port):
 	config_file = os.path.join(
