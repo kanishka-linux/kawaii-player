@@ -372,8 +372,8 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	
 3. **Using setup.py** (Common method for all including gnu/linux, windows and other unix like systems): 
-		
-		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 from release section and extract it,if user wants stable release)
+		(first install python3, python3-setuptools)
+		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from stable release section and extract it)
 		$ cd kawaii-player
 		$ python setup.py sdist (or python3 setup.py sdist)
 		$ cd dist
