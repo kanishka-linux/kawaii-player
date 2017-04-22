@@ -177,15 +177,12 @@ def wget_string_get(url,dest,opt,extra,tmp_log,download_manager=None):
 
 def getContentUnicode(content):
 	if isinstance(content,bytes):
-		#print("I'm byte")
 		try:
 			content = str((content).decode('utf-8'))
 		except:
 			content = str(content)
 	else:
-		#print(type(content))
 		content = str(content)
-		#print("I'm unicode")
 	return content
 
 def ccurlCmd(url,external_cookie=None,user_auth=None):
