@@ -17508,6 +17508,7 @@ class Ui_MainWindow(object):
 			if self.progress.isHidden():
 				self.progress.show()
 			if from_client:
+				self.progress.hide()
 				self.started_from_external_client = True
 			else:
 				self.started_from_external_client = False
