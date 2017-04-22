@@ -346,6 +346,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			
 	def process_playlist_object(self,new_dict):
 		arr = []
+		new_title = ''
+		new_artist = ''
+		link = ''
 		for i in new_dict:
 			print(i)
 			j = new_dict[i]
@@ -362,8 +365,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							link,pl_id = link.rsplit('&pl_id=',1)
 						if '/' in link:
 							link = link.rsplit('/',1)[0]
-						new_line = new_title+'	'+link+'	'+new_artist
-						arr.append(new_line)
+				if new_title and new_artist and link:
+					new_line = new_title+'	'+link+'	'+new_artist
+					arr.append(new_line)
+					new_title = ''
+					new_artist = ''
+					link = ''
 		return arr
 		
 	def process_POST(self):
@@ -371,9 +378,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		if self.path.startswith('/save_playlist='):
 			new_var = self.path.replace('/save_playlist=','',1)
 			logger.info(new_var)
-			self.data_string = self.rfile.read(int(self.headers['Content-Length']))
-			#logger.info(self.data_string)
-			new_dict = json.loads(self.data_string)
+			content = self.rfile.read(int(self.headers['Content-Length']))
+			if isinstance(content,bytes):
+				content = str(content,'utf-8')
+			logger.info(content)
+			new_dict = json.loads(content)
 			arr = self.process_playlist_object(new_dict)
 			logger.info(arr)
 			logger.info(new_var)
@@ -434,11 +443,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				uid_c = cookie_val.split('=')[1]
 				uid_val = (self.client_auth_dict[uid_c])
 				old_time,playlist_id = uid_val.split('&pl_id=')
-				#print(old_time,playlist_id)
+				logger.info('old-time={0}:pl_id={1}'.format(old_time,playlist_id))
 				old_time = int(old_time)
 				cur_time = int(time.time())
-				#print(self.client_auth_dict)
-				#print(cur_time-old_time,'--time--')
+				logger.info(self.client_auth_dict)
+				logger.info('Time Elapsed: {0}'.format(cur_time-old_time))
 				if (cur_time - old_time) > ui.cookie_expiry_limit*3600:
 					cookie_verified = False
 					del self.client_auth_dict[uid_c]
@@ -901,9 +910,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				if ui.https_media_server:
 					http_val = "https" 
 				if play_id:
-					out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'&pl_id='+play_id+'/'+urllib.parse.quote(n_url_name)
+					out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'&pl_id='+play_id+'/'+urllib.parse.quote(n_url_name.replace('/','-'))
 				else:
-					out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'/'+urllib.parse.quote(n_url_name)
+					out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'/'+urllib.parse.quote(n_url_name.replace('/','-'))
 				if self.path.endswith('.pls'):
 					pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i),out,n_art,n_out)
 				elif self.path.endswith('.htm') or self.path.endswith('.html'):
