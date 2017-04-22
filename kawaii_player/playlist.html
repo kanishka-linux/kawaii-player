@@ -358,7 +358,6 @@ function searchFunction(e){
 				console.log(response);
 				_title.innerHTML = response;
 				})
-				z.value = '';
 			}
 			else{
 				site = document.getElementById("site");
@@ -372,7 +371,6 @@ function searchFunction(e){
 						console.log(response);
 						_title.innerHTML = response;
 						})
-						z.value = '';
 					}
 					else if(new_val == 'delete'){
 						option_val = document.getElementById("opt_val");
@@ -385,7 +383,6 @@ function searchFunction(e){
 							_title.innerHTML = response;
 						})
 						}
-						z.value = '';
 					}
 					else if (new_val == 'status'){
 						if(!_get_torrent_status || _get_torrent_status == null){
@@ -422,7 +419,7 @@ function searchFunction(e){
 					}
 				}
 			}
-			
+			z.value = '';
 		}
 		else if(z.value.startsWith("create_playlist:")){
 			var new_z = z.value.replace("create_playlist:","");
@@ -454,6 +451,7 @@ function searchFunction(e){
 					console.log(response);
 					_title.innerHTML = response;
 			})
+			z.value = '';
 		}
 		else{
 			site = document.getElementById("site");
@@ -1045,6 +1043,36 @@ _shuffle.addEventListener("click", function () {
 	
 });
 
+function populate_playlist(new_url){
+	var client = new getRequest();
+	client.get(new_url, function(response) {
+	console.log(response);
+	
+	m = response.split('\n');
+	r = document.getElementById('playlist')
+	console.log(m)
+	while(r.firstChild){r.removeChild(r.firstChild);}
+	var indx = 1;
+	for(i=1;i<m.length-1;i+=2){
+		var a = m[i].substring(10,100);
+		var b = m[i+1];
+		var new_opt = document.createElement('li');
+		new_opt.innerHTML = a;
+		new_opt.setAttribute('data-mp3',b);
+		new_opt.setAttribute('data-num',indx.toString());
+		new_opt.setAttribute('draggable','true');
+		new_opt.setAttribute('ondragstart','drag_start(event)');
+		new_opt.setAttribute('ondrop','on_drop(event)');
+		new_opt.setAttribute('ondragover','drag_over(event)');
+		new_opt.setAttribute('ondragend','drag_end(event)');
+		new_opt.setAttribute('ondragenter','drag_enter(event)');
+		new_opt.setAttribute('ondragleave','drag_leave(event)');
+		r.appendChild(new_opt);
+		indx += 1;
+		}
+	})
+}
+
 _m3u.addEventListener("click", function () {
 	
 	var srch_txt = document.getElementById("type_search").value.toLowerCase();
@@ -1054,15 +1082,20 @@ _m3u.addEventListener("click", function () {
 		y = y.replace(".htm","");
 		y = y +'.m3u';
 		window.location.href = y;
-		}
+	}
     else{
 		var y = document.getElementById("opt").value.toLowerCase();
 		var z = document.getElementById("opt_val").value.toLowerCase();
+		
 		if (srch_txt && !srch_txt.startsWith('torrent:')){z = srch_txt;}
 			
-		if (z){
-		var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
-		} else {
+		if(z || (x == 'playlists' && y)){
+			if(!z){
+				z = '';
+			}
+			var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
+		} 
+		else{
 			var y = window.location.href;
 			y = y.replace(".htm","");
 			new_url = y +'.m3u';
