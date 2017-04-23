@@ -453,6 +453,23 @@ function searchFunction(e){
 			})
 			z.value = '';
 		}
+		else if(z.value.startsWith("update:")){
+			var new_z = z.value.replace("update:","");
+			if (new_z != null && (new_z == 'video' || new_z == 'music')){
+				if (new_z == 'video'){var new_url = "update_video";}
+				else{ var new_url = "update_music";}
+				_title.innerHTML = 'Wait updating...';
+				var client = new getRequest();
+				client.get(new_url, function(response) {
+				console.log(response);
+				_title.innerHTML = response;
+			})
+			}
+			else{
+				_title.innerHTML = 'wrong command, not allowed';
+			}
+			z.value = '';
+		}
 		else{
 			site = document.getElementById("site");
 			site_val = site.value;
@@ -580,6 +597,8 @@ function optChange(){
 		
 		})
 	}
+	var z = document.getElementById("type_search");
+	z.value = "";
 }
 
 function drag_start(e){
@@ -886,6 +905,7 @@ function siteChange(){
 		}
 	var z = document.getElementById("type_search");
 	z.hidden = "";
+	z.value = "";
 }
 
 
@@ -1085,13 +1105,19 @@ _m3u.addEventListener("click", function () {
 	}
     else{
 		var y = document.getElementById("opt").value.toLowerCase();
-		var z = document.getElementById("opt_val").value.toLowerCase();
+		var opt_val = document.getElementById("opt_val").value;
+		var z = opt_val.toLowerCase();
 		
 		if (srch_txt && !srch_txt.startsWith('torrent:')){z = srch_txt;}
 			
 		if(z || (x == 'playlists' && y)){
 			if(!z){
-				z = '';
+				z = '&exact';
+			}
+			else{
+				if (z == opt_val.toLowerCase()){
+					z = opt_val+'&exact';
+				}
 			}
 			var new_url = 'site='+x+'&opt='+y+'&s='+z+'.m3u';
 		} 
