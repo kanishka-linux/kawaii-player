@@ -1877,11 +1877,27 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				j = j + 1
 			pls_txt = bytes(pls_txt,'utf-8')
 			self.final_message(pls_txt)
+		elif path.startswith('update_video') or path.startswith('update_music'):
+			try:
+				if path.startswith('update_video'):
+					val = 'video'
+				else:
+					val = 'music'
+				remote_signal = doGETSignal()
+				remote_signal.update_signal.emit(val)
+				msg = '{0} section updated successfully: refresh browser'.format(val)
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
+			except Exception as e:
+				print(e)
+				msg = bytes('Error in updating','utf-8')
+				self.final_message(msg)
 		elif path.startswith('change_playlist_order='):
 			n_path = path.replace('change_playlist_order=','',1)
 			n_path = n_path.strip()
 			arr = n_path.split('&')
 			modified = False
+			logger.info(arr)
 			if len(arr) >= 3:
 				pls = arr[0]
 				try:
@@ -1904,7 +1920,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							modified = True
 						elif dest == len(new_lines):
 							new_lines.append(src_val) 
-							modified = False
+							modified = True
 						if modified:
 							write_files(file_path,new_lines,line_by_line=True)
 							
@@ -1961,6 +1977,7 @@ class doGETSignal(QtCore.QObject):
 	control_signal = pyqtSignal(int,str)
 	nav_remote = pyqtSignal(str)
 	delete_torrent_signal = pyqtSignal(str)
+	update_signal = pyqtSignal(str)
 	def __init__(self):
 		QtCore.QObject.__init__(self)
 		self.new_signal.connect(goToUi_jump)
@@ -1968,6 +1985,7 @@ class doGETSignal(QtCore.QObject):
 		self.control_signal.connect(start_player_remotely)
 		self.nav_remote.connect(navigate_player_remotely)
 		self.delete_torrent_signal.connect(delete_torrent_history)
+		self.update_signal.connect(update_databse_signal)
 		
 @pyqtSlot(str)
 def goToUi_jump(nm):
@@ -2055,6 +2073,34 @@ def navigate_player_remotely(nm):
 			ui.list1.setFocus()
 			ui.list1.setCurrentRow(row)
 	
+
+@pyqtSlot(str)
+def update_databse_signal(mode):
+	global ui
+	if mode == 'video':
+		video_dir = os.path.join(home,'VideoDB')
+		if not os.path.exists(video_dir):
+			os.makedirs(video_dir)
+		video_db = os.path.join(video_dir,'Video.db')
+		video_file = os.path.join(video_dir,'Video.txt')
+		video_file_bak = os.path.join(video_dir,'Video_bak.txt')
+		
+		if not os.path.exists(video_db):
+			ui.creatUpdateVideoDB(video_db,video_file,video_file_bak,update_progress_show=False)
+		else:
+			ui.updateOnStartVideoDB(video_db,video_file,video_file_bak,'Update',update_progress_show=False)
+	elif mode == 'music':
+		music_dir = os.path.join(home,'Music')
+		if not os.path.exists(music_dir):
+			os.makedirs(music_dir)
+		music_db = os.path.join(home,'Music','Music.db')
+		music_file = os.path.join(home,'Music','Music.txt')
+		music_file_bak = os.path.join(home,'Music','Music_bak.txt')
+		if not os.path.exists(music_db):
+			ui.creatUpdateMusicDB(music_db,music_file,music_file_bak,update_progress_show=False)
+		else:
+			ui.updateOnStartMusicDB(music_db,music_file,music_file_bak,update_progress_show=False)
+		
 
 @pyqtSlot(str)
 def delete_torrent_history(nm):
@@ -11741,6 +11787,7 @@ class Ui_MainWindow(object):
 		global site,epnArrList,home,name
 		picn = ''
 		title = row_string.strip()
+		
 		path = ''
 		if site == "Local" or site=="None" or site == "Music" or site == "Video":
 			if '	' in title:
@@ -11750,6 +11797,8 @@ class Ui_MainWindow(object):
 			else:
 				nameEpn = os.path.basename(title)
 				path = title
+			if path.startswith('abs_path='):
+				path = self.if_path_is_rel(path,thumbnail=True)
 			if self.list1.currentItem():
 				name_t = self.list1.currentItem().text()
 			else:
@@ -11786,6 +11835,8 @@ class Ui_MainWindow(object):
 				nameEpn = str(nameEpn)
 				try:
 					path = title.split('	')[1]
+					if path.startswith('abs_path='):
+						path = self.if_path_is_rel(path,thumbnail=True)
 				except:
 					return ''
 				playlist_dir = os.path.join(home,'thumbnails','PlayLists')
@@ -16856,7 +16907,7 @@ class Ui_MainWindow(object):
 				if self.btnAddon.currentIndex() >= 0:
 					default_arr_setting[4]=self.btnAddon.currentIndex()
 					
-	def if_path_is_rel(self,path):
+	def if_path_is_rel(self,path,thumbnail=None):
 		global my_ipaddress
 		nm = ''
 		if path.startswith('abs_path='):
@@ -16886,7 +16937,7 @@ class Ui_MainWindow(object):
 					nm = self.epn_return(row)
 					if nm.startswith('"'):
 						nm = nm.replace('"','')
-				elif 'youtube.com' in nm:
+				elif 'youtube.com' in nm and not thumbnail:
 					nm = get_yt_url(nm,ui.quality_val,ui.ytdl_path,logger,mode='offline').strip()
 		elif path.startswith('relative_path='):
 			path = path.split('relative_path=',1)[1]
@@ -17178,6 +17229,11 @@ class Ui_MainWindow(object):
 					finalUrl = '"'+(epnArrList[row]).split('	')[1]+'"'
 			else:
 					finalUrl = '"'+(epnArrList[row]).replace('#','',1)+'"'
+			if self.list3.currentItem():
+				if site.lower() == 'music' and self.list3.currentItem().text().lower() == 'playlist':
+					path_rel = finalUrl.replace('"','')
+					if path_rel.startswith('abs_path=') or path_rel.startswith('relative_path='):
+						finalUrl = '"'+self.if_path_is_rel(path_rel)+'"'
 			logger.info(finalUrl)
 			i = str(self.list2.item(row).text())
 			i = i.replace('_',' ')
@@ -18961,6 +19017,11 @@ class Ui_MainWindow(object):
 					finalUrl = '"'+(epnArrList[row]).split('	')[1]+'"'
 			else:
 					finalUrl = '"'+(epnArrList[row]).replace('#','',1)+'"'
+			if self.list3.currentItem():
+				if site.lower() == 'music' and self.list3.currentItem().text().lower() == 'playlist':
+					path_rel = finalUrl.replace('"','')
+					if path_rel.startswith('abs_path=') or path_rel.startswith('relative_path='):
+						finalUrl = '"'+self.if_path_is_rel(path_rel)+'"'
 			logger.info('--line--15803--{0}'.format(finalUrl))
 			i = str(self.list2.item(row).text())
 			if not i.startswith(self.check_symbol):
@@ -20261,9 +20322,10 @@ class Ui_MainWindow(object):
 		conn.close()
 		return rows
 		
-	def creatUpdateVideoDB(self,video_db,video_file,video_file_bak):
-		self.text.setText('Wait..Updating Video Database')
-		QtWidgets.QApplication.processEvents()
+	def creatUpdateVideoDB(self,video_db,video_file,video_file_bak,update_progress_show=None):
+		if update_progress_show is None or update_progress_show:
+			self.text.setText('Wait..Updating Video Database')
+			QtWidgets.QApplication.processEvents()
 		
 		lines = self.importVideo(video_file,video_file_bak)
 		print(len(lines))
@@ -20339,8 +20401,9 @@ class Ui_MainWindow(object):
 						#print("Escaping")
 		conn.commit()
 		conn.close()
-		self.text.setText('Update Complete!')
-		QtWidgets.QApplication.processEvents()
+		if update_progress_show is None or update_progress_show:
+			self.text.setText('Update Complete!')
+			QtWidgets.QApplication.processEvents()
 		
 	def updateVideoCount(self,qType,qVal):
 		global home
@@ -20387,9 +20450,10 @@ class Ui_MainWindow(object):
 		conn.commit()
 		conn.close()
 		
-	def updateOnStartVideoDB(self,video_db,video_file,video_file_bak,video_opt):
-		self.text.setText('Wait..Updating Video Database')
-		QtWidgets.QApplication.processEvents()
+	def updateOnStartVideoDB(self,video_db,video_file,video_file_bak,video_opt,update_progress_show=None):
+		if update_progress_show is None or update_progress_show:
+			self.text.setText('Wait..Updating Video Database')
+			QtWidgets.QApplication.processEvents()
 		m_files = self.importVideo(video_file,video_file_bak)
 		
 		conn = sqlite3.connect(video_db)
@@ -20450,9 +20514,10 @@ class Ui_MainWindow(object):
 				
 		conn.commit()
 		conn.close()
-		QtWidgets.QApplication.processEvents()
-		self.text.setText('Updating Complete')
-		QtWidgets.QApplication.processEvents()
+		if update_progress_show is None or update_progress_show:
+			QtWidgets.QApplication.processEvents()
+			self.text.setText('Updating Complete')
+			QtWidgets.QApplication.processEvents()
 		
 	def importVideo(self,video_file,video_file_bak):
 		global home
@@ -20642,9 +20707,10 @@ class Ui_MainWindow(object):
 		conn.commit()
 		conn.close()
 		
-	def creatUpdateMusicDB(self,music_db,music_file,music_file_bak):
-		self.text.setText('Wait..Tagging')	
-		QtWidgets.QApplication.processEvents()
+	def creatUpdateMusicDB(self,music_db,music_file,music_file_bak,update_progress_show=None):
+		if update_progress_show is None or update_progress_show:
+			self.text.setText('Wait..Tagging')	
+			QtWidgets.QApplication.processEvents()
 		f = open(music_file,'w')
 		f.close()
 		lines = self.importMusic(music_file,music_file_bak)
@@ -20673,14 +20739,16 @@ class Ui_MainWindow(object):
 				try:
 					cur.execute('INSERT INTO Music VALUES(?,?,?,?,?,?,?,?,?,?,?)',w)
 					t = t+1
-					self.text.setText('Wait..Tagging '+str(t))
-					QtWidgets.QApplication.processEvents()
+					if update_progress_show is None or update_progress_show:
+						self.text.setText('Wait..Tagging '+str(t))
+						QtWidgets.QApplication.processEvents()
 				except:
 					print("Escaping")
 		conn.commit()
 		conn.close()
-		self.text.setText('Complete Tagging '+str(t))
-		QtWidgets.QApplication.processEvents()
+		if update_progress_show is None or update_progress_show:
+			self.text.setText('Complete Tagging '+str(t))
+			QtWidgets.QApplication.processEvents()
 		
 	def getTaglib(self,path):
 		if SONG_TAGS:
@@ -20744,7 +20812,7 @@ class Ui_MainWindow(object):
 		m.append(datetime.datetime.now())
 		return m
 		
-	def updateOnStartMusicDB(self,music_db,music_file,music_file_bak):
+	def updateOnStartMusicDB(self,music_db,music_file,music_file_bak,update_progress_show=None):
 		m_files = self.importMusic(music_file,music_file_bak)
 		
 		conn = sqlite3.connect(music_db)
@@ -20768,9 +20836,9 @@ class Ui_MainWindow(object):
 		print("_______________")
 		logger.info(m)
 		logger.info(m.sort())
-		print(len(m))
-		print(len(m_files))
-		print(len(m_files_old))
+		logger.info(len(m))
+		logger.info(len(m_files))
+		logger.info(len(m_files_old))
 		conn = sqlite3.connect(music_db)
 		cur = conn.cursor()
 		for k in m:
