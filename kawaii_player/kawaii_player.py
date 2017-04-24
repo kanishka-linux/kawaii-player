@@ -203,14 +203,15 @@ def get_lan_ip():
 
 
 def change_config_file(ip,port):
-	global home
+	global home,ui
 	config_file = os.path.join(home,'other_options.txt')
 	new_ip = 'LOCAL_STREAM_IP='+ip+':'+str(port)
-	content = open(config_file,'r').read()
-	content = re.sub('LOCAL_STREAM_IP=[^\n]*',new_ip,content)
-	f = open(config_file,'w')
-	f.write(content)
-	f.close()
+	change_opt_file(config_file,'LOCAL_STREAM_IP=',new_ip)
+	ui.local_ip_stream = str(ip)
+	ui.local_ip = str(ip)
+	config_file_torrent = os.path.join(home,'torrent_config.txt')
+	torrent_ip = 'TORRENT_STREAM_IP='+ip+':'+str(ui.local_port)
+	change_opt_file(config_file_torrent,'TORRENT_STREAM_IP=',torrent_ip)
 
 
 def set_mainwindow_palette(fanart,first_time=None):
@@ -2200,7 +2201,7 @@ class ThreadServerLocal(QtCore.QThread):
 				txt = 'Your local IP changed..or port is blocked.\n..Trying to find new IP'
 				send_notification(txt)
 				self.ip = get_lan_ip()
-				txt = 'Your New Address is '+self.ip+':'+str(self.port) + '\n Please restart the player'
+				txt = 'Your New Address is '+self.ip+':'+str(self.port) + '\n Please restart the application, if server does not start'
 				send_notification(txt)
 				change_config_file(self.ip,self.port)
 				server_address = (self.ip,self.port)
@@ -21670,12 +21671,14 @@ class LoginAuth(QtWidgets.QDialog):
 	def _set_params(self):
 		new_ip_val = None
 		new_ip_port = None
+		torrent_ip = None
 		try:
 			if ':' in self.set_ip.text():
 				new_ip_val,new_ip_port1 = self.set_ip.text().split(':')
 				new_ip_port = int(new_ip_port1)
 			if ipaddress.ip_address(new_ip_val):
 				ip = 'LOCAL_STREAM_IP='+new_ip_val+':'+str(new_ip_port)
+				torrent_ip = 'TORRENT_STREAM_IP='+new_ip_val+':'+str(ui.local_port)
 		except Exception as err_val:
 			print(err_val,'--ip--find--error--')
 			ip = 'LOCAL_STREAM_IP='+ui.local_ip_stream
@@ -21716,6 +21719,10 @@ class LoginAuth(QtWidgets.QDialog):
 			ui.keep_background_constant = False
 		else:
 			ui.keep_background_constant = True
+		if torrent_ip:
+			config_file_torrent = os.path.join(home,'torrent_config.txt')
+			change_opt_file(config_file_torrent,'TORRENT_STREAM_IP=',torrent_ip)
+			ui.local_ip = new_ip_val
 		self.hide()
 		
 	def _set_download_location(self):
