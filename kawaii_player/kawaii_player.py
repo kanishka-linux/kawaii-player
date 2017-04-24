@@ -358,8 +358,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			for k in j:
 				logger.info('title={0},data={1}'.format(k,j[k]))
 				if (k == 'title'):
-					new_title = j[k].split(' - ')[1]
-					new_artist = j[k].split(' - ')[0]
+					title_arr = j[k].split(' - ')
+					if len(title_arr) >= 2:
+						new_title = j[k].split(' - ')[1]
+						new_artist = j[k].split(' - ')[0]
+					else:
+						new_title = new_artist = j[k]
 				elif k == 'data':
 					m = re.search('abs_path=[^"]*|relative_path=[^"]*',j[k])
 					if m:
@@ -1674,7 +1678,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				if ui.torrent_handle:
 					msg = torrent_session_status(ui.torrent_handle)
 				else:
-					msg = 'no torrent handle'
+					msg = 'no torrent handle, wait for torrent to start'
 				msg = bytes(msg,'utf-8')
 				self.final_message(msg)
 			except Exception as e:
