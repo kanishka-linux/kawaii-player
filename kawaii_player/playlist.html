@@ -54,7 +54,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="vol5" hidden="hidden">vol++</button>
 <button id="vol_5" hidden="hidden">vol--</button>
 <button id="fullscreen" hidden="hidden">F</button>
-<button id="m3u">Get M3U</button>
+<button id="m3u" title="Get Playlist in m3u format">Get M3U</button>
 <button id="remote_btn">Remote Off</button>
 <button id="empty_btn">--</button>
 <button id="home">Home</button>
@@ -67,7 +67,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB 9.update:video (update video section) 10.update:music (update music section)" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
 <br>
@@ -200,6 +200,7 @@ div.title{max-width:100%;}
 
 var _player = document.getElementById("player"),
     _playlist = document.getElementById("playlist"),
+    _site_value = document.getElementById("site"),
     _stop = document.getElementById("stop"),
     _loop = document.getElementById("loop"),
     _next = document.getElementById("next"),
@@ -370,6 +371,16 @@ function searchFunction(e){
 						client.get(new_url, function(response) {
 						console.log(response);
 						_title.innerHTML = response;
+						if (_get_torrent_status){
+							console.log(_get_torrent_status,'--get--torrent--status--');
+							clearInterval(_get_torrent_status);
+							//_title.innerHTML = 'Stopped Status updating';
+							_get_torrent_status = "";
+						}
+						else{
+							console.log(_get_torrent_status,'--get-torrent-status--');
+							console.log('nothing to stop');
+						}
 						})
 					}
 					else if(new_val == 'delete'){
@@ -960,7 +971,8 @@ function playlistItemClick(clickedElement,mode) {
     if (_remote.innerHTML == 'Remote Off'){
 		_player.src = new_src;
 		_player.play();
-	}else{
+	}
+	else{
 		
 		if (mode == 'nextplay' || mode == 'playlist'){
 		new_indx = 'playlist_'+(_clicked_index-1).toString();
@@ -988,6 +1000,17 @@ function playlistItemClick(clickedElement,mode) {
 		_player.src = new_src
 		console.log(new_src)
 	}
+	
+	if (_site_value.value.toLowerCase() == 'torrent'){
+		if(!_get_torrent_status || _get_torrent_status == null){
+			torrent_status();
+			_get_torrent_status = setInterval(torrent_status,5000);
+		}
+		else{
+			console.log('Already updating');
+		}
+	}
+	
 }
 
 function playNext() {
