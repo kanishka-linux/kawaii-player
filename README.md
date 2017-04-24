@@ -206,7 +206,7 @@ Chrome, doesn't implement HTML5 compliant context menu creation, hence Chrome us
 **Update Collection:** Use following commands in text search box of web UI
 
 		$ update:video (will update video section)
-		$ uodate:music (will update music section)
+		$ update:music (will update music section)
 
 **Use like Streaming Radio:** The media server can be used similar to internet radio station without transcoding. It won't behave like exact internet streaming radio, but it can be made to mimic like one. If server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the kawaii-player in it's playlist. If mpv or mplayer are used as clients then their commands will looked like as below:
 
