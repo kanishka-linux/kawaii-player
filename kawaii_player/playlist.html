@@ -59,7 +59,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="empty_btn">--</button>
 <button id="home">Home</button>
 <button id="minimal">Options</button>
-<button id="custom_pls">Playlist</button>
+<button id="custom_pls" title="Manage Playlist">Playlist</button>
 <button id="logout">Logout</button>
 </div>
 <br>
@@ -67,7 +67,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB 9.update:video (update video section) 10.update:music (update music section)" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB 9.update:video (update video section) 10.update:music (update music section) 11. yt:youtube_url (add youtube link to playlist)" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
 <br>
@@ -76,7 +76,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 	<select id="only_playlist" onchange="_existing_playlist()"></select>
 	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
-	<h3 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Drag and drop playlist entries in this space which will be then appended to the selected playlist or newly created playlist</h3>
+	<h3 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Drag and drop playlist item in this space which will be then appended to the selected playlist or newly created playlist</h3>
 	<ol id="playlist_custom"></ol>
 </div>
 <br>
@@ -100,7 +100,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 	<menuitem label='Remove From Playlist' onclick="menu_clicked_remove(label)"></menuitem>
 </menu>
 <div class="toTop">
-<div id="backToTop">Top</div>
+<div id="backToTop" ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Top</div>
 </div>
 <style>
 .selected {font-weight: bold}
@@ -478,6 +478,39 @@ function searchFunction(e){
 			}
 			else{
 				_title.innerHTML = 'wrong command, not allowed';
+			}
+			z.value = '';
+		}
+		else if(z.value.startsWith("quality:")){
+			var new_z = z.value.replace("quality:","");
+			var new_url = "quality="+new_z;
+			dict = {};
+			var client = new getRequest();
+				client.get(new_url,function(response) {
+					console.log(response);
+					_title.innerHTML = response;
+			})
+			z.value = '';
+		}
+		else if(z.value.startsWith("yt:")){
+			if (_site_value.value.toLowerCase() == 'playlists'){
+				var new_z = z.value.replace("yt:","");
+				var pls_name = document.getElementById('opt');
+				if ((new_z && pls_name) || (new_z == 'audio' || new_z == 'audiovideo')){
+					_title.innerHTML = 'wait..';
+					var new_url = 'youtube_url='+new_z+'&&'+pls_name.value;
+					var client = new getRequest();
+					client.get(new_url, function(response) {
+					console.log(response);
+					_title.innerHTML = response;
+				})
+				}
+				else{
+					_title.innerHTML = 'wrong command, no playlist was selected';
+				}
+			}
+			else {
+				_title.innerHTML = 'First Select proper playlist';
 			}
 			z.value = '';
 		}
@@ -1014,25 +1047,22 @@ function playlistItemClick(clickedElement,mode) {
 }
 
 function playNext() {
-    var selected = _playlist.querySelector("li.selected");
-    console.log(11);
-    console.log(selected.innerHTML,selected.getAttribute('data-mp3'));
-    if (_remote_val == 'on'){_clicked_index = _clicked_index + 1}
-    if (selected && selected.nextSibling) {
+	console.log(_player.loop,'----------1039------playNext--')
+	var selected = _playlist.querySelector("li.selected");
+	if (_remote_val == 'on'){_clicked_index = _clicked_index + 1}
+	if (selected && selected.nextSibling) {
 		if (_loop.innerHTML == '\u21BA'){
 			playlistItemClick(selected,'nextplay');
-			//_title.innerHTML = selected.innerHTML;
 		}
 		else{
 			playlistItemClick(selected.nextSibling,'nextplay');
-			//_title.innerHTML = selected.nextSibling.innerHTML;
 		}
-    }else{
+	}
+	else{
 		var first = _playlist.firstChild;
 		console.log(first);
 		playlistItemClick(first,'nextplay');
-		//_title.innerHTML = first.innerHTML;
-		}
+	}
 	
 }
 
@@ -1380,9 +1410,11 @@ _loop.addEventListener("click", function () {
     var old_var= _loop.innerHTML;
     if (old_var == 'Lock'){
 			_loop.innerHTML = '\u21BA';
+			_player.loop = "loop";
 		}
 	else {
 		_loop.innerHTML = 'Lock';
+		_player.loop = "";
 	}
 	if (_remote_val == 'on'){
 		var client = new getRequest();
