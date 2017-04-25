@@ -359,10 +359,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			for k in j:
 				logger.info('title={0},data={1}'.format(k,j[k]))
 				if (k == 'title'):
-					title_arr = j[k].split(' - ')
+					title_arr = j[k].split(' - ',1)
 					if len(title_arr) >= 2:
-						new_title = j[k].split(' - ')[1]
-						new_artist = j[k].split(' - ')[0]
+						new_title = title_arr[1].strip()
+						new_artist = title_arr[0].strip()
 					else:
 						new_title = new_artist = j[k]
 				elif k == 'data':
@@ -371,7 +371,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						link = m.group()
 						if '&pl_id=' in link:
 							link,pl_id = link.rsplit('&pl_id=',1)
-						if '/' in link:
+						elif '/' in link:
 							link = link.rsplit('/',1)[0]
 				if new_title and new_artist and link:
 					new_line = new_title+'	'+link+'	'+new_artist
@@ -1181,9 +1181,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					if '_' in n_out:
 						n_out = n_out.replace('_',' ')
 					if play_id:
-						out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'&pl_id='+play_id+'/'+urllib.parse.quote(n_url_name)
+						out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'&pl_id='+play_id+'/'+urllib.parse.quote(n_url_name.replace('/','-'))
 					else:
-						out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'/'+urllib.parse.quote(n_url_name)
+						out = http_val+'://'+str(my_ipaddress)+':'+str(ui.local_port_stream)+'/'+j+'/'+urllib.parse.quote(n_url_name.replace('/','-'))
 					if path.endswith('.pls'):
 						pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i),out,n_art,n_out)
 					elif path.endswith('.htm') or path.endswith('.html'):
@@ -1578,7 +1578,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						if nm.startswith('"'):
 							nm = nm.replace('"','')
 					elif 'youtube.com' in nm:
-						nm = get_yt_url(nm,ui.quality_val,ui.ytdl_path,logger,mode='offline').strip()
+						nm = get_yt_url(nm,ui.client_quality_val,ui.ytdl_path,logger,mode=ui.client_yt_mode).strip()
+						if '::' in nm:
+							vid,aud = nm.split('::')
+							if ui.client_yt_mode == 'music':
+								nm = aud
 				self.process_url(nm,get_bytes,status=num_row)
 				print(ui.remote_control,ui.remote_control_field,path)
 				if ui.remote_control and ui.remote_control_field:
@@ -1837,7 +1841,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				pls_number = int(pls_num) - 1
 				file_path = os.path.join(home,'Playlists',pls_name)
 				if os.path.isfile(file_path):
-					lines = open(file_path,'r').readlines()
+					lines = open_files(file_path,lines_read=True)
 					new_lines = [i.strip() for i in lines]
 					if pls_number < len(new_lines):
 						del new_lines[pls_number]
@@ -1897,6 +1901,55 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				print(e)
 				msg = bytes('Error in updating','utf-8')
 				self.final_message(msg)
+		elif path.startswith('youtube_url='):
+			try:
+				msg = 'Something wrong in parameters'
+				logger.info('{0}---1903--'.format(path))
+				new_path = self.path.replace('/youtube_url=','',1)
+				url = pls = None
+				if '&&' in new_path:
+					url,pls = new_path.split('&&')
+					#url = str(base64.b64decode(url).decode('utf-8'))
+				else:
+					msg = 'wrong parameters'
+				if url and pls:
+					pls = urllib.parse.unquote(pls)
+					if url.startswith('http'):
+						val = self.process_yt_playlist(url,pls)
+						logger.info('---1914---val={0}--'.format(val))
+						if val:
+							msg = 'playlist :{0} updated successfully'.format(pls)
+						else:
+							msg = 'playlist creation failed'
+					else:
+						if url == 'audio':
+							ui.client_yt_mode = 'music'
+							msg = 'only audio will be played'
+						elif url == 'audiovideo':
+							ui.client_yt_mode = 'offline'
+							msg = 'regular video will be played'
+						else:
+							msg = 'wrong parameters'
+					
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = bytes('Error in updating','utf-8')
+			self.final_message(msg)
+		elif path.startswith('quality='):
+			try:
+				qual_arr = ['sd','hd','sd480p','best']
+				qual = path.replace('quality=','',1)
+				if qual in qual_arr:
+					ui.client_quality_val = qual
+					msg = 'quality set to: {0}'.format(ui.client_quality_val)
+				else:
+					msg = 'wrong parameters'
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = bytes('Error in setting quality','utf-8')
+			self.final_message(msg)
 		elif path.startswith('change_playlist_order='):
 			n_path = path.replace('change_playlist_order=','',1)
 			n_path = n_path.strip()
@@ -1914,7 +1967,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					dest = -1
 				if pls and src >=0 and dest >=0:
 					file_path = os.path.join(home,'Playlists',pls)
-					lines = open(file_path,'r').readlines()
+					lines = open_files(file_path,lines_read=True)
 					new_lines = [i.strip() for i in lines]
 					if ((src >= dest and src < len(new_lines)) or 
 							(src < dest and dest <= len(new_lines))):
@@ -1947,7 +2000,54 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			#nm = 'index.html'
 			#self.send_header('Content-type','text/html')
 			#self.end_headers()
-			
+	
+	def process_yt_playlist(self,url,pls):
+		global home
+		op_success = False
+		logger.info('{0}:{1}--1975--'.format(url,pls))
+		if url and pls:
+			if 'list=' in url:
+				yt_playlist = True
+			else:
+				yt_playlist = False
+			if url.startswith('http') and 'youtube.com' in url:
+				
+				req = urllib.request.Request(
+					url,data=None,headers={'User-Agent': 'Mozilla/5.0'}
+					)
+
+				f = urllib.request.urlopen(req)
+				content = f.read().decode('utf-8')
+				soup = BeautifulSoup(content,'lxml')
+				title = soup.title.text.replace(' - YouTube','').strip()
+				logger.info(title)
+				pls_path = os.path.join(home,'Playlists',pls)
+				logger.info(pls_path)
+				if not yt_playlist and pls_path:
+					new_line = title + '	'+url+ '	'+ 'YouTube'
+					logger.info(new_line)
+					if os.path.exists(pls_path):
+						write_files(pls_path,new_line,line_by_line=True)
+						op_success = True
+				elif pls_path and yt_playlist:
+					ut = soup.findAll('li',{'class':"yt-uix-scroller-scroll-unit "})
+					arr = []
+					for i in ut:
+						try:
+							j = 'https://www.youtube.com/watch?v='+i['data-video-id']
+							k = i['data-video-title']
+							l = k+'	'+j+'	'+'YouTube'
+							arr.append(l)
+						except Exception as e:
+							print(e,'--2004--')
+					if arr:
+						if os.path.exists(pls_path):
+							lines = open_files(pls_path,lines_read=True)
+							lines = lines + arr
+							write_files(pls_path,lines,line_by_line = True)
+							op_success = True
+		return op_success
+		
 	def final_message(self,txt,cookie=None):
 		self.send_response(200)
 		if cookie:
@@ -2118,7 +2218,7 @@ def delete_torrent_history(nm):
 		hist_torrent_folder = os.path.join(hist_folder,nm)
 		down_location = os.path.join(ui.torrent_download_folder,nm)
 		if os.path.exists(hist_txt):
-			lines = open(hist_txt,'r').readlines()
+			lines = open_files(hist_txt,lines_read=True)
 			new_lines = [i.strip() for i in lines]
 			try:
 				indx = new_lines.index(nm)
@@ -8957,6 +9057,8 @@ class Ui_MainWindow(object):
 		self.remote_control_field = False
 		self.local_file_index = []
 		self.quality_val = 'sd'
+		self.client_quality_val = 'sd'
+		self.client_yt_mode = 'offline'
 		self.media_server_key = None
 		self.my_public_ip = None
 		self.get_ip_interval = 1
@@ -17874,7 +17976,7 @@ class Ui_MainWindow(object):
 				if si_te_var:
 					try:
 						finalUrl = si_te_var.getFinalUrl(
-								site_Name,na_me,ep_n,mirrorNo,category,self.quality_val
+								site_Name,na_me,ep_n,mirrorNo,category,self.client_quality_val
 								) 
 					except:
 						return 0
@@ -17882,7 +17984,7 @@ class Ui_MainWindow(object):
 				if si_te_var:
 					try:
 						finalUrl = si_te_var.getFinalUrl(
-								site_Name,na_me,ep_n,mirrorNo,self.quality_val
+								site_Name,na_me,ep_n,mirrorNo,self.client_quality_val
 								) 
 					except:
 						return 0
@@ -17915,7 +18017,7 @@ class Ui_MainWindow(object):
 					self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
 					self.torrent_handle.set_download_limit(self.torrent_download_limit)
 				else:
-					finalUrlT = si_te_var.getFinalUrl(na_me,ep_n,mirrorNo,self.quality_val)
+					finalUrlT = si_te_var.getFinalUrl(na_me,ep_n,mirrorNo,self.client_quality_val)
 					logger.info("finalUrl:::::16704::::{0}:::\n".format(finalUrlT))
 					if type(finalUrlT) is list:
 						finalUrl = finalUrlT[0]
@@ -22403,6 +22505,7 @@ def main():
 					print(option_val,'--option--')
 				elif "Quality" in i:
 					quality = re.sub('\n','',j)
+					ui.client_quality_val = quality
 					print(quality,'----quality---')
 					if quality == "hd":
 						ui.sd_hd.setText("HD")
