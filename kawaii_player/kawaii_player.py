@@ -1549,6 +1549,42 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			else:
 				b = b'Remote Control Not Allowed'
 				self.final_message(b)
+		elif path.lower() == 'show_player_window':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'show_player'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'show_player')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'hide_player_window':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'hide_player'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'hide_player')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'toggle_subtitle':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'toggle_subtitle'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'toggle_subtitle')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
+		elif path.lower() == 'toggle_audio':
+			if ui.remote_control and ui.remote_control_field:
+				b = b'toggle_audio'
+				self.final_message(b)
+				remote_signal = doGETSignal()
+				remote_signal.control_signal.emit(-1000,'toggle_audio')
+			else:
+				b = b'Remote Control Not Allowed'
+				self.final_message(b)
 		elif path.startswith('abs_path='):
 			try:
 				path = path.split('abs_path=',1)[1]
@@ -2111,8 +2147,8 @@ def get_my_ip_regularly(nm):
 
 @pyqtSlot(int,str)
 def start_player_remotely(nm,mode):
-	global ui,curR,mpvplayer,Player
-	
+	global ui,curR,mpvplayer,Player,MainWindow
+	print(nm,mode,'--2133--')
 	if mode == 'normal':
 		if nm < ui.list2.count() and nm >= 0:
 			curR = nm
@@ -2127,6 +2163,12 @@ def start_player_remotely(nm,mode):
 		
 		if mode == 'playpause':
 			ui.player_play_pause.clicked.emit()
+		elif mode == 'show_player':
+			print('show--window---2149')
+			ui.player_show_btn.clicked.emit()
+		elif mode == 'hide_player':
+			print('hide--window---2152')
+			ui.player_hide_btn.clicked.emit()
 		else:
 			if mpvplayer.processId() > 0:
 				if mode == 'stop':
@@ -2157,7 +2199,11 @@ def start_player_remotely(nm,mode):
 						ui.player_vol_5_.clicked.emit()
 				elif mode == 'fullscreen':
 					ui.player_fullscreen.clicked.emit()
-					
+				elif mode == 'toggle_subtitle':
+					ui.subtitle_track.clicked.emit()
+				elif mode == 'toggle_audio':
+					ui.audio_track.clicked.emit()
+			
 
 
 @pyqtSlot(str)
@@ -8541,6 +8587,20 @@ class Ui_MainWindow(object):
 		self.player_seek_5m_.clicked.connect(lambda x=0: self.seek_to_val(-300))
 		self.player_seek_5m_.hide()
 		
+		self.player_show_btn = QtWidgets.QPushButton(self.player_opt)
+		self.player_show_btn.setObjectName(_fromUtf8("player_show_btn"))
+		self.horizontalLayout_player_opt.insertWidget(24,self.player_show_btn,0)
+		self.player_show_btn.setText('Show')
+		self.player_show_btn.clicked.connect(MainWindow.show)
+		self.player_show_btn.hide()
+		
+		self.player_hide_btn = QtWidgets.QPushButton(self.player_opt)
+		self.player_hide_btn.setObjectName(_fromUtf8("player_hide_btn"))
+		self.horizontalLayout_player_opt.insertWidget(25,self.player_hide_btn,0)
+		self.player_hide_btn.setText('Hide')
+		self.player_hide_btn.clicked.connect(MainWindow.hide)
+		self.player_hide_btn.hide()
+		
 		self.player_playlist.setMenu(self.player_menu)
 		self.player_playlist.setCheckable(True)
 		
@@ -9403,6 +9463,8 @@ class Ui_MainWindow(object):
 	
 	def remote_fullscreen(self):
 		global MainWindow,wget
+		if MainWindow.isHidden():
+			MainWindow.show()
 		if not MainWindow.isHidden():
 			if not MainWindow.isFullScreen():
 				if not self.tab_6.isHidden():
