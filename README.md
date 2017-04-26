@@ -342,6 +342,13 @@ This player provides a wrapper around youtube site using qtwebengine. If your GN
 
 youtube-dl gets outdated quickly, hence there is option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user need to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
 
+**Using Web Interface:** youtube url's can be sent directly to the playlist from web interface with the help of following commands which needs to be entered in the text search box available in the web ui. 
+
+		$ yt:youtube_url_link (for adding youtube link to the local playlist)
+		$ yt:audio (for playing only audio)
+		$ yt:audiovideo (regular video)
+		$ quality:{sd,hd or best}
+
 ## Addon Structure
 
 ###### [Index](#index)
@@ -377,6 +384,7 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	
 3. **Using setup.py** (Common method for all including gnu/linux, windows and other unix like systems): 
+		
 		(first install python3, python3-setuptools)
 		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from stable release section and extract it)
 		$ cd kawaii-player
