@@ -53,7 +53,11 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="seek_5m" hidden="hidden">5m-</button>
 <button id="vol5" hidden="hidden">vol++</button>
 <button id="vol_5" hidden="hidden">vol--</button>
-<button id="fullscreen" hidden="hidden">F</button>
+<button id="fullscreen" title="Toggle Fullscreen" hidden="hidden">F</button>
+<button id="show_player" hidden="hidden" title="Show Player" onclick="show_player_window()">Show</button>
+<button id="hide_player" hidden="hidden" title="Hide Player" onclick="hide_player_window()">Hide</button>
+<button id="toggle_audio" hidden="hidden" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
+<button id="toggle_subtitle" hidden="hidden" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
 <button id="m3u" title="Get Playlist in m3u format">Get M3U</button>
 <button id="remote_btn">Remote Off</button>
 <button id="empty_btn">--</button>
@@ -67,7 +71,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB 9.update:video (update video section) 10.update:music (update music section) 11. yt:youtube_url (add youtube link to playlist)" type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB 9.update:video (update video section) 10.update:music (update music section) 11. yt:youtube_url (add youtube link to playlist) 12. yt:audio (play only audio) 13. yt:audiovideo (regular video) 14. quality:{sd,hd,best}"  type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
 <br>
@@ -233,6 +237,10 @@ var _player = document.getElementById("player"),
     _create_playlist = document.getElementById("create_playlist"),
     _only_playlist = document.getElementById("only_playlist"),
     _playlist_custom = document.getElementById("playlist_custom"),
+    _show_player = document.getElementById("show_player"),
+    _hide_player = document.getElementById("hide_player"),
+    _toggle_subtitle = document.getElementById("toggle_subtitle"),
+    _toggle_audio = document.getElementById("toggle_audio"),
     _remote_val = 'off',
     _clicked_index = 0,
     _old_height = '480',
@@ -584,6 +592,34 @@ function _sync_pls(){
 	}
 }
 
+function show_player_window(){
+	var client = new getRequest();
+	client.get('show_player_window', function(response) {
+	console.log(response);
+	})
+}
+
+function hide_player_window(){
+	var client = new getRequest();
+	client.get('hide_player_window', function(response) {
+	console.log(response);
+	})    
+}
+
+function toggle_subtitle_player(){
+	var client = new getRequest();
+	client.get('toggle_subtitle', function(response) {
+	console.log(response);
+	})    
+}
+
+function toggle_audio_player(){
+	var client = new getRequest();
+	client.get('toggle_audio', function(response) {
+	console.log(response);
+	})    
+}
+
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");
@@ -833,6 +869,10 @@ function onDocReady(){
 		_vol_5_.hidden = "hidden";
 		_fullscreen.hidden = "hidden";
 		_remote.hidden = "hidden";
+		_show_player.hidden = "hidden";
+		_hide_player.hidden = "hidden";
+		_toggle_subtitle.hidden = "hidden";
+		_toggle_audio.hidden = "hidden";
 		_empty_btn.hidden = "";
 		_empty_btn.innerHTML = "--";
 		
@@ -858,6 +898,10 @@ function onDocReady(){
 		_vol_5.hidden = "";
 		_vol_5_.hidden = "";
 		_fullscreen.hidden = "";
+		_show_player.hidden = "";
+		_hide_player.hidden = "";
+		_toggle_subtitle.hidden = "";
+		_toggle_audio.hidden = "";
 		}
 	
 	var x = document.getElementById("site").value;
@@ -1201,6 +1245,11 @@ _remote.addEventListener("click", function () {
 			_vol_5.hidden = "";
 			_vol_5_.hidden = "";
 			_fullscreen.hidden = "";
+			_show_player.hidden = "";
+			_hide_player.hidden = "";
+			_toggle_subtitle.hidden = "";
+			_toggle_audio.hidden = "";
+			_title.innerHTML = "Refresh the playlist";
 	})
 		}
 	else {
@@ -1218,6 +1267,10 @@ _remote.addEventListener("click", function () {
 			_vol_5.hidden = "hidden";
 			_vol_5_.hidden = "hidden";
 			_fullscreen.hidden = "hidden";
+			_show_player.hidden = "hidden";
+			_hide_player.hidden = "hidden";
+			_toggle_subtitle.hidden = "hidden";
+			_toggle_audio.hidden = "hidden";
 	})
 	}
 });
