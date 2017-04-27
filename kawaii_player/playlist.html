@@ -107,6 +107,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <div id="backToTop" ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Top</div>
 </div>
 <style>
+
 .selected {font-weight: bold}
 div.toTop{position:fixed;bottom: 1em;right: 1em;}
 div.video_section{float:left;}
@@ -185,10 +186,12 @@ div.title{max-width:100%;}
   -khtml-user-select: none;
   -webkit-user-select: none;
   user-select: none;
-  /* Required to make elements draggable in old WebKit */
   -khtml-user-drag: element;
   -webkit-user-drag: element;
 }
+
+
+
 
 </style>
 
