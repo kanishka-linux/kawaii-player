@@ -36,6 +36,7 @@ from player_functions import send_notification
 import select
 import base64
 import ssl
+import ipaddress
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 	
@@ -233,7 +234,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			
 	def do_GET(self):
 		global handle,ses,info,cnt,cnt_limit,file_name,torrent_download_path
-		global tmp_dir_folder,httpd,media_server_key,client_auth_arr
+		global tmp_dir_folder,httpd,media_server_key,client_auth_arr,local_ip_arr
 		print('do_get')
 		print(self.headers)
 		try:
@@ -243,6 +244,8 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		print(get_bytes,'--get--bytes--')
 		print(client_auth_arr,'--250--')
 		cookie_verified = False
+		client_addr = str(self.client_address[0])
+		print(client_addr,'--client--248--')
 		if '&pl_id=' in self.path:
 			path,pl_id = self.path.rsplit('&pl_id=',1)
 			del_uid = False
@@ -266,7 +269,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		
 		if ui_player.media_server_cookie:
 			print('--cookie-stream--enabled--')
-			if cookie_verified:
+			if cookie_verified or client_addr in local_ip_arr:
 				self.get_the_content(get_bytes)
 				print('--cookie-stream-verified--')
 			else:
@@ -279,7 +282,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				new_key = 'Basic '+key
 				cli_key = self.headers['Authorization'] 
 				#print(cli_key,new_key)
-				client_addr = str(self.client_address[0])
+				#client_addr = str(self.client_address[0])
 				print(client_addr,'--cli--')
 				print(client_auth_arr,'--auth--')
 				if not cli_key and (not client_addr in client_auth_arr):
@@ -322,7 +325,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 class ThreadServer(QtCore.QThread):
 	
 	def __init__(self,ip,port,key=None,client_arr=None,https_conn=None,cert_file=None,ui=None):
-		global thread_signal,media_server_key,client_auth_arr,ui_player
+		global thread_signal,media_server_key,client_auth_arr,ui_player,local_ip_arr
 		QtCore.QThread.__init__(self)
 		self.ip = ip
 		self.port = int(port)
@@ -331,6 +334,8 @@ class ThreadServer(QtCore.QThread):
 		self.https_allow = https_conn
 		self.cert_file = cert_file
 		ui_player = ui
+		local_ip_arr = ['127.0.0.1','0.0.0.0',ip]
+		
 	def __del__(self):
 		self.wait()                        
 	
