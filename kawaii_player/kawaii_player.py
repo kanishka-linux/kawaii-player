@@ -422,7 +422,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		global current_playing_file_path,path_final_Url,ui,curR
 		global epnArrList
 		logger.info(self.path)
-		print(self.path)
 		path = self.path.replace('/','',1)
 		if '/' in path:
 			if not path.startswith('site=') and'&s=' not in path:
@@ -482,6 +481,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						print(time_diff,'--time--diff--')
 						if (time_diff) > ui.cookie_playlist_expiry_limit*3600:
 							del self.playlist_auth_dict[pl_id]
+							try:
+								del ui.playlist_auth_dict_ui[pl_id]
+							except Exception as e:
+								print(e,'--488--')
 							del_uid = True
 				except Exception as err_val:
 					print(err_val,'--316--')
@@ -501,8 +504,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				cli_key = hash_obj.hexdigest()
 				#print(cli_key,new_key)
 			client_addr = str(self.client_address[0])
-			print(client_addr,'--cli--')
-			print(ui.client_auth_arr,'--auth--')
+			logger.info('--cli--addr-no-cookie-{0}'.format(client_addr))
+			logger.info('--auth-no-cookie-{0}'.format(ui.client_auth_arr))
 			if not cli_key and (not client_addr in ui.client_auth_arr):
 				if ipaddress.ip_address(client_addr).is_private:
 					self.auth_header()
@@ -535,8 +538,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				cli_key = hash_obj.hexdigest()
 				#print(cli_key,new_key)
 			client_addr = str(self.client_address[0])
-			print(client_addr,'--cli--')
-			print(ui.client_auth_arr,'--auth--')
+			logger.info('--cli-with-cookie-{0}'.format(client_addr))
+			logger.info('--auth-with-cookie-{0}'.format(ui.client_auth_arr))
 			if not cli_key and not cookie_verified:
 				self.auth_header()
 			elif (cli_key == new_key) and not cookie_verified:
@@ -557,6 +560,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				cur_time = str(int(time.time()))
 				new_id = cur_time+'&pl_id='+uid_pl
 				self.playlist_auth_dict.update({uid_pl:cur_time})
+				ui.playlist_auth_dict_ui.update({uid_pl:cur_time})
 				self.client_auth_dict.update({uid:new_id})
 				set_cookie_id = "id="+uid
 				self.final_message(b'Session Established, Now reload page again',set_cookie_id)
@@ -697,59 +701,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			
 			print(get_bytes,'--get--bytes--',nm_ext)
 			t = 0
-			"""
-			if status == 'now_playing' and mpvplayer.processId() > 0:
-				size_per_second = int(size/mplayerLength)
-				print(size_per_second,'=--size-per-second')
-				time_clock = ui.progress_counter
-				t = 0
-				print(size_per_second,'=--size-per-second',time_clock)
-				cur_size = ui.progress_counter * size_per_second
-				end_read = False
-				with open(nm,'rb') as f:
-					total_content = 0
-					if t == 0 and get_bytes:
-						f.seek(get_bytes)
-						t = 1
-						total_content = get_bytes
-						if get_bytes > (size - 5 * size_per_second):
-							size_read = size - get_bytes
-							content = f.read(size_read)
-							self.wfile.write(content)
-							end_read = True
-					elif t == 0 and not get_bytes:
-						time_sec = ui.progress_counter
-						for i in range(time_sec):
-							content = f.read(size_per_second)
-							total_content = total_content + size_per_second
-							self.wfile.write(content)
-						t = 1
-					if not end_read:
-						content = f.read(size_per_second)
-						total_content = total_content + size_per_second
-					else:
-						content = None
-					time_sec = ui.progress_counter
-					prev_sec = 0
-					while(content) and not end_read:
-						if prev_sec != time_sec:
-							try:
-								self.wfile.write(content)
-								content = f.read(size_per_second)
-								total_content = total_content + size_per_second
-								get_bytes = 0
-							except Exception as err_val:
-								print(err_val,'--err--')
-								break
-						else:
-							time.sleep(0.5)
-						prev_sec = time_sec
-						time_sec = ui.progress_counter
-						if mpvplayer.processId() == 0:
-							break
-						#time.sleep(0.1)
-			else:
-			"""
 			old_time = time.time()
 			end_read = False
 			content = None
@@ -1677,6 +1628,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							b = b'Remote Control Not Allowed'
 							self.final_message(b)
 					else:
+						pl_id_c = None
+						if '&pl_id=' in self.path:
+							pl_id_c = re.search('&pl_id=[^/]*',self.path).group()
+							nm = nm + pl_id_c
 						new_torrent_signal.new_signal.emit(old_nm)
 						logger.info('--nm---{0}'.format(nm))
 						self.process_url(nm,get_bytes)
@@ -9119,6 +9074,7 @@ class Ui_MainWindow(object):
 		self.quality_val = 'sd'
 		self.client_quality_val = 'sd'
 		self.client_yt_mode = 'offline'
+		self.playlist_auth_dict_ui = {}
 		self.media_server_key = None
 		self.my_public_ip = None
 		self.get_ip_interval = 1
@@ -17728,7 +17684,7 @@ class Ui_MainWindow(object):
 			if status.lower() =='first run' and not self.thread_server.isRunning():
 				thread_server = ThreadServer(
 					ip,port,self.media_server_key,self.client_auth_arr,
-					self.https_media_server,self.https_cert_file)
+					self.https_media_server,self.https_cert_file,ui)
 				thread_server.start()
 			print('--line--15415--',self.thread_server.isRunning(),'=thread_server')
 			handle,ses,info,cnt,cnt_limit,file_name = get_torrent_info(
