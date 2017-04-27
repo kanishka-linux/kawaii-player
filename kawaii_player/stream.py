@@ -186,12 +186,13 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						try:
 							self.wfile.write(content)
 							self.current_cnt = i
+							#print('writing:'+str(i))
 						except Exception as e:
 							print(e)
 							time.sleep(1)
 							break
 						i = i+1
-						print(i,'=i piece')
+						#print(i,'=i piece')
 						handle.piece_priority(i,7)
 					else:
 						time.sleep(1)
@@ -206,21 +207,18 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 								if i+l < cnt_limit:
 									cnt_arr.append(i+l)
 									handle.piece_priority(i+l,6)
-							print(cnt_arr)
-						#print("seeking i={0},cnt={1},get_bytes={2},
-						#pri_lowered={3}".format(i,cnt,get_bytes,pri_lowered))
+							#print(cnt_arr)
 						handle.piece_priority(i,7)
-						##print(cnt_arr)
 						
 						if get_bytes and not pri_lowered:
 							if seek_end:
 								k = cnt+10
 							else:
 								k = cnt
-							print(k,i,'---k,i--')
+							#print(k,i,'---k,i--')
 							while k < i:
 								handle.piece_priority(k,1)
-								print(k,' lowered')
+								#print(k,' lowered')
 								k = k+1
 							pri_lowered = True
 					if ses.is_paused() or os.path.exists(tmp_pl_file):
@@ -236,9 +234,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		global handle,ses,info,cnt,cnt_limit,file_name,torrent_download_path
 		global tmp_dir_folder,httpd,media_server_key,client_auth_arr
-		#data = self.request.recv(1024).strip()
-		#print(data,'--requests--')
-		#print(handle,ses,info)
 		print('do_get')
 		print(self.headers)
 		try:
@@ -246,51 +241,88 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		except Exception as e:
 			get_bytes = 0
 		print(get_bytes,'--get--bytes--')
+		print(client_auth_arr,'--250--')
+		cookie_verified = False
+		if '&pl_id=' in self.path:
+			path,pl_id = self.path.rsplit('&pl_id=',1)
+			del_uid = False
+			found_uid = False
+			try:
+				if pl_id in ui_player.playlist_auth_dict_ui:
+					print(pl_id,ui_player.playlist_auth_dict_ui[pl_id],'--playlist--id--')
+					old_time = ui_player.playlist_auth_dict_ui[pl_id]
+					found_uid = True
+					time_diff = int(time.time()) - int(old_time)
+					print(time_diff,'--time--diff--')
+					if (time_diff) > ui_player.cookie_playlist_expiry_limit*3600:
+						del_uid = True
+			except Exception as err_val:
+				print(err_val,'--266--')
+				
+			if found_uid and not del_uid:
+				cookie_verified = True
+			elif found_uid and del_uid:
+				print('--timeout--')
 		
-		if media_server_key:
-			key_en = base64.b64encode(bytes(media_server_key,'utf-8'))
-			key = (str(key_en).replace("b'",'',1))[:-1]
-			new_key = 'Basic '+key
-			cli_key = self.headers['Authorization'] 
-			print(cli_key,new_key)
-			client_addr = str(self.client_address[0])
-			print(client_addr,'--cli--')
-			print(client_auth_arr,'--auth--')
-			if not cli_key and (not client_addr in client_auth_arr):
-				print('authenticating...')
-				txt = 'Nothing'
-				print ("send header")
-				self.send_response(401)
-				self.send_header('WWW-Authenticate', 'Basic realm="Auth"')
-				self.send_header('Content-type', 'text/html')
-				self.send_header('Content-Length', len(txt))
-				self.end_headers()
-				try:
-					self.wfile.write(b'Nothing')
-				except Exception as e:
-					print(e)
-			elif (cli_key == new_key) or (client_addr in client_auth_arr):
+		if ui_player.media_server_cookie:
+			print('--cookie-stream--enabled--')
+			if cookie_verified:
 				self.get_the_content(get_bytes)
+				print('--cookie-stream-verified--')
 			else:
-				self.send_header('Content-type','text/html')
 				txt = b'You are not authorized to access the content'
-				self.send_header('Content-Length', len(txt))
-				self.send_header('Connection', 'close')
-				self.end_headers()
-				try:
-					self.wfile.write(txt)
-				except Exception as e:
-					print(e)
+				self.final_message(txt)
 		else:
-			self.get_the_content(get_bytes)
+			if media_server_key:
+				key_en = base64.b64encode(bytes(media_server_key,'utf-8'))
+				key = (str(key_en).replace("b'",'',1))[:-1]
+				new_key = 'Basic '+key
+				cli_key = self.headers['Authorization'] 
+				#print(cli_key,new_key)
+				client_addr = str(self.client_address[0])
+				print(client_addr,'--cli--')
+				print(client_auth_arr,'--auth--')
+				if not cli_key and (not client_addr in client_auth_arr):
+					print('authenticating...')
+					txt = 'Nothing'
+					print ("send header")
+					self.send_response(401)
+					self.send_header('WWW-Authenticate', 'Basic realm="Auth"')
+					self.send_header('Content-type', 'text/html')
+					self.send_header('Content-Length', len(txt))
+					self.end_headers()
+					try:
+						self.wfile.write(b'Nothing')
+					except Exception as e:
+						print(e)
+				elif (cli_key == new_key) or (client_addr in client_auth_arr):
+					self.get_the_content(get_bytes)
+				else:
+					txt = b'You are not authorized to access the content'
+					self.final_message(txt)
+			else:
+				self.get_the_content(get_bytes)
+			
+	def final_message(self,txt,cookie=None):
+		self.send_response(200)
+		if cookie:
+			self.send_header('Set-Cookie',cookie)
+		self.send_header('Content-type','text/html')
+		self.send_header('Content-Length', len(txt))
+		self.send_header('Connection', 'close')
+		self.end_headers()
+		try:
+			self.wfile.write(txt)
+		except Exception as e:
+			print(e)
 		
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	pass
 	
 class ThreadServer(QtCore.QThread):
 	
-	def __init__(self,ip,port,key=None,client_arr=None,https_conn=None,cert_file=None):
-		global thread_signal,media_server_key,client_auth_arr
+	def __init__(self,ip,port,key=None,client_arr=None,https_conn=None,cert_file=None,ui=None):
+		global thread_signal,media_server_key,client_auth_arr,ui_player
 		QtCore.QThread.__init__(self)
 		self.ip = ip
 		self.port = int(port)
@@ -298,7 +330,7 @@ class ThreadServer(QtCore.QThread):
 		client_auth_arr = client_arr
 		self.https_allow = https_conn
 		self.cert_file = cert_file
-		
+		ui_player = ui
 	def __del__(self):
 		self.wait()                        
 	
@@ -312,7 +344,7 @@ class ThreadServer(QtCore.QThread):
 				if os.path.exists(self.cert_file):
 					httpd.socket = ssl.wrap_socket(
 						httpd.socket,certfile=self.cert_file,
-						ssl_version=ssl.PROTOCOL_TLSv1_1)
+						ssl_version=ssl.PROTOCOL_TLSv1_2)
 		except:
 			txt = 'Your local IP changed..or port is blocked\n..Trying to find new IP'
 			#subprocess.Popen(['notify-send',txt])
