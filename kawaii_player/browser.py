@@ -239,10 +239,10 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 					self.ui.epn_name_in_list = title.text
 					
 			if 'list=' in self.url().url() and 'www.youtube.com' in self.url().url():
-				
+				ut_c = soup.findAll('li',{'class':"yt-uix-scroller-scroll-unit currently-playing"})
 				ut = soup.findAll('li',{'class':"yt-uix-scroller-scroll-unit "})
-				if not ut:
-					ut = soup.findAll('li',{'class':"yt-uix-scroller-scroll-unit "})
+				if ut_c:
+					ut = ut_c + ut
 				print(ut)
 				arr = []
 				for i in ut:

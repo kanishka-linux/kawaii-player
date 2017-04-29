@@ -2021,7 +2021,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						write_files(pls_path,new_line,line_by_line=True)
 						op_success = True
 				elif pls_path and yt_playlist:
+					ut_c = soup.findAll('li',{'class':"yt-uix-scroller-scroll-unit currently-playing"})
 					ut = soup.findAll('li',{'class':"yt-uix-scroller-scroll-unit "})
+					if ut_c:
+						ut = ut_c + ut
 					arr = []
 					for i in ut:
 						try:
