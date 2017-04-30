@@ -527,7 +527,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					self.final_message(b'Access from outside not allowed')
 			else:
 				txt = b'You are not authorized to access the content'
-				self.final_message(txt)
+				self.final_message(txt,auth_failed=True)
 		elif ui.media_server_cookie and ui.media_server_key:
 			new_key = ui.media_server_key 
 			cli_key = self.headers['Authorization']
@@ -598,11 +598,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					else:
 						self.final_message(b'Could not find your Public IP')
 				else:
-					txt = b'Access Not Allowed, Authentication Failed'
-					self.final_message(txt)
+					txt = b'Access Not Allowed, Authentication Failed. Clear cache, ACTIVE LOGINS and try again or restart browser.'
+					self.final_message(txt,auth_failed=True)
 			else:
-				txt = b'Access Not Allowed, Authentication Failed'
-				self.final_message(txt)
+				txt = b'Access Not Allowed, Authentication Failed. Clear cache, ACTIVE LOGINS and try again or restart browser.'
+				self.final_message(txt,auth_failed=True)
 		else:
 			client_addr = str(self.client_address[0])
 			if client_addr not in ui.client_auth_arr:
@@ -1758,7 +1758,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				print(self.client_auth_dict)
 				print(self.playlist_auth_dict)
 				print("client: {0} logged out".format(client_addr))
-				txt = "logged out. Now Clear Browser Cache,ACTIVE LOGINS, and Restart The Browser to avoid auto-login."
+				txt = "Logged out. Now Clear Browser Cookies, Cache, ACTIVE LOGINS to avoid auto-login. In desktop browsers these options can be found by pressing shift+ctrl+del. If auto-login still persists, try restarting the browser."
 				txt_b = bytes(txt,'utf-8')
 				self.final_message(txt_b)
 			except Exception as e:
@@ -2042,18 +2042,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							op_success = True
 		return op_success
 		
-	def final_message(self,txt,cookie=None):
-		self.send_response(200)
+	def final_message(self,txt,cookie=None,auth_failed=None):
 		if cookie:
+			self.send_response(303)
 			self.send_header('Set-Cookie',cookie)
-		self.send_header('Content-type','text/html')
-		self.send_header('Content-Length', len(txt))
-		self.send_header('Connection', 'close')
-		self.end_headers()
-		try:
-			self.wfile.write(txt)
-		except Exception as e:
-			print(e)
+			nm = 'stream_continue.htm'
+			self.send_header('Location',nm)
+			self.send_header('Connection', 'close')
+			self.end_headers()
+		else:
+			self.send_response(200)
+			self.send_header('Content-type','text/html')
+			self.send_header('Content-Length', len(txt))
+			self.send_header('Connection', 'close')
+			self.end_headers()
+			try:
+				self.wfile.write(txt)
+			except Exception as e:
+				print(e)
 			
 	def auth_header(self):
 		print('authenticating...')
