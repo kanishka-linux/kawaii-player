@@ -516,6 +516,32 @@ def change_config_file(ip,port):
 	f.write(content)
 	f.close()
 
+def get_torrent_download_location(url,home_dir,download_loc):
+	tmp_arr = url.split('&')
+	site = tmp_arr[0]
+	opt = tmp_arr[1]
+	site_Name = tmp_arr[2]
+	name = tmp_arr[3]
+	torrent_loc = os.path.join(home_dir,'History',site,name+'.torrent')
+	if tmp_arr[4] == 'False':
+		vi_deo_local_stream = False
+	else:
+		vi_deo_local_stream = True
+	row = int(tmp_arr[5])
+	ep_n = tmp_arr[6]
+	
+	info = lt.torrent_info(torrent_loc)
+	i = 0
+	fileIndex = int(row)
+	file_found = False
+	for f in info.files():
+		if fileIndex == i:
+			fileStr = f
+		i = i+1
+	print (fileStr.path)
+	file_name = os.path.join(download_loc,fileStr.path)
+	return file_name
+
 def torrent_session_status(torrent_handle):
 	s = torrent_handle.status()
 	state_str = ['queued', 'checking', 'downloading metadata',
@@ -534,7 +560,8 @@ def torrent_session_status(torrent_handle):
 	TDR = u'\u2193'+str(int(s.download_rate/1024)) + 'K' + '('+TD+')'
 	TUR = u'\u2191'+str(int(s.upload_rate/1024)) + 'K'+'('+TU+')'
 	#TD_ALL = str(int(s.all_time_download/(1024*1024)))+'M'
-	out1 = str(out)+' '+total_size_content+' '+TDR +' '+TUR+' '+'P:'+str(s.num_peers)
+	SZ = str(int(s.total_wanted/(1024*1024)))+'M'
+	out1 = str(out)+' '+SZ+' '+TDR +' '+TUR+' '+'P:'+str(s.num_peers)
 	if s.state == 1:
 		out1 = 'Checking Please Wait: '+str(out)
 	return out1
@@ -724,8 +751,8 @@ def get_torrent_info_magnet(v1,v3,u,p_bar,tmp_dir):
 	while (not handle.has_metadata()):
 		time.sleep(1)
 		i = i+1
-		print('finding metadata')
-		if i > 300:
+		print('finding metadata {0}'.format(i))
+		if i > 120:
 			print('No Metadata Available: {0}s'.format(i))
 			break
 	info = handle.get_torrent_info()
@@ -747,9 +774,18 @@ def set_new_torrent_file_limit(
 	progress = p_bar
 	tmp_dir_folder = tmp_dir
 	
+	if v1.endswith('.torrent'):
+		info = lt.torrent_info(v1)
+	
 	torr_arr = ses.get_torrents()
+	torr_name = os.path.basename(v1.replace('.torrent','',1))
+	print('--755--set_new_torrent_file_limit--',torr_name)
 	for i in torr_arr:
-		print(i.name())
+		torr_name_ses = i.name()
+		print(torr_name_ses)
+		if torr_name == torr_name_ses:
+			handle = i
+			print(torr_name,'--current-handle--')
 	
 	i=0
 	fileIndex = int(v2)
@@ -785,7 +821,7 @@ def set_new_torrent_file_limit(
 	cnt1 = cnt
 	
 	print('\n',cnt,cnt_limit,file_name,'---get--torrent--info\n')
-	
+	return handle
 	
 def get_torrent_info(v1,v2,v3,session,u,p_bar,tmp_dir,key=None,client=None):
 	global handle,ses,info,cnt,cnt_limit,file_name,ui,torrent_download_path
