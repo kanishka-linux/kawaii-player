@@ -34,7 +34,9 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 <div class= "video_section">
 
-<video id="player" width="640" height="480" controls></video>
+<video id="player" width="640" height="480" controls>
+	<track kind="captions" label="English" srclang="en" src="" default>
+</video>
 <br>
 <div id="title"></div>
 <br>
@@ -71,7 +73,32 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
 <button id="opt_ok">Go</button>
-<input id="type_search" title="Enter Text to Search. Text box can also be used to input text commands to server as follows 1. create_playlist:playlist_name 2. save_playlist:playlist_name (will save any current playlist) 3. torrent:torrent_magnet_or_http link (for adding torrent) 4. torrent:stop 5. torrent:delete 6. torrent:status 7. torrent:status_stop 8. torrent:d:KB::u:KB 9.update:video (update video section) 10.update:music (update music section) 11. yt:youtube_url (add youtube link to playlist) 12. yt:audio (play only audio) 13. yt:audiovideo (regular video) 14. quality:{sd,hd,best}"  type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+<input id="type_search" title="Enter Text to Search. 
+Text box can also be used to input text commands to server as follows 
+1. create_playlist:playlist_name 
+2. save_playlist:playlist_name (will save any current playlist) 
+3. update:video (update video section) 
+4. update:music (update music section) 
+5. sub:on (turn on subtitle, works if ffmpeg is installed on server)
+6. sub:off 
+7. sub:reload 
+8. torrent:torrent_magnet_or_http link (for adding torrent) 
+9. torrent:stop 
+10 torrent:remove (remove torrent from session)
+11. torrent:delete (delete torrent and associated files)
+12. torrent:status 
+13. torrent:status_all (show status of all torrents)
+14. torrent:status_stop 
+15. torrent:d:KB::u:KB  (set d:download, u:upload speed)
+16. torrent:pause 
+17. torrent:pause_all
+18. torrent:resume
+19. torrent:resume_all
+20. yt:youtube_url (add youtube link to playlist) 
+21. yt:audio (play only audio) 
+22. yt:audiovideo (regular video) 
+23. quality:{sd,hd,best} 
+"  type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
 <br>
@@ -250,6 +277,9 @@ var _player = document.getElementById("player"),
     _playlist_selected_element = "";
     _drag_start_y = 0;
     _get_torrent_status = "";
+    _status_command = "";
+    _final_url = "";
+    _subtitle_status = "off";
     _prev = document.getElementById("prev");
     
 
@@ -347,8 +377,15 @@ function menu_clicked_remove(e){
 	}
 }
 
-function torrent_status(){
-	new_url = 'get_torrent_info';
+function torrent_status(val){
+	var new_url = 'get_torrent_info';
+	if (val == 'status' || _status_command == 'status'){
+		new_url = 'get_torrent_info';
+	}
+	else if(val == 'status_all' || _status_command == 'status_all') {
+		new_url = 'get_all_torrent_info';
+	}
+	//console.log(val,new_url);
 	var client = new getRequest();
 	client.get(new_url, function(response) {
 	//console.log(response);
@@ -408,12 +445,23 @@ function searchFunction(e){
 					}
 					else if (new_val == 'status'){
 						if(!_get_torrent_status || _get_torrent_status == null){
-							torrent_status();
-							_get_torrent_status = setInterval(torrent_status,5000);
+							torrent_status(new_val);
+							_get_torrent_status = setInterval(torrent_status,5000,new_val);
 						}
 						else{
 							console.log('Already updating');
 						}
+						_status_command = new_val;
+					}
+					else if (new_val == 'status_all'){
+						if(!_get_torrent_status || _get_torrent_status == null){
+							torrent_status(new_val);
+							_get_torrent_status = setInterval(torrent_status,5000,new_val);
+						}
+						else{
+							console.log('Already updating');
+						}
+						_status_command = new_val;
 					}
 					else if (new_val == 'status_stop'){
 						if (_get_torrent_status){
@@ -426,6 +474,46 @@ function searchFunction(e){
 							console.log(_get_torrent_status,'--get-torrent-status--');
 							console.log('nothing to stop');
 						}
+					}
+					else if (new_val == 'pause_all'){
+						new_url = 'torrent_all_pause';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
+					}
+					else if (new_val == 'pause'){
+						new_url = 'torrent_pause';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
+					}
+					else if (new_val == 'resume'){
+						new_url = 'torrent_resume';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
+					}
+					else if (new_val == 'resume_all'){
+						new_url = 'torrent_all_resume';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
+					}
+					else if (new_val == 'remove'){
+						new_url = 'torrent_remove';
+						var client = new getRequest();
+						client.get(new_url, function(response) {
+						console.log(response);
+						_title.innerHTML = response;
+						})
 					}
 					else if (new_val.startsWith('d:') || new_val.startsWith('u:')){
 						if (new_val.indexOf('::') >=0){
@@ -501,6 +589,25 @@ function searchFunction(e){
 					console.log(response);
 					_title.innerHTML = response;
 			})
+			z.value = '';
+		}
+		else if(z.value.startsWith("sub:")){
+			var new_z = z.value.replace("sub:","");
+			if (new_z == 'on'){
+				_subtitle_status = "on";
+				_title.innerHTML = 'Subtitle Turned On. Now restart the video again. <br>Make sure that ffmpeg is installed on the server.';
+			}
+			else if (new_z == 'off'){
+				_subtitle_status = "off";
+				while(_player.firstChild){_player.removeChild(_player.firstChild);}
+				_title.innerHTML = 'Subtitle Turned Off';
+			}
+			else if (new_z == 'reload'){
+				_subtitle_status = "on";
+				_title.innerHTML = 'Trying to reload subtitle for current track again';
+				var new_url = _final_url+'.reload.subtitle';
+				get_subtitle(new_url);
+			}
 			z.value = '';
 		}
 		else if(z.value.startsWith("yt:")){
@@ -1037,6 +1144,17 @@ function optValChange(){
 	document.getElementById("type_search").value = ""; 
 }
 
+
+function get_subtitle(src){
+	while(_player.firstChild){_player.removeChild(_player.firstChild);}
+	var new_opt = document.createElement('track');
+	new_opt.setAttribute('kind','captions');
+	new_opt.setAttribute('label','English');
+	new_opt.setAttribute('srclang','en');
+	new_opt.setAttribute('src',src);
+	_player.appendChild(new_opt);
+}
+
 function playlistItemClick(clickedElement,mode) {
     var selected = _playlist.querySelector(".selected");
     console.log(mode)
@@ -1045,11 +1163,15 @@ function playlistItemClick(clickedElement,mode) {
     }
     clickedElement.classList.add("selected");
 	var new_src = clickedElement.getAttribute("data-mp3");
+	_final_url = new_src;
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	_title.innerHTML = _clicked_num+" "+clickedElement.innerHTML;
 	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'Remote Off'){
 		_player.src = new_src;
+		if (_subtitle_status == 'on'){
+			get_subtitle(new_src+".subtitle");
+		}
 		_player.play();
 	}
 	else{
@@ -1083,7 +1205,7 @@ function playlistItemClick(clickedElement,mode) {
 	
 	if (_site_value.value.toLowerCase() == 'torrent'){
 		if(!_get_torrent_status || _get_torrent_status == null){
-			torrent_status();
+			torrent_status('status');
 			_get_torrent_status = setInterval(torrent_status,5000);
 		}
 		else{
