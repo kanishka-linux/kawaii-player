@@ -172,6 +172,7 @@ try:
 	from stream import ThreadServer,TorrentThread,get_torrent_info
 	from stream import set_torrent_info,get_torrent_info_magnet
 	from stream import set_new_torrent_file_limit,torrent_session_status
+	from stream import get_torrent_download_location
 except Exception as e:
 	print(e)
 	notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
@@ -421,7 +422,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 	def do_init_function(self,type_request=None):
 		global current_playing_file_path,path_final_Url,ui,curR
 		global epnArrList
-		logger.info(self.path)
+		#logger.info(self.path)
 		path = self.path.replace('/','',1)
 		if '/' in path:
 			if not path.startswith('site=') and'&s=' not in path:
@@ -430,31 +431,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			pass
 		else:
 			path = urllib.parse.unquote(path)
-		#print(os.getcwd())
-		#print('get__path__::{0}'.format(path))
-		logger.info(self.requestline)
-		#print(self.headers['Cookie'],'--cookie--')
+		#logger.info(self.requestline)
 		playlist_id = None
 		try:
 			get_bytes = int(self.headers['Range'].split('=')[1].replace('-',''))
 		except Exception as e:
 			get_bytes = 0
-		#print(get_bytes)
 		#print(self.headers)
 		cookie_verified = False
 		cookie_set = False
 		cookie_val = self.headers['Cookie']
-		#print(cookie_val,'--cookie--')
 		if cookie_val:
 			try:
 				uid_c = cookie_val.split('=')[1]
 				uid_val = (self.client_auth_dict[uid_c])
 				old_time,playlist_id = uid_val.split('&pl_id=')
-				logger.info('old-time={0}:pl_id={1}'.format(old_time,playlist_id))
+				#logger.info('old-time={0}:pl_id={1}'.format(old_time,playlist_id))
 				old_time = int(old_time)
 				cur_time = int(time.time())
-				logger.info(self.client_auth_dict)
-				logger.info('Time Elapsed: {0}'.format(cur_time-old_time))
+				#logger.info(self.client_auth_dict)
+				#logger.info('Time Elapsed: {0}'.format(cur_time-old_time))
 				if (cur_time - old_time) > ui.cookie_expiry_limit*3600:
 					cookie_verified = False
 					del self.client_auth_dict[uid_c]
@@ -474,11 +470,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				found_uid = False
 				try:
 					if pl_id in self.playlist_auth_dict:
-						print(pl_id,self.playlist_auth_dict[pl_id],'--playlist--id--')
+						#print(pl_id,self.playlist_auth_dict[pl_id],'--playlist--id--')
 						old_time = self.playlist_auth_dict[pl_id]
 						found_uid = True
 						time_diff = int(time.time()) - int(old_time)
-						print(time_diff,'--time--diff--')
+						#print(time_diff,'--time--diff--')
 						if (time_diff) > ui.cookie_playlist_expiry_limit*3600:
 							del self.playlist_auth_dict[pl_id]
 							try:
@@ -675,6 +671,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.send_response(206)
 			else:
 				self.send_response(200)
+			
+			#if nm_ext == 'mkv' and 'firefox' in user_agent:
+			#	new_mp4 = os.path.join(TMPDIR,'tmp.mp4')
+			#	if get_bytes:
+			#		if os.path.exists(new_mp4):
+			#			nm = new_mp4
+			#	else:
+			#		if os.path.isfile(new_mp4):
+			#			os.remove(new_mp4)
+			#		mp4_created = False
+			#		try:
+			#			out = subprocess.check_output(['ffmpeg','-y','-i',nm,'-c:a','copy','-c:v','copy',new_mp4])
+			#			mp4_created = True
+			#		except Exception as e:
+			#			print(e)
+			#			mp4_created = False
+			#		if mp4_created:
+			#			nm = new_mp4
+					
+			
 			if nm_ext == 'mp3':
 				self.send_header('Content-type','audio/mpeg')
 			else:
@@ -1570,7 +1586,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							vid,aud = nm.split('::')
 							if ui.client_yt_mode == 'music':
 								nm = aud
-				self.process_url(nm,get_bytes,status=num_row)
+				if self.path.endswith('.subtitle'):
+					new_path = self.path.rsplit('.',1)[0]
+					if new_path.endswith('.reload'):
+						self.process_subtitle_url(nm,status='reload')
+					else:
+						self.process_subtitle_url(nm)
+				else:
+					self.process_url(nm,get_bytes,status=num_row)
 				print(ui.remote_control,ui.remote_control_field,path)
 				if ui.remote_control and ui.remote_control_field:
 					if 'playlist_index=' in self.path:
@@ -1632,9 +1655,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						if '&pl_id=' in self.path:
 							pl_id_c = re.search('&pl_id=[^/]*',self.path).group()
 							nm = nm + pl_id_c
-						new_torrent_signal.new_signal.emit(old_nm)
-						logger.info('--nm---{0}'.format(nm))
-						self.process_url(nm,get_bytes)
+						if self.path.endswith('.subtitle'):
+							loc = get_torrent_download_location(old_nm,home,ui.torrent_download_folder)
+							new_path = self.path.rsplit('.',1)[0]
+							if new_path.endswith('.reload'):
+								self.process_subtitle_url(loc,status='reload')
+							else:
+								self.process_subtitle_url(loc)
+						else:
+							new_torrent_signal.new_signal.emit(old_nm)
+							logger.info('--nm---{0}'.format(nm))
+							self.process_url(nm,get_bytes)
 				else:
 					print(ui.remote_control,ui.remote_control_field,path)
 					if ui.remote_control and ui.remote_control_field:
@@ -1675,6 +1706,85 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					msg = torrent_session_status(ui.torrent_handle)
 				else:
 					msg = 'no torrent handle, wait for torrent to start'
+				msg = bytes(msg,'utf-8')
+				self.final_message(msg)
+			except Exception as e:
+				print(e)
+		elif path.startswith('torrent_pause'):
+			try:
+				if ui.torrent_handle:
+					ui.torrent_handle.pause()
+					msg = 'Current Torrent Paused'
+				else:
+					msg = 'no torrent handle, first start torrent before pausing'
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = str(e)
+			self.final_message(msg)
+		elif path.startswith('torrent_all_pause'):
+			try:
+				if ui.stream_session:
+					ui.stream_session.pause()
+					msg = 'Current session paused'
+				else:
+					msg = 'no torrent handle, first start torrent before pausing'
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = str(e)
+			self.final_message(msg)
+		elif path.startswith('torrent_resume'):
+			try:
+				if ui.torrent_handle:
+					ui.torrent_handle.resume()
+					msg = 'Current Torrent resumed'
+				else:
+					msg = 'no torrent handle, first start torrent before starting'
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = str(e)
+			self.final_message(msg)
+		elif path.startswith('torrent_remove'):
+			try:
+				if ui.torrent_handle:
+					t_list = ui.stream_session.get_torrents()
+					for i in t_list:
+						if i == ui.torrent_handle:
+							ui.stream_session.remove_torrent(i)
+					msg = 'Current Torrent Removed from session'
+				else:
+					msg = 'no torrent handle, first start torrent session before removing'
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = str(e)
+			self.final_message(msg)
+		elif path.startswith('torrent_all_resume'):
+			try:
+				if ui.stream_session:
+					ui.stream_session.resume()
+					msg = 'Current session resumed'
+				else:
+					msg = 'no torrent handle, first start torrent before resuming'
+				msg = bytes(msg,'utf-8')
+			except Exception as e:
+				print(e)
+				msg = str(e)
+			self.final_message(msg)
+		elif path.startswith('get_all_torrent_info'):
+			try:
+				if ui.stream_session:
+					msg = ''
+					t_list = ui.stream_session.get_torrents()
+					for i in t_list:
+						msg_t = i.name() +':'+torrent_session_status(i) +'<br>'
+						if i == ui.torrent_handle:
+							msg_t = ui.check_symbol+msg_t
+						msg = msg + msg_t
+				else:
+					msg = 'no torrent handle, session not started wait for torrent session to start'
 				msg = bytes(msg,'utf-8')
 				self.final_message(msg)
 			except Exception as e:
@@ -1988,9 +2098,120 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			self.send_header('Location',nm)
 			self.send_header('Connection', 'close')
 			self.end_headers()
-			#nm = 'index.html'
-			#self.send_header('Content-type','text/html')
-			#self.end_headers()
+	
+	
+	def check_local_subtitle(self,path,external=None):
+		result = None
+		ext = ['.srt','.ass','.en.srt','.en.ass']
+		if os.path.exists(path) or external:
+			if '.' in path:
+				nm = path.rsplit('.',1)[0]
+				for i in ext:
+					sub_name = nm + i
+					if os.path.exists(sub_name):
+						result = sub_name
+						break
+		return result
+		
+	def process_subtitle_url(self,path,status=None):
+		global home,ui
+		folder_sub = False
+		sub_name_bytes = bytes(path,'utf-8')
+		h = hashlib.sha256(sub_name_bytes)
+		sub_name = h.hexdigest()
+		sub_name_path = os.path.join(ui.yt_sub_folder,sub_name)
+		
+		sub_name_vtt = sub_name_path + '.vtt'
+		sub_name_srt = sub_name_path + '.srt'
+		sub_name_ass = sub_name_path + '.ass'
+		
+		if status == 'reload':
+			if os.path.isfile(sub_name_vtt):
+				os.remove(sub_name_vtt)
+			if os.path.isfile(sub_name_srt):
+				os.remove(sub_name_srt)
+			if os.path.isfile(sub_name_ass):
+				os.remove(sub_name_ass)
+		
+		
+		sub_path = sub_name_vtt
+		
+		logger.info('path={0}:sub={1}'.format(path,sub_path))
+		check_local_sub = self.check_local_subtitle(path)
+		
+		sub_srt = False
+		sub_ass = False
+		got_sub = False
+		
+		if check_local_sub is None:
+			check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv',external=True)
+		
+		if os.path.exists(path) and not os.path.exists(sub_path):
+			if check_local_sub is not None:
+				try:
+					if OSNAME == 'posix':
+						out = subprocess.check_output(['ffmpeg','-y','-i',check_local_sub,sub_path])
+					else:
+						out = subprocess.check_output(['ffmpeg','-y','-i',check_local_sub,sub_path],shell=True)
+					got_sub = True
+				except Exception as e:
+					print(e)
+					got_sub = False
+					
+			if not got_sub:
+				try:
+					if OSNAME == 'posix':
+						out = subprocess.check_output(['ffmpeg','-y','-i',path,'-map','0:s:0','-c','copy',sub_name_srt])
+					else:
+						out = subprocess.check_output(['ffmpeg','-y','-i',path,'-map','0:s:0','-c','copy',sub_name_srt],shell=True)
+					sub_srt = True
+				except Exception as e:
+					print(e,'--2105--')
+					sub_srt = False
+					if os.path.isfile(sub_name_srt):
+						os.remove(sub_name_srt)
+					try:
+						if OSNAME == 'posix':
+							out = subprocess.check_output(['ffmpeg','-y','-i',path,'-map','0:s:0','-c','copy',sub_name_ass])
+						else:
+							out = subprocess.check_output(['ffmpeg','-y','-i',path,'-map','0:s:0','-c','copy',sub_name_ass],shell=True)
+						sub_ass = True
+					except Exception as e:
+						print(e)
+						sub_ass = False
+						if os.path.isfile(sub_name_ass):
+							os.remove(sub_name_ass)
+				if sub_srt or sub_ass:
+					if sub_srt:
+						ip_file = sub_name_srt
+					else:
+						ip_file = sub_name_ass
+					try:
+						if OSNAME == 'posix':
+							out = subprocess.check_output(['ffmpeg','-y','-i',ip_file,sub_path])
+						else:
+							out = subprocess.check_output(['ffmpeg','-y','-i',ip_file,sub_path],shell=True)
+						got_sub = True
+					except Exception as e:
+						print(e)
+						got_sub = False
+			
+		if os.path.exists(sub_path):
+			content = open(sub_path,'r').read()
+			c = bytes(content,'utf-8')
+		else:
+			c = bytes('WEBVTT','utf-8')
+		self.send_response(200)
+		self.send_header('Content-type','text/vtt')
+		self.send_header('Content-Length', len(c))
+		self.send_header('Connection', 'close')
+		self.end_headers()
+		try:
+			self.wfile.write(c)
+		except Exception as e:
+			print(e)
+			
+			
 	
 	def process_yt_playlist(self,url,pls):
 		global home
@@ -2220,6 +2441,13 @@ def update_databse_signal(mode):
 @pyqtSlot(str)
 def delete_torrent_history(nm):
 	global home,ui
+	if ui.stream_session:
+		t_list = ui.stream_session.get_torrents()
+		for i in t_list:
+			chk_name = i.name()
+			if chk_name == nm:
+				ui.stream_session.remove_torrent(i)
+				logger.info('removing--torrent--{0}'.format(chk_name))
 	if nm:
 		#ui.stop_torrent(from_client=True)
 		hist_folder = os.path.join(home,'History','Torrent')
@@ -15109,7 +15337,21 @@ class Ui_MainWindow(object):
 		if m:
 			for i in m:
 				list1_items.append(i)	
-
+	
+	def get_torrent_handle(self,nm):
+		handle = None
+		if self.stream_session:
+			t_list = self.stream_session.get_torrents()
+			logger.info('--15197---')
+			for i in t_list:
+				old_name = i.name()
+				logger.info('--check--{0}'.format(old_name))
+				if old_name == nm:
+					logger.info('selecting handle: {0}'.format(nm))
+					handle = i
+					break
+		return handle
+	
 	def summary_write_and_image_copy(self,hist_sum,summary,picn,hist_picn):
 		write_files(hist_sum,summary,line_by_line=False)
 		if os.path.isfile(picn):
@@ -15331,6 +15573,10 @@ class Ui_MainWindow(object):
 						if '	' in i:
 							i = i.split('	')[0]
 						original_path_name.append(j)
+					if new_video_local_stream and self.stream_session:
+						handle = self.get_torrent_handle(search_term)
+						if handle is not None:
+							self.torrent_handle = handle
 			else:
 				opt = t_opt
 				try:
@@ -15342,6 +15588,10 @@ class Ui_MainWindow(object):
 								t_opt,self.list6,self.progress,
 								self.tmp_download_folder,history_folder
 								)
+							if self.stream_session:
+								handle = self.get_torrent_handle(search_term)
+								if handle is not None:
+									self.torrent_handle = handle
 					else:
 						m = site_var.getCompleteList(t_opt,0)
 				except Exception as e:
@@ -17665,6 +17915,7 @@ class Ui_MainWindow(object):
 				self,name_file,epn_index,local_ip,status,path_folder,session,
 				site_name=None,from_client=None):
 		global site,home
+		torrent_thread = None
 		index = int(epn_index)
 		ip_n = local_ip.rsplit(':',1)
 		ip = ip_n[0]
@@ -17673,7 +17924,7 @@ class Ui_MainWindow(object):
 		if site_name:
 			site_name_val = site_name
 		else:
-			site_name_val = site
+			site_name_val = 'Torrent'
 		site_home = os.path.join(home,'History',site_name_val)
 		torrent_dest = os.path.join(site_home,name_file+'.torrent')
 		logger.info('torrent_dest={0} ; index={1}; path={2}'.format(torrent_dest,index,path))
@@ -17685,7 +17936,7 @@ class Ui_MainWindow(object):
 		print(url,'-local-ip-url',status)
 		
 		if status.lower() == 'get next':
-			set_new_torrent_file_limit(
+			self.torrent_handle = set_new_torrent_file_limit(
 				torrent_dest,index,path,self.stream_session,self.list6,
 				self.progress,TMPDIR,self.media_server_key,self.client_auth_arr)
 		else:
@@ -17730,6 +17981,8 @@ class Ui_MainWindow(object):
 					i = i+1
 				return url,thread_server,torrent_thread,ses,handle
 			else:
+				if torrent_thread is None:
+					torrent_thread = self.do_get_thread
 				return url,torrent_thread,ses,handle
 	
 	def initial_view_mode(self):
@@ -18027,10 +18280,20 @@ class Ui_MainWindow(object):
 					if self.thread_server.isRunning():
 						if self.do_get_thread.isRunning():
 							if self.torrent_handle.file_priority(row):
-									self.start_torrent_stream(
-										na_me,row,self.local_ip+':'+str(self.local_port),
-										'Get Next',self.torrent_download_folder,
-										self.stream_session)
+									get_next = 'Next'
+									t_list = self.stream_session.get_torrents()
+									logger.info('--18035---')
+									for i in t_list:
+										old_name = i.name()
+										logger.info('--check--{0}'.format(old_name))
+										if old_name == na_me:
+											get_next = 'Get Next'
+											logger.info(get_next)
+											break
+									finalUrl,self.do_get_thread,self.stream_session,self.torrent_handle = self.start_torrent_stream(
+									na_me,row,self.local_ip+':'+str(self.local_port),
+									get_next,self.torrent_download_folder,
+									self.stream_session,site_name=si_te,from_client=from_client)
 						else:
 							finalUrl,self.do_get_thread,self.stream_session,self.torrent_handle = self.start_torrent_stream(
 								na_me,row,self.local_ip+':'+str(self.local_port),'Next',
