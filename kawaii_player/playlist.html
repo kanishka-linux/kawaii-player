@@ -402,6 +402,12 @@ function searchFunction(e){
 			new_val = z.value.replace("torrent:","");
 			if (new_val.startsWith('http') || new_val.startsWith('magnet')){
 				new_url = 'get_torrent=' + btoa(new_val);
+				if (new_val.startsWith('magnet')){
+					_title.innerHTML = 'Wait for at the most 2 minutes..Magnet links take time.';
+				}
+				else{
+					_title.innerHTML = 'Wait..Getting Torrent';
+				}
 				var client = new getRequest();
 				client.get(new_url, function(response) {
 				console.log(response);
