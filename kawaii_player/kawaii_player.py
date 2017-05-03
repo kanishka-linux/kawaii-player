@@ -18279,21 +18279,21 @@ class Ui_MainWindow(object):
 					print(finalUrl,'=finalUrl--torrent--')
 					if self.thread_server.isRunning():
 						if self.do_get_thread.isRunning():
+							get_next = 'Next'
 							if self.torrent_handle.file_priority(row):
-									get_next = 'Next'
-									t_list = self.stream_session.get_torrents()
-									logger.info('--18035---')
-									for i in t_list:
-										old_name = i.name()
-										logger.info('--check--{0}'.format(old_name))
-										if old_name == na_me:
-											get_next = 'Get Next'
-											logger.info(get_next)
-											break
-									finalUrl,self.do_get_thread,self.stream_session,self.torrent_handle = self.start_torrent_stream(
-									na_me,row,self.local_ip+':'+str(self.local_port),
-									get_next,self.torrent_download_folder,
-									self.stream_session,site_name=si_te,from_client=from_client)
+								t_list = self.stream_session.get_torrents()
+								logger.info('--18035---')
+								for i in t_list:
+									old_name = i.name()
+									logger.info('--check--{0}'.format(old_name))
+									if old_name == na_me:
+										get_next = 'Get Next'
+										logger.info(get_next)
+										break
+							finalUrl,self.do_get_thread,self.stream_session,self.torrent_handle = self.start_torrent_stream(
+							na_me,row,self.local_ip+':'+str(self.local_port),
+							get_next,self.torrent_download_folder,
+							self.stream_session,site_name=si_te,from_client=from_client)
 						else:
 							finalUrl,self.do_get_thread,self.stream_session,self.torrent_handle = self.start_torrent_stream(
 								na_me,row,self.local_ip+':'+str(self.local_port),'Next',
