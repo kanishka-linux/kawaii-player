@@ -178,11 +178,11 @@ If torrent contains multiple files then users can enqueue the desired files by s
  
 Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
 
-**Using Web Interface for managing and accessing Torrent Stream remotely:**
+**Using Web Interface for managing and accessing Torrent Streaming server remotely:**
 
 ![kawaii-player](/Images/Web.png)
 
-Using application as **Torrent Streaming Server**.
+(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser) 
 
 First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files. Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
@@ -199,7 +199,7 @@ First, set up ip address and port properly for both media server and torrent str
 		$ torrent:resume
 		$ torrent:resume_all
 
-HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opend and play with the help of any popular media players like mpv or vlc. 
+HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opend and play with the help of any popular media players like mpv or vlc.
 
 ## Media Server
 
