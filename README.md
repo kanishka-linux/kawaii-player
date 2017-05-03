@@ -504,6 +504,9 @@ curl or wget {In case pycurl doesn't work}
 
 openssl {for enabling HTTPS}
 
+ffmpeg {for extracting and converting subtitles}
+
+xvfb {for using the application in headless mode}
 
 **Dependencies installation in Arch for pyqt5 version.**
 
