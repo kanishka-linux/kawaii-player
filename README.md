@@ -191,6 +191,7 @@ First, set up ip address and port properly for both media server and torrent str
 		$ torrent:remove (remove torrent from session)
 		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
 		$ torrent:status (will show status of current running torrent)
+		$ torrent:status_all (show status of all running torrents)
 		$ torrent:status_stop (will stop showing status)
 		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
 		$ torrent:pause
