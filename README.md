@@ -25,6 +25,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Universal Playlist Generation](#universal-playlist-generation)
 
+[Using Web Interface](#using-web-interface)
+
 [Remote Control](#remote-control)
 
 [YouTube Player](#youtube-support)
@@ -176,16 +178,27 @@ If torrent contains multiple files then users can enqueue the desired files by s
  
 Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
 
-**Using Web Interface for managing and accessing Torrent Stream remotely:** First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files. Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent. (Before using following commands user needs to select *'Torrent'* section from select menu in web interface):
+**Using Web Interface for managing and accessing Torrent Stream remotely:**
+
+![kawaii-player](/Images/Web.png)
+
+Using application as **Torrent Streaming Server**.
+
+First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files. Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
 		$ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
 		$ torrent:stop (for stopping torrent)
+		$ torrent:remove (remove torrent from session)
 		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
 		$ torrent:status (will show status of current running torrent)
 		$ torrent:status_stop (will stop showing status)
 		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
+		$ torrent:pause
+		$ torrent:pause_all
+		$ torrent:resume
+		$ torrent:resume_all
 
-HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opend and play with the help of any popular media players like mpv or vlc.
+HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opend and play with the help of any popular media players like mpv or vlc. 
 
 ## Media Server
 
@@ -322,6 +335,43 @@ Another popular open and free Android client is Kodi, which can also play most o
 Performance of vlc or kodi on android devices also depends on the hardware of the device. Depending on the hardware of mobile device, sometimes they might play every kind of network stream you throw at them, while sometimes they won't play even a simple video.
 
 Note: Once user logs out from cookie and password enabled session, he/she can't search anything within the server without logging in again. But the generated playlist can be played by any player till the expiry of playlist even after log out. Expiry period for playlist can be set in other_options.txt file (COOKIE_PLAYLIST_EXPIRY_LIMIT field) in hours.
+
+## Using Web Interface
+
+###### [Index](#index)
+
+Web Interface, contains a search text box which can be used to send text commands to media server. All these commands are listed below:
+
+		$ create_playlist:playlist_name (This will create custom empty playlist with name *playlist_name* on the server, if it has already not been created)
+		$ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
+		$ update:video (will update video section)
+		$ update:music (will update music section)
+		
+		$ sub:on (Turn on subtitle if ffmpeg is installed on server)
+		$ sub:off (Turn off subtitles)
+		$ sub:reload (Reload subtitles, if subtitles are not visible even after turning on)
+		
+		$ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
+		$ torrent:stop (It will stop the torrent session)
+		$ torrent:remove (remove torrent from session)
+		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
+		$ torrent:status (will show status of current running torrent)
+		$ torrent:status_all (show status of all running torrents)
+		$ torrent:status_stop (will stop showing status)
+		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
+		$ torrent:pause
+		$ torrent:pause_all
+		$ torrent:resume
+		$ torrent:resume_all
+		
+		$ yt:youtube_link (send youtube link to server playlist)
+		$ yt:audio (play only audio)
+		$ yt:audiovideo (regular video)
+		$ quality:{sd,hd,best}
+		
+**About Playlist Support:** Web Interface allows creation and manipulation of playlists. In firefox, users will get right click context menu using which they can add and remove playlist entries. In Chromium, users have to use drag and drop feature to drop entries to custom place. If playlist is very long, then drag and drop feature can be cumbersome. In such case user should drop entries on '**Top**' label, which will appear over lower right corner. By clicking on '**Top**' label users can directly go to top of page, but it can also be used as dropping place for custom playlist entries.
+
+**About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
 
 ## Remote Control
 
