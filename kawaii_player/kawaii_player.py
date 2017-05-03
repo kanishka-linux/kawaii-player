@@ -1896,11 +1896,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			logger.info(nm)
 			logger.info(new_url)
 			if new_url.startswith('http') or new_url.startswith('magnet'):
-				msg = 'Getting Torrent: Refresh Torrent->History Section after some time'
+				msg = 'Empty Response'
+				hist_folder = os.path.join(home,'History','Torrent')
+				try:
+					ui.record_torrent(new_url,hist_folder)
+					msg = 'Got Torrent: refresh Torrent->History'
+				except Exception as e:
+					print(e)
+					msg = 'Fetching Torrent Failed'
 				msg = bytes(msg,'utf-8')
 				self.final_message(msg)
-				hist_folder = os.path.join(home,'History','Torrent')
-				ui.record_torrent(new_url,hist_folder)
 			elif new_url.startswith('delete'):
 				var_name = new_url.replace('delete&','',1)
 				if var_name:
