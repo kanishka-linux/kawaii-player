@@ -186,14 +186,34 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 
 First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
-		$ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
-		$ torrent:stop (for stopping torrent)
-		$ torrent:remove (remove torrent from session)
-		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
-		$ torrent:status (will show status of current running torrent)
-		$ torrent:status_all (show status of all running torrents)
-		$ torrent:status_stop (will stop showing status)
-		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
+	1. For adding torrent to the server, Once torrent info is fetched, it will be available in *Torrent->History* section
+		
+		$ torrent:torrent_magnet_or_http_link 
+		
+	2. Stopping Torrent Completely
+	
+		$ torrent:stop
+		
+	3. Remove Torrent From Session
+	
+		$ torrent:remove
+		
+	4. delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*
+	
+		$ torrent:delete  
+		
+	5. Status of Torrents
+	
+		$ torrent:status (show status of current running torren, default behaviour)
+		$ torrent:status_all (show status of all active torrents)
+		$ torrent:status_stop (stop showing status)
+		
+	6. Set up download/upload speed for individual torrents.
+	
+		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (e.g. torrent:d:100::u:90)
+		
+	7. Torrent pause and resume
+	
 		$ torrent:pause
 		$ torrent:pause_all
 		$ torrent:resume
