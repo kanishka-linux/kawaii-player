@@ -624,6 +624,9 @@ function searchFunction(e){
 						var title_name = _final_name.replace('YouTube - ','')
 						var new_url = _final_url+'&&'+pls_name.value+'&name='+title_name+'.download';
 					}
+					else if (new_z == 'getsub'){
+						var new_url = _final_url+'.getsub';
+					}
 					else if (new_z.startsWith('d:')) {
 						new_z = new_z.replace('d:','');
 						var new_url = 'youtube_url='+new_z+'&&'+pls_name.value+'.download';
@@ -635,6 +638,11 @@ function searchFunction(e){
 					client.get(new_url, function(response) {
 					console.log(response);
 					_title.innerHTML = response;
+					if (new_z == 'getsub'){
+						if (response.toLowerCase() == 'got subtitle'){
+							get_subtitle(_final_url+'.subtitle');
+						}
+					}
 					})
 				}
 				else{
@@ -1166,7 +1174,9 @@ function get_subtitle(src){
 	new_opt.setAttribute('label','English');
 	new_opt.setAttribute('srclang','en');
 	new_opt.setAttribute('src',src);
+	new_opt.setAttribute('default','');
 	_player.appendChild(new_opt);
+	_player.textTracks[0].mode = 'showing';
 }
 
 function playlistItemClick(clickedElement,mode) {
