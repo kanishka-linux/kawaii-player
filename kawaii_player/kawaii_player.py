@@ -1559,6 +1559,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				nm = str(base64.b64decode(nm).decode('utf-8'))
 				logger.info(nm)
 				num_row = None
+				old_nm = nm
 				if nm.startswith('http'):
 					http_val = 'http'
 					if ui.https_media_server:
@@ -1592,6 +1593,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						self.process_subtitle_url(nm,status='reload')
 					else:
 						self.process_subtitle_url(nm)
+				elif self.path.endswith('.download'):
+					if 'youtube.com' in old_nm:
+						info_args = urllib.parse.unquote(self.path.rsplit('&&')[-1])
+						info_arr = info_args.split('&')
+						if len(info_arr) >= 2:
+							try:
+								pls_name = info_arr[0]
+								new_name = info_arr[1].split('=')[-1].rsplit('.')[0]
+								logger.info(new_name)
+								self.process_offline_mode(nm,pls_name,new_name,msg=True)
+							except Exception as e:
+								print(e)
+								self.final_message(b'Error in processing url')
+						else:
+							self.final_message(b'Wrong parameters')
+					else:
+						self.final_message(b'Wrong parameters')
 				else:
 					self.process_url(nm,get_bytes,status=num_row)
 				print(ui.remote_control,ui.remote_control_field,path)
@@ -1612,6 +1630,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						self.final_message(b)
 			except Exception as e:
 				print(e)
+				self.final_message(b'Wrong parameters --1626--')
 		elif path.startswith('relative_path='):
 			try:
 				#if '/' in path:
@@ -2018,10 +2037,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					#url = str(base64.b64decode(url).decode('utf-8'))
 				else:
 					msg = 'wrong parameters'
+				mode = None
+				if pls.endswith('.download'):
+					pls = pls.rsplit('.',1)[0]
+					mode = 'offline'
 				if url and pls:
 					pls = urllib.parse.unquote(pls)
 					if url.startswith('http'):
-						val = self.process_yt_playlist(url,pls)
+						val = self.process_yt_playlist(url,pls,mode=mode)
 						logger.info('---1914---val={0}--'.format(val))
 						if val:
 							msg = 'playlist :{0} updated successfully'.format(pls)
@@ -2104,7 +2127,29 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			self.send_header('Connection', 'close')
 			self.end_headers()
 	
-	
+	def process_offline_mode(self,nm,pls,title,msg=None):
+		global ui,home
+		loc_dir = os.path.join(ui.default_download_location,pls)
+		if not os.path.exists(loc_dir):
+			os.makedirs(loc_dir)
+		title = title.replace('"','')
+		loc = os.path.join(loc_dir,title+'.mp4')
+		ok_val = False
+		try:
+			ccurl(nm+'#'+'-o'+'#'+loc)
+			ok_val = True
+		except Exception as e:
+			print(e)
+			ok_vl = False
+		if ok_val:
+			pls_home = os.path.join(home,'Playlists',pls)
+			content = '{0} - offline	{1}	{2}'.format(title,loc,'YouTube')
+			if os.path.exists(pls_home):
+				write_files(pls_home,content,line_by_line=True)
+		if msg:
+			self.final_message(b'Got it!. update video section or refresh playlist')
+		
+		
 	def check_local_subtitle(self,path,external=None):
 		result = None
 		ext = ['.srt','.ass','.en.srt','.en.ass']
@@ -2218,7 +2263,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			
 			
 	
-	def process_yt_playlist(self,url,pls):
+	def process_yt_playlist(self,url,pls,mode=None):
 		global home
 		op_success = False
 		logger.info('{0}:{1}--1975--'.format(url,pls))
@@ -2228,13 +2273,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			else:
 				yt_playlist = False
 			if url.startswith('http') and 'youtube.com' in url:
-				
-				req = urllib.request.Request(
-					url,data=None,headers={'User-Agent': 'Mozilla/5.0'}
-					)
-
-				f = urllib.request.urlopen(req)
-				content = f.read().decode('utf-8')
+				try:
+					req = urllib.request.Request(
+						url,data=None,headers={'User-Agent': 'Mozilla/5.0'}
+						)
+					f = urllib.request.urlopen(req)
+					content = f.read().decode('utf-8')
+				except Exception as e:
+					print(e,'---2279---')
+					return op_success
 				soup = BeautifulSoup(content,'lxml')
 				title = soup.title.text.replace(' - YouTube','').strip()
 				logger.info(title)
@@ -2266,6 +2313,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 							lines = lines + arr
 							write_files(pls_path,lines,line_by_line = True)
 							op_success = True
+				if mode == 'offline':
+					nm = get_yt_url(url,ui.client_quality_val,ui.ytdl_path,logger,mode=ui.client_yt_mode).strip()
+					if '::' in nm:
+						vid,aud = nm.split('::')
+						if ui.client_yt_mode == 'music':
+							nm = aud
+					self.process_offline_mode(nm,pls,title,msg=False)
 		return op_success
 		
 	def final_message(self,txt,cookie=None,auth_failed=None):
@@ -2490,8 +2544,6 @@ def delete_torrent_history(nm):
 @pyqtSlot(int)
 def start_new_pl(r):
 	print('----1539----')
-	#ui.list2.setCurrentRow(r)
-	#ui.epnfound()
 
 class ThreadedHTTPServerLocal(ThreadingMixIn, HTTPServer):
 	pass
