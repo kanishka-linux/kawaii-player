@@ -217,9 +217,6 @@ div.title{max-width:100%;}
   -webkit-user-drag: element;
 }
 
-
-
-
 </style>
 
 <script type = 'text/javascript'>
@@ -279,6 +276,7 @@ var _player = document.getElementById("player"),
     _get_torrent_status = "";
     _status_command = "";
     _final_url = "";
+    _final_name = "";
     _subtitle_status = "off";
     _prev = document.getElementById("prev");
     
@@ -622,12 +620,22 @@ function searchFunction(e){
 				var pls_name = document.getElementById('opt');
 				if ((new_z && pls_name) || (new_z == 'audio' || new_z == 'audiovideo')){
 					_title.innerHTML = 'wait..';
-					var new_url = 'youtube_url='+new_z+'&&'+pls_name.value;
+					if (new_z == 'd'){
+						var title_name = _final_name.replace('YouTube - ','')
+						var new_url = _final_url+'&&'+pls_name.value+'&name='+title_name+'.download';
+					}
+					else if (new_z.startsWith('d:')) {
+						new_z = new_z.replace('d:','');
+						var new_url = 'youtube_url='+new_z+'&&'+pls_name.value+'.download';
+					}
+					else{
+						var new_url = 'youtube_url='+new_z+'&&'+pls_name.value;
+					}
 					var client = new getRequest();
 					client.get(new_url, function(response) {
 					console.log(response);
 					_title.innerHTML = response;
-				})
+					})
 				}
 				else{
 					_title.innerHTML = 'wrong command, no playlist was selected';
@@ -1170,6 +1178,7 @@ function playlistItemClick(clickedElement,mode) {
     clickedElement.classList.add("selected");
 	var new_src = clickedElement.getAttribute("data-mp3");
 	_final_url = new_src;
+	_final_name = clickedElement.innerHTML;
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	_title.innerHTML = _clicked_num+" "+clickedElement.innerHTML;
 	_clicked_index = parseInt(_clicked_num);
