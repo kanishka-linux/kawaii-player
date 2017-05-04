@@ -46,7 +46,7 @@ from player_functions import get_tmp_dir,naturallysorted,set_logger
 from player_functions import get_home_dir,change_opt_file,create_ssl_cert
 from player_functions import set_user_password
 from musicArtist import musicArtist
-from yt import get_yt_url
+from yt import get_yt_url,get_yt_sub_
 
 HOME_DIR = get_home_dir()
 HOME_OPT_FILE = os.path.join(HOME_DIR,'other_options.txt')
@@ -1581,7 +1581,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						nm = ui.epn_return(row)
 						if nm.startswith('"'):
 							nm = nm.replace('"','')
-					elif 'youtube.com' in nm:
+					elif 'youtube.com' in nm and not self.path.endswith('.subtitle') and not self.path.endswith('.getsub'):
 						nm = get_yt_url(nm,ui.client_quality_val,ui.ytdl_path,logger,mode=ui.client_yt_mode).strip()
 						if '::' in nm:
 							vid,aud = nm.split('::')
@@ -1593,6 +1593,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						self.process_subtitle_url(nm,status='reload')
 					else:
 						self.process_subtitle_url(nm)
+				elif self.path.endswith('.getsub'):
+					self.process_subtitle_url(nm,status='getsub')
 				elif self.path.endswith('.download'):
 					if 'youtube.com' in old_nm:
 						info_args = urllib.parse.unquote(self.path.rsplit('&&')[-1])
@@ -2127,14 +2129,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			self.send_header('Connection', 'close')
 			self.end_headers()
 	
-	def process_offline_mode(self,nm,pls,title,msg=None):
+	def process_offline_mode(self,nm,pls,title,msg=None,captions=None,url=None):
 		global ui,home
 		loc_dir = os.path.join(ui.default_download_location,pls)
 		if not os.path.exists(loc_dir):
 			os.makedirs(loc_dir)
 		title = title.replace('"','')
+		title = title.replace('/','-')
+		if title.startswith('.'):
+			title = title[1:]
 		loc = os.path.join(loc_dir,title+'.mp4')
 		ok_val = False
+		if captions and url:
+			sub_name_bytes = bytes(loc,'utf-8')
+			h = hashlib.sha256(sub_name_bytes)
+			sub_name = h.hexdigest()
+			get_yt_sub_(
+				url,sub_name,ui.yt_sub_folder,TMPDIR,ui.ytdl_path,logger)
 		try:
 			ccurl(nm+'#'+'-o'+'#'+loc)
 			ok_val = True
@@ -2148,11 +2159,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				write_files(pls_home,content,line_by_line=True)
 		if msg:
 			self.final_message(b'Got it!. update video section or refresh playlist')
+		logger.info('captions={0}-{1}-{2}'.format(captions,url,ok_val))
 		
 		
 	def check_local_subtitle(self,path,external=None):
 		result = None
-		ext = ['.srt','.ass','.en.srt','.en.ass']
+		ext = ['.srt','.ass','.en.srt','.en.ass','.en.vtt']
 		if os.path.exists(path) or external:
 			if '.' in path:
 				nm = path.rsplit('.',1)[0]
@@ -2195,8 +2207,30 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 		
 		if check_local_sub is None:
 			check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv',external=True)
-		
-		if os.path.exists(path) and not os.path.exists(sub_path):
+			
+		if path.startswith('http') and 'youtube.com' in path:
+			if status == 'getsub':
+				get_yt_sub_(path,sub_name,ui.yt_sub_folder,TMPDIR,ui.ytdl_path,logger)
+				check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv',external=True)
+			
+			if check_local_sub is not None and not os.path.exists(sub_path):
+				try:
+					if OSNAME == 'posix':
+						out = subprocess.check_output(['ffmpeg','-y','-i',check_local_sub,sub_path])
+					else:
+						out = subprocess.check_output(['ffmpeg','-y','-i',check_local_sub,sub_path],shell=True)
+					got_sub = True
+				except Exception as e:
+					print(e)
+					got_sub = False
+					
+			if status == 'getsub' and got_sub:
+				self.final_message(b'Got Subtitle')
+				return 0
+			elif status == 'getsub' and not got_sub:
+				self.final_message(b'No Subtitle')
+				return 0
+		elif os.path.exists(path) and not os.path.exists(sub_path):
 			if check_local_sub is not None:
 				try:
 					if OSNAME == 'posix':
@@ -2250,6 +2284,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			content = open(sub_path,'r').read()
 			c = bytes(content,'utf-8')
 		else:
+			logger.info('--2287---No--Subtitles--')
 			c = bytes('WEBVTT','utf-8')
 		self.send_response(200)
 		self.send_header('Content-type','text/vtt')
@@ -2282,6 +2317,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				except Exception as e:
 					print(e,'---2279---')
 					return op_success
+				caption = '"caption_translation_languages":""'
+				if caption in content:
+					sub_title = False
+				else:
+					sub_title = True
 				soup = BeautifulSoup(content,'lxml')
 				title = soup.title.text.replace(' - YouTube','').strip()
 				logger.info(title)
@@ -2319,7 +2359,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 						vid,aud = nm.split('::')
 						if ui.client_yt_mode == 'music':
 							nm = aud
-					self.process_offline_mode(nm,pls,title,msg=False)
+					self.process_offline_mode(nm,pls,title,msg=False,captions=sub_title,url=url)
 		return op_success
 		
 	def final_message(self,txt,cookie=None,auth_failed=None):
