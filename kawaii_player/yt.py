@@ -305,3 +305,80 @@ def yt_sub_finished():
 	if os.path.exists(TMPFILE):
 		os.remove(TMPFILE)
 	send_notification(txt_notify)
+
+def get_yt_sub_(url,name,dest_dir,tmp_dir,ytdl_path,log):
+	global name_epn, dest_dir_sub,tmp_dir_sub,TMPFILE,logger
+	logger = log
+	if not ytdl_path:
+		youtube_dl = 'youtube-dl'
+	name_epn = name
+	dest_dir_sub = dest_dir
+	tmp_dir_sub = tmp_dir
+	final_url = ''
+	url = url.replace('"','')
+	m = []
+	if '/watch?' in url:
+		a = url.split('?')[-1]
+		b = a.split('&')
+		if b:
+			for i in b:
+				j = i.split('=')
+				k = (j[0],j[1])
+				m.append(k)
+		else:
+			j = a.split('=')
+			k = (j[0],j[1])
+			m.append(k)
+		d = dict(m)
+		print(d,'----dict--arguments---generated---')
+		try:
+			url = 'https://m.youtube.com/watch?v='+d['v']
+		except:
+			pass
+	fh,TMPFILE = mkstemp(suffix=None,prefix='youtube-sub')
+	dir_name,sub_name = os.path.split(TMPFILE)
+	logger.info("TMPFILE={0};Output-dest={1};dir_name={2};sub_name={3}".format(TMPFILE,dest_dir_sub,dir_name,sub_name))
+	if ytdl_path == 'default':
+		youtube_dl = 'youtube-dl'
+	else:
+		youtube_dl = ytdl_path
+	command = [youtube_dl,"--all-sub","--skip-download","--output",TMPFILE,url]
+	logger.info(command)
+	if os.name == 'posix':
+		subprocess.call(command)
+	else:
+		subprocess.call(command,shell=True)
+	
+	name = name_epn
+	dest_dir = dest_dir_sub
+	dir_name,sub_name = os.path.split(TMPFILE)
+	m = os.listdir(dir_name)
+	new_name = name.replace('/','-')
+	if new_name.startswith('.'):
+		new_name = new_name[1:]
+	sub_avail = False
+	sub_ext = ''
+	txt_notify = 'No Subtitle Found'
+	for i in m:
+		#j = os.path.join(dir_name,i)
+		src_path = os.path.join(dir_name,i)
+		if (i.startswith(sub_name) and i.endswith('.vtt') 
+				and os.stat(src_path).st_size != 0):
+			k1 = i.rsplit('.',2)[1]
+			k2 = i.rsplit('.',2)[2]
+			ext = k1+'.'+k2
+			sub_ext = ext+','+sub_ext
+			dest_name = new_name + '.'+ ext
+			#print(dest_name)
+			dest_path = os.path.join(dest_dir,dest_name)
+			#print(src_path,dest_path)
+			if os.path.exists(src_path):
+				shutil.copy(src_path,dest_path)
+				os.remove(src_path)
+				sub_avail = True
+	if sub_avail:
+		txt_notify = "External Subtitle "+ sub_ext+" Available\nPress Shift+J to load"
+	if os.path.exists(TMPFILE):
+		os.remove(TMPFILE)
+	send_notification(txt_notify)
+	
