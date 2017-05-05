@@ -1597,6 +1597,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 					self.process_subtitle_url(nm,status='getsub')
 				elif self.path.endswith('.download'):
 					if 'youtube.com' in old_nm:
+						captions = self.check_yt_captions(old_nm)
 						info_args = urllib.parse.unquote(self.path.rsplit('&&')[-1])
 						info_arr = info_args.split('&')
 						if len(info_arr) >= 2:
@@ -1604,7 +1605,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 								pls_name = info_arr[0]
 								new_name = info_arr[1].split('=')[-1].rsplit('.')[0]
 								logger.info(new_name)
-								self.process_offline_mode(nm,pls_name,new_name,msg=True)
+								self.process_offline_mode(nm,pls_name,new_name,
+									msg=True,captions=captions,url=old_nm)
 							except Exception as e:
 								print(e)
 								self.final_message(b'Error in processing url')
@@ -2129,6 +2131,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			self.send_header('Connection', 'close')
 			self.end_headers()
 	
+	def check_yt_captions(self,url):
+		try:
+			req = urllib.request.Request(
+					url,data=None,headers={'User-Agent': 'Mozilla/5.0'})
+			f = urllib.request.urlopen(req)
+			content = f.read().decode('utf-8')
+			caption = '"caption_translation_languages":""'
+			if caption in content:
+				sub_title = False
+			else:
+				sub_title = True
+		except Exception as e:
+			print(e,'---2279---')
+			sub_title = False
+		return sub_title
+		
+	
 	def process_offline_mode(self,nm,pls,title,msg=None,captions=None,url=None):
 		global ui,home
 		loc_dir = os.path.join(ui.default_download_location,pls)
@@ -2151,7 +2170,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 			ok_val = True
 		except Exception as e:
 			print(e)
-			ok_vl = False
+			ok_val = False
 		if ok_val:
 			pls_home = os.path.join(home,'Playlists',pls)
 			content = '{0} - offline	{1}	{2}'.format(title,loc,'YouTube')
