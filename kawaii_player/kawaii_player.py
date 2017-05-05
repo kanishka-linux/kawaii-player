@@ -10313,7 +10313,7 @@ class Ui_MainWindow(object):
 			self.audio_track.setText("A:"+str(audio_id))
 			
 	def load_external_sub(self):
-		global Player,mpvplayer,sub_id
+		global Player,mpvplayer,sub_id,current_playing_file_path
 		external_sub = False
 		sub_arr = []
 		new_name = self.epn_name_in_list.replace('/','-')
@@ -10333,6 +10333,17 @@ class Ui_MainWindow(object):
 			if new_name.endswith('-'):
 				new_name = new_name[:-1]
 				new_name = new_name.strip()
+				
+		new_path = current_playing_file_path.replace('"','')
+		if os.path.exists(new_path):
+			sub_name_bytes = bytes(new_path,'utf-8')
+			h = hashlib.sha256(sub_name_bytes)
+			sub_name = h.hexdigest()
+			sub_path = os.path.join(self.yt_sub_folder,sub_name+'.vtt')
+			if os.path.exists(sub_path):
+				sub_arr.append(sub_path)
+				external_sub = True
+				logger.info(sub_path)
 		lang_ext = ['.en','.es','.jp','.fr']
 		sub_ext = ['.vtt','.srt','.ass']
 		for i in lang_ext:
@@ -10351,6 +10362,8 @@ class Ui_MainWindow(object):
 					external_sub = True
 					logger.info(sub_name_2)
 		logger.info('--new--name--{0}'.format(new_name))
+		
+			
 		if mpvplayer.processId() > 0 and sub_arr:
 			sub_arr.reverse()
 			for title_sub in sub_arr:
