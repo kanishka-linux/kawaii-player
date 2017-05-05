@@ -374,7 +374,7 @@ Web Interface, contains a search text box which can be used to send text command
 		
 		$ sub:on (Turn on subtitle if ffmpeg is installed on server)
 		$ sub:off (Turn off subtitles)
-		$ sub:reload (Reload subtitles, if subtitles are not visible even after turning on)
+		$ sub:reload (Reload subtitles, if subtitles are not visible even after turning on. It is useful in torrent streaming.)
 		
 		$ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
 		$ torrent:stop (It will stop the torrent session)
@@ -393,6 +393,9 @@ Web Interface, contains a search text box which can be used to send text command
 		$ yt:audio (play only audio)
 		$ yt:audiovideo (regular video)
 		$ quality:{sd,hd,best}
+		$ yt:d (download for offline viewing on server)
+		$ yt:d:youtube_link (add link to server playlist and download for offline viewing on server)
+		$ yt:getsub (get subtitle if available)
 		
 **About Playlist Support:** Web Interface allows creation and manipulation of playlists. In firefox, users will get right click context menu using which they can add and remove playlist entries. In Chromium, users have to use drag and drop feature to drop entries to custom place. If playlist is very long, then drag and drop feature can be cumbersome. In such case user should drop entries on '**Top**' label, which will appear over lower right corner. By clicking on '**Top**' label users can directly go to top of page, but it can also be used as dropping place for custom playlist entries.
 
