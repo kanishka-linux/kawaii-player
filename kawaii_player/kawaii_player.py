@@ -16429,7 +16429,7 @@ class Ui_MainWindow(object):
 					print(self.record_history,'--self.record_history---')
 					if os.path.isfile(hist_path) and self.record_history:
 						if (os.stat(hist_path).st_size == 0):
-							write_files(hist_path,name,line_by_line=True)
+							write_files(hist_path,new_name_with_info,line_by_line=True)
 						else:
 							lines = open_files(hist_path,True)
 							line_list = []
@@ -16437,20 +16437,31 @@ class Ui_MainWindow(object):
 								i = i.strip()
 								line_list.append(i)
 							if new_name_with_info not in line_list:
-								write_files(hist_path,name,line_by_line=True)
+								write_files(hist_path,new_name_with_info,line_by_line=True)
 					
 					hist_dir,last_field = os.path.split(hist_path)
 					hist_site = os.path.join(hist_dir,name)
-					if not os.path.exists(hist_site) and self.record_history:
+					hist_epn = os.path.join(hist_site,'Ep.txt')
+					if (not os.path.exists(hist_site) and self.record_history) or (os.path.exists(hist_epn)):
 						try:
-							os.makedirs(hist_site)
-							hist_epn = os.path.join(hist_site,'Ep.txt')
+							first_try = False
+							if not os.path.exists(hist_site):
+								os.makedirs(hist_site)
+								first_try = True
+							
+							if not first_try:
+								lines = open_files(hist_epn,True)
+								if len(m) > len(lines):
+									length_old = len(lines)
+									m = m[length_old:]
+									m = lines + m
 							
 							write_files(hist_epn,m,line_by_line=True)
 							
-							hist_sum = os.path.join(hist_site,'summary.txt')
-							hist_picn = os.path.join(hist_site,'poster.jpg')
-							self.summary_write_and_image_copy(hist_sum,summary,picn,hist_picn)
+							if first_try:
+								hist_sum = os.path.join(hist_site,'summary.txt')
+								hist_picn = os.path.join(hist_site,'poster.jpg')
+								self.summary_write_and_image_copy(hist_sum,summary,picn,hist_picn)
 						except Exception as e:
 							print(e)
 							return 0
