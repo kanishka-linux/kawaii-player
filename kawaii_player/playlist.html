@@ -401,7 +401,7 @@ function searchFunction(e){
 			if (new_val.startsWith('http') || new_val.startsWith('magnet')){
 				new_url = 'get_torrent=' + btoa(new_val);
 				if (new_val.startsWith('magnet')){
-					_title.innerHTML = 'Wait for at the most 2 minutes..Magnet links take time.';
+					_title.innerHTML = 'Wait for few minutes..Magnet links may take time.';
 				}
 				else{
 					_title.innerHTML = 'Wait..Getting Torrent';
