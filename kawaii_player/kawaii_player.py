@@ -15766,7 +15766,8 @@ class Ui_MainWindow(object):
 			music_db = os.path.join(home,'Music','Music.db')
 			music_file = os.path.join(home,'Music','Music.txt')
 			music_file_bak = os.path.join(home,'Music','Music_bak.txt')
-			
+			if not os.path.exists(music_db):
+				self.creatUpdateMusicDB(music_db,music_file,music_file_bak,update_progress_show=False)
 			music_opt = site_option
 			print(music_opt)
 			if music_opt:
@@ -15818,6 +15819,8 @@ class Ui_MainWindow(object):
 			video_db = os.path.join(video_dir,'Video.db')
 			video_file = os.path.join(video_dir,'Video.txt')
 			video_file_bak = os.path.join(video_dir,'Video_bak.txt')
+			if not os.path.exists(video_db):
+				self.creatUpdateVideoDB(video_db,video_file,video_file_bak,update_progress_show=False)
 			if not bookmark:
 				video_opt = site_option
 			print('----video-----opt',video_opt)
@@ -20996,15 +20999,15 @@ class Ui_MainWindow(object):
 			self.text.setText('Wait..Updating Video Database')
 			QtWidgets.QApplication.processEvents()
 		m_files = self.importVideo(video_file,video_file_bak)
-		
-		conn = sqlite3.connect(video_db)
-		cur = conn.cursor()
-			
-		cur.execute('SELECT Path FROM Video')
-		rows = cur.fetchall()
-				
-		conn.commit()
-		conn.close()
+		try:
+			conn = sqlite3.connect(video_db)
+			cur = conn.cursor()
+			cur.execute('SELECT Path FROM Video')
+			rows = cur.fetchall()
+			conn.commit()
+			conn.close()
+		except Exception as e:
+			print(e,'--database-corrupted--21010--')
 		m_files_old = []
 		for i in rows:
 			m_files_old.append((i[0]))
@@ -21355,13 +21358,16 @@ class Ui_MainWindow(object):
 		
 	def updateOnStartMusicDB(self,music_db,music_file,music_file_bak,update_progress_show=None):
 		m_files = self.importMusic(music_file,music_file_bak)
-		
-		conn = sqlite3.connect(music_db)
-		cur = conn.cursor()
-		cur.execute('SELECT Path,Modified FROM Music')
-		rows = cur.fetchall()
-		conn.commit()
-		conn.close()
+		try:
+			conn = sqlite3.connect(music_db)
+			cur = conn.cursor()
+			cur.execute('SELECT Path,Modified FROM Music')
+			rows = cur.fetchall()
+			conn.commit()
+			conn.close()
+		except Exception as e:
+			print(e,'--database-corrupted--21369---')
+			return 0
 		m_files_old = []
 		for i in rows:
 			j = i[0]+'	'+(str(i[1])).split('.')[0]
