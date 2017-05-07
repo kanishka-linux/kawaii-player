@@ -21,8 +21,10 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 import os
 import sys
-
-BASEDIR,BASEFILE = os.path.split(os.path.abspath(__file__))
+if getattr(sys,'frozen',False):
+	BASEDIR,BASEFILE = os.path.split(os.path.abspath(sys.executable))
+else:
+	BASEDIR,BASEFILE = os.path.split(os.path.abspath(__file__))
 print(BASEDIR,BASEFILE,os.getcwd())
 sys.path.insert(0,BASEDIR)
 print(sys.path)
@@ -35,7 +37,9 @@ import re
 import subprocess
 from subprocess import check_output
 from bs4 import BeautifulSoup
-
+import lxml
+import calendar
+from datetime import datetime
 from PyQt5.QtCore import QUrl
 import imp
 import shutil
