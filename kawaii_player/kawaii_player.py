@@ -21008,6 +21008,7 @@ class Ui_MainWindow(object):
 			conn.close()
 		except Exception as e:
 			print(e,'--database-corrupted--21010--')
+			return 0
 		m_files_old = []
 		for i in rows:
 			m_files_old.append((i[0]))
