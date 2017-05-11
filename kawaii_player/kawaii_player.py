@@ -19590,7 +19590,7 @@ class Ui_MainWindow(object):
 		print('--line--15677--')
 		if row > len(epnArrList) or row < 0:
 			row = len(epnArrList)-1
-		
+		finalUrl = ""
 		try:
 			server._emitMeta("Next",site,epnArrList)
 		except:
@@ -19722,10 +19722,10 @@ class Ui_MainWindow(object):
 		
 			print("mpv=" + str(mpvplayer.processId()))
 			
-			if finalUrl.startswith('"http'):
-				current_playing_file_path = finalUrl.replace('"','')
-			else:
-				current_playing_file_path = finalUrl
+		if finalUrl.startswith('"'):
+			current_playing_file_path = finalUrl.replace('"','')
+		else:
+			current_playing_file_path = finalUrl
 				
 		self.paste_background(row)
 	
