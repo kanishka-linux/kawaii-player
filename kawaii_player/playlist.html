@@ -1705,7 +1705,8 @@ document.getElementById('backToTop').onclick = function()
 
 window.addEventListener("resize", resizeWindowEvent);
 _player.addEventListener("ended", playNext);
-_playlist.addEventListener("dblclick", function (e) {
+//_playlist.addEventListener("dblclick", function (e) {
+_playlist.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "LI") {
         
         
