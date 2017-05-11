@@ -164,7 +164,6 @@ class Browser(QtWebKitWidgets.QWebView):
 			self.timer.start(1000)
 	
 	def player_wait(self):
-		#global wait_player
 		self.wait_player = False
 		self.page().mainFrame().evaluateJavaScript("location.reload();")
 		
@@ -285,11 +284,8 @@ class Browser(QtWebKitWidgets.QWebView):
 			if ((self.current_link.startswith("https://m.youtube.com/watch?v=") 
 					or self.current_link.startswith("https://www.youtube.com/watch?v=")) 
 					and not self.wait_player):
-				#self.page().mainFrame().evaluateJavaScript("var element = document.getElementById('player');element.innerHtml='';")
-				self.page().mainFrame().evaluateJavaScript("var element = document.getElementById('player');element.parentNode.removeChild(element);")
 				self.wait_player = True
 				self.clicked_link(self.current_link)
-				#QtCore.QTimer.singleShot(1, partial(self.clicked_link,self.current_link))
 				self.timer.start(1000)
 				
 		print(self.url_arr)
@@ -302,13 +298,10 @@ class Browser(QtWebKitWidgets.QWebView):
 		if 'youtube.com/watch?v=' in url:
 			if self.ui.mpvplayer_val.processId() > 0:
 				self.ui.mpvplayer_val.kill()
-			final_url = get_yt_url(url,self.ui.quality_val,self.ui.ytdl_path,self.ui.logger)
-			if final_url:
-				print(final_url,'--youtube--')
-				self.ui.watchDirectly(final_url,self.epn_name_in_list,'no')
-				self.ui.tab_5.show()
-				self.ui.frame1.show()
-				self.ui.tab_2.setMaximumWidth(self.ui.width_allowed+50)
+				self.ui.mpvplayer_started = False
+			self.ui.get_final_link(
+				url,self.ui.quality_val,self.ui.ytdl_path,self.ui.logger,
+				self.epn_name_in_list,self.hdr)
 				
 	def custom_links(self,q_url):
 		url = q_url
@@ -534,12 +527,10 @@ class Browser(QtWebKitWidgets.QWebView):
 			print(self.ui.epn_name_in_list)
 			if self.ui.mpvplayer_val.processId() > 0:
 				self.ui.mpvplayer_val.kill()
-			final_url = get_yt_url(url.toString(),self.ui.quality_val,self.ui.ytdl_path,self.ui.logger)
-			if final_url:
-				self.ui.watchDirectly(final_url,self.ui.epn_name_in_list,'no')
-				self.ui.tab_5.show()
-				self.ui.frame1.show()
-				self.ui.tab_2.setMaximumWidth(self.ui.width_allowed+50)
+				self.ui.mpvplayer_started = False
+			self.ui.get_final_link(
+				url.toString(),self.ui.quality_val,self.ui.ytdl_path,self.ui.logger,
+				self.ui.epn_name_in_list,self.hdr)
 		elif option.lower() == 'add as local playlist':
 			self.get_playlist = True
 			if self.playlist_dict:
