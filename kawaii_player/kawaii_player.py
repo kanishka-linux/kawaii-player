@@ -2844,6 +2844,51 @@ class downloadThread(QtCore.QThread):
 			print(e)
 
 
+class ytdlThread(QtCore.QThread):
+	gotlink = pyqtSignal(str,str)
+	def __init__(self,url,quality,path,loger,nm,hdr):
+		QtCore.QThread.__init__(self)
+		self.url = url
+		self.quality = quality
+		self.path = path
+		self.loger = loger
+		self.nm = nm
+		self.hdr = hdr
+		self.gotlink.connect(start_player_directly)
+
+	def __del__(self):
+		self.wait()                        
+	
+	def run(self):
+		global ui
+		final_url = ''
+		try:
+			final_url = get_yt_url(self.url,self.quality,self.path,self.loger)
+			self.gotlink.emit(final_url,self.nm)
+			try:
+				if not self.nm:
+					req = urllib.request.Request(
+						self.url,data=None,headers={'User-Agent': 'Mozilla/5.0'})
+					f = urllib.request.urlopen(req)
+					content = f.read().decode('utf-8')
+					soup = BeautifulSoup(content,'lxml')
+					title = soup.title.text.replace(' - YouTube','').strip()
+					logger.info(title)
+					ui.epn_name_in_list = title
+			except Exception as e:
+				print(e,'---2877---')
+		except Exception as e:
+			print(e,'--2865--')
+		
+
+@pyqtSlot(str)
+def start_player_directly(final_url,nm):
+	global ui
+	if final_url:
+		print(final_url,'--youtube--')
+		ui.epn_name_in_list = nm
+		ui.watchDirectly(final_url,nm,'no')
+
 class PlayerWaitThread(QtCore.QThread):
 	
 	wait_signal = pyqtSignal(str)
@@ -4132,6 +4177,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 			if mpvplayer:
 				if mpvplayer.processId()>0:
 					mpvplayer.kill()
+					ui.mpvplayer_started = False
 					ui.tab_5.hide()
 					ui.tab_6.setMaximumSize(16777215,16777215)
 			tab_6_player = "True"
@@ -4229,6 +4275,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 			if mpvplayer:
 				if mpvplayer.processId()>0:
 					mpvplayer.kill()
+					ui.mpvplayer_started = False
 					ui.tab_5.hide()
 					ui.tab_6.setMaximumSize(16777215,16777215)
 			iconv_r = 1
@@ -4364,6 +4411,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
 			if tmp_idw != idw:
 				if mpvplayer.processId()>0:
 					mpvplayer.kill()
+					ui.mpvplayer_started = False
 					#mpvplayer = QtCore.QProcess()
 					ui.tab_5.hide()
 					ui.tab_6.setMaximumSize(10000,10000)
@@ -9444,6 +9492,7 @@ class Ui_MainWindow(object):
 		self.cookie_playlist_expiry_limit = 24
 		self.logging_module = False
 		self.ytdl_path = 'default'
+		self.ytdl_arr = []
 		self.anime_review_site = False
 		self.get_artist_metadata = False
 		self.https_cert_file = os.path.join(home,'cert.pem')
@@ -13836,6 +13885,37 @@ class Ui_MainWindow(object):
 		if copy_summary:
 			self.text.setText(copy_sum)
 			
+	def get_final_link(self,url,quality,ytdl_path,loger,nm,hdr):
+		logger.info('{0}-{1}-{2}--{3}--get-final--link--'.format(url,quality,ytdl_path,nm))
+		self.ytdl_arr.append(ytdlThread(url,quality,ytdl_path,loger,nm,hdr))
+		length = len(self.ytdl_arr) - 1
+		self.ytdl_arr[len(self.ytdl_arr)-1].finished.connect(lambda x=0: self.got_final_link(length))
+		self.ytdl_arr[len(self.ytdl_arr)-1].start()
+		self.tab_5.show()
+		self.frame1.show()
+		self.tab_2.setMaximumWidth(self.width_allowed+50)
+		#self.progressEpn.setFormat('Wait....')
+		#QtWidgets.QApplication.processEvents()
+	
+	def got_final_link(self,length):
+		if length == len(self.ytdl_arr) - 1:
+			del self.ytdl_arr[length]
+			logger.info('--finished--getting link--')
+			logger.info('arr: {0}---'.format(self.ytdl_arr))
+		elif length < len(self.ytdl_arr) - 1:
+			self.ytdl_arr[length] = None
+			
+		if self.ytdl_arr:
+			empty = True
+			for i in self.ytdl_arr:
+				if i is not None:
+					empty = False
+			if empty:
+				print('empty arr')
+				self.ytdl_arr[:] = []
+		else:
+			logger.info('--13898--link-fetched-properly')
+	
 	def chkMirrorTwo(self):
 		global site,mirrorNo
 		mirrorNo = 2
@@ -14535,6 +14615,7 @@ class Ui_MainWindow(object):
 		if mpvplayer:
 			if mpvplayer.processId()>0 and self.tab_2.isHidden():
 				mpvplayer.kill()
+				self.mpvplayer_started = False
 				self.epnfound()
 	
 	def nextp(self,val):
@@ -17220,6 +17301,7 @@ class Ui_MainWindow(object):
 		else:
 			if mpvplayer.processId()>0:
 				mpvplayer.kill()
+				self.mpvplayer_started = False
 			if OSNAME == 'posix':
 				if not win_id:
 					idw = str(int(self.tab_5.winId()))
@@ -17523,6 +17605,7 @@ class Ui_MainWindow(object):
 		if (mpvplayer.processId() > 0 and (current_playing_file_path.startswith('http') 
 				or current_playing_file_path.startswith('"http'))):
 			mpvplayer.kill()
+			self.mpvplayer_started = False
 			if Player == 'mplayer':
 				if mpvplayer.processId() > 0:
 					try:
@@ -17813,6 +17896,7 @@ class Ui_MainWindow(object):
 				finalUrl = finalUrl
 			if mpvplayer.processId() > 0:
 				mpvplayer.kill()
+				self.mpvplayer_started = False
 			if Player == "mpv":
 				#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
 				command = self.mplayermpv_command(idw,finalUrl,Player)
@@ -17848,6 +17932,7 @@ class Ui_MainWindow(object):
 			if downloadVideo == 0 and Player == "mpv":
 				if mpvplayer.processId() > 0:
 					mpvplayer.kill()
+					self.mpvplayer_started = False
 				if type(finalUrl) is list:
 						rfr_exists = finalUrl[-1]
 						rfr_needed = False
@@ -17891,6 +17976,7 @@ class Ui_MainWindow(object):
 			elif downloadVideo == 0 and Player != "mpv":
 				if mpvplayer.processId() > 0:
 					mpvplayer.kill()
+					self.mpvplayer_started = False
 				if type(finalUrl) is list:
 					rfr_exists = finalUrl[-1]
 					rfr_needed = False
@@ -18484,6 +18570,7 @@ class Ui_MainWindow(object):
 			print(mpvplayer.processId(),'=mpvplayer.processId()')
 			if (mpvplayer.processId()>0):
 				mpvplayer.kill()
+				self.mpvplayer_started = False
 				#time.sleep(1)
 				if mpvplayer.processId() > 0:
 					print(mpvplayer.processId(),'=mpvplayer.processId()')
@@ -18495,6 +18582,7 @@ class Ui_MainWindow(object):
 		print(mpvplayer.processId(),'=mpvplayer.processId()')
 		if mpvplayer.processId() > 0:
 			mpvplayer.kill()
+			self.mpvplayer_started = False
 		quitReally = quit_val
 		
 		self.list1.hide()
@@ -19352,6 +19440,7 @@ class Ui_MainWindow(object):
 			print('--line--15662--')
 			if mpvplayer.processId()>0:
 				mpvplayer.kill()
+				self.mpvplayer_started = False
 				try:
 					if not self.mplayer_status_thread.isRunning():
 						self.mplayer_status_thread = PlayerWaitThread(command)
@@ -19552,6 +19641,7 @@ class Ui_MainWindow(object):
 				self.list2.setCurrentRow(row)
 				if 'youtube.com' in finalUrl:
 					finalUrl = get_yt_url(finalUrl,quality,self.ytdl_path,logger).strip()
+				#self.external_url = self.get_external_url_status(finalUrl)
 		
 		self.adjust_thumbnail_window(row)
 			
@@ -19592,7 +19682,7 @@ class Ui_MainWindow(object):
 		if mpvplayer.processId() > 0:
 			if Player == "mplayer":
 				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
-				if not self.external_url:
+				if not self.external_url and self.mpvplayer_started:
 					#try:
 					epnShow = '"' + "Queued:  "+ new_epn + '"'
 					t1 = bytes('\n '+'show_text '+(epnShow)+' \n','utf-8')
@@ -19605,12 +19695,13 @@ class Ui_MainWindow(object):
 					self.mplayer_SubTimer.start(2000)
 				else:
 					mpvplayer.kill()
+					self.mpvplayer_started = False
 					self.infoPlay(command)
 					#self.external_url = False
 					logger.info(command)
 			elif Player == "mpv":
 				command = self.mplayermpv_command(idw,finalUrl,Player,a_id=audio_id,s_id=sub_id)
-				if not self.external_url:
+				if not self.external_url and self.mpvplayer_started:
 					epnShow = '"' + "Queued:  "+ new_epn + '"'
 					t1 = bytes('\n '+'show-text '+epnShow+' \n','utf-8')
 					t2 = bytes('\n '+"loadfile "+finalUrl+' \n','utf-8')
@@ -19619,6 +19710,7 @@ class Ui_MainWindow(object):
 					logger.info(t2)
 				else:
 					mpvplayer.kill()
+					self.mpvplayer_started = False
 					self.infoPlay(command)
 					#self.external_url = False
 					logger.info(command)
@@ -19758,6 +19850,7 @@ class Ui_MainWindow(object):
 					self.mplayer_SubTimer.start(2000)
 				else:
 					mpvplayer.kill()
+					self.mpvplayer_started = False
 					self.infoPlay(command)
 					#self.external_url = False
 					logger.info(command)
@@ -20067,6 +20160,7 @@ class Ui_MainWindow(object):
 			logger.info(command)
 			if mpvplayer.processId() > 0 :
 				mpvplayer.kill()
+				self.mpvplayer_started = False
 			self.infoPlay(command)
 		else:
 			if type(finalUrl) is list:
@@ -20112,6 +20206,7 @@ class Ui_MainWindow(object):
 						logger.info(command)
 						if mpvplayer.processId() > 0:
 							mpvplayer.kill()
+							self.mpvplayer_started = False
 							if Player == 'mplayer':
 								try:
 									#subprocess.Popen(['killall','mplayer'])
@@ -20132,6 +20227,7 @@ class Ui_MainWindow(object):
 				
 				if mpvplayer.processId() > 0:
 					mpvplayer.kill()
+					self.mpvplayer_started = False
 				self.infoPlay(command)
 	
 		if type(finalUrl) is not list:
