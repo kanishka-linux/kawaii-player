@@ -120,9 +120,21 @@ def get_yt_url(url,quality,ytdl_path,logger,mode=None):
 							vid,aud = final_url.split('\n')
 							final_url = vid+'::'+aud
 						else:
-							final_url = url
+							if ytdl_path == 'default':
+								final_url = url
+							else:
+								final_url = subprocess.check_output(
+									[youtube_dl,'--youtube-skip-dash-manifest','-f',
+									'best','-g','--playlist-end','1',url])
+								final_url = str(final_url,'utf-8')
 					else:
-						final_url = url
+						if ytdl_path == 'default':
+							final_url = url
+						else:
+							final_url = subprocess.check_output(
+								[youtube_dl,'--youtube-skip-dash-manifest','-f',
+								'best','-g','--playlist-end','1',url])
+							final_url = str(final_url,'utf-8')
 				elif quality == 'hd':
 					try:
 						final_url = subprocess.check_output(
