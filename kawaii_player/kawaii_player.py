@@ -2634,7 +2634,7 @@ class ThreadServerLocal(QtCore.QThread):
 		self.wait()                        
 	
 	def run(self):
-		global httpd,home
+		global httpd,home,ui
 		logger.info('starting server...')
 		httpd = None
 		try:
@@ -2659,12 +2659,13 @@ class ThreadServerLocal(QtCore.QThread):
 				txt = 'Your local IP changed..or port is blocked.\n..Trying to find new IP'
 				send_notification(txt)
 				self.ip = get_lan_ip()
-				txt = 'Your New Address is '+self.ip+':'+str(self.port) + '\n Please restart the application, if server does not start'
+				txt = 'Your New Address is '+self.ip+':'+str(self.port) + '\n Please restart the application'
 				send_notification(txt)
 				change_config_file(self.ip,self.port)
 				server_address = (self.ip,self.port)
+				ui.local_ip_stream = self.ip
 				#httpd = MyTCPServer(server_address, HTTPServer_RequestHandler)
-				httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
+				#httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
 			else:
 				pass
 		if httpd:
