@@ -335,6 +335,8 @@ class ThreadServer(QtCore.QThread):
 		self.cert_file = cert_file
 		ui_player = ui
 		local_ip_arr = ['127.0.0.1','0.0.0.0',ip]
+		if ui is not None:
+			self.ui = ui
 		
 	def __del__(self):
 		self.wait()                        
@@ -343,6 +345,7 @@ class ThreadServer(QtCore.QThread):
 		global httpd
 		print('starting server...')
 		server_address = (self.ip,self.port)
+		server_start = False
 		try:
 			httpd = ThreadedHTTPServer(server_address, testHTTPServer_RequestHandler)
 			if self.https_allow and self.cert_file:
@@ -350,6 +353,7 @@ class ThreadServer(QtCore.QThread):
 					httpd.socket = ssl.wrap_socket(
 						httpd.socket,certfile=self.cert_file,
 						ssl_version=ssl.PROTOCOL_TLSv1_2)
+			server_start = True
 		except:
 			txt = 'Your local IP changed..or port is blocked\n..Trying to find new IP'
 			#subprocess.Popen(['notify-send',txt])
@@ -360,9 +364,13 @@ class ThreadServer(QtCore.QThread):
 			send_notification(txt)
 			change_config_file(self.ip,self.port)
 			server_address = (self.ip,self.port)
-			httpd = ThreadedHTTPServer(server_address, testHTTPServer_RequestHandler)
-		print('running server...at..'+self.ip+':'+str(self.port))
-		httpd.serve_forever()
+			self.ui.local_ip = self.ip
+			#httpd = ThreadedHTTPServer(server_address, testHTTPServer_RequestHandler)
+		if server_start:
+			print('running server...at..'+self.ip+':'+str(self.port))
+			httpd.serve_forever()
+		else:
+			print('server..not..started..')
 
 class TorrentThread(QtCore.QThread):
 	session_signal = pyqtSignal(str)
