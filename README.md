@@ -136,9 +136,8 @@ User can make as many playlists as possible. It is possible to merge various pla
 
 ![kawaii-player](/Images/Thumbnail.png)
 
-Users can see their entire collection in Thumbnail mode in Grid Layout, once your collection is ready with appropriate fanart or posters. Use this thumbnail mode if you have more than 2 GB of RAM. Otherwise your system may slow down. 
-
-In thumbnail mode, Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. **Users can watch video in thumbnail itself by selecting right mode from 2 to 4**. If you don't like generated thumbnail then you can change it by right clicking and selecting appropriate option from the context menu.
+Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 2 to 4**. In thumbnail mode users have option to change default generated thumbnail. 
+Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. 
 
 ## Minimal Music Player
 
@@ -159,67 +158,6 @@ It is not very powerful music organizer, but provide certain decent functionalit
 The Player contains Detached video mode, which can be activated by right clicking tray icon and selecting appropriate entry.
 In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of Unity or GNOME.
 
-## Torrent Streaming
-
-###### [Index](#index)
-
-It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at *'http://127.0.0.1:8001'*, which is loop-back address of your local machine. User can change this default streaming IP address to local ip address of your machine which normally starts with something like *192.168.x.y*, by manually editing *'torrent_config.txt'* file located in *'~/.config/kawaii-player'*, if they want to access the torrent stream remotely.
-
-In 'torrent_config.txt' you can set some other fields like upload , download rate in (KBps) and default download location.
-
-For opening torrents within this player, goto Addons->Torrent->Open and enter torrent file name or torent url or magnet link inside the input dialog box, and then select appropriate entry which will appear in either Title list or Playlist. Your list of visited torrents will be accessible from the 'History' section. 
-
-This feature is based on libtorrent-rasterbar {which is being used by bittorrent clients like qBittorrent and deluge} and it's python3 bindings. If you've installed latest version of libtorrent-rasterbar then python3 bindings are included along with it. In systems where older version of libtorrent-rasterbar is installed, users need to install python3-libtorrent to use this feature.  
-
-Once Torrent streaming will start, a progress bar will appear to the right side, which will show basic information about torrent.
-If user will click on this progress bar then they will get controls for stopping torrent and for setting upload/download speed.
-
-If torrent contains multiple files then users can enqueue the desired files by selecting appropriate entry in Playlist column and pressing 'key q'.
- 
-Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
-
-**Using Web Interface for managing and accessing Torrent Streaming server remotely:**
-
-![kawaii-player](/Images/Web.png)
-
-(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser) 
-
-First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
-
-	1. For adding torrent to the server, Once torrent info is fetched, it will be available in *Torrent->History* section
-		
-		$ torrent:torrent_magnet_or_http_link 
-		
-	2. Stopping Torrent Completely
-	
-		$ torrent:stop
-		
-	3. Remove Torrent From Session
-	
-		$ torrent:remove
-		
-	4. delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*
-	
-		$ torrent:delete  
-		
-	5. Status of Torrents
-	
-		$ torrent:status (show status of current running torrent, default behaviour)
-		$ torrent:status_all (show status of all active torrents)
-		$ torrent:status_stop (stop showing status)
-		
-	6. Set up download/upload speed for individual torrents.
-	
-		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (e.g. torrent:d:100::u:90)
-		
-	7. Torrent pause and resume
-	
-		$ torrent:pause
-		$ torrent:pause_all
-		$ torrent:resume
-		$ torrent:resume_all
-
-HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opened and play with the help of any popular media players like mpv or vlc.
 
 ## Media Server
 
@@ -361,6 +299,69 @@ Performance of vlc or kodi on android devices also depends on the hardware of th
 
 Note: Once user logs out from cookie and password enabled session, he/she can't search anything within the server without logging in again. But the generated playlist can be played by any player till the expiry of playlist even after log out. Expiry period for playlist can be set in other_options.txt file (COOKIE_PLAYLIST_EXPIRY_LIMIT field) in hours.
 
+
+## Torrent Streaming
+
+###### [Index](#index)
+
+It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at *'http://127.0.0.1:8001'*, which is loop-back address of your local machine. User can change this default streaming IP address to local ip address of your machine which normally starts with something like *192.168.x.y*, by manually editing *'torrent_config.txt'* file located in *'~/.config/kawaii-player'*, if they want to access the torrent stream remotely.
+
+In 'torrent_config.txt' you can set some other fields like upload , download rate in (KBps) and default download location.
+
+For opening torrents within this player, goto Addons->Torrent->Open and enter torrent file name or torent url or magnet link inside the input dialog box, and then select appropriate entry which will appear in either Title list or Playlist. Your list of visited torrents will be accessible from the 'History' section. 
+
+This feature is based on libtorrent-rasterbar {which is being used by bittorrent clients like qBittorrent and deluge} and it's python3 bindings. If you've installed latest version of libtorrent-rasterbar then python3 bindings are included along with it. In systems where older version of libtorrent-rasterbar is installed, users need to install python3-libtorrent to use this feature.  
+
+Once Torrent streaming will start, a progress bar will appear to the right side, which will show basic information about torrent.
+If user will click on this progress bar then they will get controls for stopping torrent and for setting upload/download speed.
+
+If torrent contains multiple files then users can enqueue the desired files by selecting appropriate entry in Playlist column and pressing 'key q'.
+ 
+Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
+
+**Using Web Interface for managing and accessing Torrent Streaming server remotely:**
+
+![kawaii-player](/Images/Web.png)
+
+(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser) 
+
+First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
+
+	1. For adding torrent to the server, Once torrent info is fetched, it will be available in *Torrent->History* section
+		
+		$ torrent:torrent_magnet_or_http_link 
+		
+	2. Stopping Torrent Completely
+	
+		$ torrent:stop
+		
+	3. Remove Torrent From Session
+	
+		$ torrent:remove
+		
+	4. delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*
+	
+		$ torrent:delete  
+		
+	5. Status of Torrents
+	
+		$ torrent:status (show status of current running torrent, default behaviour)
+		$ torrent:status_all (show status of all active torrents)
+		$ torrent:status_stop (stop showing status)
+		
+	6. Set up download/upload speed for individual torrents.
+	
+		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (e.g. torrent:d:100::u:90)
+		
+	7. Torrent pause and resume
+	
+		$ torrent:pause
+		$ torrent:pause_all
+		$ torrent:resume
+		$ torrent:resume_all
+
+HTML5 compliant torrent video streams can be easily played within web browser. For other video formats user can generate m3u playlist from web ui containing torrent stream information in the form of playlist, which then can be opened and play with the help of any popular media players like mpv or vlc.
+
 ## Using Web Interface
 
 ###### [Index](#index)
@@ -401,7 +402,7 @@ Web Interface, contains a search text box which can be used to send text command
 
 **Get M3U:** User can click on the *'Get M3U'* button to generate universal playlist in M3U format, which can be played on any device and on most of the popular clients that support http streaming. User can save the playlist or can directly open it with their favourite media player application. If Firefox is directly playing the playlist, then it might be due to some external web plugin. For example, during installation of vlc, it can also install web plugin for firefox. Users need to disable such plugin to get the playlist, or they can simply open the url **without '.htm' extension** from within the vlc itself, if 'https' and cookie are not enabled. vlc can easily deal with basic username and password based authentication.
 
-**About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcodin, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
+**About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
 
 ## Remote Control
 
