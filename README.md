@@ -467,7 +467,7 @@ In this player, a weak addon structure has been created, so that one can write a
 
 3. Using self contained binary for 64-bit gnu/linux systems:
 	
-	Grab *x86_64-bin.tar.bz2* package from latest stable release section, extract it, go to the extracted folder, open terminal in it and execute following commands, to directly open the application:
+	Grab *'x86_64-bin.tar.bz2'* package from latest stable release section, extract it, go to the extracted folder, open terminal in it and execute following commands, to directly open the application:
 	
 		$ chmod +x kawaii_player
 		$ ./kawaii_player
