@@ -128,6 +128,7 @@ Text box can also be used to input text commands to server as follows
 		<menuitem label='hello' onclick="menu_clicked(label)"> </menuitem>
 		<menuitem label='world' onclick="menu_clicked(label)"> </menuitem>
 	</menu>
+	<menuitem label='Add To Current Playlist' onclick="menu_clicked_playlist(label)"></menuitem>
 	<menuitem label='Remove From Playlist' onclick="menu_clicked_remove(label)"></menuitem>
 </menu>
 <div class="toTop">
@@ -298,6 +299,23 @@ function menu_clicked(e){
     console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.innerHTML);
     var new_url = 'add_to_playlist='+playlist+'&'+pl.innerHTML+'&'+pl.getAttribute('data-mp3');
     console.log(new_url);
+    var client = new getRequest();
+	client.get(new_url, function(response) {
+	console.log(response);
+	_title.innerHTML = response;
+	})
+}
+
+function menu_clicked_playlist(e){
+    var playlist = _only_playlist.value;
+    if(playlist == 'select_existing_playlist' || playlist == null || !playlist){
+		playlist = 'Default';
+	}
+	console.log(playlist);
+    var pl = _playlist_selected_element;
+    //console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.innerHTML);
+    var new_url = 'add_to_playlist='+playlist+'&'+pl.innerHTML+'&'+pl.getAttribute('data-mp3');
+    //console.log(new_url);
     var client = new getRequest();
 	client.get(new_url, function(response) {
 	console.log(response);
@@ -1200,6 +1218,7 @@ function playlistItemClick(clickedElement,mode) {
 	_final_name = clickedElement.innerHTML;
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	_title.innerHTML = _clicked_num+" "+clickedElement.innerHTML;
+	document.title = _title.innerHTML;
 	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'Remote Off'){
 		_player.src = new_src;
