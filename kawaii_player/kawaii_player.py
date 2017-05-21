@@ -19035,6 +19035,8 @@ class Ui_MainWindow(object):
 							o = n.split(':')
 							mplayerLength = int(o[0])*3600+int(o[1])*60+int(o[2])
 							print(mplayerLength,"--mpvlength",a)
+							if mplayerLength == 0:
+								mplayerLength = 1
 							self.progressEpn.setMaximum(int(mplayerLength))
 							self.slider.setRange(0,int(mplayerLength))
 							self.mpv_cnt = 0
