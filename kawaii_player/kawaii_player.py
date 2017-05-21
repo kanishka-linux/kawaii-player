@@ -19888,7 +19888,8 @@ class Ui_MainWindow(object):
 				command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 0 -slave -wid {0}'.format(idw)
 		elif player == "mpv":
 			command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid {0}'.format(idw)
-			
+		else:
+			command = Player
 		if a_id:
 			if a_id == "auto":
 				if player == 'mplayer':
