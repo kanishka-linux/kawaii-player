@@ -1,6 +1,6 @@
 # Kawaii-Player
 
-Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server. It can be simply used as normal mutimedia frontend for mpv/mplayer, or it can be turned into portable media server on the fly. 
+Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server and torrent streaming server. It can be simply used as normal multimedia frontend for mpv/mplayer with remote control and limited casting support, or it can be turned into portable media server on the fly. 
 
 ![kawaii-player](/Images/Video.png)
 
@@ -27,6 +27,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Using Web Interface](#using-web-interface)
 
+[Casting](#casting)
+
 [Remote Control](#remote-control)
 
 [YouTube Player](#youtube-support)
@@ -43,23 +45,6 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Contacts](#contacts)
 
-## Why Another Media Player
-
-###### [Index](#index)
-
-Initially the application started as simple combined audio/video player/manager with support for custom addons for gnu/linux system. GNU/Linux ecosystem has many good music players/managers and video players. But I felt that, a simple lightweight combine audio/video player and library manager which is free and open, with mpv/mplayer as backend, was missing. Hence, I decided to write one with support for custom addons. 
-
-After developing decent combined audio/video management facility within the application, I thought that, once our media collection is organised by particular application, there are instances when we want to access it from other devices. There are many solutions to it in the market but most of them required static centralized 24x7 ON media servers; but I wanted a lightweight, portable and no-heavy setup kind of solution; hence I built media server within the media-player itself, which one can switch on and off anytime from anywhere with just one click. Therefore, now the application is multimedia player using mpv/mplayer as playback engine with remote control support, youtube player, torrent streaming player, library manager (with custom fanart and posters support), custom addons support and portable media server combined.
-
-### Why complicate things by building media-server within media player itself?
-
-Actually, Instead of complicating anything, the built-in media-server can simplify many things, because now-a-days we are surrounded by portable devices everywhere, from which we want to access our media with as little effort as possible.
-
-The built-in portable media server of this application can have many use cases. If your family members or friends use different operating systems and you want to share some content which is lying on your working computer quickly, then you can simply create a streaming web interface out of your collection managed by kawaii-player instantly with just one click, for others to stream the content, irrespective of their OS. Alternatively you can generate universal playlist from media server and set expiry limit to it, contents of which can be played/streamed on any device with any popular media player, subject to hardware capacity of mobile device. It doesn't do any transcoding since popular media-players like mpv/mplayer/vlc/kodi can handle anything in the universal playlist. On long journey or travel also, this portable media server can come handy by converting any laptop/netbook as streaming media server for other portable devices surrounding you. There are multiple such use cases of portable media server which users can think of on their own.
-
-Moreover media-server of this application has been designed in such a manner that, user don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort. User can access their own media managed by kawaii-player from outside the network, by configuring port forwarding on router.
-
-**Note:** The application was initially developed for gnu/linux systems, but now it is possible to install it on any operating system (using **setup.py** script) which supports installation of python 3.5+ and pyqt5 5.5+. 
 
 ## Features
 
@@ -69,7 +54,7 @@ Moreover media-server of this application has been designed in such a manner tha
 
 2.  Bookmark and categorize series in the library (like Watching, Incomplete, Interesting etc..).
 
-3.  Good audio-video management functionalities using sqlite3.
+3.  Audio-Video management functionalities using sqlite3.
 
 4.  Custom Addons Support for viewing content of various sites directly on the player.
 
@@ -81,7 +66,7 @@ Moreover media-server of this application has been designed in such a manner tha
 
 8.  System Tray Support (Current tray icon is temporary which may change in future).
 
-9.  Proper MPRIS2 support and integration with sound menu applet.
+9.  MPRIS2 support and integration with sound menu applet.
 
 10. Custom Playlist and queueing support.
 
@@ -89,7 +74,7 @@ Moreover media-server of this application has been designed in such a manner tha
 
 12. Special Minimal Mode Music Player for listening only music (Available in System Tray context menu).
 
-13. Proper History Manager for both addons and local content.
+13. History Manager for both addons and local content.
 
 14. mplayer/mpv internal player.
 
@@ -111,7 +96,9 @@ Moreover media-server of this application has been designed in such a manner tha
 
 23. Web Interface for accessing media server content
 
-24. [Remote Control using web interface](#remote-control)
+24. [Limited Casting Support](#casting)
+
+25. [Remote Control using web interface](#remote-control)
 
 
 
@@ -404,7 +391,11 @@ Web Interface, contains a search text box which can be used to send text command
 
 **About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
 
-**About Casting:** The computer running kawaii-player can be used as youtube-casting or torrent-casting device. Users can directly send youtube video/playlist links using web interface to the application, which will be then played using mpv/mplayer and youtube-dl. If the computer running the application is connected to TV then user can directly view the content on TV. Same is with torrent http/magnet links. Users can preserve everything which has been played into local playlist. Users need to enable remote-control mode to use these features, without which everything you click might start playing in the browser if it's html5 compatible. The playing instance can be easily controlled using web-based remote. The application has not been tested on raspberry-pi, but it's possible to install it on any gnu/linux based system, hence there should not be any problem installing it on raspberry-pi with lightweight Arch linux or ubuntu 16.04+ based systems. If kawaii-player is installed on raspberry-pi then users might turn their pi devices into some kind of chromecast for youtube and torrent streams.
+## Casting
+
+###### [Index](#index)
+
+The computer running kawaii-player can be used as youtube-casting or torrent-casting device. Users can directly send youtube video/playlist links using web interface to the application with the help of text commands mentioned in the [Using Web Interface](#using-web-interface) section, which will be then played using mpv/mplayer and youtube-dl. If the computer running the application is connected to TV then user can directly view the content on TV. Same is with torrent http/magnet links. Users can preserve everything which has been played into local playlist. Users need to enable remote-control mode to use these features, without which everything you click might start playing in the browser if it's html5 compatible. The playing instance can be easily controlled using web-based remote. The application has not been tested on raspberry-pi, but it's possible to install it on any gnu/linux based system, hence there should not be any problem installing it on raspberry-pi with lightweight Arch linux or ubuntu 16.04+ based systems. If kawaii-player is installed on raspberry-pi then users might turn their pi devices into some kind of chromecast for youtube and torrent streams.
 
 ## Remote Control
 
