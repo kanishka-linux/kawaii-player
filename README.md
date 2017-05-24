@@ -7,8 +7,6 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ## Index
 
-[Why Another Media Player?](#why-another-media-player)
-
 [Features](#features)
 
 [Playing Mode](#playing-mode)
