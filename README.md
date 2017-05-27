@@ -25,7 +25,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Using Web Interface](#using-web-interface)
 
-[Casting](#casting)
+[Limited Casting Support](#casting)
 
 [Remote Control](#remote-control)
 
@@ -123,25 +123,6 @@ User can make as many playlists as possible. It is possible to merge various pla
 
 Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 2 to 4**. In thumbnail mode users have option to change default generated thumbnail. 
 Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. 
-
-## Minimal Music Player
-
-###### [Index](#index)
-
-![kawaii-player](/Images/Music.png)
-
-It supports certain MPRIS D-bus functionalities. Therefore if you have created global keyboard shortcuts for play/pause,Next,Previous or Stop then they can work with this player also. Make sure python-dbus is installed on system to use this feature.
-
-It is not very powerful music organizer, but provide certain decent functionalities. When using with mplayer, it's cpu usage is just 1-2 % which makes it very ideal for low end machines.
-
-## Detached Video Mode
-
-###### [Index](#index)
-
-![kawaii-player](/Images/Detached_Mode.png)
-
-The Player contains Detached video mode, which can be activated by right clicking tray icon and selecting appropriate entry.
-In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of Unity or GNOME.
 
 
 ## Media Server
@@ -420,6 +401,26 @@ youtube-dl gets outdated quickly, hence there is option provided in the player t
 		$ yt:audio (for playing only audio)
 		$ yt:audiovideo (regular video)
 		$ quality:{sd,hd or best}
+
+## Minimal Music Player
+
+###### [Index](#index)
+
+![kawaii-player](/Images/Music.png)
+
+It supports certain MPRIS D-bus functionalities. Therefore if you have created global keyboard shortcuts for play/pause,Next,Previous or Stop then they can work with this player also. Make sure python-dbus is installed on system to use this feature.
+
+It is not very powerful music organizer, but provide certain decent functionalities. When using with mplayer, it's cpu usage is just 1-2 % which makes it very ideal for low end machines.
+
+## Detached Video Mode
+
+###### [Index](#index)
+
+![kawaii-player](/Images/Detached_Mode.png)
+
+The Player contains Detached video mode, which can be activated by right clicking tray icon and selecting appropriate entry.
+In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of Unity or GNOME.
+
 
 ## Addon Structure
 
