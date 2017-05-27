@@ -588,14 +588,13 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 ###### [Index](#index)
 
-If everything goes well and if you are able to open the player, then you will come across Three Columns.
+If everything goes well and users are able to open the player, then they will come across Three Columns.
 
 First Column, At the Leftmost, is the 'Settings' column. Just click on the library, and add paths to your media. You can choose either mpv or mplayer. Default is mpv.
 
-I've little bit tweaked mplayer functionality especially relating to it's buffer management. If you are on low bandwidth network and mplayer goes out of cache, then it keep on stuttering but does not stop. But I've written small wrapper around mplayer, now as soon as it goes out of buffer, it will stop for 5 seconds. When it stops for filling the buffer, you can pause it manually for larger duration. In normal mplayer functioning, once it starts stuttering due to lack of cache, it is also difficult to pause manually. I really don't know, why developers of mplayer don't pay attention to this simple problem. In this regard, mpv has done really excellent job.
-It's your choice which player to choose.
+In this player, mplayer functionality relating to it's buffer management has been tweaked a little bit. If users are on low bandwidth network and mplayer goes out of cache, then it keep on stuttering but does not pause and at that time it's difficult to pause it manually also. Therefore in this application, a small wrapper has been written around mplayer, so that as soon as it goes out of cache, it will pause to fill the cache upto 1% of it's allocated capacity. When it stops for filling the buffer, users can pause it manually for larger duration. mpv doesn't have any such problem.
 
-If you are still not satisfied with mpv or mplayer, then you can also launch any of the external player such as vlc,smplayer or kodi. Currently the kawaii-player supports only these three external players apart from mpv and mplayer, which are internal.
+If users are still not satisfied with mpv or mplayer, then they can also launch any of the external player such as vlc,smplayer or kodi. Currently the kawaii-player supports only these three external players apart from mpv and mplayer, which are internal.
 
 Middle column, is the “Title Column”, It will consists of name of the series.
 Last Column to the extreme right, is the “Playlist column”, which will contain playlist items which will be played sequentially in the default mode, you will just have to select entry and press enter or double click.
