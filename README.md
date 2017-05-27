@@ -109,9 +109,9 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ![kawaii-player](/Images/Watch.png)
 
-It tries to be a simple media manager for your audio and video collection, along with powerful playing capabilities of mpv and mplayer. You can organise your collection properly into various groups and categories such as watching,incomplete etc.. You can create your own group also for any special category in the bookmark section.  It will also keep track of number of episodes that you have watched in a series. It will also manage history ,and you will have complete control over it.
+It tries to be a simple media manager for audio and video collection, along with powerful playing capabilities of mpv and mplayer. User can organise your collection properly into various groups and categories such as watching,incomplete etc.. and can create their own group also for any special category in the bookmark section.  It will keep track of number of episodes user has watched in a series. It will also manage history ,and user will have complete control over it.
 
-You can fetch fanart and posters from TVDB website. If proper match is not found then you can directly go to the website using inbuilt browser. In the inbuilt browser right click has been tweaked, so that when when you find relevant url of fanart ,poster or anime; you can directly right click on the option to save it as fanart or poster or find anime info. In the same way you can find Episode Names or thumbnails of the TV shows. If you are in Music section then you can use the inbuilt browser to get artist information and poster directly from Last.fm, if default perfect match is not found.
+User can fetch fanart and posters from TVDB website. If proper match is not found then they can directly go to the website using inbuilt browser. In the inbuilt browser right click has been tweaked, so that user can fetch custom fanart/poster/summary manually. In the same way user can find Episode Names or thumbnails of the TV shows. If Music section then user can use the inbuilt browser to get artist information and poster directly from Last.fm, if default perfect match is not found.
 
 User can make as many playlists as possible. It is possible to merge various playlists. Users can combine local audio, local video and external url into the playlist.
 
@@ -411,6 +411,8 @@ youtube-dl gets outdated quickly, hence there is option provided in the player t
 It supports certain MPRIS D-bus functionalities. Therefore if you have created global keyboard shortcuts for play/pause,Next,Previous or Stop then they can work with this player also. Make sure python-dbus is installed on system to use this feature.
 
 It is not very powerful music organizer, but provide certain decent functionalities. When using with mplayer, it's cpu usage is just 1-2 % which makes it very ideal for low end machines.
+
+In Music mode only audio will be played and video will be suppressed.
 
 ## Detached Video Mode
 
