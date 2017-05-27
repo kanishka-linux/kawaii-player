@@ -813,7 +813,7 @@ You can explore Right click menu of both Playlist Column and Title List Column f
 
 6. By default, the background image follows fit to screen mode without thinking about original aspect ratio of the image. If user want to change it to fit to width or fit to height without changing aspect ratio, then they should try Ctrl+2 or Ctrl+3 global key combination. Users can also try Ctrl+4 to Ctrl+8 shortcuts, to experiment with various available background image modes.
 
-7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). As of now Codebase of both projects have diverged a lot, but addons and settings of both are compatible with each other. If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '/.config/AnimeWatch' to '/.config/kawaii-player'.
+7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). As of now new features are mainly added to kawaii-player and hence codebase of both projects have diverged a lot, but addons and settings of both are compatible with each other. If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '/.config/AnimeWatch' to '/.config/kawaii-player'.
 
 ## Contacts
 
