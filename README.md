@@ -13,10 +13,6 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Thumbnail Mode](#thumbnail-mode)
 
-[Minimal Music Player](#minimal-music-player)
-
-[Detached Video Mode](#detached-video-mode)
-
 [Torrent Streaming Player](#torrent-streaming)
 
 [Media Server](#media-server)
@@ -30,6 +26,10 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 [Remote Control](#remote-control)
 
 [YouTube Player](#youtube-support)
+
+[Minimal Music Player](#minimal-music-player)
+
+[Detached Video Mode](#detached-video-mode)
 
 [Addons (Plugins) Structure](#addon-structure)
 
