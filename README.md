@@ -109,11 +109,11 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ![kawaii-player](/Images/Watch.png)
 
-It tries to be a simple media manager for audio and video collection, along with powerful playing capabilities of mpv and mplayer. User can organise their collection properly into various groups and categories such as watching,incomplete etc.. and can create their own group also for any special category in the bookmark section.  It will keep track of number of episodes user has watched in a series. It will also manage history ,and user will have complete control over it.
+It tries to be a simple media manager for audio and video, along with powerful playing capabilities of mpv and mplayer. Users can organise their collection properly into various groups and categories such as watching,incomplete etc.. and can create their own group also for any special category in the bookmark section.  It will keep track of number of episodes user has watched in a series. It will also manage history ,and user will have complete control over it.
 
-User can fetch fanart and posters from TVDB website. If proper match is not found then they can directly go to the website using inbuilt browser. In the inbuilt browser right click has been tweaked, so that user can fetch custom fanart/poster/summary manually. In the same way user can find Episode Names or thumbnails of the TV shows. In Music section then user can use the inbuilt browser to get artist information and poster directly from Last.fm, if default perfect match is not found.
+Users can fetch fanart and posters from TVDB website. If proper match is not found then they can directly go to the website using inbuilt browser. In the inbuilt browser right click context-menu has been tweaked, so that users can fetch custom fanart,poster,summary,episode name manually. In Music section, the inbuilt browser can be used to get artist information and poster directly from Last.fm, if default perfect match is not found.
 
-User can make as many playlists as possible. It is possible to merge various playlists. It's possible to combine local audio, local video and external url into the playlist.
+It's possible to combine local audio, local video and external url into the playlist.
 
 ## Thumbnail Mode
 
