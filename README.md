@@ -13,11 +13,11 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 [Thumbnail Mode](#thumbnail-mode)
 
-[Torrent Streaming Player](#torrent-streaming)
-
 [Media Server](#media-server)
 
 [Universal Playlist Generation](#universal-playlist-generation)
+
+[Torrent Streaming Player](#torrent-streaming)
 
 [Using Web Interface](#using-web-interface)
 
