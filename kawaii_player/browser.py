@@ -115,11 +115,9 @@ class NetWorkManager(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
 					#a = 0
 		except:
 			pass
-		if block:
-			info.block(True)
-			
+		info.block(True)
 
-	
+
 class Browser(QtWebEngineWidgets.QWebEngineView):
 	
 	urlSignal = pyqtSignal(str)
