@@ -10371,6 +10371,8 @@ class Ui_MainWindow(object):
 		external_sub = False
 		sub_arr = []
 		new_name = self.epn_name_in_list.replace('/','-')
+		if new_name.startswith(self.check_symbol):
+			new_name = new_name[1:]
 		ext_arr = self.video_type_arr
 		if new_name.startswith('.'):
 			new_name = new_name[1:]
@@ -10381,6 +10383,7 @@ class Ui_MainWindow(object):
 			if ext_n in ext_arr:
 				new_name = new_name.rsplit('.',1)[0]
 		new_name_original = new_name
+		
 		if new_name.endswith('YouTube'):
 			new_name = ''.join(new_name.rsplit('YouTube',1))
 			new_name = new_name.strip()
