@@ -92,7 +92,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 22. [Universal Playlist Generation](#universal-playlist-generation)
 
-23. Web Interface for accessing media server content
+23. [Web Interface for accessing media server content](#using-web-interface)
 
 24. [Limited Casting Support](#casting)
 
