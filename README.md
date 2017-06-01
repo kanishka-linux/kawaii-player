@@ -7,43 +7,43 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ## Index
 
-[Why Another Media Player?](#why-another-media-player)
+- [Why Another Media Player?](#why-another-media-player)
 
-[Features](#features)
+- [Features](#features)
 
-[Playing Mode](#playing-mode)
+- [Playing Mode](#playing-mode)
 
-[Thumbnail Mode](#thumbnail-mode)
+- [Thumbnail Mode](#thumbnail-mode)
 
-[Media Server](#media-server)
+- [Media Server](#media-server)
 
-[Universal Playlist Generation](#universal-playlist-generation)
+- [Universal Playlist Generation](#universal-playlist-generation)
 
-[Torrent Streaming Player](#torrent-streaming)
+- [Torrent Streaming Player](#torrent-streaming)
 
-[Using Web Interface](#using-web-interface)
+- [Using Web Interface](#using-web-interface)
 
-[Limited Casting Support](#casting)
+- [Limited Casting Support](#casting)
 
-[Remote Control](#remote-control)
+- [Remote Control](#remote-control)
 
-[YouTube Player](#youtube-support)
+- [YouTube Player](#youtube-support)
 
-[Minimal Music Player](#minimal-music-player)
+- [Minimal Music Player](#minimal-music-player)
 
-[Detached Video Mode](#detached-video-mode)
+- [Detached Video Mode](#detached-video-mode)
 
-[Addons (Plugins) Structure](#addon-structure)
+- [Addons (Plugins) Structure](#addon-structure)
 
-[Dependencies and Installation](#dependencies-and-installation)
+- [Dependencies and Installation](#dependencies-and-installation)
 
-[Troubleshooting](#troubleshooting)
+- [Troubleshooting](#troubleshooting)
 
-[Brief Documentation](#documentation)
+- [Brief Documentation](#documentation)
 
-[Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
+- [Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
 
-[Contacts](#contacts)
+- [Contacts](#contacts)
 
 ## Why Another Media Player
 
@@ -458,35 +458,35 @@ In this player, a weak addon structure has been created, so that one can write a
 
 2. Ubuntu or Debian based distro users
 	
-	* Users can directly go to Release section and download appropriate .deb package and install it using
+	- Users can directly go to Release section and download appropriate .deb package and install it using
  
-		sudo gdebi pkg_name.deb. 
+			sudo gdebi pkg_name.deb. 
 
-	If 'gdebi' is not installed then install it using 
+		If 'gdebi' is not installed then install it using 
 
-		'sudo apt-get install gdebi'. 
+			'sudo apt-get install gdebi'. 
 
-	* If user want to install directly from source:
+	- If user want to install directly from source:
 		
-		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from release section and extract it, if user wants stable release)
-		$ cd kawaii-player/ubuntu
-		$ python3 create_deb.py
+			$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from release section and extract it, if user wants stable release)
+			$ cd kawaii-player/ubuntu
+			$ python3 create_deb.py
 		
-		Above three steps will create .deb package from latest source, which users can install using gdebi.
+			Above three steps will create .deb package from latest source, which users can install using gdebi.
 				
-   **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
+	- **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 	
-	* PyQt5 available in ubuntu repository is normally older compared to latest release and packages QtWebKit (which has been deprecated since Qt-5.6) instead of QtWebEngine. If user wants to try the application with latest PyQt5 version with QtWebEngine as browser backend, then they should install the application first as per the steps given above and then they should use following command to install PyQt5 using pip (only possible for 64-bit systems).
+	- PyQt5 available in ubuntu repository is normally older compared to latest release and packages QtWebKit (which has been deprecated since Qt-5.6) instead of QtWebEngine. If user wants to try the application with latest PyQt5 version with QtWebEngine as browser backend, then they should install the application first as per the steps given above and then they should use following command to install PyQt5 using pip (only possible for 64-bit systems).
 	
-		$ sudo pip3 install PyQt5 sip
+			$ sudo pip3 install PyQt5 sip
 		
-	Once PyQt5 installed using pip3 then user needs to change *'BROWSER_BACKEND=QTWEBKIT'* to *'BROWSER_BACKEND=QTWEBENGINE'* in *'~/.config/kawaii-player/other_options.txt'* file.
+		Once PyQt5 installed using pip3 then user needs to change *'BROWSER_BACKEND=QTWEBKIT'* to *'BROWSER_BACKEND=QTWEBENGINE'* in *'~/.config/kawaii-player/other_options.txt'* file.
 	
-	* If PyQt5 installation using pip3 is giving some problem then user can remove it using following command.
+		If PyQt5 installation using pip3 is giving some problem then user can remove it using following command.
 	
-		$ sudo pip3 uninstall PyQt5 sip
+			$ sudo pip3 uninstall PyQt5 sip
 		
-	and then change '*BROWSER_BACKEND*' to '*QTWEBKIT*' in '*other_options.txt*' file.
+		and then change '*BROWSER_BACKEND*' to '*QTWEBKIT*' in '*other_options.txt*' file.
 
 3. Using self contained binary for 64-bit gnu/linux systems:
 	
