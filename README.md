@@ -456,7 +456,7 @@ In this player, a weak addon structure has been created, so that one can write a
 		1. First install pytaglib from AUR
 		2. Create package from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
 
-2. Ubuntu or Debian based distro users
+2. For Ubuntu or Debian based distro.
 	
 	- Users can directly go to Release section and download appropriate .deb package and install it using
  
@@ -466,7 +466,7 @@ In this player, a weak addon structure has been created, so that one can write a
 
 			'sudo apt-get install gdebi'. 
 
-	- If user want to install directly from source:
+	- If user wants to install the application directly from source:
 		
 			$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from release section and extract it, if user wants stable release)
 			$ cd kawaii-player/ubuntu
@@ -482,7 +482,7 @@ In this player, a weak addon structure has been created, so that one can write a
 		
 		Once PyQt5 installed using pip3 then user needs to change *'BROWSER_BACKEND=QTWEBKIT'* to *'BROWSER_BACKEND=QTWEBENGINE'* in *'~/.config/kawaii-player/other_options.txt'* file.
 	
-		If PyQt5 installation using pip3 is giving some problem then user can remove it using following command.
+		If PyQt5 installation using pip3 is giving some problem then user can remove it using following command
 	
 			$ sudo pip3 uninstall PyQt5 sip
 		
@@ -495,7 +495,7 @@ In this player, a weak addon structure has been created, so that one can write a
 		$ chmod +x kawaii_player
 		$ ./kawaii_player
 
-	The 64-bit binary is built against Ubuntu 16.04 LTS and contains all python based dependencies. Users will have to install only non-python based dependencies like mpv/mplayer/ffmpegthumbnailer externally. The binary has been tested on Ubuntu, Mint and Fedora.
+	The 64-bit binary is built against Ubuntu 16.04 LTS as base and contains all python based dependencies. Users will have to install only non-python based dependencies like mpv/mplayer/ffmpegthumbnailer externally. The binary has been tested on Ubuntu, Mint and Fedora.
 
 4. **Using setup.py** (Common method for all including gnu/linux, windows and other unix like systems): 
 		
