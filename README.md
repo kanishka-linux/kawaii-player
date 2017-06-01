@@ -482,11 +482,11 @@ In this player, a weak addon structure has been created, so that one can write a
 		
 		Once PyQt5 installed using pip3 then user needs to change *'BROWSER_BACKEND=QTWEBKIT'* to *'BROWSER_BACKEND=QTWEBENGINE'* in *'~/.config/kawaii-player/other_options.txt'* file.
 	
-		If PyQt5 installation using pip3 is giving some problem then user can remove it using following command
+		- If PyQt5 installation using pip3 is giving some problem then user can remove it using following command
 	
-			$ sudo pip3 uninstall PyQt5 sip
+				$ sudo pip3 uninstall PyQt5 sip
 		
-		and then change '*BROWSER_BACKEND*' to '*QTWEBKIT*' in '*other_options.txt*' file.
+			and then change '*BROWSER_BACKEND*' to '*QTWEBKIT*' in '*other_options.txt*' file.
 
 3. Using self contained binary for 64-bit gnu/linux systems:
 	
