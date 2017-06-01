@@ -456,15 +456,17 @@ In this player, a weak addon structure has been created, so that one can write a
 		1. First install pytaglib from AUR
 		2. Create package from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
 
-2. Ubuntu or Debian based distro users can directly go to Release section and download appropriate .deb package and install it using
+2. Ubuntu or Debian based distro users
+	
+	* Users can directly go to Release section and download appropriate .deb package and install it using
  
 		sudo gdebi pkg_name.deb. 
 
-   If 'gdebi' is not installed then install it using 
+	If 'gdebi' is not installed then install it using 
 
 		'sudo apt-get install gdebi'. 
 
-   If user want to install directly from source:
+	* If user want to install directly from source:
 		
 		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from release section and extract it, if user wants stable release)
 		$ cd kawaii-player/ubuntu
@@ -474,6 +476,17 @@ In this player, a weak addon structure has been created, so that one can write a
 				
    **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
 	
+	* PyQt5 available in ubuntu repository is normally older compared to latest release and packages QtWebKit (which has been deprecated since Qt-5.6) instead of QtWebEngine. If user wants to try the application with latest PyQt5 version with QtWebEngine as browser backend, then they should install the application first as per the steps given above and then they should use following command to install PyQt5 using pip (only possible for 64-bit systems).
+	
+		$ sudo pip3 install PyQt5 sip
+		
+	Once PyQt5 installed using pip3 then user needs to change *'BROWSER_BACKEND=QTWEBKIT'* to *'BROWSER_BACKEND=QTWEBENGINE'* in *'~/.config/kawaii-player/other_options.txt'* file.
+	
+	* If PyQt5 installation using pip3 is giving some problem then user can remove it using following command.
+	
+		$ sudo pip3 uninstall PyQt5 sip
+		
+	and then change '*BROWSER_BACKEND*' to '*QTWEBKIT*' in '*other_options.txt*' file.
 
 3. Using self contained binary for 64-bit gnu/linux systems:
 	
