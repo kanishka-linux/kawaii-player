@@ -525,45 +525,45 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 **Minimum Dependencies on GNU/Linux:** 
 
-python3 {Main Language, version 3.5+}
+1. python3 {Main Language, version 3.5+}
 
-python-pyqt5 {Main GUI Builder, version 5.5+}
+2. python-pyqt5 {Main GUI Builder, version 5.5+}
 
-python-pillow {For Image Processing}
+3. python-pillow {For Image Processing}
 
-python-beautifulsoup4 {For scrapping webpage}
+4. python-beautifulsoup4 {For scrapping webpage}
 
-python-lxml {Internal parser used in beautifulsoup4 for advance features}
+5. python-lxml {Internal parser used in beautifulsoup4 for advance features}
 
-python-pycurl (or curl or wget alternative) {Main library for fetching web pages}
+6. python-pycurl (or curl or wget alternative) {Main library for fetching web pages}
 
-pytaglib or mutagen (required for Tagging of audio files)
+7. pytaglib or mutagen (required for Tagging of audio files)
 
-sqlite3 (for managing local music and video database, Addons are not managed by it. Addons are managed using files.)
+8. sqlite3 (for managing local music and video database, Addons are not managed by it. Addons are managed using files.)
 
-mpv or mplayer. (for playing media)
+9. mpv or mplayer. (for playing media)
 
-ffmpegthumbnailer(Thumbnail Generator for Local Files)
+10. ffmpegthumbnailer(Thumbnail Generator for Local Files)
 
 **For extra features such as Youtube support, torrent streaming, MPRIS D-Bus support, desktop notifications and HTTPS:**
 
-libtorrent-rasterbar {For Torrent Streaming Support}
+1. libtorrent-rasterbar {For Torrent Streaming Support}
 
-python3-libtorrent (for Ubuntu)
+2. python3-libtorrent {in case python3 bindings for libtorrent are not included in libtorrent-rasterbar}
 
-youtube-dl {for YouTube Support}
+3. youtube-dl {for YouTube Support}
 
-python3-dbus {for MPRIS DBus support}
+4. python3-dbus {for MPRIS DBus support}
 
-libnotify {required for Desktop Notification}
+5. libnotify {required for Desktop Notification}
 
-curl or wget {In case pycurl doesn't work}
+6. curl or wget {In case pycurl doesn't work}
 
-openssl {for enabling HTTPS}
+7. openssl {for enabling HTTPS}
 
-ffmpeg {for extracting and converting subtitles}
+8. ffmpeg {for extracting and converting subtitles}
 
-xvfb {for using the application in headless mode}
+9. xvfb {for using the application in headless mode}
 
 **Dependencies installation in Arch for pyqt5 version.**
 
@@ -577,7 +577,7 @@ sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python
 
 ###### [Index](#index)
 
-1. If you've installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'kawaii-player' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
+1. If user has installed the Application using .deb or .pkg.tar.xz package or using PKGBUILD, and somehow application launcher in the menu is not working, then open terminal and launch the application using command 'kawaii-player' or 'python -B /usr/share/kawaii-player/kawaii_player.py' or 'python3 -B /usr/share/kawaii-player/kawaii_player.py'.
 
 2. If addons are not working after some time or fanart/poster are not fetched properly, then try clearing the cache directory **'~/.config/kawaii-player/tmp/'**. If users have some problems in using qtwebengine, then try clearing cache directory for qtwebengine **'~/.config/kawaii-player/Cache/'**.
 
@@ -817,7 +817,7 @@ Ctrl+A : to select and save save edited summary.
 
 ### Apart from shortcuts:
 
-You can explore Right click menu of both Playlist Column and Title List Column for getting TVDB, Last.fm profiles for your collection either manually or automatically. If you are getting some problem while setting profiles from TVDB or Last.fm , or having problems accessing addons,then empty the cache directory '~/.config/kawaii-player/tmp', This option is available with right click menu of Title List and Playlist column also.
+User can explore Right click menu of both Playlist Column and Title List Column for getting TVDB, Last.fm profiles for their collection either manually or automatically. If user is getting some problem while setting profiles from TVDB or Last.fm , or having problems accessing addons,then empty the cache directory '~/.config/kawaii-player/tmp', This option is available with right click menu of Title List and Playlist column.
 
 ### Other Things for convenience:
 
