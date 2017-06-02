@@ -525,45 +525,45 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 **Minimum Dependencies on GNU/Linux:** 
 
-1. python3 {Main Language, version 3.5+}
+- python3 {Main Language, version 3.5+}
 
-2. python-pyqt5 {Main GUI Builder, version 5.5+}
+- python-pyqt5 {Main GUI Builder, version 5.5+}
 
-3. python-pillow {For Image Processing}
+- python-pillow {For Image Processing}
 
-4. python-beautifulsoup4 {For scrapping webpage}
+- python-beautifulsoup4 {For scrapping webpage}
 
-5. python-lxml {Internal parser used in beautifulsoup4 for advance features}
+- python-lxml {Internal parser used in beautifulsoup4 for advance features}
 
-6. python-pycurl (or curl or wget alternative) {Main library for fetching web pages}
+- python-pycurl (or curl or wget alternative) {Main library for fetching web pages}
 
-7. pytaglib or mutagen (required for Tagging of audio files)
+- pytaglib or mutagen (required for Tagging of audio files)
 
-8. sqlite3 (for managing local music and video database, Addons are not managed by it. Addons are managed using files.)
+- sqlite3 (for managing local music and video database, Addons are not managed by it. Addons are managed using files.)
 
-9. mpv or mplayer. (for playing media)
+- mpv or mplayer. (for playing media)
 
-10. ffmpegthumbnailer(Thumbnail Generator for Local Files)
+- ffmpegthumbnailer(Thumbnail Generator for Local Files)
 
 **For extra features such as Youtube support, torrent streaming, MPRIS D-Bus support, desktop notifications and HTTPS:**
 
-1. libtorrent-rasterbar {For Torrent Streaming Support}
+- libtorrent-rasterbar {For Torrent Streaming Support}
 
-2. python3-libtorrent {in case python3 bindings for libtorrent are not included in libtorrent-rasterbar}
+- python3-libtorrent {in case python3 bindings for libtorrent are not included in libtorrent-rasterbar}
 
-3. youtube-dl {for YouTube Support}
+- youtube-dl {for YouTube Support}
 
-4. python3-dbus {for MPRIS DBus support}
+- python3-dbus {for MPRIS DBus support}
 
-5. libnotify {required for Desktop Notification}
+- libnotify {required for Desktop Notification}
 
-6. curl or wget {In case pycurl doesn't work}
+- curl or wget {In case pycurl doesn't work}
 
-7. openssl {for enabling HTTPS}
+- openssl {for enabling HTTPS}
 
-8. ffmpeg {for extracting and converting subtitles}
+- ffmpeg {for extracting and converting subtitles}
 
-9. xvfb {for using the application in headless mode}
+- xvfb {for using the application in headless mode}
 
 **Dependencies installation in Arch for pyqt5 version.**
 
@@ -632,7 +632,7 @@ Last Column to the extreme right, is the “Playlist column”, which will conta
 
 ### KeyBoard Shortcuts:
 
-Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, it's volume will be in sync with global volume. So global volume key will work. If you've setup d-bus shortcut keys for play/pause/next/previous then they will also work.
+Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, it's volume will be in sync with global volume. So global volume key will work. If user has setup d-bus shortcut keys for play/pause/next/previous then they will also work.
 
 There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen).
 
@@ -693,7 +693,7 @@ a : change aspect ratio (works with mpv: default aspect is 16:9 for mpv)
 
 for mplayer set aspect in ~/.mplayer/config, all the properties of the mplayer global config file will be taken by the internal mplayer.
 
-Some important parameters that you should set in '~/.mplayer/config' are as follows:
+Some important parameters that user should set in '~/.mplayer/config' are as follows:
 
 http-header-fields="User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:43.0) Gecko/20100101 Firefox/43.0" {or any other user-agent}
 
@@ -713,7 +713,7 @@ ao=pulse
 
 vo=gl
 
-You can change the parameters as per your choice.
+Users can change the parameters as per their choice.
 
 Similarly, most of the properties of mpv global config file '~/.config/mpv/config/' will work with this player. If possible you should add following line in mpv config file.
 
@@ -817,7 +817,7 @@ Ctrl+A : to select and save save edited summary.
 
 ### Apart from shortcuts:
 
-User can explore Right click menu of both Playlist Column and Title List Column for getting TVDB, Last.fm profiles for their collection either manually or automatically. If user is getting some problem while setting profiles from TVDB or Last.fm , or having problems accessing addons,then empty the cache directory '~/.config/kawaii-player/tmp', This option is available with right click menu of Title List and Playlist column.
+Users can explore Right click menu of both Playlist Column and Title List Column for getting TVDB, Last.fm profiles for their collection either manually or automatically. If users are getting some problem while setting profiles from TVDB or Last.fm , or having problems accessing addons,then empty the cache directory '~/.config/kawaii-player/tmp', This option is available with right click menu of Title List and Playlist column.
 
 ### Other Things for convenience:
 
