@@ -17775,6 +17775,8 @@ class Ui_MainWindow(object):
 							
 						write_files(file_path,lines,line_by_line=True)
 						txt = self.check_symbol + epnArrList[row]
+					if '	' in txt:
+						txt = txt.split('	')[0]
 					txt = txt.replace('_',' ',1)
 					self.list2.item(row).setText(txt)
 					
@@ -18161,7 +18163,10 @@ class Ui_MainWindow(object):
 		if site_name:
 			site_name_val = site_name
 		else:
-			site_name_val = 'Torrent'
+			if from_client:
+				site_name_val = 'Torrent'
+			else:
+				site_name_val = site
 		site_home = os.path.join(home,'History',site_name_val)
 		torrent_dest = os.path.join(site_home,name_file+'.torrent')
 		logger.info('torrent_dest={0} ; index={1}; path={2}'.format(torrent_dest,index,path))
