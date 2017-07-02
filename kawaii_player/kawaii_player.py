@@ -9543,6 +9543,7 @@ class Ui_MainWindow(object):
 		self.video_type_arr = [
 			'mkv','mp4','avi','flv','ogg','wmv','webm'
 			]
+		self.video_dict = {}
 		self.update_proc = QtCore.QProcess()
 		self.btn30.addItem(_fromUtf8(""))
 		self.btn30.addItem(_fromUtf8(""))
@@ -16794,14 +16795,17 @@ class Ui_MainWindow(object):
 						video_opt = 'History'
 					if video_opt == "Update" or video_opt == "UpdateAll":
 						video_opt = "Available"
-					if video_opt == "Available" or video_opt == "History":
+						self.video_dict.clear()
+					if video_opt == "Available" or video_opt == "History" or video_opt == 'Directory':
 						index = self.list1.currentRow()
 						art_n = original_path_name[index].split('	')[-1]
-						m = self.getVideoDB(video_db,"Directory",art_n)
-					elif video_opt == "Directory":
-						index = self.list1.currentRow()
-						art_n = original_path_name[index].split('	')[-1]
-						m = self.getVideoDB(video_db,video_opt,art_n)
+						if art_n in self.video_dict:
+							m = self.video_dict[art_n]
+							logger.info('Getting from Cache')
+						else:
+							m = self.getVideoDB(video_db,"Directory",art_n)
+							self.video_dict.update({art_n:m})
+							logger.info('Getting from DB')
 				else:
 					new_art_n = art_n
 					if new_dir_path is not None:
@@ -17151,7 +17155,7 @@ class Ui_MainWindow(object):
 				if (picn == thumbnail == fanart):
 					pass
 				else:
-					QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette,fanart))
+					QtCore.QTimer.singleShot(10, partial(set_mainwindow_palette,fanart))
 				if 'poster.jpg' in poster:
 					picn = self.change_aspect_only(poster)
 					
