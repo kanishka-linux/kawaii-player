@@ -2971,6 +2971,15 @@ class find_poster_thread(QtCore.QThread):
 	def __del__(self):
 		self.wait()                        
 	
+	def name_adjust(self,name):
+		nam = re.sub('-|_| ','+',name)
+		nam = nam.lower()
+		nam = re.sub('\[[^\]]*\]|\([^\)]*\)','',nam)
+		nam = re.sub(
+			'\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|','',nam)
+		nam = nam.strip()
+		return nam
+		
 	def run(self):
 		global site
 		name = self.name
@@ -2990,7 +2999,7 @@ class find_poster_thread(QtCore.QThread):
 			final = ''
 			if (self.copy_fanart and self.copy_poster and self.copy_summary):
 				if not direct_url and not url:
-					nam = re.sub('-|_|[ ]','+',name)
+					nam = self.name_adjust(name)
 					url = "http://www.last.fm/search?q="+nam
 					logger.info(url)
 					logger.info(url)
@@ -3090,9 +3099,7 @@ class find_poster_thread(QtCore.QThread):
 				except Exception as e:
 					print(e)
 		else:
-			nam = re.sub('Dub|Sub|subbed|dubbed','',name)
-			nam = re.sub('-|_|[ ]','+',nam)
-
+			nam = self.name_adjust(name)
 			if direct_url and url:
 				if (".jpg" in url or ".png" in url or url.endswith('.webp')) and "http" in url:
 					if self.copy_poster:
@@ -14251,7 +14258,7 @@ class Ui_MainWindow(object):
 				if i.startswith('#'):
 					i = i.replace('#',self.check_symbol,1)
 					self.list2.addItem((i))
-					self.list2.item(k).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+					#self.list2.item(k).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 				else:
 					self.list2.addItem((i))
 			else:
@@ -14266,7 +14273,7 @@ class Ui_MainWindow(object):
 				if j.startswith('#'):
 					j = j.replace('#',self.check_symbol,1)
 					self.list2.addItem((j))	
-					self.list2.item(k).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+					#self.list2.item(k).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 				else:
 					self.list2.addItem((j))
 			k = k+1
@@ -17629,7 +17636,7 @@ class Ui_MainWindow(object):
 					self.list2.item(row).setText(self.check_symbol+i)
 				else:
 					self.list2.item(row).setText(i)
-				self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+				#self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 				self.list2.setCurrentRow(row)
 				
 			if site != "Local":
@@ -17813,10 +17820,8 @@ class Ui_MainWindow(object):
 				self.list2.item(row).setText(self.check_symbol+i)
 			else:
 				self.list2.item(row).setText(i)
-			self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+			#self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 			self.list2.setCurrentRow(row)
-			
-			
 			
 			if site == 'None' and video_local_stream:
 					finalUrl = self.local_torrent_open(local_torrent_file_path)
@@ -17856,37 +17861,22 @@ class Ui_MainWindow(object):
 				mpvplayer.kill()
 				self.mpvplayer_started = False
 			if Player == "mpv":
-				#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
 				command = self.mplayermpv_command(idw,finalUrl,Player)
 				logger.info(command)
 				self.infoPlay(command)
 			elif Player == "mplayer":
-				if mpvplayer.processId() > 0:
-					try:
-						#subprocess.Popen(['killall','mplayer'])
-						print('hello')
-					except:
-						pass
 				quitReally = "no"
 				
 				idw = str(int(self.tab_5.winId()))
 				if site != "Music":
 					self.tab_5.show()
-					##self.tab_5.setFocus()
-				#if finalUrl.startswith('"http'):
-				#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
-				#else:
-				#	command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 				command = self.mplayermpv_command(idw,finalUrl,Player)
 				logger.info(command)
 				self.infoPlay(command)
 			else:
 				finalUrl = finalUrl.replace('"','')
 				subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE,stdout=subprocess.PIPE)
-			
-			
 		else:
-		
 			if downloadVideo == 0 and Player == "mpv":
 				if mpvplayer.processId() > 0:
 					mpvplayer.kill()
@@ -17901,12 +17891,9 @@ class Ui_MainWindow(object):
 							if refererNeeded == True or rfr_needed:
 								rfr_url = finalUrl[1]
 								nepn = '"'+str(finalUrl[0])+'"'
-								
-								#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 --referrer "+rfr_url+" -wid "+idw+" "+nepn
 								command = self.mplayermpv_command(idw,nepn,Player,rfr=rfr_url)
 							else:
 								nepn = str(finalUrl[0])
-								#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+nepn
 								command = self.mplayermpv_command(idw,nepn,Player)
 							logger.info(command)
 						
@@ -17915,10 +17902,8 @@ class Ui_MainWindow(object):
 							self.queue_url_list[:]=[]
 							epnShow = finalUrl[0]
 							for i in range(len(finalUrl)-1):
-								#epnShow = epnShow +' '+finalUrl[i+1]
 								self.queue_url_list.append(finalUrl[i+1])
 							self.queue_url_list.reverse()
-							#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+epnShow
 							command = self.mplayermpv_command(idw,epnShow,Player)
 						self.infoPlay(command)
 				else:
@@ -17928,7 +17913,6 @@ class Ui_MainWindow(object):
 							finalUrl = str(finalUrl)
 						except:
 							finalUrl = finalUrl
-						#command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
 						command = self.mplayermpv_command(idw,finalUrl,Player)
 						self.infoPlay(command)
 			elif downloadVideo == 0 and Player != "mpv":
@@ -17945,18 +17929,10 @@ class Ui_MainWindow(object):
 							if refererNeeded == True or rfr_needed:
 								rfr_url = finalUrl[1]
 								if Player == "mplayer":
-									if mpvplayer.processId() > 0:
-										try:
-											#subprocess.Popen(['killall','mplayer'])
-											print('hello')
-										except:
-											pass
 									quitReally = "no"
 									idw = str(int(self.tab_5.winId()))
 									self.tab_5.show()
-									##self.tab_5.setFocus()
 									final_url = str(finalUrl[0])
-									#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" -referrer "+rfr_url+" "+'"'+final_url+'"'
 									command = self.mplayermpv_command(idw,final_url,Player,rfr=rfr_url)
 									logger.info(command)
 									self.infoPlay(command)
@@ -17964,18 +17940,10 @@ class Ui_MainWindow(object):
 									subprocess.Popen([Player,"-referrer",rfr_url,finalUrl[0]])
 							else:
 								if Player == "mplayer":
-									if mpvplayer.processId() > 0:
-										try:
-											#subprocess.Popen(['killall','mplayer'])
-											print('hello')
-										except:
-											pass
 									quitReally = "no"
 									idw = str(int(self.tab_5.winId()))
 									self.tab_5.show()
-									##self.tab_5.setFocus()
 									final_url = str(finalUrl[0])
-									#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+'"'+final_url+'"'
 									command = self.mplayermpv_command(idw,final_url,Player)
 									logger.info(command)
 									self.infoPlay(command)
@@ -17983,17 +17951,10 @@ class Ui_MainWindow(object):
 									final_url = str(finalUrl[0])
 									subprocess.Popen([Player,final_url])
 					else:
-							if mpvplayer.processId() > 0:
-								try:
-									#subprocess.Popen(['killall','mplayer'])
-									print('hello')
-								except:
-									pass
 							epnShow = finalUrl[0]
 							for i in range(len(finalUrl)-1):
 								self.queue_url_list.append(finalUrl[i+1])
 							self.queue_url_list.reverse()
-							#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+epnShow
 							command = self.mplayermpv_command(idw,epnShow,Player)
 							logger.info(command)
 							self.infoPlay(command)
@@ -18004,17 +17965,9 @@ class Ui_MainWindow(object):
 							finalUrl = finalUrl.replace('""','"')
 						finalUrl = str(finalUrl)
 						if Player == "mplayer":
-							if mpvplayer.processId() > 0:
-								try:
-									#subprocess.Popen(['killall','mplayer'])
-									print('hello')
-								except:
-									pass
 							quitReally = "no"
 							idw = str(int(self.tab_5.winId()))
 							self.tab_5.show()
-							##self.tab_5.setFocus()
-							#command = "mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 							command = self.mplayermpv_command(idw,finalUrl,Player)
 							logger.info(command)
 							self.infoPlay(command)
@@ -19625,7 +19578,7 @@ class Ui_MainWindow(object):
 				self.list2.item(row).setText(self.check_symbol+i)
 			else:
 				self.list2.item(row).setText(i)
-			self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+			#self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 			self.list2.setCurrentRow(row)
 			if 'youtube.com' in finalUrl.lower():
 				finalUrl = finalUrl.replace('"','')
@@ -19981,7 +19934,7 @@ class Ui_MainWindow(object):
 					self.list2.item(row).setText(self.check_symbol+i)
 				else:
 					self.list2.item(row).setText(i)
-				self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+				#self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 				self.list2.setCurrentRow(row)
 				
 			if site != "Local":
@@ -20096,7 +20049,7 @@ class Ui_MainWindow(object):
 				self.list2.item(row).setText(self.check_symbol+i)
 			else:
 				self.list2.item(row).setText(i)
-			self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
+			#self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10,italic=True))
 			self.list2.setCurrentRow(row)
 			if site == "Music":
 				if 'youtube.com' not in finalUrl.lower():
