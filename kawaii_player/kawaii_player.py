@@ -8277,7 +8277,7 @@ class tab5(QtWidgets.QWidget):
 					if show_hide_titlelist == 1:
 						ui.list2.show()
 					ui.list2.setFocus()
-				else:
+				elif not ui.tab_6.isHidden():
 					ui.gridLayout.addWidget(ui.tab_6, 0, 1, 1, 1)
 					#ui.tab_5.setMinimumSize(0,0)
 					ui.gridLayout.setSpacing(5)
@@ -8309,6 +8309,7 @@ class tab5(QtWidgets.QWidget):
 					ui.superGridLayout.setSpacing(0)
 					ui.superGridLayout.setContentsMargins(5,5,5,5)
 				if not ui.tab_2.isHidden():
+					MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 					ui.list2.hide()
 					ui.goto_epn.hide()
 					ui.list1.hide()
