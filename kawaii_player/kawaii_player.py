@@ -6369,14 +6369,22 @@ class List2(QtWidgets.QListWidget):
 					else:
 						ui.float_window.showNormal()
 	
+	def name_adjust(self,name):
+		nam = re.sub('-|_| ','+',name)
+		nam = nam.lower()
+		nam = re.sub('\[[^\]]*\]|\([^\)]*\)','',nam)
+		nam = re.sub(
+			'\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|','',nam)
+		nam = nam.strip()
+		return nam
+	
 	def find_info(self,var):
 			global wget,queueNo,mpvAlive,mpv,downloadVideo,quality
 			global mirrorNo,startPlayer,getSize,finalUrl,site,hdr
 			global rfr_url,curR,base_url,new_epn,site,siteName,finalUrlFound
 			global quitReally,epnArrList,name,hdr,opt,pre_opt,home
 			
-			nam = re.sub('Dub|Sub|subbed|dubbed','',name)
-			nam = re.sub('-|_|[ ]','+',nam)
+			nam = self.name_adjust(name)
 			nam1 = nam
 			logger.info(nam)
 			index = ""
