@@ -6257,18 +6257,14 @@ class List2(QtWidgets.QListWidget):
 					self.setCurrentRow(prev_r)
 		elif event.key() == QtCore.Qt.Key_Right:
 			if ui.float_window.isHidden():
-				curR = self.currentRow()
-				queueNo = queueNo + 1
-				mpvAlive = 0
-				#ui.epnfound()
-				ui.label.play_within_poster()
-				#if ui.list1.isHidden():
-				#	ui.list1.show()
-				#	if not ui.goto_epn.isHidden():
-				#		ui.frame.show()
-				self.setFocus()
-				ui.label.show()
-				ui.text.show()
+				#curR = self.currentRow()
+				#queueNo = queueNo + 1
+				#mpvAlive = 0
+				#ui.label.play_within_poster()
+				#self.setFocus()
+				#ui.label.show()
+				#ui.text.show()
+				pass
 			else:
 				nextr = self.currentRow() + 1
 				if nextr == self.count():
@@ -9631,6 +9627,10 @@ class Ui_MainWindow(object):
 							lambda x=1:self.change_fanart_aspect(7))
 		QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+8"), MainWindow, 
 							lambda x=1:self.change_fanart_aspect(8))
+		QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Right"), MainWindow, 
+							lambda x=1:self.direct_web('right'))
+		QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Left"), MainWindow, 
+							lambda x=1:self.direct_web('left'))
 		#QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Enter), self.list2, self.epnfound)
 		#return1 = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Return), self.list1)
 		#return2 = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Return), self.list2)
@@ -9824,6 +9824,13 @@ class Ui_MainWindow(object):
 		self.downloadWget_cnt = 0
 		self.lock_process = False
 		self.mpv_thumbnail_lock = False
+	
+	def direct_web(self,mode):
+		if not self.tab_2.isHidden():
+			if mode == 'right':
+				self.go_next_web_page()
+			elif mode == 'left':
+				self.go_prev_web_page()
 	
 	def remote_fullscreen(self):
 		global MainWindow,wget
@@ -13194,56 +13201,6 @@ class Ui_MainWindow(object):
 		else:
 			self.text.hide()
 			
-	def epnShowHide(self):
-		global fullscrT,idwMain,idw,name,curR
-		if fullscrT == 0:
-			self.list2.show()
-			self.tab_5.setFocus()
-			self.btn1.close()
-			self.btn1 = Btn1(self.dockWidgetContents_3)
-			self.btn1.setGeometry(QtCore.QRect(20, 55, 130, 31))
-			self.btn1.setObjectName(_fromUtf8("btn1"))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.addItem(_fromUtf8(""))
-			self.btn1.setItemText(0, _translate("MainWindow", "Select", None))
-			self.btn1.setItemText(1, _translate("MainWindow", "Animejoy", None))
-			self.btn1.setItemText(2, _translate("MainWindow", "Animebam", None))
-			self.btn1.setItemText(3, _translate("MainWindow", "AnimePlace", None))
-			self.btn1.setItemText(4, _translate("MainWindow", "SubbedAnime", None))
-			self.btn1.setItemText(5, _translate("MainWindow", "DubbedAnime", None))
-			self.btn1.setItemText(6, _translate("MainWindow", "AnimeHi10", None))
-			self.btn1.setItemText(7, _translate("MainWindow", "KissAnime", None))
-			self.btn1.setItemText(8, _translate("MainWindow", "KissDrama", None))
-			self.btnOpt.hide()
-			self.go_opt.hide()
-			self.dockWidget_3.show()
-			QtCore.QObject.connect(
-				self.btn1,QtCore.SIGNAL(_fromUtf8("currentIndexChanged(int)")),
-				self.ka
-				)
-			self.btn1.setFocus()
-			self.gridLayout.addWidget(self.list2,0,2,1,1)
-			self.btn1.setStyleSheet("font: bold 12px;color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%)")
-			self.buttonStyle()
-		else:
-			self.dockWidget_3.hide()
-			self.goto_epn.hide()
-			self.horizontalLayout_7.insertWidget(1,self.btn1,0)
-			self.verticalLayout_40.insertWidget(2,self.list2,0)
-			self.btnOpt.show()
-			self.go_opt.show()
-			self.listfound()
-			self.list2.setCurrentRow(0)
-			self.buttonStyle()
-			self.btn1.setFocus()
-			
 	def fullscreenToggle(self):
 		global fullscrT,idwMain,idw
 		fullscrT = 1 - fullscrT
@@ -15084,6 +15041,12 @@ class Ui_MainWindow(object):
 		new_url = ''
 		if srch_txt:
 			srch_txt = srch_txt.replace('"','')
+			srch_txt = srch_txt.lower()
+			srch_txt = re.sub('\[[^\]]*\]|\([^\)]*\)','',srch_txt)
+			srch_txt = re.sub('-|_| ','+',srch_txt)
+			srch_txt = re.sub(
+				'\+sub|\+dub|subbed|dubbed|720p|1080p|480p|.mkv|.mp4|','',srch_txt)
+			srch_txt = srch_txt.strip()
 		if 'AnimeWatch' in home or self.anime_review_site:
 			web_arr_dict = {
 				'mal':'MyAnimeList','ap':'Anime-Planet',
@@ -15150,8 +15113,12 @@ class Ui_MainWindow(object):
 			name = str(name)
 		except:
 			name = srch_txt
-		name1 = re.sub('-| ','+',name)
-		name1 = re.sub('Dub|subbed|dubbed|online','',name1)
+		name1 = re.sub('-|_| ','+',name)
+		name1 = name1.lower()
+		name1 = re.sub('\[[^\]]*\]|\([^\)]*\)','',name1)
+		name1 = re.sub(
+			'\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|','',name1)
+		name1 = name1.strip()
 		key = ''
 		if action:
 			if action == 'return_pressed':
