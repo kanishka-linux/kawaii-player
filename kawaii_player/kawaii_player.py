@@ -8266,7 +8266,7 @@ class tab5(QtWidgets.QWidget):
 				f = open(tmp_pl,'w')
 				f.close()
 			if not MainWindow.isHidden():
-				if ui.tab_6.isHidden():
+				if ui.tab_6.isHidden() and ui.tab_2.isHidden():
 					ui.tab_5.showNormal()
 					ui.tab_5.hide()
 					if show_hide_titlelist == 1:
@@ -15025,10 +15025,11 @@ class Ui_MainWindow(object):
 		
 		btn_hide = self.horizontalLayout_player_opt.itemAt(14)
 		print(btn_hide,'--hide--btn--')
-		
+		original_srch_txt = None
 		new_url = ''
 		if srch_txt:
 			srch_txt = srch_txt.replace('"','')
+			original_srch_txt = srch_txt
 			srch_txt = srch_txt.lower()
 			srch_txt = re.sub('\[[^\]]*\]|\([^\)]*\)','',srch_txt)
 			srch_txt = re.sub('-|_| ','+',srch_txt)
@@ -15179,8 +15180,8 @@ class Ui_MainWindow(object):
 				name1 = 'GNU Linux FSF'
 			if pl_list and new_url and action != 'open':
 				self.web.load(QUrl(new_url))
-			elif action=='open':
-				self.web.load(QUrl(srch_txt))
+			elif action=='open' and original_srch_txt:
+				self.web.load(QUrl(original_srch_txt))
 			else:
 				self.web.load(QUrl("https://m.youtube.com/results?search_query="+name1))
 			logger.info('{0}--yt--open--'.format(srch_txt))
@@ -17283,10 +17284,6 @@ class Ui_MainWindow(object):
 				else:
 					idw = str(int(self.tab_5.winId()))
 			command = self.mplayermpv_command(idw,finalUrl,Player)
-			#if Player == 'mpv':
-			#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
-			#else:
-			#	command = "mplayer -identify -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
 			logger.info('command: function_play_file_now = {0}'.format(command))
 			self.infoPlay(command)
 		if not self.external_SubTimer.isActive():
