@@ -675,26 +675,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 				self.send_response(206)
 			else:
 				self.send_response(200)
-			
-			#if nm_ext == 'mkv' and 'firefox' in user_agent:
-			#	new_mp4 = os.path.join(TMPDIR,'tmp.mp4')
-			#	if get_bytes:
-			#		if os.path.exists(new_mp4):
-			#			nm = new_mp4
-			#	else:
-			#		if os.path.isfile(new_mp4):
-			#			os.remove(new_mp4)
-			#		mp4_created = False
-			#		try:
-			#			out = subprocess.check_output(['ffmpeg','-y','-i',nm,'-c:a','copy','-c:v','copy',new_mp4])
-			#			mp4_created = True
-			#		except Exception as e:
-			#			print(e)
-			#			mp4_created = False
-			#		if mp4_created:
-			#			nm = new_mp4
 					
-			
 			if nm_ext == 'mp3':
 				self.send_header('Content-type','audio/mpeg')
 			else:
