@@ -37,7 +37,6 @@ from PyQt5 import QtWebKitWidgets
 from PyQt5.QtWebKitWidgets import QWebView,QWebPage
 from PyQt5.QtNetwork import QNetworkAccessManager
 from PyQt5.QtCore import QUrl
-from adb_webkit import NetWorkManager
 import time
 from yt import get_yt_url,get_yt_sub
 from player_functions import ccurl,send_notification,write_files,wget_string
