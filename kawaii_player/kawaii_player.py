@@ -5732,9 +5732,11 @@ class List1(QtWidgets.QListWidget):
 				elif action == cache:
 						m = os.listdir(TMPDIR)
 						for i in m:
-							if '.txt' in i or '.jpg' in i:
-								t = os.path.join(TMPDIR,i)
-								os.remove(t)
+							file_name = os.path.join(TMPDIR,i)
+							if os.path.isfile(file_name):
+								os.remove(file_name)
+							if os.path.isdir(file_name):
+								shutil.rmtree(file_name)
 				elif action == tvdb:
 					if self.currentItem():
 						nm = ui.get_title_name(self.currentRow())
@@ -15624,7 +15626,7 @@ class Ui_MainWindow(object):
 						break
 		m = []
 		new_video_local_stream = False
-		print(bookmark,status)
+		print(bookmark,status,'--15627--')
 		opt = 'history'
 		print(os.path.join(home,'Bookmark',status+'.txt'))
 		if bookmark and os.path.exists(os.path.join(home,'Bookmark',status+'.txt')):
@@ -15710,7 +15712,7 @@ class Ui_MainWindow(object):
 		
 		site_var = None
 		criteria = []
-		print(bookmark,status,site,opt)
+		print(bookmark,status,site,opt,'--15713--')
 		if (not site.lower().startswith("playlist") and site.lower() != "music" and site.lower() != "video" 
 				and site.lower()!="local" and site.lower() !="none"):
 			for i in addons_option_arr:
@@ -16066,8 +16068,10 @@ class Ui_MainWindow(object):
 				
 			logger.info(site + ":"+opt)
 		site_var = None
+		logger.info('--16069----')
 		if (not site.lower().startswith("playlist") and site.lower() != "music" and site.lower() != "video" 
 				and site.lower() !="local" and site.lower() !="none"):
+			logger.info('search_term={0}'.format(search_term))
 			if search_term:
 				epnArrList = []
 				for i in addons_option_arr:
@@ -16075,7 +16079,9 @@ class Ui_MainWindow(object):
 						site = i
 						break
 				plugin_path = os.path.join(home,'src','Plugins',site+'.py')
+				
 				if os.path.exists(plugin_path):
+					logger.info('plugin_path={0}'.format(plugin_path))
 					if site_var:
 						del site_var
 						site_var = ''
@@ -16094,12 +16100,16 @@ class Ui_MainWindow(object):
 					
 				for i in range(len(original_path_name)):
 					search_field = original_path_name[i].lower()
-					
+					if search_exact:
+						if '	' in search_field:
+							search_field = search_field.split('	')[0]
+					logger.info('search_field={0}'.format(search_field))
 					if ((search_term in search_field and not search_exact) 
 							or (search_term == search_field and search_exact)):
 						cur_row = i
 						new_name_with_info = original_path_name[cur_row].strip()
 						extra_info = ''
+						logger.info('cur_row={0},new_name={1}'.format(i,new_name_with_info))
 						if '	' in new_name_with_info:
 							name = new_name_with_info.split('	')[0]
 							extra_info = new_name_with_info.split('	')[1]
