@@ -159,7 +159,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 		p = NetWorkManager(self)
 		self.page().profile().setRequestInterceptor(p)
 		#self.profile().clearHttpCache()
-		cache_path = os.path.join(home,'Cache')
+		cache_path = os.path.join(self.ui.tmp_download_folder,'CacheBrowser')
 		print(cache_path,'--cache--path--')
 		if not os.path.exists(cache_path):
 			os.makedirs(cache_path)
