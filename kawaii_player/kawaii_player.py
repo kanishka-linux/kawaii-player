@@ -71,6 +71,7 @@ if BROWSER_BACKEND == 'QTWEBENGINE':
 		from PyQt5.QtWebEngineWidgets import QWebEngineView
 		from adb import NetWorkManager
 		from browser import Browser
+		from hls_engine import BrowseUrlT
 		QT_WEB_ENGINE = True
 		print('Using QTWEBENGINE')
 	except Exception as err_msg:
@@ -18517,13 +18518,6 @@ class Ui_MainWindow(object):
 		path_final_Url = finalUrl
 		current_playing_file_path = finalUrl
 		command = self.mplayermpv_command(idw,finalUrl,Player)
-		#if Player == "mplayer":
-		#	if finalUrl.startswith('/'):
-		#		command = "mplayer -identify -nocache -idle -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
-		#	else:
-		#		command = "mplayer -identify -idle -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid "+idw+" "+finalUrl
-		#else:
-		#	command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --input-conf=input.conf --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+finalUrl
 		if os.path.exists(title_sub_path):
 			if Player == 'mpv':
 				command = command+' --sub-file='+title_sub_path
@@ -19743,15 +19737,8 @@ class Ui_MainWindow(object):
 		
 		epnShowN = '"'+epnShow.replace('"','')+'"'
 		command = self.mplayermpv_command(idw,epnShowN,Player,a_id=audio_id,s_id=sub_id)
-		#if Player == "mplayer":
-		#		command = "mplayer -idle -identify -msglevel statusline=5:global=6 -osdlevel 0 -slave -wid "+idw+" "+epnShowN
-		#elif Player == "mpv":
-		#		command = "mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid "+idw+" "+" -sid "+str(sub_id)+" -aid "+str(audio_id)+" "+epnShowN
 		if mpvplayer.processId() > 0:
 			epnShow = '"'+epnShow.replace('"','')+'"'
-			#if epnShow.startswith('"http'):
-			#	epnShow = epnShow.replace('"','')
-			#	self.external_url = True
 			t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n','utf-8')
 			
 			if Player == 'mpv':
