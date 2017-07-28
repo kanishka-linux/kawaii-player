@@ -15,23 +15,19 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
-
-
 
 
 import libtorrent as lt
 import time
 import sys
-from PyQt5 import QtCore,QtGui
-from PyQt5.QtCore import pyqtSlot,pyqtSignal,QObject
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSlot,pyqtSignal
+from http.server import BaseHTTPRequestHandler,HTTPServer
 from socketserver import ThreadingMixIn
 import os
-import subprocess,re
+import subprocess
+import re
 from player_functions import send_notification
 import select
 import base64
