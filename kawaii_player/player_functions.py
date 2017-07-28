@@ -35,6 +35,7 @@ import hashlib
 import base64
 #if os.name == 'nt':
 #import tkinter
+OSNAME = os.name
 
 def send_notification(txt,display=None):
 	try:
@@ -45,6 +46,29 @@ def send_notification(txt,display=None):
 			qmsg_message(txt)
 	except Exception as e:
 		print(e)
+
+def get_lan_ip():
+	if OSNAME == 'posix':
+		a = subprocess.check_output(['ip','addr','show'])
+		b = str(a,'utf-8')
+		print(b)
+		c = re.findall('inet [^ ]*',b)
+		final = ''
+		for i in c:
+			if '127.0.0.1' not in i:
+				final = i.replace('inet ','')
+				final = re.sub('/[^"]*','',final)
+		print(c)
+		print(final)
+		return final
+	elif OSNAME == 'nt':
+		a = subprocess.check_output(['ipconfig'])
+		a = str(a,'utf-8').lower()
+		b = re.search('ipv4[^\n]*',a).group()
+		c = re.search(':[^\n]*',b).group()
+		final = c[1:].strip()
+		print(c)
+		return final
 
 def qmsg_message(txt):
 	print(txt)
