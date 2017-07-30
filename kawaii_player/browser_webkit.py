@@ -35,14 +35,14 @@ from bs4 import BeautifulSoup
 from functools import partial
 from PyQt5 import QtWebKitWidgets
 from PyQt5.QtWebKitWidgets import QWebView,QWebPage
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtNetwork import QNetworkAccessManager
 from PyQt5.QtCore import QUrl
 import time
 from yt import get_yt_url,get_yt_sub
 from player_functions import ccurl,send_notification,write_files,wget_string
-
-from PyQt5.QtCore import (QCoreApplication, QObject, Q_CLASSINFO, pyqtSlot,
-							pyqtSignal,pyqtProperty)
+from hls_webkit.netmon_webkit import NetManager
+from PyQt5.QtCore import pyqtSlot,pyqtSignal
 
 
 class downloadThread(QtCore.QThread):
@@ -93,11 +93,17 @@ class Browser(QtWebKitWidgets.QWebView):
 	
 	def __init__(self,ui,home,screen_width,quality,site,epnArrList):
 		super(Browser, self).__init__()
-		self.setPage(BrowserPage())
+		self.ui = ui
+		self.web = BrowserPage()
+		self.web.settings().setAttribute(QWebSettings.LocalStorageEnabled,True)
+		cache_path = os.path.join(self.ui.tmp_download_folder,'CacheBrowser')
+		self.web.settings().enablePersistentStorage(cache_path)
+		self.setPage(self.web)
+		self.nam = NetManager(default_block=True)
+		self.web.setNetworkAccessManager(self.nam)
 		#self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 		self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
 		self.img_url = ''
-		self.ui = ui
 		self.quality = quality
 		self.site = site
 		self.home = home
