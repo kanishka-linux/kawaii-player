@@ -15,10 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
+
 import os
 import sys
 if getattr(sys,'frozen',False):
@@ -68,9 +66,8 @@ if BROWSER_BACKEND == 'QTWEBENGINE':
 	try:
 		from PyQt5 import QtWebEngineWidgets,QtWebEngineCore
 		from PyQt5.QtWebEngineWidgets import QWebEngineView
-		from adb import NetWorkManager
 		from browser import Browser
-		from hls_engine import BrowseUrlT
+		from hls_webengine.hls_engine import BrowseUrlT
 		QT_WEB_ENGINE = True
 		print('Using QTWEBENGINE')
 	except Exception as err_msg:
@@ -78,8 +75,8 @@ if BROWSER_BACKEND == 'QTWEBENGINE':
 		try:
 			from PyQt5 import QtWebKitWidgets
 			from PyQt5.QtWebKitWidgets import QWebView
-			from adb_webkit import NetWorkManager
 			from browser_webkit import Browser
+			from hls_webkit.hls_engine_webkit import BrowseUrlT
 			QT_WEB_ENGINE = False
 			print('Using QTWEBKIT')
 			change_opt_file(HOME_OPT_FILE,'BROWSER_BACKEND=','BROWSER_BACKEND=QTWEBKIT')
@@ -92,8 +89,8 @@ elif BROWSER_BACKEND == 'QTWEBKIT':
 	try:
 		from PyQt5 import QtWebKitWidgets
 		from PyQt5.QtWebKitWidgets import QWebView
-		from adb_webkit import NetWorkManager
 		from browser_webkit import Browser
+		from hls_webkit.hls_engine_webkit import BrowseUrlT
 		QT_WEB_ENGINE = False
 		print('Directly Using QTWEBKIT')
 	except:
@@ -12507,10 +12504,6 @@ class Ui_MainWindow(object):
 		name1 = re.sub('Dub|subbed|dubbed|online','',name1)
 		key = self.line.text()
 		self.line.clear()
-		
-		if not QT_WEB_ENGINE:
-			nam = NetWorkManager()
-			self.web.page().setNetworkAccessManager(nam)
 		self.webStyle(self.web)
 		self.web.load(QUrl(url))
 			
@@ -12647,9 +12640,6 @@ class Ui_MainWindow(object):
 			if name1.startswith(self.check_symbol):
 				name1 = name1[1:]
 				
-		if not QT_WEB_ENGINE:
-			nam = NetWorkManager()
-			self.web.page().setNetworkAccessManager(nam)
 		logger.info(self.web)
 		self.webStyle(self.web)
 		logger.info('--13527---{0}-{1}'.format(review_site,name1))
