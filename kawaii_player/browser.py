@@ -15,17 +15,11 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
 
 from PyQt5 import QtCore, QtGui,QtNetwork,QtWidgets
 import sys
-import urllib
-import pycurl
-from io import StringIO,BytesIO
 import re
 import subprocess
 import os
@@ -40,27 +34,10 @@ from PyQt5.QtCore import QUrl
 import time
 from yt import get_yt_url,get_yt_sub
 from player_functions import write_files,ccurl,send_notification,wget_string
-from PyQt5.QtCore import (QCoreApplication, QObject, Q_CLASSINFO, 
-							pyqtSlot,pyqtSignal,pyqtProperty)
+from hls_webengine.netmon import NetManager
+from PyQt5.QtCore import pyqtSlot,pyqtSignal
 
 
-class downloadThread(QtCore.QThread):
-    
-	def __init__(self,url,ui,file_path):
-		QtCore.QThread.__init__(self)
-		self.url = url
-		self.interval = 1
-		self.ui = ui
-		self.file_path = file_path
-		
-	def __del__(self):
-		self.wait()                        
-	
-	def run(self):
-		content = ccurl(self.url)
-		soup = BeautifulSoup(content,'lxml')
-		title = soup.title.text.strip().replace('/','-')
-		self.ui.gotHtmlSignal.emit(title,self.url,self.file_path)
 
 class MyPage(QtWebEngineWidgets.QWebEnginePage):
 	def __init__(self):
@@ -72,51 +49,8 @@ class MyPage(QtWebEngineWidgets.QWebEnginePage):
 			print('clicked')
 			#self.parent.urlSignal.emit(url.url())
 		return super(MyPage, self).acceptNavigationRequest(url,nav_type,frame)
-		
-class NetWorkManager(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
-	
-	def __init__(self,parent):
-		super(NetWorkManager, self).__init__(parent)
-		self.p = parent
-		
-	def interceptRequest(self,info):
-		t = info.requestUrl()
-		urlLnk = t.url()
-		lower_path = urlLnk.lower()
-		block_list = [
-		"doubleclick.net",'adnxs','facebook','.aspx', 
-		r"||youtube-nocookie.com/gen_204?", 
-		r"youtube.com###watch-branded-actions", "imagemapurl",
-		"b.scorecardresearch.com","rightstuff.com","scarywater.net",
-		"popup.js","banner.htm","_tribalfusion",
-		"||n4403ad.doubleclick.net^$third-party",".googlesyndication.com",
-		"graphics.js","fonts.googleapis.com/css","s0.2mdn.net",
-		"server.cpmstar.com","||banzai/banner.$subdocument",
-		"@@||anime-source.com^$document","/pagead2.","frugal.gif",
-		"jriver_banner.png","show_ads.js",
-		'##a[href^="http://billing.frugalusenet.com/"]',
-		"http://jriver.com/video.html","||animenewsnetwork.com^*.aframe?",
-		"||contextweb.com^$third-party",".gutter",".iab",
-		'http://www.animenewsnetwork.com/assets/[^"]*.jpg','revcontent'
-		]
-		block = False
-		for l in block_list:
-			if l in lower_path:
-				block = True
-				break
-		try:
-			if self.p.wait_player:
-				if 'itag=' in urlLnk:
-					block = True
-					#print(urlLnk,'--urlLnk--')
-					#a = 0
-		except:
-			pass
-		if block:
-			info.block(True)
 			
 
-	
 class Browser(QtWebEngineWidgets.QWebEngineView):
 	
 	urlSignal = pyqtSignal(str)
@@ -149,14 +83,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 			self.hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
 		else:
 			self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
-		#self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
-		#self.m = self.profile().cookieStore()
-		#self.page().profile().QWebEngineProfile()
-		#profile_ = QtWebEngineWidgets.QWebEngineProfile(self)
-		#self.page().profile().NoPersistentCookies
-		#self.page().profile().cookieStore().deleteAllCookies()
 		self.page().profile().setHttpUserAgent(self.hdr)
-		p = NetWorkManager(self)
+		p = NetManager(parent=self.pg,default_block=True)
 		self.page().profile().setRequestInterceptor(p)
 		#self.profile().clearHttpCache()
 		cache_path = os.path.join(self.ui.tmp_download_folder,'CacheBrowser')
@@ -214,9 +142,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 		
 	def get_html(self,var):
 		print('--got--html--')
-		#f = open('/tmp/ht.html','w')
-		#f.write(var)
-		#f.close()
 		if 'youtube.com' in self.url().url():
 			self.sub_url = ''
 			self.playlist_dict = {}
@@ -225,7 +150,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 			
 			if m:
 				print('removing')
-				#self.page().runJavaScript("var element = document.getElementById('player');element.parentNode.removeChild(element);",self.var_remove)
 				self.page().runJavaScript("var element = document.getElementById('player');element.innerHtml='';",self.var_remove)
 			title = soup.find('title')
 			if title:
@@ -316,7 +240,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 			if ((self.current_link.startswith("https://m.youtube.com/watch?v=") 
 					or self.current_link.startswith("https://www.youtube.com/watch?v=")) 
 					and not self.wait_player):
-				#self.page().runJavaScript("var element = document.getElementById('player');element.innerHtml='';",self.var_remove)
 				self.wait_player = True
 				self.clicked_link(self.current_link)
 				self.timer.start(1000)
@@ -359,7 +282,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 					t = (p[0],p[1])
 				else:
 					t = (i,"None")
-				
 				m.append(t)
 				#print(m,'-----')
 				k = k+1
@@ -369,7 +291,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 				m.append(t)
 		d = dict(m)
 		print(d)
-		#result = int(int(d['Content-Length'])/(1024*1024))
 		return d
 	
 	def keyPressEvent(self, event):
@@ -404,13 +325,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 				title = title[1:]
 			n_url = 'https://m.youtube.com/watch?v='+yt_id
 			w = title+'	'+n_url+'	'+'NONE'
-			#if new_pl and j==0:
-			#	f.write(w)
-			#else:
-			#	f.write('\n'+w)
 			new_arr.append(w)
 			j = j+1
-		#f.close()
 		write_files(file_path,new_arr,line_by_line=True)
 		self.get_playlist = False
 		
@@ -469,7 +385,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 			except:
 				pass
 			self.epn_name_in_list = self.title_page
-			#print(data.mediaUrl().url(),data.mediaType(),data.linkText(),data.linkUrl().url(),'--media--url--and--type--')
 			if data.mediaType() == 1:
 				self.media_url = data.mediaUrl().url()
 				if not self.media_url.startswith('http'):
