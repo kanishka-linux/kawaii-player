@@ -21,6 +21,8 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import sys
+import inspect
 import shutil
 from tempfile import mkstemp,mkdtemp
 import urllib
@@ -226,6 +228,35 @@ def set_logger(file_name,TMPDIR):
 	log.addHandler(ch)
 	return log
 
+def get_hls_path():
+	try:
+		try:
+			from hls_webengine.hls_engine import BrowseUrlT
+			webkit = False
+		except Exception as e:
+			print(e,'--43--')
+			from hls_webkit.hls_engine_webkit import BrowseUrlT
+			webkit = True
+		hls_dir,hls_file = os.path.split(sys.executable)
+		if hls_file.startswith('python'):
+			frozen_file = False	
+			hls_dir,hls_file = os.path.split(inspect.getfile(BrowseUrlT))
+			if not webkit:
+				hls_path = os.path.join(hls_dir,'hls_cmd.py')
+			else:
+				hls_path = os.path.join(hls_dir,'hls_cmd_webkit.py')
+		else:
+			frozen_file = True
+			if not webkit:
+				hls_path = os.path.join(hls_dir,'hls_cmd')
+			else:
+				hls_path = os.path.join(hls_dir,'hls_cmd_webkit')
+	except Exception as e:
+		print(e,'--240--')
+		frozen_file = False
+		hls_path = None
+	return (hls_path,frozen_file)
+	
 def set_user_password(text_val,pass_val):
 	if not text_val:
 		text_val = ''
