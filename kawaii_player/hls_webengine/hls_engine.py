@@ -82,7 +82,10 @@ class BrowserPage(QWebEnginePage):
 		self.loadFinished.connect(self._loadFinished)
 		self.loadProgress.connect(self._loadProgress)
 		self.loadStarted.connect(self._loadstart)
-		self.pdfPrintingFinished.connect(self._pdf_finished)
+		try:
+			self.pdfPrintingFinished.connect(self._pdf_finished)
+		except Exception as e:
+			print(e,'--pyqt 5.9+ required')
 		p = NetManager(
 			self,url,print_request,block_request,default_block,select_request,
 			get_link)
