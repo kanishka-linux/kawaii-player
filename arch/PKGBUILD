@@ -22,24 +22,22 @@ package() {
   _bpath="${srcdir}/${_pkgname}-${pkgver}-${pkgrel}/${_gitname}"
 
   install -d "${pkgdir}/usr/share/${_pkgname}/"
-  install -d "${pkgdir}/usr/share/${_pkgname}/Plugins/"
   install -d "${pkgdir}/usr/share/applications/"
   install -d "${pkgdir}/usr/bin/"
   
   for file in "${_bpath}/"*;do
   	nm=$(echo $file | rev | cut -d'/' -f1 | rev)
   	if [ -d "$file" ];then
-		if [ $nm == 'Plugins' ];then
-			_plugin_path="$file/"
-			for plugins in "${_plugin_path}"*;do
-				plugin_name=$(echo $plugins | rev | cut -d'/' -f1 | rev)
-				if [ plugin_name != 'installPlugins.py' ];then
-					echo $plugins
-					echo 'Plugins copying'
-					install -Dm755 "$plugins" "${pkgdir}/usr/share/${_pkgname}/Plugins/"
-				fi
-			done
-		fi
+		install -d "${pkgdir}/usr/share/${_pkgname}/${nm}/"
+		_plugin_path="$file/"
+		for plugins in "${_plugin_path}"*;do
+			plugin_name=$(echo $plugins | rev | cut -d'/' -f1 | rev)
+			if [ plugin_name != 'installPlugins.py' ];then
+				echo $plugins
+				echo 'Plugins copying'
+				install -Dm755 "$plugins" "${pkgdir}/usr/share/${_pkgname}/${nm}/"
+			fi
+		done
   	else
 		if [ $nm == 'kawaii-player.desktop' ];then
 			echo $file
