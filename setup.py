@@ -8,7 +8,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-kawaii-player is distributed in the hope that it will be useful,
+kawaii-player is distributed in the hope that it will be useful, 
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
@@ -22,32 +22,32 @@ import os
 import shutil
 
 install_dependencies = [
-	'PyQt5','pycurl','bs4','Pillow','mutagen','lxml','youtube_dl'
-	]
+    'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl'
+    ]
 if os.name == 'nt':
-	install_dependencies = install_dependencies.append('certifi')
+    install_dependencies = install_dependencies.append('certifi')
 setup(
-    name='kawaii-player',
-    version='1.4.0',
-    license='GPLv3',
-    author='kanishka-linux',
-    author_email='kanishka.linux@gmail.com',
-    url='https://github.com/kanishka-linux/kawaii-player',
-    long_description="README.md",
+    name='kawaii-player', 
+    version='1.4.0', 
+    license='GPLv3', 
+    author='kanishka-linux', 
+    author_email='kanishka.linux@gmail.com', 
+    url='https://github.com/kanishka-linux/kawaii-player', 
+    long_description="README.md", 
     packages=[
-		'kawaii_player','kawaii_player.Plugins',
-		'kawaii_player.hls_webengine','kawaii_player.hls_webkit'
-		],
-    include_package_data=True,
+        'kawaii_player', 'kawaii_player.Plugins', 
+        'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit'
+        ], 
+    include_package_data=True, 
     entry_points={
-		'gui_scripts':['kawaii-player = kawaii_player.kawaii_player:main'],
-		'console_scripts':['kawaii-player-console = kawaii_player.kawaii_player:main']
-		},
+        'gui_scripts':['kawaii-player = kawaii_player.kawaii_player:main'], 
+        'console_scripts':['kawaii-player-console = kawaii_player.kawaii_player:main']
+        }, 
     package_data={
-		'kawaii_player':['tray.png','default.jpg',
-		'kawaii-player.desktop','input.conf','kawaii-player-start',
-		'1.png','Instructions','playlist.html']
-		},
-    install_requires=install_dependencies,
-    description="A Audio/Video manager, multimedia player and portable media server",
+        'kawaii_player':['tray.png', 'default.jpg', 
+        'kawaii-player.desktop', 'input.conf', 'kawaii-player-start', 
+        '1.png', 'Instructions', 'playlist.html']
+        }, 
+    install_requires=install_dependencies, 
+    description="A Audio/Video manager, multimedia player and portable media server", 
 )
