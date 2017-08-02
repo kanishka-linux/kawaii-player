@@ -33,17 +33,17 @@ import random
 import socket
 import imp
 import subprocess
-from bs4 import BeautifulSoup
 import urllib.parse
 import urllib.request
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
+from bs4 import BeautifulSoup
+from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import send_notification, write_files, open_files
 from player_functions import get_lan_ip, ccurl, naturallysorted
 from yt import get_yt_url, get_yt_sub_
-
+from settings_widget import LoginAuth
 try:
     from stream import get_torrent_download_location, torrent_session_status
 except Exception as e:
@@ -53,29 +53,29 @@ except Exception as e:
 
 
 class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
-    
+
     protocol_version = 'HTTP/1.1'
     proc_req = True
     client_auth_dict = {}
     playlist_auth_dict = {}
-    
+
     def process_HEAD(self):
         global ui, logger
         global epnArrList, path_final_Url, curR
-        
+
         arg_dict = ui.get_parameters_value(
             r='curR', path='path_final_Url', epnarr='epnArrList')
         curR = arg_dict['curR']
         path_final_Url = arg_dict['path_final_Url']
         epnArrList = arg_dict['epnArrList']
-        
+
         try:
             get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
         except Exception as e:
             get_bytes = 0
         print(get_bytes, '--head--')
         print(self.headers, '--head--')
-        
+
         logger.info(self.path)
         path = self.path.replace('/', '', 1)
         if '/' in path:
@@ -162,7 +162,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
-            
+
     def process_playlist_object(self, new_dict):
         global logger
         arr = []
@@ -199,7 +199,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     new_artist = ''
                     link = ''
         return arr
-        
+
     def process_POST(self):
         global home, logger
         if self.path.startswith('/save_playlist='):
@@ -236,8 +236,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 msg = 'Playlist creation failed'
             self.final_message(bytes(msg, 'utf-8'))
-            
-        
+
     def do_init_function(self, type_request=None):
         global ui, curR, logger
         global epnArrList
@@ -307,12 +306,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             del_uid = True
                 except Exception as err_val:
                     print(err_val, '--316--')
-                    
+
                 if found_uid and not del_uid:
                     cookie_verified = True
                 elif found_uid and del_uid:
                     print('--timeout--')
-                    
+
         if ui.media_server_key and not ui.media_server_cookie:
             new_key = ui.media_server_key 
             cli_key = self.headers['Authorization']
@@ -436,16 +435,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 txt = b'Access From Outside Network Not Allowed'
                 self.final_message(txt)
-    
+
     def do_HEAD(self):
         self.do_init_function(type_request='head')
-        
+
     def do_GET(self):
         self.do_init_function(type_request='get')
-        
+
     def do_POST(self):
         self.do_init_function(type_request='post')
-        
+
     def process_url(self, nm, get_bytes, status=None):
         global ui, logger
         user_agent = self.headers['User-Agent']
@@ -468,10 +467,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     lower_range = int(range_hdr)
         except Exception as err_val:
             print(err_val, '--495--')
-        
+
         if lower_range is not None:
             get_bytes = lower_range
-        
+
         logger.info('Range: {0}-{1}'.format(get_bytes, upper_range))
         content_range = True
         if user_agent:
@@ -504,7 +503,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 nsize = size - get_bytes + 1
             else:
                 nsize = size
-            
+
             self.send_header('Accept-Ranges', 'bytes')
             self.send_header('Content-Length', str(size))
             if get_bytes or upper_range is not None:
@@ -525,7 +524,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             end_read = False
             content = None
             with open(nm, 'rb') as f:
-                if get_bytes and t ==0:
+                if get_bytes and t == 0:
                         f.seek(get_bytes)
                         t = 1
                         print('seeking')
@@ -551,10 +550,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             print(datetime.timedelta(seconds=elapsed), '--elapsed-time--')
             print('--hello--')
             self.proc_req = True
-            
+
     def triggerBookmark(self, row):
         global ui
-        
+
         arg_dict = ui.get_parameters_value(
             s='site', o='opt', sn='siteName', n='name', v='video_local_stream')
         site = arg_dict['site']
@@ -562,14 +561,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         siteName = arg_dict['siteName']
         name = arg_dict['name']
         video_local_stream = arg_dict['video_local_stream']
-        
+
         tmp = ''
         if row:
             tmp = site+'&'+opt+'&'+siteName+'&'+name+'&'+str(video_local_stream)
         else:
             tmp = ''+'&'+''+'&'+''+'&'+''+'&'+str(video_local_stream)
         return tmp
-    
+
     def create_option_playlist(self, site, site_option, original_path_name):
         k = ''
         for i in original_path_name:
@@ -581,7 +580,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             i = i+'\n'
             k = k+i
         return k
-        
+
     def write_to_tmp_playlist(self, epnArrList, _new_epnArrList=None):
         global home
         if epnArrList:
@@ -595,9 +594,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             nav_signal = doGETSignal()
             nav_signal.nav_remote.emit('TMP_PLAYLIST')
             print('---718---')
-            
-            
-            
+
     def create_playlist(
             self, site, site_option, name, epnArrList, new_video_local_stream, 
             siteName, my_ipaddress, shuffle_list, play_id):
@@ -685,7 +682,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     else:
                         j = 'relative_path='+n_url
                 #n_out = n_out.replace(' ', '_')
-                
+
                 logger.info('create-playlist----{0}'.format(j))
                 n_url = n_url.replace('"', '')
                 n_art = n_art.replace('"', '')
@@ -713,31 +710,31 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             footer = '\nNumberOfEntries='+str(len(epnArrList))+'\n'
             pls_txt = pls_txt+footer
         elif self.path.endswith('.htm') or self.path.endswith('.html'):
-                pls_txt = pls_txt+'</ol>'
-                playlist_htm = os.path.join(BASEDIR, 'playlist.html')
-                if os.path.exists(playlist_htm):
-                    play_htm = open_files(playlist_htm, False)
-                    #print(play_htm)
-                    pls_txt = re.sub('<ol id="playlist"></ol>', pls_txt, play_htm)
-                    new_field = ''
-                    for i in html_default_arr:
-                        new_field = new_field+'<option value="{0}">{1}</option>'.format(i.lower(), i)
-                    new_field = '<select id="site" onchange="siteChange()">{0}</select>'.format(new_field)
-                    logger.info(new_field)
-                    pls_txt = pls_txt.replace('<select id="site" onchange="siteChange()"></select>', new_field)
-                    extra_fields = self.get_extra_fields()
-                    logger.info(extra_fields)
-                    pls_txt = re.sub('<div id="site_option" hidden></div>', extra_fields, pls_txt)
-                    
+            pls_txt = pls_txt+'</ol>'
+            playlist_htm = os.path.join(BASEDIR, 'playlist.html')
+            if os.path.exists(playlist_htm):
+                play_htm = open_files(playlist_htm, False)
+                #print(play_htm)
+                pls_txt = re.sub('<ol id="playlist"></ol>', pls_txt, play_htm)
+                new_field = ''
+                for i in html_default_arr:
+                    new_field = new_field+'<option value="{0}">{1}</option>'.format(i.lower(), i)
+                new_field = '<select id="site" onchange="siteChange()">{0}</select>'.format(new_field)
+                logger.info(new_field)
+                pls_txt = pls_txt.replace('<select id="site" onchange="siteChange()"></select>', new_field)
+                extra_fields = self.get_extra_fields()
+                logger.info(extra_fields)
+                pls_txt = re.sub('<div id="site_option" hidden></div>', extra_fields, pls_txt)
+
         if ui.remote_control and ui.remote_control_field:
             self.write_to_tmp_playlist(epnArrList, _new_epnArrList)
-            
+
         return pls_txt
-        
+
     def get_extra_fields(self):
         global html_default_arr, home, ui, logger
         #extra_fields = ''
-        
+
         extra_fields = 'RemoteField:{0};RemoteControl:{1};'.format(ui.remote_control_field, ui.remote_control)
         for i in html_default_arr:
             if i.lower() == 'video':
@@ -773,18 +770,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 extra_fields = extra_fields+'{0}:History;'.format(i)
         extra_fields = '<div id="site_option" hidden>{0}</div>'.format(extra_fields)
         return extra_fields
-        
+
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
         global ui, home, html_default_arr, logger
         global epnArrList, path_final_Url, curR, site
-        
+
         arg_dict = ui.get_parameters_value(
             r='curR', path='path_final_Url', epnarr='epnArrList', s='site')
         curR = arg_dict['curR']
         path_final_Url = arg_dict['path_final_Url']
         epnArrList = arg_dict['epnArrList']
         site = arg_dict['site']
-        
+
         if not my_ip_addr:
             my_ipaddress = ui.local_ip_stream
         else:
@@ -806,12 +803,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 list1_row = ui.list1.currentRow()
             else:
                 list1_row = None
-            
+
             #book_mark = self.triggerBookmark(list1_row)
             new_epnArrList = [i for i in epnArrList]
-            
+
             new_arr = [i for i in range(len(epnArrList))]
-            
+
             if path.startswith('channel'):
                 new_arr = new_arr[curR:]
                 new_epnArrList = new_epnArrList[curR:]
@@ -1066,14 +1063,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     n_out = epnArrList[curR].strip()
                     if not n_art:
                         n_art = 'Not Available'
-            
+
             if path.endswith('.pls'):
                 pls_txt = pls_txt+'\nTitle{0}={1}\nFile{0}={2}\n'.format(str(1), n_art, out)
             elif path.endswith('.htm') or path.endswith('.html'):
                 pls_txt = pls_txt+'<li data-mp3="{2}">{0} - {1}</li>'.format(n_art, n_out, out)
             else:
                 pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
-                
+
             if path.endswith('.pls'):
                 footer = '\nNumberOfEntries='+str(1)+'\n'
                 pls_txt = pls_txt+footer
@@ -1149,7 +1146,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if st and st_o and srch:
                 print(srch_exact, '=srch_exact', st, st_o, srch)
                 epn_arr, st, st_o, new_str, st_nm = ui.options_from_bookmark(
-                        st, st_o, srch, search_exact=srch_exact)
+                    st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
                 if epn_arr:
                     pls_txt = self.create_playlist(
@@ -1160,7 +1157,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 #	srch = st_o
                 print(srch_exact, '=srch_exact')
                 original_path_name = ui.options_from_bookmark(
-                        st, st_o, srch, search_exact=srch_exact)
+                    st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
                 if original_path_name:
                     pls_txt = self.create_option_playlist(
@@ -1180,7 +1177,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(pls_txt)
             except Exception as e:
                 print(e)
-            
         elif path.lower() == 'play' or not path:
             self.row = ui.list2.currentRow()
             if self.row < 0:
@@ -1427,7 +1423,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 pls_name = info_arr[0]
                                 new_name = info_arr[1].split('=')[-1].rsplit('.')[0]
                                 logger.info(new_name)
-                                self.process_offline_mode(nm, pls_name, new_name, 
+                                self.process_offline_mode(
+                                    nm, pls_name, new_name, 
                                     msg=True, captions=captions, url=old_nm)
                             except Exception as e:
                                 print(e)
@@ -1536,7 +1533,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     else:
                         nm = ui.epn_return_from_bookmark(nm, from_client=True)
                         self.process_url(nm, get_bytes)
-                        
             except Exception as e:
                 print(e)
         elif path.startswith('stop_torrent'):
@@ -1734,7 +1730,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             elif path.endswith('_off.htm'):
                 if ui.remote_control_field:
                     ui.remote_control = False
-            
             msg = 'Remote Control Set {0}'.format(ui.remote_control)
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
@@ -1923,7 +1918,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     print(e, '--1736--')
                     src = -1
                     dest = -1
-                if pls and src >=0 and dest >=0:
+                if pls and src >= 0 and dest >= 0:
                     file_path = os.path.join(home, 'Playlists', pls)
                     lines = open_files(file_path, lines_read=True)
                     new_lines = [i.strip() for i in lines]
@@ -1939,7 +1934,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             modified = True
                         if modified:
                             write_files(file_path, new_lines, line_by_line=True)
-                            
+
             if modified:
                 msg = 'Playlist Modified Successfully'
             else:
@@ -1955,11 +1950,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Location', nm)
             self.send_header('Connection', 'close')
             self.end_headers()
-    
+
     def check_yt_captions(self, url):
         try:
             req = urllib.request.Request(
-                    url, data=None, headers={'User-Agent': 'Mozilla/5.0'})
+                url, data=None, headers={'User-Agent': 'Mozilla/5.0'})
             f = urllib.request.urlopen(req)
             content = f.read().decode('utf-8')
             caption = '"caption_translation_languages":""'
@@ -1971,8 +1966,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             print(e, '---2279---')
             sub_title = False
         return sub_title
-        
-    
+
     def process_offline_mode(self, nm, pls, title, msg=None, captions=None, url=None):
         global ui, home, logger
         loc_dir = os.path.join(ui.default_download_location, pls)
@@ -2004,8 +1998,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if msg:
             self.final_message(b'Got it!. update video section or refresh playlist')
         logger.info('captions={0}-{1}-{2}'.format(captions, url, ok_val))
-        
-        
+
     def check_local_subtitle(self, path, external=None):
         result = None
         ext = ['.srt', '.ass', '.en.srt', '.en.ass', '.en.vtt']
@@ -2018,7 +2011,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         result = sub_name
                         break
         return result
-        
+
     def process_subtitle_url(self, path, status=None):
         global home, ui, logger
         folder_sub = False
@@ -2026,11 +2019,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         h = hashlib.sha256(sub_name_bytes)
         sub_name = h.hexdigest()
         sub_name_path = os.path.join(ui.yt_sub_folder, sub_name)
-        
+
         sub_name_vtt = sub_name_path + '.vtt'
         sub_name_srt = sub_name_path + '.srt'
         sub_name_ass = sub_name_path + '.ass'
-        
+
         if status == 'reload':
             if os.path.isfile(sub_name_vtt):
                 os.remove(sub_name_vtt)
@@ -2038,36 +2031,39 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 os.remove(sub_name_srt)
             if os.path.isfile(sub_name_ass):
                 os.remove(sub_name_ass)
-        
-        
+
         sub_path = sub_name_vtt
-        
+
         logger.info('path={0}:sub={1}'.format(path, sub_path))
         check_local_sub = self.check_local_subtitle(path)
-        
+
         sub_srt = False
         sub_ass = False
         got_sub = False
-        
+
         if check_local_sub is None:
             check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv', external=True)
-            
+
         if path.startswith('http') and 'youtube.com' in path:
             if status == 'getsub':
                 get_yt_sub_(path, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
                 check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv', external=True)
-            
+
             if check_local_sub is not None and not os.path.exists(sub_path):
                 try:
                     if OSNAME == 'posix':
-                        out = subprocess.check_output(['ffmpeg', '-y', '-i', check_local_sub, sub_path])
+                        out = subprocess.check_output([
+                            'ffmpeg', '-y', '-i', check_local_sub, sub_path
+                            ])
                     else:
-                        out = subprocess.check_output(['ffmpeg', '-y', '-i', check_local_sub, sub_path], shell=True)
+                        out = subprocess.check_output([
+                            'ffmpeg', '-y', '-i', check_local_sub, sub_path
+                            ], shell=True)
                     got_sub = True
                 except Exception as e:
                     print(e)
                     got_sub = False
-                    
+
             if status == 'getsub' and got_sub:
                 self.final_message(b'Got Subtitle')
                 return 0
@@ -2078,9 +2074,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if check_local_sub is not None:
                 try:
                     if OSNAME == 'posix':
-                        out = subprocess.check_output(['ffmpeg', '-y', '-i', check_local_sub, sub_path])
+                        out = subprocess.check_output([
+                            'ffmpeg', '-y', '-i', check_local_sub, sub_path])
                     else:
-                        out = subprocess.check_output(['ffmpeg', '-y', '-i', check_local_sub, sub_path], shell=True)
+                        out = subprocess.check_output([
+                            'ffmpeg', '-y', '-i', check_local_sub, sub_path
+                            ], shell=True)
                     got_sub = True
                 except Exception as e:
                     print(e)
@@ -2089,9 +2088,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if not got_sub:
                 try:
                     if OSNAME == 'posix':
-                        out = subprocess.check_output(['ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c', 'copy', sub_name_srt])
+                        out = subprocess.check_output([
+                            'ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c',
+                            'copy', sub_name_srt])
                     else:
-                        out = subprocess.check_output(['ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c', 'copy', sub_name_srt], shell=True)
+                        out = subprocess.check_output([
+                            'ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c',
+                            'copy', sub_name_srt], shell=True)
                     sub_srt = True
                 except Exception as e:
                     print(e, '--2105--')
@@ -2100,9 +2103,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         os.remove(sub_name_srt)
                     try:
                         if OSNAME == 'posix':
-                            out = subprocess.check_output(['ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c', 'copy', sub_name_ass])
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', path, '-map', '0:s:0',
+                                '-c', 'copy', sub_name_ass])
                         else:
-                            out = subprocess.check_output(['ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c', 'copy', sub_name_ass], shell=True)
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', path, '-map', '0:s:0',
+                                '-c', 'copy', sub_name_ass], shell=True)
                         sub_ass = True
                     except Exception as e:
                         print(e)
@@ -2116,14 +2123,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         ip_file = sub_name_ass
                     try:
                         if OSNAME == 'posix':
-                            out = subprocess.check_output(['ffmpeg', '-y', '-i', ip_file, sub_path])
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', ip_file, sub_path])
                         else:
-                            out = subprocess.check_output(['ffmpeg', '-y', '-i', ip_file, sub_path], shell=True)
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', ip_file, sub_path
+                                ], shell=True)
                         got_sub = True
                     except Exception as e:
                         print(e)
                         got_sub = False
-            
+
         if os.path.exists(sub_path):
             content = open(sub_path, 'r').read()
             c = bytes(content, 'utf-8')
@@ -2139,7 +2149,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(c)
         except Exception as e:
             print(e)
-            
+
     def process_yt_playlist(self, url, pls, mode=None):
         global home, logger
         op_success = False
@@ -2196,7 +2206,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         if os.path.exists(pls_path):
                             lines = open_files(pls_path, lines_read=True)
                             lines = lines + arr
-                            write_files(pls_path, lines, line_by_line = True)
+                            write_files(pls_path, lines, line_by_line=True)
                             op_success = True
                 if mode == 'offline':
                     nm = get_yt_url(url, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
@@ -2206,7 +2216,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             nm = aud
                     self.process_offline_mode(nm, pls, title, msg=False, captions=sub_title, url=url)
         return op_success
-        
+
     def final_message(self, txt, cookie=None, auth_failed=None):
         if cookie:
             self.send_response(303)
@@ -2261,23 +2271,23 @@ class doGETSignal(QtCore.QObject):
 def goToUi_jump(nm):
     global ui
     url = ui.epn_return_from_bookmark(nm, from_client=True)
-    
-    
+
+
 @pyqtSlot(str)
 def stop_torrent_from_client(nm):
     ui.stop_torrent(from_client=True)
-    
-    
+
+
 @pyqtSlot(str)
 def get_my_ip_regularly(nm):
     new_thread = getIpThread(interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
     new_thread.start()
-    
+
 
 @pyqtSlot(int, str)
 def start_player_remotely(nm, mode):
     global ui, curR, MainWindow
-    
+
     print(nm, mode, '--2133--')
     if mode == 'normal':
         if nm < ui.list2.count() and nm >= 0:
@@ -2333,7 +2343,7 @@ def start_player_remotely(nm, mode):
                     ui.subtitle_track.clicked.emit()
                 elif mode == 'toggle_audio':
                     ui.audio_track.clicked.emit()
-            
+
 
 @pyqtSlot(str)
 def navigate_player_remotely(nm):
@@ -2381,7 +2391,7 @@ def update_databse_signal(mode):
             ui.creatUpdateMusicDB(music_db, music_file, music_file_bak, update_progress_show=False)
         else:
             ui.updateOnStartMusicDB(music_db, music_file, music_file_bak, update_progress_show=False)
-        
+
 
 @pyqtSlot(str)
 def delete_torrent_history(nm):
@@ -2437,12 +2447,12 @@ class MyTCPServer(TCPServer):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
 
-                
+
 class ThreadServerLocal(QtCore.QThread):
-    
+
     cert_signal = pyqtSignal(str)
     media_server_start = pyqtSignal(str)
-    
+
     def __init__(self, ip, port, ui_widget=None, hm=None, logr=None, window=None):
         global ui, MainWindow, home, logger, html_default_arr, BASEDIR, TMPDIR, OSNAME
         QtCore.QThread.__init__(self)
@@ -2462,13 +2472,13 @@ class ThreadServerLocal(QtCore.QThread):
         BASEDIR = arg_dict['basedir']
         TMPDIR = arg_dict['tmpdir']
         OSNAME = os.name
-        
+
     def __del__(self):
         self.wait()                        
-    
+
     def get_httpd(self):
         return self.httpd
-        
+
     def run(self):
         logger.info('starting server...')
         try:
