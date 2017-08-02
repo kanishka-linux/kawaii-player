@@ -20251,20 +20251,20 @@ def main():
                     try:
                         def_m = re.sub('\n', '', j)
                         t_v = def_m.split(',')
-                        n = 0
-                        for l in range(len(t_v)):
-                            default_arr_setting[n] = int(t_v[l].strip())
-                            n = n+1
+                        for l,z in enumerate(t_v):
+                            if z:
+                                default_arr_setting[l] = int(z.strip())
+                        logger.info(default_arr_setting)
                     except Exception as e:
                         print(e,'--20251--')
                 elif 'Music_Mode' in i:
                     try:
                         def_m = re.sub('\n', '', j)
                         t_v = def_m.split(',')
-                        n = 0
-                        for l in range(len(t_v)):
-                            music_arr_setting[n] = int(t_v[l].strip())
-                            n = n+1
+                        for l,z in enumerate(t_v):
+                            if z:
+                                music_arr_setting[l] = int(z.strip())
+                        logger.info(music_arr_setting)
                     except Exception as e:
                         print(e,'--20261--')
     else:
