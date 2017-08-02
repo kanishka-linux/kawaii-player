@@ -33,7 +33,7 @@ from os.path import expanduser
 import datetime
 from player_functions import ccurl, naturallysorted
 
-class musicArtist():
+class MusicArtist():
     
     def __init__(self):
         self.hdr = ''
