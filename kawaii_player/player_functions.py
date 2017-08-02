@@ -15,26 +15,24 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
 import os
 import sys
+import re
 import inspect
 import shutil
-from tempfile import mkstemp, mkdtemp
-import urllib
-import pycurl
-from io import StringIO, BytesIO
-import subprocess
-import re
-from get_functions import wget_string, get_ca_certificate
-from PyQt5 import QtWidgets, QtGui, QtCore
 import logging
 import hashlib
 import base64
+import subprocess
+import urllib
+from tempfile import mkstemp, mkdtemp
+from io import StringIO, BytesIO
+import pycurl
+from PyQt5 import QtWidgets, QtCore
+from get_functions import wget_string, get_ca_certificate
+
 #if os.name == 'nt':
 #import tkinter
 OSNAME = os.name
@@ -89,7 +87,7 @@ def qmsg_message(txt):
     msg.show()
     
     frame_timer = QtCore.QTimer()
-    frame_timer.timeout.connect(lambda x=0:frame_options(msg))
+    frame_timer.timeout.connect(lambda x=0: frame_options(msg))
     frame_timer.setSingleShot(True)
     frame_timer.start(5000)
     msg.exec_()
@@ -170,8 +168,8 @@ def get_config_options(file_name, value_field):
 
 def naturallysorted(l): 
     convert = lambda text: int(text) if text.isdigit() else text.lower() 
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key)] 
-    return sorted(l, key = alphanum_key)
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)] 
+    return sorted(l, key=alphanum_key)
 
 
 def replace_all(text, di):
@@ -276,7 +274,7 @@ def set_user_password(text_val, pass_val):
 
 
 def create_ssl_cert(ui, TMPDIR, pass_word):
-    if len(pass_word) >=8:
+    if len(pass_word) >= 8:
         my_ip = str(ui.local_ip_stream)
         server_key = os.path.join(TMPDIR, 'server.key')
         server_csr = os.path.join(TMPDIR, 'server.csr')
@@ -286,13 +284,18 @@ def create_ssl_cert(ui, TMPDIR, pass_word):
         if ui.my_public_ip and ui.access_from_outside_network:
             my_ip = str(ui.my_public_ip)	
         try:
-            subprocess.call(['openssl', 'genrsa', '-des3', '-passout', 'pass:'+pass_word, '-out', server_key, '2048'])
+            subprocess.call(['openssl', 'genrsa', '-des3', '-passout', 
+                             'pass:'+pass_word, '-out', server_key, '2048'])
             print('key--generated')
-            subprocess.call(['openssl', 'rsa', '-in', server_key, '-out', server_key, '-passin', 'pass:'+pass_word])
+            subprocess.call(['openssl', 'rsa', '-in', server_key, '-out', 
+                             server_key, '-passin', 'pass:'+pass_word])
             print('next')
-            subprocess.call(['openssl', 'req', '-sha256', '-new', '-key', server_key, '-out', server_csr, '-subj', cn])
+            subprocess.call(['openssl', 'req', '-sha256', '-new', '-key', 
+                             server_key, '-out', server_csr, '-subj', cn])
             print('req')
-            subprocess.call(['openssl', 'x509', '-req', '-sha256', '-days', '365', '-in', server_csr, '-signkey', server_key, '-out', server_crt])
+            subprocess.call(['openssl', 'x509', '-req', '-sha256', '-days', 
+                             '365', '-in', server_csr, '-signkey', server_key, 
+                             '-out', server_crt])
             print('final')
             f = open(ssl_cert, 'w')
             content1 = open(server_crt).read()
@@ -316,7 +319,7 @@ def write_files(file_name, content, line_by_line):
         shutil.copy(file_name, tmp_new_file)
         #print('copying ', file_name, ' to ', tmp_new_file)
     try:
-        if type(content) is list:
+        if isinstance(content, list):
             bin_mode = False
             f = open(file_name, 'w')
             j = 0
@@ -413,7 +416,7 @@ def write_files(file_name, content, line_by_line):
 
 
 get_lib = get_config_options(
-            os.path.join(get_home_dir(), 'other_options.txt'), 'GET_LIBRARY')
+    os.path.join(get_home_dir(), 'other_options.txt'), 'GET_LIBRARY')
 
 
 if get_lib.lower() == 'pycurl':
