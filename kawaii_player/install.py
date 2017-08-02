@@ -15,17 +15,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
 import os
-from os.path import expanduser
 import shutil
-import subprocess
 import platform
 import sys
+from os.path import expanduser
+
 home_user = expanduser("~")
 home = os.path.join(home_user, ".config", "kawaii-player")
 nHome = os.path.join(home, 'src' )
