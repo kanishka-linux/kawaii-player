@@ -28,7 +28,7 @@ try:
     import dbus.mainloop.pyqt5
 except:
     pass
-
+from PyQt5.QtCore import pyqtSlot
 
 AW_MPRIS_BUS_NAME = 'org.mpris.MediaPlayer2.kawaii-player'
 MPRIS_OBJECT_PATH = '/org/mpris/MediaPlayer2'
