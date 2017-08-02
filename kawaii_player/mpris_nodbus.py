@@ -15,20 +15,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
 import os
-import sys
-from PyQt5 import QtCore
 import re
-import PIL
-from PIL import Image 
-import shutil
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, pyqtProperty)
-
 
 class MprisServer():
     def __init__(self, ui, home, tr_ay, new_tr):
@@ -37,14 +27,13 @@ class MprisServer():
         self.home = home
         tray = tr_ay
         new_tray_widget = new_tr
-        
+
     def _emitMeta(self, info, site, epnArrList):
         global tray, new_tray_widget
         art_url = self.ui.default_background
         artist = 'Kawaii-Player'
         title = 'Kawaii-Player'
         if epnArrList and (site == "Music" or site == "PlayLists"):
-            
             try:
                 queue_list = False
                 if self.ui.queue_url_list:
@@ -128,7 +117,7 @@ class MprisServer():
                 art_url = art_u
         except Exception as e:
             print(e, '--no-dbus--error--')
-        
+
         abs_path_thumb = art_url
         if title == artist:
             if len(title) > 38:
