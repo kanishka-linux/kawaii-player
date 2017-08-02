@@ -46,7 +46,7 @@ from player_functions import wget_string, open_files, get_config_options
 from player_functions import get_tmp_dir, naturallysorted, set_logger
 from player_functions import get_home_dir, change_opt_file, create_ssl_cert
 from player_functions import set_user_password, get_lan_ip
-from musicArtist import musicArtist
+from music_artist import MusicArtist
 from yt import get_yt_url, get_yt_sub_
 
 HOME_DIR = get_home_dir()
@@ -244,28 +244,29 @@ class ThreadingExample(QtCore.QThread):
         name = self.name1
         name2 = name.replace(' ', '+')
         if name2 != 'NONE':
-            url = "http://www.last.fm/search?q="+name2
-            logger.info(url)
+            url = "https://www.last.fm/search?q="+name2
             logger.info(url)
             wiki = ""
             content = ccurl(url)
             soup = BeautifulSoup(content, 'lxml')
             link = soup.findAll('div', {'class':'row clearfix'})
+            logger.info('{0}-{1}'.format(link,253))
             name3 = ""
             for i in link:
                 j = i.findAll('a')
                 for k in j:
                     try:
                         url = k['href']
-                        logger.info(url)
-                        break
+                        if '?q=' not in url:
+                            logger.info(url)
+                            break
                     except:
                         pass
             logger.info(url)
             if url.startswith('http'):
                 url = url
             else:
-                url = "http://www.last.fm" + url
+                url = "https://www.last.fm" + url
             logger.info(url)
             img_url = url+'/+images'
             wiki_url = url + '/+wiki'
@@ -6965,7 +6966,7 @@ class Ui_MainWindow(object):
         self.display_list = False
         self.tmp_web_srch = ''
         self.get_fetch_library = 'pycurl'
-        self.image_fit_option_val = 1
+        self.image_fit_option_val = 3
         self.tmp_folder_remove = 'no'
         self.video_mode_index = 1
         self.current_thumbnail_position = (0, 0, 1, 1)
@@ -14616,16 +14617,24 @@ class Ui_MainWindow(object):
                         )
                     self.float_window.setPixmap(QtGui.QPixmap(picn, "1"))
             else:
-                    if os.path.exists(self.default_background):
-                        dir_n, p = os.path.split(self.default_background)
-                        new_jpg =  os.path.join(dir_n, 'default_poster.jpg')
-                        if not os.path.exists(new_jpg):
-                            picn = self.change_aspect_only(self.default_background)
-                            shutil.copy(picn, new_jpg)
-                        self.label.setPixmap(QtGui.QPixmap(new_jpg, "1"))
+                if os.path.exists(self.default_background):
+                    dir_n, p = os.path.split(self.default_background)
+                    new_jpg =  os.path.join(dir_n, 'default_poster.jpg')
+                    if not os.path.exists(new_jpg):
+                        picn = self.change_aspect_only(self.default_background)
+                        shutil.copy(picn, new_jpg)
+                    self.label.setPixmap(QtGui.QPixmap(new_jpg, "1"))
         except Exception as e:
             print(e, '--error--in processing image--VideoImage 13432')
-            
+            if os.path.exists(self.default_background):
+                QtCore.QTimer.singleShot(10, partial(set_mainwindow_palette, self.default_background))
+                dir_n, p = os.path.split(self.default_background)
+                new_jpg =  os.path.join(dir_n, 'default_poster.jpg')
+                if not os.path.exists(new_jpg):
+                    picn = self.change_aspect_only(self.default_background)
+                    shutil.copy(picn, new_jpg)
+                self.label.setPixmap(QtGui.QPixmap(new_jpg, "1"))
+                
         self.text.clear()
         
         if summary:
@@ -15526,7 +15535,7 @@ class Ui_MainWindow(object):
             self.list2.setCurrentRow(row)
         epn_goto = 0
         
-        if type(finalUrl) is not list:
+        if not isinstance(finalUrl,list):
             self.final_playing_url = finalUrl.replace('"', '')
             if self.final_playing_url.startswith('http'):
                 current_playing_file_path = self.final_playing_url
@@ -16009,7 +16018,7 @@ class Ui_MainWindow(object):
                 
     def startedM(self):
         global img_arr_artist, name
-        ma = musicArtist()
+        ma = MusicArtist()
         print("Process Started")
         img_arr = ma.search(name, '')
         logger.info(img_arr)
