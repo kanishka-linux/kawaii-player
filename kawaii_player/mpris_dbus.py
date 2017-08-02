@@ -21,21 +21,15 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import sys
-from PyQt5 import QtCore
 import re
-import PIL
-from PIL import Image 
-import shutil
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, pyqtProperty)
-
 try:
     import dbus
     import dbus.service
     import dbus.mainloop.pyqt5
 except:
     pass
-    
+
+
 AW_MPRIS_BUS_NAME = 'org.mpris.MediaPlayer2.kawaii-player'
 MPRIS_OBJECT_PATH = '/org/mpris/MediaPlayer2'
 MPRIS_MEDIAPLAYER_INTERFACE = 'org.mpris.MediaPlayer2'
@@ -47,81 +41,72 @@ class MprisServer(dbus.service.Object):
         tray = tr_ay
         new_tray_widget = new_tr
         bus = dbus.service.BusName(
-            AW_MPRIS_BUS_NAME, 
+            AW_MPRIS_BUS_NAME,
             bus=dbus.SessionBus())
         super().__init__(bus, MPRIS_OBJECT_PATH)
-        
+
         self._properties = dbus.Dictionary({
-            'DesktopEntry': 'kawaii-player', 
+            'DesktopEntry': 'kawaii-player',
             'Identity': 'kawaii-player', 
-            
-}, signature='sv')
-        
-        
+            }, signature='sv')
+
         self._player_properties = dbus.Dictionary({
             'Metadata': dbus.Dictionary({
-                
-                'mpris:artUrl': '', 
-                'xesam:artist': ['None'], 
-                'xesam:title': 'None', 
-                
+                'mpris:artUrl': '',
+                'xesam:artist': ['None'],
+                'xesam:title': 'None',
                 'xesam:album': 'None'
             }, signature='sv', variant_level=1), 
-            
-            'CanGoNext': True, 
-            'CanGoPrevious': True, 
-            'CanPause': True, 
-        'CanPlay': True, 
-             'CanControl': True, 
-             'CanStop': True, 
-}, signature='sv', variant_level=2)
+            'CanGoNext': True,
+            'CanGoPrevious': True,
+            'CanPause': True,
+            'CanPlay': True,
+            'CanControl': True,
+            'CanStop': True,
+        }, signature='sv', variant_level=2)
 
         self.ui = ui
         self.home = home
 
     @dbus.service.method(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
-                 in_signature='', out_signature='')
+                         in_signature='', out_signature='')
     def Play(self):
-        print ("Play Song")
+        print("Play Song")
         self.ui.playerPlayPause()
-            
-            
+
     @dbus.service.method(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
-                 in_signature='', out_signature='')
+                         in_signature='', out_signature='')
     def Pause(self):
-        print ("PlayPause Song")
+        print("PlayPause Song")
         self.ui.playerPlayPause()
 
     @dbus.service.method(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
-                 in_signature='', out_signature='')
+                         in_signature='', out_signature='')
     def Next(self):
-        print ("Next Song")		
+        print("Next Song")
         self.ui.mpvNextEpnList()
-                
 
     @dbus.service.method(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
-                 in_signature='', out_signature='')
+                         in_signature='', out_signature='')
     def Previous(self):
-        print ("Previous Song")
+        print("Previous Song")
         self.ui.mpvPrevEpnList()
-                
 
     @dbus.service.method(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
                          in_signature='', out_signature='')
     def PlayPause(self):
-        print ("PlayPause Song")
+        print("PlayPause Song")
         self.ui.playerPlayPause()
 
-
     @dbus.service.method(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
-                 in_signature='', out_signature='')
+                         in_signature='', out_signature='')
     def Stop(self):
         self.ui.playerStop()
 
     @dbus.service.signal(dbus.PROPERTIES_IFACE, 
-                 signature='sa{sv}as')
+                         signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed_properties, 
-                  invalidated_properties=[]):
+                          invalidated_properties=[]):
         pass
 
     @pyqtSlot(str, str, list)
@@ -132,7 +117,6 @@ class MprisServer(dbus.service.Object):
         artist = 'Kawaii-Player'
         title = 'Kawaii-Player'
         if epnArrList and (site == "Music" or site == "PlayLists"):
-            
             try:
                 queue_list = False
                 if self.ui.queue_url_list:
@@ -175,7 +159,6 @@ class MprisServer(dbus.service.Object):
                         print(img_place, '--img--place')
                         title = re.sub('.jpg', '', pls_entry)
                         art_u = img_place
-                        
                     elif site == 'Music':
                         title = t
                         artist = art
@@ -191,7 +174,6 @@ class MprisServer(dbus.service.Object):
                 title = "Kawaii-Player"
                 artist = "Kawaii-Player"
         else:
-        
             try:
                 r = self.ui.list2.currentRow()
                 print(epnArrList[r])
@@ -219,18 +201,18 @@ class MprisServer(dbus.service.Object):
                 art_url = art_u
         except Exception as e:
             print(e, '--no--art--url--or-path--')
-        
+
         abs_path_thumb = art_url	
-        props = dbus.Dictionary({'Metadata': dbus.Dictionary({
-            'xesam:artist': artist, 
-        'mpris:artUrl': abs_path_thumb, 
-            
-            'xesam:title': title, 
-        }, signature='sv')}, signature='sv')
+        props = dbus.Dictionary({
+            'Metadata': dbus.Dictionary({
+                'xesam:artist': artist, 
+                'mpris:artUrl': abs_path_thumb, 
+                'xesam:title': title, 
+                }, signature='sv')}, signature='sv')
         self._player_properties.update(props)
 
         self.PropertiesChanged(MPRIS_MEDIAPLAYER_PLAYER_INTERFACE, 
-                       props, [])
+                               props, [])
 
         if title == artist:
             if len(title) > 38:
@@ -245,12 +227,10 @@ class MprisServer(dbus.service.Object):
                 artist = artist[:36]+'..'
         new_tray_widget.title.setText(title)
         new_tray_widget.title1.setText(artist)
-        
-            
+
     @dbus.service.method(dbus.INTROSPECTABLE_IFACE, 
-                 in_signature='', out_signature='s')
+                         in_signature='', out_signature='s')
     def Introspect(self):
-        
         path = os.path.join(self.home, 'src', 'introspect.xml')
         print(path, '---path---')
         if os.path.exists(path):
@@ -258,7 +238,7 @@ class MprisServer(dbus.service.Object):
         else:
             content = ''
         return content
-        
+
     @dbus.service.method(dbus.PROPERTIES_IFACE, 
                          in_signature='ss', out_signature='v')
     def Get(self, interface, prop):
@@ -269,7 +249,7 @@ class MprisServer(dbus.service.Object):
         self._player_properties[prop] = value
 
     @dbus.service.method(dbus.PROPERTIES_IFACE, 
-                 in_signature='s', out_signature='a{sv}')
+                         in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):
         if interface == MPRIS_MEDIAPLAYER_PLAYER_INTERFACE:
             return self._player_properties
@@ -277,8 +257,8 @@ class MprisServer(dbus.service.Object):
             return self._properties
         else:
             raise dbus.exceptions.DBusException(
-            'com.example.UnknownInterface', 
-            'The Foo object does not implement the %s interface'
-            % interface
-    )
+                'com.example.UnknownInterface', 
+                'The Foo object does not implement the %s interface'
+                % interface
+            )
 
