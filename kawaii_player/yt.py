@@ -20,17 +20,19 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from PyQt5 import QtCore
-from functools import partial
+
+
+import os
+import time
 import subprocess
 import shutil
-import os
+from functools import partial
 from tempfile import mkstemp
+from PyQt5 import QtCore
 from player_functions import send_notification, ccurl
-import time
+
 
 def get_yt_url(url, quality, ytdl_path, logger, mode=None):
-        
     final_url = ''
     url = url.replace('"', '')
     m = []
@@ -96,24 +98,24 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
             if os.name == 'posix':
                 if quality == 'sd480p':
                     final_url = subprocess.check_output(
-                                [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                '18', '-g', '--playlist-end', '1', url])
+                        [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                         '18', '-g', '--playlist-end', '1', url])
                     final_url = str(final_url, 'utf-8')
                 elif quality == 'sd':
                     final_url = subprocess.check_output(
-                                [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                '18', '-g', '--playlist-end', '1', url])
+                        [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                         '18', '-g', '--playlist-end', '1', url])
                     final_url = str(final_url, 'utf-8')
                 elif quality == 'best':
                     if mode:
                         if mode == 'offline':
                             final_url = subprocess.check_output(
-                                    [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                    'best', '-g', '--playlist-end', '1', url])
+                                [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                                 'best', '-g', '--playlist-end', '1', url])
                             final_url = str(final_url, 'utf-8')
                         elif mode == 'music':
                             final_url = subprocess.check_output(
-                                    [youtube_dl, '-g', url])
+                                [youtube_dl, '-g', url])
                             final_url = str(final_url, 'utf-8')
                             final_url = final_url.strip()
                             logger.info(final_url)
@@ -125,7 +127,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                             else:
                                 final_url = subprocess.check_output(
                                     [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                    'best', '-g', '--playlist-end', '1', url])
+                                     'best', '-g', '--playlist-end', '1', url])
                                 final_url = str(final_url, 'utf-8')
                     else:
                         if ytdl_path == 'default':
@@ -133,40 +135,40 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                         else:
                             final_url = subprocess.check_output(
                                 [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                'best', '-g', '--playlist-end', '1', url])
+                                 'best', '-g', '--playlist-end', '1', url])
                             final_url = str(final_url, 'utf-8')
                 elif quality == 'hd':
                     try:
                         final_url = subprocess.check_output(
-                                    [youtube_dl, '--youtube-skip-dash-manifest', 
-                                    '-f', '22', '-g', '--playlist-end', '1', url])
+                            [youtube_dl, '--youtube-skip-dash-manifest', 
+                             '-f', '22', '-g', '--playlist-end', '1', url])
                         final_url = str(final_url, 'utf-8')
                     except:
                         final_url = subprocess.check_output(
-                                    [youtube_dl, '--youtube-skip-dash-manifest', 
-                                    '-f', '18', '-g', '--playlist-end', '1', url])
+                            [youtube_dl, '--youtube-skip-dash-manifest', 
+                             '-f', '18', '-g', '--playlist-end', '1', url])
                         final_url = str(final_url, 'utf-8')
             else:
                 if quality == 'sd480p':
                     final_url = subprocess.check_output(
-                                [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                '18', '-g', '--playlist-end', '1', url], shell=True)
+                        [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                         '18', '-g', '--playlist-end', '1', url], shell=True)
                     final_url = str(final_url, 'utf-8')
                 elif quality == 'sd':
                     final_url = subprocess.check_output(
-                                [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                '18', '-g', '--playlist-end', '1', url], shell=True)
+                        [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                         '18', '-g', '--playlist-end', '1', url], shell=True)
                     final_url = str(final_url, 'utf-8')
                 elif quality == 'best':
                     if mode:
                         if mode == 'offline':
                             final_url = subprocess.check_output(
-                                    [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                                    'best', '-g', '--playlist-end', '1', url], shell=True)
+                                [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                                 'best', '-g', '--playlist-end', '1', url], shell=True)
                             final_url = str(final_url, 'utf-8')
                         elif mode == 'music':
                             final_url = subprocess.check_output(
-                                    [youtube_dl, '-g', url], shell=True)
+                                [youtube_dl, '-g', url], shell=True)
                             final_url = str(final_url, 'utf-8')
                             final_url = final_url.strip()
                             logger.info(final_url)
@@ -179,19 +181,19 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                 elif quality == 'hd':
                     try:
                         final_url = subprocess.check_output(
-                                    [youtube_dl, '--youtube-skip-dash-manifest', 
-                                    '-f', '22', '-g', '--playlist-end', '1', url], 
-                                    shell=True)
+                            [youtube_dl, '--youtube-skip-dash-manifest', 
+                             '-f', '22', '-g', '--playlist-end', '1', url], 
+                            shell=True)
                         final_url = str(final_url, 'utf-8')
                     except:
                         final_url = subprocess.check_output(
-                                    [youtube_dl, '--youtube-skip-dash-manifest', 
-                                    '-f', '18', '-g', '--playlist-end', '1', url], 
-                                    shell=True)
+                            [youtube_dl, '--youtube-skip-dash-manifest', 
+                             '-f', '18', '-g', '--playlist-end', '1', url], 
+                            shell=True)
                         final_url = str(final_url, 'utf-8')
     except Exception as e:
         logger.info('--error in processing youtube url--{0}'.format(e))
-        txt ='Please Update youtube-dl'
+        txt = 'Please Update youtube-dl'
         send_notification(txt)
         final_url = ''
         updated_already = False
