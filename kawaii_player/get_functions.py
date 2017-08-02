@@ -15,19 +15,13 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
-
 import os
-import shutil
-from tempfile import mkstemp, mkdtemp
 import urllib.parse
-import pycurl
-from io import StringIO, BytesIO
 import subprocess
+from io import BytesIO
+import pycurl
 
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
@@ -49,7 +43,7 @@ def wget_string(url, dest, get_lib, rfr=None):
     command = ' '.join(command)
     return command
 
-    
+
 def ccurl_string_get(url, opt, extra, download_manager=None):
     hdr = USER_AGENT
     if download_manager:
@@ -143,17 +137,22 @@ def wget_string_get(url, dest, opt, extra, tmp_log, download_manager=None):
         command = ["wget", "--read-timeout=60", "--user-agent="+hdr, ck, url, "-O", dest]
     elif opt == '-bc' or opt == '-c':
         sk = '--save-cookies='+extra
-        command = ["wget", "--read-timeout=60", "--cookies=on", "--keep-session-cookies", sk, "--user-agent="+hdr, url, "-O", dest]
+        command = ["wget", "--read-timeout=60", "--cookies=on", "--keep-session-cookies", 
+                   sk, "--user-agent="+hdr, url, "-O", dest]
     elif opt == '-I':
-        command = ["wget", '-o', tmp_log, "--server-response", "--spider", "--read-timeout=60", "--user-agent="+hdr, url]
+        command = ["wget", '-o', tmp_log, "--server-response", "--spider", 
+                   "--read-timeout=60", "--user-agent="+hdr, url]
     elif opt == '-H':
-        command = ["wget", "--max-redirect=0", '-o', tmp_log, "--server-response", "--spider", "--read-timeout=60", "--user-agent="+hdr, url]
+        command = ["wget", "--max-redirect=0", '-o', tmp_log, "--server-response", 
+                   "--spider", "--read-timeout=60", "--user-agent="+hdr, url]
     elif opt == '-Ie':
         rfr = '--referer='+extra
-        command = ["wget", '-o', tmp_log, "--server-response", "--spider", "--read-timeout=60", "--user-agent="+hdr, rfr, url]
+        command = ["wget", '-o', tmp_log, "--server-response", "--spider", 
+                   "--read-timeout=60", "--user-agent="+hdr, rfr, url]
     elif opt == '-Ib':
         ck = '--load-cookies='+extra
-        command = ["wget", '-o', tmp_log, "--server-response", "--spider", "--read-timeout=60", "--user-agent="+hdr, ck, url]
+        command = ["wget", '-o', tmp_log, "--server-response", "--spider", 
+                   "--read-timeout=60", "--user-agent="+hdr, ck, url]
     elif opt == '-d':
         post = '--post-data='+'"'+extra+'"'
         command = ["wget", "--read-timeout=60", "--user-agent="+hdr, post, url, "-O", dest]
@@ -189,7 +188,7 @@ def ccurlCmd(url, external_cookie=None, user_auth=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
-        
+
     print(url)
     curl_opt = ''
     picn_op = ''
@@ -215,7 +214,7 @@ def ccurlCmd(url, external_cookie=None, user_auth=None):
             rfr = nUrl.split('#')[2]
             extra = rfr
         elif (curl_opt == '-Icb' or curl_opt == '-bc' or curl_opt == '-b' 
-                or curl_opt == '-Ib' or curl_opt == '-c'):
+              or curl_opt == '-Ib' or curl_opt == '-c'):
             cookie_file = nUrl.split('#')[2]
             extra = cookie_file
         elif curl_opt == '-d':
@@ -233,7 +232,6 @@ def ccurlCmd(url, external_cookie=None, user_auth=None):
     try:
         if os.name == 'posix':
             content = subprocess.check_output(command)
-            
         else:
             content = subprocess.check_output(command, shell=True)
     except Exception as e:
@@ -297,7 +295,7 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
             rfr = nUrl.split('#')[2]
             extra = rfr
         elif (curl_opt == '-Icb' or curl_opt == '-bc' or curl_opt == '-b' 
-                or curl_opt == '-Ib' or curl_opt == '-c'):
+              or curl_opt == '-Ib' or curl_opt == '-c'):
             cookie_file = nUrl.split('#')[2]
             extra = cookie_file
         elif curl_opt == '-d':
@@ -305,7 +303,7 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
             post = post.replace('"', '')
             post = post.replace("'", '')
             extra = post
-            
+
     tmp_dst = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player', 'tmp')
     if not os.path.exists(tmp_dst):
         os.makedirs(tmp_dst)
@@ -326,12 +324,11 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
         if curl_opt != '-L' and curl_opt != '-d':
             if os.name == 'posix':
                 subprocess.call(command)
-                
             else:
                 subprocess.call(command, shell=True)
     except Exception as e:
         print(e, '--wget--error--')
-    
+
     if '-I' in curl_opt:
         if os.path.exists(tmp_log):
             content = read_file_complete(tmp_log)
@@ -344,7 +341,7 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
     else:
         if os.path.exists(tmp_html):
             content = read_file_complete(tmp_html)
-    
+
     if os.path.exists(tmp_html):
         os.remove(tmp_html)
         #print('removed ', tmp_html)
@@ -353,13 +350,11 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
         #print('removed ', tmp_log)
     if '-I' in curl_opt:
         pass
-        #print('***************----------\n', content, '\n-------------*********')
     elif curl_opt == '-d':
-        #print(type(content))
         print('hello')
     return content
 
-    
+
 def ccurl(url, external_cookie=None, user_auth=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
@@ -384,7 +379,7 @@ def ccurl(url, external_cookie=None, user_auth=None):
         elif curl_opt == '-Ie' or curl_opt == '-e':
             rfr = nUrl.split('#')[2]
         elif (curl_opt == '-Icb' or curl_opt == '-bc' or curl_opt == '-b' 
-                or curl_opt == '-Ib' or curl_opt == '-c'):
+              or curl_opt == '-Ib' or curl_opt == '-c'):
             cookie_file = nUrl.split('#')[2]
         elif curl_opt == '-d':
             post = nUrl.split('#')[2]
