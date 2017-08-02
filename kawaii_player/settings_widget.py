@@ -29,7 +29,7 @@ from player_functions import open_files, write_files, change_opt_file
 
 
 class LoginAuth(QtWidgets.QDialog):
-    
+
     def __init__(
             self, parent=None, url=None, media_server=None, settings=None, 
             ssl_cert=None, ui=None, tmp=None):
@@ -42,20 +42,20 @@ class LoginAuth(QtWidgets.QDialog):
             self.grid = QtWidgets.QGridLayout(self)
             self.set_ip = QtWidgets.QLineEdit(self)
             self.set_ip.setText(self.ui.local_ip_stream+':'+str(self.ui.local_port_stream))
-            
+
             self.set_ip_btn = QtWidgets.QPushButton('Check', self)
             self.set_ip_btn.setToolTip('Check your current IP Address OR\nUser can manually enter the field in the form "ip_address:port_number"')
             self.set_ip_btn.clicked.connect(self._set_local_ip)
-            
+
             self.set_default_download = QtWidgets.QLineEdit(self)
             self.set_default_download.setText(self.ui.default_download_location)
             self.set_default_download.home(True)
             self.set_default_download.deselect()
-            
+
             self.default_download_btn = QtWidgets.QPushButton('Set Directory', self)
             self.default_download_btn.setToolTip('Set Default Download Location')
             self.default_download_btn.clicked.connect(self._set_download_location)
-            
+
             self.backg = QtWidgets.QComboBox(self)
             self.backg.addItem('KEEP_BACKGROUND_CONSTANT=yes')
             self.backg.addItem('KEEP_BACKGROUND_CONSTANT=no')
@@ -64,7 +64,7 @@ class LoginAuth(QtWidgets.QDialog):
                 self.backg.setCurrentIndex(0)
             else:
                 self.backg.setCurrentIndex(1)
-            
+
             self.img_opt = QtWidgets.QComboBox(self)
             self.img_opt.setToolTip('Use Ctrl+1 to Ctrl+8 keyboard shortcuts to Experiment with various background image modes. \n1:Fit To Screen\n2:Fit To Width\n3:Fit To Height\n4:Fit Upto Playlist\nRestart to see the effect OR if want to see immediate effect, then directly use keyboard shortcuts')
             img_opt_arr = ['IMAGE FIT OPTIONS', '1', '2', '3', '4', '5', '6', '7', '8']
@@ -79,10 +79,10 @@ class LoginAuth(QtWidgets.QDialog):
                 self.img_opt.setCurrentIndex(0)
             self.ok_btn = QtWidgets.QPushButton('OK', self)
             self.ok_btn.clicked.connect(self._set_params)
-            
+
             self.cancel_btn = QtWidgets.QPushButton('Cancel', self)
             self.cancel_btn.clicked.connect(self.hide)
-            
+
             self.grid.addWidget(self.set_ip, 0, 0, 1, 1)
             self.grid.addWidget(self.set_ip_btn, 0, 1, 1, 1)
             self.grid.addWidget(self.set_default_download, 1, 0, 1, 1)
@@ -131,12 +131,12 @@ class LoginAuth(QtWidgets.QDialog):
             self.show()
             self.count = 0
             self.found = True
-    
+
     def handleSsl(self):
         if self.pass_phrase.text() == self.repeat_phrase.text():
             self.hide()
             pass_word = self.pass_phrase.text()
-            if len(pass_word) >=8:
+            if len(pass_word) >= 8:
                 my_ip = str(self.ui.local_ip_stream)
                 server_key = os.path.join(self.tmpdir, 'server.key')
                 server_csr = os.path.join(self.tmpdir, 'server.csr')
@@ -145,13 +145,18 @@ class LoginAuth(QtWidgets.QDialog):
                 if self.ui.my_public_ip and self.ui.access_from_outside_network:
                     my_ip = str(self.ui.my_public_ip)	
                 try:
-                    subprocess.call(['openssl', 'genrsa', '-des3', '-passout', 'pass:'+pass_word, '-out', server_key, '2048'])
+                    subprocess.call(['openssl', 'genrsa', '-des3', '-passout',
+                                     'pass:'+pass_word, '-out', server_key, '2048'])
                     print('key--generated')
-                    subprocess.call(['openssl', 'rsa', '-in', server_key, '-out', server_key, '-passin', 'pass:'+pass_word])
+                    subprocess.call(['openssl', 'rsa', '-in', server_key, '-out',
+                                     server_key, '-passin', 'pass:'+pass_word])
                     print('next')
-                    subprocess.call(['openssl', 'req', '-sha256', '-new', '-key', server_key, '-out', server_csr, '-subj', cn])
+                    subprocess.call(['openssl', 'req', '-sha256', '-new', '-key',
+                                     server_key, '-out', server_csr, '-subj', cn])
                     print('req')
-                    subprocess.call(['openssl', 'x509', '-req', '-sha256', '-days', '365', '-in', server_csr, '-signkey', server_key, '-out', server_crt])
+                    subprocess.call(['openssl', 'x509', '-req', '-sha256', '-days',
+                                     '365', '-in', server_csr, '-signkey', server_key,
+                                     '-out', server_crt])
                     print('final')
                     f = open(self.ssl_cert, 'w')
                     content1 = open(server_crt).read()
@@ -173,7 +178,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.repeat_phrase.clear()
             self.pass_phrase.setPlaceholderText('Wrong Values Try again')
             self.show()
-    
+
     def _set_params(self):
         new_ip_val = None
         new_ip_port = None
@@ -230,14 +235,14 @@ class LoginAuth(QtWidgets.QDialog):
             change_opt_file(config_file_torrent, 'TORRENT_STREAM_IP=', torrent_ip)
             self.ui.local_ip = new_ip_val
         self.hide()
-        
+
     def _set_download_location(self):
         fname = QtWidgets.QFileDialog.getExistingDirectory(
-                self.parent, 'Set Directory', self.ui.last_dir)
+            self.parent, 'Set Directory', self.ui.last_dir)
         if fname:
             self.set_default_download.setText(fname)
             self.ui.last_dir = fname
-            
+
     def _set_local_ip(self):
         try:
             ip = get_lan_ip()
@@ -245,7 +250,7 @@ class LoginAuth(QtWidgets.QDialog):
         except Exception as e:
             print(e)
             self.set_ip.setText(self.ui.local_ip_stream+':'+str(self.ui.local_port_stream))
-        
+
     def _set_password(self):
         text_val = self.text_name.text()
         pass_val = self.text_pass.text()
@@ -274,7 +279,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.ui.client_auth_arr.append(self.ui.local_ip)
         if self.ui.local_ip_stream not in self.ui.client_auth_arr:
             self.ui.client_auth_arr.append(self.ui.local_ip_stream)
-            
+
     def handleLogin(self):
         self.hide()
         text_val = self.text_name.text()
@@ -283,17 +288,17 @@ class LoginAuth(QtWidgets.QDialog):
         content = ccurl(self.url+'#'+'-I', user_auth=self.auth_info)
         logger.info('content={0}'.format(content))
         if ((not content or 'www-authenticate' in content.lower() 
-                    or '401 unauthorized' in content.lower() 
-                    or 'curl failure' in content.lower()) and self.count<3):
-                self.text_name.clear()
-                self.text_pass.clear()
-                self.setWindowTitle('Wrong Credential, Try Again')
-                self.text_name.setPlaceholderText('USER or PASSWORD Incorrect')
-                new_txt = '{0} Attempts Left'.format(str(2-self.count))
-                self.text_pass.setPlaceholderText(new_txt)
-                self.found = False
-                self.count = self.count+1
-                self.show()
+                or '401 unauthorized' in content.lower() 
+                or 'curl failure' in content.lower()) and self.count < 3):
+            self.text_name.clear()
+            self.text_pass.clear()
+            self.setWindowTitle('Wrong Credential, Try Again')
+            self.text_name.setPlaceholderText('USER or PASSWORD Incorrect')
+            new_txt = '{0} Attempts Left'.format(str(2-self.count))
+            self.text_pass.setPlaceholderText(new_txt)
+            self.found = False
+            self.count = self.count+1
+            self.show()
         elif content:
             self.found = True
         if self.url and self.found:
