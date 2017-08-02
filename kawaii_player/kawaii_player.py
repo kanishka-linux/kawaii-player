@@ -20240,19 +20240,25 @@ def main():
                     if wd2.isdigit():
                         w_wdt = int(wd2)
                 elif "Default_Mode" in i:
-                    def_m = re.sub('\n', '', j)
-                    t_v = def_m.split(',')
-                    n = 0
-                    for l in range(len(t_v)):
-                        default_arr_setting[n] = int(t_v[l])
-                        n = n+1
+                    try:
+                        def_m = re.sub('\n', '', j)
+                        t_v = def_m.split(',')
+                        n = 0
+                        for l in range(len(t_v)):
+                            default_arr_setting[n] = int(t_v[l].strip())
+                            n = n+1
+                    except Exception as e:
+                        print(e,'--20251--')
                 elif 'Music_Mode' in i:
-                    def_m = re.sub('\n', '', j)
-                    t_v = def_m.split(',')
-                    n = 0
-                    for l in range(len(t_v)):
-                        music_arr_setting[n] = int(t_v[l])
-                        n = n+1
+                    try:
+                        def_m = re.sub('\n', '', j)
+                        t_v = def_m.split(',')
+                        n = 0
+                        for l in range(len(t_v)):
+                            music_arr_setting[n] = int(t_v[l].strip())
+                            n = n+1
+                    except Exception as e:
+                        print(e,'--20261--')
     else:
         f = open(os.path.join(home, 'config.txt'), 'w')
         f.write("DefaultPlayer=mpv")
