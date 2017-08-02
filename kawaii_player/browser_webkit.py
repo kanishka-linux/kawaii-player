@@ -15,72 +15,38 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
 
-from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets
-import sys
 import urllib.parse
-import pycurl
-from io import StringIO, BytesIO
 import re
-import subprocess
 import os
-import os.path
-from subprocess import check_output
 from bs4 import BeautifulSoup
-from functools import partial
+from PyQt5 import QtCore, QtWidgets
 from PyQt5 import QtWebKitWidgets
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtNetwork import QNetworkAccessManager
 from PyQt5.QtCore import QUrl
-import time
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from yt import get_yt_url, get_yt_sub
 from player_functions import ccurl, send_notification, write_files, wget_string
 from hls_webkit.netmon_webkit import NetManager
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
-
-
-class downloadThread(QtCore.QThread):
-    
-    def __init__(self, url, ui, file_path):
-        QtCore.QThread.__init__(self)
-    
-        self.url = url
-        self.interval = 1
-        self.ui = ui
-        self.file_path = file_path
-    def __del__(self):
-        self.wait()                        
-    
-    def run(self):
-        content = ccurl(self.url)
-        soup = BeautifulSoup(content, 'lxml')
-        title = soup.title.text.strip().replace('/', '-')
-        self.ui.gotHtmlSignal.emit(title, self.url, self.file_path)
 
 
 class BrowserPage(QWebPage):  
     def __init__(self):
         super(BrowserPage, self).__init__()
-        
+
     def acceptNavigationRequest(self, frame, req, nav_type):
-        print(req.url().toString(), 
-                nav_type, self.currentFrame().url().toString(), 
-                '--print--nav--type--')
-        
+        print(req.url().toString(), nav_type, 
+              self.currentFrame().url().toString(), '--print--nav--type--')
+
         if nav_type == 0:
             print('clicked inside nav-type--', req.url().toString())
-            #self.parent.urlSignal.emit(url.url())
-        
+
         return super(BrowserPage, self).acceptNavigationRequest(frame, req, nav_type)
-        
+
     def userAgentForUrl(self, url):
-        #return self.hdr
         if 'youtube' in url.toString():
             return 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
         else:
@@ -88,9 +54,9 @@ class BrowserPage(QWebPage):
 
 
 class Browser(QtWebKitWidgets.QWebView):
-    
+
     gotHtmlSignal = pyqtSignal(str, str, str)
-    
+
     def __init__(self, ui, home, screen_width, quality, site, epnArrList):
         super(Browser, self).__init__()
         self.ui = ui
@@ -126,7 +92,7 @@ class Browser(QtWebKitWidgets.QWebView):
         self.timer.timeout.connect(self.player_wait)
         self.timer.setSingleShot(True)
         #self.linkClicked.connect(self.link_clicked)
-        self.hit_link =''
+        self.hit_link = ''
         self.playlist_dict = {}
         self.get_playlist = False
         self.playlist_name = ''
@@ -134,7 +100,7 @@ class Browser(QtWebKitWidgets.QWebView):
         self.yt_sub_folder = os.path.join(home, 'External-Subtitle')
         if not os.path.exists(self.yt_sub_folder):
             os.makedirs(self.yt_sub_folder)
-            
+
     def link_clicked(self, link):
         print('--link--clicked--')
         self.current_link = link.toString()
@@ -161,17 +127,16 @@ class Browser(QtWebKitWidgets.QWebView):
         if ((self.current_link.startswith("https://m.youtube.com/watch?v=") 
                 or self.current_link.startswith("https://www.youtube.com/watch?v=")) 
                 and not self.wait_player):
-            #self.page().mainFrame().evaluateJavaScript("var element = document.getElementById('player');element.innerHtml='';")
-            self.page().mainFrame().evaluateJavaScript("var element = document.getElementById('player');element.parentNode.removeChild(element);")
+            self.page().mainFrame().evaluateJavaScript(
+                "var element = document.getElementById('player');element.parentNode.removeChild(element);")
             self.wait_player = True
             self.clicked_link(self.current_link)
-            #QtCore.QTimer.singleShot(1, partial(self.clicked_link, self.current_link))
             self.timer.start(1000)
-    
+
     def player_wait(self):
         self.wait_player = False
         self.page().mainFrame().evaluateJavaScript("location.reload();")
-        
+
     def get_html(self, var):
         print('--got--html--', self.url().toString())
         if 'youtube' in self.url().toString():
@@ -183,14 +148,14 @@ class Browser(QtWebKitWidgets.QWebView):
                 if self.ui.quality_val == 'sd': 
                     if 'itag=18' in i:
                         final_url = re.sub('url=', '', i)
-                    
+
             soup = BeautifulSoup(var, 'lxml')
             m = soup.find('div', {'id':'player'})
-            
+
             if m:
                 print('removing')
-                #self.page().mainFrame().evaluateJavaScript("var element = document.getElementById('player');element.parentNode.removeChild(element);")
-                self.page().mainFrame().evaluateJavaScript("var element = document.getElementById('player');element.innerHtml='';")
+                self.page().mainFrame().evaluateJavaScript(
+                    "var element = document.getElementById('player');element.innerHtml='';")
             title = soup.find('title')
             if title:
                 if (self.current_link.startswith("https://m.youtube.com/watch?v=") 
@@ -198,7 +163,7 @@ class Browser(QtWebKitWidgets.QWebView):
                     self.epn_name_in_list = title.text
                     self.ui.epn_name_in_list = title.text
                     print(title.text, self.url().toString(), '--changed-title--')
-                    
+
             if ('list=' in self.url().toString() 
                     and 'www.youtube.com' in self.url().toString()):
                 ut_c = soup.findAll('li', {'class':"yt-uix-scroller-scroll-unit currently-playing"})
@@ -243,19 +208,19 @@ class Browser(QtWebKitWidgets.QWebView):
                 print(d)
                 if d:
                     self.playlist_dict = d
-            
+
     def load_progress(self, var):
         if var == 100 and 'youtube.com' in self.url().toString():
             print(self.url().toString(), self.title(), '--load--progress--')
             frame = self.page().mainFrame().toHtml()
             self.get_html(frame)
-            
+
     def title_changed(self, title):
         a = 0
         print(title, self.url().toString(), '--title--change--')
         #self.page().mainFrame().evaluateJavaScript("location.reload();")
         self.ui.epn_name_in_list = title
-        
+
     def url_changed(self, link):
         print('\n--url_changed--\n', link.url(), '\n--url_changed--\n')
         if not self.url_arr:
@@ -292,9 +257,9 @@ class Browser(QtWebKitWidgets.QWebView):
                 self.wait_player = True
                 self.clicked_link(self.current_link)
                 self.timer.start(1000)
-                
+
         print(self.url_arr)
-    
+
     def clicked_link(self, link):
         final_url = ''
         url = link
@@ -307,18 +272,18 @@ class Browser(QtWebKitWidgets.QWebView):
             self.ui.get_final_link(
                 url, self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
                 self.epn_name_in_list, self.hdr)
-                
+
     def custom_links(self, q_url):
         url = q_url
         self.hoveredLink = url
-        
+
     def keyPressEvent(self, event):
         if event.modifiers() == QtCore.Qt.AltModifier and event.key() == QtCore.Qt.Key_Left:
             self.back()
         elif event.modifiers() == QtCore.Qt.AltModifier and event.key() == QtCore.Qt.Key_Right:
             self.forward()
         super(Browser, self).keyPressEvent(event)
-        
+
     @pyqtSlot(str, str, str)
     def got_curl_html(self, title, url, value):
         file_path = os.path.join(self.home, 'Playlists', str(value))
@@ -327,7 +292,7 @@ class Browser(QtWebKitWidgets.QWebView):
         t = title + '	'+url+'	'+'NONE'
         write_files(file_path, t, line_by_line=True)
         self.ui.update_playlist(file_path)
-        
+
     def add_playlist(self, value):
         value = value.replace('/', '-')
         value = value.replace('#', '')
@@ -350,10 +315,10 @@ class Browser(QtWebKitWidgets.QWebView):
             j = j+1
         write_files(file_path, new_arr, line_by_line=True)
         self.get_playlist = False
-        
+
     def triggerPlaylist(self, value, url, title):
-        print ('Menu Clicked')
-        print (value)
+        print('Menu Clicked')
+        print(value)
         file_path = os.path.join(self.home, 'Playlists', str(value))
         if 'ytimg.com' in url:
             try:
@@ -387,7 +352,7 @@ class Browser(QtWebKitWidgets.QWebView):
         t = title + '	'+url+'	'+'NONE'
         write_files(file_path, t, line_by_line=True)
         self.ui.update_playlist(file_path)
-        
+
     def contextMenuEvent(self, event):
         self.img_url = ''
         menu = self.page().createStandardContextMenu()
@@ -417,16 +382,15 @@ class Browser(QtWebKitWidgets.QWebView):
                 print(tmp1)
                 self.title_page = tmp1.group()
                 self.title_page = self.title_page.replace('#', '')
-                
             else:
                 self.title_page = hit.title()
         except:
             self.title_page = hit.title()
-            
+
         print('url--info\n', self.img_url.toString(), '=img_url\n', url, '=url', 
-                hit.title(), '=title\n', hit.linkText(), '=linktext\n', hit_m.title(), 
-                '--p_title--', hit_n.linkElement().toPlainText(), '--link-element')
-                
+              hit.title(), '=title\n', hit.linkText(), '=linktext\n', hit_m.title(), 
+              '--p_title--', hit_n.linkElement().toPlainText(), '--link-element')
+
         if (url.isEmpty() or not url.toString().startswith('http')) and self.img_url:
             url = self.img_url
         if url.isEmpty():
@@ -446,23 +410,23 @@ class Browser(QtWebKitWidgets.QWebView):
                 arr = arr + arr_last
             if 'youtube.com' in url.toString() or 'ytimg.com' in url.toString():
                 yt = True
-                arr[:]=[]
+                arr[:] = []
                 arr.append('Play with Kawaii-Player')
                 arr.append('Queue Item')
                 arr.append('Download')
                 arr.append('Get Subtitle (If Available)')
                 if 'ytimg.com' in url.toString():
-                        print(self.playlist_dict)
-                        yt_id = url.toString().split('/')[-2]
-                        url = QUrl('https://m.youtube.com/watch?v='+yt_id)
-                        print('url=', url)
-                        try:
-                            self.title_page = self.playlist_dict[yt_id]
-                        except:
-                            self.title_page = ''
-                        arr.append('Add as Local Playlist')
-                        self.playlist_name = self.epn_name_in_list
-                
+                    print(self.playlist_dict)
+                    yt_id = url.toString().split('/')[-2]
+                    url = QUrl('https://m.youtube.com/watch?v='+yt_id)
+                    print('url=', url)
+                    try:
+                        self.title_page = self.playlist_dict[yt_id]
+                    except:
+                        self.title_page = ''
+                    arr.append('Add as Local Playlist')
+                    self.playlist_name = self.epn_name_in_list
+
                 menu.addSeparator()
                 submenuR = QtWidgets.QMenu(menu)
                 submenuR.setTitle("Add To Playlist")
@@ -470,29 +434,26 @@ class Browser(QtWebKitWidgets.QWebView):
                 pls = os.listdir(os.path.join(self.home, 'Playlists'))
                 home1 = os.path.join(self.home, 'Playlists')
                 pls = sorted(pls, 
-                            key = lambda x:os.path.getmtime(os.path.join(home1, x)), 
-                            reverse=True)
+                             key=lambda x: os.path.getmtime(os.path.join(home1, x)), 
+                             reverse=True)
                 item_m = []
                 for i in pls:
                     item_m.append(submenuR.addAction(i))
-                
+
                 submenuR.addSeparator()
                 new_pls = submenuR.addAction("Create New Playlist")
-                
+
             for i in range(len(arr)):
                 action.append(menu.addAction(arr[i]))
-                
+
             act = menu.exec_(event.globalPos())
             for i in range(len(action)):
                 if act == action[i]:
                     self.download(url, arr[i])
             if yt:
                 for i in range(len(item_m)):
-                    #print(hit.title(), self.title_page)
                     if act == item_m[i]:
                         if 'views' in self.title_page:
-                            #content = ccurl(url.toString())
-                            #soup = BeautifulSoup(content, 'lxml')
                             self.title_page = re.sub('[0-9][^ ]* ', '', self.title_page, 1)
                             self.title_page = re.sub('[0-9][^ ]* views', '', self.title_page, 1)
                             self.title_page = self.title_page.replace('/', '-')
@@ -501,30 +462,21 @@ class Browser(QtWebKitWidgets.QWebView):
                             content = ccurl(url.toString())
                             soup = BeautifulSoup(content, 'lxml')
                             self.title_page = soup.title.text.strip().replace('/', '-')
-                            ##self.title_page = hit_m.title().strip().replace('/', '-')
-                            ##print(hit.title(), self.title_page)
-                            #thr = downloadThread(url.toString(), self, pls[i])
-                            #thr.start()
                         self.triggerPlaylist(pls[i], url.toString(), self.title_page)
-                
+
                 if act == new_pls:
-                    print ("creating")
+                    print("creating")
                     MainWindow = QtWidgets.QWidget()
                     item, ok = QtWidgets.QInputDialog.getText(
-                                MainWindow, 'Input Dialog', 
-                                'Enter Playlist Name')
+                        MainWindow, 'Input Dialog', 'Enter Playlist Name')
                     if ok and item:
                         file_path = os.path.join(self.home, 'Playlists', item)
                         if not os.path.exists(file_path):
                             f = open(file_path, 'w')
                             f.close()
-        
+
         super(Browser, self).contextMenuEvent(event)
-        
-    def ccurlT(self, url, rfr):
-        content = ccurl(url)
-        return content
-        
+
     def download(self, url, option):
         if option.lower() == 'play with kawaii-player':
             final_url = ''
@@ -558,16 +510,14 @@ class Browser(QtWebKitWidgets.QWebView):
             else:
                 title = os.path.join(self.ui.tmp_download_folder, title)
             command = wget_string(finalUrl, title, self.ui.get_fetch_library)
-            print (command)		
+            print(command)
             self.ui.infoWget(command, 0)
-            
         elif option.lower() == 'get subtitle (if available)':
             self.ui.epn_name_in_list = self.title_page
             print(self.ui.epn_name_in_list)
             get_yt_sub(url.toString(), self.ui.epn_name_in_list, 
-                        self.yt_sub_folder, self.ui.tmp_download_folder, 
-                        self.ui.ytdl_path, self.ui.logger)
-            
+                       self.yt_sub_folder, self.ui.tmp_download_folder, 
+                       self.ui.ytdl_path, self.ui.logger)
         elif option.lower() == 'queue item':
             file_path = os.path.join(self.home, 'Playlists', 'Queue')
             if not os.path.exists(file_path):
@@ -581,7 +531,7 @@ class Browser(QtWebKitWidgets.QWebView):
             r = title + '	'+url.toString()+'	'+'NONE'
             self.ui.queue_url_list.append(r)
             self.ui.list6.addItem(title)
-            print (self.ui.queue_url_list)
+            print(self.ui.queue_url_list)
             write_files(file_path, r, line_by_line=True)
         elif option.lower() == 'season episode link':
             if self.site != "Music" and self.site != "PlayLists":
@@ -607,7 +557,7 @@ class Browser(QtWebKitWidgets.QWebView):
                     url = self.img_url.toString()
                 else:
                     return 0
-                    
+
                 if option.lower() == "download as fanart":
                     r = self.ui.list1.currentRow()
                     nm = self.ui.get_title_name(r)
