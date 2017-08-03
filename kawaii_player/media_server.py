@@ -2277,12 +2277,12 @@ def goToUi_jump(nm):
 def stop_torrent_from_client(nm):
     ui.stop_torrent(from_client=True)
 
-
+"""
 @pyqtSlot(str)
 def get_my_ip_regularly(nm):
     new_thread = getIpThread(interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
     new_thread.start()
-
+"""
 
 @pyqtSlot(int, str)
 def start_player_remotely(nm, mode):
@@ -2523,10 +2523,10 @@ class ThreadServerLocal(QtCore.QThread):
 
 @pyqtSlot(str)
 def generate_ssl_cert(cert):
-    global ui, MainWindow
+    global ui, MainWindow, TMPDIR
     if not os.path.exists(cert):
         ui.action_player_menu[7].setText("Start Media Server")
-        new_ssl = LoginAuth(parent=MainWindow, ssl_cert=cert, ui=ui)
+        new_ssl = LoginAuth(parent=MainWindow, ssl_cert=cert, ui=ui, tmp=TMPDIR)
         new_ssl.show()
         send_notification("1.Generating SSL as you've chosen HTTPS.\n2.Enter Atleast 8-character Passphrase in the dialog box.\n")
         
