@@ -137,24 +137,10 @@ logger = set_logger('kawaii-player.log', TMPDIR)
 OSNAME=os.name
 print(TMPDIR, OSNAME)
 
-
 try:
-    try:
-        import taglib
-        SONG_TAGS = 'taglib'
-    except:	
-        import mutagen
-        SONG_TAGS = 'mutagen'
-except:
-    SONG_TAGS = None
-
-try:
-    if SONG_TAGS == 'taglib':
-        import mutagen
-except:
-    pass
-
-print(SONG_TAGS, '--tagging-module--')
+    import mutagen
+except Exception as e:
+    print(e,'--143--')
 
 try:
     import dbus
@@ -178,6 +164,7 @@ except Exception as e:
 
 from settings_widget import LoginAuth
 from media_server import ThreadServerLocal
+from database import MediaDatabase
 
 def change_config_file(ip, port):
     global home, ui
@@ -308,7 +295,7 @@ class ThreadingExample(QtCore.QThread):
             write_files(tmp_n, img, line_by_line=True)
 
 
-class getIpThread(QtCore.QThread):
+class GetIpThread(QtCore.QThread):
     
     got_ip_signal = pyqtSignal(str)
     
@@ -337,7 +324,7 @@ class getIpThread(QtCore.QThread):
                 print(e)
                 my_ip = 'none'
             self.got_ip_signal.emit(my_ip)
-            print(my_ip, '--from-getIpThread--', self.interval)
+            print(my_ip, '--from-GetIpThread--', self.interval)
             time.sleep(self.interval)
 
 
@@ -1649,10 +1636,10 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                                 artist_name_mplayer = ""
                         except:
                             artist_name_mplayer = ""
-                        ui.updateMusicCount('count', finalUrl)
+                        ui.media_data.update_music_count('count', finalUrl)
                     
                     elif site == "Video":
-                        ui.updateVideoCount('mark', finalUrl)
+                        ui.media_data.update_video_count('mark', finalUrl)
                     current_playing_file_path = finalUrl
             else:
                     num = curR
@@ -1974,7 +1961,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                             artist_name_mplayer = ""
                     except:
                         artist_name_mplayer = ""
-                    ui.updateMusicCount('count', finalUrl)
+                    ui.media_data.update_music_count('count', finalUrl)
                     r = curR
                     ui.musicBackground(r, 'Search')
             elif site.lower() == 'video' or site.lower() == 'local' or site.lower() == 'playlists':
@@ -1983,7 +1970,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                     if (site.lower() == 'playlists'):
                         if ui.is_artist_exists(row):
                             ui.musicBackground(row, 'get now')
-                            ui.updateMusicCount('count', finalUrl)
+                            ui.media_data.update_music_count('count', finalUrl)
                         else:
                             try:
                                 thumb_path = ui.get_thumbnail_image_path(row, epnArrList[row])
@@ -1993,7 +1980,7 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                             except Exception as e:
                                 logger.info('Error in getting Thumbnail: {0}'.format(e))
                     elif site.lower() == "video":
-                        ui.updateVideoCount('mark', finalUrl)
+                        ui.media_data.update_video_count('mark', finalUrl)
                         thumb_path = ui.get_thumbnail_image_path(row, epnArrList[row])
                         logger.info("thumbnail path = {0}".format(thumb_path))
                         if os.path.exists(thumb_path):
@@ -3034,7 +3021,7 @@ class List1(QtWidgets.QListWidget):
                             and music_opt!= "Fav-Album" 
                             and music_opt!= "Fav-Directory"):
                         txt = str(item.text())
-                        ui.updateMusicCount('fav', txt)
+                        ui.media_data.update_music_count('fav', txt)
                     else:
                         print("Not Permitted")
                 elif action == cache:
@@ -5892,11 +5879,11 @@ except AttributeError:
 
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow, media_data=None):
         global BASEDIR, screen_width, screen_height, home
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         #MainWindow.resize(875, 600)
-        
+        self.media_data = media_data
         icon_path = os.path.join(BASEDIR, 'tray.png')
         if not os.path.exists(icon_path):
             icon_path = '/usr/share/kawaii-player/tray.png'
@@ -6977,7 +6964,8 @@ class Ui_MainWindow(object):
         self.mplayer_nop_error_pause = False
         self.started_from_external_client = False
         self.music_type_arr = [
-            'mp3', 'flac', 'ogg', 'wav', 'aac', 'wma', 'm4a', 'm4b', 'opus', 'webm'
+            'mp3', 'flac', 'ogg', 'wav', 'aac', 'wma',
+            'm4a', 'm4b', 'opus', 'webm'
             ]
         self.video_type_arr = [
             'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv', 'webm'
@@ -11492,12 +11480,12 @@ class Ui_MainWindow(object):
                 elif mark_val == 'mark' and not i.startswith(self.check_symbol):
                     url1 = epnArrList[row].split('	')[1]
                     item.setText(self.check_symbol+i)
-                    self.updateVideoCount('mark', url1)
+                    self.media_data.update_video_count('mark', url1)
                 elif mark_val == 'unmark' and i.startswith(self.check_symbol):
                     url1 = epnArrList[row].split('	')[1]
                     i = i[1:]
                     item.setText(i)
-                    self.updateVideoCount('unmark', url1)
+                    self.media_data.update_video_count('unmark', url1)
                 self.list2.setCurrentRow(row)
                 
     def update_playlist_file(self, file_path):
@@ -12921,7 +12909,7 @@ class Ui_MainWindow(object):
                 self.line.clear()
                 self.list1.clear()
                 music_db = os.path.join(home, 'Music', 'Music.db')
-                m = self.getMusicDB(music_db, 'Search', nm)
+                m = self.media_data.get_music_db(music_db, 'Search', nm)
                 logger.info(m)
                 epnArrList[:]=[]
                 self.list2.clear()
@@ -12950,7 +12938,7 @@ class Ui_MainWindow(object):
                 self.line.clear()
                 self.list1.clear()
                 video_db = os.path.join(home, 'VideoDB', 'Video.db')
-                m = self.getVideoDB(video_db, 'Search', nm)
+                m = self.media_data.get_video_db(video_db, 'Search', nm)
                 logger.info(m)
                 epnArrList[:]=[]
                 self.list2.clear()
@@ -13307,7 +13295,7 @@ class Ui_MainWindow(object):
             music_file = os.path.join(home, 'Music', 'Music.txt')
             music_file_bak = os.path.join(home, 'Music', 'Music_bak.txt')
             if not os.path.exists(music_db):
-                self.creatUpdateMusicDB(music_db, music_file, music_file_bak, update_progress_show=False)
+                self.media_data.create_update_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
             music_opt = site_option
             print(music_opt)
             if music_opt:
@@ -13326,12 +13314,12 @@ class Ui_MainWindow(object):
                         artist.append(i)
             else:
                 if search_exact and music_opt.lower() != 'directory':
-                    m = self.getMusicDB(music_db, music_opt, search_term)
+                    m = self.media_data.get_music_db(music_db, music_opt, search_term)
                     for i in m:
                         artist.append(i[1]+'	'+i[2]+'	'+i[0])
                     send_list_direct = True
                 else:
-                    m = self.getMusicDB(music_db, music_opt, "")
+                    m = self.media_data.get_music_db(music_db, music_opt, "")
                     for i in m:
                         artist.append(i[0])
             #print(m)
@@ -13360,12 +13348,12 @@ class Ui_MainWindow(object):
             video_file = os.path.join(video_dir, 'Video.txt')
             video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
             if not os.path.exists(video_db):
-                self.creatUpdateVideoDB(video_db, video_file, video_file_bak, update_progress_show=False)
+                self.media_data.create_update_video_db(video_db, video_file, video_file_bak, update_progress_show=False)
             if not bookmark:
                 video_opt = site_option
             print('----video-----opt', video_opt)
             if video_opt.lower() == "update":
-                self.updateOnStartVideoDB(video_db, video_file, video_file_bak, 'Update')
+                self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, 'Update')
                 video_opt = "directory"
             print(video_opt)
             if (video_opt.lower() == 'directory' or video_opt.lower() == 'history' 
@@ -13376,12 +13364,12 @@ class Ui_MainWindow(object):
             print('----video-----opt', video_opt)
             if not bookmark:
                 if video_opt.lower() == "available":
-                    m = self.getVideoDB(video_db, "Directory", "")
+                    m = self.media_data.get_video_db(video_db, "Directory", "")
                 elif video_opt.lower() == "history":
-                    m = self.getVideoDB(video_db, "History", "")
+                    m = self.media_data.get_video_db(video_db, "History", "")
                 else:
                     video_opt = video_opt[0].upper()+video_opt[1:]
-                    m = self.getVideoDB(video_db, video_opt, "")
+                    m = self.media_data.get_video_db(video_db, video_opt, "")
                 #print(m)
             else:
                 book_file = os.path.join(home, 'Bookmark', status+'.txt')
@@ -13399,7 +13387,7 @@ class Ui_MainWindow(object):
                             logger.info('{0}-{1}-{2}'.format(search_term, new_name, new_dir))
                             if search_term and search_term in new_name.lower():
                                 original_path_name.append(new_name+'	'+new_dir)
-                                m1 = self.getVideoDB(video_db, "Directory", new_dir)
+                                m1 = self.media_data.get_video_db(video_db, "Directory", new_dir)
                                 for i in m1:
                                     m.append(i[0]+'	'+i[1]+'	'+new_name)
                                 logger.info(m)
@@ -13678,7 +13666,7 @@ class Ui_MainWindow(object):
                             sub_tmp = tmp[1]
                             music_opt = tmp[0]+'-'+sub_tmp[0].upper()+sub_tmp[1:]
                         #print(music_opt, art_n)
-                        m = self.getMusicDB(music_db, music_opt, art_n)
+                        m = self.media_data.get_music_db(music_db, music_opt, art_n)
                         #print(m)
                         for i in m:
                             artist.append(i[1]+'	'+i[2]+'	'+i[0])
@@ -13734,10 +13722,10 @@ class Ui_MainWindow(object):
                             video_opt = "Available"
                         if video_opt == "Available" or video_opt == "History":
                             n_art_n = original_path_name[index].split('	')[-1]
-                            m = self.getVideoDB(video_db, "Directory", n_art_n)
+                            m = self.media_data.get_video_db(video_db, "Directory", n_art_n)
                         elif video_opt == "Directory":
                             n_art_n = original_path_name[index].split('	')[-1]
-                            m = self.getVideoDB(video_db, video_opt, n_art_n)
+                            m = self.media_data.get_video_db(video_db, video_opt, n_art_n)
                         logger.info('{0}--{1}--search-client--14534--'.format(art_n, n_art_n))
                     else:
                         try:
@@ -13747,11 +13735,11 @@ class Ui_MainWindow(object):
                         logger.info(new_dir_path)
                         if new_dir_path is not None:
                             if new_dir_path.lower() != 'none':
-                                m = self.getVideoDB(video_db, "Directory", new_dir_path)
+                                m = self.media_data.get_video_db(video_db, "Directory", new_dir_path)
                             else:
-                                m = self.getVideoDB(video_db, "Bookmark", art_n)
+                                m = self.media_data.get_video_db(video_db, "Bookmark", art_n)
                         else:
-                            m = self.getVideoDB(video_db, "Bookmark", art_n)
+                            m = self.media_data.get_video_db(video_db, "Bookmark", art_n)
                         
                         
                     for i in m:
@@ -14208,7 +14196,7 @@ class Ui_MainWindow(object):
                                 i3 = "None"
                             artist.append(i1+'	'+i2+'	'+i3)
             else:
-                m = self.getMusicDB(music_db, music_opt, art_n)
+                m = self.media_data.get_music_db(music_db, music_opt, art_n)
                 for i in m:
                     if len(i) > 2:
                         artist.append(i[1]+'	'+i[2]+'	'+i[0])
@@ -14264,7 +14252,7 @@ class Ui_MainWindow(object):
                             m = self.video_dict[art_n]
                             logger.info('Getting from Cache')
                         else:
-                            m = self.getVideoDB(video_db, "Directory", art_n)
+                            m = self.media_data.get_video_db(video_db, "Directory", art_n)
                             self.video_dict.update({art_n:m})
                             logger.info('Getting from DB')
                 else:
@@ -14272,11 +14260,11 @@ class Ui_MainWindow(object):
                     if new_dir_path is not None:
                         if new_dir_path.lower() != 'none':
                             new_art_n = new_dir_path
-                            m = self.getVideoDB(video_db, "Directory", new_art_n)
+                            m = self.media_data.get_video_db(video_db, "Directory", new_art_n)
                         else:
-                            m = self.getVideoDB(video_db, "Bookmark", new_art_n)
+                            m = self.media_data.get_video_db(video_db, "Bookmark", new_art_n)
                     else:
-                        m = self.getVideoDB(video_db, "Bookmark", new_art_n)
+                        m = self.media_data.get_video_db(video_db, "Bookmark", new_art_n)
                     
                 for i in m:
                     artist.append(i[0]+'	'+i[1])
@@ -14418,17 +14406,18 @@ class Ui_MainWindow(object):
                     print('No Thumbnail Available: {0}'.format(e))
 
     def image_fit_option(self, picn, fanart, fit_size=None, widget=None, widget_size=None):
-        # fit_size = 1. Fit to Screen (Doesn't Preserve aspect ratio (A.R.))
-        # fit_size = 2. Fit to Screen Width (Preserve A.R.)
-        # fit_size = 3. Fit to Screen Height (Preserve A.R.)
-        # fit_size = 4. Fit to Screen Height and (screen-width - playlist_width) 
-        # 		with black border (Preserve A.R.)
-        # fit_size = 5. Fit to Screen Height with black border (Preserve A.R.)
-        # fit_size = 6. Fit to given widget size and preserve aspect ratio
-        # fit_size = 7. Fit to Screen Height (Left Side) with black border gap 
-        #		between two posters
-        # fit_size = 8. Fit to Screen Height (Left Side) with black border
-
+        """
+        fit_size = 1. Fit to Screen (Doesn't Preserve aspect ratio (A.R.))
+        fit_size = 2. Fit to Screen Width (Preserve A.R.)
+        fit_size = 3. Fit to Screen Height (Preserve A.R.)
+        fit_size = 4. Fit to Screen Height and (screen-width - playlist_width) 
+        with black border (Preserve A.R.)
+        fit_size = 5. Fit to Screen Height with black border (Preserve A.R.)
+        fit_size = 6. Fit to given widget size and preserve aspect ratio
+        fit_size = 7. Fit to Screen Height (Left Side) with black border gap 
+        between two posters
+        fit_size = 8. Fit to Screen Height (Left Side) with black border
+        """
         global screen_height, screen_width
         try:
             if fit_size:
@@ -14843,7 +14832,7 @@ class Ui_MainWindow(object):
                 if (site.lower() == 'playlists'):
                     if self.is_artist_exists(row):
                         self.musicBackground(row, 'get now')
-                        self.updateMusicCount('count', finalUrl)
+                        self.media_data.update_music_count('count', finalUrl)
                     else:
                         try:
                             thumb_path = self.get_thumbnail_image_path(row, epnArrList[row])
@@ -14884,7 +14873,7 @@ class Ui_MainWindow(object):
                     finalUrl = '"'+finalUrl+'"'
                     self.musicBackground(r, 'Search')
                     print(r, '--search--musicbackground--')
-                    self.updateMusicCount('count', finalUrl)
+                    self.media_data.update_music_count('count', finalUrl)
                     return True
                 else:
                     if os.path.exists(file_path_name_mp4):
@@ -14928,10 +14917,10 @@ class Ui_MainWindow(object):
                         artist_name_mplayer = ""
                     if not 'youtube.com' in finalUrl.lower():
                         self.musicBackground(r, 'Search')
-                        self.updateMusicCount('count', finalUrl)
+                        self.media_data.update_music_count('count', finalUrl)
                 elif site.lower() == "video":
                     self.mark_video_list('mark', row)
-                    self.updateVideoCount('mark', finalUrl)
+                    self.media_data.update_video_count('mark', finalUrl)
                 elif site.lower() == 'local':
                     self.mark_addons_history_list('mark', row)
                     
@@ -17146,7 +17135,7 @@ class Ui_MainWindow(object):
                 except:
                     artist_name_mplayer = ""
                 if artist_name_mplayer:
-                    self.updateMusicCount('count', finalUrl)
+                    self.media_data.update_music_count('count', finalUrl)
                     self.musicBackground(row, 'Search')
                 else:
                     try:
@@ -17158,7 +17147,7 @@ class Ui_MainWindow(object):
                         logger.info('Error in getting Thumbnail: {0}'.format(e))
             elif site.lower() == 'video' or site.lower() == 'local' or site.lower() == 'playlists':
                 if site == "Video":
-                    self.updateVideoCount('mark', finalUrl)
+                    self.media_data.update_video_count('mark', finalUrl)
                 try:
                     thumb_path = self.get_thumbnail_image_path(row, epnArrList[row])
                     logger.info("thumbnail path = {0}".format(thumb_path))
@@ -17264,10 +17253,10 @@ class Ui_MainWindow(object):
         epnShow = epnShow.replace('"', '')
         if not epnShow.startswith('http'):
             if site == "Music":
-                self.updateMusicCount('count', epnShowN)
+                self.media_data.update_music_count('count', epnShowN)
                 self.musicBackground(0, 'Queue')
             elif site == "Video":
-                self.updateVideoCount('mark', epnShowN)
+                self.media_data.update_video_count('mark', epnShowN)
         if epnShow.startswith('http'):
             current_playing_file_path = epnShow
         else:
@@ -17535,7 +17524,7 @@ class Ui_MainWindow(object):
             self.list2.setCurrentRow(row)
             if site == "Music":
                 if 'youtube.com' not in finalUrl.lower():
-                    self.updateMusicCount('count', finalUrl)
+                    self.media_data.update_music_count('count', finalUrl)
             if 'youtube.com' in finalUrl.lower():
                 finalUrl = finalUrl.replace('"', '')
                 finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
@@ -17947,7 +17936,7 @@ class Ui_MainWindow(object):
                 original_path_name[:]=[]
                 m = []
                 try:
-                    list2_items = self.importVideoDir()
+                    list2_items = self.media_data.import_video_dir()
                     print("list2******************items")
                     for i in list2_items:
                             k = i.replace('/', '@')
@@ -18025,18 +18014,14 @@ class Ui_MainWindow(object):
             music_file = os.path.join(home, 'Music', 'Music.txt')
             music_file_bak = os.path.join(home, 'Music', 'Music_bak.txt')
             if not os.path.exists(music_db):
-                self.creatUpdateMusicDB(music_db, music_file, music_file_bak)
+                self.media_data.create_update_music_db(music_db, music_file, music_file_bak)
                 update_start = 1
             elif not update_start:
                 self.text.setText('Wait..Checking New Files')
                 QtWidgets.QApplication.processEvents()
-                #self.updateOnStartMusicDB(music_db, music_file, music_file_bak)
-                self.update_proc.started.connect(self.update_proc_started)
-                self.update_proc.finished.connect(self.update_proc_finished)
                 QtCore.QTimer.singleShot(
-                        1000, partial(self.updateOnStartMusicDB, 
-                        music_db, music_file, music_file_bak)
-                        )
+                    1000, partial(self.media_data.update_on_start_music_db, 
+                    music_db, music_file, music_file_bak))
                 update_start = 1
                 self.text.clear()
             if self.list3.currentItem():
@@ -18053,7 +18038,7 @@ class Ui_MainWindow(object):
                     for i in m:
                         artist.append(i)
             else:
-                m = self.getMusicDB(music_db, music_opt, "")
+                m = self.media_data.get_music_db(music_db, music_opt, "")
                 for i in m:
                     artist.append(i[0])
             self.list1.clear()
@@ -18097,12 +18082,12 @@ class Ui_MainWindow(object):
             if val == 'history' and video_opt == 'History':
                 video_opt = "History"
             if not os.path.exists(video_db):
-                self.creatUpdateVideoDB(video_db, video_file, video_file_bak)
+                self.media_data.create_update_video_db(video_db, video_file, video_file_bak)
             elif video_opt == "UpdateAll":
-                self.updateOnStartVideoDB(video_db, video_file, video_file_bak, video_opt)
+                self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
             elif video_opt == "Update":
-                self.updateOnStartVideoDB(video_db, video_file, video_file_bak, video_opt)
+                self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
             print(video_opt)
             if video_opt == 'Directory' or video_opt == 'History' or video_opt == 'Available':
@@ -18110,11 +18095,11 @@ class Ui_MainWindow(object):
             artist = []
             print('----video-----opt', video_opt)
             if video_opt == "Available":
-                m = self.getVideoDB(video_db, "Directory", "")
+                m = self.media_data.get_video_db(video_db, "Directory", "")
             elif video_opt == "History":
-                m = self.getVideoDB(video_db, "History", "")
+                m = self.media_data.get_video_db(video_db, "History", "")
             else:
-                m = self.getVideoDB(video_db, video_opt, "")
+                m = self.media_data.get_video_db(video_db, video_opt, "")
             #print m
             for i in m:
                 artist.append(i[0]+'	'+i[1])
@@ -18273,691 +18258,6 @@ class Ui_MainWindow(object):
                 show_hide_titlelist = 0
                 self.list2.show()
                 show_hide_playlist = 1
-    
-    def update_proc_started(self):
-        print('checking music for new files')
-        
-    def update_proc_finished(self):
-        print("checking for new music finished")
-    
-    def importVideoDir(self):
-        global home
-        
-        m =[]
-        o = []
-        video = []
-        p = []
-        vid = []
-        if os.path.isfile(os.path.join(home, 'local.txt')):
-            lines_dir = open_files(os.path.join(home, 'local.txt'), True)
-            for lines_d in lines_dir:
-                video[:]=[]
-                lines_d = lines_d.strip()
-                dirn = os.path.normpath(lines_d)
-                
-                video.append(dirn)
-                for r, d, f in os.walk(dirn):
-                    for z in d:
-                        #print r+'/'+z
-                        if not z.startswith('.'):
-                            video.append(os.path.join(r, z))
-                        else:
-                            o.append(os.path.join(r, z))
-                
-                print(len(m))
-                j = 0
-                lines = []
-                for i in video:
-                    if os.path.exists(i):
-                        n = os.listdir(i)
-                        p[:]=[]
-                        for k in n:
-                            if (k.endswith('.mp4') or k.endswith('.avi') 
-                                    or k.endswith('.mkv') or k.endswith('.flv')
-                                    or k.endswith('.wmv') or k.endswith('.webm')
-                                    or k.endswith('.ogg')):
-                                p.append(os.path.join(i, k))
-                        if p:
-                            r = i
-                            vid.append(str(r))
-                            j = j+1
-                        
-        return vid
-    
-    def getVideoDB(self, music_db, queryType, queryVal):
-        conn = sqlite3.connect(music_db)
-        cur = conn.cursor()    
-        q = queryType
-        qVal = str(queryVal)
-        print(music_db)
-        if q == "Directory":
-            if not qVal:
-                cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
-            else:
-                #cur.execute('SELECT distinct EP_NAME, Path FROM Video Where Directory="'+qVal+'" order by EPN')
-                qr = 'SELECT distinct EP_NAME, Path FROM Video Where Directory=? order by EPN'
-                cur.execute(qr, (qVal, ))
-        elif q == "Bookmark":
-            print(q)
-            
-            #cur.execute('SELECT EP_NAME, Path FROM Video Where Title="'+qVal+'"')
-            qr = 'SELECT EP_NAME, Path FROM Video Where Title=?'
-            cur.execute(qr, (qVal, ))
-        elif q == "History":
-            print(q)
-            qr = 'SELECT distinct Title, Directory FROM Video Where FileName like ? order by Title'
-            #qr = 'SELECT Artist FROM Music Where Artist like "'+ '%'+str(qVal)+'%'+'"'
-            #logger.info(qr)
-            qv = '#'+'%'
-            logger.info('qv={0};qr={1}'.format(qv, qr))
-            cur.execute(qr, (qv, ))
-        elif q == "Search":
-            qVal = '%'+qVal+'%'
-            qr = 'SELECT EP_NAME, Path From Video Where EP_NAME like ? or Directory like ? order by Directory'
-            logger.info('qr={0};qVal={1}'.format(qr, qVal))
-            cur.execute(qr, (qVal, qVal, ))
-        rows = cur.fetchall()
-        for i in rows:
-            logger.info(i[0])
-        conn.commit()
-        conn.close()
-        return rows
-        
-    def creatUpdateVideoDB(self, video_db, video_file, video_file_bak, update_progress_show=None):
-        if update_progress_show is None or update_progress_show:
-            self.text.setText('Wait..Updating Video Database')
-            QtWidgets.QApplication.processEvents()
-        
-        lines = self.importVideo(video_file, video_file_bak)
-        print(len(lines))
-        lines.sort()
-        if os.path.exists(video_db):
-            j = 0
-            epn_cnt = 0
-            dir_cmp=[]
-            conn = sqlite3.connect(video_db)
-            cur = conn.cursor()
-            for i in lines:
-                i = i.strip()
-                if i:
-                    w[:]=[]
-                    i = os.path.normpath(i)
-                    di, na = os.path.split(i)
-                    ti = os.path.basename(di)
-                    pa = i
-                    if j == 0:
-                        dir_cmp.append(di)
-                    else:
-                        tmp = dir_cmp.pop()
-                        if tmp == di:
-                            epn_cnt = epn_cnt + 1
-                        else:
-                            epn_cnt = 0
-                        dir_cmp.append(di)
-                    w = [ti, di, na, na, pa, epn_cnt]
-                    try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
-                        logger.info("Inserting:", w)
-                    except:
-                        logger.info(w)
-                        logger.info("Duplicate")
-                    j =j+1
-        else:
-            j = 0
-            w = []
-            dir_cmp = []
-            epn_cnt = 0
-            conn = sqlite3.connect(video_db)
-            cur = conn.cursor()
-            cur.execute('''CREATE TABLE Video(Title text, Directory text, FileName text, EP_NAME text, Path text primary key, EPN integer)''')
-            for i in lines:
-                i = i.strip()
-                if i:
-                    w[:]=[]
-                    i = os.path.normpath(i)
-                    di, na = os.path.split(i)
-                    ti = os.path.basename(di)
-                    pa = i
-                    
-                    if j == 0:
-                        dir_cmp.append(di)
-                    else:
-                        tmp = dir_cmp.pop()
-                        if tmp == di:
-                            epn_cnt = epn_cnt + 1
-                        else:
-                            epn_cnt = 0
-                        dir_cmp.append(di)
-                    w = [ti, di, na, na, pa, epn_cnt]
-                    try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
-                        #print("inserted:")
-                        logger.info('inserted: {0}<-->{1}'.format(w, j))
-                        #print(j)
-                        
-                        j = j+1
-                        #print("Inserting")
-                    except Exception as e:
-                        logger.info('Escaping: {0} <---> {1}'.format(e, w))
-                        #print("Escaping")
-        conn.commit()
-        conn.close()
-        if update_progress_show is None or update_progress_show:
-            self.text.setText('Update Complete!')
-            QtWidgets.QApplication.processEvents()
-        
-    def updateVideoCount(self, qType, qVal):
-        global home
-        qVal = qVal.replace('"', '')
-        qVal = str(qVal)
-        conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-        cur = conn.cursor()
-        if qType == "mark":    
-            #qVal = '"'+qVal+'"'
-            #cur.execute("Update Music Set LastPlayed=? Where Path=?", (datetime.datetime.now(), qVal))
-            logger.info("----------"+qVal)
-            cur.execute('Select FileName, EP_NAME from Video Where Path="'+qVal+'"')
-            r = cur.fetchall()
-            logger.info(r)
-            for i in r:
-                fname = i[0]
-                epName = i[1]
-                break
-                
-            if not fname.startswith('#'):
-                fname = '#'+fname
-                epName = '#'+epName
-            #cur.execute("Update Music Set Playcount=? Where Path=?", (incr, qVal))
-            qr = 'Update Video Set FileName=?, EP_NAME=? Where Path=?'
-            cur.execute(qr, (fname, epName, qVal))
-        elif qType == "unmark":    
-            logger.info("----------"+qVal)
-            cur.execute('Select FileName, EP_NAME from Video Where Path="'+qVal+'"')
-            r = cur.fetchall()
-            
-            logger.info(r)
-            for i in r:
-                fname = i[0]
-                epName = i[1]
-                break
-                
-            if fname.startswith('#'):
-                fname = fname.replace('#', '', 1)
-                epName = epName.replace('#', '', 1)
-            qr = 'Update Video Set FileName=?, EP_NAME=? Where Path=?'
-            cur.execute(qr, (fname, epName, qVal))
-        
-        logger.info("Number of rows updated: %d" % cur.rowcount)
-        conn.commit()
-        conn.close()
-        
-    def updateOnStartVideoDB(self, video_db, video_file, video_file_bak, video_opt, update_progress_show=None):
-        if update_progress_show is None or update_progress_show:
-            self.text.setText('Wait..Updating Video Database')
-            QtWidgets.QApplication.processEvents()
-        m_files = self.importVideo(video_file, video_file_bak)
-        try:
-            conn = sqlite3.connect(video_db)
-            cur = conn.cursor()
-            cur.execute('SELECT Path FROM Video')
-            rows = cur.fetchall()
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print(e, '--database-corrupted--21010--')
-            return 0
-        m_files_old = []
-        for i in rows:
-            m_files_old.append((i[0]))
-        
-        l1=len(m_files)
-        l2=len(m_files_old)
-        m = list(set(m_files)-set(m_files_old))+list(set(m_files_old)-set(m_files))
-        m.sort()
-        
-        m_files.sort()
-        m_files_old.sort()
-        print(l1)
-        print(l2)
-        w = []
-        conn = sqlite3.connect(video_db)
-        cur = conn.cursor()
-        for i in m:
-            i = i.strip()
-            if i:
-                
-                w[:]=[]
-                i = os.path.normpath(i)
-                di, na = os.path.split(i)
-                ti = os.path.basename(di)
-                pa = i
-                    
-                cur.execute('SELECT Path FROM Video Where Path="'+i+'"')
-                rows = cur.fetchall()
-                cur.execute('SELECT Path FROM Video Where Directory="'+di+'"')
-                rows1 = cur.fetchall()
-                epn_cnt = len(rows1)
-                w = [ti, di, na, na, pa, epn_cnt]
-                if video_opt == "UpdateAll":
-                    if os.path.exists(i) and not rows:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
-                        logger.info("Not Inserted, Hence Inserting File = "+i)
-                        logger.info(w)
-                    elif not os.path.exists(i) and rows:
-                        cur.execute('Delete FROM Video Where Path="'+i+'"')
-                        logger.info('Deleting File From Database : '+i)
-                        logger.info(w)
-                elif video_opt == "Update":
-                    if os.path.exists(i) and not rows:
-                        logger.info(i)
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
-                        logger.info("Not Inserted, Hence Inserting File = "+i)
-                        logger.info(w)
-                
-        conn.commit()
-        conn.close()
-        if update_progress_show is None or update_progress_show:
-            QtWidgets.QApplication.processEvents()
-            self.text.setText('Updating Complete')
-            QtWidgets.QApplication.processEvents()
-        
-    def importVideo(self, video_file, video_file_bak):
-        global home
-        m =[]
-        o = []
-        music = []
-        p = []
-        m_files = []
-        if os.path.isfile(os.path.join(home, 'local.txt')):
-            lines_dir = open_files(os.path.join(home, 'local.txt'), True)
-            for lines_d in lines_dir:
-                if not lines_d.startswith('#'):
-                    music[:]=[]
-                    lines_d = lines_d.strip()
-                    lines_d = os.path.normpath(lines_d)
-                    dirn = lines_d
-                
-                    music.append(dirn)
-                    for r, d, f in os.walk(dirn):
-                        for z in d:
-                            if not z.startswith('.'):
-                                music.append(os.path.join(r, z))
-                            else:
-                                o.append(os.path.join(r, z))
-                    
-                    print(len(m))
-                    j = 0
-                    lines = []
-                    for i in music:
-                        if os.path.exists(i):
-                            n = os.listdir(i)
-                            p[:]=[]
-                            for k in n:
-                                if (k.endswith('.mp4') or k.endswith('.mkv') 
-                                        or k.endswith('.flv') or k.endswith('.avi')
-                                        or k.endswith('.wmv') or k.endswith('.webm')
-                                        or k.endswith('.ogg')):
-                                    p.append(os.path.join(i, k))
-                                    path = os.path.join(i, k)
-                                    m_files.append(path)
-                            if p:
-                                r = i
-                                lines.append(r)
-                                j = j+1
-                        
-        return list(set(m_files))
-    
-    def getMusicDB(self, music_db, queryType, queryVal):
-        conn = sqlite3.connect(music_db)
-        cur = conn.cursor()    
-        q = queryType
-        qVal = str(queryVal)
-        #if '"' in qVal:
-        #	qVal = qVal.replace('"', '')
-        if q == "Artist":
-            if not qVal:
-                cur.execute('SELECT Distinct Artist FROM Music order by Artist')
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Artist="'+qVal+'"')
-                qr = 'SELECT Artist, Title, Path FROM Music Where Artist=?'
-                cur.execute(qr, (qVal, ))
-        elif q == "Album":
-            if not qVal:
-                cur.execute('SELECT Distinct Album FROM Music order by Album')
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Album="'+qVal+'"')
-                
-                qr = 'SELECT Artist, Title, Path FROM Music Where Album=?'
-                #print(qr, qVal)
-                cur.execute(qr, (qVal, ))
-        elif q == "Title":
-            if not qVal:
-                cur.execute('SELECT Distinct Title FROM Music order by Title')
-            else:
-                qr = 'SELECT Artist, Title, Path FROM Music Where Title=?'
-                cur.execute(qr, (qVal, ))
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Title="'+qVal+'"')
-        elif q == "Directory":
-            print(q)
-            if not qVal:
-                cur.execute('SELECT Distinct Directory FROM Music order by Directory')
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Directory="'+qVal+'"')
-                qr = 'SELECT Artist, Title, Path FROM Music Where Directory=?'
-                cur.execute(qr, (qVal, ))
-        elif q == "Playlist":
-            print(q)
-            if not qVal:
-                cur.execute('SELECT Playlist FROM Music')
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Playlist="'+qVal+'"')
-                qr = 'SELECT Artist, Title, Path FROM Music Where Playlist=?'
-                cur.execute(qr, (qVal, ))
-        elif q == "Fav-Artist":
-            print(q)
-            if not qVal:
-                cur.execute("SELECT Distinct Artist FROM Music Where Favourite='yes'")
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Artist="'+qVal+'"')
-                qr = 'SELECT Artist, Title, Path FROM Music Where Artist=?'
-                cur.execute(qr, (qVal, ))
-        elif q == "Fav-Album":
-            print(q)
-            if not qVal:
-                cur.execute("SELECT Distinct Album FROM Music Where Favourite='yes'")
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Album="'+qVal+'"')
-                qr = 'SELECT Artist, Title, Path FROM Music Where Album=?'
-                cur.execute(qr, (qVal, ))
-        elif q == "Fav-Directory":
-            print(q)
-            if not qVal:
-                cur.execute("SELECT Distinct Directory FROM Music Where Favourite='yes'")
-            else:
-                #cur.execute('SELECT Artist, Title, Path FROM Music Where Directory="'+qVal+'"')
-                qr = 'SELECT Artist, Title, Path FROM Music Where Directory=?'
-                cur.execute(qr, (qVal, ))
-        elif q == "Last 50 Most Played":
-            print(q)
-            cur.execute("SELECT Artist, Title, Path FROM Music order by Playcount desc limit 50")
-        elif q == "Last 50 Newly Added":
-            print(q)
-            cur.execute("SELECT Artist, Title, Path FROM Music order by Modified desc limit 50")
-        elif q == "Last 50 Played":
-            print(q)
-            cur.execute("SELECT Artist, Title, Path FROM Music order by LastPlayed desc limit 50")
-        elif q == "Search":
-            print(q)
-            qr = 'SELECT Artist, Title, Path, Album FROM Music Where Artist like ? or Title like ? or Album like ? order by Title'
-            #qr = 'SELECT Artist FROM Music Where Artist like "'+ '%'+str(qVal)+'%'+'"'
-            #print(qr)
-            qv = '%'+str(qVal)+'%'
-            logger.info('{0} <----> {1}'.format(qr, qv))
-            cur.execute(qr, (qv, qv, qv, ))
-        
-        rows = cur.fetchall()
-        #print(rows)
-        conn.commit()
-        conn.close()
-        return rows
-    
-    def updateMusicCount(self, qType, qVal):
-        global home
-        qVal = qVal.replace('"', '')
-        qVal = str(qVal)
-        conn = sqlite3.connect(os.path.join(home, 'Music', 'Music.db'))
-        cur = conn.cursor()
-        if qType == "count":    
-            #qVal = '"'+qVal+'"'
-            #cur.execute("Update Music Set LastPlayed=? Where Path=?", (datetime.datetime.now(), qVal))
-            logger.info("----------"+qVal)
-            cur.execute('Select Playcount, Title from Music Where Path="'+qVal+'"')
-            r = cur.fetchall()
-            logger.info(r)
-            if not r:
-                incr = 1
-            else:
-                logger.info(r)
-                for i in r:
-                    logger.info("count")
-                    logger.info(i[0])
-                    incr = int(i[0])+1
-            
-            #cur.execute("Update Music Set Playcount=? Where Path=?", (incr, qVal))
-            try:
-                qr = 'Update Music Set LastPlayed=?, Playcount=? Where Path=?'
-                q1= datetime.datetime.now()
-                #qVal = '"'+qVal+'"'
-                cur.execute(qr, (q1, incr, qVal))
-            except:
-                qr = 'Update Music Set LastPlayed=?, Playcount=? Where Path="'+qVal+'"'
-                q1= datetime.datetime.now()
-                #qVal = '"'+qVal+'"'
-                cur.execute(qr, (q1, incr, ))
-        elif qType == "fav":
-            tmp = str(self.list3.currentItem().text())
-            if tmp == "Artist":
-                qr = 'Update Music Set Favourite="yes" Where Artist=?'
-                cur.execute(qr, (qVal, ))
-            elif tmp == "Album":
-                qr = 'Update Music Set Favourite="yes" Where Album=?'
-                cur.execute(qr, (qVal, ))
-            elif tmp == "Directory":
-                qr = 'Update Music Set Favourite="yes" Where Directory=?'
-                cur.execute(qr, (qVal, ))
-        logger.info("Number of rows updated: %d" % cur.rowcount)
-        conn.commit()
-        conn.close()
-        
-    def creatUpdateMusicDB(self, music_db, music_file, music_file_bak, update_progress_show=None):
-        if update_progress_show is None or update_progress_show:
-            self.text.setText('Wait..Tagging')	
-            QtWidgets.QApplication.processEvents()
-        f = open(music_file, 'w')
-        f.close()
-        lines = self.importMusic(music_file, music_file_bak)
-        if os.path.exists(music_db):
-            conn = sqlite3.connect(music_db)
-            cur = conn.cursor()
-            for k in lines:
-                j = k.split('	')[0]
-                i = j.strip()
-                w=self.getTaglib(str(i))
-                try:
-                    cur.execute('INSERT INTO Music VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', w)
-                    #print("Inserting")
-                except:
-                    logger.info('Duplicate: {0}'.format(w))
-                    #logger.info("Duplicate")
-        else:
-            t = 0
-            conn = sqlite3.connect(music_db)
-            cur = conn.cursor()
-            cur.execute('''CREATE TABLE Music(Title text, Artist text, Album text, Directory text, Path text primary key, Playlist text, Favourite text, FavouriteOpt text, Playcount integer, Modified timestamp, LastPlayed timestamp)''')
-            for k in lines:
-                j = k.split('	')[0]
-                i = j.strip()
-                w=self.getTaglib(str(i))
-                try:
-                    cur.execute('INSERT INTO Music VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', w)
-                    t = t+1
-                    if update_progress_show is None or update_progress_show:
-                        self.text.setText('Wait..Tagging '+str(t))
-                        QtWidgets.QApplication.processEvents()
-                except:
-                    print("Escaping")
-        conn.commit()
-        conn.close()
-        if update_progress_show is None or update_progress_show:
-            self.text.setText('Complete Tagging '+str(t))
-            QtWidgets.QApplication.processEvents()
-        
-    def getTaglib(self, path):
-        if SONG_TAGS:
-            if SONG_TAGS == 'mutagen':
-                t = mutagen.File(path, easy=True)
-            elif SONG_TAGS == 'taglib':
-                t = taglib.File(path)
-        else:
-            t = {}
-        m = []
-        tags = t.tags
-        ar1 = 'Unknown'
-        al1 = 'Unknown'
-        ti1 = os.path.basename(path)
-        logger.info(tags)
-        try:
-            if tags:
-                if SONG_TAGS == 'mutagen':
-                    if 'artist' in tags:
-                        if tags['artist']:
-                            ar1 = tags['artist'][0]
-                    if 'album' in tags:
-                        if tags['album']:
-                            al1 = tags['album'][0]
-                    if 'title' in tags:
-                        if tags['title']:
-                            ti1 = tags['title'][0]
-                elif SONG_TAGS == 'taglib':
-                    if 'ARTIST' in tags:
-                        if tags['ARTIST']:
-                            ar1 = tags['ARTIST'][0]
-                    if 'ALBUM' in tags:
-                        if tags['ALBUM']:
-                            al1 = tags['ALBUM'][0]
-                    if 'TITLE' in tags:
-                        if tags['TITLE']:
-                            ti1 = tags['TITLE'][0]
-            else:
-                logger.info('Error No Tags: {0}'.format(path))
-        except Exception as e:
-            print(e, '---20001')
-        
-        if ar1 == 'Unknown' or al1 == 'Unknown':
-            logger.info('Error Artist={0}:Album={1}:Path={2}'.format(ar1, al1, path))
-        
-        
-        dir1, raw_title = os.path.split(path)
-        
-        r = ti1+':'+ar1+':'+al1
-                
-        m.append(str(ti1))
-        m.append(str(ar1))
-        m.append(str(al1))
-        m.append(str(dir1))
-        m.append(str(path))
-        m.append('')
-        m.append('')
-        m.append('')
-        m.append(0)
-        m.append(os.path.getmtime(path))
-        m.append(datetime.datetime.now())
-        return m
-        
-    def updateOnStartMusicDB(self, music_db, music_file, music_file_bak, update_progress_show=None):
-        m_files = self.importMusic(music_file, music_file_bak)
-        try:
-            conn = sqlite3.connect(music_db)
-            cur = conn.cursor()
-            cur.execute('SELECT Path, Modified FROM Music')
-            rows = cur.fetchall()
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print(e, '--database-corrupted--21369---')
-            return 0
-        m_files_old = []
-        for i in rows:
-            j = i[0]+'	'+(str(i[1])).split('.')[0]
-            m_files_old.append(str(j))
-        
-        l1=len(m_files)
-        l2=len(m_files_old)
-        m = list(set(m_files)-set(m_files_old))+list(set(m_files_old)-set(m_files))
-        m_files.sort()
-        m_files_old.sort()
-        print("************")
-        
-        print("_______________")
-        logger.info(m)
-        logger.info(m.sort())
-        logger.info(len(m))
-        logger.info(len(m_files))
-        logger.info(len(m_files_old))
-        conn = sqlite3.connect(music_db)
-        cur = conn.cursor()
-        for k in m:
-            j = k.split('	')
-            i = str(j[0])
-            
-            cur.execute('SELECT Path FROM Music Where Path="'+(i)+'"')
-            rows = cur.fetchall()
-            
-            if os.path.exists(i) and (k in m_files) and not rows:
-                w=self.getTaglib(i)
-                cur.execute('INSERT INTO Music VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', w)
-            elif os.path.exists(i) and rows and (k in m_files):
-                print("File Modified")
-                cur.execute('Delete FROM Music Where Path="'+i+'"')
-                logger.info('Deleting File From Database : '+i)
-                w=self.getTaglib(i)
-                cur.execute('INSERT INTO Music VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', w)
-            elif not os.path.exists(i) and rows:
-                cur.execute('Delete FROM Music Where Path="'+i+'"')
-                logger.info('Deleting File From Database : '+i)
-            elif os.path.exists(i) and not rows:
-                cur.execute('Delete FROM Music Where Path="'+i+'"')
-                logger.info('Deleting File From Database : '+i)
-                
-        conn.commit()
-        conn.close()
-        
-    def importMusic(self, music_file, music_file_bak):
-        global home
-        
-        m =[]
-        o = []
-        music = []
-        p = []
-        m_files = []
-        if os.path.isfile(os.path.join(home, 'local.txt')):
-            lines_dir = open_files(os.path.join(home, 'local.txt'), True)
-            for lines_d in lines_dir:
-                if not lines_d.startswith('#'):
-                    music[:]=[]
-                    lines_d = os.path.normpath(lines_d.strip())
-                    dirn = lines_d
-                    music.append(dirn)
-                    for r, d, f in os.walk(dirn):
-                        for z in d:
-                            if not z.startswith('.'):
-                                music.append(os.path.join(r, z))
-                            else:
-                                o.append(os.path.join(r, z))
-                    
-                    print(len(m))
-                    j = 0
-                    lines = []
-                    for i in music:
-                        if os.path.exists(i):
-                            n = os.listdir(i)
-                            p[:]=[]
-                            for k in n:
-                                if (k.endswith('.mp3') or k.endswith('.flac') 
-                                        or k.endswith('.ogg') or k.endswith('.wav') 
-                                        or k.endswith('.aac') or k.endswith('.wma') 
-                                        or k.endswith('.m4a') or k.endswith('.m4b') 
-                                        or k.endswith('.opus') or k.endswith('.webm')):
-                                    p.append(os.path.join(i, k))
-                                    path = os.path.join(i, k)
-                                    s = (path+'	'+(str(os.path.getmtime(path))).split('.')[0])
-                                    m_files.append(s)
-                            if p:
-                                r = i
-                                lines.append(r)
-                                j = j+1
-                        
-        return list(set(m_files))
         
     def music_mode_layout(self):
         global layout_mode, screen_width, show_hide_cover, show_hide_player
@@ -19875,6 +19175,14 @@ def main():
         "PlayLists", "YouTube", "Addons"
         ]
     html_default_arr = ["Select", "Video", "Music", "Bookmark", "PlayLists"]
+    MUSIC_EXT_LIST = [
+        'mp3', 'flac', 'ogg', 'wav', 'aac', 'wma',
+        'm4a', 'm4b', 'opus', 'webm'
+        ]
+    VIDEO_EXT_LIST = [
+        'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv',
+        'webm', 'mpg', 'mpeg', 'mov'
+        ]
     addons_option_arr = []
     audio_id = "auto"
     sub_id = "auto"
@@ -19975,7 +19283,9 @@ def main():
         desktop_session = 'lxde'
     print(OSNAME, desktop_session)
     app = QtWidgets.QApplication(sys.argv)
-    
+    media_data = MediaDatabase(
+        home=home, logger=logger,
+        music_ext=MUSIC_EXT_LIST, video_ext=VIDEO_EXT_LIST)
     screen_resolution = app.desktop().screenGeometry()
     screen_width = screen_resolution.width()
     screen_height = screen_resolution.height()
@@ -19983,8 +19293,8 @@ def main():
     MainWindow = MainWindowWidget()
     MainWindow.setMouseTracking(True)
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    
+    ui.setupUi(MainWindow,media_data)
+    ui.media_data.set_ui(ui)
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
     if not os.path.exists(home):
@@ -20712,9 +20022,8 @@ def main():
         except:
             t1 = 65
         MainWindow.setGeometry(
-                ui.music_mode_dim[0], ui.music_mode_dim[1], 
-                ui.music_mode_dim[2], ui.music_mode_dim[3]
-                )
+            ui.music_mode_dim[0], ui.music_mode_dim[1], 
+            ui.music_mode_dim[2], ui.music_mode_dim[3])
         ui.image_fit_option_val = 4
     else:
         ui.sd_hd.show()
@@ -20739,7 +20048,7 @@ def main():
         ui.list1.hide()
         ui.frame.hide()
     if ui.access_from_outside_network:
-        get_ip_thread = getIpThread(interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
+        get_ip_thread = GetIpThread(interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
         get_ip_thread.start()
         print('--ip--thread--started--')
     #MainWindow.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
