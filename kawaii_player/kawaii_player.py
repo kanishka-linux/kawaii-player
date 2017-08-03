@@ -165,6 +165,7 @@ except Exception as e:
 from settings_widget import LoginAuth
 from media_server import ThreadServerLocal
 from database import MediaDatabase
+from player import PlayerWidget
 
 def change_config_file(ip, port):
     global home, ui
@@ -2331,13 +2332,12 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                     rfr = "--referrer="+rfr_url
                     path = path.replace('"', '')
                     print(rfr, path)
-                    subprocess.call(
-                            ["mpv", rfr, "--vo=image", "--no-sub", "--ytdl=no", "--quiet", "--no-audio", 
-                            "--vo-image-outdir="+TMPDIR, "-sid=no", "-aid=no", 
-                            "--start="+str(interval)+"%", "--frames=1", 
-                            path
-                            ]
-                            )
+                    subprocess.call([
+                        "mpv", rfr, "--vo=image", "--no-sub", "--ytdl=no", "--quiet", "--no-audio", 
+                        "--vo-image-outdir="+TMPDIR, "-sid=no", "-aid=no", 
+                        "--start="+str(interval)+"%", "--frames=1", 
+                        path
+                        ])
                     tmp_img = os.path.join(TMPDIR, '00000001.jpg')
                     if os.path.exists(tmp_img):
                         shutil.copy(tmp_img, picn)
@@ -2365,13 +2365,12 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                         path = path
                         rfr = "--referrer="+rfr_url
                         logger.info(rfr)
-                        subprocess.call(
-                                ["mpv", rfr, "--vo=image", "--no-sub", "--ytdl=no", "--quiet", "--no-audio", 
-                                "--vo-image-outdir="+TMPDIR, "-sid=no", "-aid=no", 
-                                "--start="+str(interval)+"%", "--frames=1", 
-                                path
-                                ]
-                                )
+                        subprocess.call([
+                            "mpv", rfr, "--vo=image", "--no-sub", "--ytdl=no", "--quiet", "--no-audio", 
+                            "--vo-image-outdir="+TMPDIR, "-sid=no", "-aid=no", 
+                            "--start="+str(interval)+"%", "--frames=1", 
+                            path
+                            ])
                         tmp_img = os.path.join(TMPDIR, '00000001.jpg')
                         if os.path.exists(tmp_img):
                             shutil.copy(tmp_img, picn)
@@ -2379,12 +2378,12 @@ class ExtendedQLabelEpn(QtWidgets.QLabel):
                     else:
                         path1 = path.replace('"', '')
                         if path1.startswith('http'):
-                            subprocess.call(
-                                    ["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", "--no-audio", 
-                                    "--vo-image-outdir="+TMPDIR, "-sid=no", "-aid=no", 
-                                    "--start="+str(interval)+"%", "--frames=1", 
-                                    path]
-                                    )
+                            subprocess.call([
+                                "mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", "--no-audio", 
+                                "--vo-image-outdir="+TMPDIR, "-sid=no", "-aid=no", 
+                                "--start="+str(interval)+"%", "--frames=1", 
+                                path
+                                ])
                             tmp_img = os.path.join(TMPDIR, '00000001.jpg')
                             if os.path.exists(tmp_img):
                                 tmp_new_img = ui.change_aspect_only(tmp_img)
@@ -3316,52 +3315,52 @@ class List2(QtWidgets.QListWidget):
                 del i
                 self.insertItem(n, item)
                 if opt == "History" or site == "PlayLists":
-                            file_path = ""
-                            if site == "SubbedAnime" or site == "DubbedAnime":
-                                if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
-                                    file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
-                            elif site == "PlayLists":
-                                pls = ui.list1.currentItem().text()
-                                file_path = os.path.join(home, 'Playlists', pls)
-                            else:
-                                if os.path.exists(os.path.join(home, 'History', site, name, 'Ep.txt')):
-                                    file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
-                
-                            if os.path.exists(file_path):
-                                l = open_files(file_path, True)
-                                lines = []
-                                for i in l:
-                                    i = i.replace('\n', '')
-                                    lines.append(i)
-                                    
-                                if n > itemR:
-                                    t = lines[itemR]
-                                    i = itemR
-                                    while(i < n):
-                                        lines[i] = lines[i+1]
-                                        i = i+1
-                                    lines[n] = t
-                                else:
-                                    i = itemR
-                                    t = lines[itemR]
-                                    while(i > n):
-                                        lines[i] = lines[i-1]
-                                        i = i -1
-                                    lines[n]=t
-                                j = 0
-                                length = len(lines)
-                                epnArrList[:]=[]
-                                for i in lines:
-                                    epnArrList.append(i)
-                                    j = j+1
-                                write_files(file_path, lines, line_by_line=True)
-                                self.clear()
-                                if site != "PlayLists":
-                                    ui.update_list2()
-                                else:
-                                    for i in lines:
-                                        self.addItem(i)
-                                self.setCurrentRow(n)
+                    file_path = ""
+                    if site == "SubbedAnime" or site == "DubbedAnime":
+                        if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
+                            file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
+                    elif site == "PlayLists":
+                        pls = ui.list1.currentItem().text()
+                        file_path = os.path.join(home, 'Playlists', pls)
+                    else:
+                        if os.path.exists(os.path.join(home, 'History', site, name, 'Ep.txt')):
+                            file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+        
+                    if os.path.exists(file_path):
+                        l = open_files(file_path, True)
+                        lines = []
+                        for i in l:
+                            i = i.replace('\n', '')
+                            lines.append(i)
+                            
+                        if n > itemR:
+                            t = lines[itemR]
+                            i = itemR
+                            while(i < n):
+                                lines[i] = lines[i+1]
+                                i = i+1
+                            lines[n] = t
+                        else:
+                            i = itemR
+                            t = lines[itemR]
+                            while(i > n):
+                                lines[i] = lines[i-1]
+                                i = i -1
+                            lines[n]=t
+                        j = 0
+                        length = len(lines)
+                        epnArrList[:]=[]
+                        for i in lines:
+                            epnArrList.append(i)
+                            j = j+1
+                        write_files(file_path, lines, line_by_line=True)
+                        self.clear()
+                        if site != "PlayLists":
+                            ui.update_list2()
+                        else:
+                            for i in lines:
+                                self.addItem(i)
+                        self.setCurrentRow(n)
         else:
             QListWidget.dropEvent(event)
             
@@ -5284,559 +5283,7 @@ class tab6(QtWidgets.QWidget):
                 MainWindow.showMaximized()
         
         
-class tab5(QtWidgets.QWidget):
-    
-    def __init__(self, parent):
-        global cycle_pause, total_seek
-        super(tab5, self).__init__(parent)
-        cycle_pause = 0
-        total_seek = 0
-        
-        self.arrow_timer = QtCore.QTimer()
-        self.arrow_timer.timeout.connect(self.arrow_hide)
-        self.arrow_timer.setSingleShot(True)
-    
-        self.mplayer_OsdTimer = QtCore.QTimer()
-        self.mplayer_OsdTimer.timeout.connect(self.osd_hide)
-        self.mplayer_OsdTimer.setSingleShot(True)
-    
-        self.seek_timer = QtCore.QTimer()
-        self.seek_timer.timeout.connect(self.seek_mplayer)
-        self.seek_timer.setSingleShot(True)
-        
-    def seek_mplayer(self):
-        global Player, total_seek
-        if Player == "mplayer":
-                t = bytes('\n'+"seek " + str(total_seek)+'\n', 'utf-8')
-                mpvplayer.write(t)
-                total_seek = 0
-                
-    def osd_hide(self):
-        global mpvplayer
-        mpvplayer.write(b'\n osd 0 \n')
-        
-    def arrow_hide(self):
-        global Player
-        if Player == "mplayer" or Player == "mpv":
-            self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-        print("arrow hide")
-        
-    def frameShowHide(self):
-        global fullscr
-        if MainWindow.isFullScreen():
-            if ui.frame1.isHidden():
-                ui.gridLayout.setSpacing(0)
-                ui.frame1.show()
-                ui.frame_timer.start(2000)
-            else:
-                ui.frame_timer.stop()
-                ui.frame_timer.start(2000)
-    """
-    def anim(self):
 
-        self.animation = QtCore.QPropertyAnimation(MainWindow, "geometry")
-        self.animation.setDuration(1000)
-        self.animation.setStartValue(QtCore.QSize(0, 0))
-        w = MainWindow.width()
-        h = MainWindow.height()
-        self.animation.setEndValue(QtCore.QSize(w, h))
-        self.animation.start()
-    """
-            
-    def mouseReleaseEvent(self, event):
-        global mpvplayer
-        print(event.type())
-        if event.button() == QtCore.Qt.LeftButton:
-            if mpvplayer.processId() > 0:
-                ui.playerPlayPause()
-        
-    def mouseMoveEvent(self, event):
-        global Player, fullscr, pause_indicator, site, new_tray_widget, ui
-        self.setFocus()
-        pos = event.pos()
-        if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
-            ui.dockWidget_3.hide()
-        if not ui.float_window.isHidden() and new_tray_widget.remove_toolbar:
-            if ui.float_timer.isActive():
-                ui.float_timer.stop()
-            if new_tray_widget.cover_mode.text() == ui.player_buttons['up']:
-                wid_height = int(ui.float_window.height()/3)
-            else:
-                wid_height = int(ui.float_window.height())
-            new_tray_widget.setMaximumHeight(wid_height)
-            new_tray_widget.show()
-            ui.float_timer.start(1000)
-        if (Player == "mplayer" or Player=="mpv"):
-            if self.arrow_timer.isActive():
-                self.arrow_timer.stop()
-            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-            self.arrow_timer.start(2000)
-        if MainWindow.isFullScreen():
-            ht = self.height()
-            if pos.y() <= ht and pos.y()> ht - 5 and ui.frame1.isHidden():
-                ui.gridLayout.setSpacing(0)
-                ui.frame1.show()
-                ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            elif pos.y() <= ht-32 and not ui.frame1.isHidden():
-                if site!="Music":
-                    ui.frame1.hide()
-                ui.gridLayout.setSpacing(5)
-                
-    def ccurlHead(self, url):
-        global rfr_url
-        print("------------ccurlHead------------")
-        if rfr_url:
-            content = ccurl(url+'#'+'-Ie'+'#'+rfr_url)
-        else:
-            content = ccurl(url+'#'+'-I')
-        return content
-        
-    def urlResolveSize(self, url):
-        m =[]
-        o = []
-        content = self.ccurlHead(url)
-        n = content.split('\n')
-        k = 0
-        for i in n:
-            i = re.sub('\r', '', i)
-            if i and ':' in i:
-                p = i.split(': ', 1)
-                if p:
-                    t = (p[0], p[1])
-                else:
-                    t = (i, "None")
-                m.append(t)
-                k = k+1
-            else:
-                t = (i, '')
-                m.append(t)
-        d = dict(m)
-        print(d)
-        result = int(int(d['Content-Length'])/(1024*1024))
-        return result
-        
-    def set_slider_val(self, val):
-        t = ui.slider.value()
-        t = t+val
-        ui.slider.setValue(t)
-        
-    def keyPressEvent(self, event):
-        global mpvplayer, Player, wget, cycle_pause, cache_empty, buffering_mplayer
-        global curR, pause_indicator, thumbnail_indicator, iconv_r_indicator
-        global fullscr, idwMain, idw, quitReally, new_epn, toggleCache, total_seek
-        global site, iconv_r, browse_cnt, total_till, browse_cnt, sub_id, audio_id
-        global rfr_url, show_hide_cover, show_hide_playlist, show_hide_titlelist
-        global video_local_stream, mpv_indicator
-        
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Right):
-            ui.list2.setFocus()
-        elif event.key() == QtCore.Qt.Key_Right:
-            txt = '\n osd 1 \n'
-            mpvplayer.write(bytes(txt, 'utf-8'))
-            if Player == "mplayer":
-                    self.set_slider_val(10)
-                    if (site == "Local" or site == "None" or site == "PlayLists" 
-                            or site == "Music" or site == "Video"):
-                        mpvplayer.write(b'\n seek +10 \n')
-                    else:
-                        total_seek = total_seek + 10
-                        r = "Seeking "+str(total_seek)+'s'
-                        ui.progressEpn.setFormat(r)
-                        if self.seek_timer.isActive():
-                            self.seek_timer.stop()
-                        self.seek_timer.start(500)
-            else:
-                mpvplayer.write(b'\n seek +10 relative+exact \n')
-            #self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_1:
-            mpvplayer.write(b'\n add chapter -1 \n')
-        elif event.key() == QtCore.Qt.Key_2:
-            mpvplayer.write(b'\n add chapter 1 \n')
-        elif event.key() == QtCore.Qt.Key_3:
-            mpvplayer.write(b'\n cycle ass-style-override \n')
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_V):
-            mpvplayer.write(b'\n cycle ass-vsfilter-aspect-compat \n')
-        elif event.key() == QtCore.Qt.Key_Left:
-            txt = '\n osd 1 \n'
-            mpvplayer.write(bytes(txt, 'utf-8'))
-            if Player == "mplayer":
-                    self.set_slider_val(-10)
-                    if (site == "Local" or site == "None" or site == "PlayLists" 
-                            or site == "Music" or site == "Video"):
-                        mpvplayer.write(b'\n seek -10 \n')
-                    else:
-                        total_seek = total_seek - 10
-                        r = "Seeking "+str(total_seek)+'s'
-                        ui.progressEpn.setFormat(r)
-                        if self.seek_timer.isActive():
-                            self.seek_timer.stop()
-                        self.seek_timer.start(500)
-            else:
-                mpvplayer.write(b'\n osd-msg-bar seek -10 \n')
-            #self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_BracketRight:
-            if Player == "mplayer":
-                    mpvplayer.write(b'\n seek +90 \n')
-            else:
-                    mpvplayer.write(b'\n osd-msg-bar seek +90 \n')
-        elif event.key() == QtCore.Qt.Key_BracketLeft:
-            if Player == "mplayer":
-                    mpvplayer.write(b'\n seek -5 \n')
-            else:
-                    mpvplayer.write(b'\n osd-msg-bar seek -5 \n')
-        elif event.key() == QtCore.Qt.Key_0:
-            txt = '\n osd 1 \n'
-            mpvplayer.write(bytes(txt, 'utf-8'))
-            if Player == "mplayer":
-                    mpvplayer.write(b'\n volume +5 \n')
-            else:
-                    mpvplayer.write(b'\n add ao-volume +5 \n')
-        elif event.key() == QtCore.Qt.Key_9:
-            txt = '\n osd 1 \n'
-            mpvplayer.write(bytes(txt, 'utf-8'))
-            if Player == "mplayer":
-                    mpvplayer.write(b'\n volume -5 \n')
-            else:
-                    mpvplayer.write(b'\n add ao-volume -5 \n')
-        elif event.key() == QtCore.Qt.Key_A:
-            if Player == 'mpv':
-                mpvplayer.write(b'\n cycle_values video-aspect "16:9" "4:3" "2.35:1" "-1" \n')
-        elif event.key() == QtCore.Qt.Key_N:
-            mpvplayer.write(b'\n playlist_next \n')
-        elif event.key() == QtCore.Qt.Key_L:
-            #ui.tab_5.setFocus()
-            ui.playerLoopFile(ui.player_loop_file)
-        elif event.key() == QtCore.Qt.Key_End:
-            if Player == "mplayer":
-                mpvplayer.write(b'\n seek 99 1 \n')
-            else:
-                mpvplayer.write(b'\n osd-msg-bar seek 100 absolute-percent \n')
-        elif event.key() == QtCore.Qt.Key_P:
-            if ui.frame1.isHidden():
-                ui.gridLayout.setSpacing(0)
-                ui.frame1.show()
-            else:
-                ui.gridLayout.setSpacing(5)
-                ui.frame1.hide()
-        elif event.key() == QtCore.Qt.Key_Space:
-            txt = ui.player_play_pause.text()
-            if txt == ui.player_buttons['play']:
-                ui.player_play_pause.setText(ui.player_buttons['pause'])
-            elif txt == ui.player_buttons['pause']:
-                ui.player_play_pause.setText(ui.player_buttons['play'])
-                ui.mplayer_pause_buffer = False
-                ui.mplayer_nop_error_pause = False
-                buffering_mplayer = "no"
-            if ui.frame_timer.isActive:
-                ui.frame_timer.stop()
-            if ui.mplayer_timer.isActive():
-                ui.mplayer_timer.stop()
-            if Player == "mplayer":
-                if MainWindow.isFullScreen():
-                    ui.frame1.hide()
-                mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
-            else:
-                if not pause_indicator:
-                    mpvplayer.write(b'\n set pause yes \n')
-                    if MainWindow.isFullScreen():
-                        ui.gridLayout.setSpacing(0)
-                        ui.frame1.show()
-                    pause_indicator.append("Pause")
-                else:
-                    mpvplayer.write(b'\n set pause no \n')
-                    if MainWindow.isFullScreen():
-                        ui.frame1.hide()
-                    pause_indicator.pop()
-                    if mpv_indicator:
-                        mpv_indicator.pop()
-                        cache_empty = 'no'
-        elif event.key() == QtCore.Qt.Key_Up:
-            if Player == "mplayer":
-                self.set_slider_val(60)
-                if (site == "Local" or site == "None" or site == "PlayLists" 
-                        or site == "Music" or site == "Video"):
-                    mpvplayer.write(b'\n seek +60 \n')
-                else:
-                    total_seek = total_seek + 60
-                    r = "Seeking "+str(total_seek)+'s'
-                    ui.progressEpn.setFormat(r)
-                    #mpvplayer.write('\n'+'seek +10'+'\n')
-                    if self.seek_timer.isActive():
-                        self.seek_timer.stop()
-                    self.seek_timer.start(500)
-                    #mpvplayer.write('\n'+'seek +60'+'\n')
-            else:
-                mpvplayer.write(b'\n osd-msg-bar seek +60 \n')
-            self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_Down:
-            if Player == "mplayer":
-                self.set_slider_val(-60)
-                if (site == "Local" or site == "None" or site == "PlayLists" 
-                        or site == "Music" or site == "Video"): 
-                    mpvplayer.write(b'\n seek -60 \n')
-                else:
-                    total_seek = total_seek - 60
-                    r = "Seeking "+str(total_seek)+'s'
-                    ui.progressEpn.setFormat(r)
-                    if self.seek_timer.isActive():
-                        self.seek_timer.stop()
-                    self.seek_timer.start(500)
-            else:
-                mpvplayer.write(b'\n osd-msg-bar seek -60 \n')
-            self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_PageUp:
-            if Player == "mplayer":
-                self.set_slider_val(300)
-                if (site == "Local" or site == "None" or site == "PlayLists" 
-                        or site == "Music" or site == "Video"):
-                    mpvplayer.write(b'\n seek +300 \n')
-                else:
-                    total_seek = total_seek + 300
-                    r = "Seeking "+str(total_seek)+'s'
-                    ui.progressEpn.setFormat(r)
-                    if self.seek_timer.isActive():
-                        self.seek_timer.stop()
-                    self.seek_timer.start(500)
-            else:
-                mpvplayer.write(b'\n osd-msg-bar seek +300 \n')
-            self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_PageDown:
-            if Player == "mplayer":
-                self.set_slider_val(-300)
-                if (site == "Local" or site == "None" or site == "PlayLists" 
-                        or site == "Music" or site == "Video"):
-                    mpvplayer.write(b'\n seek -300 \n')
-                else:
-                    total_seek = total_seek - 300
-                    r = "Seeking "+str(total_seek)+'s'
-                    ui.progressEpn.setFormat(r)
-                    #mpvplayer.write('\n'+'seek +10'+'\n')
-                    if self.seek_timer.isActive():
-                        self.seek_timer.stop()
-                    self.seek_timer.start(500)
-                    #mpvplayer.write('\n'+'seek -300'+'\n')
-            else:
-                mpvplayer.write(b'\n osd-msg-bar seek -300 \n')
-            self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_O:
-            mpvplayer.write(b'\n osd \n')
-        elif event.key() == QtCore.Qt.Key_M:
-            if Player == "mplayer":
-                mpvplayer.write(b'\n osd_show_property_text ${filename} \n')
-            else:
-                mpvplayer.write(b'\n show-text "${filename}" \n')
-        elif event.key() == QtCore.Qt.Key_I:
-            if Player == "mpv":
-                mpvplayer.write(b'\n show_text ${file-size} \n')
-            else:
-                logger.info(ui.final_playing_url)
-                logger.info(rfr_url)
-                if ui.total_file_size:
-                    sz = str(ui.total_file_size)+' MB'
-                else:
-                    if (ui.final_playing_url.startswith('http') 
-                            and ui.final_playing_url.endswith('.mkv')):
-                        ui.total_file_size = self.urlResolveSize(ui.final_playing_url)
-                        sz = str(ui.total_file_size)+' MB'
-                    else:
-                        ui.total_file_size = 0
-                        sz = str(0)
-                t = bytes('\n'+'osd_show_text '+'"'+sz+'"'+' 4000'+'\n', 'utf-8')
-                logger.info(t)
-                mpvplayer.write(t)
-        elif event.key() == QtCore.Qt.Key_E:
-            if Player == "mplayer" and MainWindow.isFullScreen():
-                w=self.width()
-                w = w + (0.05*w)
-                h = self.height()
-                h = h + (0.05*h)
-                self.setMaximumSize(w, h)
-            else:
-                mpvplayer.write(b'\n add video-zoom +0.01 \n')
-        elif event.key() == QtCore.Qt.Key_W:
-            if Player == "mplayer" and MainWindow.isFullScreen():
-                w=self.width()
-                w = w - (0.05*w)
-                h = self.height()
-                h = h - (0.05*h)
-                self.setMaximumSize(w, h)
-            else:
-                mpvplayer.write(b'\n add video-zoom -0.01 \n')
-        elif event.key() == QtCore.Qt.Key_R:
-            if Player == "mplayer":
-                mpvplayer.write(b'\n sub_pos -1 \n')
-            else:
-                mpvplayer.write(b'\n add sub-pos -1 \n')
-        elif event.key() == QtCore.Qt.Key_T:
-            if Player == "mplayer":
-                mpvplayer.write(b'\n sub_pos +1 \n')
-            else:
-                mpvplayer.write(b'\n add sub-pos +1 \n')
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_J):
-            ui.load_external_sub()
-        elif event.key() == QtCore.Qt.Key_J:
-            if Player == "mplayer":
-                if not self.mplayer_OsdTimer.isActive():
-                    mpvplayer.write(b'\n osd 1 \n')
-                else:
-                    self.mplayer_OsdTimer.stop()
-                mpvplayer.write(b'\n sub_select \n')
-                mpvplayer.write(b'\n get_property sub \n')
-                self.mplayer_OsdTimer.start(5000)
-            else:
-                mpvplayer.write(b'\n cycle sub \n')
-                mpvplayer.write(b'\n print-text "SUB_ID=${sid}" \n')
-                mpvplayer.write(b'\n show-text "${sid}" \n')
-        elif event.key() == QtCore.Qt.Key_K:
-            if Player == "mplayer":
-                if not self.mplayer_OsdTimer.isActive():
-                    mpvplayer.write(b'\n osd 1 \n')
-                else:
-                    self.mplayer_OsdTimer.stop()
-                mpvplayer.write(b'\n switch_audio \n')
-                mpvplayer.write(b'\n get_property switch_audio \n')
-                self.mplayer_OsdTimer.start(5000)
-            else:
-                mpvplayer.write(b'\n cycle audio \n')
-                mpvplayer.write(b'\n print-text "Audio_ID=${aid}" \n')
-                mpvplayer.write(b'\n show-text "${aid}" \n')
-        elif event.key() == QtCore.Qt.Key_F:
-            
-            if not MainWindow.isHidden():
-                if not MainWindow.isFullScreen():
-                    if not ui.tab_6.isHidden():
-                        ui.fullscreen_mode = 1
-                    elif not ui.float_window.isHidden():
-                        ui.fullscreen_mode = 2
-                    else: 
-                        fullscreen_mode = 0
-                    ui.gridLayout.setSpacing(0)
-                    ui.superGridLayout.setSpacing(0)
-                    ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                    ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                    ui.text.hide()
-                    ui.label.hide()
-                    ui.frame1.hide()
-                    ui.tab_6.hide()
-                    ui.goto_epn.hide()
-                    ui.btn20.hide()
-                    if wget.processId() > 0 or video_local_stream:
-                        ui.progress.hide()
-                        if not ui.torrent_frame.isHidden():
-                            ui.torrent_frame.hide()
-                    ui.list2.hide()
-                    ui.list6.hide()
-                    ui.list1.hide()
-                    ui.frame.hide()
-                    ui.dockWidget_3.hide()
-                    self.show()
-                    self.setFocus()
-                    if not ui.tab_2.isHidden():
-                        ui.tab_2.hide()
-                    if (Player == "mplayer" or Player=="mpv"):
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                    MainWindow.showFullScreen()
-                else:
-                    ui.gridLayout.setSpacing(5)
-                    ui.superGridLayout.setSpacing(0)
-                    ui.gridLayout.setContentsMargins(5, 5, 5, 5)
-                    ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                    ui.list2.show()
-                    ui.btn20.show()
-                    if wget.processId() > 0 or video_local_stream:
-                        ui.progress.show()
-                    ui.frame1.show()
-                    if Player == "mplayer" or Player=="mpv":
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
-                    if total_till != 0 or ui.fullscreen_mode == 1:
-                        ui.tab_6.show()
-                        ui.list2.hide()
-                        ui.goto_epn.hide()
-                    if ui.btn1.currentText().lower() == 'youtube':
-                        ui.list2.hide()
-                        ui.goto_epn.hide()
-                        ui.tab_2.show()
-                    #QtW
-            else:
-                if not ui.float_window.isHidden():
-                    if not ui.float_window.isFullScreen():
-                        ui.float_window.showFullScreen()
-                    else:
-                        ui.float_window.showNormal()
-        elif event.key() == QtCore.Qt.Key_Period:
-            ui.mpvNextEpnList()
-        elif event.key() == QtCore.Qt.Key_Comma:
-            ui.mpvPrevEpnList()
-        if event.key() == QtCore.Qt.Key_Q:
-            quitReally = "yes"
-            mpvplayer.write(b'\n quit \n')
-            ui.player_play_pause.setText(ui.player_buttons['play'])
-            if video_local_stream:
-                tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
-                f = open(tmp_pl, 'w')
-                f.close()
-            if not MainWindow.isHidden():
-                if ui.tab_6.isHidden() and ui.tab_2.isHidden():
-                    ui.tab_5.showNormal()
-                    ui.tab_5.hide()
-                    if show_hide_titlelist == 1:
-                        ui.list1.show()
-                    if show_hide_cover == 1:
-                        ui.label.show()
-                        ui.text.show()
-                    if show_hide_titlelist == 1:
-                        ui.list2.show()
-                    ui.list2.setFocus()
-                elif not ui.tab_6.isHidden():
-                    ui.gridLayout.addWidget(ui.tab_6, 0, 1, 1, 1)
-                    #ui.tab_5.setMinimumSize(0, 0)
-                    ui.gridLayout.setSpacing(5)
-                    #ui.frame1.hide()
-                    ui.tab_5.hide()
-                    i = 0
-                    thumbnail_indicator[:]=[]
-                    if iconv_r_indicator:
-                        iconv_r = iconv_r_indicator[0]
-                    else:
-                        iconv_r = 4
-                    num = ui.list2.currentRow()
-                    ui.thumbnail_label_update_epn()
-                    QtWidgets.QApplication.processEvents()
-                    ui.frame2.show()
-                    ui.frame1.show()
-                    QtCore.QTimer.singleShot(1000, partial(ui.update_thumbnail_position))
-                if wget:
-                    if wget.processId() > 0:
-                        ui.progress.show()
-                if MainWindow.isFullScreen():
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    ui.frame1.show()
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    ui.gridLayout.setSpacing(5)
-                    ui.superGridLayout.setSpacing(0)
-                    ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                if not ui.tab_2.isHidden():
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    ui.list2.hide()
-                    ui.goto_epn.hide()
-                    ui.list1.hide()
-                    ui.frame.hide()
-            else:
-                if not ui.float_window.isHidden():
-                    if ui.float_window.isFullScreen():
-                        ui.float_window.showNormal()
-                    else:
-                        pass
-                    
-        #super(List2, self).keyPressEvent(event)
 
 
 class QDockNew(QtWidgets.QDockWidget):
@@ -6442,13 +5889,13 @@ class Ui_MainWindow(object):
         self.player_playlist1.setText("Order")
         self.player_menu1 = QtWidgets.QMenu()
         self.player_menu_option1 = [
-                'Order by Name(Ascending)', 'Order by Name(Descending)', 
-                'Order by Date(Ascending)', 'Order by Date(Descending)'
-                ]
+            'Order by Name(Ascending)', 'Order by Name(Descending)', 
+            'Order by Date(Ascending)', 'Order by Date(Descending)'
+            ]
         self.action_player_menu1 =[]
         for i in self.player_menu_option1:
             self.action_player_menu1.append(
-                self.player_menu1.addAction(i, lambda x=i:self.playerPlaylist(x)))
+                self.player_menu1.addAction(i, lambda x=i: self.playerPlaylist(x)))
             
         self.player_playlist1.setMenu(self.player_menu1)
         self.player_playlist1.setCheckable(True)
@@ -6471,7 +5918,7 @@ class Ui_MainWindow(object):
         
         #self.frame.setMaximumWidth(300)
         #self.tabWidget1.addTab(self.tab_2, _fromUtf8(""))
-        self.tab_5 = tab5(MainWindow)
+        self.tab_5 = PlayerWidget(MainWindow, ui=self, logr= logger, tmp=TMPDIR)
         #self.tab_5 = tab5(None)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         #self.tabWidget1.addTab(self.tab_5, _fromUtf8(""))
@@ -6930,6 +6377,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.new_tray_widget = None
         self.player_val = 'mpv'
         self.mpvplayer_started = False
         self.mpvplayer_command = []
@@ -7263,20 +6711,36 @@ class Ui_MainWindow(object):
             elif mode == 'left':
                 self.go_prev_web_page()
     
-    def set_parameters_value(self, siteval=None, curRow=None):
-        global site, curR
+    def set_parameters_value(
+            self, siteval=None, curRow=None, quit_r=None, thumb_indicator=None,
+            iconv=None, bufm=None, cache_val=None):
+        global site, curR, quitReally, iconv_r, thumbnail_indicator
+        global buffering_mplayer, cache_empty
         if siteval:
             site = siteval
         if curRow:
             curR = curRow
+        if quit_r:
+            quitReally = quit_r
+        if iconv:
+            iconv_r = iconv
+        if thumb_indicator:
+            if thumb_indicator == 'empty':
+                thumbnail_indicator[:] = []
+        if bufm:
+            buffering_mplayer = bufm
+        if cache_val:
+            cache_empty = cache_val
             
     def get_parameters_value(self, *arg, **kargs):
         global curR, path_final_Url, epnArrList, opt, site, siteName
         global video_local_stream, name, html_default_arr, Player
+        global pause_indicator, mpv_indicator, wget, rfr_url, total_till
+        global show_hide_titlelist, show_hide_cover, iconv_r_indicator
         arg_dict = {}
         for i in kargs:
             val = kargs[i]
-            print(i, val)
+            logger.info('{0}-{1}'.format(i, val))
             if val == 'curR':
                 arg_dict.update({'curR':curR})
             elif val == 'path_final_Url':
@@ -7295,11 +6759,27 @@ class Ui_MainWindow(object):
                 arg_dict.update({'basedir':BASEDIR})
             elif val == 'tmpdir':
                 arg_dict.update({'tmpdir':TMPDIR})
+            elif val == 'pause_indicator':
+                arg_dict.update({'pause_indicator':pause_indicator})
+            elif val == 'mpv_indicator':
+                arg_dict.update({'mpv_indicator':mpv_indicator})
+            elif val == 'rfr_url':
+                arg_dict.update({'rfr_url':rfr_url})
+            elif val == 'wget':
+                arg_dict.update({'wget':wget})
+            elif val == 'total_till':
+                arg_dict.update({'total_till':total_till})
+            elif val == 'iconv_r_indicator':
+                arg_dict.update({'iconv_r_indicator':iconv_r_indicator})
+            elif val == 'show_hide_titlelist':
+                arg_dict.update({'show_hide_titlelist':show_hide_titlelist})
+            elif val == 'show_hide_cover':
+                arg_dict.update({'show_hide_cover':show_hide_cover})
             elif val == 'html_default_arr':
                 arg_dict.update({'html_default_arr':html_default_arr})
             elif val == 'video_local_stream':
                 arg_dict.update({'video_local_stream':video_local_stream})
-            
+
         return arg_dict
         
     def remote_fullscreen(self):
@@ -7313,7 +6793,7 @@ class Ui_MainWindow(object):
                 elif not self.float_window.isHidden():
                     self.fullscreen_mode = 2
                 else: 
-                    fullscreen_mode = 0
+                    self.fullscreen_mode = 0
                 self.gridLayout.setSpacing(0)
                 self.superGridLayout.setSpacing(0)
                 self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -16849,6 +16329,7 @@ class Ui_MainWindow(object):
                     command = self.mpvplayer_command[-1]
                     self.mpvplayer_command[:]=[]
                 self.mpvplayer_val = mpvplayer
+                self.tab_5.set_mpvplayer(player=self.player_val, mpvplayer=mpvplayer)
                 mpvplayer.setProcessChannelMode(QtCore.QProcess.MergedChannels)
                 mpvplayer.started.connect(self.started)
                 mpvplayer.readyReadStandardOutput.connect(partial(self.dataReady, mpvplayer))
@@ -19293,8 +18774,9 @@ def main():
     MainWindow = MainWindowWidget()
     MainWindow.setMouseTracking(True)
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow,media_data)
+    ui.setupUi(MainWindow, media_data)
     ui.media_data.set_ui(ui)
+    ui.tab_5.set_mpvplayer(player=Player, mpvplayer=mpvplayer)
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
     if not os.path.exists(home):
@@ -19675,7 +19157,7 @@ def main():
                     k = int(j)
                 except Exception as e:
                     print(e)
-                    k = 1
+                    k = 3
                 ui.image_fit_option_val = k
             elif i.startswith('AUTH='):
                 try:
@@ -20001,6 +19483,7 @@ def main():
         print('System Tray Failed with Exception: {0}'.format(e))
         
     new_tray_widget = FloatWindowWidget()
+    ui.new_tray_widget = new_tray_widget
     try:
         m_event = EventFilterFloatWindow()
         new_tray_widget.installEventFilter(m_event)
