@@ -2377,9 +2377,9 @@ def update_databse_signal(mode):
         video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
         
         if not os.path.exists(video_db):
-            ui.creatUpdateVideoDB(video_db, video_file, video_file_bak, update_progress_show=False)
+            ui.media_data.create_update_video_db(video_db, video_file, video_file_bak, update_progress_show=False)
         else:
-            ui.updateOnStartVideoDB(video_db, video_file, video_file_bak, 'Update', update_progress_show=False)
+            ui.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, 'Update', update_progress_show=False)
     elif mode == 'music':
         music_dir = os.path.join(home, 'Music')
         if not os.path.exists(music_dir):
@@ -2388,9 +2388,9 @@ def update_databse_signal(mode):
         music_file = os.path.join(home, 'Music', 'Music.txt')
         music_file_bak = os.path.join(home, 'Music', 'Music_bak.txt')
         if not os.path.exists(music_db):
-            ui.creatUpdateMusicDB(music_db, music_file, music_file_bak, update_progress_show=False)
+            ui.media_data.create_update_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
         else:
-            ui.updateOnStartMusicDB(music_db, music_file, music_file_bak, update_progress_show=False)
+            ui.media_data.update_on_start_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
 
 
 @pyqtSlot(str)
