@@ -17,15 +17,24 @@ You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from setuptools import setup
+
 import os
 import shutil
+import platform
+from setuptools import setup
 
-install_dependencies = [
-    'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl'
-    ]
-if os.name == 'nt':
-    install_dependencies = install_dependencies.append('certifi')
+
+"""
+ GNU/Linux users should install dependencies manually using their native
+ package manager
+"""
+if platform.system().lower() == 'linux':
+    install_dependencies = []
+else:
+    install_dependencies = [
+        'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl',
+        'certifi'
+        ]
 setup(
     name='kawaii-player', 
     version='1.4.0', 
