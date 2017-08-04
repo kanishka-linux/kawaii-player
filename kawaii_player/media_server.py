@@ -61,13 +61,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def process_HEAD(self):
         global ui, logger
-        global epnArrList, path_final_Url, curR
+        global path_final_Url, curR
 
         arg_dict = ui.get_parameters_value(
-            r='curR', path='path_final_Url', epnarr='epnArrList')
+            r='curR', path='path_final_Url')
         curR = arg_dict['curR']
         path_final_Url = arg_dict['path_final_Url']
-        epnArrList = arg_dict['epnArrList']
+        epnArrList = ui.epn_arr_list
 
         try:
             get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
@@ -239,11 +239,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def do_init_function(self, type_request=None):
         global ui, curR, logger
-        global epnArrList
         #logger.info(self.path)
-        arg_dict = ui.get_parameters_value(r='curR', epnarr='epnArrList')
+        arg_dict = ui.get_parameters_value(r='curR')
         curR = arg_dict['curR']
-        epnArrList = arg_dict['epnArrList']
+        epnArrList = ui.epn_arr_list
         
         path = self.path.replace('/', '', 1)
         if '/' in path:
@@ -773,13 +772,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
         global ui, home, html_default_arr, logger
-        global epnArrList, path_final_Url, curR, site
+        global path_final_Url, curR, site
 
         arg_dict = ui.get_parameters_value(
-            r='curR', path='path_final_Url', epnarr='epnArrList', s='site')
+            r='curR', path='path_final_Url', s='site')
         curR = arg_dict['curR']
         path_final_Url = arg_dict['path_final_Url']
-        epnArrList = arg_dict['epnArrList']
+        epnArrList = ui.epn_arr_list
         site = arg_dict['site']
 
         if not my_ip_addr:
@@ -2260,7 +2259,7 @@ class doGETSignal(QtCore.QObject):
     update_signal = pyqtSignal(str)
     def __init__(self):
         QtCore.QObject.__init__(self)
-        self.new_signal.connect(goToUi_jump)
+        self.new_signal.connect(goto_ui_jump)
         self.stop_signal.connect(stop_torrent_from_client)
         self.control_signal.connect(start_player_remotely)
         self.nav_remote.connect(navigate_player_remotely)
@@ -2268,7 +2267,7 @@ class doGETSignal(QtCore.QObject):
         self.update_signal.connect(update_databse_signal)
         
 @pyqtSlot(str)
-def goToUi_jump(nm):
+def goto_ui_jump(nm):
     global ui
     url = ui.epn_return_from_bookmark(nm, from_client=True)
 
@@ -2466,11 +2465,11 @@ class ThreadServerLocal(QtCore.QThread):
         home = hm
         MainWindow = window
         arg_dict = ui.get_parameters_value(
-            r='html_default_arr', b='basedir', t='tmpdir')
-        logger.info(arg_dict)
+            r='html_default_arr', b='BASEDIR', t='TMPDIR')
+        #logger.info(arg_dict)
         html_default_arr = arg_dict['html_default_arr']
-        BASEDIR = arg_dict['basedir']
-        TMPDIR = arg_dict['tmpdir']
+        BASEDIR = arg_dict['BASEDIR']
+        TMPDIR = arg_dict['TMPDIR']
         OSNAME = os.name
 
     def __del__(self):
@@ -2520,6 +2519,17 @@ class ThreadServerLocal(QtCore.QThread):
         else:
             logger.info('server not started')
 
+
+def change_config_file(ip, port):
+    global home, ui
+    config_file = os.path.join(home, 'other_options.txt')
+    new_ip = 'LOCAL_STREAM_IP='+ip+':'+str(port)
+    change_opt_file(config_file, 'LOCAL_STREAM_IP=', new_ip)
+    ui.local_ip_stream = str(ip)
+    ui.local_ip = str(ip)
+    config_file_torrent = os.path.join(home, 'torrent_config.txt')
+    torrent_ip = 'TORRENT_STREAM_IP='+ip+':'+str(ui.local_port)
+    change_opt_file(config_file_torrent, 'TORRENT_STREAM_IP=', torrent_ip)
 
 @pyqtSlot(str)
 def generate_ssl_cert(cert):
