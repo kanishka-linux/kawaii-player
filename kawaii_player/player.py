@@ -9,13 +9,13 @@ class PlayerWidget(QtWidgets.QWidget):
         super(PlayerWidget, self).__init__(parent)
         global MainWindow, logger, TMPDIR
         self.cycle_pause = 0
-        self.total_seek = 0
         self.ui = ui
         MainWindow = parent
         logger = logr
         TMPDIR = tmp
         self.mpvplayer = None
         self.player_val = None
+        self.ui.total_seek = 0
         self.arrow_timer = QtCore.QTimer()
         self.arrow_timer.timeout.connect(self.arrow_hide)
         self.arrow_timer.setSingleShot(True)
@@ -40,9 +40,9 @@ class PlayerWidget(QtWidgets.QWidget):
         
     def seek_mplayer(self):
         if self.player_val == "mplayer":
-            t = bytes('\n'+"seek " + str(self.total_seek)+'\n', 'utf-8')
+            t = bytes('\n'+"seek " + str(self.ui.total_seek)+'\n', 'utf-8')
             self.mpvplayer.write(t)
-            self.total_seek = 0
+            self.ui.total_seek = 0
 
     def osd_hide(self):
         self.mpvplayer.write(b'\n osd 0 \n')
@@ -152,8 +152,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         or site == "Music" or site == "Video"):
                     self.mpvplayer.write(b'\n seek +10 \n')
                 else:
-                    self.total_seek = self.total_seek + 10
-                    r = "Seeking "+str(self.total_seek)+'s'
+                    self.ui.total_seek = self.ui.total_seek + 10
+                    r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
@@ -181,8 +181,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         or site == "Music" or site == "Video"):
                     self.mpvplayer.write(b'\n seek -10 \n')
                 else:
-                    self.total_seek = self.total_seek - 10
-                    r = "Seeking "+str(self.total_seek)+'s'
+                    self.ui.total_seek = self.ui.total_seek - 10
+                    r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
@@ -271,7 +271,8 @@ class PlayerWidget(QtWidgets.QWidget):
                     if mpv_indicator:
                         mpv_indicator.pop()
                         cache_empty = 'no'
-                        self.ui.set_parameters_value(cache_val=cache_empty)
+                        self.ui.set_parameters_value(
+                            cache_val=cache_empty, mpv_i=mpv_indicator)
         elif event.key() == QtCore.Qt.Key_Up:
             if self.player_val == "mplayer":
                 self.set_slider_val(60)
@@ -281,8 +282,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         or site == "Music" or site == "Video"):
                     self.mpvplayer.write(b'\n seek +60 \n')
                 else:
-                    self.total_seek = self.total_seek + 60
-                    r = "Seeking "+str(self.total_seek)+'s'
+                    self.ui.total_seek = self.ui.total_seek + 60
+                    r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
                     #self.mpvplayer.write('\n'+'seek +10'+'\n')
                     if self.seek_timer.isActive():
@@ -301,8 +302,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         or site == "Music" or site == "Video"): 
                     self.mpvplayer.write(b'\n seek -60 \n')
                 else:
-                    self.total_seek = self.total_seek - 60
-                    r = "Seeking "+str(self.total_seek)+'s'
+                    self.ui.total_seek = self.ui.total_seek - 60
+                    r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
@@ -319,8 +320,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         or site == "Music" or site == "Video"):
                     self.mpvplayer.write(b'\n seek +300 \n')
                 else:
-                    self.total_seek = self.total_seek + 300
-                    r = "Seeking "+str(self.total_seek)+'s'
+                    self.ui.total_seek = self.ui.total_seek + 300
+                    r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
@@ -337,8 +338,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         or site == "Music" or site == "Video"):
                     self.mpvplayer.write(b'\n seek -300 \n')
                 else:
-                    self.total_seek = self.total_seek - 300
-                    r = "Seeking "+str(self.total_seek)+'s'
+                    self.ui.total_seek = self.ui.total_seek - 300
+                    r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
                     #self.mpvplayer.write('\n'+'seek +10'+'\n')
                     if self.seek_timer.isActive():
