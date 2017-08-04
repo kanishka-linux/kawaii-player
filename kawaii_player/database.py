@@ -98,19 +98,15 @@ class MediaDatabase():
             if not qVal:
                 cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
             else:
-                #cur.execute('SELECT distinct EP_NAME, Path FROM Video Where Directory="'+qVal+'" order by EPN')
                 qr = 'SELECT distinct EP_NAME, Path FROM Video Where Directory=? order by EPN'
                 cur.execute(qr, (qVal, ))
         elif q == "Bookmark":
             print(q)
-            #cur.execute('SELECT EP_NAME, Path FROM Video Where Title="'+qVal+'"')
             qr = 'SELECT EP_NAME, Path FROM Video Where Title=?'
             cur.execute(qr, (qVal, ))
         elif q == "History":
             print(q)
             qr = 'SELECT distinct Title, Directory FROM Video Where FileName like ? order by Title'
-            #qr = 'SELECT Artist FROM Music Where Artist like "'+ '%'+str(qVal)+'%'+'"'
-            #self.logger.info(qr)
             qv = '#'+'%'
             self.logger.info('qv={0};qr={1}'.format(qv, qr))
             cur.execute(qr, (qv, ))
@@ -221,7 +217,7 @@ class MediaDatabase():
             #qVal = '"'+qVal+'"'
             #cur.execute("Update Music Set LastPlayed=? Where Path=?", (datetime.datetime.now(), qVal))
             self.logger.info("----------"+qVal)
-            cur.execute('Select FileName, EP_NAME from Video Where Path="'+qVal+'"')
+            cur.execute('Select FileName, EP_NAME from Video Where Path=?', (qVal, ))
             r = cur.fetchall()
             self.logger.info(r)
             for i in r:
@@ -237,7 +233,7 @@ class MediaDatabase():
             cur.execute(qr, (fname, epName, qVal))
         elif qType == "unmark":    
             self.logger.info("----------"+qVal)
-            cur.execute('Select FileName, EP_NAME from Video Where Path="'+qVal+'"')
+            cur.execute('Select FileName, EP_NAME from Video Where Path=?', (qVal, ))
             r = cur.fetchall()
 
             self.logger.info(r)
@@ -298,9 +294,9 @@ class MediaDatabase():
                 ti = os.path.basename(di)
                 pa = i
 
-                cur.execute('SELECT Path FROM Video Where Path="'+i+'"')
+                cur.execute('SELECT Path FROM Video Where Path=?', (i,))
                 rows = cur.fetchall()
-                cur.execute('SELECT Path FROM Video Where Directory="'+di+'"')
+                cur.execute('SELECT Path FROM Video Where Directory=?', (di,))
                 rows1 = cur.fetchall()
                 epn_cnt = len(rows1)
                 w = [ti, di, na, na, pa, epn_cnt]
@@ -310,7 +306,7 @@ class MediaDatabase():
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
                     elif not os.path.exists(i) and rows:
-                        cur.execute('Delete FROM Video Where Path="'+i+'"')
+                        cur.execute('Delete FROM Video Where Path=?', (i,))
                         self.logger.info('Deleting File From Database : '+i)
                         self.logger.info(w)
                 elif video_opt == "Update":
@@ -471,7 +467,7 @@ class MediaDatabase():
             #qVal = '"'+qVal+'"'
             #cur.execute("Update Music Set LastPlayed=? Where Path=?", (datetime.datetime.now(), qVal))
             self.logger.info("----------"+qVal)
-            cur.execute('Select Playcount, Title from Music Where Path="'+qVal+'"')
+            cur.execute('Select Playcount, Title from Music Where Path=?', (qVal,))
             r = cur.fetchall()
             self.logger.info(r)
             if not r:
@@ -494,7 +490,7 @@ class MediaDatabase():
                 qr = 'Update Music Set LastPlayed=?, Playcount=? Where Path="'+qVal+'"'
                 q1 = datetime.datetime.now()
                 #qVal = '"'+qVal+'"'
-                cur.execute(qr, (q1, incr, ))
+                cur.execute(qr, (q1, incr))
         elif qType == "fav":
             tmp = str(self.list3.currentItem().text())
             if tmp == "Artist":
@@ -652,7 +648,7 @@ class MediaDatabase():
             j = k.split('	')
             i = str(j[0])
 
-            cur.execute('SELECT Path FROM Music Where Path="'+(i)+'"')
+            cur.execute('SELECT Path FROM Music Where Path=?', (i, ))
             rows = cur.fetchall()
 
             if os.path.exists(i) and (k in m_files) and not rows:
@@ -660,15 +656,15 @@ class MediaDatabase():
                 cur.execute('INSERT INTO Music VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', w)
             elif os.path.exists(i) and rows and (k in m_files):
                 print("File Modified")
-                cur.execute('Delete FROM Music Where Path="'+i+'"')
+                cur.execute('Delete FROM Music Where Path=?', (i, ))
                 self.logger.info('Deleting File From Database : '+i)
                 w = self.get_tag_lib(i)
                 cur.execute('INSERT INTO Music VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', w)
             elif not os.path.exists(i) and rows:
-                cur.execute('Delete FROM Music Where Path="'+i+'"')
+                cur.execute('Delete FROM Music Where Path=?', (i, ))
                 self.logger.info('Deleting File From Database : '+i)
             elif os.path.exists(i) and not rows:
-                cur.execute('Delete FROM Music Where Path="'+i+'"')
+                cur.execute('Delete FROM Music Where Path=?', (i, ))
                 self.logger.info('Deleting File From Database : '+i)
 
         conn.commit()
