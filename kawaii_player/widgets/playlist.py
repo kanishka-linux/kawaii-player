@@ -184,7 +184,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 r = self.currentRow()
                 item = self.item(r)
                 if item:
-                    if bookmark == "False":
+                    if not bookmark:
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
@@ -196,7 +196,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         conn.close()
                         self.takeItem(r)
                         del item
-                        #logger.info(ui.video_dict)
                         dir_path, file_path = os.path.split(txt)
                         if dir_path in ui.video_dict:
                             del ui.video_dict[dir_path]
@@ -303,7 +302,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 item = self.item(r)
                 bookmark = ui.get_parameters_value(b='bookmark')['bookmark']
                 if item:
-                    if bookmark == "False":
+                    if not bookmark:
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
@@ -392,7 +391,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 r = self.currentRow()
                 item = self.item(r)
                 if item:
-                    if bookmark == "False":
+                    if not bookmark:
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
@@ -741,7 +740,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         item = self.item(row)
         if item:
             if site == "Video":
-                if bookmark == "False":
+                if not bookmark:
                     video_db = os.path.join(home, 'VideoDB', 'Video.db')
                     conn = sqlite3.connect(video_db)
                     cur = conn.cursor()
