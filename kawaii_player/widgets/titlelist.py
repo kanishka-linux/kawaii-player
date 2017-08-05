@@ -47,9 +47,9 @@ class TitleListWidget(QtWidgets.QListWidget):
                 bookmark = param_dict['bookmark']
                 opt = param_dict['opt']
                 status = param_dict['status']
-                if bookmark == "True" or opt == "History":
+                if bookmark or opt == "History":
                     file_path = ""
-                    if bookmark == "True":
+                    if bookmark:
                         if os.path.exists(os.path.join(home, 'Bookmark', status+'.txt')):
                             file_path = os.path.join(home, 'Bookmark', status+'.txt')
                             l = open_files(file_path, True)
@@ -143,7 +143,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             param_dict = ui.get_parameters_value(b='bookmark', o='opt')
             bookmark = param_dict['bookmark']
             opt = param_dict['opt']
-            if bookmark == "False":
+            if not bookmark:
                 if opt != "History":
                     ui.listfound()
                 param_dict = ui.get_parameters_value(
@@ -169,7 +169,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             opt = param_dict['opt']
             site= param_dict['site']
             siteName = param_dict['siteName']
-            if bookmark == "True":
+            if bookmark:
                 file_path = os.path.join(home, 'Bookmark', status+'.txt')
                 if os.path.exists(file_path):
                     lins = open_files(file_path, True)
@@ -232,7 +232,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             opt = param_dict['opt']
             site= param_dict['site']
             siteName = param_dict['siteName']
-            if bookmark == "True":
+            if bookmark:
                 file_path = os.path.join(home, 'Bookmark', status+'.txt')
                 if os.path.exists(file_path):
                     lins = open_files(file_path, True)
@@ -305,7 +305,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                             self.takeItem(index)
                             del item_r
                             ui.list2.clear()
-                elif site == "Video" and bookmark == "False":
+                elif site == "Video" and not bookmark:
                     video_db = os.path.join(home, 'VideoDB', 'Video.db')
                     conn = sqlite3.connect(video_db)
                     cur = conn.cursor()
@@ -405,7 +405,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         param_dict = ui.get_parameters_value(b='bookmark', o='opt')
         bookmark = param_dict['bookmark']
         opt = param_dict['opt']
-        if bookmark == "False":
+        if not bookmark:
             if opt != "History":
                 ui.listfound()
             param_dict = ui.get_parameters_value(
@@ -440,7 +440,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         param_dict = ui.get_parameters_value(b='bookmark', o='opt')
         bookmark = param_dict['bookmark']
         opt = param_dict['opt']
-        if bookmark == "False":
+        if not bookmark:
             self.addBookmarkList()
         param_dict = ui.get_parameters_value(
             s='site', sn='siteName', bu='base_url', e='embed', v='video_local_stream',
@@ -563,7 +563,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 param_dict = ui.get_parameters_value(b='bookmark', o='opt')
                 opt = param_dict['opt']
                 bookmark = param_dict['bookmark']
-                if (site == "Local" or bookmark == "True" 
+                if (site == "Local" or bookmark 
                         or opt == "History" or site == "Video" 
                         or site == "Music"):
                     if ui.list3.currentItem():
@@ -743,7 +743,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 bookmark = param_dict['bookmark']
                 site = param_dict['site']
                 if ((site == "Local" or site == 'PlayLists') 
-                        or bookmark == "True" or opt == "History" 
+                        or bookmark or opt == "History" 
                         or site == "Video"):
                     ui.scrollArea.setFocus()
                     ui.lock_process = True
