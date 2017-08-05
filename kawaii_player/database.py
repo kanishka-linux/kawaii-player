@@ -87,7 +87,7 @@ class MediaDatabase():
                             vid.append(str(r))
                             j = j+1
         return vid
-
+    
     def get_video_db(self, music_db, queryType, queryVal):
         conn = sqlite3.connect(music_db)
         cur = conn.cursor()    
@@ -207,12 +207,20 @@ class MediaDatabase():
             self.ui.text.setText('Update Complete!')
             print('--191---update-complete--')
             QtWidgets.QApplication.processEvents()
+    
+    def adjust_video_dict_mark(self, epname, path, rownum=None):
+        dir_name, file_name = os.path.split(path)
+        plist = [epname, path]
+        self.logger.info('214----{0}-----database.py--'.format(plist))
+        if rownum is not None and dir_name in self.ui.video_dict:
+            self.ui.video_dict[dir_name][rownum] = plist
         
-    def update_video_count(self, qType, qVal):
+    def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
         qVal = str(qVal)
         conn = sqlite3.connect(os.path.join(self.home, 'VideoDB', 'Video.db'))
         cur = conn.cursor()
+        self.logger.info('{0}:{1}:{2}::::::database.py:::240'.format(qType, qVal, rownum))
         if qType == "mark":
             #qVal = '"'+qVal+'"'
             #cur.execute("Update Music Set LastPlayed=? Where Path=?", (datetime.datetime.now(), qVal))
@@ -251,7 +259,10 @@ class MediaDatabase():
         self.logger.info("Number of rows updated: %d" % cur.rowcount)
         conn.commit()
         conn.close()
-
+        
+        if qType == 'mark' or qType == 'unmark':
+            self.adjust_video_dict_mark(epName, qVal, rownum)
+        
     def update_on_start_video_db(self, video_db, video_file, video_file_bak,
                                  video_opt, update_progress_show=None):
         if (update_progress_show is None or update_progress_show) and self.ui:
