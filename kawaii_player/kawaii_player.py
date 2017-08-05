@@ -1137,7 +1137,7 @@ class List3(QtWidgets.QListWidget):
                         self.takeItem(index)
                         del item_r
                         ui.list2.clear()
-            if bookmark == "True":
+            if bookmark:
                 index = self.currentRow()
                 item_r  = self.item(index)
                 if item_r:
@@ -4668,11 +4668,11 @@ class Ui_MainWindow(object):
                     siteName = str(self.list3.currentItem().text())
                     opt = "History"
                     self.options('history') 
-                elif (site == "PlayLists" or bookmark == "True" 
+                elif (site == "PlayLists" or bookmark 
                         or site == "Local" or site =="Music"):
                     self.options('local')
             else:
-                if (site == "PlayLists" or bookmark == "True" 
+                if (site == "PlayLists" or bookmark
                         or site == "Local" or site =="Music"):
                     self.options('local') 
                 elif site == "SubbedAnime" or site == "DubbedAnime":
@@ -5506,7 +5506,7 @@ class Ui_MainWindow(object):
         name=tmp_name[browse_cnt]
         length = len(tmp_name)
         m =[]
-        if (bookmark == "True" 
+        if (bookmark 
                     and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
                 file_name = os.path.join(home, 'Bookmark', status+'.txt')
                 line_a = open_files(file_name, True)
@@ -5600,7 +5600,7 @@ class Ui_MainWindow(object):
             if site == "SubbedAnime" or site == "DubbedAnime":
                 dir_name =os.path.join(home, 'History', site, siteName, name)	
             elif site == "Local":
-                if bookmark == "False":
+                if not bookmark:
                     name = self.original_path_name[browse_cnt]
                 dir_name =os.path.join(home, 'History', site, name)
             else:
@@ -6878,7 +6878,7 @@ class Ui_MainWindow(object):
             self.original_path_name[:]=[]
             self.original_path_name = m
             
-        if m and bookmark == "False": 
+        if m and not bookmark: 
             self.label.clear()
             self.line.clear()
             self.list1.clear()
@@ -6945,7 +6945,7 @@ class Ui_MainWindow(object):
             self.original_path_name.sort()
             m = self.original_path_name
         
-        if m and bookmark == "False":
+        if m and not bookmark:
             self.label.clear()
             self.line.clear()
             self.list1.clear()
@@ -7586,7 +7586,7 @@ class Ui_MainWindow(object):
         var = (self.btn1.currentText())
         if var == "Select":
             return 0
-        if bookmark == "True" and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt')):
+        if bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt')):
             opt = "History"
             line_a = open_files(os.path.join(home, 'Bookmark', status+'.txt'), True)
             self.list1.clear()
@@ -7625,12 +7625,12 @@ class Ui_MainWindow(object):
                 elif mark_val == 'mark' and not i.startswith(self.check_symbol):
                     url1 = self.epn_arr_list[row].split('	')[1]
                     item.setText(self.check_symbol+i)
-                    self.media_data.update_video_count('mark', url1)
+                    self.media_data.update_video_count('mark', url1, rownum=row)
                 elif mark_val == 'unmark' and i.startswith(self.check_symbol):
                     url1 = self.epn_arr_list[row].split('	')[1]
                     i = i[1:]
                     item.setText(i)
-                    self.media_data.update_video_count('unmark', url1)
+                    self.media_data.update_video_count('unmark', url1, rownum=row)
                 self.list2.setCurrentRow(row)
                 
     def update_playlist_file(self, file_path):
@@ -7756,7 +7756,6 @@ class Ui_MainWindow(object):
     def watchToggle(self):
         global site, base_url, embed, epn, epn_goto, pre_opt, home, path_Local_Dir
         global opt, siteName, finalUrlFound, refererNeeded
-        
         if (opt == "History" and (site.lower() !="video" 
                     and site.lower()!= 'music' and site.lower()!= 'playlists' 
                     and site.lower()!= 'none')):
@@ -7786,7 +7785,11 @@ class Ui_MainWindow(object):
                     self.mark_video_list('unmark', row)
                 else:
                     self.mark_video_list('mark', row)
-                        
+                #title_row = self.list1.currentRow()
+                #dir_path, file_path = os.path.split(self.original_path_name[title_row].split('\t')[-1])
+                #logger.info('--------7790----{0}'.format(dir_path))
+    
+    
     def search_list4_options(self):
         global opt, site, name, base_url, name1, embed, pre_opt, bookmark
         global base_url_picn
@@ -7977,7 +7980,7 @@ class Ui_MainWindow(object):
         if site == 'None':
             return 0
             
-        if (bookmark == "True" 
+        if (bookmark 
                 and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
             file_path = os.path.join(home, 'Bookmark', status+'.txt')
             row = self.list1.currentRow()
@@ -8481,7 +8484,7 @@ class Ui_MainWindow(object):
             self.line.setReadOnly(True)
             refererNeeded = False
             
-            bookmark = "False"
+            bookmark = False
             criteria = os.listdir(os.path.join(home, 'Playlists'))
             criteria.sort()
             home_n = os.path.join(home, 'Playlists')
@@ -8495,7 +8498,7 @@ class Ui_MainWindow(object):
                 self.list3.addItem(i)
             video_local_stream = False
         elif site == "Bookmark":
-            bookmark = "True"
+            bookmark = True
             criteria = [
                 'All', 'Watching', 'Completed', 'Incomplete', "Later", 
                 'Interesting', 'Music-Videos'
@@ -8534,16 +8537,16 @@ class Ui_MainWindow(object):
             if os.path.exists(plugin_path):
                 module = imp.load_source(site, plugin_path)
             self.site_var = getattr(module, site)(TMPDIR)
-            bookmark = "False"
+            bookmark = False
             if not os.path.exists(os.path.join(home, "History", site)):
                 os.makedirs(os.path.join(home, "History", site))
             self.search()
         elif site == "YouTube":
             site = 'None'
-            bookmark = "False"
+            bookmark = False
             self.search()
         else:
-            bookmark = "False"
+            bookmark = False
             if not os.path.exists(os.path.join(home, "History", site)):
                 os.makedirs(os.path.join(home, "History", site))
             self.search()
@@ -8582,7 +8585,7 @@ class Ui_MainWindow(object):
         else:
             if not self.btnHistory.isHidden():
                 self.btnHistory.hide()
-        bookmark = "False"
+        bookmark = False
         if not os.path.exists(os.path.join(home, "History", site)):
             os.makedirs(os.path.join(home, "History", site))
         self.search()
@@ -8596,7 +8599,7 @@ class Ui_MainWindow(object):
         self.text.clear()
         site = str(self.btn30.currentText())
         if site == "Bookmark":
-            bookmark = "True"
+            bookmark = True
             criteria = [
                 'All', 'Watching', 'Completed', 'Incomplete', "Later", 
                 'Interesting'
@@ -8605,7 +8608,7 @@ class Ui_MainWindow(object):
             for i in criteria:
                 self.list3.addItem(i) 
         else:
-            bookmark = "False"
+            bookmark = False
             if not os.path.exists(os.path.join(home, "History", site)):
                 os.makedirs(os.path.join(home, "History", site))
             self.search()
@@ -10032,7 +10035,7 @@ class Ui_MainWindow(object):
         summary = "Summary Not Available"
         picn = "No.jpg"
         m = []
-        if bookmark == "True" and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt')):
+        if bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt')):
             #tmp = site+':'+opt+':'+pre_opt+':'+base_url+':'+str(embed)+':'+name':'+
             #finalUrlFound+':'+refererNeeded+':'+video_local_stream
             #f = open(os.path.join(home, 'Bookmark', status+'.txt'), 'r')
@@ -10186,7 +10189,7 @@ class Ui_MainWindow(object):
                             return 0
                 else:
                     if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
-                        if self.list3.currentItem() and bookmark == 'False':
+                        if self.list3.currentItem() and not bookmark:
                             siteName = self.list3.currentItem().text()
                         hist_site = os.path.join(home, 'History', site, siteName, name)
                     else:
@@ -10219,7 +10222,7 @@ class Ui_MainWindow(object):
             self.list2.clear()
             if self.list1.currentItem():
                 r = self.list1.currentRow()
-                if bookmark == "True":
+                if bookmark:
                     name = name_path
                 else:
                     name = self.original_path_name[r]
@@ -10309,7 +10312,7 @@ class Ui_MainWindow(object):
             music_db = os.path.join(home, 'Music', 'Music.db')
             music_file = os.path.join(home, 'Music', 'Music.txt')
             music_file_bak = os.path.join(home, 'Music', 'Music_bak.txt')
-            if bookmark == "False":
+            if not bookmark:
                 if not self.list3.currentItem():
                     self.list3.setCurrentRow(0)
                 music_opt = self.list3.currentItem().text()
@@ -10381,7 +10384,7 @@ class Ui_MainWindow(object):
                 video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
                 
                 artist =[]
-                if bookmark == "False":
+                if not bookmark:
                     if self.list3.currentItem():
                         video_opt = str(self.list3.currentItem().text())
                     else:
@@ -10394,11 +10397,21 @@ class Ui_MainWindow(object):
                         art_n = self.original_path_name[index].split('	')[-1]
                         if art_n in self.video_dict:
                             m = self.video_dict[art_n]
+                            #mval = self.video_dict[art_n]
+                            #m, modified = mval[0], mval[1]
+                            #if modified:
+                            #   del self.video_dict[art_n]
+                            #    m = self.media_data.get_video_db(video_db, "Directory", art_n)
+                            #    self.video_dict.update({art_n:[m, False]})
+                            #    logger.info('Getting from DB')
+                            #else:
                             logger.info('Getting from Cache')
                         else:
                             m = self.media_data.get_video_db(video_db, "Directory", art_n)
-                            self.video_dict.update({art_n:m})
+                            mlist = [list(i) for i in m]
+                            self.video_dict.update({art_n:mlist})
                             logger.info('Getting from DB')
+                            logger.info(type(m))
                 else:
                     new_art_n = art_n
                     if new_dir_path is not None:
@@ -10867,10 +10880,13 @@ class Ui_MainWindow(object):
                 file_name_mkv = self.epn_arr_list[row].split('	')[1]
                 file_name_mp4 = self.epn_arr_list[row].split('	')[1]
             else:
-                queue_split = self.queue_url_list[row].split('	')
+                queue_split = []
+                if row < len(self.queue_url_list):
+                    queue_split = self.queue_url_list[row].split('	')
                 if len(queue_split) > 1:
                     file_name_mkv = queue_split[1]
                     file_name_mp4 = queue_split[1]
+                
         logger.info('function---15025--{0}-{1}'.format(file_name_mkv, file_name_mp4))
         return file_name_mp4, file_name_mkv
 
@@ -11040,14 +11056,22 @@ class Ui_MainWindow(object):
                 else:
                     self.play_file_now(file_path_name_mkv)
                     finalUrl = file_path_name_mkv
-                    
+                list_widget_row = None
                 if list_widget == self.list6:
                     txt = self.list6.item(0).text()
                     r = self.get_index_list(list_widget, txt)
+                    if r is None:
+                        r = 0
+                    else:
+                        list_widget_row = r
                     self.list2.setCurrentRow(r)
+                    logger.info('\n row = {0} txt= {1}\n'.format(r,txt))
                 else:
                     r = row
                     
+                if list_widget_row is not None:
+                    row = list_widget_row
+                
                 finalUrl = finalUrl.replace('"', '')
                 finalUrl = '"'+finalUrl+'"'
                 if site.lower() == "music":
@@ -11063,7 +11087,7 @@ class Ui_MainWindow(object):
                         self.media_data.update_music_count('count', finalUrl)
                 elif site.lower() == "video":
                     self.mark_video_list('mark', row)
-                    self.media_data.update_video_count('mark', finalUrl)
+                    self.media_data.update_video_count('mark', finalUrl, rownum=row)
                 elif site.lower() == 'local':
                     self.mark_addons_history_list('mark', row)
                     
@@ -11088,18 +11112,20 @@ class Ui_MainWindow(object):
             return False
 
     def get_index_list(self, list_widget, txt):
-        r = 0
+        r = None
         txt = txt.replace('#', '', 1)
         if txt.startswith(self.check_symbol):
                 txt = txt[1:]
-        for i in range(self.list2.count()):
-            new_txt = self.list2.item(i).text()
-            new_txt = new_txt.replace('#', '', 1)
-            if new_txt.startswith(self.check_symbol):
+        for i,val in enumerate(self.epn_arr_list):
+            if '\t' in val:
+                new_txt = val.split('\t')[0]
+            else:
+                new_txt = val
+            if new_txt.startswith('#'):
                 new_txt = new_txt[1:]
-            if new_txt == txt:
+            if new_txt.lower() == txt.lower():
                 r = i
-                break
+            #logger.info('\ntxt={0}: new_txt={1}\n: 11116'.format(txt, new_txt))
         return r
 
     def set_init_settings(self):
@@ -11247,7 +11273,7 @@ class Ui_MainWindow(object):
                 and site != "Video" and site!= "Local"):
             hist_path = os.path.join(home, 'History', site, name, 'Ep.txt')
             if ((os.path.exists(hist_path) and (epn_goto == 0)) 
-                        or (os.path.exists(hist_path) and bookmark == "True")):
+                        or (os.path.exists(hist_path) and bookmark)):
                     if self.epn_arr_list[row].startswith('#'):
                         n_epn = self.epn_arr_list[row]
                         txt = n_epn.replace('#', self.check_symbol, 1)
@@ -11516,7 +11542,7 @@ class Ui_MainWindow(object):
                 if mpvplayer.processId() > 0:
                     mpvplayer.kill()
                     self.mpvplayer_started = False
-                if type(finalUrl) is list:
+                if isinstance(finalUrl, list):
                         rfr_exists = finalUrl[-1]
                         rfr_needed = False
                         if rfr_exists == 'referer sent':
@@ -11554,7 +11580,7 @@ class Ui_MainWindow(object):
                 if mpvplayer.processId() > 0:
                     mpvplayer.kill()
                     self.mpvplayer_started = False
-                if type(finalUrl) is list:
+                if isinstance(finalUrl, list):
                     rfr_exists = finalUrl[-1]
                     rfr_needed = False
                     if rfr_exists == 'referer sent':
@@ -13291,7 +13317,7 @@ class Ui_MainWindow(object):
                         logger.info('Error in getting Thumbnail: {0}'.format(e))
             elif site.lower() == 'video' or site.lower() == 'local' or site.lower() == 'playlists':
                 if site == "Video":
-                    self.media_data.update_video_count('mark', finalUrl)
+                    self.media_data.update_video_count('mark', finalUrl, rownum=row)
                 try:
                     thumb_path = self.get_thumbnail_image_path(row, self.epn_arr_list[row])
                     logger.info("thumbnail path = {0}".format(thumb_path))
@@ -13401,6 +13427,7 @@ class Ui_MainWindow(object):
                 self.musicBackground(0, 'Queue')
             elif site == "Video":
                 self.media_data.update_video_count('mark', epnShowN)
+                logger.info('{0}--mark-video-queue----13147--'.format(epnShowN))
         if epnShow.startswith('http'):
             current_playing_file_path = epnShow
         else:
@@ -13847,7 +13874,7 @@ class Ui_MainWindow(object):
         list2_items=[]
         list1_items[:]=[]
         
-        if bookmark == "True":
+        if bookmark:
             r = self.list3.currentRow()
             item = self.list3.item(r)
             if item:
@@ -14345,7 +14372,7 @@ class Ui_MainWindow(object):
                 hist_arr.append(i)
         
         if ((viewMode == "Thumbnail" or not self.tab_6.isHidden()) 
-                and (opt == "History" or site == "Local" or bookmark=="True" 
+                and (opt == "History" or site == "Local" or bookmark 
                 or site == "PlayLists")):
             if site == "NotMentioned":
                 print("PlayLists")
@@ -14364,7 +14391,7 @@ class Ui_MainWindow(object):
                 self.scrollArea.show()
                 
                 if (opt == "History" or (site == "Local" or site == 'PlayLists') 
-                            or bookmark == "True"):
+                            or bookmark):
                         i = 0
                         print(total_till, 2*self.list1.count()-1, '--count--')
                         if total_till > 0 and not self.lock_process:
