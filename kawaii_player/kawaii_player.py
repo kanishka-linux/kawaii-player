@@ -39,7 +39,6 @@ import lxml
 import calendar
 import datetime
 import time
-
 import random
 import textwrap
 from functools import partial
@@ -169,6 +168,7 @@ from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
 from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
+from stylesheet import WidgetStyleSheet
 
 def set_mainwindow_palette(fanart, first_time=None):
     logger.info('\n{0}:  mainwindow background\n'.format(fanart))
@@ -195,64 +195,22 @@ def goto_ui_jump(nm):
     url = ui.epn_return_from_bookmark(nm, from_client=True)
 
 
-"""
-def my_decorator(main_function):
-    def new_function(*args, **kwds): 
-        try:
-            print('--decorator--')
-            print(len(args), '--args--')
-            if len(args) == 2:
-                main_function(args[0]) 
-            else:
-                main_function(*args) 
-        except UnicodeEncodeError as e:
-            print(e)
-    return new_function
-    
-class UpdateListThread(QtCore.QThread):
-
-    update_list2_signal = pyqtSignal(str, int)
-
-    def __init__(self, e):
-        QtCore.QThread.__init__(self)
-        self.e = e
-        self.update_list2_signal.connect(update_list2_global)
-
-    def __del__(self):
-        self.wait()                        
-
-    def run(self):
-        k = 0
-        for i in self.e:
-            self.update_list2_signal.emit(i, k)
-            k = k+1
-
-
-@pyqtSlot(str, int)
-def update_list2_global(i, k):
-    try:
-        icon_name = ui.get_thumbnail_image_path(k, i)
-    except:
-        icon_name = ''
-    if os.path.exists(icon_name):
-        ui.list2.item(k).setIcon(QtGui.QIcon(icon_name))
-"""
-
 class MainWindowWidget(QtWidgets.QWidget):
 
     def __init__(self):
         super(MainWindowWidget, self).__init__()
 
     def mouseMoveEvent(self, event):
-        global site, MainWindow, ui
+        global site, ui
         pos = event.pos()
         px = pos.x()
-        x = MainWindow.width()
+        x = self.width()
         dock_w = ui.dockWidget_3.width()
         if ui.orientation_dock == 'right':
             if px <= x and px >= x-6:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
+                logger.info('show options sidebar')
             elif px <= x-dock_w and ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
                 if not ui.list1.isHidden():
@@ -263,6 +221,7 @@ class MainWindowWidget(QtWidgets.QWidget):
             if px >= 0 and px <= 10:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
+                logger.info('show options sidebar')
             elif px >= dock_w and ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
                 if not ui.list1.isHidden():
@@ -270,9 +229,10 @@ class MainWindowWidget(QtWidgets.QWidget):
                 elif not ui.list2.isHidden():
                     ui.list2.setFocus()
 
-        if MainWindow.isFullScreen() and not ui.tab_5.isHidden():
+        if self.isFullScreen() and not ui.tab_5.isHidden():
+            logger.info('FullScreen Window but not video')
             ht = self.height()
-            if pos.y() <= ht and pos.y()> ht - 5 and ui.frame1.isHidden():
+            if pos.y() <= ht and pos.y() > ht - 5 and ui.frame1.isHidden():
                 ui.frame1.show()
                 ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
             elif pos.y() <= ht-32 and not ui.frame1.isHidden():
@@ -338,6 +298,7 @@ class labelDock(QtWidgets.QLabel):
 
     def __init__(self, *args, **kwargs):
         QtWidgets.QLabel.__init__(self)
+        
     def mouseMoveEvent(self, event):
         logger.info(event.pos())
 
@@ -505,7 +466,9 @@ class MySlider(QtWidgets.QSlider):
 
 
 class List3(QtWidgets.QListWidget):
-    
+    """
+    Options Sidebar Widget
+    """
     def __init__(self, parent):
         super(List3, self).__init__(parent)
 
@@ -592,7 +555,9 @@ class List3(QtWidgets.QListWidget):
         
         
 class List4(QtWidgets.QListWidget):
-    
+    """
+    Filter Titlelist Widget
+    """
     def __init__(self, parent):
         super(List4, self).__init__(parent)
 
@@ -637,7 +602,9 @@ class List4(QtWidgets.QListWidget):
             
             
 class List5(QtWidgets.QListWidget):
-    
+    """
+    Filter Playlist Widget
+    """
     def __init__(self, parent):
         super(List5, self).__init__(parent)
 
@@ -680,7 +647,9 @@ class List5(QtWidgets.QListWidget):
                     
                     
 class List6(QtWidgets.QListWidget):
-    
+    """
+    Queue Widget List
+    """
     def __init__(self, parent):
         super(List6, self).__init__(parent)
 
@@ -1337,17 +1306,6 @@ class QDockNew(QtWidgets.QDockWidget):
         if ev.button() == QtCore.Qt.LeftButton:
             self.hide()
             ui.list4.hide()
-    
-    
-def findimg(img):
-    if img:
-        jpgn = os.path.basename(img[0])
-        logger.info("Pic Name=" + jpgn)
-        picn = os.path.join(TMPDIR, jpgn)
-        logger.info(picn)
-        if not os.path.isfile(picn):
-            subprocess.Popen(["wget", img[0], "-O", picn])
-    return picn
 
 
 try:
@@ -1367,11 +1325,19 @@ except AttributeError:
 
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow, media_data=None):
+    def setupUi(self, MainWindow, media_data=None, home_val=None,
+                scr_width=None, scr_height=None):
         global BASEDIR, screen_width, screen_height, home
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         #MainWindow.resize(875, 600)
-        self.media_data = media_data
+        if media_data is not None:
+            self.media_data = media_data
+        if home_val is not None:
+            home = home_val
+        if scr_width is not None:
+            screen_width = scr_width
+        if scr_height is not None:
+            screen_height = scr_height
         icon_path = os.path.join(BASEDIR, 'tray.png')
         if not os.path.exists(icon_path):
             icon_path = '/usr/share/kawaii-player/tray.png'
@@ -2424,6 +2390,7 @@ class Ui_MainWindow(object):
         self.download_video = 0
         self.total_seek = 0
         self.new_tray_widget = None
+        self.widget_style = WidgetStyleSheet(self, home, BASEDIR)
         self.player_val = 'mpv'
         self.mpvplayer_started = False
         self.mplayerLength = 0
@@ -4196,496 +4163,6 @@ class Ui_MainWindow(object):
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
-        
-    def buttonStyle(self, widget=None):
-        global home, BASEDIR, desktop_session, app
-        png_home = os.path.join(BASEDIR, '1.png')
-        if not widget:
-            self.dockWidget_3.setStyleSheet("font:bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.tab_6.setStyleSheet("font:bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);")
-            try:
-                if desktop_session.lower() != 'plasma':
-                    self.tab_2.setStyleSheet("font:bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);")
-            except NameError as e:
-                print(e)
-            self.tab_5.setStyleSheet("font:bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);")
-            #self.btnWebClose.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            #self.btnWebHide.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            #self.btnWebPrev.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            #self.btnWebNext.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.btn20.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.btn201.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.btnOpt.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.go_opt.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.text.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%)")
-            #self.label.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%)")
-            self.text_save_btn.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px")
-            self.goto_epn.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 25%);border:rgba(0, 0, 0, 30%);border-radius:3px;")
-            self.line.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            self.frame.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 25%);border:rgba(0, 0, 0, 30%);border-radius:3px;")
-            self.frame1.setStyleSheet("font: bold 11px;color:white;background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px;")
-            self.torrent_frame.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);")
-            self.float_window.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);")
-            self.player_opt.setStyleSheet("font:bold 11px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;height:20px")
-            
-            
-            self.player_opt.setStyleSheet("""
-            QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
-            QPushButton{border-radius:0px;max-height:30px;}
-            QPushButton::hover{background-color: yellow;color: black;}
-            QPushButton:pressed{background-color: violet;}""")
-            
-            
-            
-            self.btn1.setStyleSheet("""QComboBox {
-            min-height:30px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            selection-color:yellow;
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::focus {
-            color:yellow;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            
-            
-            self.btnAddon.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            selection-color:yellow;
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::focus {
-            color:yellow;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            self.comboView.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            padding: 1px 1px 1px 1px;
-            font:bold 12px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            self.slider.setStyleSheet("""QSlider:groove:horizontal {
-            height: 8px;
-            border:rgba(0, 0, 0, 30%);
-            background:rgba(0, 0, 0, 30%);
-            margin: 2px 0;
-            }
-            QSlider:handle:horizontal {
-            background: qlineargradient(
-                x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-            border: 1px solid #5c5c5c;
-            width: 2px;
-            margin: -2px 0; 
-            border-radius: 3px;
-            }
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }
-                """)
-            self.list1.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius:3px;
-            }
-            
-            QListWidget:item {
-            height: 30px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            self.list4.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            self.list5.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            self.list6.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            self.scrollArea.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            self.scrollArea1.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            if self.list_with_thumbnail:
-                self.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                QListWidget:item {height: 128px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: bold 12px;color:black;
-                background-image:url('1.png');}""")
-            else:
-                self.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                QListWidget:item {height: 30px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: bold 12px;color:black;
-                background-image:url('1.png');}""")
-            self.list3.setStyleSheet("""QListWidget{
-            font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item {
-            height: 20px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: violet;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: bold 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            self.progress.setStyleSheet("""QProgressBar{
-            font: bold 12px;
-            color:white;
-            background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 1%) ;
-            border-radius: 1px;
-            text-align: center;}
-            
-            QProgressBar:chunk {
-            background-color: rgba(255, 255, 255, 30%);
-            width: 10px;
-            margin: 0.5px;
-            }}""")
-            
-            self.progressEpn.setStyleSheet("""QProgressBar{
-            font: bold 12px;
-            color:white;
-            background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 1%) ;
-            border-radius: 1px;
-            text-align: center;
-            }
-            
-            QProgressBar:chunk {
-            background-color: rgba(255, 255, 255, 30%);
-            width: 10px;
-            margin: 0.5px;
-            }}""")
-            try:
-                if desktop_session.lower() != 'plasma':
-                    self.btnWebReviews.setStyleSheet("""QComboBox {
-                    min-height:0px;
-                    max-height:50px;
-                    border-radius: 3px;
-                    font-size:10px;
-                    padding: 1px 1px 1px 1px;
-                    font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-                    }
-                    QComboBox::drop-down {
-                    width: 47px;
-                    border: 0px;
-                    color:white;
-                    }
-                    QComboBox::down-arrow {
-                    width: 2px;
-                    height: 2px;
-                    }""")
-            except NameError as e:
-                print(e)
-        
-            self.btn30.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            self.btn2.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            self.btn3.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            
-            self.btn10.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""") 
-            
-            self.chk.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            font-size:9px;
-            padding: 1px 1px 1px 1px;
-            font:bold 12px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""") 
-
-            self.comboBox20.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            self.comboBox30.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            self.btnOpt.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            
-            self.label_torrent_stop.setStyleSheet("""
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }
-                """)
-            
-            self.label_down_speed.setStyleSheet("""
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }
-                """)
-            
-            self.label_up_speed.setStyleSheet("""
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }""")
-        else:
-            if widget == self.list2:
-                if self.list_with_thumbnail:
-                    self.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                    color:white;background:rgba(0, 0, 0, 30%);
-                    border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                    QListWidget:item {height: 128px;}
-                    QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                    color: violet;}
-                    QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                    QMenu{font: bold 12px;color:black;
-                    background-image:url('1.png');}""")
-                else:
-                    self.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                    color:white;background:rgba(0, 0, 0, 30%);
-                    border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                    QListWidget:item {height: 30px;}
-                    QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                    color: violet;}
-                    QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                    QMenu{font: bold 12px;color:black;
-                    background-image:url('1.png');}""")
-                    
-        
 
     def setPlayerFocus(self):
         global player_focus
@@ -8093,7 +7570,7 @@ class Ui_MainWindow(object):
             if 'yt' in review_site.lower() and 'youtube' not in cur_location and QT_WEB_ENGINE:
                 self.web.close()
                 self.web.deleteLater()
-                self.web = Browser(ui, home, screen_width, quality, site, self.epn_arr_list)
+                self.web = Browser(self, home, screen_width, self.quality_val, site, self.epn_arr_list)
                 self.web.setObjectName(_fromUtf8("web"))
                 self.horizontalLayout_5.addWidget(self.web)
             print(self.web, '2')
@@ -10579,7 +10056,6 @@ class Ui_MainWindow(object):
             logger.info('------------------{0}'.format(nm))
             if nm.split('&')[4] == 'True':
                 old_nm = nm
-                #nm = ui.epn_return_from_bookmark(nm)
                 new_torrent_signal = DoGetSignalNew()
                 if ui.https_media_server:
                     https_val = 'https'
@@ -13865,7 +13341,7 @@ class Ui_MainWindow(object):
             #ui.goto_epn.show()
             show_hide_playlist = 1
             self.list2.setFocus()
-        self.buttonStyle(self.list2)
+        self.widget_style.apply_stylesheet(self.list2)
         
     def video_mode_layout(self):
         global layout_mode, default_arr_setting, opt, new_tray_widget, tray
@@ -13919,7 +13395,7 @@ class Ui_MainWindow(object):
             self.list2.setFocus()
             
         MainWindow.showMaximized()
-        self.buttonStyle(self.list2)
+        self.widget_style.apply_stylesheet(self.list2)
         
     def _set_window_frame(self):
         global new_tray_widget
@@ -14361,7 +13837,7 @@ def main():
     MainWindow = MainWindowWidget()
     MainWindow.setMouseTracking(True)
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow, media_data)
+    ui.setupUi(MainWindow, media_data=media_data)
     ui.media_data.set_ui(ui)
     ui.tab_5.set_mpvplayer(player=Player, mpvplayer=mpvplayer)
     ui.btn1.setFocus()
@@ -14391,7 +13867,7 @@ def main():
             
     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, picn, first_time=True))
     
-    ui.buttonStyle()
+    ui.widget_style.apply_stylesheet()
     
     if not os.path.exists(os.path.join(home, 'src', 'Plugins')):
         os.makedirs(os.path.join(home, 'src', 'Plugins'))
