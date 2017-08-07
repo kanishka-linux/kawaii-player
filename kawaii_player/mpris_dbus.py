@@ -15,9 +15,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
-
-
-
 """
 
 import os
@@ -112,7 +109,7 @@ class MprisServer(dbus.service.Object):
     @pyqtSlot(str, str, list)
     def _emitMeta(self, info, site, epnArrList):
         global tray, new_tray_widget
-        print(type(tray), type(new_tray_widget), type(site), type(epnArrList))
+        #print(type(tray), type(new_tray_widget), type(site), type(epnArrList))
         art_url = self.ui.default_background
         artist = 'Kawaii-Player'
         title = 'Kawaii-Player'
