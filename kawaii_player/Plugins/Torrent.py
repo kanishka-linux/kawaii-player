@@ -18,18 +18,9 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-
-import sys
-import urllib
-import pycurl
-from io import StringIO, BytesIO
-import re
-import random
-import subprocess
-from subprocess import check_output
-from bs4 import BeautifulSoup
-import os.path
-from subprocess import check_output
+import os
+import shutil
+from PyQt5 import QtWidgets
 from player_functions import send_notification, ccurl
 try:
     import libtorrent as lt
@@ -38,17 +29,15 @@ except:
     notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
     send_notification(notify_txt)
 
-from PyQt5 import QtWidgets
-import shutil
-
 
 class Torrent():
     def __init__(self, tmp):
         self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
         self.tmp_dir = tmp
+        
     def getOptions(self):
-            criteria = ['Open', 'History', 'LocalStreaming']
-            return criteria
+        criteria = ['Open', 'History', 'LocalStreaming']
+        return criteria
         
     def search(self, name):
         m = ['Not Available']
