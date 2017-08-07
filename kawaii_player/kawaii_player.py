@@ -9954,6 +9954,7 @@ class Ui_MainWindow(object):
         fit_size = 8. Fit to Screen Height (Left Side) with black border
         """
         #print(color,'--color--')
+        logger.info('{0}:{1}:{2}:{3}:{4}:{5}'.format(picn,fanart,fit_size,widget,widget_size,color))
         global screen_height, screen_width
         if not color:
             color = 'RGB'
@@ -9976,7 +9977,10 @@ class Ui_MainWindow(object):
                         wpercent = (basewidth / float(img.size[0]))
                         hsize = int((float(img.size[1]) * float(wpercent)))
                     img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-                    img.save(str(fanart))
+                    bg = Image.new(color, (basewidth, hsize))
+                    bg.paste(img, (0, 0))
+                    bg.save(str(fanart), 'JPEG', quality=100)
+                    #img.save(str(fanart))
                 elif fit_size == 3:
                     baseheight = screen_height
                     try:
@@ -9988,7 +9992,10 @@ class Ui_MainWindow(object):
                     wpercent = (baseheight / float(img.size[1]))
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
-                    img.save(str(fanart), 'JPEG', quality=100)
+                    #img.save(str(fanart), 'JPEG', quality=100)
+                    bg = Image.new(color, (wsize, screen_height))
+                    bg.paste(img, (0, 0))
+                    bg.save(str(fanart), 'JPEG', quality=100)
                 elif fit_size == 7:
                     baseheight = screen_height
                     try:
@@ -10102,11 +10109,14 @@ class Ui_MainWindow(object):
             wp = float(baseheight/hsize)
             nbw = int(float(wp)*float(basewidth))
             img = img.resize((nbw, baseheight), PIL.Image.ANTIALIAS)
+            bg = Image.new('RGB', (nbw, baseheight))
         else:
             img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-        
+            bg = Image.new('RGB', (basewidth, hsize))
         tmp_img = (os.path.join(TMPDIR, 'new_tmp.jpg'))
-        img.save(str(tmp_img), 'JPEG', quality=100)
+        bg.paste(img, (0, 0))
+        bg.save(str(tmp_img), 'JPEG', quality=100)
+        #img.save(str(tmp_img), 'JPEG', quality=100)
         return tmp_img
 
     def videoImage(self, picn, thumbnail, fanart, summary):
@@ -10138,9 +10148,12 @@ class Ui_MainWindow(object):
                 if (picn == thumbnail == fanart):
                     pass
                 else:
-                    QtCore.QTimer.singleShot(10, partial(set_mainwindow_palette, fanart))
-                if 'poster.jpg' in poster:
-                    picn = self.change_aspect_only(poster)
+                    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart))
+                try:
+                    if 'poster.jpg' in poster:
+                        picn = self.change_aspect_only(poster)
+                except Exception as e:
+                    print(e, '--10147--')
                     
                 logger.info(picn)
                 self.label.setPixmap(QtGui.QPixmap(picn, "1"))
