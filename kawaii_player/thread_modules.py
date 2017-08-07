@@ -550,12 +550,13 @@ class ThreadingThumbnail(QtCore.QThread):
 
 class ThreadingExample(QtCore.QThread):
     
-    def __init__(self, name, logr):
+    def __init__(self, name, logr, tmp):
         QtCore.QThread.__init__(self)
-        global logger
+        global logger, TMPDIR
         self.name1 = name
         self.interval = 1
         logger = logr
+        TMPDIR = tmp
         
     def __del__(self):
         self.wait()
