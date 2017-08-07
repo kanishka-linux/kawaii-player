@@ -9872,7 +9872,7 @@ class Ui_MainWindow(object):
                     fan = os.path.join(music_dir_art_name, 'fanart.jpg')
                     thumb = os.path.join(music_dir_art_name, 'thumbnail.jpg')
                     if not os.path.exists(poster) and srch != "offline" and self.get_artist_metadata:	
-                        self.threadPool.append(ThreadingExample(nm, logger))
+                        self.threadPool.append(ThreadingExample(nm, logger, TMPDIR))
                         self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
                         self.threadPool[len(self.threadPool)-1].start()
                     else:
@@ -9917,7 +9917,7 @@ class Ui_MainWindow(object):
                         and artist_name_mplayer.lower() != "none" 
                         and artist_name_mplayer and self.get_artist_metadata):	
                     print('--starting--thread--')
-                    self.threadPool.append(ThreadingExample(nm, logger))
+                    self.threadPool.append(ThreadingExample(nm, logger, TMPDIR))
                     self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
                     self.threadPool[len(self.threadPool)-1].start()
                 elif os.path.exists(poster) or os.path.exists(fan) or os.path.exists(thumb):
