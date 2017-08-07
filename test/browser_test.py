@@ -10,8 +10,8 @@ class TestBrowser(unittest.TestCase):
         app = QtWidgets.QApplication(sys.argv)
         MainWindow = MainWindowWidget()
         ui = Ui_MainWindow()
-        ui.setupUi(MainWindow)
-        ui.buttonStyle()
+        ui.setupUi(MainWindow, home_val=home, scr_width=800, scr_height=600)
+        ui.widget_style.apply_stylesheet()
         ui.reviewsWeb(
             srch_txt='mushishi', review_site='tvdb', action='context_menu')
         MainWindow.show()
@@ -19,10 +19,13 @@ class TestBrowser(unittest.TestCase):
         
         
 if __name__ == '__main__':
-    global ui
+    global ui, home
     BASEDIR, BASEFILE = os.path.split(os.path.abspath(__file__))
     parent_basedir, __ = os.path.split(BASEDIR)
     print(parent_basedir)
+    home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii_player_test')
+    if not os.path.exists(home):
+        os.makedirs(home)
     sys.path.insert(0, parent_basedir)
     k_dir = os.path.join(parent_basedir, 'kawaii_player')
     sys.path.insert(0, k_dir)
