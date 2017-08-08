@@ -44,6 +44,7 @@ from player_functions import send_notification, write_files, open_files
 from player_functions import get_lan_ip, ccurl, naturallysorted
 from yt import get_yt_url, get_yt_sub_
 from settings_widget import LoginAuth
+from serverlib import ServerLib
 try:
     from stream import get_torrent_download_location, torrent_session_status
 except Exception as e:
@@ -60,7 +61,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     playlist_auth_dict = {}
 
     def process_HEAD(self):
-        global ui, logger
+        global ui, logger, getdb
         global path_final_Url, curR
 
         arg_dict = ui.get_parameters_value(
@@ -114,7 +115,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 nm = str(base64.b64decode(nm).decode('utf-8'))
                 if nm.split('&')[4] == 'True':
                     old_nm = nm
-                    #nm = ui.epn_return_from_bookmark(nm)
                     new_torrent_signal = doGETSignal()
                     if ui.https_media_server:
                         https_val = 'https'
@@ -123,7 +123,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     nm = https_val+"://"+ui.local_ip+':'+str(ui.local_port)+'/'
                     new_torrent_signal.new_signal.emit(old_nm)
                 else:
-                    nm = ui.epn_return_from_bookmark(nm, from_client=True)
+                    nm = getdb.epn_return_from_bookmark(nm, from_client=True)
             except Exception as e:
                 print(e)
         elif path.startswith('site=') or path.startswith('stream_'):
@@ -597,7 +597,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def create_playlist(
             self, site, site_option, name, epnArrList, new_video_local_stream, 
             siteName, my_ipaddress, shuffle_list, play_id):
-        global logger, html_default_arr
+        global logger, html_default_arr, getdb
         old_name = []
         _new_epnArrList = []
         n_url_name = 'unknown'
@@ -636,7 +636,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if '##' in k:
                         name = new_k.rsplit('##', 1)[-1]
                         n_art = name
-                n_url_file = ui.get_file_name_from_bookmark(site, site_option, name, i, epnArrList)
+                n_url_file = getdb.get_file_name_from_bookmark(site, site_option, name, i, epnArrList)
                 logger.info(name)
                 if (site.lower() == 'video' or site.lower() == 'music' or 
                         site.lower() == 'local' or site.lower().startswith('playlist') 
@@ -771,7 +771,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         return extra_fields
 
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
-        global ui, home, html_default_arr, logger
+        global ui, home, html_default_arr, logger, getdb
         global path_final_Url, curR, site
 
         arg_dict = ui.get_parameters_value(
@@ -1144,7 +1144,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             print(st, st_o, srch)
             if st and st_o and srch:
                 print(srch_exact, '=srch_exact', st, st_o, srch)
-                epn_arr, st, st_o, new_str, st_nm = ui.options_from_bookmark(
+                epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
                 if epn_arr:
@@ -1155,7 +1155,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 #if not srch:
                 #	srch = st_o
                 print(srch_exact, '=srch_exact')
-                original_path_name = ui.options_from_bookmark(
+                original_path_name = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
                 if original_path_name:
@@ -1467,7 +1467,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 logger.info('------------------{0}'.format(nm))
                 if nm.split('&')[4] == 'True':
                     old_nm = nm
-                    #nm = ui.epn_return_from_bookmark(nm)
                     new_torrent_signal = doGETSignal()
                     if ui.https_media_server:
                         https_val = 'https'
@@ -1530,7 +1529,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             b = b'Remote Control Not Allowed'
                             self.final_message(b)
                     else:
-                        nm = ui.epn_return_from_bookmark(nm, from_client=True)
+                        nm = getdb.epn_return_from_bookmark(nm, from_client=True)
                         self.process_url(nm, get_bytes)
             except Exception as e:
                 print(e)
@@ -1741,7 +1740,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 msg = 'Empty Response'
                 hist_folder = os.path.join(home, 'History', 'Torrent')
                 try:
-                    ui.record_torrent(new_url, hist_folder)
+                    getdb.record_torrent(new_url, hist_folder)
                     msg = 'Got Torrent: refresh Torrent->History'
                 except Exception as e:
                     print(e)
@@ -2268,8 +2267,8 @@ class doGETSignal(QtCore.QObject):
         
 @pyqtSlot(str)
 def goto_ui_jump(nm):
-    global ui
-    url = ui.epn_return_from_bookmark(nm, from_client=True)
+    global getdb
+    url = getdb.epn_return_from_bookmark(nm, from_client=True)
 
 
 @pyqtSlot(str)
@@ -2453,7 +2452,8 @@ class ThreadServerLocal(QtCore.QThread):
     media_server_start = pyqtSignal(str)
 
     def __init__(self, ip, port, ui_widget=None, hm=None, logr=None, window=None):
-        global ui, MainWindow, home, logger, html_default_arr, BASEDIR, TMPDIR, OSNAME
+        global ui, MainWindow, home, logger, html_default_arr, getdb
+        global BASEDIR, TMPDIR, OSNAME
         QtCore.QThread.__init__(self)
         self.ip = ip
         self.port = int(port)
@@ -2471,6 +2471,11 @@ class ThreadServerLocal(QtCore.QThread):
         BASEDIR = arg_dict['BASEDIR']
         TMPDIR = arg_dict['TMPDIR']
         OSNAME = os.name
+        if ui.getdb is None:
+            getdb = ServerLib(ui, home, BASEDIR, TMPDIR, logger)
+        elif isinstance(ui.getdb, ServerLib):
+            logger.info('--server--initiated---2477--')
+            getdb = ui.getdb
 
     def __del__(self):
         self.wait()                        
