@@ -25,7 +25,8 @@ from player_functions import send_notification, ccurl
 try:
     import libtorrent as lt
     from stream import ThreadServer, TorrentThread, get_torrent_info, get_torrent_info_magnet
-except:
+except Exception as err:
+    print(err, '--29--')
     notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
     send_notification(notify_txt)
 
