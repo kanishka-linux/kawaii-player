@@ -44,7 +44,7 @@ setup(
     url='https://github.com/kanishka-linux/kawaii-player', 
     long_description="README.md", 
     packages=[
-        'kawaii_player', 'kawaii_player.Plugins', 
+        'kawaii_player', 'kawaii_player.Plugins', 'kawaii_player.widgets',
         'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit'
         ], 
     include_package_data=True, 
