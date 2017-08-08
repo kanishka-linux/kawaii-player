@@ -3485,68 +3485,68 @@ class Ui_MainWindow(object):
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             
     def playerStop(self):
-            global quitReally, mpvplayer, thumbnail_indicator, total_till, browse_cnt
-            global iconv_r_indicator, iconv_r, curR, wget, Player, show_hide_cover
-            global show_hide_playlist, show_hide_titlelist, video_local_stream
-            global idw, new_tray_widget
-            
-            if mpvplayer:
-                if mpvplayer.processId() > 0:
-                    quitReally = "yes"
-                    mpvplayer.write(b'\n quit \n')
-                    self.player_play_pause.setText(self.player_buttons['play'])
-                    if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
-                        if not self.float_window.isHidden():
-                            if self.float_window.isFullScreen():
-                                self.float_window.showNormal()
-                            else:
-                                pass
+        global quitReally, mpvplayer, thumbnail_indicator, total_till, browse_cnt
+        global iconv_r_indicator, iconv_r, curR, wget, Player, show_hide_cover
+        global show_hide_playlist, show_hide_titlelist, video_local_stream
+        global idw, new_tray_widget
+        
+        if mpvplayer:
+            if mpvplayer.processId() > 0:
+                quitReally = "yes"
+                mpvplayer.write(b'\n quit \n')
+                self.player_play_pause.setText(self.player_buttons['play'])
+                if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
+                    if not self.float_window.isHidden():
+                        if self.float_window.isFullScreen():
+                            self.float_window.showNormal()
                         else:
-                            self.tab_5.showNormal()
-                            self.tab_5.hide()
-                            if self.fullscreen_mode == 0:
-                                if show_hide_titlelist == 1:
-                                    self.list1.show()
-                                    #self.frame.show()
-                                if show_hide_cover == 1:
-                                    self.label.show()
-                                    self.text.show()
-                                if show_hide_titlelist == 1:
-                                    self.list2.show()
-                                    #ui.goto_epn.show()
-                                self.list2.setFocus()
-                            elif self.fullscreen_mode == 1:
-                                self.tab_6.show()
-                            
+                            pass
                     else:
-                        if not self.float_window.isHidden():
-                            if self.float_window.isFullScreen():
-                                self.float_window.showNormal()
-                            else:
-                                pass
+                        self.tab_5.showNormal()
+                        self.tab_5.hide()
+                        if self.fullscreen_mode == 0:
+                            if show_hide_titlelist == 1:
+                                self.list1.show()
+                                #self.frame.show()
+                            if show_hide_cover == 1:
+                                self.label.show()
+                                self.text.show()
+                            if show_hide_titlelist == 1:
+                                self.list2.show()
+                                #ui.goto_epn.show()
+                            self.list2.setFocus()
+                        elif self.fullscreen_mode == 1:
+                            self.tab_6.show()
+                        
+                else:
+                    if not self.float_window.isHidden():
+                        if self.float_window.isFullScreen():
+                            self.float_window.showNormal()
                         else:
-                            
-                            if ((str(idw) != str(int(self.tab_5.winId()))) 
-                                    and (str(idw) != str(int(self.label.winId())))):
-                                if iconv_r_indicator:
-                                    iconv_r = iconv_r_indicator[0]
-                                self.thumbnail_window_present_mode()
-                            elif (str(idw) == str(int(self.tab_5.winId()))):
-                                self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
-                                self.gridLayout.setSpacing(5)
-                                self.tab_6.setMaximumSize(10000, 10000)
-                                self.tab_5.hide()
-                                i = 0
-                                thumbnail_indicator[:]=[]
-                                if iconv_r_indicator:
-                                    iconv_r = iconv_r_indicator[0]
-                                else:
-                                    iconv_r = 4
-                                QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
-                    if MainWindow.isFullScreen():
-                        MainWindow.showNormal()
-                        MainWindow.showMaximized()
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                            pass
+                    else:
+                        
+                        if ((str(idw) != str(int(self.tab_5.winId()))) 
+                                and (str(idw) != str(int(self.label.winId())))):
+                            if iconv_r_indicator:
+                                iconv_r = iconv_r_indicator[0]
+                            self.thumbnail_window_present_mode()
+                        elif (str(idw) == str(int(self.tab_5.winId()))):
+                            self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
+                            self.gridLayout.setSpacing(5)
+                            self.tab_6.setMaximumSize(10000, 10000)
+                            self.tab_5.hide()
+                            i = 0
+                            thumbnail_indicator[:]=[]
+                            if iconv_r_indicator:
+                                iconv_r = iconv_r_indicator[0]
+                            else:
+                                iconv_r = 4
+                            QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
+                if MainWindow.isFullScreen():
+                    MainWindow.showNormal()
+                    MainWindow.showMaximized()
+                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                         
                         
     def shufflePlaylist(self):
@@ -3654,7 +3654,8 @@ class Ui_MainWindow(object):
             'Show/Hide Video', 'Show/Hide Cover And Summary', 
             'Lock Playlist', 'Shuffle', 'Stop After Current File', 
             'Continue(default Mode)', 'Set Media Server User/PassWord', 
-            'Start Media Server', 'Turn ON Remote Control', 'Set Current Background As Default', 'Settings'
+            'Start Media Server', 'Turn ON Remote Control',
+            'Set Current Background As Default', 'Settings'
             ]
         
         print(val)
@@ -4584,96 +4585,96 @@ class Ui_MainWindow(object):
         self.lock_process = False
             
     def thumbnail_label_update(self):
-            global total_till, browse_cnt, home, iconv_r, site
-            global thumbnail_indicator, mpvplayer, tab_6_size_indicator
-            global icon_size_arr, finalUrlFound, total_till_epn
-            
-            m=[]
-            self.scrollArea.hide()
-            self.scrollArea1.show()
-            if iconv_r == 1 and not self.tab_5.isHidden():
-                self.tab_6.setMaximumSize(self.width_allowed, 16777215)
-            else:
-                self.tab_6.setMaximumSize(16777215, 16777215)
-            print("width="+str(self.tab_6.width()))
-            
-            if iconv_r > 1:
-                w = float((self.tab_6.width()-60)/iconv_r)
-                #h = float((9*w)/16)
-                h = int(w/self.image_aspect_allowed)
-                if self.tab_5.isHidden() and mpvplayer:
-                    if mpvplayer.processId() > 0:
-                        if tab_6_size_indicator:
-                            l= (tab_6_size_indicator[0]-60)/iconv_r
-                        else:
-                            l = self.tab_6.width()-60
-                        w = float(l)
-                        #h = float((9*w)/16)
-                        h = int(w/self.image_aspect_allowed)
-            elif iconv_r == 1:
-                w = float(self.tab_6.width()-60)
-                #w = float(self.tab_6.width())
-                #h = float((9*w)/16)
-                h = int(w/self.image_aspect_allowed)
-            width = str(int(w))
-            height = str(int(h))
-            print("self.width="+width)
-            print("self.height="+height)
-            
-            if icon_size_arr:
-                icon_size_arr[:]=[]
-                
-            icon_size_arr.append(width)
-            icon_size_arr.append(height)
-            
-            if not thumbnail_indicator:
-                thumbnail_indicator.append("Thumbnail View")
-            length = self.list2.count()
+        global total_till, browse_cnt, home, iconv_r, site
+        global thumbnail_indicator, mpvplayer, tab_6_size_indicator
+        global icon_size_arr, finalUrlFound, total_till_epn
         
-            if total_till_epn > 0:
-                i = 0
-                #j = 5
-                j = iconv_r+1
-                k = 0
-                while(i<length):
-                    p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-                    p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
-                    #p4="self.label_epn_"+str(i)+".setScaledContents(True)"
-                    p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                    p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                    exec (p2)
-                    exec (p3)
-                    #exec (p4)
-                    exec (p5)
-                    exec (p6)
-                    i=i+1
-                    k = k+1
-                    if k == iconv_r:
-                        j = j + 2*iconv_r
-                        k = 0
-                        
-                length1 = 2*length
-                i = length
-                if iconv_r == 1:
-                    j = 3
-                else:
-                    j = 2*iconv_r
-                k = 0
-                while(i<length1):
-                    p2="self.label_epn_"+str(i)+".setMinimumWidth("+width+")"
-                    p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                    p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                    exec (p2)
-                    exec (p5)
-                    exec (p6)
-                    i=i+1
-                    k = k+1
-                    if k == iconv_r:
-                        j = j+2*iconv_r
-                        k = 0
-                total_till_epn = length1
-            print(browse_cnt)
-            print(length)
+        m=[]
+        self.scrollArea.hide()
+        self.scrollArea1.show()
+        if iconv_r == 1 and not self.tab_5.isHidden():
+            self.tab_6.setMaximumSize(self.width_allowed, 16777215)
+        else:
+            self.tab_6.setMaximumSize(16777215, 16777215)
+        print("width="+str(self.tab_6.width()))
+        
+        if iconv_r > 1:
+            w = float((self.tab_6.width()-60)/iconv_r)
+            #h = float((9*w)/16)
+            h = int(w/self.image_aspect_allowed)
+            if self.tab_5.isHidden() and mpvplayer:
+                if mpvplayer.processId() > 0:
+                    if tab_6_size_indicator:
+                        l= (tab_6_size_indicator[0]-60)/iconv_r
+                    else:
+                        l = self.tab_6.width()-60
+                    w = float(l)
+                    #h = float((9*w)/16)
+                    h = int(w/self.image_aspect_allowed)
+        elif iconv_r == 1:
+            w = float(self.tab_6.width()-60)
+            #w = float(self.tab_6.width())
+            #h = float((9*w)/16)
+            h = int(w/self.image_aspect_allowed)
+        width = str(int(w))
+        height = str(int(h))
+        print("self.width="+width)
+        print("self.height="+height)
+        
+        if icon_size_arr:
+            icon_size_arr[:]=[]
+            
+        icon_size_arr.append(width)
+        icon_size_arr.append(height)
+        
+        if not thumbnail_indicator:
+            thumbnail_indicator.append("Thumbnail View")
+        length = self.list2.count()
+    
+        if total_till_epn > 0:
+            i = 0
+            #j = 5
+            j = iconv_r+1
+            k = 0
+            while(i<length):
+                p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
+                p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
+                #p4="self.label_epn_"+str(i)+".setScaledContents(True)"
+                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
+                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
+                exec (p2)
+                exec (p3)
+                #exec (p4)
+                exec (p5)
+                exec (p6)
+                i=i+1
+                k = k+1
+                if k == iconv_r:
+                    j = j + 2*iconv_r
+                    k = 0
+                    
+            length1 = 2*length
+            i = length
+            if iconv_r == 1:
+                j = 3
+            else:
+                j = 2*iconv_r
+            k = 0
+            while(i<length1):
+                p2="self.label_epn_"+str(i)+".setMinimumWidth("+width+")"
+                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
+                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
+                exec (p2)
+                exec (p5)
+                exec (p6)
+                i=i+1
+                k = k+1
+                if k == iconv_r:
+                    j = j+2*iconv_r
+                    k = 0
+            total_till_epn = length1
+        print(browse_cnt)
+        print(length)
             
     def thumbnail_label_update_epn(self):
         global total_till, browse_cnt, home, iconv_r, site
