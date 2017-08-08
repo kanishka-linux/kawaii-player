@@ -567,11 +567,17 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 **Dependencies installation in Arch for pyqt5 version.**
 
-sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-urllib3 python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen
+sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen
 
 **Dependencies installation in Ubuntu 16.04**
 
-sudo apt-get install python3 python3-pyqt5 python3-pycurl python3-urllib3 python3-pil python3-bs4 python3-lxml python3-taglib curl wget libnotify-bin mpv mplayer ffmpegthumbnailer sqlite3 python3-libtorrent youtube-dl python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebkit python3-dbus python3-mutagen
+sudo apt install python3 python3-pyqt5 python3-pycurl python3-pil python3-bs4 python3-lxml python3-taglib curl wget libnotify-bin mpv mplayer ffmpegthumbnailer sqlite3 python3-libtorrent youtube-dl python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebkit python3-dbus python3-mutagen
+
+**Dependencies installation in Fedora 25+**
+
+first enable rpmfusion repository
+
+dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3-pycurl python3-lxml python3-beautifulsoup4 python3-pytaglib python3-mutagen rb_libtorrent-python3 curl wget libnotify python3-dbus python3-pillow python3-dbus
 
 ## Troubleshooting
 

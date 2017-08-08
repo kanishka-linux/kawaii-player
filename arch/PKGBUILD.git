@@ -6,14 +6,12 @@ pkgdesc="An Audio/Video Manager and Front End for mpv/mplayer along with functio
 arch=(any)
 conflicts=('kawaii-player')
 license=('GPL3')
-depends=('python' 'qt5-webengine' 'python-pyqt5' 'python-pycurl' 'curl' 'libnotify' 'python-dbus' 'libtorrent-rasterbar' 'python-mutagen'
-        'python-beautifulsoup4' 'python-pillow' 'python-lxml' 'mpv' 'mplayer' 'ffmpegthumbnailer' 'sqlite3' 'python-pytaglib' 
-	 'youtube-dl' 'wget')
+depends=('python' 'qt5-webengine' 'python-pyqt5' 'python-pycurl' 'curl' 'libnotify' 'python-dbus' 'libtorrent-rasterbar' 'python-pytaglib' 'python-mutagen' 'python-beautifulsoup4' 'python-pillow' 'python-lxml' 'mpv' 'mplayer' 'ffmpegthumbnailer' 'sqlite3' 'youtube-dl' 'wget')
 #optdepends=('livestreamer' 'youtube-dl' 'wget')
 makedepends=('git')
 
-source=("git+https://github.com/kanishka-linux/kawaii-player.git")
-
+#source=("git+https://github.com/kanishka-linux/kawaii-player.git")
+source=("git+https://github.com/kanishka-linux/kawaii-player.git#branch=devel")
 md5sums=('SKIP')
 _gitname=kawaii_player
 
@@ -23,24 +21,22 @@ package() {
   _bpath="${srcdir}/kawaii-player/${_gitname}"
 
   install -d "${pkgdir}/usr/share/${_pkgname}/"
-  install -d "${pkgdir}/usr/share/${_pkgname}/Plugins/"
   install -d "${pkgdir}/usr/share/applications/"
   install -d "${pkgdir}/usr/bin/"
   
   for file in "${_bpath}/"*;do
   	nm=$(echo $file | rev | cut -d'/' -f1 | rev)
   	if [ -d "$file" ];then
-		if [ $nm == 'Plugins' ];then
-			_plugin_path="$file/"
-			for plugins in "${_plugin_path}"*;do
-				plugin_name=$(echo $plugins | rev | cut -d'/' -f1 | rev)
-				if [ plugin_name != 'installPlugins.py' ];then
-					echo $plugins
-					echo 'Plugins copying'
-					install -Dm755 "$plugins" "${pkgdir}/usr/share/${_pkgname}/Plugins/"
-				fi
-			done
-		fi
+		install -d "${pkgdir}/usr/share/${_pkgname}/${nm}/"
+		_plugin_path="$file/"
+		for plugins in "${_plugin_path}"*;do
+			plugin_name=$(echo $plugins | rev | cut -d'/' -f1 | rev)
+			if [ plugin_name != 'installPlugins.py' ];then
+				echo $plugins
+				echo 'Plugins copying'
+				install -Dm755 "$plugins" "${pkgdir}/usr/share/${_pkgname}/${nm}/"
+			fi
+		done
   	else
 		if [ $nm == 'kawaii-player.desktop' ];then
 			echo $file
