@@ -10,8 +10,8 @@ depends=('python' 'qt5-webengine' 'python-pyqt5' 'python-pycurl' 'curl' 'libnoti
 #optdepends=('livestreamer' 'youtube-dl' 'wget')
 makedepends=('git')
 
-#source=("git+https://github.com/kanishka-linux/kawaii-player.git")
-source=("git+https://github.com/kanishka-linux/kawaii-player.git#branch=devel")
+source=("git+https://github.com/kanishka-linux/kawaii-player.git")
+#source=("git+https://github.com/kanishka-linux/kawaii-player.git#branch=devel")
 md5sums=('SKIP')
 _gitname=kawaii_player
 
