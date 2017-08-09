@@ -3541,7 +3541,7 @@ class Ui_MainWindow(object):
                             if iconv_r_indicator:
                                 iconv_r = iconv_r_indicator[0]
                             else:
-                                iconv_r = 4
+                                iconv_r = 5
                             QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
                 if MainWindow.isFullScreen():
                     MainWindow.showNormal()
@@ -5392,7 +5392,7 @@ class Ui_MainWindow(object):
         if iconv_r_indicator:
             iconv_r = iconv_r_indicator[0]
         else:
-            iconv_r = 4
+            iconv_r = 5
         self.tab_6.setMaximumSize(10000, 10000)
         browse_cnt = 0
         self.tab_6.hide()
@@ -12498,7 +12498,7 @@ def main():
     pause_indicator = []
     mpv_indicator = []
     memory_num_arr = []
-    iconv_r = 4
+    iconv_r = 5
     interval = 0
     slider_clicked = "no"
     buffering_mplayer = "no"
