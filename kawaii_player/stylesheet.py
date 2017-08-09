@@ -98,7 +98,27 @@ class WidgetStyleSheet:
             width: 2px;
             height: 2px;
             }""")
-
+            
+            gui.comboBoxMode.setStyleSheet("""QComboBox {
+            border-radius: 3px;
+            font-size:10px;
+            padding: 1px 1px 1px 1px;
+            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
+            selection-color:yellow;
+            }
+            QComboBox::drop-down {
+            width: 47px;
+            border: 0px;
+            color:black;
+            }
+            QComboBox::focus {
+            color:yellow;
+            }
+            QComboBox::down-arrow {
+            width: 2px;
+            height: 2px;
+            }""")
+            
             gui.btnAddon.setStyleSheet("""QComboBox {
             min-height:20px;
             max-height:63px;
