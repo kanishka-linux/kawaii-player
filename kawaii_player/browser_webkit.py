@@ -557,7 +557,8 @@ class Browser(QtWebKitWidgets.QWebView):
                     url = self.img_url.toString()
                 else:
                     return 0
-
+                if '#' in url:
+                    url = url.split('#')[0]
                 if option.lower() == "download as fanart":
                     r = self.ui.list1.currentRow()
                     nm = self.ui.get_title_name(r)
