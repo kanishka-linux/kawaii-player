@@ -19,6 +19,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import datetime
+from functools import partial
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 try:
@@ -469,7 +470,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                         print(e)
                     QtCore.QTimer.singleShot(1000, partial(ui.update_thumbnail_position, context='attach_video'))
                 else:
-                    QtCore.QTimer.singleShot(1000, partial(ui.update_thumbnail_position))
+                    QtCore.QTimer.singleShot(1000, ui.update_thumbnail_position)
             ui.float_window_dim = [
                 ui.float_window.pos().x(), ui.float_window.pos().y(), 
                 ui.float_window.width(), ui.float_window.height()
