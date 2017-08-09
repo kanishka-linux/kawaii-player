@@ -551,7 +551,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if iconv_r_indicator:
                         iconv_r = iconv_r_indicator[0]
                     else:
-                        iconv_r = 4
+                        iconv_r = 5
                     self.ui.set_parameters_value(thumb_indicator='empty',
                                                  iconv=iconv_r)
                     #num = self.ui.list2.currentRow()
