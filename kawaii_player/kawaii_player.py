@@ -3991,74 +3991,58 @@ class Ui_MainWindow(object):
             del item
             del lines[index]
             write_files(file_name, lines, line_by_line=True)
-            
-    def adjustVideoScreen(self, value):
-        global mpvplayer, cur_label_num, fullscr
-        if mpvplayer:
-            if mpvplayer.processId()>0 and fullscr != 1: 
-                w = float(800)
-                #h = float((9*w)/16)
-                h = int(w/self.image_aspect_allowed)
-                p2="self.label_"+str(cur_label_num)+".x()"
-                p3="self.label_"+str(cur_label_num)+".y()"
-                posx=eval(p2)
-                posy=eval(p3)
-                print("vertical="+str(self.scrollArea1.verticalScrollBar().maximum()))
-                self.scrollArea1.verticalScrollBar().setValue(posy+h)
-                self.scrollArea1.horizontalScrollBar().setValue(posx+w)
-                print("horiz="+str(self.scrollArea1.horizontalScrollBar().maximum()))
         
     def viewPreference(self):
         global viewMode
         viewMode = str(self.comboView.currentText())
         
     def prev_thumbnails(self):
-            global thumbnail_indicator, total_till, browse_cnt, tmp_name
-            global label_arr, total_till_epn, iconv_r, mpvplayer, iconv_r_indicator
-            
+        global thumbnail_indicator, total_till, browse_cnt, tmp_name
+        global label_arr, total_till_epn, iconv_r, mpvplayer, iconv_r_indicator
+        
+        self.scrollArea1.hide()
+        self.scrollArea.show()
+        i = 0
+        try:
+            self.labelFrame2.setText(self.list1.currentItem().text())
+        except AttributeError as attr_err:
+            print(attr_err)
+            return 0
+        if thumbnail_indicator:
+            print("prev_thumb")
+            print(thumbnail_indicator)
+            thumbnail_indicator.pop()
+            print(thumbnail_indicator)
+            while(i<total_till_epn):
+                t = "self.label_epn_"+str(i)+".deleteLater()"
+                exec (t)
+                i = i+1
+            total_till_epn=0
+        print(total_till, 2*self.list1.count()-1, '--prev-thumbnail--')
+        if mpvplayer.processId() > 0:
+            print(mpvplayer.processId(), '--prev-thumb--')
+            iconv_r = 1
+            self.next_page('not_deleted')
+            QtWidgets.QApplication.processEvents()
+            row = self.list1.currentRow()
+            p1 = "self.label_"+str(row)+".y()"
+            yy=eval(p1)
+            self.scrollArea.verticalScrollBar().setValue(yy)
+        elif total_till > 0 and total_till == 2*self.list1.count():
+            row = self.list1.currentRow()
+            p1 = "self.label_"+str(row)+".y()"
+            yy=eval(p1)
+            self.scrollArea.verticalScrollBar().setValue(yy)
             self.scrollArea1.hide()
             self.scrollArea.show()
-            i = 0
-            try:
-                self.labelFrame2.setText(self.list1.currentItem().text())
-            except AttributeError as attr_err:
-                print(attr_err)
-                return 0
-            if thumbnail_indicator:
-                print("prev_thumb")
-                print(thumbnail_indicator)
-                thumbnail_indicator.pop()
-                print(thumbnail_indicator)
-                while(i<total_till_epn):
-                    t = "self.label_epn_"+str(i)+".deleteLater()"
-                    exec (t)
-                    i = i+1
-                total_till_epn=0
-            print(total_till, 2*self.list1.count()-1, '--prev-thumbnail--')
-            if mpvplayer.processId() > 0:
-                print(mpvplayer.processId(), '--prev-thumb--')
-                iconv_r = 1
-                self.next_page('not_deleted')
-                QtWidgets.QApplication.processEvents()
-                row = self.list1.currentRow()
-                p1 = "self.label_"+str(row)+".y()"
-                yy=eval(p1)
-                self.scrollArea.verticalScrollBar().setValue(yy)
-            elif total_till > 0 and total_till == 2*self.list1.count():
-                row = self.list1.currentRow()
-                p1 = "self.label_"+str(row)+".y()"
-                yy=eval(p1)
-                self.scrollArea.verticalScrollBar().setValue(yy)
-                self.scrollArea1.hide()
-                self.scrollArea.show()
-            else:
-                self.next_page('deleted')
-                row = self.list1.currentRow()
-                p1 = "self.label_"+str(row)+".y()"
-                yy=eval(p1)
-                self.scrollArea.verticalScrollBar().setValue(yy)
-                self.scrollArea1.hide()
-                self.scrollArea.show()
+        else:
+            self.next_page('deleted')
+            row = self.list1.currentRow()
+            p1 = "self.label_"+str(row)+".y()"
+            yy=eval(p1)
+            self.scrollArea.verticalScrollBar().setValue(yy)
+            self.scrollArea1.hide()
+            self.scrollArea.show()
                 
     def mouseMoveEvent(self, event):
         print("hello how r u" )
@@ -4301,96 +4285,95 @@ class Ui_MainWindow(object):
         name=tmp_name[browse_cnt]
         length = len(tmp_name)
         m =[]
-        if (bookmark 
-                    and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
-                file_name = os.path.join(home, 'Bookmark', status+'.txt')
-                line_a = open_files(file_name, True)
-                tmp = line_a[browse_cnt]
-                tmp = re.sub('\n', '', tmp)
-                tmp1 = tmp.split(':')
-                site = tmp1[0]
-                if site == "Music" or site == "Video":
-                    opt = "Not Defined"
-                    if site == "Music":
-                        music_opt = tmp1[1]
-                    else:
-                        video_opt = tmp1[1]
+        if (bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
+            file_name = os.path.join(home, 'Bookmark', status+'.txt')
+            line_a = open_files(file_name, True)
+            tmp = line_a[browse_cnt]
+            tmp = re.sub('\n', '', tmp)
+            tmp1 = tmp.split(':')
+            site = tmp1[0]
+            if site == "Music" or site == "Video":
+                opt = "Not Defined"
+                if site == "Music":
+                    music_opt = tmp1[1]
                 else:
-                    opt = tmp1[1]
-                pre_opt = tmp1[2]
-                siteName = tmp1[2]
-                base_url = int(tmp1[3])
-                embed = int(tmp1[4])
-                name = tmp1[5]
-                logger.info(name)
-                if len(tmp1) > 6:
-                    if tmp1[6] == "True":
-                        finalUrlFound = True
-                    else:
-                        finalUrlFound = False
-                    if tmp1[7] == "True":
-                        refererNeeded = True
-                    else:
-                        refererNeeded = False
-                    if len(tmp1) >= 9:
-                        if tmp1[8] == "True":
-                            video_local_stream = True
-                        else:
-                            video_local_stream = False
-                    print(finalUrlFound)
-                    print(refererNeeded)
-                    print(video_local_stream)
+                    video_opt = tmp1[1]
+            else:
+                opt = tmp1[1]
+            pre_opt = tmp1[2]
+            siteName = tmp1[2]
+            base_url = int(tmp1[3])
+            embed = int(tmp1[4])
+            name = tmp1[5]
+            logger.info(name)
+            if len(tmp1) > 6:
+                if tmp1[6] == "True":
+                    finalUrlFound = True
+                else:
+                    finalUrlFound = False
+                if tmp1[7] == "True":
+                    refererNeeded = True
                 else:
                     refererNeeded = False
-                    finalUrlFound = False
-                    video_local_stream = False
-                logger.info(site + ":"+opt)
+                if len(tmp1) >= 9:
+                    if tmp1[8] == "True":
+                        video_local_stream = True
+                    else:
+                        video_local_stream = False
+                print(finalUrlFound)
+                print(refererNeeded)
+                print(video_local_stream)
+            else:
+                refererNeeded = False
+                finalUrlFound = False
+                video_local_stream = False
+            logger.info(site + ":"+opt)
         
         label_arr.append(name)
         label_arr.append(name)
         
         if (site == "Local") and opt !="History":
-                m = []
-                name=self.original_path_name[browse_cnt]
-                if os.path.exists(os.path.join(home, 'Local', name)):
-                    if os.path.exists(os.path.join(home, 'Local', name, 'Ep.txt')):
-                        lines = open_files(
-                                os.path.join(home, 'Local', name, 'Ep.txt'), True)
-                        for i in lines:
-                            j = i.strip()
-                            k = os.path.basename(j)
-                            m.append(k)
-                    picn = os.path.join(home, 'Local', name, 'thumbnail.jpg')
-                    m.append(picn)
-                    if os.path.exists(
-                            os.path.join(home, 'Local', name, 'summary.txt')):
-                        summary = open_files(
-                                os.path.join(home, 'Local', name, 'summary.txt'), 
-                                False)
-                        m.append(summary)
-                    else:
-                        m.append("Summary Not Available")
+            m = []
+            name=self.original_path_name[browse_cnt]
+            if os.path.exists(os.path.join(home, 'Local', name)):
+                if os.path.exists(os.path.join(home, 'Local', name, 'Ep.txt')):
+                    lines = open_files(
+                            os.path.join(home, 'Local', name, 'Ep.txt'), True)
+                    for i in lines:
+                        j = i.strip()
+                        k = os.path.basename(j)
+                        m.append(k)
+                picn = os.path.join(home, 'Local', name, 'thumbnail.jpg')
+                m.append(picn)
+                if os.path.exists(
+                        os.path.join(home, 'Local', name, 'summary.txt')):
+                    summary = open_files(
+                            os.path.join(home, 'Local', name, 'summary.txt'), 
+                            False)
+                    m.append(summary)
+                else:
+                    m.append("Summary Not Available")
         elif site == "Video":
-                    picn = os.path.join(home, 'Local', name, 'thumbnail.jpg')
-                    m.append(picn)
-                    if os.path.exists(os.path.join(home, 'Local', name, 'summary.txt')):
-                        summary = open_files(
-                                os.path.join(home, 'Local', name, 'summary.txt'), 
-                                False)
-                        m.append(summary)
-                    else:
-                        m.append("Summary Not Available")
+            picn = os.path.join(home, 'Local', name, 'thumbnail.jpg')
+            m.append(picn)
+            if os.path.exists(os.path.join(home, 'Local', name, 'summary.txt')):
+                summary = open_files(
+                        os.path.join(home, 'Local', name, 'summary.txt'), 
+                        False)
+                m.append(summary)
+            else:
+                m.append("Summary Not Available")
         elif site == "Music":
-                    picn = os.path.join(home, 'Music', 'Artist', name, 'thumbnail.jpg')
-                    m.append(picn)
-                    logger.info(picn)
-                    if os.path.exists(os.path.join(home, 'Music', 'Artist', name, 'bio.txt')):
-                        summary = open_files(
-                                os.path.join(home, 'Music', 'Artist', name, 'bio.txt'), 
-                                False)
-                        m.append(summary)
-                    else:
-                        m.append("Summary Not Available")
+            picn = os.path.join(home, 'Music', 'Artist', name, 'thumbnail.jpg')
+            m.append(picn)
+            logger.info(picn)
+            if os.path.exists(os.path.join(home, 'Music', 'Artist', name, 'bio.txt')):
+                summary = open_files(
+                        os.path.join(home, 'Music', 'Artist', name, 'bio.txt'), 
+                        False)
+                m.append(summary)
+            else:
+                m.append("Summary Not Available")
         elif opt == "History":
             if site == "SubbedAnime" or site == "DubbedAnime":
                 dir_name =os.path.join(home, 'History', site, siteName, name)	
@@ -4996,151 +4979,151 @@ class Ui_MainWindow(object):
         print("browse-cnt="+str(browse_cnt))
         print("length="+str(length))
         while(browse_cnt<length and browse_cnt < len(self.epn_arr_list)):
-                if site == "Local" or site=="None" or site == "Music" or site == "Video":
-                    if '	' in self.epn_arr_list[browse_cnt]:
-                        nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
-                        
-                        path = ((self.epn_arr_list[browse_cnt]).split('	')[1])
-                    else:
-                        nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
-                        path = (self.epn_arr_list[browse_cnt])
-                    if self.list1.currentItem():
-                        name_t = self.list1.currentItem().text()
-                    else:
-                        name_t = ''
-                    if self.list3.currentItem():
-                        if self.list3.currentItem().text() == 'Playlist':
-                            picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
-                        else:
-                            picnD = os.path.join(home, 'thumbnails', site, name_t)
+            if site == "Local" or site=="None" or site == "Music" or site == "Video":
+                if '	' in self.epn_arr_list[browse_cnt]:
+                    nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
+                    
+                    path = ((self.epn_arr_list[browse_cnt]).split('	')[1])
+                else:
+                    nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
+                    path = (self.epn_arr_list[browse_cnt])
+                if self.list1.currentItem():
+                    name_t = self.list1.currentItem().text()
+                else:
+                    name_t = ''
+                if self.list3.currentItem():
+                    if self.list3.currentItem().text() == 'Playlist':
+                        picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
                     else:
                         picnD = os.path.join(home, 'thumbnails', site, name_t)
-                    if not os.path.exists(picnD):
-                        os.makedirs(picnD)
-                    picn = os.path.join(picnD, nameEpn)+'.jpg'
-                    picn = picn.replace('#', '', 1)
-                    if picn.startswith(self.check_symbol):
-                        picn = picn[1:]
-                    path = path.replace('"', '')
-                    if not os.path.exists(picn) and not path.startswith('http'):
-                        self.generate_thumbnail_method(picn, 10, path)
-                    elif (not os.path.exists(picn) and path.startswith('http') 
-                                and 'youtube.com' in path):
-                            if '/watch?' in path:
-                                a = path.split('?')[-1]
-                                b = a.split('&')
-                                if b:
-                                    for i in b:
-                                        j = i.split('=')
-                                        k = (j[0], j[1])
-                                        m.append(k)
-                                else:
-                                    j = a.split('=')
-                                    k = (j[0], j[1])
-                                    m.append(k)
-                                d = dict(m)
-                            try:
-                                img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
-                                ccurl(img_url+'#'+'-o'+'#'+picn)
-                            except:
-                                pass
-                    if site == "Music":
-                        if os.path.exists(picn):
-                            if os.stat(picn).st_size == 0:
-                                art_n =(self.epn_arr_list[browse_cnt]).split('	')[2]
-                                pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
-                                if os.path.exists(pic):
-                                    picn = pic
-                elif site == "PlayLists":
-                    item = self.list2.item(browse_cnt)
-                    if item:
-                        nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
-                        nameEpn = str(nameEpn)
-                        path = ((self.epn_arr_list[browse_cnt]).split('	')[1])
-                        playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
-                        if not os.path.exists(playlist_dir):
-                            os.makedirs(playlist_dir)
-                        pl_n = self.list1.currentItem().text()
-                        playlist_name = os.path.join(playlist_dir, pl_n)
-                        if not os.path.exists(playlist_name):
-                            os.makedirs(playlist_name)
-                        picnD = os.path.join(playlist_name, nameEpn)
-                        picn = picnD+'.jpg'
-                        picn = picn.replace('#', '', 1)
-                        if picn.startswith(self.check_symbol):
-                            picn = picn[1:]
-                        path1 = path.replace('"', '')
-                        if not os.path.exists(picn) and not path1.startswith('http'):
-                            self.generate_thumbnail_method(picn, 10, path1)
-                        elif (not os.path.exists(picn) and path1.startswith('http') 
-                                and 'youtube.com' in path1):
-                            if '/watch?' in path1:
-                                a = path1.split('?')[-1]
-                                b = a.split('&')
-                                if b:
-                                    for i in b:
-                                        j = i.split('=')
-                                        k = (j[0], j[1])
-                                        m.append(k)
-                                else:
-                                    j = a.split('=')
-                                    k = (j[0], j[1])
-                                    m.append(k)
-                                d = dict(m)
-                            try:
-                                img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
-                                ccurl(img_url+'#'+'-o'+'#'+picn)
-                                self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
-                            except:
-                                pass
                 else:
-                    if finalUrlFound == True:
-                        if '	' in self.epn_arr_list[browse_cnt]:
-                            nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
-                        
-                        else:
-                            nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
-                        nameEpn = nameEpn
-                    else:
-                        if '	' in self.epn_arr_list[browse_cnt]:
-                            nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
-                        else:
-                            nameEpn = (self.epn_arr_list[browse_cnt])
-                        nameEpn = nameEpn
-                    picnD = os.path.join(home, 'thumbnails', name)
-                    if not os.path.exists(picnD):
-                        os.makedirs(picnD)
-                    picn = picnD+'/'+nameEpn+'.jpg'
+                    picnD = os.path.join(home, 'thumbnails', site, name_t)
+                if not os.path.exists(picnD):
+                    os.makedirs(picnD)
+                picn = os.path.join(picnD, nameEpn)+'.jpg'
+                picn = picn.replace('#', '', 1)
+                if picn.startswith(self.check_symbol):
+                    picn = picn[1:]
+                path = path.replace('"', '')
+                if not os.path.exists(picn) and not path.startswith('http'):
+                    self.generate_thumbnail_method(picn, 10, path)
+                elif (not os.path.exists(picn) and path.startswith('http') 
+                            and 'youtube.com' in path):
+                        if '/watch?' in path:
+                            a = path.split('?')[-1]
+                            b = a.split('&')
+                            if b:
+                                for i in b:
+                                    j = i.split('=')
+                                    k = (j[0], j[1])
+                                    m.append(k)
+                            else:
+                                j = a.split('=')
+                                k = (j[0], j[1])
+                                m.append(k)
+                            d = dict(m)
+                        try:
+                            img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
+                            ccurl(img_url+'#'+'-o'+'#'+picn)
+                        except:
+                            pass
+                if site == "Music":
+                    if os.path.exists(picn):
+                        if os.stat(picn).st_size == 0:
+                            art_n =(self.epn_arr_list[browse_cnt]).split('	')[2]
+                            pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
+                            if os.path.exists(pic):
+                                picn = pic
+            elif site == "PlayLists":
+                item = self.list2.item(browse_cnt)
+                if item:
+                    nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
+                    nameEpn = str(nameEpn)
+                    path = ((self.epn_arr_list[browse_cnt]).split('	')[1])
+                    playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
+                    if not os.path.exists(playlist_dir):
+                        os.makedirs(playlist_dir)
+                    pl_n = self.list1.currentItem().text()
+                    playlist_name = os.path.join(playlist_dir, pl_n)
+                    if not os.path.exists(playlist_name):
+                        os.makedirs(playlist_name)
+                    picnD = os.path.join(playlist_name, nameEpn)
+                    picn = picnD+'.jpg'
                     picn = picn.replace('#', '', 1)
                     if picn.startswith(self.check_symbol):
                         picn = picn[1:]
-                    #print()
+                    path1 = path.replace('"', '')
+                    if not os.path.exists(picn) and not path1.startswith('http'):
+                        self.generate_thumbnail_method(picn, 10, path1)
+                    elif (not os.path.exists(picn) and path1.startswith('http') 
+                            and 'youtube.com' in path1):
+                        if '/watch?' in path1:
+                            a = path1.split('?')[-1]
+                            b = a.split('&')
+                            if b:
+                                for i in b:
+                                    j = i.split('=')
+                                    k = (j[0], j[1])
+                                    m.append(k)
+                            else:
+                                j = a.split('=')
+                                k = (j[0], j[1])
+                                m.append(k)
+                            d = dict(m)
+                        try:
+                            img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
+                            ccurl(img_url+'#'+'-o'+'#'+picn)
+                            self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+                        except:
+                            pass
+            else:
+                if finalUrlFound == True:
+                    if '	' in self.epn_arr_list[browse_cnt]:
+                        nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
                     
-                if nameEpn.startswith('#'):
-                    nameEpn = nameEpn.replace('#', self.check_symbol, 1)
-                if os.path.exists(picn):
-                    picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(width), int(height)))
-                    img = QtGui.QPixmap(picn, "1")
-                    q1="self.label_epn_"+str(browse_cnt)+".setPixmap(img)"
-                    exec (q1)
-                    #print(browse_cnt)
-                    #q1 = "self.label_epn_{0}.setPixmap(img.scaled({1}, {2}, QtCore.Qt.KeepAspectRatio))".format(
-                    #		str(browse_cnt), w, h)
-                    #exec(q1)
-                sumry = "<html><h1>"+nameEpn+"</h1></html>"
-                #q4="self.label_epn_"+str(length+browse_cnt)+".setToolTip((sumry))"
-                #exec (q4)
-                q3="self.label_epn_"+str(length+browse_cnt)+".setText((nameEpn))"
-                exec (q3)
-                q3="self.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
-                exec(q3)
-                #p8="self.label_epn_"+str(length+browse_cnt)+".home(True)"
-                #exec (p8)
-                #p8="self.label_epn_"+str(length+browse_cnt)+".deselect()"
-                #exec (p8)
-                if (browse_cnt%10) == 0 or browse_cnt == 0:
-                    QtWidgets.QApplication.processEvents()
-                browse_cnt = browse_cnt+1
+                    else:
+                        nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
+                    nameEpn = nameEpn
+                else:
+                    if '	' in self.epn_arr_list[browse_cnt]:
+                        nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
+                    else:
+                        nameEpn = (self.epn_arr_list[browse_cnt])
+                    nameEpn = nameEpn
+                picnD = os.path.join(home, 'thumbnails', name)
+                if not os.path.exists(picnD):
+                    os.makedirs(picnD)
+                picn = picnD+'/'+nameEpn+'.jpg'
+                picn = picn.replace('#', '', 1)
+                if picn.startswith(self.check_symbol):
+                    picn = picn[1:]
+                #print()
+                
+            if nameEpn.startswith('#'):
+                nameEpn = nameEpn.replace('#', self.check_symbol, 1)
+            if os.path.exists(picn):
+                picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(width), int(height)))
+                img = QtGui.QPixmap(picn, "1")
+                q1="self.label_epn_"+str(browse_cnt)+".setPixmap(img)"
+                exec (q1)
+                #print(browse_cnt)
+                #q1 = "self.label_epn_{0}.setPixmap(img.scaled({1}, {2}, QtCore.Qt.KeepAspectRatio))".format(
+                #		str(browse_cnt), w, h)
+                #exec(q1)
+            sumry = "<html><h1>"+nameEpn+"</h1></html>"
+            #q4="self.label_epn_"+str(length+browse_cnt)+".setToolTip((sumry))"
+            #exec (q4)
+            q3="self.label_epn_"+str(length+browse_cnt)+".setText((nameEpn))"
+            exec (q3)
+            q3="self.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
+            exec(q3)
+            #p8="self.label_epn_"+str(length+browse_cnt)+".home(True)"
+            #exec (p8)
+            #p8="self.label_epn_"+str(length+browse_cnt)+".deselect()"
+            #exec (p8)
+            if (browse_cnt%10) == 0 or browse_cnt == 0:
+                QtWidgets.QApplication.processEvents()
+            browse_cnt = browse_cnt+1
         QtWidgets.QApplication.processEvents()
         QtWidgets.QApplication.processEvents()
 
@@ -5425,10 +5408,6 @@ class Ui_MainWindow(object):
         else:
             try:
                 QtCore.QTimer.singleShot(2000, partial(self.delete_web_instance, self.web))
-                #self.web.close()
-                #self.web.deleteLater()
-                #del self.web
-                #self.web = None
             except Exception as e:
                 print(e)
             #self.web = None
@@ -6340,27 +6319,27 @@ class Ui_MainWindow(object):
                     
         elif site == "SubbedAnime":
             if (tmp != "List") or (tmp != "Random") or (tmp != "History"):
-                    code = 7
-                    opt = tmp
-                    pre_opt = tmp	
-                    
-                    self.label.clear()
-                    self.line.clear()
-                    self.list1.clear()
-                    self.list2.clear()
-                    self.text.clear()
-                    
-                    if self.site_var:
-                        m = self.site_var.getCompleteList(siteName, category, opt) 
-                    list1_items = m
-                    for i in m:
-                        i = i.strip()
-                        if '	' in i:
-                            j = i.split(	)[0]
-                        else:
-                            j = i
-                        self.list1.addItem(j)
-                        self.original_path_name.append(i)
+                code = 7
+                opt = tmp
+                pre_opt = tmp	
+                
+                self.label.clear()
+                self.line.clear()
+                self.list1.clear()
+                self.list2.clear()
+                self.text.clear()
+                
+                if self.site_var:
+                    m = self.site_var.getCompleteList(siteName, category, opt) 
+                list1_items = m
+                for i in m:
+                    i = i.strip()
+                    if '	' in i:
+                        j = i.split(	)[0]
+                    else:
+                        j = i
+                    self.list1.addItem(j)
+                    self.original_path_name.append(i)
             
     def setPreOpt(self):
         global pre_opt, opt, hdr, base_url, site, insidePreopt, embed, home
@@ -6639,27 +6618,6 @@ class Ui_MainWindow(object):
             else:
                 self.rawlist_highlight()
     
-    def replace_lineByIndex(self, file_path, nepn, replc, index):
-        global opt, site, name, pre_opt, home, bookmark, base_url, embed, status
-        
-        lines = open_files(file_path, True)
-        length = len(lines)
-        lines[index] = replc
-        
-        if (index == length - 1) and (length > 1):
-            t = lines[index-1]
-            t = re.sub('\n', '', t)
-            lines[index-1]=t
-            
-        write_files(file_path, lines, line_by_line=True)
-        
-        if 'Ep.txt' in file_path:
-            lines = open_files(file_path, True)
-            self.epn_arr_list[:]=[]
-            for i in lines:
-                i = i.replace('\n', '')
-                self.epn_arr_list.append(i)
-    
     def update_list2(self):
         global site, refererNeeded, finalUrlFound, new_tray_widget
         update_pl_thumb = True
@@ -6764,8 +6722,7 @@ class Ui_MainWindow(object):
         if site == 'None':
             return 0
             
-        if (bookmark 
-                and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
+        if (bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
             file_path = os.path.join(home, 'Bookmark', status+'.txt')
             row = self.list1.currentRow()
             item = self.list1.item(row)
@@ -6778,30 +6735,6 @@ class Ui_MainWindow(object):
                     del lines[row]
                     length = len(lines) - 1
                     write_files(file_path, lines, line_by_line=True)
-        elif site == "Local":
-            r = self.list3.currentRow()
-            r1 = self.list3.item(r)
-            if r1:
-                t_opt = str(r1.text())
-                if t_opt == "All" or t_opt == "History":
-                    index = self.list1.currentRow()
-                    item = self.list1.item(index)
-                    if item:
-                        tmp_name = self.original_path_name[index]
-                        logger.info(tmp_name)
-                        if t_opt == "All":
-                            dir_path = os.path.join(home, 'Local', tmp_name)
-                        else:
-                            dir_path = os.path.join(home, 'History', 'Local', tmp_name)
-                            hist_path = os.path.join(home, 'History', 'Local', 'history.txt')
-                        if os.path.exists(dir_path):
-                            shutil.rmtree(dir_path)
-                        self.list1.takeItem(index)
-                        del item
-                        del self.original_path_name[index]
-                        self.list1.setCurrentRow(index)
-                        if t_opt == "History":
-                            write_files(hist_path, self.original_path_name, line_by_line=True)
         elif opt == "History":
             file_path = ''
             if site == "SubbedAnime" or site == "DubbedAnime":
@@ -6868,103 +6801,103 @@ class Ui_MainWindow(object):
         if num < 0:
             return 0
         if self.list2.currentItem() and num < len(self.epn_arr_list):
-                epn_h = self.list2.currentItem().text()
-                inter_val = 10
-                
-                if '	' in self.epn_arr_list[num]:
-                    a = (self.epn_arr_list[num]).split('	')[0]
-                    path = (self.epn_arr_list[num]).split('	')[1]
-                else:	
-                    a = os.path.basename(self.epn_arr_list[num])
-                    path = (self.epn_arr_list[num])
-                path = path.replace('#', '', 1)
-                if site == "PlayLists":
-                    path = path.replace('"', '')
-                logger.info(path)
-                a1 = a
-                self.text.clear()
-                if site != "Music":
-                    self.text.setText((a1))
-                a1 = a1.replace('#', '', 1)
-                if a1.startswith(self.check_symbol):
-                    a1 = a1[1:]
-                inter = str(inter_val)+'s'
-                picnD = ''
-                picn = ''
-                if (site == "PlayLists" or site == "Local" or site == "Video" 
-                        or site == "Music"):
-                    if site == 'PlayLists':
-                        playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
-                        if not os.path.exists(playlist_dir):
-                            os.makedirs(playlist_dir)
-                        if self.list1.currentItem():
-                            pl_n = self.list1.currentItem().text()
-                            playlist_name = os.path.join(playlist_dir, pl_n)
-                            if not os.path.exists(playlist_name):
-                                try:
-                                    os.makedirs(playlist_name)
-                                except Exception as e:
-                                    print(e)
-                                    return 0
-                            picnD = os.path.join(playlist_name, a1)
+            epn_h = self.list2.currentItem().text()
+            inter_val = 10
+            
+            if '	' in self.epn_arr_list[num]:
+                a = (self.epn_arr_list[num]).split('	')[0]
+                path = (self.epn_arr_list[num]).split('	')[1]
+            else:	
+                a = os.path.basename(self.epn_arr_list[num])
+                path = (self.epn_arr_list[num])
+            path = path.replace('#', '', 1)
+            if site == "PlayLists":
+                path = path.replace('"', '')
+            logger.info(path)
+            a1 = a
+            self.text.clear()
+            if site != "Music":
+                self.text.setText((a1))
+            a1 = a1.replace('#', '', 1)
+            if a1.startswith(self.check_symbol):
+                a1 = a1[1:]
+            inter = str(inter_val)+'s'
+            picnD = ''
+            picn = ''
+            if (site == "PlayLists" or site == "Local" or site == "Video" 
+                    or site == "Music"):
+                if site == 'PlayLists':
+                    playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
+                    if not os.path.exists(playlist_dir):
+                        os.makedirs(playlist_dir)
+                    if self.list1.currentItem():
+                        pl_n = self.list1.currentItem().text()
+                        playlist_name = os.path.join(playlist_dir, pl_n)
+                        if not os.path.exists(playlist_name):
                             try:
-                                picn = picnD+'.jpg'
-                            except:
-                                picn = str(picnD)+'.jpg'
-                    else:
-                        if self.list1.currentItem():
-                            name_t = self.list1.currentItem().text()
-                        else:
-                            name_t = ''
-                        if self.list3.currentItem() and site == 'Music':
-                            if self.list3.currentItem().text() == 'Playlist':
-                                picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
-                            else:
-                                picnD = os.path.join(home, 'thumbnails', site, name_t)
-                        else:
-                            picnD = os.path.join(home, 'thumbnails', site, name_t)
-                        #print(picnD, '=picnD')
-                        if not os.path.exists(picnD):
-                            try:
-                                os.makedirs(picnD)
+                                os.makedirs(playlist_name)
                             except Exception as e:
                                 print(e)
                                 return 0
-                        picn = os.path.join(picnD, a1)+'.jpg'
-                    if ((picn and not os.path.exists(picn) 
-                            and 'http' not in path) 
-                            or (picn and not os.path.exists(picn) 
-                            and 'http' in path and 'youtube.com' in path )):
-                        path = path.replace('"', '')
-                        if 'http' in path and 'youtube.com' in path and '/watch?' in path:
-                            path = self.create_img_url(path)
-                        self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
-                        self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
-                        length = len(self.threadPoolthumb)
-                        if length == 1:
-                            if not self.threadPoolthumb[0].isRunning():
-                                self.threadPoolthumb[0].start()
-                        
-                if not picnD:
+                        picnD = os.path.join(playlist_name, a1)
+                        try:
+                            picn = picnD+'.jpg'
+                        except:
+                            picn = str(picnD)+'.jpg'
+                else:
                     if self.list1.currentItem():
                         name_t = self.list1.currentItem().text()
                     else:
                         name_t = ''
-                    picnD = os.path.join(home, 'thumbnails', name_t)
+                    if self.list3.currentItem() and site == 'Music':
+                        if self.list3.currentItem().text() == 'Playlist':
+                            picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
+                        else:
+                            picnD = os.path.join(home, 'thumbnails', site, name_t)
+                    else:
+                        picnD = os.path.join(home, 'thumbnails', site, name_t)
+                    #print(picnD, '=picnD')
                     if not os.path.exists(picnD):
                         try:
                             os.makedirs(picnD)
                         except Exception as e:
                             print(e)
                             return 0
-                    try:
-                        picn = os.path.join(picnD, a1)+'.jpg'
-                    except:
-                        picn = os.path.join(picnD, str(a1))+'.jpg'
-                if os.path.exists(picn):
-                    self.label.setPixmap(QtGui.QPixmap(picn, "1"))
+                    picn = os.path.join(picnD, a1)+'.jpg'
+                if ((picn and not os.path.exists(picn) 
+                        and 'http' not in path) 
+                        or (picn and not os.path.exists(picn) 
+                        and 'http' in path and 'youtube.com' in path )):
+                    path = path.replace('"', '')
+                    if 'http' in path and 'youtube.com' in path and '/watch?' in path:
+                        path = self.create_img_url(path)
+                    self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
+                    self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
+                    length = len(self.threadPoolthumb)
+                    if length == 1:
+                        if not self.threadPoolthumb[0].isRunning():
+                            self.threadPoolthumb[0].start()
+                    
+            if not picnD:
+                if self.list1.currentItem():
+                    name_t = self.list1.currentItem().text()
                 else:
-                    pass
+                    name_t = ''
+                picnD = os.path.join(home, 'thumbnails', name_t)
+                if not os.path.exists(picnD):
+                    try:
+                        os.makedirs(picnD)
+                    except Exception as e:
+                        print(e)
+                        return 0
+                try:
+                    picn = os.path.join(picnD, a1)+'.jpg'
+                except:
+                    picn = os.path.join(picnD, str(a1))+'.jpg'
+            if os.path.exists(picn):
+                self.label.setPixmap(QtGui.QPixmap(picn, "1"))
+            else:
+                pass
                 
     def thumbnail_generated(self):
         print("Process Ended")
@@ -12019,19 +11952,19 @@ class Ui_MainWindow(object):
                 self.scrollArea.show()
                 
                 if (opt == "History" or (site == "Local" or site == 'PlayLists') 
-                            or bookmark):
-                        i = 0
-                        print(total_till, 2*self.list1.count()-1, '--count--')
-                        if total_till > 0 and not self.lock_process:
-                            if not self.scrollArea.isHidden():
-                                self.next_page('deleted')
-                            elif not self.scrollArea1.isHidden():
-                                self.thumbnail_label_update()
-                        elif total_till == 0:
-                            if not self.scrollArea.isHidden():
-                                self.next_page('deleted')
-                            elif not self.scrollArea1.isHidden():
-                                self.thumbnail_label_update()
+                        or bookmark):
+                    i = 0
+                    print(total_till, 2*self.list1.count()-1, '--count--')
+                    if total_till > 0 and not self.lock_process:
+                        if not self.scrollArea.isHidden():
+                            self.next_page('deleted')
+                        elif not self.scrollArea1.isHidden():
+                            self.thumbnail_label_update()
+                    elif total_till == 0:
+                        if not self.scrollArea.isHidden():
+                            self.next_page('deleted')
+                        elif not self.scrollArea1.isHidden():
+                            self.thumbnail_label_update()
                     
         list1_items[:] = []	
         for i in range(self.list1.count()):
@@ -12420,7 +12353,7 @@ class Ui_MainWindow(object):
 def main():
     global ui, MainWindow, tray, hdr, name, pgn, genre_num, site, name, epn, base_url
     global name1, embed, epn_goto, list1_items, opt, mirrorNo, mpv, queueNo, playMpv
-    global mpvAlive, pre_opt, insidePreopt, posterManually, labelGeometry, tray
+    global mpvAlive, pre_opt, insidePreopt, posterManually, labelGeometry
     global new_tray_widget
     global list2_items, quality, indexQueue, Player, startPlayer
     global rfr_url, category, fullscr, mpvplayer, curR, idw, idwMain, home, home1
