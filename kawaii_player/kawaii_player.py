@@ -3919,24 +3919,35 @@ class Ui_MainWindow(object):
         self.RemoveLibraryFolder.clicked.connect(self.removeFolderLibrary)
         self.LibraryClose.clicked.connect(self.LibraryDialog.close)
         
-        self.LibraryClose.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-        self.RemoveLibraryFolder.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-        self.AddLibraryFolder.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-        self.listLibrary.setStyleSheet("""QListWidget{
-        font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-        border:rgba(0, 0, 0, 30%);border-radius: 3px;
-        }
-        QListWidget:item:selected:active {
-        background:rgba(0, 0, 0, 20%);
-        color: violet;
-        }
-        QListWidget:item:selected:inactive {
-        border:rgba(0, 0, 0, 30%);
-        }
-        QMenu{
-            font: bold 12px;color:black;background-image:url('1.png');
-        }
-        """)
+        self.LibraryClose.setStyleSheet(
+            """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
+            border:rgba(0, 0, 0, 30%);border-radius: 3px;"""
+            )
+        self.RemoveLibraryFolder.setStyleSheet(
+            """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
+            border:rgba(0, 0, 0, 30%);border-radius: 3px;"""
+            )
+        self.AddLibraryFolder.setStyleSheet(
+            """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
+            border:rgba(0, 0, 0, 30%);border-radius: 3px;"""
+            )
+        self.listLibrary.setStyleSheet(
+            """QListWidget{
+                font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
+                border:rgba(0, 0, 0, 30%);border-radius: 3px;
+                }
+                QListWidget:item:selected:active {
+                    background:rgba(0, 0, 0, 20%);
+                    color: violet;
+                }
+                QListWidget:item:selected:inactive {
+                    border:rgba(0, 0, 0, 30%);
+                }
+                QMenu{
+                    font: bold 12px;color:black;background-image:url('1.png');
+                }
+            """
+            )
         picn = self.default_background
         palette	= QtGui.QPalette()
         palette.setBrush(QtGui.QPalette.Background, QtGui.QBrush(QtGui.QPixmap(picn)))
@@ -4079,12 +4090,12 @@ class Ui_MainWindow(object):
         global desktop_session
         try:
             if desktop_session.lower() != 'plasma':
-                web.setStyleSheet("font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-                web.setStyleSheet("""
-                QMenu{
-                    font: bold 12px;color:black;background-image:url('1.png');
-                }
-                """)
+                web.setStyleSheet(
+                    """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
+                    border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
+                web.setStyleSheet(
+                    """QMenu{font: bold 12px;color:black;
+                    background-image:url('1.png');}""")
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
@@ -4384,17 +4395,17 @@ class Ui_MainWindow(object):
             else:
                 dir_name =os.path.join(home, 'History', site, name)
             if os.path.exists(dir_name):
-                    logger.info(dir_name)
-                    picn = os.path.join(home, 'History', site, name, 'poster.jpg')
-                    thumbnail = os.path.join(home, 'History', site, name, 'thumbnail.jpg')
-                    picn = thumbnail
-                    m.append(os.path.join(dir_name, 'poster.jpg'))
-                    try:	
-                        summary = open_files(
-                                os.path.join(dir_name, 'summary.txt'), False)
-                        m.append(summary)
-                    except:
-                        m.append("Not Available")
+                logger.info(dir_name)
+                picn = os.path.join(home, 'History', site, name, 'poster.jpg')
+                thumbnail = os.path.join(home, 'History', site, name, 'thumbnail.jpg')
+                picn = thumbnail
+                m.append(os.path.join(dir_name, 'poster.jpg'))
+                try:	
+                    summary = open_files(
+                            os.path.join(dir_name, 'summary.txt'), False)
+                    m.append(summary)
+                except:
+                    m.append("Not Available")
             else:
                 m.append('No.jpg')
                 m.append('Not Available')
@@ -4871,7 +4882,6 @@ class Ui_MainWindow(object):
         print("width="+str(self.tab_6.width()))
         if iconv_r > 1:
             w = float((self.tab_6.width()-60)/iconv_r)
-            #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and mpvplayer:
                 if mpvplayer.processId() > 0:
@@ -4880,17 +4890,13 @@ class Ui_MainWindow(object):
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
-                    #h = float((9*w)/16)
                     h = int(w/self.image_aspect_allowed)
         elif iconv_r == 1:
             w = float(self.tab_6.width()-60)
-            #w = float(self.tab_6.width())
-            #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
         width = str(int(w))
         height = str(int(h))
-        #new_val_scroll = int(self.list2.count()/iconv_r)*(2*h)
-        #self.scrollAreaWidgetContents1.setMinimumHeight(new_val_scroll)
+        
         if icon_size_arr:
             icon_size_arr[:]=[]
         icon_size_arr.append(width)
@@ -4912,7 +4918,6 @@ class Ui_MainWindow(object):
                 p7 = "l_"+str(i)+" = weakref.ref(self.label_epn_"+str(i)+")"
                 p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
                 p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
-                #p4="self.label_epn_"+str(i)+".setScaledContents(True)"
                 p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
                 p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
                 p8 = "self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)".format(str(i))
@@ -4922,7 +4927,6 @@ class Ui_MainWindow(object):
                 exec(p7)
                 exec(p2)
                 exec(p3)
-                #exec(p4)
                 exec(p5)
                 exec(p6)
                 exec(p8)
@@ -4930,7 +4934,7 @@ class Ui_MainWindow(object):
                 i=i+1
                 if (i%50) == 0:
                     QtWidgets.QApplication.processEvents()
-                    print('created {0} label-frame'.format(i))
+                    logger.info('created {0} label-frame'.format(i))
                 k = k+1
                 if k == iconv_r:
                     j = j + 2*iconv_r
@@ -4950,34 +4954,31 @@ class Ui_MainWindow(object):
                 p2="self.label_epn_"+str(i)+".setMinimumWidth("+width+")"
                 p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
                 p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                #p8="self.label_epn_"+str(i)+".setAlignment(QtCore.Qt.AlignCenter)"
+                
                 p9="self.label_epn_"+str(i)+".setMaximumHeight("+hei_ght+")"
                 p10="self.label_epn_"+str(i)+".lineWrapMode()"
                 p11="self.label_epn_"+str(i)+".setReadOnly(True)"
-                #p12="self.label_epn_"+str(i)+".setMouseTracking(True)"
+               
                 exec(p1)
                 exec(p7)
                 exec(p2)
                 exec(p5)
                 exec(p6)
-                #exec(p8)
                 exec(p9)
                 exec(p10)
                 exec(p11)
-                #exec(p12)
                 
                 i=i+1
                 if (i%50) == 0:
-                    #QtWidgets.QApplication.processEvents()
-                    print('created {0} label-text-frame'.format(i))
+                    logger.info('created {0} label-text-frame'.format(i))
                 k = k+1
                 if k == iconv_r:
                     j = j+2*iconv_r
                     k = 0
             total_till_epn = length1
     
-        print("browse-cnt="+str(browse_cnt))
-        print("length="+str(length))
+        logger.info("browse-cnt="+str(browse_cnt))
+        logger.info("length="+str(length))
         while(browse_cnt<length and browse_cnt < len(self.epn_arr_list)):
             if site == "Local" or site=="None" or site == "Music" or site == "Video":
                 if '	' in self.epn_arr_list[browse_cnt]:
@@ -5097,7 +5098,6 @@ class Ui_MainWindow(object):
                 picn = picn.replace('#', '', 1)
                 if picn.startswith(self.check_symbol):
                     picn = picn[1:]
-                #print()
                 
             if nameEpn.startswith('#'):
                 nameEpn = nameEpn.replace('#', self.check_symbol, 1)
@@ -5106,21 +5106,14 @@ class Ui_MainWindow(object):
                 img = QtGui.QPixmap(picn, "1")
                 q1="self.label_epn_"+str(browse_cnt)+".setPixmap(img)"
                 exec (q1)
-                #print(browse_cnt)
-                #q1 = "self.label_epn_{0}.setPixmap(img.scaled({1}, {2}, QtCore.Qt.KeepAspectRatio))".format(
-                #		str(browse_cnt), w, h)
-                #exec(q1)
+                
             sumry = "<html><h1>"+nameEpn+"</h1></html>"
-            #q4="self.label_epn_"+str(length+browse_cnt)+".setToolTip((sumry))"
-            #exec (q4)
+            
             q3="self.label_epn_"+str(length+browse_cnt)+".setText((nameEpn))"
             exec (q3)
             q3="self.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
             exec(q3)
-            #p8="self.label_epn_"+str(length+browse_cnt)+".home(True)"
-            #exec (p8)
-            #p8="self.label_epn_"+str(length+browse_cnt)+".deselect()"
-            #exec (p8)
+            
             if (browse_cnt%10) == 0 or browse_cnt == 0:
                 QtWidgets.QApplication.processEvents()
             browse_cnt = browse_cnt+1
@@ -5410,7 +5403,6 @@ class Ui_MainWindow(object):
                 QtCore.QTimer.singleShot(2000, partial(self.delete_web_instance, self.web))
             except Exception as e:
                 print(e)
-            #self.web = None
             print('--web closed--')
             
         self.tab_2.hide()
@@ -6287,59 +6279,6 @@ class Ui_MainWindow(object):
         mirrorNo = 1
         if site == "SubbedAnime" or site == "DubbedAnime":
             self.epnfound()
-            
-    def setPreOptList(self):
-        global pre_opt, opt, list1_items, site, base_url, embed, mirrorNo, siteName
-        global category
-        tmp = str(self.list3.currentItem().text())
-        if site == "DubbedAnime":
-            if (tmp != "List") or (tmp != "Random") or (tmp != "History"):
-                opt = tmp
-                code = 2
-                pre_opt = tmp
-                
-                self.label.clear()
-                self.line.clear()
-                self.list1.clear()
-                self.list2.clear()
-                self.text.clear()
-                
-                if self.site_var:
-                    m = self.site_var.getCompleteList(siteName, category, opt) 
-                list1_items = m
-                self.original_path_name[:] = []
-                for i in m:
-                    i = i.strip()
-                    if '	' in i:
-                        j = i.split(	)[0]
-                    else:
-                        j = i
-                    self.list1.addItem(j)
-                    self.original_path_name.append(i)
-                    
-        elif site == "SubbedAnime":
-            if (tmp != "List") or (tmp != "Random") or (tmp != "History"):
-                code = 7
-                opt = tmp
-                pre_opt = tmp	
-                
-                self.label.clear()
-                self.line.clear()
-                self.list1.clear()
-                self.list2.clear()
-                self.text.clear()
-                
-                if self.site_var:
-                    m = self.site_var.getCompleteList(siteName, category, opt) 
-                list1_items = m
-                for i in m:
-                    i = i.strip()
-                    if '	' in i:
-                        j = i.split(	)[0]
-                    else:
-                        j = i
-                    self.list1.addItem(j)
-                    self.original_path_name.append(i)
             
     def setPreOpt(self):
         global pre_opt, opt, hdr, base_url, site, insidePreopt, embed, home
