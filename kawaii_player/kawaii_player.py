@@ -161,10 +161,12 @@ from settings_widget import LoginAuth
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
-from widgets.thumbnail import ThumbnailWidget
+from widgets.thumbnail import ThumbnailWidget, TitleThumbnailWidget
 from widgets.playlist import PlaylistWidget
 from widgets.titlelist import TitleListWidget
 from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
+from widgets.optionwidgets import *
+from widgets.scrollwidgets import *
 from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
@@ -260,19 +262,19 @@ class MyEventFilter(QtCore.QObject):
 class EventFilterFloatWindow(QtCore.QObject):
 
     def eventFilter(self, receiver, event):
-        global tray, MainWindow, ui, new_tray_widget
+        global tray, MainWindow, ui
         if event.type():
             #print("event is {0} with id {1}".format(event, event.type()))
             if(event.type() == QtCore.QEvent.Enter):
                 if ui.float_timer.isActive():
                     ui.float_timer.stop()
-                if new_tray_widget.hasFocus():
+                if ui.new_tray_widget.hasFocus():
                     print('focus')
                 else:
                     print('unFocus')
                 return 0
             elif(event.type() == QtCore.QEvent.Leave):
-                if new_tray_widget.remove_toolbar:
+                if ui.new_tray_widget.remove_toolbar:
                     if ui.float_timer.isActive():
                         ui.float_timer.stop()
                     ui.float_timer.start(10)
@@ -302,880 +304,6 @@ class labelDock(QtWidgets.QLabel):
         
     def mouseMoveEvent(self, event):
         logger.info(event.pos())
-
-
-class QLabelFloat(QtWidgets.QLabel):
-
-    def __init(self, parent):
-        QLabel.__init__(self, parent)
-
-    def mouseMoveEvent(self, event):
-        global new_tray_widget, ui
-        #if new_tray_widget.remove_toolbar:
-        if ui.float_timer.isActive():
-            ui.float_timer.stop()
-        if new_tray_widget.cover_mode.text() == ui.player_buttons['up']:
-            wid_height = int(ui.float_window.height()/3)
-        else:
-            wid_height = int(ui.float_window.height())
-        new_tray_widget.setMaximumHeight(wid_height)
-        new_tray_widget.show()
-        ui.float_timer.start(1000)
-        print('float')
-    def mouseEnterEvent(self, event):
-        print('Enter Float')
-
-
-class ExtendedQLabel(QtWidgets.QLabel):
-
-    def __init(self, parent):
-        QLabel.__init__(self, parent)
-
-    def mouseReleaseEvent(self, ev):
-        global name, tmp_name, opt, list1_items, curR
-        t=str(self.objectName())
-        t = re.sub('label_', '', t)
-        num = int(t)
-        ui.label_search.clear()
-        try:
-            name = str(ui.list1.item(num).text())
-        except Exception as err:
-            print(err, '--384--')
-            name = str(list1_items[num])
-            for i in range(ui.list1.count()):
-                if name == str(ui.list1.item(i).text()):
-                    num = i
-                    break
-        logger.info(name)
-        j = 0
-        ui.list1.setCurrentRow(num)
-        ui.labelFrame2.setText(ui.list1.currentItem().text())
-        ui.btn10.clear()
-        ui.btn10.addItem(_fromUtf8(""))
-        ui.btn10.setItemText(0, _translate("MainWindow", name, None))
-        ui.listfound()
-        ui.list2.setCurrentRow(0)
-        curR = 0
-        items = []
-        j=1
-        if not ui.lock_process:
-            ui.gridLayout.addWidget(ui.tab_6, 0, 1, 1, 1)
-            ui.thumbnailHide('ExtendedQLabel')
-            ui.IconViewEpn()
-            if not ui.scrollArea1.isHidden():
-                ui.scrollArea1.setFocus()
-
-    def mouseMoveEvent(self, event):
-        self.setFocus()
-
-    def contextMenuEvent(self, event):
-        global name, tmp_name, opt, list1_items, curR, nxtImg_cnt
-
-        t=str(self.objectName())
-        t = re.sub('label_', '', t)
-        num = int(t)
-        try:
-            name = tmp_name[num]
-        except:
-            name = tmp_name[num%len(tmp_name)]
-        logger.info(name)
-        menu = QtWidgets.QMenu(self)
-        rmPoster = menu.addAction("Remove Poster")
-        adPoster = menu.addAction("Find Image")
-        rset = menu.addAction("Reset Counter")
-        adImage = menu.addAction("Replace Image")
-        action = menu.exec_(self.mapToGlobal(event.pos()))
-        if action == rmPoster:
-            t=str(self.objectName())
-            p1 = "ui."+t+".clear()"
-            exec (p1)
-        elif action == adPoster:
-            if site == "SubbedAnime" and base_url == 15:
-                nam = re.sub('[0-9]*', '', name)
-            else:
-                nam = name
-            url = "https://www.google.co.in/search?q="+nam+"anime&tbm=isch"
-            logger.info(url)
-            content = ccurl(url)
-            n = re.findall('imgurl=[^"]*.jpg', content)
-            src= re.sub('imgurl=', '', n[nxtImg_cnt])
-            picn = os.path.join(TMPDIR, name+'.jpg')
-            if os.path.isfile(picn):
-                os.remove(picn)
-            subprocess.call(["curl", "-A", hdr, '--max-filesize', "-L", "-o", picn, src])
-            t=str(self.objectName())
-            img = QtGui.QPixmap(picn, "1")
-            q1="ui."+t+".setPixmap(img)"
-            t=str(self.objectName())
-            exec (q1)
-            nxtImg_cnt = nxtImg_cnt+1
-        elif action == rset:
-            nxtImg_cnt = 0
-        elif action == adImage:
-            ui.copyImg()
-
-
-class MySlider(QtWidgets.QSlider):
-
-    def __init__(self, parent):
-        super(MySlider, self).__init__(parent)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        
-    def mouseMoveEvent(self, event): 
-        global Player
-        t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
-        if Player == "mplayer":
-            l=str((datetime.timedelta(milliseconds=t)))
-        elif Player == "mpv":
-            l=str((datetime.timedelta(seconds=t)))
-        else:
-            l = str(0)
-        if '.' in l:
-            l = l.split('.')[0]
-        self.setToolTip(l)
-        
-    def mousePressEvent(self, event):
-        global mpvplayer, Player, current_playing_file_path, video_local_stream
-        #old_val = self.value()
-        #self.setValue(self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width())
-        #event.accept()
-        #new_val = self.value()
-        
-        old_val = int(self.value())
-        
-        t = ((event.x() - self.x())/self.width())
-        #self.setValue(int(t*100))
-        t = int(t*ui.mplayerLength)
-        new_val = t
-        if Player == 'mplayer':
-            print(old_val, new_val, int((new_val-old_val)/1000))
-        else:
-            print(old_val, new_val, int(new_val-old_val))
-        
-        if mpvplayer:
-            if mpvplayer.processId() > 0:
-                if Player== "mpv":
-                    var = bytes('\n '+"seek "+str(new_val)+" absolute"+' \n', 'utf-8')
-                    mpvplayer.write(var)
-                elif Player =="mplayer":
-                    #self.setValue(new_val)
-                    #QtWidgets.QApplication.processEvents()
-                    seek_val = int((new_val-old_val)/1000)
-                    var = bytes('\n '+"seek "+str(seek_val)+' \n', 'utf-8')
-                    mpvplayer.write(var)
-                
-
-
-class List3(QtWidgets.QListWidget):
-    """
-    Options Sidebar Widget
-    """
-    def __init__(self, parent):
-        super(List3, self).__init__(parent)
-
-    def keyPressEvent(self, event):
-        global category, home, site, bookmark
-        if event.key() == QtCore.Qt.Key_O:
-            ui.setPreOpt()
-        elif event.key() == QtCore.Qt.Key_Down:
-            nextr = self.currentRow() + 1
-            if nextr == self.count():
-                self.setCurrentRow(0)
-            else:
-                self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
-            prev_r = self.currentRow() - 1
-            if self.currentRow() == 0:
-                self.setCurrentRow(self.count()-1)
-            else:
-                self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Right:
-            if not ui.list1.isHidden():
-                ui.list1.setFocus()
-            elif not ui.scrollArea.isHidden():
-                ui.scrollArea.setFocus()
-            elif not ui.scrollArea1.isHidden():
-                ui.scrollArea1.setFocus()
-            ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_Return:
-            ui.options('clicked')
-        elif event.key() == QtCore.Qt.Key_Left:
-            #ui.btn1.setFocus()
-            ui.list2.setFocus()
-            if ui.auto_hide_dock:
-                ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_H:
-            ui.setPreOpt()
-        elif event.key() == QtCore.Qt.Key_Delete:
-            if site == "PlayLists":
-                index = self.currentRow()
-                item_r  = self.item(index)
-                if item_r:
-                    item = str(self.currentItem().text())
-                    if item != "Default":
-                        file_pls = os.path.join(home, 'Playlists', item)
-                        if os.path.exists(file_pls):
-                            os.remove(file_pls)
-                        self.takeItem(index)
-                        del item_r
-                        ui.list2.clear()
-            if bookmark:
-                index = self.currentRow()
-                item_r  = self.item(index)
-                if item_r:
-                    item = str(self.currentItem().text())
-                    bookmark_array = [
-                            'All', 'Watching', 'Completed', 'Incomplete', 
-                            'Later', 'Interesting', 'Music-Videos'
-                            ]
-                    if item not in bookmark_array:
-                        file_pls = os.path.join(home, 'Bookmark', item+'.txt')
-                        if os.path.exists(file_pls):
-                            os.remove(file_pls)
-                        self.takeItem(index)
-                        del item_r
-                        ui.list1.clear()
-                        ui.list2.clear()
-                        
-    def contextMenuEvent(self, event):
-        global name, tmp_name, opt, list1_items, curR, nxtImg_cnt, home, site, pre_opt
-        global base_url, category
-        #print name
-        menu = QtWidgets.QMenu(self)
-        history = menu.addAction("History")
-        anime = menu.addAction("Animes")
-        movie = menu.addAction("Movies")
-        action = menu.exec_(self.mapToGlobal(event.pos()))
-        if action == history:
-            ui.setPreOpt()
-        elif action == anime:
-            category = "Animes"
-        elif action == movie:
-            category = "Movies"
-        #super(List2, self).keyPressEvent(event)
-        
-        
-class List4(QtWidgets.QListWidget):
-    """
-    Filter Titlelist Widget
-    """
-    def __init__(self, parent):
-        super(List4, self).__init__(parent)
-
-    def keyPressEvent(self, event):
-        global category, home, site, bookmark
-        
-        if event.key() == QtCore.Qt.Key_Down:
-            nextr = self.currentRow() + 1
-            if nextr == self.count():
-                ui.go_page.setFocus()
-            else:
-                self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
-            prev_r = self.currentRow() - 1
-            if self.currentRow() == 0:
-                ui.go_page.setFocus()
-            else:
-                self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Return:
-            ui.search_list4_options()
-            
-    def contextMenuEvent(self, event):
-        global name, tmp_name, opt, list1_items, curR, nxtImg_cnt, home, site, pre_opt
-        global base_url, category
-        #print name
-        menu = QtWidgets.QMenu(self)
-        hd = menu.addAction("Hide Search Table")
-        sideBar = menu.addAction("Show Sidebar")
-        history = menu.addAction("Show History")
-        action = menu.exec_(self.mapToGlobal(event.pos()))
-        if action == hd:
-            self.hide()
-        elif action == sideBar:
-            if ui.dockWidget_3.isHidden():
-                ui.dockWidget_3.show()
-                ui.btn1.setFocus()
-            else:
-                ui.dockWidget_3.hide()
-                ui.list1.setFocus()
-        elif action == history:
-            ui.setPreOpt()
-            
-            
-class List5(QtWidgets.QListWidget):
-    """
-    Filter Playlist Widget
-    """
-    def __init__(self, parent):
-        super(List5, self).__init__(parent)
-
-    def keyPressEvent(self, event):
-        global category, home, site, bookmark, ui
-        
-        if event.key() == QtCore.Qt.Key_Down:
-            nextr = self.currentRow() + 1
-            if nextr == self.count():
-                ui.goto_epn_filter_txt.setFocus()
-            else:
-                self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
-            prev_r = self.currentRow() - 1
-            if self.currentRow() == 0:
-                ui.goto_epn_filter_txt.setFocus()
-            else:
-                self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Return:
-            ui.search_list5_options()
-        elif event.key() == QtCore.Qt.Key_Q:
-            if (site == "Music" or site == "Video" or site == "Local" 
-                    or site == "PlayLists" or site == "None"):
-                file_path = os.path.join(home, 'Playlists', 'Queue')
-                if not os.path.exists(file_path):
-                    f = open(file_path, 'w')
-                    f.close()
-                if not ui.queue_url_list:
-                    ui.list6.clear()
-                indx = self.currentRow()
-                item = self.item(indx)
-                if item:
-                    tmp = str(self.currentItem().text())
-                    tmp1 = tmp.split(':')[0]
-                    r = int(tmp1)
-                    ui.queue_url_list.append(ui.epn_arr_list[r])
-                    ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
-                    logger.info(ui.queue_url_list)
-                    write_files(file_path, ui.epn_arr_list[r], line_by_line=True)
-                    
-                    
-class List6(QtWidgets.QListWidget):
-    """
-    Queue Widget List
-    """
-    def __init__(self, parent):
-        super(List6, self).__init__(parent)
-
-    def keyPressEvent(self, event):
-        global category, home, site, bookmark, video_local_stream
-        
-        if event.key() == QtCore.Qt.Key_Down:
-            nextr = self.currentRow() + 1
-            if nextr == self.count():
-                self.setCurrentRow(0)
-            else:
-                self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
-            prev_r = self.currentRow() - 1
-            if self.currentRow() == 0:
-                self.setCurrentRow(self.count()-1)
-            else:
-                self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_PageUp:
-            r = self.currentRow()
-            if r > 0:
-                r1 = r - 1
-                if not video_local_stream:
-                    ui.queue_url_list[r], ui.queue_url_list[r1] = ui.queue_url_list[r1], ui.queue_url_list[r]
-                item = self.item(r)
-                txt = item.text()
-                self.takeItem(r)
-                del item
-                self.insertItem(r1, txt)
-                self.setCurrentRow(r1)
-        elif event.key() == QtCore.Qt.Key_PageDown:
-            r = self.currentRow()
-            if r < self.count()-1 and r >=0:
-                r1 = r + 1
-                if not video_local_stream:
-                    ui.queue_url_list[r], ui.queue_url_list[r1] = ui.queue_url_list[r1], ui.queue_url_list[r]
-                item = self.item(r)
-                txt = item.text()
-                self.takeItem(r)
-                del item
-                self.insertItem(r1, txt)
-                self.setCurrentRow(r1)
-        elif event.key() == QtCore.Qt.Key_Return:
-            r = self.currentRow()
-            if self.item(r):
-                ui.queueList_return_pressed(r)
-        elif event.key() == QtCore.Qt.Key_Delete:
-            r = self.currentRow()
-            if self.item(r):
-                item = self.item(r)
-                self.takeItem(r)
-                del item
-                if not video_local_stream:
-                    del ui.queue_url_list[r]
-                    
-                    
-class QLineCustom(QtWidgets.QLineEdit):
-    
-    def __init__(self, parent):
-        super(QLineCustom, self).__init__(parent)
-
-    def keyPressEvent(self, event):
-        print("down")
-        global category, home, site, bookmark
-        
-        if (event.key() == QtCore.Qt.Key_Down):
-            print("Down")
-            ui.list4.show()
-            ui.list4.setFocus()
-            self.show()
-        elif event.key() == QtCore.Qt.Key_Up:
-            ui.list4.show()
-            ui.list4.setFocus()
-            self.show()
-            
-        super(QLineCustom, self).keyPressEvent(event)
-            
-            
-class QLineCustomEpn(QtWidgets.QLineEdit):
-    
-    def __init__(self, parent):
-        super(QLineCustomEpn, self).__init__(parent)
-
-    def keyPressEvent(self, event):
-        print("down")
-        global category, home, site, bookmark
-        
-        if (event.type()==QtCore.QEvent.KeyPress) and (event.key() == QtCore.Qt.Key_Down):
-            print("Down")
-            ui.list5.setFocus()
-        elif event.key() == QtCore.Qt.Key_Up:
-            ui.list5.setFocus()
-        super(QLineCustomEpn, self).keyPressEvent(event)
-        
-
-class QProgressBarCustom(QtWidgets.QProgressBar):
-    
-    def __init__(self, parent, gui):
-        super(QProgressBarCustom, self).__init__(parent)
-        self.gui = gui
-        
-    def mouseReleaseEvent(self, ev):
-        global video_local_stream
-        if ev.button() == QtCore.Qt.LeftButton:
-            print('progressbar clicked')
-            if video_local_stream:
-                print('hello')
-                if self.gui.torrent_frame.isHidden():
-                    self.gui.torrent_frame.show()
-                    self.gui.label_torrent_stop.setToolTip('Stop Torrent')
-                    self.gui.label_down_speed.show()
-                    self.gui.label_up_speed.show()
-                    if self.gui.torrent_download_limit == 0:
-                        down_rate = '\u221E' + ' K'
-                    else:
-                        down_rate = str(int(self.gui.torrent_download_limit/1024))+'K'
-                    if self.gui.torrent_upload_limit == 0:
-                        up_rate = '\u221E' + ' K'
-                    else:
-                        up_rate = str(int(self.gui.torrent_upload_limit/1024))+'K'
-                    down = '\u2193 RATE: ' +down_rate
-                    up = '\u2191 RATE:' +up_rate
-                    self.gui.label_down_speed.setPlaceholderText(down)
-                    self.gui.label_up_speed.setPlaceholderText(up)
-                else:
-                    self.gui.torrent_frame.hide()
-            else:
-                if self.gui.torrent_frame.isHidden():
-                    self.gui.torrent_frame.show()
-                    self.gui.label_down_speed.hide()
-                    self.gui.label_up_speed.hide()
-                    self.gui.label_torrent_stop.setToolTip('Stop Current Download')
-                else:
-                    self.gui.torrent_frame.hide()
-                    
-                    
-class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
-    
-    def __init__(self, parent):
-        super(QtGuiQWidgetScroll, self).__init__(parent)
-        
-    def sizeAdjust(self, nextR, direction):
-        global icon_size_arr, iconv_r, site
-        ui.list1.setCurrentRow(nextR)
-        p1 = "ui.label_"+str(nextR)+".y()"
-        try:
-            yy=eval(p1)
-            p1 = "ui.label_"+str(nextR)+".x()"
-            xy=eval(p1)
-            p1 = "ui.label_"+str(nextR)+".setFocus()"
-            exec (p1)
-            new_cnt = str(nextR+ui.list1.count())
-            p1 = "ui.label_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-            exec (p1)
-            p1 = "ui.label_{0}.toPlainText()".format(new_cnt)
-            txt = eval(p1)
-            try:
-                p1 = "ui.label_{0}.setText('{1}')".format(new_cnt, txt)
-                exec(p1)
-            except Exception as e:
-                print(e, '--line--4597--')
-                try:
-                    p1 = 'ui.label_{0}.setText("{1}")'.format(new_cnt, txt)
-                    exec(p1)
-                except Exception as e:
-                    print(e)
-            p1="ui.label_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-            exec(p1)
-        except:
-            return 0
-        if icon_size_arr:
-            hi = icon_size_arr[1]
-            wi = icon_size_arr[0]
-            if direction == "down":		
-                prevR = nextR - iconv_r
-            elif direction == "up":
-                prevR = nextR + iconv_r
-            elif direction == "forward":
-                prevR = nextR - 1
-            elif direction == "backward":
-                prevR = nextR + 1
-            if prevR >= 0 and prevR < ui.list1.count():
-                p1 = "ui.label_"+str(prevR)+".setMinimumSize("+wi+", "+hi+")"
-                #exec (p1)
-                p1 = "ui.label_"+str(prevR)+".setMaximumSize("+wi+", "+hi+")"
-                #exec (p1)
-                ht1 = (0.6*int(hi))
-                wd1 = (0.6*int(wi))
-                ht = str(ht1)
-                wd = str(wd1)
-                new_cnt = str(prevR+ui.list1.count())
-                p1 = "ui.label_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
-                exec (p1)
-                p1 = "ui.label_{0}.toPlainText()".format(new_cnt)
-                txt = eval(p1)
-                try:
-                    p1 = "ui.label_{0}.setText('{1}')".format(new_cnt, txt)
-                    exec(p1)
-                except Exception as e:
-                    print(e, '--line--4597--')
-                    try:
-                        p1 = 'ui.label_{0}.setText("{1}")'.format(new_cnt, txt)
-                        exec(p1)
-                    except Exception as e:
-                        print(e)
-                p1="ui.label_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                exec(p1)
-            elif prevR < 0:
-                p1 = "ui.label_"+str(nextR)+".width()"
-                wd1=eval(p1)
-                p1 = "ui.label_"+str(nextR)+".height()"
-                ht1=eval(p1)
-                ht = str(0.6*ht1)
-                wd = str(0.6*wd1)
-                print("ht="+wd)
-                print("wd="+wd)
-        else:
-            hi = icon_size_arr[1]
-            wi = icon_size_arr[0]
-            p1 = "ui.label_"+str(nextR)+".width()"
-            wd1=eval(p1)
-            p1 = "ui.label_"+str(nextR)+".height()"
-            ht1=eval(p1)
-            ht = str(0.6*ht1)
-            wd = str(0.6*wd1)
-            print("ht="+wd)
-            print("wd="+wd)
-        
-        ui.scrollArea.verticalScrollBar().setValue(yy-ht1)
-        ui.scrollArea.horizontalScrollBar().setValue(xy-wd1)
-        p1 = "ui.label_"+str(nextR)+".setMinimumSize("+wd+", "+ht+")"
-        #exec (p1)
-        p1 = "ui.label_"+str(nextR)+".setMaximumSize("+wd+", "+ht+")"
-        #exec (p1)
-        ui.labelFrame2.setText(ui.list1.currentItem().text())
-        
-    def keyPressEvent(self, event):
-        global iconv_r, iconv_r_indicator, total_till, browse_cnt
-        
-        if event.key() == QtCore.Qt.Key_Equal:
-            if iconv_r > 1:
-                iconv_r = iconv_r-1
-                if iconv_r_indicator:
-                    iconv_r_indicator.pop()
-                    
-                iconv_r_indicator.append(iconv_r)
-            if not ui.scrollArea.isHidden():
-                ui.next_page('not_deleted')
-            elif not ui.scrollArea1.isHidden():
-                ui.thumbnail_label_update()
-            if iconv_r > 1:
-                w = float((ui.tab_6.width()-60)/iconv_r)
-                #h = float((9*w)/16)
-                h = int(w/ui.image_aspect_allowed)
-                width=str(int(w))
-                height=str(int(h))
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
-        elif event.key() == QtCore.Qt.Key_Minus:
-            iconv_r = iconv_r+1
-            if iconv_r_indicator:
-                iconv_r_indicator.pop()
-            iconv_r_indicator.append(iconv_r)
-            if not ui.scrollArea.isHidden():
-                ui.next_page('not_deleted')
-            elif not ui.scrollArea1.isHidden():
-                ui.thumbnail_label_update()
-            if iconv_r > 1:
-                w = float((ui.tab_6.width()-60)/iconv_r)
-                #h = float((9*w)/16)
-                h = int(w/ui.image_aspect_allowed)
-                width=str(int(w))
-                height=str(int(h))
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
-        elif event.key() == QtCore.Qt.Key_Left:
-                nextR = ui.list1.currentRow()-1
-                if nextR >=0:
-                    self.sizeAdjust(nextR, "backward")
-                else:
-                    ui.btn1.setFocus()
-                    ui.dockWidget_3.show()
-        elif event.key() == QtCore.Qt.Key_Down:
-                nextR = ui.list1.currentRow()
-                if nextR < 0:
-                    self.sizeAdjust(0, "down")
-                else:
-                    nextR = ui.list1.currentRow()+iconv_r
-                    if nextR < ui.list1.count():
-                        self.sizeAdjust(nextR, "down")
-                    else:
-                        self.sizeAdjust(nextR-iconv_r, "down")
-        elif event.key() == QtCore.Qt.Key_Up:
-                nextR = ui.list1.currentRow()
-                if nextR < 0:
-                    self.sizeAdjust(0, "up")
-                else:
-                    nextR = ui.list1.currentRow()-iconv_r
-                    if nextR >= 0:
-                        self.sizeAdjust(nextR, "up")
-                    else:
-                        self.sizeAdjust(nextR+iconv_r, "up")
-        elif event.key() == QtCore.Qt.Key_Right:
-            nextR = ui.list1.currentRow()
-            if nextR < 0:
-                self.sizeAdjust(0, "forward")
-            else:
-                nextR = ui.list1.currentRow()+1
-                if nextR < ui.list1.count():
-                    self.sizeAdjust(nextR, "forward")
-                else:
-                    self.sizeAdjust(nextR-1, "forward")
-        elif event.key() == QtCore.Qt.Key_Return:
-            ui.listfound()
-            ui.thumbnailHide('ExtendedQLabel')
-            ui.IconViewEpn()
-            ui.scrollArea1.show()
-            ui.scrollArea1.setFocus()
-        #super(ExtendedQLabel, self).keyPressEvent(event)
-        #super(QtGuiQWidgetScroll, self).keyPressEvent(event)
-        
-        
-class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
-    
-    def __init__(self, parent):
-        super(QtGuiQWidgetScroll1, self).__init__(parent)
-        
-    def sizeAdjust(self, nextR, direction):
-        global icon_size_arr, iconv_r
-        ui.list2.setCurrentRow(nextR)
-        try:
-            p1 = "ui.label_epn_"+str(nextR)+".y()"
-            yy=eval(p1)
-            
-            p1 = "ui.label_epn_"+str(nextR)+".x()"
-            xy=eval(p1)
-            p1 = "ui.label_epn_"+str(nextR)+".setFocus()"
-            exec (p1)
-            new_cnt = str(nextR+ui.list2.count())
-            p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-            exec (p1)
-            p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
-            txt = eval(p1)
-            try:
-                p1 = "ui.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                exec(p1)
-            except Exception as e:
-                print(e, '--line--4597--')
-                try:
-                    p1 = 'ui.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
-                    exec(p1)
-                except Exception as e:
-                    print(e)
-            p1="ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-            exec(p1)
-        except Exception as e:
-            print(e, '--line--4596--')
-            return 0
-        if ui.list2.count() > 1:
-            if icon_size_arr:
-                hi = icon_size_arr[1]
-                wi = icon_size_arr[0]
-                if direction == "down":		
-                    prevR = nextR - iconv_r
-                elif direction == "up":
-                    prevR = nextR + iconv_r
-                elif direction == "forward":
-                    prevR = nextR - 1
-                elif direction == "backward":
-                    prevR = nextR + 1
-                if prevR >= 0 and prevR < ui.list2.count():
-                    p1 = "ui.label_epn_"+str(prevR)+".setMinimumSize("+wi+", "+hi+")"
-                    #exec (p1)
-                    p1 = "ui.label_epn_"+str(prevR)+".setMaximumSize("+wi+", "+hi+")"
-                    #exec (p1)
-                    ht1 = (0.6*int(hi))
-                    wd1 = (0.6*int(wi))
-                    ht = str(ht1)
-                    wd = str(wd1)
-                    new_cnt = str(prevR+ui.list2.count())
-                    p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
-                    exec (p1)
-                    p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
-                    txt = eval(p1)
-                    try:
-                        p1 = "ui.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                        exec(p1)
-                    except Exception as e:
-                        print(e, '--line--4597--')
-                        try:
-                            p1 = 'ui.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
-                            exec(p1)
-                        except Exception as e:
-                            print(e, '--line--4643--')
-                    p1="ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                    exec(p1)
-                elif prevR < 0:
-                    p1 = "ui.label_epn_"+str(nextR)+".width()"
-                    wd1=eval(p1)
-                    p1 = "ui.label_epn_"+str(nextR)+".height()"
-                    ht1=eval(p1)
-                    ht = str(0.6*ht1)
-                    wd = str(0.6*wd1)
-                    print("ht="+wd)
-                    print("wd="+wd)
-            else:
-                p1 = "ui.label_epn_"+str(nextR)+".width()"
-                wd1=eval(p1)
-                p1 = "ui.label_epn_"+str(nextR)+".height()"
-                ht1=eval(p1)
-                ht = str(0.6*ht1)
-                wd = str(0.6*wd1)
-            ui.scrollArea1.verticalScrollBar().setValue(yy-ht1)
-            ui.scrollArea1.horizontalScrollBar().setValue(xy-wd1)
-            p1 = "ui.label_epn_"+str(nextR)+".setMinimumSize("+wd+", "+ht+")"
-            #exec (p1)
-            p1 = "ui.label_epn_"+str(nextR)+".setMaximumSize("+wd+", "+ht+")"
-            #exec (p1)
-            if site != "PlayLists":
-                ui.labelFrame2.setText(ui.list2.currentItem().text())
-            else:
-                ui.labelFrame2.setText((ui.list2.currentItem().text()).split('	')[0])
-            ui.label.hide()
-            ui.text.hide()
-            
-    #def mouseMoveEvent(self, event):
-    #	self.setFocus()
-    #	print('--scrollarea1 mouse move--')
-    def keyPressEvent(self, event):
-        global new_epn, Player, idw, mpvplayer, quitReally, curR, interval
-        global iconv_r, total_till, browse_cnt, site, epn_name_in_list
-        global memory_num_arr, thumbnail_indicator, mpvplayer, iconv_r_indicator
-        global tab_6_size_indicator, tab_6_player, finalUrlFound, quality
-        
-        if not mpvplayer:
-            mpvRunning = "False"
-        if  mpvplayer:
-            if mpvplayer.processId() > 0:
-                mpvRunning = "True"
-            else:
-                mpvRunning = "False"
-        if event.key() == QtCore.Qt.Key_Equal:
-            if iconv_r > 1:
-                iconv_r = iconv_r-1
-                if iconv_r_indicator:
-                    iconv_r_indicator.pop()
-                    
-                iconv_r_indicator.append(iconv_r)
-            if not ui.scrollArea.isHidden():
-                ui.next_page('not_deleted')
-            elif not ui.scrollArea1.isHidden():
-                ui.thumbnail_label_update()
-            if iconv_r > 1:
-                w = float((ui.tab_6.width()-60)/iconv_r)
-                #h = float((9*w)/16)
-                h = int(w/ui.image_aspect_allowed)
-                width=str(int(w))
-                height=str(int(h))
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
-        elif event.key() == QtCore.Qt.Key_Minus:
-            iconv_r = iconv_r+1
-            if iconv_r_indicator:
-                iconv_r_indicator.pop()
-            iconv_r_indicator.append(iconv_r)
-            if not ui.scrollArea.isHidden():
-                ui.next_page('not_deleted')
-                #ui.thumbnail_label_update()
-            elif not ui.scrollArea1.isHidden():
-                #ui.thumbnailEpn()
-                ui.thumbnail_label_update()
-            if iconv_r > 1:
-                w = float((ui.tab_6.width()-60)/iconv_r)
-                #h = float((9*w)/16)
-                h = int(w/ui.image_aspect_allowed)
-                width=str(int(w))
-                height=str(int(h))
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
-        if mpvRunning == "False":
-            if event.key() == QtCore.Qt.Key_Right:
-                nextR = ui.list2.currentRow()
-                if nextR < 0:
-                    self.sizeAdjust(0, "forward")
-                else:
-                    nextR = ui.list2.currentRow()+1
-                    if nextR < ui.list2.count():
-                        self.sizeAdjust(nextR, "forward")
-                    else:
-                        self.sizeAdjust(nextR-1, "forward")
-            elif event.key() == QtCore.Qt.Key_Left:
-                
-                    nextR = ui.list2.currentRow()-1
-                    if nextR >=0:
-                        self.sizeAdjust(nextR, "backward")
-                    else:
-                        ui.btn1.setFocus()
-                        ui.dockWidget_3.show()
-            elif event.key() == QtCore.Qt.Key_Down:
-                nextR = ui.list2.currentRow()
-                if nextR < 0:
-                    self.sizeAdjust(0, "down")
-                else:
-                    nextR = ui.list2.currentRow()+iconv_r
-                    if nextR < ui.list2.count():
-                        self.sizeAdjust(nextR, "down")
-                    else:
-                        self.sizeAdjust(nextR-iconv_r, "down")
-            elif event.key() == QtCore.Qt.Key_Up:
-                nextR = ui.list2.currentRow()
-                if nextR < 0:
-                    self.sizeAdjust(0, "up")
-                else:
-                    nextR = ui.list2.currentRow()-iconv_r
-                    if nextR >= 0:
-                        self.sizeAdjust(nextR, "up")
-                    else:
-                        self.sizeAdjust(nextR+iconv_r, "up")
-            elif event.key() == QtCore.Qt.Key_Backspace:
-                if ui.list1.currentItem():
-                    ui.labelFrame2.setText(ui.list1.currentItem().text())
-                    ui.prev_thumbnails()
-                    ui.scrollArea.setFocus()
-            elif event.key() == QtCore.Qt.Key_Return:
-                num = ui.list2.currentRow()
-                exec_str = 'ui.label_epn_{0}.change_video_mode({1}, {2})'.format(num, ui.video_mode_index, num)
-                exec(exec_str)
-                
-            super(QtGuiQWidgetScroll1, self).keyPressEvent(event)
 
 
 class Btn1(QtWidgets.QComboBox):
@@ -1209,7 +337,7 @@ class tab6(QtWidgets.QWidget):
         
     def resizeEvent(self, event):
         global tab_6_size_indicator, total_till, browse_cnt, thumbnail_indicator
-        global mpvplayer, tab_6_player
+        global tab_6_player
         
         if (ui.tab_6.width() > 500 and tab_6_player == "False" 
                     and iconv_r != 1 and not ui.lock_process):
@@ -1232,7 +360,7 @@ class tab6(QtWidgets.QWidget):
             ui.scrollArea.setFocus()
         
     def keyPressEvent(self, event):
-        global mpvplayer, Player, wget, cycle_pause, cache_empty, buffering_mplayer
+        global Player, wget, cycle_pause, cache_empty, buffering_mplayer
         global curR, pause_indicator, thumbnail_indicator, iconv_r_indicator
         global cur_label_num
         global fullscr, idwMain, idw, quitReally, new_epn, toggleCache
@@ -1252,11 +380,8 @@ class tab6(QtWidgets.QWidget):
                 ui.text.hide()
                 ui.label.hide()
                 ui.frame1.hide()
-                #ui.tab_6.hide()
                 ui.goto_epn.hide()
                 ui.btn10.hide()
-                #ui.btn20.hide()
-                #ui.frame2.hide()
                 if wget:
                     if wget.processId() > 0:
                         ui.progress.hide()
@@ -1264,9 +389,6 @@ class tab6(QtWidgets.QWidget):
                 ui.list6.hide()
                 ui.list1.hide()
                 ui.frame.hide()
-                #ui.text.hide()
-                #ui.label.hide()
-                #ui.tab_5.setParent(None)
                 ui.gridLayout.setContentsMargins(0, 0, 0, 0)
                 ui.gridLayout.setSpacing(0)
                 ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
@@ -1281,7 +403,6 @@ class tab6(QtWidgets.QWidget):
                 MainWindow.showFullScreen()
             else:
                 ui.gridLayout.setSpacing(5)
-                #ui.gridLayout.setContentsMargins(10, 10, 10, 10)
                 ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
                 ui.gridLayout1.setSpacing(10)
                 ui.gridLayout1.setContentsMargins(10, 10, 10, 10)
@@ -1444,21 +565,21 @@ class Ui_MainWindow(object):
         #self.verticalLayout_50.insertWidget(3, self.label, 0)
         self.verticalLayout_50.setAlignment(QtCore.Qt.AlignBottom)
         
-        self.list4 = List4(MainWindow)
+        self.list4 = FilterTitleList(MainWindow, ui, home)
         self.list4.setObjectName(_fromUtf8("list4"))
         #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list4.setMouseTracking(True)
         
         self.list4.hide()
         
-        self.list5 = List5(MainWindow)
+        self.list5 = FilterPlaylist(MainWindow, self, home, logger)
         self.list5.setObjectName(_fromUtf8("list5"))
         #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list5.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(1, self.list5, 0)
         self.list5.hide()
         
-        self.list6 = List6(MainWindow)
+        self.list6 = QueueListWidget(MainWindow, self, home)
         self.list6.setObjectName(_fromUtf8("list6"))
         #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list6.setMouseTracking(True)
@@ -1618,7 +739,7 @@ class Ui_MainWindow(object):
         self.progressEpn.setMaximumSize(QtCore.QSize(10000, 32))
         self.progressEpn.setTextVisible(True)
         
-        self.slider = MySlider(self.frame1)
+        self.slider = MySlider(self.frame1, self, home)
         self.slider.setObjectName(_fromUtf8("slider"))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
         
@@ -1975,7 +1096,7 @@ class Ui_MainWindow(object):
         self.VerticalLayoutLabel_Dock3 = QtWidgets.QVBoxLayout(self.dockWidgetContents_3)
         self.VerticalLayoutLabel_Dock3.setObjectName(_fromUtf8("VerticalLayoutLabel_Dock3"))
         
-        self.list3 = List3(self.dockWidgetContents_3)
+        self.list3 = SidebarWidget(self.dockWidgetContents_3, self, home)
         self.list3.setGeometry(QtCore.QRect(20, 100, 130, 201))
         self.list3.setObjectName(_fromUtf8("list3"))
         self.line = QtWidgets.QLineEdit(self.dockWidgetContents_3)
@@ -2091,14 +1212,14 @@ class Ui_MainWindow(object):
         
         self.horizontalLayout10 = QtWidgets.QVBoxLayout(self.tab_6)
         self.horizontalLayout10.setObjectName(_fromUtf8("horizontalLayout"))
-        self.scrollArea = QtGuiQWidgetScroll(self.tab_6)
+        self.scrollArea = QtGuiQWidgetScroll(self.tab_6, self)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout1 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout1.setObjectName(_fromUtf8("gridLayout1"))
-        self.scrollArea1 = QtGuiQWidgetScroll1(self.tab_6)
+        self.scrollArea1 = QtGuiQWidgetScroll1(self.tab_6, self)
         self.scrollArea1.setWidgetResizable(True)
         
         self.scrollArea1.setObjectName(_fromUtf8("scrollArea1"))
@@ -2158,6 +1279,7 @@ class Ui_MainWindow(object):
         self.btn201 = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
         self.btn201.setObjectName(_fromUtf8("btn201"))
         self.float_window = QLabelFloat()
+        self.float_window.set_globals(self, home)
         self.float_window_layout = QtWidgets.QVBoxLayout(self.float_window)
         self.float_window.setMinimumSize(200, 100)
         self.float_window.hide()
@@ -2336,6 +1458,7 @@ class Ui_MainWindow(object):
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.epn_arr_list = []
+        self.icon_size_arr = []
         self.original_path_name = []
         self.download_video = 0
         self.total_seek = 0
@@ -2672,20 +1795,22 @@ class Ui_MainWindow(object):
             mpv_i=None, fullsc=None, tab_6=None, cur_label=None, path_final=None,
             idw_val=None, amp=None, cur_ply=None, t6_ply=None, inter=None,
             memory_num=None, show_hide_pl=None, show_hide_tl=None, op=None,
-            qual=None, mir=None, name_val=None):
+            qual=None, mir=None, name_val=None, catg=None):
         global site, curR, quitReally, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator, fullscr, tab_6_size_indicator
         global cur_label_num, path_final_Url, idw, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
         global show_hide_playlist, show_hide_titlelist, opt, quality, mirrorNo
-        global name
+        global name, category
         if siteval:
             site = siteval
         if curRow:
             curR = curRow
         if quit_r:
             quitReally = quit_r
+        if catg:
+            category = catg
         if op:
             opt = op
         if qual:
@@ -2819,31 +1944,30 @@ class Ui_MainWindow(object):
                     self.float_window.showNormal()
     
     def seek_to_val(self, val):
-        global Player, mpvplayer
+        global Player
         txt1 = '\n osd 1 \n'
         if Player == "mplayer":
             txt = '\n seek {0}\n'.format(val)
         else:
             txt = '\n seek {0} relative+exact \n'.format(val)
             print(txt)
-        mpvplayer.write(bytes(txt1, 'utf-8'))
-        mpvplayer.write(bytes(txt, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         
     def seek_to_vol_val(self, val):
-        global Player, mpvplayer
+        global Player
         txt1 = '\n osd 1 \n'
         if Player == "mplayer":
             txt = '\n volume {0} \n'.format(val)
-            mpvplayer.write(b'')
+            self.mpvplayer_val.write(b'')
         else:
             txt = '\n add ao-volume {0} \n'.format(val)
-        mpvplayer.write(bytes(txt1, 'utf-8'))
-        mpvplayer.write(bytes(txt, 'utf-8'))				
+        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt, 'utf-8'))				
     
     def float_activity(self):
-        global new_tray_widget
-        if not new_tray_widget.isHidden() and new_tray_widget.remove_toolbar:
-            new_tray_widget.hide()
+        if not self.new_tray_widget.isHidden() and self.new_tray_widget.remove_toolbar:
+            self.new_tray_widget.hide()
             print('--float--activity--')
             
     def set_video_mode(self):
@@ -3249,13 +2373,12 @@ class Ui_MainWindow(object):
         global audio_id, sub_id, Player
         if Player == 'mplayer':
             t = bytes('\n'+"switch_audio "+str(audio_id)+'\n', 'utf-8')
-            mpvplayer.write(t)
+            self.mpvplayer_val.write(t)
             t1 = bytes('\n'+"sub_select "+str(sub_id)+'\n', 'utf-8')
-            mpvplayer.write(t1)
+            self.mpvplayer_val.write(t1)
             
     def osd_hide(self):
-        global mpvplayer
-        mpvplayer.write(b'\n osd 0 \n')
+        self.mpvplayer_val.write(b'\n osd 0 \n')
         
     def mirrorChange(self):
         global mirrorNo
@@ -3273,26 +2396,25 @@ class Ui_MainWindow(object):
                 self.mirror_change.setText(str(mirrorNo))
         
     def toggleAudio(self):
-        global Player, mpvplayer, audio_id
-        if mpvplayer:
-            if mpvplayer.processId() > 0:
-                if Player == "mplayer":
-                    if not self.mplayer_OsdTimer.isActive():
-                        mpvplayer.write(b'\n osd 1 \n')
-                    else:
-                        self.mplayer_OsdTimer.stop()
-                    
-                    mpvplayer.write(b'\n switch_audio \n')
-                    mpvplayer.write(b'\n get_property switch_audio \n')
-                    self.mplayer_OsdTimer.start(5000)
+        global Player, audio_id
+        if self.mpvplayer_val.processId() > 0:
+            if Player == "mplayer":
+                if not self.mplayer_OsdTimer.isActive():
+                    self.mpvplayer_val.write(b'\n osd 1 \n')
                 else:
-                    mpvplayer.write(b'\n cycle audio \n')
-                    mpvplayer.write(b'\n print-text "Audio_ID=${aid}" \n')
-                    mpvplayer.write(b'\n show-text "${aid}" \n')
+                    self.mplayer_OsdTimer.stop()
+                
+                self.mpvplayer_val.write(b'\n switch_audio \n')
+                self.mpvplayer_val.write(b'\n get_property switch_audio \n')
+                self.mplayer_OsdTimer.start(5000)
+            else:
+                self.mpvplayer_val.write(b'\n cycle audio \n')
+                self.mpvplayer_val.write(b'\n print-text "Audio_ID=${aid}" \n')
+                self.mpvplayer_val.write(b'\n show-text "${aid}" \n')
         self.audio_track.setText("A:"+str(audio_id))
             
     def load_external_sub(self):
-        global Player, mpvplayer, sub_id, current_playing_file_path
+        global Player, sub_id, current_playing_file_path
         external_sub = False
         sub_arr = []
         new_name = self.epn_name_in_list.replace('/', '-')
@@ -3346,7 +2468,7 @@ class Ui_MainWindow(object):
         logger.info('--new--name--{0}'.format(new_name))
         
             
-        if mpvplayer.processId() > 0 and sub_arr:
+        if self.mpvplayer_val.processId() > 0 and sub_arr:
             sub_arr.reverse()
             for title_sub in sub_arr:
                 if Player == "mplayer":
@@ -3354,30 +2476,29 @@ class Ui_MainWindow(object):
                         txt = '\nsub_load '+'"'+title_sub+'"\n'
                         txt_b = bytes(txt, 'utf-8')
                         logger.info("{0} - {1}".format(txt_b, txt))
-                        mpvplayer.write(txt_b)
+                        self.mpvplayer_val.write(txt_b)
                 else:
                     if os.path.exists(title_sub):
                         txt = '\nsub_add '+'"'+title_sub+'" select\n'
                         txt_b = bytes(txt, 'utf-8')
                         logger.info("{0} - {1}".format(txt_b, txt))
-                        mpvplayer.write(txt_b)
+                        self.mpvplayer_val.write(txt_b)
                         
     def toggleSubtitle(self):
-        global Player, mpvplayer, sub_id
-        if mpvplayer:
-            if mpvplayer.processId() > 0:
-                if Player == "mplayer":
-                    if not self.mplayer_OsdTimer.isActive():
-                        mpvplayer.write(b'\n osd 1 \n')
-                    else:
-                        self.mplayer_OsdTimer.stop()
-                    mpvplayer.write(b'\n sub_select \n')
-                    mpvplayer.write(b'\n get_property sub \n')
-                    self.mplayer_OsdTimer.start(5000)
+        global Player, sub_id
+        if self.mpvplayer_val.processId() > 0:
+            if Player == "mplayer":
+                if not self.mplayer_OsdTimer.isActive():
+                    self.mpvplayer_val.write(b'\n osd 1 \n')
                 else:
-                    mpvplayer.write(b'\n cycle sub \n')
-                    mpvplayer.write(b'\n print-text "SUB_ID=${sid}" \n')
-                    mpvplayer.write(b'\n show-text "${sid}" \n')
+                    self.mplayer_OsdTimer.stop()
+                self.mpvplayer_val.write(b'\n sub_select \n')
+                self.mpvplayer_val.write(b'\n get_property sub \n')
+                self.mplayer_OsdTimer.start(5000)
+            else:
+                self.mpvplayer_val.write(b'\n cycle sub \n')
+                self.mpvplayer_val.write(b'\n print-text "SUB_ID=${sid}" \n')
+                self.mpvplayer_val.write(b'\n show-text "${sid}" \n')
         self.subtitle_track.setText('Sub:'+str(sub_id))
     
     def mark_epn_thumbnail_label(self, num):
@@ -3485,68 +2606,66 @@ class Ui_MainWindow(object):
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             
     def playerStop(self):
-        global quitReally, mpvplayer, thumbnail_indicator, total_till, browse_cnt
+        global quitReally, thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, curR, wget, Player, show_hide_cover
         global show_hide_playlist, show_hide_titlelist, video_local_stream
         global idw, new_tray_widget
         
-        if mpvplayer:
-            if mpvplayer.processId() > 0:
-                quitReally = "yes"
-                mpvplayer.write(b'\n quit \n')
-                self.player_play_pause.setText(self.player_buttons['play'])
-                if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
-                    if not self.float_window.isHidden():
-                        if self.float_window.isFullScreen():
-                            self.float_window.showNormal()
-                        else:
-                            pass
+        if self.mpvplayer_val.processId() > 0:
+            quitReally = "yes"
+            self.mpvplayer_val.write(b'\n quit \n')
+            self.player_play_pause.setText(self.player_buttons['play'])
+            if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
+                if not self.float_window.isHidden():
+                    if self.float_window.isFullScreen():
+                        self.float_window.showNormal()
                     else:
-                        self.tab_5.showNormal()
-                        self.tab_5.hide()
-                        if self.fullscreen_mode == 0:
-                            if show_hide_titlelist == 1:
-                                self.list1.show()
-                                #self.frame.show()
-                            if show_hide_cover == 1:
-                                self.label.show()
-                                self.text.show()
-                            if show_hide_titlelist == 1:
-                                self.list2.show()
-                                #ui.goto_epn.show()
-                            self.list2.setFocus()
-                        elif self.fullscreen_mode == 1:
-                            self.tab_6.show()
-                        
+                        pass
                 else:
-                    if not self.float_window.isHidden():
-                        if self.float_window.isFullScreen():
-                            self.float_window.showNormal()
-                        else:
-                            pass
+                    self.tab_5.showNormal()
+                    self.tab_5.hide()
+                    if self.fullscreen_mode == 0:
+                        if show_hide_titlelist == 1:
+                            self.list1.show()
+                            #self.frame.show()
+                        if show_hide_cover == 1:
+                            self.label.show()
+                            self.text.show()
+                        if show_hide_titlelist == 1:
+                            self.list2.show()
+                            #ui.goto_epn.show()
+                        self.list2.setFocus()
+                    elif self.fullscreen_mode == 1:
+                        self.tab_6.show()
+            else:
+                if not self.float_window.isHidden():
+                    if self.float_window.isFullScreen():
+                        self.float_window.showNormal()
                     else:
-                        
-                        if ((str(idw) != str(int(self.tab_5.winId()))) 
-                                and (str(idw) != str(int(self.label.winId())))):
-                            if iconv_r_indicator:
-                                iconv_r = iconv_r_indicator[0]
-                            self.thumbnail_window_present_mode()
-                        elif (str(idw) == str(int(self.tab_5.winId()))):
-                            self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
-                            self.gridLayout.setSpacing(5)
-                            self.tab_6.setMaximumSize(10000, 10000)
-                            self.tab_5.hide()
-                            i = 0
-                            thumbnail_indicator[:]=[]
-                            if iconv_r_indicator:
-                                iconv_r = iconv_r_indicator[0]
-                            else:
-                                iconv_r = 5
-                            QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
-                if MainWindow.isFullScreen():
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                        pass
+                else:
+                    
+                    if ((str(idw) != str(int(self.tab_5.winId()))) 
+                            and (str(idw) != str(int(self.label.winId())))):
+                        if iconv_r_indicator:
+                            iconv_r = iconv_r_indicator[0]
+                        self.thumbnail_window_present_mode()
+                    elif (str(idw) == str(int(self.tab_5.winId()))):
+                        self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
+                        self.gridLayout.setSpacing(5)
+                        self.tab_6.setMaximumSize(10000, 10000)
+                        self.tab_5.hide()
+                        i = 0
+                        thumbnail_indicator[:]=[]
+                        if iconv_r_indicator:
+                            iconv_r = iconv_r_indicator[0]
+                        else:
+                            iconv_r = 5
+                        QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
+            if MainWindow.isFullScreen():
+                MainWindow.showNormal()
+                MainWindow.showMaximized()
+                MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                         
                         
     def shufflePlaylist(self):
@@ -3569,15 +2688,15 @@ class Ui_MainWindow(object):
             self.sortList()
             
     def set_playerLoopFile(self):
-        global Player, quitReally, tray, new_tray_widget, mpvplayer
-        if mpvplayer.processId() > 0:
+        global Player, quitReally, tray, new_tray_widget
+        if self.mpvplayer_val.processId() > 0:
             if Player == 'mpv':
-                mpvplayer.write(b'\n set loop-file inf \n')
+                self.mpvplayer_val.write(b'\n set loop-file inf \n')
             else:
-                mpvplayer.write(b'\n set_property loop 0 \n')
+                self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                 
     def playerLoopFile(self, loop_widget):
-        global Player, quitReally, tray, new_tray_widget, mpvplayer
+        global Player, quitReally, tray, new_tray_widget
         txt = loop_widget.text()
         #txt = self.player_loop_file.text()
         
@@ -3586,34 +2705,34 @@ class Ui_MainWindow(object):
             self.player_loop_file.setText(self.player_buttons['lock'])
             new_tray_widget.lock.setText(self.player_buttons['lock'])
             quitReally = 'no'
-            if mpvplayer.processId() > 0:
+            if self.mpvplayer_val.processId() > 0:
                 if Player == 'mpv':
-                    mpvplayer.write(b'\n set loop-file inf \n')
+                    self.mpvplayer_val.write(b'\n set loop-file inf \n')
                 else:
-                    mpvplayer.write(b'\n set_property loop 0 \n')
+                    self.mpvplayer_val.write(b'\n set_property loop 0 \n')
         else:
             self.player_setLoop_var = 0
             self.player_loop_file.setText(self.player_buttons['unlock'])
             new_tray_widget.lock.setText(self.player_buttons['unlock'])
-            if mpvplayer.processId() > 0:
+            if self.mpvplayer_val.processId() > 0:
                 if Player == 'mpv':
-                    mpvplayer.write(b'\n set loop-file no \n')
+                    self.mpvplayer_val.write(b'\n set loop-file no \n')
                 else:
-                    mpvplayer.write(b'\n set_property loop -1 \n')
+                    self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                 
     def playerPlayPause(self):
-        global mpvplayer, curR, idw, cur_label_num
+        global curR, idw, cur_label_num
         
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
-            if mpvplayer.processId() > 0:
+            if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
-                    mpvplayer.write(b'\n set pause no \n')
+                    self.mpvplayer_val.write(b'\n set pause no \n')
                     self.player_play_pause.setText(self.player_buttons['pause'])
                     txt_osd = '\n osd 1 \n'
-                    mpvplayer.write(bytes(txt_osd, 'utf-8'))
+                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                 else:
-                    mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
+                    self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
                 
                 if self.list2.currentItem():
@@ -3629,14 +2748,14 @@ class Ui_MainWindow(object):
                         finalUrl = self.epn_return(curR)
                         self.play_file_now(finalUrl, win_id=idw)
         elif txt == self.player_buttons['pause']:
-            if mpvplayer.processId() > 0:
+            if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
-                    mpvplayer.write(b'\n set pause yes \n')
+                    self.mpvplayer_val.write(b'\n set pause yes \n')
                     self.player_play_pause.setText(self.player_buttons['play'])
                     txt_osd = '\n osd 3 \n'
-                    mpvplayer.write(bytes(txt_osd, 'utf-8'))
+                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                 else:
-                    mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
+                    self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
                 
                 if self.list2.currentItem():
@@ -3646,7 +2765,7 @@ class Ui_MainWindow(object):
         
         
     def playerPlaylist(self, val):
-        global quitReally, playlist_show, mpvplayer, site
+        global quitReally, playlist_show, site
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
         global show_hide_player, Player, httpd, idw, cur_label_num
         
@@ -3717,17 +2836,17 @@ class Ui_MainWindow(object):
                 self.action_player_menu[5].setText("UnLock File")
                 self.player_loop_file.setText("unLock")
                 if Player == 'mpv':
-                    mpvplayer.write(b'\n set loop-file inf \n')
+                    self.mpvplayer_val.write(b'\n set loop-file inf \n')
                 else:
-                    mpvplayer.write(b'\n set_property loop 0 \n')
+                    self.mpvplayer_val.write(b'\n set_property loop 0 \n')
             elif v == "UnLock File":
                     self.player_setLoop_var = 0
                     self.action_player_menu[5].setText("Lock File")
                     self.player_loop_file.setText("Lock")
                     if Player == 'mpv':
-                        mpvplayer.write(b'\n set loop-file no \n')
+                        self.mpvplayer_val.write(b'\n set loop-file no \n')
                     else:
-                        mpvplayer.write(b'\n set_property loop -1 \n')
+                        self.mpvplayer_val.write(b'\n set_property loop -1 \n')
         elif val == "Lock Playlist":
             v = str(self.action_player_menu[2].text())
             if v == "Lock Playlist":
@@ -3803,7 +2922,7 @@ class Ui_MainWindow(object):
                     shutil.copy(self.current_background, self.default_background)
         elif val == "Show/Hide Web Browser":
             if self.tab_2.isHidden():
-                if mpvplayer.processId() > 0:
+                if self.mpvplayer_val.processId() > 0:
                     self.tab_2.show()
                 else:
                     self.showHideBrowser()
@@ -4009,7 +3128,7 @@ class Ui_MainWindow(object):
         
     def prev_thumbnails(self):
         global thumbnail_indicator, total_till, browse_cnt, tmp_name
-        global label_arr, total_till_epn, iconv_r, mpvplayer, iconv_r_indicator
+        global label_arr, total_till_epn, iconv_r, iconv_r_indicator
         
         self.scrollArea1.hide()
         self.scrollArea.show()
@@ -4030,8 +3149,8 @@ class Ui_MainWindow(object):
                 i = i+1
             total_till_epn=0
         print(total_till, 2*self.list1.count()-1, '--prev-thumbnail--')
-        if mpvplayer.processId() > 0:
-            print(mpvplayer.processId(), '--prev-thumb--')
+        if self.mpvplayer_val.processId() > 0:
+            print(self.mpvplayer_val.processId(), '--prev-thumb--')
             iconv_r = 1
             self.next_page('not_deleted')
             QtWidgets.QApplication.processEvents()
@@ -4059,15 +3178,15 @@ class Ui_MainWindow(object):
         print("hello how r u" )
         
     def mplayer_unpause(self):
-        global mpvplayer, fullscr, Player, buffering_mplayer, mpv_indicator
+        global fullscr, Player, buffering_mplayer, mpv_indicator
         global cache_empty, pause_indicator
         buffering_mplayer = "no"
         self.mplayer_pause_buffer = False
         self.mplayer_nop_error_pause = False
         if Player == "mplayer":
-            mpvplayer.write(b'\n pause \n')
+            self.mpvplayer_val.write(b'\n pause \n')
         else:
-            mpvplayer.write(b'\n set pause no \n')
+            self.mpvplayer_val.write(b'\n set pause no \n')
             if mpv_indicator:
                 mpv_indicator.pop()
                 cache_empty = 'no'
@@ -4079,7 +3198,7 @@ class Ui_MainWindow(object):
                 self.frame1.hide()
                 
     def frame_options(self):
-        global mpvplayer, Player, wget
+        global Player, wget
         global fullscr, idwMain, idw, quitReally, new_epn, toggleCache
         print("Frame Hiding" )
         if MainWindow.isFullScreen():
@@ -4289,7 +3408,6 @@ class Ui_MainWindow(object):
         global labelGeometry, video_local_stream
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
         global label_arr, hist_arr, bookmark, status, thumbnail_indicator
-        global icon_size_arr
         global siteName, category, finalUrlFound, refererNeeded
         
         browse_cnt = br_cnt
@@ -4450,7 +3568,7 @@ class Ui_MainWindow(object):
         global labelGeometry, total_till
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
         global label_arr, hist_arr, bookmark, status, thumbnail_indicator
-        global icon_size_arr, siteName, category, finalUrlFound, refererNeeded
+        global siteName, category, finalUrlFound, refererNeeded
         
         self.lock_process = True
         m=[]
@@ -4483,8 +3601,8 @@ class Ui_MainWindow(object):
             w = float((self.tab_6.width()-60)/iconv_r)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
-            if self.tab_5.isHidden() and mpvplayer:
-                if mpvplayer.processId() > 0:
+            if self.tab_5.isHidden() and self.mpvplayer_val:
+                if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
                         l= (tab_6_size_indicator[0]-60)/iconv_r
                     else:
@@ -4499,10 +3617,10 @@ class Ui_MainWindow(object):
             
         width = str(int(w))
         height = str(int(h))
-        if icon_size_arr:
-            icon_size_arr[:]=[]
-        icon_size_arr.append(width)
-        icon_size_arr.append(height)
+        if self.icon_size_arr:
+            self.icon_size_arr[:]=[]
+        self.icon_size_arr.append(width)
+        self.icon_size_arr.append(height)
         print(length)
         print(browse_cnt)
         dim_tuple = (width, height)
@@ -4525,10 +3643,12 @@ class Ui_MainWindow(object):
             while(i<length):
                 print(value_str, '--value--str--')
                 if value_str == "deleted":
-                    p1="self.label_"+str(i)+" = ExtendedQLabel(self.scrollAreaWidgetContents)"
+                    p1= "self.label_"+str(i)+" = TitleThumbnailWidget(self.scrollAreaWidgetContents)"
+                    p4 = "self.label_{0}.setup_globals(self, home, TMPDIR, logger)".format(i)
                     p7 = "l_"+str(i)+" = weakref.ref(self.label_"+str(i)+")"
-                    exec (p1)
-                    exec (p7)
+                    exec(p1)
+                    exec(p4)
+                    exec(p7)
                 p2="self.label_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
                 p3="self.label_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
                 #p4="self.label_"+str(i)+".setScaledContents(True)"
@@ -4580,8 +3700,8 @@ class Ui_MainWindow(object):
             
     def thumbnail_label_update(self):
         global total_till, browse_cnt, home, iconv_r, site
-        global thumbnail_indicator, mpvplayer, tab_6_size_indicator
-        global icon_size_arr, finalUrlFound, total_till_epn
+        global thumbnail_indicator, tab_6_size_indicator
+        global finalUrlFound, total_till_epn
         
         m=[]
         self.scrollArea.hide()
@@ -4596,8 +3716,8 @@ class Ui_MainWindow(object):
             w = float((self.tab_6.width()-60)/iconv_r)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
-            if self.tab_5.isHidden() and mpvplayer:
-                if mpvplayer.processId() > 0:
+            if self.tab_5.isHidden() and self.mpvplayer_val:
+                if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
                         l= (tab_6_size_indicator[0]-60)/iconv_r
                     else:
@@ -4615,11 +3735,11 @@ class Ui_MainWindow(object):
         print("self.width="+width)
         print("self.height="+height)
         
-        if icon_size_arr:
-            icon_size_arr[:]=[]
+        if self.icon_size_arr:
+            self.icon_size_arr[:]=[]
             
-        icon_size_arr.append(width)
-        icon_size_arr.append(height)
+        self.icon_size_arr.append(width)
+        self.icon_size_arr.append(height)
         
         if not thumbnail_indicator:
             thumbnail_indicator.append("Thumbnail View")
@@ -4672,8 +3792,8 @@ class Ui_MainWindow(object):
             
     def thumbnail_label_update_epn(self):
         global total_till, browse_cnt, home, iconv_r, site
-        global thumbnail_indicator, mpvplayer, tab_6_size_indicator
-        global icon_size_arr, finalUrlFound, total_till_epn
+        global thumbnail_indicator, tab_6_size_indicator
+        global finalUrlFound, total_till_epn
         
         m=[]
         self.scrollArea.hide()
@@ -4688,8 +3808,8 @@ class Ui_MainWindow(object):
             w = float((self.tab_6.width()-60)/iconv_r)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
-            if self.tab_5.isHidden() and mpvplayer:
-                if mpvplayer.processId() > 0:
+            if self.tab_5.isHidden() and self.mpvplayer_val:
+                if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
                         l= (tab_6_size_indicator[0]-60)/iconv_r
                     else:
@@ -4705,10 +3825,10 @@ class Ui_MainWindow(object):
         height = str(int(h))
         print("self.width="+width)
         print("self.height="+height)
-        if icon_size_arr:
-            icon_size_arr[:]=[]
-        icon_size_arr.append(width)
-        icon_size_arr.append(height)
+        if self.icon_size_arr:
+            self.icon_size_arr[:]=[]
+        self.icon_size_arr.append(width)
+        self.icon_size_arr.append(height)
         if not thumbnail_indicator:
             thumbnail_indicator.append("Thumbnail View")
         length = self.list2.count()
@@ -4869,8 +3989,8 @@ class Ui_MainWindow(object):
         
     def thumbnailEpn(self):
         global total_till, browse_cnt, home, iconv_r, site
-        global thumbnail_indicator, mpvplayer, tab_6_size_indicator
-        global icon_size_arr, finalUrlFound, home, total_till_epn
+        global thumbnail_indicator, tab_6_size_indicator
+        global finalUrlFound, home, total_till_epn
         
         m=[]
         self.scrollArea.hide()
@@ -4883,8 +4003,8 @@ class Ui_MainWindow(object):
         if iconv_r > 1:
             w = float((self.tab_6.width()-60)/iconv_r)
             h = int(w/self.image_aspect_allowed)
-            if self.tab_5.isHidden() and mpvplayer:
-                if mpvplayer.processId() > 0:
+            if self.tab_5.isHidden() and self.mpvplayer_val:
+                if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
                         l= (tab_6_size_indicator[0]-60)/iconv_r
                     else:
@@ -4897,10 +4017,10 @@ class Ui_MainWindow(object):
         width = str(int(w))
         height = str(int(h))
         
-        if icon_size_arr:
-            icon_size_arr[:]=[]
-        icon_size_arr.append(width)
-        icon_size_arr.append(height)
+        if self.icon_size_arr:
+            self.icon_size_arr[:]=[]
+        self.icon_size_arr.append(width)
+        self.icon_size_arr.append(height)
         print("self.width="+width)
         print("self.height="+height)
         if not thumbnail_indicator:
@@ -5165,14 +4285,14 @@ class Ui_MainWindow(object):
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, mpvAlive, curR, idw, Player, mpvplayer, ui
+        global queueNo, mpvAlive, curR, idw, Player, ui
         curR = self.list2.currentRow()
         queueNo = queueNo + 1
         mpvAlive = 0
         if self.float_window.isHidden():
-            if mpvplayer.processId() > 0:
+            if self.mpvplayer_val.processId() > 0:
                 if idw != str(int(self.tab_5.winId())):
-                    mpvplayer.kill()
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     idw = str(int(self.tab_5.winId()))
                 if self.mpvplayer_started:
@@ -5199,9 +4319,9 @@ class Ui_MainWindow(object):
                     print(e)
     
     def mpvNextEpnList(self, play_row=None, mode=None):
-        global mpvplayer, epn, curR, Player, site, current_playing_file_path
+        global epn, curR, Player, site, current_playing_file_path
         print(play_row, '--play_row--', mode)
-        if mpvplayer.processId() > 0:
+        if self.mpvplayer_val.processId() > 0:
             print("-----------inside-------")
             if play_row != None and mode == 'play_now':
                 curR = play_row
@@ -5244,9 +4364,9 @@ class Ui_MainWindow(object):
                     else:
                         lnk_epn = self.list2.currentItem().text()
                     if lnk_epn.startswith('abs_path=') or lnk_epn.startswith('relative_path='):
-                        print(mpvplayer.processId())
+                        print(self.mpvplayer_val.processId())
                     else:
-                        mpvplayer.kill()
+                        self.mpvplayer_val.kill()
                         self.mpvplayer_started = False
                 if len(self.queue_url_list)>0:
                     self.getQueueInList()
@@ -5254,21 +4374,21 @@ class Ui_MainWindow(object):
                     self.localGetInList()
             else:
                 if Player == "mpv":
-                    mpvplayer.kill()
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     self.getNextInList()
                 else:
-                    print(mpvplayer.state())
-                    mpvplayer.kill()
+                    print(self.mpvplayer_val.state())
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
-                    print(mpvplayer.processId(), '--mpvnext---')
+                    print(self.mpvplayer_val.processId(), '--mpvnext---')
                     self.getNextInList()
     
     def mpvPrevEpnList(self):
-        global mpvplayer, epn, curR, Player, site
+        global epn, curR, Player, site
         global current_playing_file_path
         
-        if mpvplayer.processId() > 0:
+        if self.mpvplayer_val.processId() > 0:
             print("inside")
             if curR == 0:
                 curR = self.list2.count() - 1
@@ -5344,7 +4464,7 @@ class Ui_MainWindow(object):
                 self.frame1.show()
         
     def thumbnailHide(self, context):
-        global view_layout, total_till, mpvplayer, browse_cnt, iconv_r
+        global view_layout, total_till, browse_cnt, iconv_r
         global memory_num_arr, idw
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
         idw = str(int(self.tab_5.winId()))
@@ -5378,13 +4498,12 @@ class Ui_MainWindow(object):
         self.frame1.show()
         self.text.show()
         view_layout = "List"
-        if mpvplayer:
-            if mpvplayer.processId() > 0:
-                self.text.hide()
-                self.label.hide()
-                self.list1.hide()
-                self.frame.hide()
-                self.tab_5.show()
+        if self.mpvplayer_val.processId() > 0:
+            self.text.hide()
+            self.label.hide()
+            self.list1.hide()
+            self.frame.hide()
+            self.tab_5.show()
                 
     def webClose(self):
         global view_layout, desktop_session
@@ -5419,8 +4538,7 @@ class Ui_MainWindow(object):
             self.web = None
         
     def webHide(self):
-        global mpvplayer
-        if mpvplayer.processId() > 0:
+        if self.mpvplayer_val.processId() > 0:
             if self.tab_2.isHidden():
                 self.tab_2.show()
                 self.list1.hide()
@@ -5525,7 +4643,7 @@ class Ui_MainWindow(object):
             
     def IconViewEpn(self):
         global fullscrT, idwMain, idw, total_till, label_arr, browse_cnt, tmp_name
-        global view_layout, mpvplayer, iconv_r, curR, viewMode, thumbnail_indicator
+        global view_layout, iconv_r, curR, viewMode, thumbnail_indicator
         global site, total_till_epn
         
         if self.list2.count() == 0:
@@ -5551,7 +4669,7 @@ class Ui_MainWindow(object):
             #self.frame1.hide()
             self.goto_epn.hide()
             self.dockWidget_3.hide()
-            if mpvplayer.processId()>0:
+            if self.mpvplayer_val.processId()>0:
                 self.tab_5.show()
                 self.frame1.show()
                 iconv_r = 1
@@ -5561,11 +4679,8 @@ class Ui_MainWindow(object):
             self.tab_6.show()
             self.thumbnailEpn()
             self.tab_2.hide()
-            if mpvplayer:
-                if mpvplayer.processId()>0:
-                    self.scrollArea1.verticalScrollBar().setValue((curR+1)*200+(curR+1)*10)
-                else:
-                    self.scrollArea1.verticalScrollBar().setValue(((num+1)/4)*200+((num+1)/4)*10)
+            if self.mpvplayer_val.processId()>0:
+                self.scrollArea1.verticalScrollBar().setValue((curR+1)*200+(curR+1)*10)
             else:
                 self.scrollArea1.verticalScrollBar().setValue(((num+1)/4)*200+((num+1)/4)*10)
         else:
@@ -6854,14 +5969,13 @@ class Ui_MainWindow(object):
         self.epnfound()
     
     def preview(self):
-        global embed, playMpv, Player, mpvplayer
+        global embed, playMpv, Player
         Player = str(self.chk.currentText())
         self.player_val = Player
-        if mpvplayer:
-            if mpvplayer.processId()>0 and self.tab_2.isHidden():
-                mpvplayer.kill()
-                self.mpvplayer_started = False
-                self.epnfound()
+        if self.mpvplayer_val.processId()>0 and self.tab_2.isHidden():
+            self.mpvplayer_val.kill()
+            self.mpvplayer_started = False
+            self.epnfound()
     
     def nextp(self, val):
         global opt, pgn, genre_num, site, embed, mirrorNo, quality, name
@@ -8610,13 +7724,13 @@ class Ui_MainWindow(object):
         return file_name_mp4, file_name_mkv
 
     def play_file_now(self, file_name, win_id=None):
-        global Player, epn_name_in_list, mpvplayer, idw, quitReally
+        global Player, epn_name_in_list, idw, quitReally
         global current_playing_file_path, cur_label_num
             
         self.mplayerLength = 0
         quitReally = 'no'
         logger.info(file_name)
-        if mpvplayer.processId() == 0:
+        if self.mpvplayer_val.processId() == 0:
             self.initial_view_mode()
         finalUrl = file_name.replace('"', '')
         finalUrl = '"'+finalUrl+'"'
@@ -8625,7 +7739,7 @@ class Ui_MainWindow(object):
             finalUrl = finalUrl.replace('"', '')
         else:
             current_playing_file_path = finalUrl
-        if (mpvplayer.processId() > 0 and OSNAME == 'posix' 
+        if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' 
                 and self.mpvplayer_started and not finalUrl.startswith('http')):
             epnShow = '"' + "Queued:  "+ self.epn_name_in_list + '"'
             if Player == "mplayer":
@@ -8635,15 +7749,15 @@ class Ui_MainWindow(object):
                 t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                 t2 = bytes('\n '+"loadfile "+finalUrl+' replace \n', 'utf-8')
             logger.info('{0}---hello-----'.format(t2))
-            mpvplayer.write(t1)
-            mpvplayer.write(t2)
+            self.mpvplayer_val.write(t1)
+            self.mpvplayer_val.write(t2)
             if self.mplayer_SubTimer.isActive():
                 self.mplayer_SubTimer.stop()
             self.mplayer_SubTimer.start(2000)
             logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
         else:
-            if mpvplayer.processId()>0:
-                mpvplayer.kill()
+            if self.mpvplayer_val.processId()>0:
+                self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
             if OSNAME == 'posix':
                 if not win_id:
@@ -8939,7 +8053,6 @@ class Ui_MainWindow(object):
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
         global mpv, mpvAlive, indexQueue, Player, startPlayer
-        global mpvplayer
         global new_epn, idw, home1, quitReally, buffering_mplayer
         global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
@@ -8962,12 +8075,12 @@ class Ui_MainWindow(object):
             if os.path.exists(tmp_pl):
                 os.remove(tmp_pl)
 
-        if (mpvplayer.processId() > 0 and (current_playing_file_path.startswith('http') 
+        if (self.mpvplayer_val.processId() > 0 and (current_playing_file_path.startswith('http') 
                 or current_playing_file_path.startswith('"http'))):
-            mpvplayer.kill()
+            self.mpvplayer_val.kill()
             self.mpvplayer_started = False
             if Player == 'mplayer':
-                if mpvplayer.processId() > 0:
+                if self.mpvplayer_val.processId() > 0:
                     try:
                         #subprocess.Popen(['killall', 'mplayer'])
                         print('hello')
@@ -9250,8 +8363,8 @@ class Ui_MainWindow(object):
                 finalUrl = str(finalUrl)
             except:
                 finalUrl = finalUrl
-            if mpvplayer.processId() > 0:
-                mpvplayer.kill()
+            if self.mpvplayer_val.processId() > 0:
+                self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
             if Player == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player)
@@ -9271,8 +8384,8 @@ class Ui_MainWindow(object):
                 subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         else:
             if self.download_video == 0 and Player == "mpv":
-                if mpvplayer.processId() > 0:
-                    mpvplayer.kill()
+                if self.mpvplayer_val.processId() > 0:
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                 if isinstance(finalUrl, list):
                         rfr_exists = finalUrl[-1]
@@ -9309,8 +8422,8 @@ class Ui_MainWindow(object):
                         command = self.mplayermpv_command(idw, finalUrl, Player)
                         self.infoPlay(command)
             elif self.download_video == 0 and Player != "mpv":
-                if mpvplayer.processId() > 0:
-                    mpvplayer.kill()
+                if self.mpvplayer_val.processId() > 0:
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                 if isinstance(finalUrl, list):
                     rfr_exists = finalUrl[-1]
@@ -9628,7 +8741,7 @@ class Ui_MainWindow(object):
         global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
         global video_local_stream
         global mpv, mpvAlive, indexQueue, Player, startPlayer
-        global mpvplayer, new_epn, idw, home1, quitReally, buffering_mplayer
+        global new_epn, idw, home1, quitReally, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
         if self.if_file_path_exists_then_play(row, self.list2, False):
@@ -9764,7 +8877,7 @@ class Ui_MainWindow(object):
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
-        global site, base_url, idw, quitReally, mpvplayer, Player, epn_name_in_list
+        global site, base_url, idw, quitReally, Player, epn_name_in_list
         global path_final_Url, current_playing_file_path, curR
         curR = 0
         if title:
@@ -9778,21 +8891,21 @@ class Ui_MainWindow(object):
         title_sub_path = os.path.join(self.yt_sub_folder, title_sub_path+'.en.vtt')
         
         if Player=='mplayer':
-            print(mpvplayer.processId(), '=mpvplayer.processId()')
-            if (mpvplayer.processId()>0):
-                mpvplayer.kill()
+            print(self.mpvplayer_val.processId(), '=self.mpvplayer_val.processId()')
+            if (self.mpvplayer_val.processId()>0):
+                self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
                 #time.sleep(1)
-                if mpvplayer.processId() > 0:
-                    print(mpvplayer.processId(), '=mpvplayer.processId()')
+                if self.mpvplayer_val.processId() > 0:
+                    print(self.mpvplayer_val.processId(), '=self.mpvplayer_val.processId()')
                     try:
                         #subprocess.Popen(['killall', 'mplayer'])
                         print('hello')
                     except:
                         pass
-        print(mpvplayer.processId(), '=mpvplayer.processId()')
-        if mpvplayer.processId() > 0:
-            mpvplayer.kill()
+        print(self.mpvplayer_val.processId(), '=self.mpvplayer_val.processId()')
+        if self.mpvplayer_val.processId() > 0:
+            self.mpvplayer_val.kill()
             self.mpvplayer_started = False
         quitReally = quit_val
         
@@ -10019,7 +9132,7 @@ class Ui_MainWindow(object):
         QtCore.QTimer.singleShot(1000, partial(wget.start, command))
         
     def dataReady(self, p):
-        global mpvplayer, new_epn, quitReally, curR, epn, opt, base_url, Player, site
+        global new_epn, quitReally, curR, epn, opt, base_url, Player, site
         global wget, cache_empty, buffering_mplayer, slider_clicked
         global fullscr, artist_name_mplayer, layout_mode, server
         global new_tray_widget, video_local_stream, pause_indicator
@@ -10111,7 +9224,7 @@ class Ui_MainWindow(object):
                         try:
                             npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
                             npn1 = bytes('\n'+'show-text '+npn+' 4000'+'\n', 'utf-8')
-                            mpvplayer.write(npn1)
+                            self.mpvplayer_val.write(npn1)
                         except:
                             pass
                         if MainWindow.isFullScreen() and layout_mode != "Music":
@@ -10127,7 +9240,7 @@ class Ui_MainWindow(object):
                         cache_empty = "yes"
                         mpv_indicator.append("cache empty") 
                         print("buffering")
-                        mpvplayer.write(b'\n set pause yes \n')
+                        self.mpvplayer_val.write(b'\n set pause yes \n')
                         self.player_play_pause.setText(self.player_buttons['play'])
                         #if self.mplayer_timer.isActive():
                         #	self.mplayer_timer.stop()
@@ -10224,7 +9337,7 @@ class Ui_MainWindow(object):
                                 #	self.mplayer_timer.stop()
                                 #self.mplayer_timer.start(10)
                                 cache_empty = 'no'
-                                mpvplayer.write(b'\n set pause no \n')
+                                self.mpvplayer_val.write(b'\n set pause no \n')
                                 self.player_play_pause.setText(self.player_buttons['pause'])
                                 if mpv_indicator:
                                     mpv_indicator.pop()
@@ -10250,7 +9363,7 @@ class Ui_MainWindow(object):
                             replay = '\n loadfile "{0}" replace \n'.format(current_playing_file_path)
                         t2 = bytes(replay, 'utf-8')
                         #logger.info(t2)
-                        mpvplayer.write(t2)
+                        self.mpvplayer_val.write(t2)
                         return 0
                     else:
                         if not self.queue_url_list:
@@ -10357,7 +9470,7 @@ class Ui_MainWindow(object):
                         try:
                             npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
                             npn1 = bytes('\n'+'osd_show_text '+str(npn)+' 4000'+'\n', 'utf-8')
-                            mpvplayer.write(npn1)
+                            self.mpvplayer_val.write(npn1)
                         except:
                             pass
                         if MainWindow.isFullScreen() and layout_mode != "Music":
@@ -10456,20 +9569,20 @@ class Ui_MainWindow(object):
                             new_tray_widget.update_signal.emit(out_time, int(l))
                         if video_local_stream:
                             if c == '0%' and not self.mplayer_pause_buffer and not self.mplayer_nop_error_pause:
-                                mpvplayer.write(b'\n pause \n')
+                                self.mpvplayer_val.write(b'\n pause \n')
                                 self.mplayer_pause_buffer = True
                     if ((cache_empty == "yes" ) 
                             and (site != "Local" or site != "Music" or site != "Video")):
                         print('---nop--error--pausing---')
                         if not self.mplayer_pause_buffer:
-                            mpvplayer.write(b'\n pause \n')
+                            self.mpvplayer_val.write(b'\n pause \n')
                             cache_empty = "no"
                             buffering_mplayer = "yes"
                     elif (('nop_streaming_read_error' in a) 
                             and (site != "Local" or site != "Music" or site != "Video")):
                         print('---nop--error--pausing---')
                         if not self.mplayer_pause_buffer:
-                            mpvplayer.write(b'\n pause \n')
+                            self.mpvplayer_val.write(b'\n pause \n')
                             cache_empty = "no"
                             buffering_mplayer = "yes"
                             self.mplayer_nop_error_pause = True
@@ -10493,7 +9606,7 @@ class Ui_MainWindow(object):
                     mpv_start.pop()
                     if self.player_setLoop_var:
                         t2 = bytes('\n'+"loadfile "+(current_playing_file_path)+" replace"+'\n', 'utf-8')
-                        mpvplayer.write(t2)
+                        self.mpvplayer_val.write(t2)
                         #print(t2)
                         return 0
                     else:
@@ -10545,7 +9658,7 @@ class Ui_MainWindow(object):
             print(e, '--dataready--exception--')
         
     def started(self):
-        global mpvplayer, epn, new_epn, epn_name_in_list, fullscr, mpv_start
+        global epn, new_epn, epn_name_in_list, fullscr, mpv_start
         global Player, cur_label_num, epn_name_in_list, site
         if self.tab_5.isHidden() and thumbnail_indicator:
             length_1 = self.list2.count()
@@ -10555,7 +9668,7 @@ class Ui_MainWindow(object):
             exec(q3)
             QtWidgets.QApplication.processEvents()
         print("Process Started")
-        print(mpvplayer.processId())
+        print(self.mpvplayer_val.processId())
         mpv_start =[]
         mpv_start[:]=[]
         t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
@@ -10570,7 +9683,7 @@ class Ui_MainWindow(object):
                 self.frame_timer.stop()
         
     def finished(self):
-        global quitReally, mpvplayer, mpv_start
+        global quitReally, mpv_start
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
@@ -10580,10 +9693,10 @@ class Ui_MainWindow(object):
         self.progressEpn.setValue(0)
         self.slider.setValue(0)
         self.progressEpn.setFormat("")
-        print(mpvplayer.processId(), '--finished--id--')
+        print(self.mpvplayer_val.processId(), '--finished--id--')
 
     def infoPlay(self, command):
-        global mpvplayer, Player, site, new_epn, mpv_indicator, cache_empty
+        global Player, site, new_epn, mpv_indicator, cache_empty
         if not command:
             t = "Loading Failed: No Url/File Found. Try Again"
             self.progressEpn.setFormat(t)
@@ -10598,8 +9711,8 @@ class Ui_MainWindow(object):
                     command = command+' -loop 0'
                     
             print('--line--15662--')
-            if mpvplayer.processId()>0:
-                mpvplayer.kill()
+            if self.mpvplayer_val.processId()>0:
+                self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
                 try:
                     if not self.mplayer_status_thread.isRunning():
@@ -10612,14 +9725,13 @@ class Ui_MainWindow(object):
             else:
                 if self.mpvplayer_command:
                     command = self.mpvplayer_command[-1]
-                    self.mpvplayer_command[:]=[]
-                self.mpvplayer_val = mpvplayer
-                self.tab_5.set_mpvplayer(player=self.player_val, mpvplayer=mpvplayer)
-                mpvplayer.setProcessChannelMode(QtCore.QProcess.MergedChannels)
-                mpvplayer.started.connect(self.started)
-                mpvplayer.readyReadStandardOutput.connect(partial(self.dataReady, mpvplayer))
-                mpvplayer.finished.connect(self.finished)
-                QtCore.QTimer.singleShot(1000, partial(mpvplayer.start, command))
+                    self.mpvplayer_command[:] = []
+                self.tab_5.set_mpvplayer(player=self.player_val, mpvplayer=self.mpvplayer_val)
+                self.mpvplayer_val.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+                self.mpvplayer_val.started.connect(self.started)
+                self.mpvplayer_val.readyReadStandardOutput.connect(partial(self.dataReady, self.mpvplayer_val))
+                self.mpvplayer_val.finished.connect(self.finished)
+                QtCore.QTimer.singleShot(1000, partial(self.mpvplayer_val.start, command))
                 logger.info(command)
                 logger.info('infoplay--18165--')
                 self.mpvplayer_started = True
@@ -10734,7 +9846,7 @@ class Ui_MainWindow(object):
     
     def localGetInList(self):
         global site, base_url, embed, epn, epn_goto, mirrorNo, list2_items, quality
-        global finalUrl, curR, home, mpvplayer, buffering_mplayer, epn_name_in_list
+        global finalUrl, curR, home, buffering_mplayer, epn_name_in_list
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
         global mpv, mpvAlive, indexQueue, Player, startPlayer
         global new_epn, path_Local_Dir, Player, curR
@@ -10837,7 +9949,7 @@ class Ui_MainWindow(object):
         except:
             finalUrl = finalUrl
             
-        if mpvplayer.processId() > 0:
+        if self.mpvplayer_val.processId() > 0:
             if Player == "mplayer":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if not self.external_url and self.mpvplayer_started:
@@ -10846,13 +9958,13 @@ class Ui_MainWindow(object):
                     t1 = bytes('\n '+'show_text '+(epnShow)+' \n', 'utf-8')
                     t2 = bytes('\n '+"loadfile "+(finalUrl)+" replace"+' \n', 'utf-8')
                     logger.info(t2)
-                    mpvplayer.write(t2)
-                    mpvplayer.write(t1)
+                    self.mpvplayer_val.write(t2)
+                    self.mpvplayer_val.write(t1)
                     if self.mplayer_SubTimer.isActive():
                         self.mplayer_SubTimer.stop()
                     self.mplayer_SubTimer.start(2000)
                 else:
-                    mpvplayer.kill()
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     self.infoPlay(command)
                     #self.external_url = False
@@ -10863,22 +9975,22 @@ class Ui_MainWindow(object):
                     epnShow = '"' + "Queued:  "+ new_epn + '"'
                     t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                     t2 = bytes('\n '+"loadfile "+finalUrl+' \n', 'utf-8')
-                    mpvplayer.write(t2)
-                    mpvplayer.write(t1)
+                    self.mpvplayer_val.write(t2)
+                    self.mpvplayer_val.write(t1)
                     logger.info(t2)
                 else:
-                    mpvplayer.kill()
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
             
-            print("mpv=" + str(mpvplayer.processId()))
+            print("mpv=" + str(self.mpvplayer_val.processId()))
         else:
             command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
             self.infoPlay(command)
         
-            print("mpv=" + str(mpvplayer.processId()))
+            print("mpv=" + str(self.mpvplayer_val.processId()))
             
         if finalUrl.startswith('"'):
             current_playing_file_path = finalUrl.replace('"', '')
@@ -10931,7 +10043,7 @@ class Ui_MainWindow(object):
             print(e, '--14180--')
         
     def getQueueInList(self):
-        global curR, mpvplayer, site, epn_name_in_list, artist_name_mplayer, idw
+        global curR, site, epn_name_in_list, artist_name_mplayer, idw
         global sub_id, audio_id, Player, server, current_playing_file_path, quality
         try:
             t1 = self.queue_url_list[0]
@@ -10979,28 +10091,28 @@ class Ui_MainWindow(object):
         
         epnShowN = '"'+epnShow.replace('"', '')+'"'
         command = self.mplayermpv_command(idw, epnShowN, Player, a_id=audio_id, s_id=sub_id)
-        if mpvplayer.processId() > 0:
+        if self.mpvplayer_val.processId() > 0:
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
             
             if Player == 'mpv':
                 if not self.external_url:
-                    mpvplayer.write(t2)
+                    self.mpvplayer_val.write(t2)
                     logger.info(t2)
                 else:
-                    mpvplayer.write(b'\n quit \n')
+                    self.mpvplayer_val.write(b'\n quit \n')
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
             elif Player == "mplayer":
                 if not self.external_url:
-                    mpvplayer.write(t2)
+                    self.mpvplayer_val.write(t2)
                     logger.info(t2)
                     if self.mplayer_SubTimer.isActive():
                         self.mplayer_SubTimer.stop()
                     self.mplayer_SubTimer.start(2000)
                 else:
-                    mpvplayer.kill()
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     self.infoPlay(command)
                     #self.external_url = False
@@ -11096,7 +10208,7 @@ class Ui_MainWindow(object):
         
     def getNextInList(self):
         global site, base_url, embed, epn, epn_goto, mirrorNo, list2_items, quality
-        global finalUrl, curR, home, mpvplayer, buffering_mplayer, epn_name_in_list
+        global finalUrl, curR, home, buffering_mplayer, epn_name_in_list
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
         global mpv, mpvAlive, indexQueue, Player, startPlayer
         global new_epn, path_Local_Dir, Player, curR
@@ -11190,7 +10302,7 @@ class Ui_MainWindow(object):
                                     self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Get Next', self.torrent_download_folder, self.stream_session)
                                 else:
                                     if Player == 'mplayer':
-                                        mpvplayer.write(b'\n quit \n')
+                                        self.mpvplayer_val.write(b'\n quit \n')
                             else:
                                 finalUrl, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Already Running', self.torrent_download_folder, self.stream_session)
                         else:
@@ -11307,10 +10419,10 @@ class Ui_MainWindow(object):
                 finalUrl = finalUrl
                 
             command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
-            print("mpv=" + str(mpvplayer.processId()))
+            print("mpv=" + str(self.mpvplayer_val.processId()))
             logger.info(command)
-            if mpvplayer.processId() > 0 :
-                mpvplayer.kill()
+            if self.mpvplayer_val.processId() > 0 :
+                self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
             self.infoPlay(command)
         else:
@@ -11320,13 +10432,13 @@ class Ui_MainWindow(object):
                 if rfr_exists == 'referer sent':
                     rfr_needed = True
                     finalUrl.pop()
-                if mpvplayer:
-                    if mpvplayer.processId() > 0:
+                if self.mpvplayer_val:
+                    if self.mpvplayer_val.processId() > 0:
                         if refererNeeded == "True":
                             finalUrl.pop()
                         epnShow = '"'+finalUrl[0]+'"'
                         t2 = bytes('\n'+"loadfile "+epnShow+" replace"+'\n', 'utf-8')
-                        mpvplayer.write(t2)
+                        self.mpvplayer_val.write(t2)
                         self.queue_url_list[:]=[]
                         for i in range(len(finalUrl)-1):
                             epnShow ='"'+finalUrl[i+1]+'"'
@@ -11355,8 +10467,8 @@ class Ui_MainWindow(object):
                             command = self.mplayermpv_command(idw, epnShow, Player)
                             
                         logger.info(command)
-                        if mpvplayer.processId() > 0:
-                            mpvplayer.kill()
+                        if self.mpvplayer_val.processId() > 0:
+                            self.mpvplayer_val.kill()
                             self.mpvplayer_started = False
                             if Player == 'mplayer':
                                 try:
@@ -11373,11 +10485,11 @@ class Ui_MainWindow(object):
                     finalUrl = finalUrl
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 
-                print("mpv=" + str(mpvplayer.processId()))
-                print(Player, '---------state----'+str(mpvplayer.state()))
+                print("mpv=" + str(self.mpvplayer_val.processId()))
+                print(Player, '---------state----'+str(self.mpvplayer_val.state()))
                 
-                if mpvplayer.processId() > 0:
-                    mpvplayer.kill()
+                if self.mpvplayer_val.processId() > 0:
+                    self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                 self.infoPlay(command)
     
@@ -12295,14 +11407,14 @@ def main():
     global mpvAlive, pre_opt, insidePreopt, posterManually, labelGeometry
     global new_tray_widget
     global list2_items, quality, indexQueue, Player, startPlayer
-    global rfr_url, category, fullscr, mpvplayer, curR, idw, idwMain, home, home1
+    global rfr_url, category, fullscr, curR, idw, idwMain, home, home1
     global player_focus, fullscrT, artist_name_mplayer
     global pict_arr, name_arr, summary_arr, total_till, tmp_name, browse_cnt
     global label_arr, hist_arr, nxtImg_cnt, view_layout, quitReally, toggleCache
     global status, wget, playlist_show, img_arr_artist
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
-    global pause_indicator, icon_size_arr, default_option_arr
+    global pause_indicator, default_option_arr
     global thumbnail_indicator, opt_movies_indicator, epn_name_in_list
     global cur_label_num, iconv_r_indicator, tab_6_size_indicator, viewMode
     global tab_6_player, audio_id, sub_id, site_arr, siteName, finalUrlFound
@@ -12359,7 +11471,6 @@ def main():
     audio_id = "auto"
     sub_id = "auto"
     tab_6_player = "False"
-    icon_size_arr = []
     viewMode = "List"
     tab_6_size_indicator = []
     iconv_r_indicator = []
@@ -12396,7 +11507,6 @@ def main():
     home1 = os.path.expanduser("~")
     home = os.path.join(home1, '.config', 'kawaii-player')
     curR = 0
-    mpvplayer = QtCore.QProcess()
     fullscr = 0
     category = "Animes"
     rfr_url = ""
@@ -12463,7 +11573,7 @@ def main():
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow, media_data=media_data)
     ui.media_data.set_ui(ui)
-    ui.tab_5.set_mpvplayer(player=Player, mpvplayer=mpvplayer)
+    ui.tab_5.set_mpvplayer(player=Player, mpvplayer=ui.mpvplayer_val)
     ui.getdb = ServerLib(ui, home, BASEDIR, TMPDIR, logger)
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
@@ -13332,8 +12442,8 @@ def main():
         f.write("\nMusic_Mode="+str(music_val))
         f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
         f.close()
-    if mpvplayer.processId() > 0:
-        mpvplayer.kill()
+    if ui.mpvplayer_val.processId() > 0:
+        ui.mpvplayer_val.kill()
     if os.path.exists(TMPDIR) and '.config' not in TMPDIR:
         shutil.rmtree(TMPDIR)
     print(ret, '--Return--')
