@@ -23,6 +23,22 @@ import re
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files
 
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+
+try:
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtWidgets.QApplication.translate(context, text, disambig)
+
+
 class ThumbnailWidget(QtWidgets.QLabel):
 
     def __init(self, parent):
@@ -1471,3 +1487,95 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     logger.info(new_small_thumb)
                     if os.path.exists(new_small_thumb):
                         os.remove(new_small_thumb)
+
+
+class TitleThumbnailWidget(QtWidgets.QLabel):
+
+    def __init(self, parent):
+        QLabel.__init__(self, parent)
+
+    def setup_globals(self, uiwidget, home_dir, tmp, logr):
+        global ui, home, TMPDIR, logger
+        ui = uiwidget
+        home = home_dir
+        TMPDIR = tmp
+        logger = logr
+
+    def mouseReleaseEvent(self, ev):
+        t=str(self.objectName())
+        t = re.sub('label_', '', t)
+        count = len(ui.original_path_name)
+        #num = (int(t) % count) + 1
+        num = int(t)
+        ui.label_search.clear()
+        logger.info('\nnum={0}:t={1}\n'.format(num, t))
+        if '\t' in ui.original_path_name[num]:
+            name = ui.original_path_name[num].split('\t')[0]
+        else:
+            name = ui.original_path_name[num]
+        logger.info(name)
+        ui.list1.setCurrentRow(num)
+        ui.labelFrame2.setText(ui.list1.currentItem().text())
+        ui.btn10.clear()
+        ui.btn10.addItem(_fromUtf8(""))
+        ui.btn10.setItemText(0, _translate("MainWindow", name, None))
+        ui.listfound()
+        ui.list2.setCurrentRow(0)
+        curR = 0
+        ui.set_parameters_value(curRow=curR)
+        if not ui.lock_process:
+            ui.gridLayout.addWidget(ui.tab_6, 0, 1, 1, 1)
+            ui.thumbnailHide('ExtendedQLabel')
+            ui.IconViewEpn()
+            if not ui.scrollArea1.isHidden():
+                ui.scrollArea1.setFocus()
+
+    def mouseMoveEvent(self, event):
+        self.setFocus()
+    """
+    def contextMenuEvent(self, event):
+        global name, tmp_name, opt, list1_items, curR, nxtImg_cnt
+
+        t=str(self.objectName())
+        t = re.sub('label_', '', t)
+        num = int(t)
+        try:
+            name = tmp_name[num]
+        except:
+            name = tmp_name[num%len(tmp_name)]
+        logger.info(name)
+        menu = QtWidgets.QMenu(self)
+        rmPoster = menu.addAction("Remove Poster")
+        adPoster = menu.addAction("Find Image")
+        rset = menu.addAction("Reset Counter")
+        adImage = menu.addAction("Replace Image")
+        action = menu.exec_(self.mapToGlobal(event.pos()))
+        if action == rmPoster:
+            t=str(self.objectName())
+            p1 = "ui."+t+".clear()"
+            exec (p1)
+        elif action == adPoster:
+            if site == "SubbedAnime" and base_url == 15:
+                nam = re.sub('[0-9]*', '', name)
+            else:
+                nam = name
+            url = "https://www.google.co.in/search?q="+nam+"anime&tbm=isch"
+            logger.info(url)
+            content = ccurl(url)
+            n = re.findall('imgurl=[^"]*.jpg', content)
+            src= re.sub('imgurl=', '', n[nxtImg_cnt])
+            picn = os.path.join(TMPDIR, name+'.jpg')
+            if os.path.isfile(picn):
+                os.remove(picn)
+            subprocess.call(["curl", "-A", hdr, '--max-filesize', "-L", "-o", picn, src])
+            t=str(self.objectName())
+            img = QtGui.QPixmap(picn, "1")
+            q1="ui."+t+".setPixmap(img)"
+            t=str(self.objectName())
+            exec (q1)
+            nxtImg_cnt = nxtImg_cnt+1
+        elif action == rset:
+            nxtImg_cnt = 0
+        elif action == adImage:
+            ui.copyImg()
+    """
