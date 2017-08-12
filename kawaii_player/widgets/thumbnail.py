@@ -20,6 +20,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import shutil
 import re
+import subprocess
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files
 
