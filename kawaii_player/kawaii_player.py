@@ -7859,6 +7859,10 @@ class Ui_MainWindow(object):
                     if list_widget == self.list6:
                         txt = self.list6.item(0).text()
                         r = self.get_index_list(list_widget, txt)
+                        if r is None:
+                            r = 0
+                        else:
+                            list_widget_row = r
                         self.list2.setCurrentRow(r)
                     else:
                         r = row
