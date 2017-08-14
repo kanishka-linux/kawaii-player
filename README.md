@@ -510,7 +510,7 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	If pycurl doesn't work or can't be installed, then users should edit other_options.txt file and set 'GET_LIBRARY' to either 'curl' or 'wget'.
 	
-	**Note:** It's advisable for GNU/Linux distro users to install PyQt5 and other python based dependencies from their own repositories using their native package manager instead of using pip, in order to avoid conflicting files or other dependecies problems due to differing naming schemes of the package. They should remove or comment out the 'install_requires' field in the setup.py, before using this method.
+	**Note:** GNU/Linux distro users have to install PyQt5 and other python based dependencies (as listed below) using their native package manually in this method.
 	
 	Once application is installed, launch the application using command **kawaii-player** or **kawaii-player-console** from the terminal.
 
@@ -564,11 +564,11 @@ Or they can simply click (or execute using command line) **'kawaii-player-start'
 
 - xvfb {for using the application in headless mode}
 
-**Dependencies installation in Arch for pyqt5 version.**
+**Dependencies installation in Arch**
 
 sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen
 
-**Dependencies installation in Ubuntu 16.04**
+**Dependencies installation in Ubuntu 16.04+**
 
 sudo apt install python3 python3-pyqt5 python3-pycurl python3-pil python3-bs4 python3-lxml python3-taglib curl wget libnotify-bin mpv mplayer ffmpegthumbnailer sqlite3 python3-libtorrent youtube-dl python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebkit python3-dbus python3-mutagen
 
