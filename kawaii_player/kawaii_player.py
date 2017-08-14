@@ -565,7 +565,7 @@ class Ui_MainWindow(object):
         #self.verticalLayout_50.insertWidget(3, self.label, 0)
         self.verticalLayout_50.setAlignment(QtCore.Qt.AlignBottom)
         
-        self.list4 = FilterTitleList(MainWindow, ui, home)
+        self.list4 = FilterTitleList(MainWindow, self, home)
         self.list4.setObjectName(_fromUtf8("list4"))
         #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list4.setMouseTracking(True)
