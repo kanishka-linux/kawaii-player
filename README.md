@@ -489,10 +489,14 @@ In this player, a weak addon structure has been created, so that one can write a
 
 3. Using self contained binary for 64-bit gnu/linux systems:
 	
-	Grab *'x86_64-bin.tar.bz2'* package from latest stable release section, extract it, go to the extracted folder, open terminal in it and execute following commands, to directly open the application:
+	Grab *'x86_64-bin.tar.bz2'* or *'x86_64-bin.7z'* package from latest stable release section, extract it, go to the extracted folder, open terminal in it and execute following commands, to directly open the application:
 	
 		$ chmod +x kawaii_player
 		$ ./kawaii_player
+        
+    kawaii-player from version 2.0 onwards contains headless browser supporting both qtwebkit and qtwebengine as backend. It is important for working of some particular kinds of addons. However, In 64 bit binary, the included headless browser supports only qtwebkit as backend (as available in ubuntu 16.04 LTS). Users can activate it using command:
+    
+        $ chmod +x hls_cmd_webkit
 
 	The 64-bit binary is built against Ubuntu 16.04 LTS as base and contains all python based dependencies. Users will have to install only non-python based dependencies like mpv/mplayer/ffmpegthumbnailer externally. The binary has been tested on Ubuntu, Mint and Fedora.
 
