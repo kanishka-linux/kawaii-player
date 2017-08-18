@@ -21,6 +21,7 @@ import os
 import re
 import time
 import ipaddress
+import random
 import urllib.request
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore
@@ -58,7 +59,7 @@ class FindPosterThread(QtCore.QThread):
         nam = nam.lower()
         nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
         nam = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*', '', nam)
+            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*', '', nam)
         nam = nam.strip()
         return nam
 
@@ -172,12 +173,14 @@ class FindPosterThread(QtCore.QThread):
                 content = ccurl(new_url)
                 soup = BeautifulSoup(content, 'lxml')
                 div_val = soup.findAll('h2', {'class':'result__title'})
+                logger.info(div_val)
                 for div_l in div_val:
                     new_url = div_l.find('a')
                     if 'href' in str(new_url):
                         new_link = new_url['href']
                         final_link = re.search('http[^"]*', new_link).group()
-                        if 'tvdb.com' in final_link:
+                        if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
+                                and 'tab=seasonall' not in final_link):
                             m.append(final_link)
                             break
             else:
@@ -256,6 +259,7 @@ class FindPosterThread(QtCore.QThread):
 
                 summary = title+'\n\n'+labelId+ sumr
                 summary = re.sub('\t', '', summary)
+                fan_all = post_all = []
                 if self.copy_summary:
                     self.summary_signal.emit(name, summary, 'summary')
                 fan_all = re.findall('/[^"]tab=seriesfanart[^"]*', content)
@@ -264,14 +268,23 @@ class FindPosterThread(QtCore.QThread):
                 content2 = ""
                 post_all = re.findall('/[^"]tab=seriesposters[^"]*', content)
                 logger.info(post_all)
+                direct_jpg = False
                 
+                if not fan_all and not post_all:
+                    fan_all = re.findall('banners/seasons/[^"]*.jpg', content)
+                    post_all = fan_all
+                    direct_jpg = True
                 if fan_all:
                     url_fan_all = "http://thetvdb.com" + fan_all[0]
                     logger.info(url_fan_all)
-                    content1 = ccurl(url_fan_all)
-                    m = re.findall('banners/fanart/[^"]*jpg', content1)
+                    if not direct_jpg:
+                        content1 = ccurl(url_fan_all)
+                        m = re.findall('banners/fanart/[^"]*jpg', content1)
+                    else:
+                        m = fan_all
                     m = list(set(m))
-                    m.sort()
+                    #m.sort()
+                    m = random.sample(m, len(m))
                     length = len(m) - 1
                     logger.info(m)
                     fanart_text = os.path.join(TMPDIR, name+'-fanart.txt')
@@ -287,7 +300,8 @@ class FindPosterThread(QtCore.QThread):
                 else:
                     m = re.findall('banners/fanart/[^"]*.jpg', content)
                     m = list(set(m))
-                    m.sort()
+                    #m.sort()
+                    m = random.sample(m, len(m))
                     length = len(m) - 1
                     logger.info(m)
                     fanart_text = os.path.join(TMPDIR, name+'-fanart.txt')
@@ -304,10 +318,14 @@ class FindPosterThread(QtCore.QThread):
                 if post_all:
                     url_post_all = "http://thetvdb.com" + post_all[0]
                     logger.info(url_post_all)
-                    content2 = ccurl(url_post_all)
-                    r = re.findall('banners/posters/[^"]*jpg', content2)
+                    if not direct_jpg:
+                        content2 = ccurl(url_post_all)
+                        r = re.findall('banners/posters/[^"]*jpg', content2)
+                    else:
+                        r = post_all
                     r = list(set(r))
-                    r.sort()
+                    #r.sort()
+                    r = random.sample(r, len(r))
                     logger.info(r)
                     length = len(r) - 1
                     
@@ -324,7 +342,8 @@ class FindPosterThread(QtCore.QThread):
                 else:
                     r = re.findall('banners/posters/[^"]*.jpg', content)
                     r = list(set(r))
-                    r.sort()
+                    #r.sort()
+                    r = random.sample(r, len(r))
                     logger.info(r)
                     length = len(r) - 1
                     poster_text = os.path.join(TMPDIR, name+'-poster.txt')
