@@ -126,7 +126,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                     copy_summary=True, direct_url=False, use_search=False)
             except Exception as e:
                 print(e)
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Right):
             try:
                 site = ui.get_parameters_value(s='site')['site']
