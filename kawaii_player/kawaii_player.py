@@ -4832,7 +4832,7 @@ class Ui_MainWindow(object):
                     if '	' in i:
                         i = i.split('	')[0]
                 self.list1.addItem(i)
-        opt = "List"
+        #opt = "List"
         
     def deleteArtwork(self):
             global name
@@ -5317,13 +5317,13 @@ class Ui_MainWindow(object):
     
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
-            copy_summary=None, direct_url=None):
+            copy_summary=None, direct_url=None, use_search=None):
         
         logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
         
         self.posterfound_arr.append(FindPosterThread(
             self, logger, TMPDIR, name, url, direct_url,
-            copy_fanart, copy_poster, copy_summary))
+            copy_fanart, copy_poster, copy_summary, use_search))
         
         self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
             lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
@@ -5395,7 +5395,7 @@ class Ui_MainWindow(object):
         if site == "SubbedAnime" or site == "DubbedAnime":
             self.epnfound()
             
-    def setPreOpt(self):
+    def setPreOpt(self, option_val=None):
         global pre_opt, opt, hdr, base_url, site, insidePreopt, embed, home
         global hist_arr, name, bookmark, status, viewMode, total_till, browse_cnt
         global embed, siteName
@@ -5428,8 +5428,11 @@ class Ui_MainWindow(object):
             opt = "History"
             self.options('history')	
         else:
-            opt = "History"
-            self.options('history')	
+            if option_val:
+                opt = option_val
+            else:
+                opt = "History"
+            self.options(opt.lower())
                 
     def mark_video_list(self, mark_val, row):
         global site
@@ -6399,7 +6402,7 @@ class Ui_MainWindow(object):
             srch_txt = re.sub('\[[^\]]*\]|\([^\)]*\)', '', srch_txt)
             srch_txt = re.sub('-|_| ', '+', srch_txt)
             srch_txt = re.sub(
-                '\+sub|\+dub|subbed|dubbed|720p|1080p|480p|.mkv|.mp4|', '', srch_txt)
+                '\+sub|\+dub|subbed|dubbed|720p|1080p|480p|.mkv|.mp4|\+season[^"]*', '', srch_txt)
             srch_txt = srch_txt.strip()
         if 'AnimeWatch' in home or self.anime_review_site:
             web_arr_dict = {
@@ -6471,8 +6474,9 @@ class Ui_MainWindow(object):
         name1 = name1.lower()
         name1 = re.sub('\[[^\]]*\]|\([^\)]*\)', '', name1)
         name1 = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|', '', name1)
+            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*', '', name1)
         name1 = name1.strip()
+        logger.info(name1)
         key = ''
         if action:
             if action == 'return_pressed':
@@ -10859,7 +10863,7 @@ class Ui_MainWindow(object):
             video_file = os.path.join(video_dir, 'Video.txt')
             video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
             
-            if self.list3.currentItem():
+            if self.list3.currentItem() and val != 'history':
                 video_opt = str(self.list3.currentItem().text())
             else:
                 video_opt = "History"
@@ -10892,6 +10896,8 @@ class Ui_MainWindow(object):
             self.list1.clear()
             #print artist
             self.original_path_name[:] = []
+            #artist = naturallysorted(artist)
+            logger.info('\n{0}::\n'.format(video_opt))
             if video_opt == "Available" or video_opt == "History":
                 for i in artist:
                     ti = i.split('	')[0]
@@ -10907,6 +10913,7 @@ class Ui_MainWindow(object):
                         else:
                             self.original_path_name.append(i)
                         self.list1.addItem((ti))
+                self.sortList()
             elif video_opt == "Directory":
                 for i in artist:
                     ti = i.split('	')[0]
@@ -12250,7 +12257,7 @@ def main():
                 opt = 'History'
             else:
                 opt = option_val
-            ui.setPreOpt()
+            ui.setPreOpt(option_val=opt)
     print(name_index, ui.list1.count())
     if name_index >=0 and name_index < ui.list1.count():
         ui.list1.setCurrentRow(name_index)
