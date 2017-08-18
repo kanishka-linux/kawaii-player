@@ -117,18 +117,25 @@ class TitleListWidget(QtWidgets.QListWidget):
     
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_Left):
+            try:
+                site = ui.get_parameters_value(s='site')['site']
+                nm = ui.get_title_name(self.currentRow())
+                ui.posterfound_new(
+                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                    copy_summary=True, direct_url=False, use_search=False)
+            except Exception as e:
+                print(e)
+        if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Right):
             try:
                 site = ui.get_parameters_value(s='site')['site']
                 nm = ui.get_title_name(self.currentRow())
                 ui.posterfound_new(
                     name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False)
+                    copy_summary=True, direct_url=False, use_search=True)
             except Exception as e:
                 print(e)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_C):
-            ui.copyFanart()
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_C):
             ui.copyFanart()
@@ -365,22 +372,14 @@ class TitleListWidget(QtWidgets.QListWidget):
                     print("Nothing to delete")
                 else:
                     ui.deleteHistory()
-        elif event.key() == QtCore.Qt.Key_H:
+        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_H:
             ui.setPreOpt()
-        elif event.key() == QtCore.Qt.Key_D:
-            ui.deleteArtwork()
-        elif event.key() == QtCore.Qt.Key_M:
-            pass
-        elif event.key() == QtCore.Qt.Key_I:
-            ui.showImage()
-        elif event.key() == QtCore.Qt.Key_R:
+        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_R:
             ui.shuffleList()
-        elif event.key() == QtCore.Qt.Key_T:
+        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_T:
             ui.sortList()
-        elif event.key() == QtCore.Qt.Key_Y:
+        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_Y:
             ui.getList()
-        elif event.key() == QtCore.Qt.Key_C:
-            ui.copyImg()
         elif event.key() == QtCore.Qt.Key_Return:
             ui.list1_double_clicked()
         elif event.key() == QtCore.Qt.Key_Right:
@@ -413,7 +412,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(self.count()-1)
             else:
                 self.setCurrentRow(prev_r)
-        #super(List1, self).keyPressEvent(event)
+        else:
+            super(TitleListWidget, self).keyPressEvent(event)
 
     def addBookmarkList(self):
         try:
