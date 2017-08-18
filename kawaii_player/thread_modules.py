@@ -34,7 +34,7 @@ class FindPosterThread(QtCore.QThread):
 
     def __init__(
             self, ui_widget, logr, tmp, name, url=None, direct_url=None,
-            copy_fanart=None, copy_poster=None, copy_summary=None):
+            copy_fanart=None, copy_poster=None, copy_summary=None, use_search=None):
         QtCore.QThread.__init__(self)
         global ui, logger, TMPDIR, site
         ui = ui_widget
@@ -46,6 +46,7 @@ class FindPosterThread(QtCore.QThread):
         self.copy_fanart = copy_fanart
         self.copy_poster = copy_poster
         self.copy_summary = copy_summary
+        self.use_search = use_search
         self.summary_signal.connect(copy_information)
         site = ui.get_parameters_value(s='site')['site']
         
@@ -57,7 +58,7 @@ class FindPosterThread(QtCore.QThread):
         nam = nam.lower()
         nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
         nam = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|', '', nam)
+            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*', '', nam)
         nam = nam.strip()
         return nam
 
@@ -82,25 +83,6 @@ class FindPosterThread(QtCore.QThread):
                     nam = self.name_adjust(name)
                     url = "http://www.last.fm/search?q="+nam
                     logger.info(url)
-                    """
-                    logger.info(url)
-                    wiki = ""
-                    content = ccurl(url)
-                    soup = BeautifulSoup(content, 'lxml')
-                    link = soup.findAll('div', {'class':'row clearfix'})
-                    name3 = ""
-                    for i in link:
-                        j = i.findAll('a')
-                        for k in j:
-                            try:
-                                url = k['href']
-                                if '?q=' not in url:
-                                    logger.info(url)
-                                    break
-                            except Exception as err:
-                                print(err, '--91--')
-                    logger.info(url)
-                    """
                 wiki = ""
                 content = ccurl(url)
                 soup = BeautifulSoup(content, 'lxml')
@@ -184,29 +166,44 @@ class FindPosterThread(QtCore.QThread):
                     print(e)
         else:
             nam = self.name_adjust(name)
-            if direct_url and url:
-                if (".jpg" in url or ".png" in url or url.endswith('.webp')) and "http" in url:
-                    if self.copy_poster:
-                        ccurl(url+'#'+'-o'+'#'+thumb)
-                    elif self.copy_fanart:
-                        ccurl(url+'#'+'-o'+'#'+fanart)
-                elif 'tvdb' in url:
-                    final_link = url
-                    logger.info(final_link)
-                    m.append(final_link)
+            if self.use_search:
+                m = []
+                new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
+                content = ccurl(new_url)
+                soup = BeautifulSoup(content, 'lxml')
+                div_val = soup.findAll('h2', {'class':'result__title'})
+                for div_l in div_val:
+                    new_url = div_l.find('a')
+                    if 'href' in str(new_url):
+                        new_link = new_url['href']
+                        final_link = re.search('http[^"]*', new_link).group()
+                        if 'tvdb.com' in final_link:
+                            m.append(final_link)
+                            break
             else:
-                link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
-                logger.info(link)
-                content = ccurl(link)
-                m = re.findall('/index.php[^"]tab=[^"]*', content)
-                if not m:
-                    link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=2&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
+                if direct_url and url:
+                    if (".jpg" in url or ".png" in url or url.endswith('.webp')) and "http" in url:
+                        if self.copy_poster:
+                            ccurl(url+'#'+'-o'+'#'+thumb)
+                        elif self.copy_fanart:
+                            ccurl(url+'#'+'-o'+'#'+fanart)
+                    elif 'tvdb' in url:
+                        final_link = url
+                        logger.info(final_link)
+                        m.append(final_link)
+                else:
+                    link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
+                    logger.info(link)
                     content = ccurl(link)
                     m = re.findall('/index.php[^"]tab=[^"]*', content)
                     if not m:
-                        link = "http://thetvdb.com/?string="+nam+"&searchseriesid=&tab=listseries&function=Search"
+                        link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=2&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
                         content = ccurl(link)
-                        m = re.findall('/[^"]tab=series[^"]*lid=7', content)
+                        m = re.findall('/index.php[^"]tab=[^"]*', content)
+                        if not m:
+                            link = "http://thetvdb.com/?string="+nam+"&searchseriesid=&tab=listseries&function=Search"
+                            content = ccurl(link)
+                            m = re.findall('/[^"]tab=series[^"]*lid=7', content)
 
             if m:
                 if not final_link:
@@ -229,9 +226,13 @@ class FindPosterThread(QtCore.QThread):
                     title = (soup.find('h1')).text
                 except Exception as err_val:
                     print(err_val)
-                    return 0
+                    title = 'Title Not Available'
                 title = re.sub('&amp;', '&', title)
-                sumr = (soup.find('p')).text
+                try:
+                    sumr = (soup.find('p')).text
+                except Exception as e:
+                    print(e, '--233--')
+                    sumr = "Not Available"
                 
                 try:
                     link1 = linkLabels[1].findAll('td', {'id':'labels'})
