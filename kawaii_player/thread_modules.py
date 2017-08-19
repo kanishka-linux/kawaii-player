@@ -55,14 +55,60 @@ class FindPosterThread(QtCore.QThread):
         self.wait()                        
 
     def name_adjust(self, name):
-        nam = re.sub('-|_| ', '+', name)
+        nam = re.sub('-|_| |\.', '+', name)
         nam = nam.lower()
         nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
         nam = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*', '', nam)
+            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
         nam = nam.strip()
         return nam
-
+    
+    def ddg_search(self, nam, src, direct_search=None):
+        m = []
+        final_link = ''
+        if direct_search:
+            if src == 'tmdb':
+                new_url = 'https://www.themoviedb.org/search?query='+nam
+                content = ccurl(new_url)
+                soup = BeautifulSoup(content, 'lxml')
+                div_link = soup.find('div', {'class':'item poster card'})
+                if div_link:
+                    alink = div_link.find('a')
+                    if 'href' in str(alink):
+                        link = alink['href']
+                        if link.startswith('/'):
+                            final_link = 'https://www.themoviedb.org'+link
+                        elif link.startswith('http'):
+                            final_link = link
+                        else:
+                            final_link = 'https://www.themoviedb.org/'+link
+                        m.append(final_link)
+        else:
+            if src == 'tvdb':
+                new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
+            elif src == 'tmdb':
+                new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
+            content = ccurl(new_url)
+            soup = BeautifulSoup(content, 'lxml')
+            div_val = soup.findAll('h2', {'class':'result__title'})
+            logger.info(div_val)
+            for div_l in div_val:
+                new_url = div_l.find('a')
+                if 'href' in str(new_url):
+                    new_link = new_url['href']
+                    final_link = re.search('http[^"]*', new_link).group()
+                    if src == 'tvdb':
+                        if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
+                                and 'tab=seasonall' not in final_link):
+                            m.append(final_link)
+                    elif src == 'tmdb':
+                        if 'themoviedb.org' in final_link:
+                            m.append(final_link)
+                    if m:
+                        break
+        logger.info('\n{0}---{1}\n'.format(final_link, m))
+        return (final_link, m)
+    
     def run(self):
         name = self.name
         url = self.url
@@ -167,22 +213,17 @@ class FindPosterThread(QtCore.QThread):
                     print(e)
         else:
             nam = self.name_adjust(name)
+            src_site = 'tvdb'
             if self.use_search:
-                m = []
-                new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
-                content = ccurl(new_url)
-                soup = BeautifulSoup(content, 'lxml')
-                div_val = soup.findAll('h2', {'class':'result__title'})
-                logger.info(div_val)
-                for div_l in div_val:
-                    new_url = div_l.find('a')
-                    if 'href' in str(new_url):
-                        new_link = new_url['href']
-                        final_link = re.search('http[^"]*', new_link).group()
-                        if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
-                                and 'tab=seasonall' not in final_link):
-                            m.append(final_link)
-                            break
+                if isinstance(self.use_search, bool):
+                    final_link, m = self.ddg_search(nam, 'tvdb') 
+                    if not m:
+                        final_link, m = self.ddg_search(nam, 'tmdb')
+                        if m:
+                            src_site = 'tmdb' 
+                else:
+                    final_link, m = self.ddg_search(nam, self.use_search, direct_search=True)
+                    src_site = self.use_search
             else:
                 if direct_url and url:
                     if (".jpg" in url or ".png" in url or url.endswith('.webp')) and "http" in url:
@@ -190,10 +231,12 @@ class FindPosterThread(QtCore.QThread):
                             ccurl(url+'#'+'-o'+'#'+thumb)
                         elif self.copy_fanart:
                             ccurl(url+'#'+'-o'+'#'+fanart)
-                    elif 'tvdb' in url:
+                    elif 'tvdb' in url or 'themoviedb' in url:
                         final_link = url
                         logger.info(final_link)
                         m.append(final_link)
+                        if 'themoviedb' in url:
+                            src_site = 'tmdb'
                 else:
                     link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
                     logger.info(link)
@@ -208,7 +251,7 @@ class FindPosterThread(QtCore.QThread):
                             content = ccurl(link)
                             m = re.findall('/[^"]tab=series[^"]*lid=7', content)
 
-            if m:
+            if m and src_site == 'tvdb':
                 if not final_link:
                     n = re.sub('amp;', '', m[0])
                     elist = re.sub('tab=series', 'tab=seasonall', n)
@@ -375,7 +418,54 @@ class FindPosterThread(QtCore.QThread):
                     os.remove(fanart_text)
                 if os.path.exists(poster_text):
                     os.remove(poster_text)
-
+            elif m and src_site == 'tmdb':
+                url = final_link
+                url_ext = ['discuss', 'reviews', 'posters', 'changes', 'videos', '#']
+                url_end = url.rsplit('/', 1)[1]
+                if url_end in url_ext:
+                    url = url.rsplit('/', 1)[0]
+                if '?' in url:
+                    url = url.split('?')[0]
+                content = ccurl(url)
+                soup = BeautifulSoup(content, 'lxml')
+                #logger.info(soup.prettify())
+                title_div = soup.find('div', {'class':'title'})
+                if title_div:
+                    title = title_div.text
+                else:
+                    title = name
+                summ = soup.find('div', {'class':'overview'})
+                if summ:
+                    summary = summ.text.strip()
+                else:
+                    summary = 'Not Available'
+                cer_t = soup.find('div', {'class':'certification'})
+                if cer_t:
+                    cert = cer_t.text
+                else:
+                    cert = 'None'
+                genre = soup.find("section", {"class":"genres right_column"})
+                if genre:
+                    genres = genre.text.strip()
+                    genres = genres.replace('\n', ' ')
+                    genres = genres.replace('Genres', 'Genres:')
+                else:
+                    genres = 'No Genres'
+                new_summary = title.strip()+'\n\n'+cert.strip()+'\n'+genres.strip()+'\n\n'+summary.strip()
+                if self.copy_summary:
+                    self.summary_signal.emit(name, new_summary, 'summary')
+                url = url + '/images/posters'
+                content = ccurl(url)
+                posters_link = re.findall('https://image.tmdb.org/[^"]*original[^"]*.jpg', content)
+                if posters_link:
+                    posters_link = random.sample(posters_link, len(posters_link))
+                    if len(posters_link) == 1:
+                        url = posters_link[0]
+                        ccurl(url+'#'+'-o'+'#'+thumb)
+                    elif len(posters_link) >= 2:
+                        ccurl(posters_link[0]+'#'+'-o'+'#'+thumb)
+                        ccurl(posters_link[1]+'#'+'-o'+'#'+fanart)
+                
 
 @pyqtSlot(str, str, str)
 def copy_information(nm, txt, val):
