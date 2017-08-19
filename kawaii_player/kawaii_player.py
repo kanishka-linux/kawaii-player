@@ -7516,7 +7516,7 @@ class Ui_MainWindow(object):
                         print(e, 'Error in opening image, videoImage, ---13284')
                         picn = os.path.join(home, 'default.jpg')
                         img = Image.open(str(picn))
-                    img = self.round_corner(img, 30)
+                    #img = self.round_corner(img, 30)
                     wpercent = (basewidth / float(img.size[0]))
                     hsize = int((float(img.size[1]) * float(wpercent)))
                     sz = (basewidth, hsize)
@@ -10951,6 +10951,7 @@ class Ui_MainWindow(object):
                 for i in artist:
                     ti = i.split('	')[0]
                     di = i.split('	')[1]
+                    logger.info(i)
                     if os.path.exists(di):
                         #self.original_path_name.append(i)
                         if ti.lower().startswith('season') or ti.lower().startswith('special'):
