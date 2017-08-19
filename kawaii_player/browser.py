@@ -384,6 +384,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 
         arr = ['Download As Fanart', 'Download As Cover', 'Copy Summary']
         arr_extra_tvdb = ['Series Link', 'Season Episode Link']
+        arr_extra_tmdb = ['Series/Movie Link']
         arr_last = ['Artist Link']
         action = []
         yt = False
@@ -391,9 +392,11 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             if url:
                 if 'tvdb' in url:
                     arr = arr + arr_extra_tvdb
-                if 'last.fm' in url:
+                elif 'themoviedb' in url:
+                    arr = arr_extra_tmdb
+                elif 'last.fm' in url:
                     arr = arr + arr_last
-                if 'youtube.com' in url or 'ytimg.com' in url:
+                elif 'youtube.com' in url or 'ytimg.com' in url:
                     yt = True
                     arr[:] = []
                     arr.append('Play with Kawaii-Player')
@@ -507,10 +510,12 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                             f = open(file_path, 'w')
                             f.close()
             elif('tvdb' in self.url().url() or 'last.fm' in self.url().url() 
-                    or self.selected_text):
+                    or 'themoviedb' in self.url().url() or self.selected_text):
                 self.ui.logger.info(self.url().url())
                 if 'tvdb' in self.url().url():
                     arr = arr + arr_extra_tvdb
+                elif 'themoviedb' in self.url().url():
+                    arr = arr_extra_tmdb
                 elif 'last.fm' in self.url().url():
                     arr = arr + arr_last
                 elif self.selected_text:
@@ -587,7 +592,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
         elif option.lower() == 'season episode link':
             if self.site != "Music" and self.site != "PlayLists":
                 self.ui.getTvdbEpnInfo(url)
-        elif option.lower() == 'artist link' or option.lower() == 'series link':
+        elif (option.lower() == 'artist link' or option.lower() == 'series link' 
+                or option.lower() == 'series/movie link'):
             r = self.ui.list1.currentRow()
             nm = self.ui.get_title_name(r)
             self.ui.posterfound_new(
