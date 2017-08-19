@@ -394,6 +394,11 @@ class TitleListWidget(QtWidgets.QListWidget):
             ui.list1_double_clicked()
         elif event.key() == QtCore.Qt.Key_Right:
             ui.list2.setFocus()
+        elif event.key() == QtCore.Qt.Key_F2:
+            if ui.original_path_name:
+                print('F2 Pressed')
+                if self.currentItem():
+                    self.edit_name_list1(self.currentRow())
         elif event.key() == QtCore.Qt.Key_Left:
             if ui.tab_5.isHidden() and ui.mpvplayer_val.processId() == 0:
                 ui.btn1.setFocus()
@@ -514,7 +519,42 @@ class TitleListWidget(QtWidgets.QListWidget):
                 sumry = '"'+sumry+'"'
                 t = sumr+'	'+sumry+'	'+rfr_url
                 write_files(file_path, t, line_by_line=True)
-
+                
+    def edit_name_list1(self, row):
+        site = ui.get_parameters_value(s='site')['site']
+        if '	' in ui.original_path_name[row]:
+            default_text = ui.original_path_name[row].split('	')[0]
+            default_path_name = ui.original_path_name[row].split('	')[1]
+            default_basename = os.path.basename(default_path_name)
+        else:
+            default_text = ui.original_path_name[row]
+        item, ok = QtWidgets.QInputDialog.getText(
+            MainWindow, 'Input Dialog', 'Enter Title Name Manually', 
+            QtWidgets.QLineEdit.Normal, default_text)
+        if ok and item:
+            nm = item
+            #row = self.currentRow()
+            t = ui.original_path_name[row]
+            logger.info("4282:{0}:{1}:{2}".format(nm, row, t))
+            if site == "Video":
+                video_db = os.path.join(home, 'VideoDB', 'Video.db')
+                conn = sqlite3.connect(video_db)
+                cur = conn.cursor()
+                directory = t.split('	')[1]
+                qr = 'Update Video Set Title=? Where Directory=?'
+                logger.info('{0}::{1}'.format(nm, directory))
+                cur.execute(qr, (nm, directory))
+                conn.commit()
+                conn.close()
+                tmp = re.sub('[^	]*', item, t, 1)
+                ui.original_path_name[row] = tmp
+                itemlist = ui.list1.item(row)
+                if itemlist:
+                    itemlist.setText(item)
+                home_dir = os.path.join(home, 'Local', item)
+                if not os.path.exists(home_dir):
+                    os.makedirs(home_dir)
+                    
     def contextMenuEvent(self, event):
         if self.currentItem():
             name = str(ui.list1.currentItem().text())
