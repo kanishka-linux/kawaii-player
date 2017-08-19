@@ -362,6 +362,7 @@ class Browser(QtWebKitWidgets.QWebView):
         url = hit.linkUrl()
         arr = ['Download As Fanart', 'Download As Cover']
         arr_extra_tvdb = ['Series Link', 'Season Episode Link']
+        arr_extra_tmdb = ['Series/Movie Link']
         arr_last = ['Artist Link']
         action = []
         self.img_url = hit.imageUrl()
@@ -406,9 +407,11 @@ class Browser(QtWebKitWidgets.QWebView):
         if not url.isEmpty() or self.img_url:
             if 'tvdb' in url.toString():
                 arr = arr + arr_extra_tvdb
-            if 'last.fm' in url.toString():
+            elif 'themoviedb' in url.toString():
+                arr = arr_extra_tmdb
+            elif 'last.fm' in url.toString():
                 arr = arr + arr_last
-            if 'youtube.com' in url.toString() or 'ytimg.com' in url.toString():
+            elif 'youtube.com' in url.toString() or 'ytimg.com' in url.toString():
                 yt = True
                 arr[:] = []
                 arr.append('Play with Kawaii-Player')
@@ -536,7 +539,8 @@ class Browser(QtWebKitWidgets.QWebView):
         elif option.lower() == 'season episode link':
             if self.site != "Music" and self.site != "PlayLists":
                 self.ui.getTvdbEpnInfo(url.toString())
-        elif option.lower() == 'artist link' or option.lower() == 'series link':
+        elif (option.lower() == 'artist link' or option.lower() == 'series link' 
+                or option.lower() == 'series/movie link'):
             url = url.toString()
             r = self.ui.list1.currentRow()
             nm = self.ui.get_title_name(r)
