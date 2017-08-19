@@ -111,7 +111,7 @@ class MediaDatabase():
             qv = '#'+'%'
             self.logger.info('qv={0};qr={1}'.format(qv, qr))
             cur.execute(qr, (qv, ))
-        elif q.lower() == "Search":
+        elif q.lower() == "search":
             qVal = '%'+qVal+'%'
             qr = 'SELECT EP_NAME, Path From Video Where EP_NAME like ? or Directory like ? order by Directory'
             self.logger.info('qr={0};qVal={1}'.format(qr, qVal))
