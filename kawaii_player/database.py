@@ -22,7 +22,7 @@ import os
 import sqlite3
 import datetime
 from PyQt5 import QtWidgets
-from player_functions import open_files
+from player_functions import open_files, send_notification
 
 try:
     try:
@@ -94,30 +94,48 @@ class MediaDatabase():
         q = queryType
         qVal = str(queryVal)
         print(music_db)
-        if q == "Directory":
+        error_occured = False
+        if q.lower() == "directory":
             if not qVal:
                 cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
             else:
                 qr = 'SELECT distinct EP_NAME, Path FROM Video Where Directory=? order by EPN'
                 cur.execute(qr, (qVal, ))
-        elif q == "Bookmark":
+        elif q.lower() == "bookmark":
             print(q)
             qr = 'SELECT EP_NAME, Path FROM Video Where Title=?'
             cur.execute(qr, (qVal, ))
-        elif q == "History":
+        elif q.lower() == "history":
             print(q)
             qr = 'SELECT distinct Title, Directory FROM Video Where FileName like ? order by Title'
             qv = '#'+'%'
             self.logger.info('qv={0};qr={1}'.format(qv, qr))
             cur.execute(qr, (qv, ))
-        elif q == "Search":
+        elif q.lower() == "Search":
             qVal = '%'+qVal+'%'
             qr = 'SELECT EP_NAME, Path From Video Where EP_NAME like ? or Directory like ? order by Directory'
             self.logger.info('qr={0};qVal={1}'.format(qr, qVal))
             cur.execute(qr, (qVal, qVal, ))
-        rows = cur.fetchall()
-        for i in rows:
-            self.logger.info(i[0])
+        else:
+            if q.lower() == 'anime':
+                cat_type = self.ui.category_dict['anime']
+            elif q.lower() == 'movies':
+                cat_type = self.ui.category_dict['movie']
+            elif q.lower() == 'cartoons':
+                cat_type = self.ui.category_dict['cartoon']
+            else:
+                cat_type = self.ui.category_dict['tv']
+            if not qVal:
+                try:
+                    cur.execute('SELECT distinct Title, Directory FROM Video Where Category=? order by Title', (cat_type,))
+                except Exception as err:
+                    self.logger.info(err)
+                    error_occured = True
+                    rows = [('none','none')]
+        if not error_occured:
+            rows = cur.fetchall()
+            for i in rows:
+                self.logger.info(i[0])
         conn.commit()
         conn.close()
         return rows
@@ -155,9 +173,17 @@ class MediaDatabase():
                         else:
                             epn_cnt = 0
                         dir_cmp.append(di)
-                    w = [ti, di, na, na, pa, epn_cnt]
+                    if 'movie' in i.lower():
+                        category = self.ui.category_dict['movie']
+                    elif 'anime' in i.lower():
+                        category = self.ui.category_dict['anime']
+                    elif 'cartoon' in i.lower():
+                        category = self.ui.category_dict['cartoon']
+                    else:
+                        category = self.ui.category_dict['tv']
+                    w = [ti, di, na, na, pa, epn_cnt, category]
                     try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Inserting:", w)
                     except:
                         self.logger.info(w)
@@ -170,7 +196,7 @@ class MediaDatabase():
             epn_cnt = 0
             conn = sqlite3.connect(video_db)
             cur = conn.cursor()
-            cur.execute('''CREATE TABLE Video(Title text, Directory text, FileName text, EP_NAME text, Path text primary key, EPN integer)''')
+            cur.execute('''CREATE TABLE Video(Title text, Directory text, FileName text, EP_NAME text, Path text primary key, EPN integer, Category integer)''')
             for i in lines:
                 i = i.strip()
                 if i:
@@ -189,9 +215,17 @@ class MediaDatabase():
                         else:
                             epn_cnt = 0
                         dir_cmp.append(di)
-                    w = [ti, di, na, na, pa, epn_cnt]
+                    if 'movie' in i.lower():
+                        category = self.ui.category_dict['movie']
+                    elif 'anime' in i.lower():
+                        category = self.ui.category_dict['anime']
+                    elif 'cartoon' in i.lower():
+                        category = self.ui.category_dict['cartoon']
+                    else:
+                        category = self.ui.category_dict['tv']
+                    w = [ti, di, na, na, pa, epn_cnt, category]
                     try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
                         #print("inserted:")
                         self.logger.info('inserted: {0}<-->{1}'.format(w, j))
                         #print(j)
@@ -214,7 +248,41 @@ class MediaDatabase():
         self.logger.info('214----{0}-----database.py--'.format(plist))
         if rownum is not None and dir_name in self.ui.video_dict:
             self.ui.video_dict[dir_name][rownum] = plist
-        
+            
+    def alter_table_and_update(self, version):
+        if version <= (2, 0, 0, 0) and version > (0, 0, 0, 0):
+            msg = 'Video Database Updating. Please Wait!'
+            send_notification(msg)
+            conn = sqlite3.connect(os.path.join(self.home, 'VideoDB', 'Video.db'))
+            cur = conn.cursor()
+            try:
+                cur.execute('ALTER TABLE Video ADD COLUMN Category integer')
+                conn.commit()
+                conn.close()
+                
+                conn = sqlite3.connect(os.path.join(self.home, 'VideoDB', 'Video.db'))
+                cur = conn.cursor()
+                cur.execute('SELECT Path FROM Video')
+                rows = cur.fetchall()
+                for i in rows:
+                    self.logger.info(i)
+                    if i:
+                        path = i[0].lower()
+                        if 'movie' in path:
+                            category = self.ui.category_dict['movie']
+                        elif 'anime' in path:
+                            category = self.ui.category_dict['anime']
+                        elif 'cartoon' in path:
+                            category = self.ui.category_dict['cartoon']
+                        else:
+                            category = self.ui.category_dict['tv']
+                        qr = 'Update Video Set Category=? Where Path=?'
+                        cur.execute(qr, (category, i[0]))
+            except Exception as err:
+                print(err, 'Column Already Exists')
+            conn.commit()
+            conn.close()
+            
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
         qVal = str(qVal)
@@ -304,16 +372,23 @@ class MediaDatabase():
                 di, na = os.path.split(i)
                 ti = os.path.basename(di)
                 pa = i
-
+                if 'movie' in i.lower():
+                    category = self.ui.category_dict['movie']
+                elif 'anime' in i.lower():
+                    category = self.ui.category_dict['anime']
+                elif 'cartoon' in i.lower():
+                    category = self.ui.category_dict['cartoon']
+                else:
+                    category = self.ui.category_dict['tv']
                 cur.execute('SELECT Path FROM Video Where Path=?', (i,))
                 rows = cur.fetchall()
                 cur.execute('SELECT Path FROM Video Where Directory=?', (di,))
                 rows1 = cur.fetchall()
                 epn_cnt = len(rows1)
-                w = [ti, di, na, na, pa, epn_cnt]
+                w = [ti, di, na, na, pa, epn_cnt, category]
                 if video_opt == "UpdateAll":
                     if os.path.exists(i) and not rows:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
                     elif not os.path.exists(i) and rows:
@@ -323,7 +398,7 @@ class MediaDatabase():
                 elif video_opt == "Update":
                     if os.path.exists(i) and not rows:
                         self.logger.info(i)
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
 
