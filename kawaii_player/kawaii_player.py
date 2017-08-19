@@ -1457,6 +1457,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.category_dict = {'anime':0, 'movie':1, 'tv':2, 'cartoon':4}
         self.epn_arr_list = []
         self.icon_size_arr = []
         self.original_path_name = []
@@ -1526,6 +1527,7 @@ class Ui_MainWindow(object):
         self.btn2.addItem(_fromUtf8(""))
         self.btn2.addItem(_fromUtf8(""))
         self.btn2.addItem(_fromUtf8(""))
+        self.btnWebReviews.addItem(_fromUtf8(""))
         self.btnWebReviews.addItem(_fromUtf8(""))
         self.btnWebReviews.addItem(_fromUtf8(""))
         self.btnWebReviews.addItem(_fromUtf8(""))
@@ -1730,6 +1732,7 @@ class Ui_MainWindow(object):
             self.btnWebReviews.setItemText(9, _translate("MainWindow", "DuckDuckGo", None))
             self.btnWebReviews.setItemText(10, _translate("MainWindow", "Zerochan", None))
             self.btnWebReviews.setItemText(11, _translate("MainWindow", "last.fm", None))
+            self.btnWebReviews.setItemText(12, _translate("MainWindow", "TMDB", None))
         else:
             self.btnWebReviews.setItemText(0, _translate("MainWindow", "Reviews", None))
             self.btnWebReviews.setItemText(1, _translate("MainWindow", "TVDB", None))
@@ -1737,6 +1740,7 @@ class Ui_MainWindow(object):
             self.btnWebReviews.setItemText(3, _translate("MainWindow", "Youtube", None))
             self.btnWebReviews.setItemText(4, _translate("MainWindow", "DuckDuckGo", None))
             self.btnWebReviews.setItemText(5, _translate("MainWindow", "last.fm", None))
+            self.btnWebReviews.setItemText(6, _translate("MainWindow", "TMDB", None))
         self.chk.setItemText(0, _translate("MainWindow", "mpv", None))
         self.chk.setItemText(1, _translate("MainWindow", "mplayer", None))
         self.chk.setItemText(2, _translate("MainWindow", "vlc", None))
@@ -6813,7 +6817,10 @@ class Ui_MainWindow(object):
                 self.update_list2()
         elif site == "Video":
             self.mirror_change.hide()
-            criteria = ['Directory', 'Available', 'History', 'Update', 'UpdateAll']
+            criteria = [
+                'Directory', 'Available', 'History', 'Anime', 'Movies',
+                'TV Shows', 'Cartoons', 'Update', 'UpdateAll'
+                ]
             self.list3.clear()
             for i in criteria:
                 self.list3.addItem(i)
@@ -7235,7 +7242,7 @@ class Ui_MainWindow(object):
                     if video_opt == "Update" or video_opt == "UpdateAll":
                         video_opt = "Available"
                         self.video_dict.clear()
-                    if video_opt == "Available" or video_opt == "History" or video_opt == 'Directory':
+                    if video_opt.lower() != "update" and video_opt.lower() != "updateall":
                         index = self.list1.currentRow()
                         art_n = self.original_path_name[index].split('	')[-1]
                         if art_n in self.video_dict:
@@ -10921,7 +10928,7 @@ class Ui_MainWindow(object):
                 self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
             print(video_opt)
-            if video_opt == 'Directory' or video_opt == 'History' or video_opt == 'Available':
+            if video_opt.lower() != 'update' and video_opt.lower() != 'updateall':
                 opt = video_opt
             artist = []
             print('----video-----opt', video_opt)
@@ -10940,7 +10947,7 @@ class Ui_MainWindow(object):
             self.original_path_name[:] = []
             #artist = naturallysorted(artist)
             logger.info('\n{0}::\n'.format(video_opt))
-            if video_opt == "Available" or video_opt == "History":
+            if video_opt.lower() != "update" or video_opt.lower() != "updateall":
                 for i in artist:
                     ti = i.split('	')[0]
                     di = i.split('	')[1]
@@ -10955,7 +10962,9 @@ class Ui_MainWindow(object):
                         else:
                             self.original_path_name.append(i)
                         self.list1.addItem((ti))
-                self.sortList()
+                if video_opt.lower() != 'directory':
+                    self.sortList()
+            """
             elif video_opt == "Directory":
                 for i in artist:
                     ti = i.split('	')[0]
@@ -10970,6 +10979,7 @@ class Ui_MainWindow(object):
                     else:
                         self.original_path_name.append(i)
                     self.list1.addItem((ti))
+            """
         elif site == "PlayLists" and val == 'clicked':
             if self.list3.currentItem():
                 txt = self.list3.currentItem().text().lower()
@@ -12253,7 +12263,7 @@ def main():
                             and i != "installPlugins.py" and i != '__init__'):
                         shutil.copy(k, plugin_Dir)
                         print('Addons loading ....')
-        
+                        
         m = os.listdir(os.path.join(home, 'src', 'Plugins'))
         m.sort()
         for i in m:
@@ -12292,8 +12302,7 @@ def main():
     if option_index >=0 and option_index < ui.list3.count():
         ui.list3.setCurrentRow(option_index)
         ui.list3.setFocus()
-        if (option_val and (option_val == 'History' or option_val == 'Available' 
-                or option_val == 'Directory')):
+        if option_val and option_val.lower() != 'update' and option_val.lower() != 'updateall': 
             if option_val == 'History':
                 print('--setting-history-option--')
                 opt = 'History'
@@ -12420,6 +12429,10 @@ def main():
             ui.watch_external_video(sys.argv[1])
     ui.quality_val = quality
     
+    if old_version <= (2, 0, 0, 0) and old_version > (0, 0, 0, 0):
+        logger.info('old version: need to change videodb schema')
+        ui.media_data.alter_table_and_update(old_version)
+        
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
