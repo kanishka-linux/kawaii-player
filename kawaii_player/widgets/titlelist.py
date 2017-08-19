@@ -382,13 +382,13 @@ class TitleListWidget(QtWidgets.QListWidget):
                     print("Nothing to delete")
                 else:
                     ui.deleteHistory()
-        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_H:
+        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_H:
             ui.setPreOpt()
-        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_R:
+        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_R:
             ui.shuffleList()
-        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_T:
+        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_T:
             ui.sortList()
-        elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_Y:
+        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_Y:
             ui.getList()
         elif event.key() == QtCore.Qt.Key_Return:
             ui.list1_double_clicked()
@@ -715,11 +715,13 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenu.addSeparator()
             new_pls = submenu.addAction("Create New Bookmark Category")
             sideBar = menu.addAction("Show Side Bar")
+            history = menu.addAction("History (Ctrl+H)")
             thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
-            history = menu.addAction("History")
             #rmPoster = menu.addAction("Remove Poster")
-            tvdb = menu.addAction("Find Poster(TVDB) (Ctrl+Right)")
-            tvdbM = menu.addAction("Find Poster(TVDB Manually)")
+            ddg = menu.addAction("Find Poster(DuckDuckGo) (Ctrl+Right)")
+            tvdb = menu.addAction("Find Poster(TVDB) (Ctrl+Left)")
+            tmdb = menu.addAction("Find Poster(TMDB) (Ctrl+Down)")
+            
             cache = menu.addAction("Clear Cache")
             del_history = menu.addAction("Delete (Only For History)")
             rem_fanart = menu.addAction("Remove Fanart")
@@ -793,11 +795,24 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.posterfound_new(
                         name=nm, site=site, url=False, copy_poster=True, 
                         copy_fanart=True, copy_summary=True, direct_url=False)
+            elif action == tmdb:
+                site = ui.get_parameters_value(s='site')['site']
+                if self.currentItem():
+                    nm = ui.get_title_name(self.currentRow())
+                    ui.posterfound_new(
+                        name=nm, site=site, url=False, copy_poster=True, 
+                        copy_fanart=True, copy_summary=True, direct_url=False,
+                        use_search='tmdb')
+            elif action == ddg:
+                site = ui.get_parameters_value(s='site')['site']
+                if self.currentItem():
+                    nm = ui.get_title_name(self.currentRow())
+                    ui.posterfound_new(
+                        name=nm, site=site, url=False, copy_poster=True, 
+                        copy_fanart=True, copy_summary=True, direct_url=False,
+                        use_search=True)
             elif action == history:
                 ui.setPreOpt()
-            elif action == tvdbM:
-                ui.reviewsWeb(
-                    srch_txt=name, review_site='tvdb', action='context_menu')
             elif action == rem_fanart:
                 path = ui.get_current_directory()
                 fanart = os.path.join(path, 'fanart.jpg')
