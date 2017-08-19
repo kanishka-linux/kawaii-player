@@ -268,9 +268,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
         elif event.key() == QtCore.Qt.Key_PageUp:
             row = self.currentRow()
             nRow = self.currentRow()-1
-            param_dict = ui.get_parameters_value(s='site', o='opt')
+            param_dict = ui.get_parameters_value(s='site', o='opt', b='bookmark')
             site = param_dict['site']
             opt = param_dict['opt']
+            bookmark = param_dict['bookmark']
             if site == 'Music':
                 if ui.list3.currentItem():
                     if ui.list3.currentItem().text() == 'Playlist':
@@ -361,9 +362,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
         elif event.key() == QtCore.Qt.Key_PageDown:
             row = self.currentRow()
             nRow = self.currentRow()+1
-            param_dict = ui.get_parameters_value(s='site', o='opt')
+            param_dict = ui.get_parameters_value(s='site', o='opt', b='bookmark')
             site = param_dict['site']
             opt = param_dict['opt']
+            bookmark = param_dict['bookmark']
             if site == 'Music':
                 if ui.list3.currentItem():
                     if ui.list3.currentItem().text() == 'Playlist':
