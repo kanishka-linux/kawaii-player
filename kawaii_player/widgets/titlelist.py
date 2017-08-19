@@ -137,6 +137,16 @@ class TitleListWidget(QtWidgets.QListWidget):
             except Exception as e:
                 print(e)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_Down):
+            try:
+                site = ui.get_parameters_value(s='site')['site']
+                nm = ui.get_title_name(self.currentRow())
+                ui.posterfound_new(
+                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                    copy_summary=True, direct_url=False, use_search='tmdb')
+            except Exception as e:
+                print(e)
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_C):
             ui.copyFanart()
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -680,14 +690,14 @@ class TitleListWidget(QtWidgets.QListWidget):
             if 'AnimeWatch' in home or ui.anime_review_site:
                 submenu_arr_dict = {
                     'mal':'MyAnimeList', 'ap':'Anime-Planet', 
-                    'ans':'Anime-Source', 'tvdb':'TVDB', 
+                    'ans':'Anime-Source', 'tvdb':'TVDB', 'tmdb':'TMDB',
                     'ann':'ANN', 'anidb':'AniDB', 'g':'Google', 
                     'yt':'Youtube', 'ddg':'DuckDuckGo', 
                     'last.fm':'last.fm', 'zerochan':'Zerochan'
                     }
             elif 'kawaii-player' in home:
                 submenu_arr_dict = {
-                    'tvdb':'TVDB', 'g':'Google', 
+                    'tvdb':'TVDB', 'tmdb':'TMDB', 'g':'Google', 
                     'yt':'Youtube', 'ddg':'DuckDuckGo', 
                     'last.fm':'last.fm'
                     }
@@ -708,8 +718,8 @@ class TitleListWidget(QtWidgets.QListWidget):
             thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
             history = menu.addAction("History")
             #rmPoster = menu.addAction("Remove Poster")
-            tvdb	= menu.addAction("Find Poster(TVDB) (Ctrl+Right)")
-            tvdbM	= menu.addAction("Find Poster(TVDB Manually)")
+            tvdb = menu.addAction("Find Poster(TVDB) (Ctrl+Right)")
+            tvdbM = menu.addAction("Find Poster(TVDB Manually)")
             cache = menu.addAction("Clear Cache")
             del_history = menu.addAction("Delete (Only For History)")
             rem_fanart = menu.addAction("Remove Fanart")
