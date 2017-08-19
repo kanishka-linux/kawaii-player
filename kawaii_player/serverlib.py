@@ -361,8 +361,7 @@ class ServerLib:
                     video_db, video_file, video_file_bak, 'Update')
                 video_opt = "directory"
             print(video_opt)
-            if (video_opt.lower() == 'directory' or video_opt.lower() == 'history' 
-                    or video_opt.lower() == 'available'):
+            if video_opt.lower() != 'update' and video_opt.lower() != 'updateall': 
                 opt = video_opt
             artist = []
             m = []
@@ -373,7 +372,7 @@ class ServerLib:
                 elif video_opt.lower() == "history":
                     m = ui.media_data.get_video_db(video_db, "History", "")
                 else:
-                    video_opt = video_opt[0].upper()+video_opt[1:]
+                    #video_opt = video_opt[0].upper()+video_opt[1:]
                     m = ui.media_data.get_video_db(video_db, video_opt, "")
                 #print(m)
             else:
@@ -412,12 +411,12 @@ class ServerLib:
                 print('direct match:')
             #original_path_name[:] = []
             logger.info(artist)
-            if (video_opt.lower() == "available" or video_opt.lower() == "history") and not send_list_direct:
+            if (video_opt.lower() != "update" and video_opt.lower() != "updateall") and not send_list_direct:
                 for i in artist:
                     ti = i.split('	')[0]
                     di = i.split('	')[1]
                     if os.path.exists(di):
-                        if ti.lower().startswith('season'):
+                        if ti.lower().startswith('season') or ti.lower().startswith('special'):
                             new_di, new_ti = os.path.split(di)
                             logger.info('new_di={0}-{1}'.format(new_di, new_ti))
                             new_di = os.path.basename(new_di)
@@ -425,6 +424,11 @@ class ServerLib:
                             original_path_name.append(ti+'	'+di)
                         else:
                             original_path_name.append(i)
+                original_path_name = sorted(
+                    original_path_name,
+                    key=lambda x: x.split('	')[0].lower()
+                    )
+            """
             elif video_opt.lower() == "directory" and not send_list_direct:
                 for i in artist:
                     ti = i.split('	')[0]
@@ -437,6 +441,7 @@ class ServerLib:
                         original_path_name.append(ti+'	'+di)
                     else:
                         original_path_name.append(i)
+            """
         elif site.lower().startswith("playlist"):
             pls = os.path.join(home, 'Playlists')
             if os.path.exists(pls):
@@ -720,14 +725,15 @@ class ServerLib:
                     if not bookmark:
                         video_opt = site_option[0].upper()+site_option[1:]
                         print(video_opt, '---15112----')
-                        if video_opt == "Update" or video_opt == "UpdateAll":
+                        if video_opt.lower() == "update" or video_opt.lower() == "updateall":
                             video_opt = "Available"
-                        if video_opt == "Available" or video_opt == "History":
-                            n_art_n = original_path_name[index].split('	')[-1]
-                            m = ui.media_data.get_video_db(video_db, "Directory", n_art_n)
+                        n_art_n = original_path_name[index].split('	')[-1]
+                        m = ui.media_data.get_video_db(video_db, "Directory", n_art_n)
+                        """
                         elif video_opt == "Directory":
                             n_art_n = original_path_name[index].split('	')[-1]
                             m = ui.media_data.get_video_db(video_db, video_opt, n_art_n)
+                        """
                         logger.info('{0}--{1}--search-client--14534--'.format(art_n, n_art_n))
                     else:
                         try:
