@@ -58,7 +58,7 @@ from socketserver import ThreadingMixIn, TCPServer
 import pycurl
 from bs4 import BeautifulSoup
 import PIL
-from PIL import Image
+from PIL import Image, ImageDraw
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets
 from PyQt5.QtCore import QUrl
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -1589,6 +1589,8 @@ class Ui_MainWindow(object):
                             lambda x=1:self.change_fanart_aspect(7))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+8"), MainWindow, 
                             lambda x=1:self.change_fanart_aspect(8))
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+9"), MainWindow, 
+                            lambda x=1:self.change_fanart_aspect(9))
         QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Right"), MainWindow, 
                             lambda x=1:self.direct_web('right'))
         QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Left"), MainWindow, 
@@ -5232,6 +5234,12 @@ class Ui_MainWindow(object):
                 cur.execute(qr, (ep_name, txt))
             conn.commit()
             conn.close()
+            try:
+                txt = self.original_path_name[self.list1.currentRow()].split('	')[1]
+                if txt in ui.video_dict:
+                    del self.video_dict[txt]
+            except Exception as err:
+                print(err, '--4240---')
         elif opt == "History" or site == "Local":
             if site == "SubbedAnime" or site == "DubbedAnime":
                 if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
@@ -6400,21 +6408,22 @@ class Ui_MainWindow(object):
             original_srch_txt = srch_txt
             srch_txt = srch_txt.lower()
             srch_txt = re.sub('\[[^\]]*\]|\([^\)]*\)', '', srch_txt)
-            srch_txt = re.sub('-|_| ', '+', srch_txt)
+            srch_txt = re.sub('-|_| |\.', '+', srch_txt)
             srch_txt = re.sub(
-                '\+sub|\+dub|subbed|dubbed|720p|1080p|480p|.mkv|.mp4|\+season[^"]*', '', srch_txt)
+                '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', srch_txt)
             srch_txt = srch_txt.strip()
         if 'AnimeWatch' in home or self.anime_review_site:
             web_arr_dict = {
                 'mal':'MyAnimeList', 'ap':'Anime-Planet', 
-                'ans':'Anime-Source', 'tvdb':'TVDB', 'ann':'ANN', 
+                'ans':'Anime-Source', 'tvdb':'TVDB', 'tmdb':'TMDB', 'ann':'ANN', 
                 'anidb':'AniDB', 'g':'Google', 'yt':'Youtube', 
                 'ddg':'DuckDuckGo', 'reviews':'Reviews', 
                 'last.fm':'last.fm', 'zerochan':'Zerochan'
                 }
         else:
             web_arr_dict = {
-                'tvdb':'TVDB', 'g':'Google', 'yt':'Youtube', 
+                'tvdb':'TVDB', 'tmdb':'TMDB', 
+                'g':'Google', 'yt':'Youtube', 
                 'ddg':'DuckDuckGo', 'reviews':'Reviews', 
                 'last.fm':'last.fm'
                 }
@@ -6470,11 +6479,11 @@ class Ui_MainWindow(object):
             name = str(name)
         except:
             name = srch_txt
-        name1 = re.sub('-|_| ', '+', name)
+        name1 = re.sub('-|_| |\.', '+', name)
         name1 = name1.lower()
         name1 = re.sub('\[[^\]]*\]|\([^\)]*\)', '', name1)
         name1 = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*', '', name1)
+                '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', name1)
         name1 = name1.strip()
         logger.info(name1)
         key = ''
@@ -6530,6 +6539,8 @@ class Ui_MainWindow(object):
             self.web.load(QUrl("http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info="+name1))
         elif review_site == "tvdb":
             self.web.load(QUrl("http://thetvdb.com/?string="+name1+"&searchseriesid=&tab=listseries&function=Search"))
+        elif review_site == "tmdb":
+            self.web.load(QUrl("https://www.themoviedb.org/search?query="+name1))
         elif review_site == "anidb":
             self.web.load(QUrl("http://anidb.net/perl-bin/animedb.pl?adb.search="+name1+"&show=animelist&do.search=search"))
         elif review_site == "ann":
@@ -7384,6 +7395,19 @@ class Ui_MainWindow(object):
                         self.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
                     print('No Thumbnail Available: {0}'.format(e))
+                    
+    def round_corner(self, im, rad):
+        circle = Image.new('L', (rad * 2, rad * 2), 0)
+        draw = ImageDraw.Draw(circle)
+        draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
+        alpha = Image.new('L', im.size, 255)
+        w, h = im.size
+        #alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+        #alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+        #alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+        alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+        im.putalpha(alpha)
+        return im
 
     def image_fit_option(self, picn, fanart, fit_size=None, widget=None,
                          widget_size=None, color=None):
@@ -7474,6 +7498,24 @@ class Ui_MainWindow(object):
                         offset = (int((screen_width-wsize)/2), int((screen_height-baseheight)/2))
                     else:
                         offset = (int((0)), int((screen_height-baseheight)/2))
+                    bg.paste(img, offset)
+                    bg.save(str(fanart), 'JPEG', quality=100)
+                elif fit_size == 9:
+                    baseheight = screen_height - (self.frame1.height()+self.label.height()+30)
+                    basewidth = screen_width - self.width_allowed - 30
+                    try:
+                        img = Image.open(str(picn))
+                    except Exception as e:
+                        print(e, 'Error in opening image, videoImage, ---13284')
+                        picn = os.path.join(home, 'default.jpg')
+                        img = Image.open(str(picn))
+                    img = self.round_corner(img, 30)
+                    wpercent = (basewidth / float(img.size[0]))
+                    hsize = int((float(img.size[1]) * float(wpercent)))
+                    sz = (basewidth, hsize)
+                    img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                    bg = Image.new(color, (screen_width, screen_height))
+                    offset = (0,0)
                     bg.paste(img, offset)
                     bg.save(str(fanart), 'JPEG', quality=100)
                 elif fit_size == 6 or fit_size == 4:
