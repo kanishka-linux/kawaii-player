@@ -147,6 +147,16 @@ class TitleListWidget(QtWidgets.QListWidget):
             except Exception as e:
                 print(e)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_Up):
+            try:
+                site = ui.get_parameters_value(s='site')['site']
+                nm = ui.get_title_name(self.currentRow())
+                ui.posterfound_new(
+                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                    copy_summary=True, direct_url=False, use_search='tvdb+g')
+            except Exception as e:
+                print(e)
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_C):
             ui.copyFanart()
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -534,26 +544,72 @@ class TitleListWidget(QtWidgets.QListWidget):
         if ok and item:
             nm = item
             #row = self.currentRow()
-            t = ui.original_path_name[row]
-            logger.info("4282:{0}:{1}:{2}".format(nm, row, t))
+            old_val = ui.original_path_name[row]
+            logger.info("4282:{0}:{1}:{2}".format(nm, row, old_val))
             if site == "Video":
-                video_db = os.path.join(home, 'VideoDB', 'Video.db')
-                conn = sqlite3.connect(video_db)
-                cur = conn.cursor()
-                directory = t.split('	')[1]
-                qr = 'Update Video Set Title=? Where Directory=?'
-                logger.info('{0}::{1}'.format(nm, directory))
-                cur.execute(qr, (nm, directory))
-                conn.commit()
-                conn.close()
-                tmp = re.sub('[^	]*', item, t, 1)
-                ui.original_path_name[row] = tmp
+                home_dir_new = os.path.join(home, 'Local', item)
+                if os.path.exists(home_dir_new):
+                    msg = 'name already exists'
+                    send_notification(msg)
+                else:
+                    video_db = os.path.join(home, 'VideoDB', 'Video.db')
+                    conn = sqlite3.connect(video_db)
+                    cur = conn.cursor()
+                    old_name, directory = old_val.split('\t')
+                    qr = 'Update Video Set Title=? Where Directory=?'
+                    logger.info('{0}::{1}'.format(nm, directory))
+                    cur.execute(qr, (nm, directory))
+                    conn.commit()
+                    conn.close()
+                    tmp = re.sub('[^	]*', item, old_val, 1)
+                    ui.original_path_name[row] = tmp
+                    itemlist = ui.list1.item(row)
+                    if itemlist:
+                        itemlist.setText(item)
+                    home_dir_old = os.path.join(home, 'Local', old_name)
+                    if os.path.exists(home_dir_old):
+                        shutil.move(home_dir_old, home_dir_new)
+            elif site.lower() == 'playlists':
+                new_pls_name = os.path.join(home, 'Playlists', item)
+                if not os.path.isfile(new_pls_name):
+                    itemlist = ui.list1.item(row)
+                    if itemlist:
+                        old_pls_name = os.path.join(home, 'Playlists', itemlist.text())
+                        if os.path.isfile(old_pls_name) and not os.path.isfile(new_pls_name):
+                            shutil.move(old_pls_name, new_pls_name)
+                            itemlist.setText(item)
+                else:
+                    msg = 'file already exists'
+                    send_notification(msg)
+            elif site.lower() == 'music' or site.lower() == 'none':
+                pass
+            else:
                 itemlist = ui.list1.item(row)
-                if itemlist:
-                    itemlist.setText(item)
-                home_dir = os.path.join(home, 'Local', item)
-                if not os.path.exists(home_dir):
-                    os.makedirs(home_dir)
+                if  itemlist:
+                    siteName = ui.get_parameters_value(s='siteName')['siteName']
+                    item_value = ui.original_path_name[row]
+                    if '\t' in item_value:
+                        old_name = item_value.split('\t')[0]
+                    else:
+                        old_name = item_value
+                    if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
+                        history_txt = os.path.join(home, 'History', site, siteName, 'history.txt')
+                        file_dir_new = os.path.join(home, 'History', site, siteName, item)
+                        file_dir_old = os.path.join(home, 'History', site, siteName, old_name)
+                    else:
+                        history_txt = os.path.join(home, 'History', site, 'history.txt')
+                        file_dir_new = os.path.join(home, 'History', site, item)
+                        file_dir_old = os.path.join(home, 'History', site, old_name)
+                    if os.path.exists(file_dir_new):
+                        msg = 'name already exists'
+                        send_notification(msg)
+                    else:
+                        tmp = re.sub('[^	]*', item, item_value, 1)
+                        ui.original_path_name[row] = tmp
+                        write_files(history_txt, ui.original_path_name, line_by_line=True)
+                        itemlist.setText(item)
+                        if os.path.exists(file_dir_old) and not os.path.exists(file_dir_new):
+                            shutil.move(file_dir_old, file_dir_new)
                     
     def contextMenuEvent(self, event):
         if self.currentItem():
@@ -754,19 +810,19 @@ class TitleListWidget(QtWidgets.QListWidget):
                     item_m.append(submenu.addAction(i))
             submenu.addSeparator()
             new_pls = submenu.addAction("Create New Bookmark Category")
-            sideBar = menu.addAction("Show Side Bar")
+            sideBar = menu.addAction("Show Side Bar (Shift+G)")
             history = menu.addAction("History (Ctrl+H)")
             thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
-            #rmPoster = menu.addAction("Remove Poster")
-            ddg = menu.addAction("Find Poster(DuckDuckGo) (Ctrl+Right)")
             tvdb = menu.addAction("Find Poster(TVDB) (Ctrl+Left)")
             tmdb = menu.addAction("Find Poster(TMDB) (Ctrl+Down)")
-            
+            ddg = menu.addAction("Find Poster(DuckDuckGo) (Ctrl+Right)")
+            glinks = menu.addAction("Find Poster(Google) (Ctrl+Up)")
             cache = menu.addAction("Clear Cache")
             del_history = menu.addAction("Delete (Only For History)")
             rem_fanart = menu.addAction("Remove Fanart")
             rem_poster = menu.addAction("Remove poster")
             refresh_poster = menu.addAction("Refresh posters")
+            rename = menu.addAction("Rename (F2)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
             
             for i in range(len(item_m)):
@@ -843,6 +899,14 @@ class TitleListWidget(QtWidgets.QListWidget):
                         name=nm, site=site, url=False, copy_poster=True, 
                         copy_fanart=True, copy_summary=True, direct_url=False,
                         use_search='tmdb')
+            elif action == glinks:
+                site = ui.get_parameters_value(s='site')['site']
+                if self.currentItem():
+                    nm = ui.get_title_name(self.currentRow())
+                    ui.posterfound_new(
+                        name=nm, site=site, url=False, copy_poster=True, 
+                        copy_fanart=True, copy_summary=True, direct_url=False,
+                        use_search='tvdb+g')
             elif action == ddg:
                 site = ui.get_parameters_value(s='site')['site']
                 if self.currentItem():
@@ -851,6 +915,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                         name=nm, site=site, url=False, copy_poster=True, 
                         copy_fanart=True, copy_summary=True, direct_url=False,
                         use_search=True)
+            elif action == rename:
+                if ui.original_path_name:
+                    print('Renaming')
+                    if self.currentItem():
+                        self.edit_name_list1(self.currentRow())
             elif action == history:
                 ui.setPreOpt()
             elif action == rem_fanart:
