@@ -1593,6 +1593,8 @@ class Ui_MainWindow(object):
                             lambda x=1:self.change_fanart_aspect(8))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+9"), MainWindow, 
                             lambda x=1:self.change_fanart_aspect(9))
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+0"), MainWindow, 
+                            lambda x=1:self.change_fanart_aspect(10))
         QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Right"), MainWindow, 
                             lambda x=1:self.direct_web('right'))
         QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Left"), MainWindow, 
@@ -7507,9 +7509,12 @@ class Ui_MainWindow(object):
                         offset = (int((0)), int((screen_height-baseheight)/2))
                     bg.paste(img, offset)
                     bg.save(str(fanart), 'JPEG', quality=100)
-                elif fit_size == 9:
+                elif fit_size == 9 or fit_size == 10:
                     baseheight = screen_height - (self.frame1.height()+self.label.height()+30)
-                    basewidth = screen_width - self.width_allowed - 30
+                    if fit_size == 9:
+                        basewidth = screen_width - self.width_allowed - 40
+                    else:
+                        basewidth = screen_width - 2*self.width_allowed - 40
                     try:
                         img = Image.open(str(picn))
                     except Exception as e:
@@ -7522,7 +7527,7 @@ class Ui_MainWindow(object):
                     sz = (basewidth, hsize)
                     img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                     bg = Image.new(color, (screen_width, screen_height))
-                    offset = (0,0)
+                    offset = (20,20)
                     bg.paste(img, offset)
                     bg.save(str(fanart), 'JPEG', quality=100)
                 elif fit_size == 6 or fit_size == 4:
@@ -7616,14 +7621,14 @@ class Ui_MainWindow(object):
 
     def videoImage(self, picn, thumbnail, fanart, summary):
         global screen_height, screen_width
-        if self.image_fit_option_val in range(1, 9):
+        if self.image_fit_option_val in range(1, 11):
             if self.image_fit_option_val !=6:
                 img_opt = self.image_fit_option_val
             else:
                 img_opt = 1
         else:
-            img_opt = 1
-
+            img_opt = 2
+        logger.info(img_opt)
         self.label.clear()
         print(self.label.maximumWidth(), '--max--width--label--')
         try:
@@ -11114,7 +11119,7 @@ class Ui_MainWindow(object):
             
         self.music_mode_dim_show = True
         self.list_with_thumbnail = False
-        self.image_fit_option_val = 4
+        self.image_fit_option_val = 3
         
         print('Music Mode')
         layout_mode = "Music"
