@@ -83,6 +83,10 @@ class FindPosterThread(QtCore.QThread):
                         else:
                             final_link = 'https://www.themoviedb.org/'+link
                         m.append(final_link)
+            elif src == 'tvdb+g':
+                m = self.get_glinks(nam)
+                if m:
+                    final_link = m[0]
         else:
             if src == 'tvdb':
                 new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
@@ -108,6 +112,35 @@ class FindPosterThread(QtCore.QThread):
                         break
         logger.info('\n{0}---{1}\n'.format(final_link, m))
         return (final_link, m)
+    
+    def get_glinks(self, nam):
+        url = "https://www.google.co.in/search?q="+nam+"+tvdb"
+        content = ccurl(url)
+        soup = BeautifulSoup(content, 'lxml')
+        m = soup.findAll('a')
+        links = []
+        for i in m:
+            if 'href' in str(i):
+                x = urllib.parse.unquote(i['href'])
+                y = ''
+                src = 'tvdb'
+                if 'thetvdb.com' in x:
+                    y = re.search('thetvdb.com[^"]*tab=series[^"]*', x)
+                    src = 'tvdb'
+                elif 'themoviedb.org' in x:
+                    y = re.search('www.themoviedb.org[^"]*', x)
+                    src = 'tmdb'
+                if y:
+                    y = y.group()
+                    if src == 'tvdb':
+                        y = 'http://'+y
+                    else:
+                        y = 'https://'+y
+                    y = urllib.parse.unquote(y)
+                    y = y.replace(' ', '%20')
+                    y = re.sub('\&sa[^"]*', '', y)
+                    links.append(y)
+        return links
     
     def run(self):
         name = self.name
@@ -251,7 +284,7 @@ class FindPosterThread(QtCore.QThread):
                             content = ccurl(link)
                             m = re.findall('/[^"]tab=series[^"]*lid=7', content)
 
-            if m and src_site == 'tvdb':
+            if m and (src_site == 'tvdb' or src_site == 'tvdb+g'):
                 if not final_link:
                     n = re.sub('amp;', '', m[0])
                     elist = re.sub('tab=series', 'tab=seasonall', n)
