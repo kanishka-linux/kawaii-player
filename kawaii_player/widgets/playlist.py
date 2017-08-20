@@ -84,9 +84,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
         item, ok = QtWidgets.QInputDialog.getText(
             MainWindow, 'Input Dialog', 'Enter Episode Name Manually', 
             QtWidgets.QLineEdit.Normal, default_text)
+            
         if ok and item:
             nm = item
-            #row = self.currentRow()
             t = ui.epn_arr_list[row]
             logger.info("4282--{0}-{1}-{2}".format(nm, row, t))
             if ('	' in t and '	' not in nm and site != "Video" 
@@ -116,7 +116,110 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 tmp = re.sub('[^	]*', item, tmp, 1)
                 ui.epn_arr_list[row] = tmp
             ui.update_list2()
-
+    
+    def edit_name_in_group(self, row):
+        site = ui.get_parameters_value(s='site')['site']
+        start_point = row
+        end_point = len(ui.epn_arr_list)
+        default_text = 'Episode-{'+str(row)+'-'+str(end_point-1)+'}'
+        item, ok = QtWidgets.QInputDialog.getText(
+            MainWindow, 'Input Dialog', 'Enter Naming pattern', 
+            QtWidgets.QLineEdit.Normal, default_text)
+        if item and ok:
+            nmval = re.search('[^\{]*', item).group()
+            range_val = re.search('\{[^}]*', item).group()
+            range_val = re.sub('\{', '', range_val)
+            range_start, range_end = range_val.split('-')
+            range_start = int(range_start.strip())
+            range_end = int(range_end.strip())
+            if range_end > 100:
+                size = 3
+            else:
+                size = 2
+            if site.lower() == 'video':
+                video_db = os.path.join(home, 'VideoDB', 'Video.db')
+                conn = sqlite3.connect(video_db)
+                cur = conn.cursor()
+                end_point = len(ui.epn_arr_list)
+                new_row = range_start
+                for row in range(start_point, end_point):
+                    old_value = ui.epn_arr_list[row]
+                    path = old_value.split('	')[1]
+                    if size == 2:
+                        if new_row < 10:
+                            new_name = '{0}0{1}'.format(nmval, new_row)
+                        else:
+                            new_name = nmval + str(new_row)
+                    elif size == 3:
+                        if new_row < 10:
+                            new_name = '{0}00{1}'.format(nmval, new_row)
+                        elif new_row >= 10 and new_row < 100:
+                            new_name = '{0}0{1}'.format(nmval, new_row)
+                        else:
+                            new_name = nmval + str(new_row)
+                    qr = 'Update Video Set EP_NAME=? Where Path=?'
+                    cur.execute(qr, (new_name, path))
+                    tmp = re.sub('[^	]*', new_name, old_value, 1)
+                    ui.epn_arr_list[row] = tmp
+                    listitem = ui.list2.item(row)
+                    if listitem:
+                        listitem.setText(new_name)
+                    new_row = new_row + 1
+                    if new_row > range_end:
+                        break
+                conn.commit()
+                conn.close()
+                old_value = ui.epn_arr_list[start_point]
+                path = old_value.split('	')[1]
+                dir_path, file_path = os.path.split(path)
+                if dir_path in ui.video_dict:
+                    del ui.video_dict[dir_path]
+            elif (site.lower() == 'playlists' or site.lower() == 'music' 
+                    or site.lower() == 'none'):
+                pass
+            else:
+                file_path = ''
+                param_dict = ui.get_parameters_value(s='siteName', n='name')
+                siteName = param_dict['siteName']
+                name = param_dict['name']
+                if site.lower() == "subbedanime" or site == "dubbedanime":
+                    file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
+                else:
+                    file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+                if os.path.isfile(file_path):
+                    end_point = len(ui.epn_arr_list)
+                    new_row = range_start
+                    for row in range(start_point, end_point):
+                        old_value = ui.epn_arr_list[row]
+                        if '\t' in old_value:
+                            path = old_value.split('\t')[1]
+                        else:
+                            path = old_value
+                        if size == 2:
+                            if new_row < 10:
+                                new_name = '{0}0{1}'.format(nmval, new_row)
+                            else:
+                                new_name = nmval + str(new_row)
+                        elif size == 3:
+                            if new_row < 10:
+                                new_name = '{0}00{1}'.format(nmval, new_row)
+                            elif new_row >= 10 and new_row < 100:
+                                new_name = '{0}0{1}'.format(nmval, new_row)
+                            else:
+                                new_name = nmval + str(new_row)
+                        if '\t' in old_value:
+                            tmp = re.sub('[^	]*', new_name, old_value, 1)
+                        else:
+                            tmp = new_name + '\t' + old_value
+                        ui.epn_arr_list[row] = tmp
+                        listitem = ui.list2.item(row)
+                        if listitem:
+                            listitem.setText(new_name)
+                        new_row = new_row + 1
+                        if new_row > range_end:
+                            break
+                    write_files(file_path, ui.epn_arr_list, line_by_line=True)
+                    
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Left):
@@ -126,6 +229,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 print('F2 Pressed')
                 if self.currentItem():
                     self.edit_name_list2(self.currentRow())
+        elif (event.key() == QtCore.Qt.Key_F3):
+            if ui.epn_arr_list:
+                print('F3 Pressed')
+                if self.currentItem():
+                    self.edit_name_in_group(self.currentRow())
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Up):
             self.setCurrentRow(0)
@@ -1021,7 +1129,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 eplist_info = True
                 
             eplistM = menu.addAction("Go To TVDB")
-            editN = menu.addAction("Edit Name (F2)")
+            editN = menu.addAction("Rename Single Entry (F2)")
+            group_rename = menu.addAction("Rename in Group (F3)")
             remove = menu.addAction("Remove Thumbnails")
             
             action = menu.exec_(self.mapToGlobal(event.pos()))
@@ -1116,6 +1225,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     print('Editing Name')
                     if self.currentItem():
                         self.edit_name_list2(self.currentRow())
+            elif action == group_rename and not ui.list1.isHidden():
+                if ui.epn_arr_list:
+                    print('Editing Name')
+                    if self.currentItem():
+                        self.edit_name_in_group(self.currentRow())
             elif action == eplistM:
                 if ui.list1.currentItem():
                     name1 = (ui.list1.currentItem().text())
