@@ -66,11 +66,13 @@ class LoginAuth(QtWidgets.QDialog):
                 self.backg.setCurrentIndex(1)
 
             self.img_opt = QtWidgets.QComboBox(self)
-            self.img_opt.setToolTip('Use Ctrl+1 to Ctrl+8 keyboard shortcuts to Experiment with various background image modes. \n1:Fit To Screen\n2:Fit To Width\n3:Fit To Height\n4:Fit Upto Playlist\nRestart to see the effect OR if want to see immediate effect, then directly use keyboard shortcuts')
-            img_opt_arr = ['IMAGE FIT OPTIONS', '1', '2', '3', '4', '5', '6', '7', '8']
+            self.img_opt.setToolTip('Use Ctrl+0 to Ctrl+9 keyboard shortcuts to Experiment with various background image modes. \n1:Fit To Screen\n2:Fit To Width\n3:Fit To Height\n4:Fit Upto Playlist\nRestart to see the effect OR if want to see immediate effect, then directly use keyboard shortcuts')
+            img_opt_arr = ['IMAGE FIT OPTIONS', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
             for i in img_opt_arr:
                 self.img_opt.addItem(i)
             img_val = str(self.ui.image_fit_option_val)
+            if img_val == '10':
+                img_val = '0'
             index = img_opt_arr.index(img_val)
             try:
                 self.img_opt.setCurrentIndex(index)
