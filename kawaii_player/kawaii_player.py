@@ -1458,6 +1458,7 @@ class Ui_MainWindow(object):
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.category_dict = {'anime':0, 'movie':1, 'tv':2, 'cartoon':4}
+        self.posterfind_batch = 0
         self.epn_arr_list = []
         self.icon_size_arr = []
         self.original_path_name = []
@@ -5331,17 +5332,21 @@ class Ui_MainWindow(object):
     
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
-            copy_summary=None, direct_url=None, use_search=None):
+            copy_summary=None, direct_url=None, use_search=None, get_all=None):
         
         logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
         
         self.posterfound_arr.append(FindPosterThread(
             self, logger, TMPDIR, name, url, direct_url,
             copy_fanart, copy_poster, copy_summary, use_search))
-        
-        self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-            lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
-            copy_poster, copy_summary))
+        if get_all:
+            self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
+                lambda x=0: self.posterfound_thread_all_finished(name, url,
+                    direct_url, copy_fanart, copy_poster, copy_summary, use_search))
+        else:
+            self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
+                lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
+                copy_poster, copy_summary))
         
         self.posterfound_arr[len(self.posterfound_arr)-1].start()
             
@@ -5357,7 +5362,36 @@ class Ui_MainWindow(object):
             self.copyFanart(new_name=name)
         if copy_summary:
             self.text.setText(copy_sum)
-            
+    
+    def posterfound_thread_all_finished(
+            self, name, url, direct_url, copy_fanart, copy_poster,
+            copy_summary, use_search):
+        self.posterfind_batch += 1
+        logger.info('{0}-{1}-{2}--{3}--posterfound_thread_finished--'.format(name, copy_fanart, copy_poster, copy_summary))
+        copy_sum = 'Not Available'
+        if copy_summary:
+            copy_sum = self.text.toPlainText().replace('Wait..Downloading Poster and Fanart..\n\n', '')
+        if copy_poster:
+            self.copyImg(new_name=name)
+        if copy_fanart:
+            self.copyFanart(new_name=name)
+        if copy_summary:
+            self.text.setText(copy_sum)
+        if (self.posterfind_batch == 1) or (self.posterfind_batch % 3 == 0):
+            index = self.posterfind_batch
+            for i in range(0, 3):
+                if index == 1:
+                    row = i+1
+                    if row == 3:
+                        break
+                else:
+                    row = index + i
+                if row < len(self.original_path_name):
+                    nm = self.get_title_name(row)
+                    self.posterfound_new(
+                        name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                        copy_summary=True, direct_url=False, use_search=use_search, get_all=True)
+    
     def get_final_link(self, url, quality, ytdl_path, loger, nm, hdr):
         logger.info('{0}-{1}-{2}--{3}--get-final--link--'.format(url, quality, ytdl_path, nm))
         self.ytdl_arr.append(YTdlThread(self, logger, url, quality, ytdl_path, loger, nm, hdr))
