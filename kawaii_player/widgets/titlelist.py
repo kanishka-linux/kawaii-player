@@ -567,8 +567,9 @@ class TitleListWidget(QtWidgets.QListWidget):
             default_basename = os.path.basename(default_path_name)
         else:
             default_text = ui.original_path_name[row]
+        default_display = 'Enter Title Name Manually\nCurrent Title:\n{0}'.format(default_text)
         item, ok = QtWidgets.QInputDialog.getText(
-            MainWindow, 'Input Dialog', 'Enter Title Name Manually', 
+            MainWindow, 'Input Dialog', default_display, 
             QtWidgets.QLineEdit.Normal, default_text)
         if ok and item:
             nm = item
@@ -576,28 +577,34 @@ class TitleListWidget(QtWidgets.QListWidget):
             old_val = ui.original_path_name[row]
             logger.info("4282:{0}:{1}:{2}".format(nm, row, old_val))
             if site == "Video":
-                home_dir_new = os.path.join(home, 'Local', item)
-                if os.path.exists(home_dir_new):
-                    msg = 'name already exists'
-                    send_notification(msg)
-                else:
-                    video_db = os.path.join(home, 'VideoDB', 'Video.db')
-                    conn = sqlite3.connect(video_db)
-                    cur = conn.cursor()
-                    old_name, directory = old_val.split('\t')
-                    qr = 'Update Video Set Title=? Where Directory=?'
-                    logger.info('{0}::{1}'.format(nm, directory))
-                    cur.execute(qr, (nm, directory))
-                    conn.commit()
-                    conn.close()
-                    tmp = re.sub('[^	]*', item, old_val, 1)
-                    ui.original_path_name[row] = tmp
-                    itemlist = ui.list1.item(row)
-                    if itemlist:
+                itemlist = ui.list1.item(row)
+                if itemlist:
+                    if itemlist.text() == item:
+                        msg = 'name already exists'
+                        send_notification(msg)
+                    else:
+                        home_dir_new = os.path.join(home, 'Local', item)
+                        video_db = os.path.join(home, 'VideoDB', 'Video.db')
+                        conn = sqlite3.connect(video_db)
+                        cur = conn.cursor()
+                        old_name, directory = old_val.split('\t')
+                        qr = 'Update Video Set Title=? Where Directory=?'
+                        logger.info('{0}::{1}'.format(nm, directory))
+                        cur.execute(qr, (nm, directory))
+                        conn.commit()
+                        conn.close()
+                        tmp = re.sub('[^	]*', item, old_val, 1)
+                        ui.original_path_name[row] = tmp
                         itemlist.setText(item)
-                    home_dir_old = os.path.join(home, 'Local', old_name)
-                    if os.path.exists(home_dir_old):
-                        shutil.move(home_dir_old, home_dir_new)
+                        home_dir_old = os.path.join(home, 'Local', old_name)
+                        if os.path.exists(home_dir_old):
+                            if os.path.exists(home_dir_new):
+                                shutil.rmtree(home_dir_old)
+                                msg = '\nFolder: {0} already exists thus removing {1}\n'.format(home_dir_new, home_dir_old)
+                                logger.info(msg)
+                            else:
+                                shutil.move(home_dir_old, home_dir_new)
+                                logger.info('\nmoving {0}::to::{1}\n'.format(home_dir_old, home_dir_new))
             elif site.lower() == 'playlists':
                 new_pls_name = os.path.join(home, 'Playlists', item)
                 if not os.path.isfile(new_pls_name):
@@ -629,16 +636,18 @@ class TitleListWidget(QtWidgets.QListWidget):
                         history_txt = os.path.join(home, 'History', site, 'history.txt')
                         file_dir_new = os.path.join(home, 'History', site, item)
                         file_dir_old = os.path.join(home, 'History', site, old_name)
-                    if os.path.exists(file_dir_new):
-                        msg = 'name already exists'
-                        send_notification(msg)
-                    else:
-                        tmp = re.sub('[^	]*', item, item_value, 1)
-                        ui.original_path_name[row] = tmp
-                        write_files(history_txt, ui.original_path_name, line_by_line=True)
-                        itemlist.setText(item)
-                        if os.path.exists(file_dir_old) and not os.path.exists(file_dir_new):
+                    tmp = re.sub('[^	]*', item, item_value, 1)
+                    ui.original_path_name[row] = tmp
+                    write_files(history_txt, ui.original_path_name, line_by_line=True)
+                    itemlist.setText(item)
+                    if os.path.exists(file_dir_old):
+                        if not os.path.exists(file_dir_new):
                             shutil.move(file_dir_old, file_dir_new)
+                            logger.info('\nmoving {0}::to::{1}\n'.format(file_dir_old, file_dir_new))
+                        else:
+                            shutil.rmtree(file_dir_old)
+                            msg = '\nFolder: {0} already exists thus removing {1}\n'.format(file_dir_new, file_dir_old)
+                            logger.info(msg)
                     
     def contextMenuEvent(self, event):
         if self.currentItem():
