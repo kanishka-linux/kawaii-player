@@ -157,6 +157,9 @@ class TitleListWidget(QtWidgets.QListWidget):
             except Exception as e:
                 print(e)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_A):
+            self.get_all_information()
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_C):
             ui.copyFanart()
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -439,7 +442,33 @@ class TitleListWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(prev_r)
         else:
             super(TitleListWidget, self).keyPressEvent(event)
-
+            
+    def get_all_information(self):
+        backend = ['duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
+        backend_dict = {
+            'duckduckgo+tvdb':'tvdb+ddg', 'duckduckgo+tmdb':'tmdb+ddg',
+            'google+tvdb':'tvdb+g', 'google+tmdb':'tmdb+g'
+            }
+        item, ok = QtWidgets.QInputDialog.getItem(
+            MainWindow, 'Input Dialog', '         Select Search Backend         ',
+            backend, 0, False)
+        if item and ok:
+            logger.info(item)
+            try:
+                ui.posterfind_batch = 0
+                site = ui.get_parameters_value(s='site')['site']
+                opt = ''
+                if ui.list3.currentItem():
+                    opt = ui.list3.currentItem().text().lower()
+                nm = ui.get_title_name(0)
+                use_search = backend_dict[item]
+                logger.info('\nsite={0}::opt={1}::search={2}\n'.format(site, opt, use_search))
+                ui.posterfound_new(
+                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                    copy_summary=True, direct_url=False, use_search=use_search, get_all=True)
+            except Exception as e:
+                print(e)
+                
     def addBookmarkList(self):
         try:
             new_path = ui.original_path_name[self.currentRow()].split('	')[-1]
@@ -817,6 +846,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             tmdb = menu.addAction("Find Poster(TMDB) (Ctrl+Down)")
             ddg = menu.addAction("Find Poster(DuckDuckGo) (Ctrl+Right)")
             glinks = menu.addAction("Find Poster(Google) (Ctrl+Up)")
+            poster_all = menu.addAction("Find Posters for All (Ctrl+A)")
             cache = menu.addAction("Clear Cache")
             del_history = menu.addAction("Delete (Only For History)")
             rem_fanart = menu.addAction("Remove Fanart")
@@ -907,6 +937,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                         name=nm, site=site, url=False, copy_poster=True, 
                         copy_fanart=True, copy_summary=True, direct_url=False,
                         use_search='tvdb+g')
+            elif action == poster_all:
+                self.get_all_information()
             elif action == ddg:
                 site = ui.get_parameters_value(s='site')['site']
                 if self.currentItem():
