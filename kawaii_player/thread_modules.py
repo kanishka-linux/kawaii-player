@@ -83,38 +83,48 @@ class FindPosterThread(QtCore.QThread):
                         else:
                             final_link = 'https://www.themoviedb.org/'+link
                         m.append(final_link)
-            elif src == 'tvdb+g':
-                m = self.get_glinks(nam)
-                if m:
-                    final_link = m[0]
+            elif src == 'tvdb+g' or src == 'tmdb+g':
+                m = self.get_glinks(nam, src)
+            elif src == 'tvdb+ddg' or src == 'tmdb+ddg':
+                m = self.get_ddglinks(nam, src)
         else:
-            if src == 'tvdb':
-                new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
-            elif src == 'tmdb':
-                new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
-            content = ccurl(new_url)
-            soup = BeautifulSoup(content, 'lxml')
-            div_val = soup.findAll('h2', {'class':'result__title'})
-            logger.info(div_val)
-            for div_l in div_val:
-                new_url = div_l.find('a')
-                if 'href' in str(new_url):
-                    new_link = new_url['href']
-                    final_link = re.search('http[^"]*', new_link).group()
-                    if src == 'tvdb':
-                        if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
-                                and 'tab=seasonall' not in final_link):
-                            m.append(final_link)
-                    elif src == 'tmdb':
-                        if 'themoviedb.org' in final_link:
-                            m.append(final_link)
-                    if m:
-                        break
+            m = self.get_ddglinks(nam, src)
+        if m:
+            final_link = m[0]
         logger.info('\n{0}---{1}\n'.format(final_link, m))
         return (final_link, m)
     
-    def get_glinks(self, nam):
-        url = "https://www.google.co.in/search?q="+nam+"+tvdb"
+    def get_ddglinks(self, nam, src=None):
+        m = []
+        if src == 'tvdb' or src == 'tvdb+ddg':
+            new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
+        elif src == 'tmdb' or src == 'tmdb+ddg':
+            new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
+        content = ccurl(new_url)
+        soup = BeautifulSoup(content, 'lxml')
+        div_val = soup.findAll('h2', {'class':'result__title'})
+        logger.info(div_val)
+        for div_l in div_val:
+            new_url = div_l.find('a')
+            if 'href' in str(new_url):
+                new_link = new_url['href']
+                final_link = re.search('http[^"]*', new_link).group()
+                if src == 'tvdb' or src == 'tvdb+ddg':
+                    if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
+                            and 'tab=seasonall' not in final_link):
+                        m.append(final_link)
+                elif src == 'tmdb' or src == 'tmdb+ddg':
+                    if 'themoviedb.org' in final_link:
+                        m.append(final_link)
+                if m:
+                    break
+        return m
+        
+    def get_glinks(self, nam, src=None):
+        if src == 'tmdb+g':
+            url = "https://www.google.co.in/search?q="+nam+"+themoviedb"
+        else:
+            url = "https://www.google.co.in/search?q="+nam+"+tvdb"
         content = ccurl(url)
         soup = BeautifulSoup(content, 'lxml')
         m = soup.findAll('a')
@@ -284,7 +294,7 @@ class FindPosterThread(QtCore.QThread):
                             content = ccurl(link)
                             m = re.findall('/[^"]tab=series[^"]*lid=7', content)
 
-            if m and (src_site == 'tvdb' or src_site == 'tvdb+g'):
+            if m and (src_site == 'tvdb' or src_site == 'tvdb+g' or src_site == 'tvdb+ddg'):
                 if not final_link:
                     n = re.sub('amp;', '', m[0])
                     elist = re.sub('tab=series', 'tab=seasonall', n)
@@ -451,7 +461,7 @@ class FindPosterThread(QtCore.QThread):
                     os.remove(fanart_text)
                 if os.path.exists(poster_text):
                     os.remove(poster_text)
-            elif m and src_site == 'tmdb':
+            elif m and (src_site == 'tmdb' or src_site == 'tmdb+g' or src_site == 'tmdb+ddg'):
                 url = final_link
                 url_ext = ['discuss', 'reviews', 'posters', 'changes', 'videos', '#']
                 url_end = url.rsplit('/', 1)[1]
