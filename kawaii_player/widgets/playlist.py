@@ -21,6 +21,8 @@ import os
 import re
 import sqlite3
 import shutil
+import subprocess
+import base64
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files, open_files, ccurl, send_notification
 
@@ -71,18 +73,59 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if txt.startswith('#'):
                         txt = txt.replace('#', '', 1)
                     ui.list6.addItem(txt)
-
+    
+    def open_in_file_manager(self, row):
+        param_dict = ui.get_parameters_value(s='site', sn='siteName', o='opt')
+        site = param_dict['site']
+        siteName = param_dict['siteName']
+        opt = param_dict['opt']
+        path_dir = ''
+        if (site.lower() == 'video' or site.lower() == 'music' or 
+                site.lower() == 'playlists' or site.lower() == 'none'):
+            path = ui.epn_arr_list[row].split('\t')[1]
+            if path.startswith('abs_path='):
+                path = path.split('abs_path=', 1)[1]
+                path = str(base64.b64decode(path).decode('utf-8'))
+            if path.startswith('"'):
+                path = path[1:]
+            if path.endswith('"'):
+                path = path[:-1]
+            if os.path.exists(path):
+                path_dir, path_file = os.path.split(path)
+        elif opt.lower() == 'history':
+            if ui.list1.currentItem():
+                itemlist = ui.list1.currentItem()
+                if  itemlist:
+                    new_row = ui.list1.currentRow()
+                    item_value = ui.original_path_name[new_row]
+                    if '\t' in item_value:
+                        old_name = item_value.split('\t')[0]
+                    else:
+                        old_name = item_value
+                    if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
+                        history_txt = os.path.join(home, 'History', site, siteName, 'history.txt')
+                        path_dir = os.path.join(home, 'History', site, siteName, old_name)
+                    else:
+                        history_txt = os.path.join(home, 'History', site, 'history.txt')
+                        path_dir = os.path.join(home, 'History', site, old_name)
+        if os.path.exists(path_dir):
+            subprocess.Popen(['xdg-open', path_dir])
+        else:
+            msg = 'local file path does not exists: {0}'.format(path)
+            send_notification(msg)
+    
     def edit_name_list2(self, row):
         site = ui.get_parameters_value(s='site')['site']
         if '	' in ui.epn_arr_list[row]:
             default_text = ui.epn_arr_list[row].split('	')[0]
             default_path_name = ui.epn_arr_list[row].split('	')[1]
             default_basename = os.path.basename(default_path_name)
-            default_text = default_text+':'+default_basename
+            default_display = 'Enter Episode Name Manually\nFile Name:\n{0}'.format(default_basename)
         else:
             default_text = ui.epn_arr_list[row]
+            default_display = 'Enter Episode Name Manually\nDefault Name:\n{0}'.format(default_text)
         item, ok = QtWidgets.QInputDialog.getText(
-            MainWindow, 'Input Dialog', 'Enter Episode Name Manually', 
+            MainWindow, 'Input Dialog', default_display, 
             QtWidgets.QLineEdit.Normal, default_text)
             
         if ok and item:
@@ -115,6 +158,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 tmp = ui.epn_arr_list[row]
                 tmp = re.sub('[^	]*', item, tmp, 1)
                 ui.epn_arr_list[row] = tmp
+                dir_path, file_path = os.path.split(txt)
+                if dir_path in ui.video_dict:
+                    del ui.video_dict[dir_path]
             ui.update_list2()
     
     def edit_name_in_group(self, row):
@@ -126,17 +172,26 @@ class PlaylistWidget(QtWidgets.QListWidget):
             MainWindow, 'Input Dialog', 'Enter Naming pattern', 
             QtWidgets.QLineEdit.Normal, default_text)
         if item and ok:
-            nmval = re.search('[^\{]*', item).group()
-            range_val = re.search('\{[^}]*', item).group()
-            range_val = re.sub('\{', '', range_val)
-            range_start, range_end = range_val.split('-')
-            range_start = int(range_start.strip())
-            range_end = int(range_end.strip())
-            if range_end > 100:
-                size = 3
-            else:
-                size = 2
-            if site.lower() == 'video':
+            try:
+                nmval = re.search('[^\{]*', item).group()
+                range_val = re.search('\{[^}]*', item).group()
+                range_val = re.sub('\{', '', range_val)
+                range_start, range_end = range_val.split('-')
+                range_start = int(range_start.strip())
+                range_end = int(range_end.strip())
+                if range_end > 100:
+                    size = 3
+                else:
+                    size = 2
+                error_in_processing = False
+            except Exception as err:
+                print(err, '--141---')
+                error_in_processing = True
+            
+            if error_in_processing:
+                msg = 'Bad Input Data Entered. Enter in format: NewName{start-end}'
+                send_notification(msg)
+            elif site.lower() == 'video':
                 video_db = os.path.join(home, 'VideoDB', 'Video.db')
                 conn = sqlite3.connect(video_db)
                 cur = conn.cursor()
@@ -176,7 +231,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     del ui.video_dict[dir_path]
             elif (site.lower() == 'playlists' or site.lower() == 'music' 
                     or site.lower() == 'none'):
-                pass
+                msg = 'Batch Renaming not allowed in Music and Playlist section'
+                send_notification(msg)
             else:
                 file_path = ''
                 param_dict = ui.get_parameters_value(s='siteName', n='name')
@@ -939,6 +995,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 item_m.append(submenuR.addAction(i))
             submenuR.addSeparator()
             new_pls = submenuR.addAction("Create New Playlist")
+            file_manager = menu.addAction("Open in File Manager")
             default = menu.addAction("Set Default Background")
             delPosters = menu.addAction("Delete Poster")
             delInfo = menu.addAction("Delete Info")
@@ -997,6 +1054,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if self.currentItem() and ui.float_window.isHidden():
                     ui.IconViewEpn()
                     ui.scrollArea1.setFocus()
+            elif action == file_manager:
+                if ui.epn_arr_list:
+                    if self.currentItem():
+                        self.open_in_file_manager(self.currentRow())
             elif action == go_to:
                 if ui.list3.currentItem():
                     nam1 = ''
@@ -1127,7 +1188,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 eplist = menu.addAction("Get Episode Thumbnails(TVDB)")
                 eplist_info = True
-                
+            file_manager = menu.addAction("Open in File Manager")
             eplistM = menu.addAction("Go To TVDB")
             editN = menu.addAction("Rename Single Entry (F2)")
             group_rename = menu.addAction("Rename in Group (F3)")
@@ -1227,9 +1288,13 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         self.edit_name_list2(self.currentRow())
             elif action == group_rename and not ui.list1.isHidden():
                 if ui.epn_arr_list:
-                    print('Editing Name')
+                    print('Batch Renaming in database')
                     if self.currentItem():
                         self.edit_name_in_group(self.currentRow())
+            elif action == file_manager:
+                if ui.epn_arr_list:
+                    if self.currentItem():
+                        self.open_in_file_manager(self.currentRow())
             elif action == eplistM:
                 if ui.list1.currentItem():
                     name1 = (ui.list1.currentItem().text())
