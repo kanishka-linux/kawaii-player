@@ -1457,7 +1457,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
-        self.category_dict = {'anime':0, 'movie':1, 'tv':2, 'cartoon':4}
+        self.category_dict = {'anime':0, 'movie':1, 'tv':2, 'cartoon':4, 'other':5}
         self.posterfind_batch = 0
         self.epn_arr_list = []
         self.icon_size_arr = []
@@ -6855,7 +6855,7 @@ class Ui_MainWindow(object):
             self.mirror_change.hide()
             criteria = [
                 'Directory', 'Available', 'History', 'Anime', 'Movies',
-                'TV Shows', 'Cartoons', 'Update', 'UpdateAll'
+                'TV Shows', 'Cartoons', 'Others', 'Update', 'UpdateAll'
                 ]
             self.list3.clear()
             for i in criteria:
@@ -10987,11 +10987,15 @@ class Ui_MainWindow(object):
             #artist = naturallysorted(artist)
             logger.info('\n{0}::\n'.format(video_opt))
             if video_opt.lower() != "update" or video_opt.lower() != "updateall":
+                if video_opt.lower() == 'available':
+                    show_all = False
+                else:
+                    show_all = True
                 for i in artist:
                     ti = i.split('	')[0]
                     di = i.split('	')[1]
-                    logger.info(i)
-                    if os.path.exists(di):
+                    logger.info('{0} -- 10993--'.format(i))
+                    if os.path.exists(di) or show_all:
                         #self.original_path_name.append(i)
                         if ti.lower().startswith('season') or ti.lower().startswith('special'):
                             new_di, new_ti = os.path.split(di)
