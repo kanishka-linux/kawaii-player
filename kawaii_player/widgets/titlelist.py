@@ -118,44 +118,22 @@ class TitleListWidget(QtWidgets.QListWidget):
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Left):
-            try:
-                site = ui.get_parameters_value(s='site')['site']
-                nm = ui.get_title_name(self.currentRow())
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=False)
-            except Exception as e:
-                print(e)
+            self.set_search_backend(use_search='tmdb+ddg')
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Right):
-            try:
-                site = ui.get_parameters_value(s='site')['site']
-                nm = ui.get_title_name(self.currentRow())
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=True)
-            except Exception as e:
-                print(e)
+            self.set_search_backend(use_search='tvdb+ddg')
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Down):
-            try:
-                site = ui.get_parameters_value(s='site')['site']
-                nm = ui.get_title_name(self.currentRow())
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search='tmdb')
-            except Exception as e:
-                print(e)
+            self.set_search_backend(use_search='tmdb+g')
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Up):
-            try:
-                site = ui.get_parameters_value(s='site')['site']
-                nm = ui.get_title_name(self.currentRow())
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search='tvdb+g')
-            except Exception as e:
-                print(e)
+            self.set_search_backend(use_search='tvdb+g')
+        elif (event.modifiers() == QtCore.Qt.AltModifier 
+                and event.key() == QtCore.Qt.Key_1):
+            self.set_search_backend(use_search=False)
+        elif (event.modifiers() == QtCore.Qt.AltModifier 
+                and event.key() == QtCore.Qt.Key_2):
+            self.set_search_backend(use_search='tmdb')
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_A):
             self.get_all_information()
@@ -442,6 +420,18 @@ class TitleListWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(prev_r)
         else:
             super(TitleListWidget, self).keyPressEvent(event)
+            
+    def set_search_backend(self, use_search=None):
+        if use_search is None:
+            use_search = False
+        try:
+            site = ui.get_parameters_value(s='site')['site']
+            nm = ui.get_title_name(self.currentRow())
+            ui.posterfound_new(
+                name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                copy_summary=True, direct_url=False, use_search=use_search)
+        except Exception as e:
+            print(e)
             
     def get_all_information(self):
         backend = ['duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
@@ -821,6 +811,11 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenu = QtWidgets.QMenu(menu)
             submenu.setTitle("Bookmark Options")
             menu.addMenu(submenu)
+            tvdb = menu.addAction("Find Poster(TVDB) (Alt+1)")
+            tmdb = menu.addAction("Find Poster(TMDB) (Alt+2)")
+            menu_search = QtWidgets.QMenu(menu)
+            menu_search.setTitle('More Poster Options')
+            menu.addMenu(menu_search)
             if 'AnimeWatch' in home or ui.anime_review_site:
                 submenu_arr_dict = {
                     'mal':'MyAnimeList', 'ap':'Anime-Planet', 
@@ -851,11 +846,14 @@ class TitleListWidget(QtWidgets.QListWidget):
             sideBar = menu.addAction("Show Side Bar (Shift+G)")
             history = menu.addAction("History (Ctrl+H)")
             thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
-            tvdb = menu.addAction("Find Poster(TVDB) (Ctrl+Left)")
-            tmdb = menu.addAction("Find Poster(TMDB) (Ctrl+Down)")
-            ddg = menu.addAction("Find Poster(DuckDuckGo) (Ctrl+Right)")
-            glinks = menu.addAction("Find Poster(Google) (Ctrl+Up)")
-            poster_all = menu.addAction("Find Posters for All (Ctrl+A)")
+            
+            ddg_tvdb = menu_search.addAction("Find Poster(ddg+tvdb) (Ctrl+Right)")
+            ddg_tmdb = menu_search.addAction("Find Poster(ddg+tmdb) (Ctrl+Left)")
+            glinks_tvdb = menu_search.addAction("Find Poster(g+tvdb) (Ctrl+Up)")
+            glinks_tmdb = menu_search.addAction("Find Poster(g+tmdb) (Ctrl+Down)")
+            glinks = menu_search.addAction("Find Poster(g) (Ctrl+Up)")
+            menu_search.addSeparator()
+            poster_all = menu_search.addAction("Find Posters for All (Ctrl+A)")
             cache = menu.addAction("Clear Cache")
             del_history = menu.addAction("Delete (Only For History)")
             rem_fanart = menu.addAction("Remove Fanart")
@@ -924,38 +922,19 @@ class TitleListWidget(QtWidgets.QListWidget):
                     if os.path.isdir(file_name):
                         shutil.rmtree(file_name)
             elif action == tvdb:
-                site = ui.get_parameters_value(s='site')['site']
-                if self.currentItem():
-                    nm = ui.get_title_name(self.currentRow())
-                    ui.posterfound_new(
-                        name=nm, site=site, url=False, copy_poster=True, 
-                        copy_fanart=True, copy_summary=True, direct_url=False)
+                self.set_search_backend(use_search=False)
             elif action == tmdb:
-                site = ui.get_parameters_value(s='site')['site']
-                if self.currentItem():
-                    nm = ui.get_title_name(self.currentRow())
-                    ui.posterfound_new(
-                        name=nm, site=site, url=False, copy_poster=True, 
-                        copy_fanart=True, copy_summary=True, direct_url=False,
-                        use_search='tmdb')
-            elif action == glinks:
-                site = ui.get_parameters_value(s='site')['site']
-                if self.currentItem():
-                    nm = ui.get_title_name(self.currentRow())
-                    ui.posterfound_new(
-                        name=nm, site=site, url=False, copy_poster=True, 
-                        copy_fanart=True, copy_summary=True, direct_url=False,
-                        use_search='tvdb+g')
+                self.set_search_backend(use_search='tmdb')
+            elif action == glinks_tvdb:
+                self.set_search_backend(use_search='tvdb+g')
+            elif action == glinks_tmdb:
+                self.set_search_backend(use_search='tmdb+g')
+            elif action == ddg_tvdb:
+                self.set_search_backend(use_search=True)
+            elif action == ddg_tmdb:
+                self.set_search_backend(use_search='tmdb+ddg')
             elif action == poster_all:
                 self.get_all_information()
-            elif action == ddg:
-                site = ui.get_parameters_value(s='site')['site']
-                if self.currentItem():
-                    nm = ui.get_title_name(self.currentRow())
-                    ui.posterfound_new(
-                        name=nm, site=site, url=False, copy_poster=True, 
-                        copy_fanart=True, copy_summary=True, direct_url=False,
-                        use_search=True)
             elif action == rename:
                 if ui.original_path_name:
                     print('Renaming')
