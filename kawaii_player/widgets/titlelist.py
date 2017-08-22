@@ -528,9 +528,13 @@ class TitleListWidget(QtWidgets.QListWidget):
             else:
                 return 0
         file_path = os.path.join(home, 'Bookmark', val+'.txt')
-        write_files(file_path, tmp, line_by_line=True)
-        note = name + " is Added to "+val+" Category"
-        send_notification(note)
+        if os.path.isfile(file_path):
+            lines = open_files(file_path, True)
+            lines = [i for i in lines if i.strip()]
+            lines.append(tmp)
+            write_files(file_path, lines, line_by_line=True)
+            note = name + " is Added to "+val+" Category"
+            send_notification(note)
 
     def triggerPlaylist(self, value):
         print('Menu Clicked')
@@ -811,6 +815,9 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenu = QtWidgets.QMenu(menu)
             submenu.setTitle("Bookmark Options")
             menu.addMenu(submenu)
+            menu_cat = QtWidgets.QMenu(menu)
+            menu_cat.setTitle("Add To Category")
+            menu.addMenu(menu_cat)
             tvdb = menu.addAction("Find Poster(TVDB) (Alt+1)")
             tmdb = menu.addAction("Find Poster(TMDB) (Alt+2)")
             menu_search = QtWidgets.QMenu(menu)
@@ -847,13 +854,19 @@ class TitleListWidget(QtWidgets.QListWidget):
             history = menu.addAction("History (Ctrl+H)")
             thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
             
+            cat_anime = menu_cat.addAction('Anime')
+            cat_movie = menu_cat.addAction('Movies')
+            cat_tv = menu_cat.addAction('TV Shows')
+            cat_cartoon = menu_cat.addAction('Cartoons')
+            cat_others = menu_cat.addAction('Others')
+            
             ddg_tvdb = menu_search.addAction("Find Poster(ddg+tvdb) (Ctrl+Right)")
             ddg_tmdb = menu_search.addAction("Find Poster(ddg+tmdb) (Ctrl+Left)")
             glinks_tvdb = menu_search.addAction("Find Poster(g+tvdb) (Ctrl+Up)")
             glinks_tmdb = menu_search.addAction("Find Poster(g+tmdb) (Ctrl+Down)")
-            glinks = menu_search.addAction("Find Poster(g) (Ctrl+Up)")
             menu_search.addSeparator()
             poster_all = menu_search.addAction("Find Posters for All (Ctrl+A)")
+            
             cache = menu.addAction("Clear Cache")
             del_history = menu.addAction("Delete (Only For History)")
             rem_fanart = menu.addAction("Remove Fanart")
@@ -898,6 +911,32 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.list1.setFocus()
             elif action == del_history:
                 ui.deleteHistory()
+            elif (action == cat_anime or action == cat_movie or action == cat_tv 
+                    or action == cat_cartoon or action == cat_others):
+                txt = action.text()
+                if site.lower() == 'video' and self.currentItem():
+                    rows = [i.split('\t')[1] for i in ui.epn_arr_list]
+                    conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                    cur = conn.cursor()
+                    for i in rows:
+                        if txt.lower() == 'movies':
+                            category = ui.category_dict['movie']
+                        elif txt.lower() == 'anime':
+                            category = ui.category_dict['anime']
+                        elif txt.lower() == 'cartoons':
+                            category = ui.category_dict['cartoon']
+                        elif txt.lower() == 'tv shows':
+                            category = ui.category_dict['tv']
+                        else:
+                            category = ui.category_dict['other']
+                        qr = 'Update Video Set Category=? Where Path=?'
+                        cur.execute(qr, (category, i))
+                    conn.commit()
+                    conn.close()
+                    msg = '{0} Successfully Added to category: {1}'.format(self.currentItem().text(), txt)
+                else:
+                    msg = 'This operation not allowed in this section'
+                send_notification(msg)
             elif action == addBookmark:
                 self.addBookmarkList()
             elif action == thumbnail:
