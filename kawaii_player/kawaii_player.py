@@ -5829,17 +5829,16 @@ class Ui_MainWindow(object):
             
         if (bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
             file_path = os.path.join(home, 'Bookmark', status+'.txt')
-            row = self.list1.currentRow()
-            item = self.list1.item(row)
-            nam = str(item.text())
-            if item and os.path.exists(file_path):
-                self.list1.takeItem(row)
-                del item
+            if self.list1.currentItem() and os.path.isfile(file_path):
+                row = self.list1.currentRow()
+                item = self.list1.item(row)
                 lines = open_files(file_path, True)
+                lines = [i for i in lines if i.strip()]
                 if row < len(lines):
                     del lines[row]
-                    length = len(lines) - 1
                     write_files(file_path, lines, line_by_line=True)
+                    self.list1.takeItem(row)
+                    del item
         elif opt == "History":
             file_path = ''
             if site == "SubbedAnime" or site == "DubbedAnime":
@@ -7011,7 +7010,8 @@ class Ui_MainWindow(object):
             #f = open(os.path.join(home, 'Bookmark', status+'.txt'), 'r')
             line_a = open_files(os.path.join(home, 'Bookmark', status+'.txt'), True)
             r = self.list1.currentRow()
-            if r < 0:
+            if r < 0 or r >= len(line_a):
+                logger.info('--wrong--value--of row--7014--')
                 return 0
             tmp = line_a[r]
             tmp = tmp.strip()
