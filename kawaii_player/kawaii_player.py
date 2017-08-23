@@ -1457,7 +1457,12 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
-        self.category_dict = {'anime':0, 'movie':1, 'tv':2, 'cartoon':4, 'other':5}
+        self.category_dict = {
+            'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
+            'cartoons':'Cartoons', 'others':'Others'
+            }
+        self.category_array = ['Anime', 'Movies', 'TV Shows', 'Cartoons', 'Others']
+        self.update_video_dict_criteria()
         self.posterfind_batch = 0
         self.epn_arr_list = []
         self.icon_size_arr = []
@@ -1790,7 +1795,22 @@ class Ui_MainWindow(object):
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-    
+        
+    def update_video_dict_criteria(self):
+        video_dir_path = os.path.join(home, 'VideoDB')
+        if not os.path.exists(video_dir_path):
+            os.makedirs(video_dir_path)
+        video_category_path = os.path.join(video_dir_path, 'extra_category')
+        if not os.path.isfile(video_category_path):
+            open(video_category_path, 'w').close()
+        else:
+            cat_lines = open_files(video_category_path, True)
+            cat_lines = [i.strip() for i in cat_lines if i.strip()]
+            for i in cat_lines:
+                self.category_array.append(i)
+                self.category_dict.update({i.lower():i})
+            logger.info('{0}::{1}::--1808--'.format(self.category_dict, self.category_array))
+            
     def direct_web(self, mode):
         if not self.tab_2.isHidden():
             if mode == 'right':
@@ -1972,7 +1992,7 @@ class Ui_MainWindow(object):
         else:
             txt = '\n add ao-volume {0} \n'.format(val)
         self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
-        self.mpvplayer_val.write(bytes(txt, 'utf-8'))				
+        self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def float_activity(self):
         if not self.new_tray_widget.isHidden() and self.new_tray_widget.remove_toolbar:
@@ -5833,7 +5853,7 @@ class Ui_MainWindow(object):
                 row = self.list1.currentRow()
                 item = self.list1.item(row)
                 lines = open_files(file_path, True)
-                lines = [i for i in lines if i.strip()]
+                lines = [i.strip() for i in lines if i.strip()]
                 if row < len(lines):
                     del lines[row]
                     write_files(file_path, lines, line_by_line=True)
@@ -6853,9 +6873,13 @@ class Ui_MainWindow(object):
         elif site == "Video":
             self.mirror_change.hide()
             criteria = [
-                'Directory', 'Available', 'History', 'Anime', 'Movies',
-                'TV Shows', 'Cartoons', 'Others', 'Update', 'UpdateAll'
+                'Directory', 'Available', 'History', 'Update', 'UpdateAll'
                 ]
+            insert_index = criteria.index('Update')
+            for i in self.category_array:
+                criteria.insert(insert_index, i)
+                insert_index += 1
+                
             self.list3.clear()
             for i in criteria:
                 self.list3.addItem(i)
@@ -12323,7 +12347,7 @@ def main():
     f = open(os.path.join(home, "History", "queue.m3u"), "w")
     f.write("#EXTM3U")
     f.close()
-    
+            
     for i in default_option_arr:
         ui.btn1.addItem(i)
     for i in ui.addons_option_arr:
