@@ -6340,12 +6340,12 @@ class Ui_MainWindow(object):
         elif site == "Bookmark":
             bookmark = True
             criteria = [
-                'All', 'Watching', 'Completed', 'Incomplete', "Later", 
-                'Interesting', 'Music-Videos'
+                'All', 'Watching', 'Completed', 'Incomplete',
+                'Interesting', 'Music Videos', 'Later'
                 ]
             bookmark_array = [
                 'bookmark', 'Watching', 'Completed', 'Incomplete', 
-                'Later', 'Interesting', 'Music-Videos'
+                'Later', 'Interesting', 'Music Videos'
                 ]
             bookmark_extra = []
             for i in bookmark_array:
@@ -12294,7 +12294,7 @@ def main():
         os.makedirs(os.path.join(home, "Bookmark"))
         bookmark_array = [
             'bookmark', 'Watching', 'Completed', 'Incomplete', 
-            'Later', 'Interesting', 'Music-Videos'
+            'Later', 'Interesting', 'Music Videos'
             ]
         for i in bookmark_array:
             bookmark_path = os.path.join(home, 'Bookmark', i+'.txt')
