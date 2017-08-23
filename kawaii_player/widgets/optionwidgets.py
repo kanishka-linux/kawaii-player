@@ -13,6 +13,9 @@ class SidebarWidget(QtWidgets.QListWidget):
         ui = uiwidget
         home = home_dir
 
+    def mouseMoveEvent(self, event): 
+        self.setFocus()
+        
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_O:
             ui.setPreOpt()
@@ -77,6 +80,8 @@ class SidebarWidget(QtWidgets.QListWidget):
                         del item_r
                         ui.list1.clear()
                         ui.list2.clear()
+        else:
+            super(SidebarWidget, self).keyPressEvent(event)
 
     def contextMenuEvent(self, event):
         menu = QtWidgets.QMenu(self)
@@ -92,7 +97,6 @@ class SidebarWidget(QtWidgets.QListWidget):
         elif action == movie:
             category = "Movies"
             ui.set_parameters_value(catg=category)
-        #super(List2, self).keyPressEvent(event)
 
 
 class FilterTitleList(QtWidgets.QListWidget):
