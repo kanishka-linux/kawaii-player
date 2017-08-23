@@ -872,13 +872,16 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenuR = QtWidgets.QMenu(menu)
             submenuR.setTitle("Find Information")
             menu.addMenu(submenuR)
-            submenu = QtWidgets.QMenu(menu)
-            submenu.setTitle("Bookmark Options")
-            menu.addMenu(submenu)
+            
             menu_cat = QtWidgets.QMenu(menu)
             menu_cat.setTitle("Add To Category")
             if site.lower() == 'video':
                 menu.addMenu(menu_cat)
+                
+            submenu = QtWidgets.QMenu(menu)
+            submenu.setTitle("Bookmark Options")
+            menu.addMenu(submenu)
+            
             menu_search = QtWidgets.QMenu(menu)
             menu_search.setTitle('Poster Options')
             menu.addMenu(menu_search)
@@ -902,10 +905,16 @@ class TitleListWidget(QtWidgets.QListWidget):
                 reviews.append(submenuR.addAction(submenu_arr_dict[i]))
             addBookmark = submenu.addAction("Add Bookmark")
             bookmark_array = ['bookmark']
-            pls = os.listdir(os.path.join(home, 'Bookmark'))
+            book_dir = os.path.join(home, 'Bookmark')
+            pls = os.listdir(book_dir)
+            
+            pls = sorted(
+                pls, key=lambda x: os.path.getmtime(os.path.join(book_dir, x)),
+                reverse=True)
             item_m = []
             for i in pls:
                 i = i.replace('.txt', '')
+                logger.info(i)
                 if i not in bookmark_array:
                     item_m.append(submenu.addAction(i))
             submenu.addSeparator()
@@ -954,14 +963,6 @@ class TitleListWidget(QtWidgets.QListWidget):
                     if submenu_arr_dict[i].lower() == new_review.lower():
                         st = i
                         break
-                """
-                try:
-                    st = list(submenu_arr_dict.keys())[list(submenu_arr_dict.values()).index(new_review)]
-                    logger.info('review-site: {0}'.format(st))
-                except ValueError as e:
-                    print(e, '--key--not--found--')
-                    st = 'ddg'
-                """
                 ui.reviewsWeb(srch_txt=name, review_site=st, action='context_menu')
             elif action == new_pls:
                 print("creating new bookmark category")
