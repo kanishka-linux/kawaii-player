@@ -530,7 +530,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         file_path = os.path.join(home, 'Bookmark', val+'.txt')
         if os.path.isfile(file_path):
             lines = open_files(file_path, True)
-            lines = [i for i in lines if i.strip()]
+            lines = [i.strip() for i in lines if i.strip()]
             lines.append(tmp)
             write_files(file_path, lines, line_by_line=True)
             note = name + " is Added to "+val+" Category"
@@ -552,7 +552,67 @@ class TitleListWidget(QtWidgets.QListWidget):
                 sumry = '"'+sumry+'"'
                 t = sumr+'	'+sumry+'	'+rfr_url
                 write_files(file_path, t, line_by_line=True)
-                
+    
+    def update_video_category(self, site, txt):
+        if site.lower() == 'video' and self.currentItem():
+            category = ui.category_dict.get(txt.lower())
+            if category:
+                rows = [i.split('\t')[1] for i in ui.epn_arr_list]
+                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                cur = conn.cursor()
+                for i in rows:
+                    qr = 'Update Video Set Category=? Where Path=?'
+                    cur.execute(qr, (category, i))
+                    logger.info('{0}::{1}'.format(category, i))
+                conn.commit()
+                conn.close()
+                msg = '{0} Successfully Added to category: {1}'.format(self.currentItem().text(), txt)
+            else:
+                msg = 'Invalid Category'
+        else:
+            msg = 'This operation not allowed in this section'
+        send_notification(msg)
+        logger.info('{0}: --588--{1}'.format(msg, ui.category_dict))
+        
+    def delete_category_video(self, site, category):
+        cat_val = ui.category_dict.get(category.lower())
+        if cat_val and site.lower() == 'video':
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            cur = conn.cursor()
+            qr = 'Update Video Set Category=? Where Category=?'
+            cur.execute(qr, (ui.category_dict['others'], cat_val))
+            conn.commit()
+            conn.close()
+            
+            if category in ui.category_array:
+                cat_index = ui.category_array.index(category)
+                del ui.category_array[cat_index]
+            
+            del ui.category_dict[category.lower()]
+                        
+            cat_item = ui.list3.findItems(category, QtCore.Qt.MatchExactly)
+            if cat_item:
+                list_item = cat_item[0]
+                list_item_row = ui.list3.row(list_item)
+                ui.list3.takeItem(list_item_row)
+                del list_item
+            
+            cat_file = os.path.join(home, 'VideoDB', 'extra_category')
+            if os.path.isfile(cat_file):
+                lines = open_files(cat_file, True)
+                lines = [i.strip() for i in lines if i.strip()]
+                if category in lines:
+                    line_index = lines.index(category)
+                    del lines[line_index]
+                    write_files(cat_file, lines, line_by_line=True)
+                    
+            logger.info('Category {0} set to ::{1}'.format(category, 'Others'))
+            logger.info('Category Dict: {0}\nCategory Array: {1}'.format(ui.category_dict, ui.category_array))
+            msg = 'Category {0} Removed; Removed Items are in Others Category'.format(category)
+            send_notification(msg)
+        else:
+            send_notification('Wrong Parameters')
+            
     def edit_name_list1(self, row):
         site = ui.get_parameters_value(s='site')['site']
         if '	' in ui.original_path_name[row]:
@@ -817,12 +877,12 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu.addMenu(submenu)
             menu_cat = QtWidgets.QMenu(menu)
             menu_cat.setTitle("Add To Category")
-            menu.addMenu(menu_cat)
-            tvdb = menu.addAction("Find Poster(TVDB) (Alt+1)")
-            tmdb = menu.addAction("Find Poster(TMDB) (Alt+2)")
+            if site.lower() == 'video':
+                menu.addMenu(menu_cat)
             menu_search = QtWidgets.QMenu(menu)
-            menu_search.setTitle('More Poster Options')
+            menu_search.setTitle('Poster Options')
             menu.addMenu(menu_search)
+            
             if 'AnimeWatch' in home or ui.anime_review_site:
                 submenu_arr_dict = {
                     'mal':'MyAnimeList', 'ap':'Anime-Planet', 
@@ -850,16 +910,18 @@ class TitleListWidget(QtWidgets.QListWidget):
                     item_m.append(submenu.addAction(i))
             submenu.addSeparator()
             new_pls = submenu.addAction("Create New Bookmark Category")
-            sideBar = menu.addAction("Show Side Bar (Shift+G)")
             history = menu.addAction("History (Ctrl+H)")
-            thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
+            thumbnail = menu.addAction("Thumbnail View (Ctrl+Z)")
+            cat_arr = []
+            for i in ui.category_array:
+                cat_arr.append(menu_cat.addAction(i))
+            menu_cat.addSeparator()
+            add_cat = menu_cat.addAction('Create Category')
+            del_cat = menu_cat.addAction('Delete Category')
             
-            cat_anime = menu_cat.addAction('Anime')
-            cat_movie = menu_cat.addAction('Movies')
-            cat_tv = menu_cat.addAction('TV Shows')
-            cat_cartoon = menu_cat.addAction('Cartoons')
-            cat_others = menu_cat.addAction('Others')
-            
+            tvdb = menu_search.addAction("Find Poster(TVDB) (Alt+1)")
+            tmdb = menu_search.addAction("Find Poster(TMDB) (Alt+2)")
+            menu_search.addSeparator()
             ddg_tvdb = menu_search.addAction("Find Poster(ddg+tvdb) (Ctrl+Right)")
             ddg_tmdb = menu_search.addAction("Find Poster(ddg+tmdb) (Ctrl+Left)")
             glinks_tvdb = menu_search.addAction("Find Poster(g+tvdb) (Ctrl+Up)")
@@ -867,33 +929,41 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_search.addSeparator()
             poster_all = menu_search.addAction("Find Posters for All (Ctrl+A)")
             
-            cache = menu.addAction("Clear Cache")
-            del_history = menu.addAction("Delete (Only For History)")
-            rem_fanart = menu.addAction("Remove Fanart")
-            rem_poster = menu.addAction("Remove poster")
-            refresh_poster = menu.addAction("Refresh posters")
+            menu_clear = QtWidgets.QMenu(menu)
+            menu_clear.setTitle('Clear')
+            menu.addMenu(menu_clear)
+            
+            cache = menu_clear.addAction("Clear Cache")
+            del_history = menu_clear.addAction("Delete (History or Bookmark Item)")
+            rem_fanart = menu_clear.addAction("Remove Fanart")
+            rem_poster = menu_clear.addAction("Remove poster")
+            refresh_poster = menu_clear.addAction("Refresh posters")
             rename = menu.addAction("Rename (F2)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
             
-            for i in range(len(item_m)):
-                if action == item_m[i]:
-                    item_name = item_m[i].text()
-                    self.triggerBookmark(item_name)
-                    
-            for i in range(len(reviews)):
-                if action == reviews[i]:
-                    new_review = reviews[i].text()
-                    if new_review.startswith('&'):
-                        new_review = new_review[1:]
-                    try:
-                        st = list(submenu_arr_dict.keys())[list(submenu_arr_dict.values()).index(new_review)]
-                        logger.info('review-site: {0}'.format(st))
-                    except ValueError as e:
-                        print(e, '--key--not--found--')
-                        st = 'ddg'
-                    ui.reviewsWeb(srch_txt=name, review_site=st, action='context_menu')
-                    
-            if action == new_pls:
+            if action in item_m:
+                item_index = item_m.index(action)
+                self.triggerBookmark(item_m[item_index].text())
+            elif action in reviews:
+                item_index = reviews.index(action)
+                new_review = reviews[item_index].text()
+                if new_review.startswith('&'):
+                    new_review = new_review[1:]
+                st = 'ddg'
+                for i in submenu_arr_dict:
+                    if submenu_arr_dict[i].lower() == new_review.lower():
+                        st = i
+                        break
+                """
+                try:
+                    st = list(submenu_arr_dict.keys())[list(submenu_arr_dict.values()).index(new_review)]
+                    logger.info('review-site: {0}'.format(st))
+                except ValueError as e:
+                    print(e, '--key--not--found--')
+                    st = 'ddg'
+                """
+                ui.reviewsWeb(srch_txt=name, review_site=st, action='context_menu')
+            elif action == new_pls:
                 print("creating new bookmark category")
                 item, ok = QtWidgets.QInputDialog.getText(
                     MainWindow, 'Input Dialog', 'Enter Playlist Name')
@@ -902,41 +972,38 @@ class TitleListWidget(QtWidgets.QListWidget):
                     if not os.path.exists(file_path):
                         f = open(file_path, 'w')
                         f.close()
-            elif action == sideBar:
-                if ui.dockWidget_3.isHidden():
-                    ui.dockWidget_3.show()
-                    ui.btn1.setFocus()
-                else:
-                    ui.dockWidget_3.hide()
-                    ui.list1.setFocus()
             elif action == del_history:
                 ui.deleteHistory()
-            elif (action == cat_anime or action == cat_movie or action == cat_tv 
-                    or action == cat_cartoon or action == cat_others):
+            elif action in cat_arr:
                 txt = action.text()
-                if site.lower() == 'video' and self.currentItem():
-                    rows = [i.split('\t')[1] for i in ui.epn_arr_list]
-                    conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-                    cur = conn.cursor()
-                    for i in rows:
-                        if txt.lower() == 'movies':
-                            category = ui.category_dict['movie']
-                        elif txt.lower() == 'anime':
-                            category = ui.category_dict['anime']
-                        elif txt.lower() == 'cartoons':
-                            category = ui.category_dict['cartoon']
-                        elif txt.lower() == 'tv shows':
-                            category = ui.category_dict['tv']
-                        else:
-                            category = ui.category_dict['other']
-                        qr = 'Update Video Set Category=? Where Path=?'
-                        cur.execute(qr, (category, i))
-                    conn.commit()
-                    conn.close()
-                    msg = '{0} Successfully Added to category: {1}'.format(self.currentItem().text(), txt)
-                else:
-                    msg = 'This operation not allowed in this section'
-                send_notification(msg)
+                self.update_video_category(site, txt)
+            elif action == add_cat:
+                item, ok = QtWidgets.QInputDialog.getText(
+                    MainWindow, 'Input Dialog', 'Add New Category to Video', 
+                    QtWidgets.QLineEdit.Normal, 'Edit')
+                if item and ok:
+                    cat_path = os.path.join(home, 'VideoDB', 'extra_category')
+                    if not os.path.isfile(cat_path):
+                        open(cat_path, 'w').close()
+                    if item.lower() not in ui.category_dict:
+                        lines = open_files(cat_path, True)
+                        lines = [i.strip() for i in lines if i.strip()]
+                        lines.append(item)
+                        write_files(cat_path, lines, line_by_line=True)
+                        ui.category_array.append(item)
+                        ui.category_dict.update({item.lower():item})
+                        row = ui.list3.findItems('Update',QtCore.Qt.MatchExactly)
+                        ui.list3.insertItem(ui.list3.row(row[0]), item)
+                    else:
+                        send_notification('Category Already Exists')
+            elif action == del_cat:
+                cat_list = [ui.category_array[i] for i in range(5, len(ui.category_array))]
+                if cat_list:
+                    item, ok = QtWidgets.QInputDialog.getItem(
+                        MainWindow, 'Input Dialog', 'Select Extra Category To Remove from Video Section',
+                        cat_list, 0, False)
+                    if item and ok:
+                        self.delete_category_video(site, item)
             elif action == addBookmark:
                 self.addBookmarkList()
             elif action == thumbnail:
