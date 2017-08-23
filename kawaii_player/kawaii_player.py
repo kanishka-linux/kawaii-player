@@ -7569,7 +7569,8 @@ class Ui_MainWindow(object):
                     bg.paste(img, offset)
                     bg.save(str(fanart), 'JPEG', quality=100)
                 elif fit_size == 9 or fit_size == 10:
-                    baseheight = screen_height - (self.frame1.height()+self.label.height()+30)
+                    baseheight = screen_height - (self.frame1.height()+self.label.height()+100)
+                    #baseheight = screen_height - self.label.x()
                     if fit_size == 9:
                         basewidth = screen_width - self.width_allowed - 40
                     else:
@@ -7583,12 +7584,28 @@ class Ui_MainWindow(object):
                     #img = self.round_corner(img, 30)
                     wpercent = (basewidth / float(img.size[0]))
                     hsize = int((float(img.size[1]) * float(wpercent)))
-                    sz = (basewidth, hsize)
-                    img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                     bg = Image.new(color, (screen_width, screen_height))
-                    offset = (20,20)
-                    bg.paste(img, offset)
-                    bg.save(str(fanart), 'JPEG', quality=100)
+                    #bg = Image.open(os.path.join(home, 'default.jpg'))
+                    if hsize < screen_height:
+                        sz = (basewidth, hsize)
+                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                        offset = (20,20)
+                        #new_offset = (20+basewidth, 20)
+                        bg.paste(img, offset)
+                        #bg.paste(img, new_offset)
+                        bg.save(str(fanart), 'JPEG', quality=100)
+                    else:
+                        wp = float(baseheight/hsize)
+                        nbw = int(float(wp)*float(basewidth))
+                        img = img.resize((nbw, baseheight), PIL.Image.ANTIALIAS)
+                        offset = (20, 20)
+                        if fit_size == 9:
+                            new_offset = (40+nbw, 20)
+                        else:
+                            new_offset = (20+nbw, 20)
+                        bg.paste(img, offset)
+                        bg.paste(img, new_offset)
+                        bg.save(str(fanart), 'JPEG', quality=100)
                 elif fit_size == 6 or fit_size == 4:
                     if widget and fit_size == 6:
                         if widget == self.label:
@@ -10718,7 +10735,7 @@ class Ui_MainWindow(object):
                     self.setPreOpt()
         elif (site!="Local" and site != "Music" and site != "SubbedAnime" 
                 and site!= "DubbedAnime" and site!="PlayLists" and site!="Video"):
-        
+            t_opt = "History"
             print(val, '----clicked---', type(val))
             if val == "clicked":
                 r = self.list3.currentRow()
