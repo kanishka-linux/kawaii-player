@@ -117,16 +117,10 @@ class MediaDatabase():
             self.logger.info('qr={0};qVal={1}'.format(qr, qVal))
             cur.execute(qr, (qVal, qVal, ))
         else:
-            if q.lower() == 'anime':
-                cat_type = self.ui.category_dict['anime']
-            elif q.lower() == 'movies':
-                cat_type = self.ui.category_dict['movie']
-            elif q.lower() == 'cartoons':
-                cat_type = self.ui.category_dict['cartoon']
-            elif q.lower() == 'tv shows':
-                cat_type = self.ui.category_dict['tv']
-            else:
-                cat_type = self.ui.category_dict['other']
+            cat_type = self.ui.category_dict.get(q.lower())
+            if not cat_type:
+                cat_type = self.ui.category_dict['others']
+                logger.info('Category {} not Available Hence sending Others --123---'.format(q))
             if not qVal:
                 try:
                     cur.execute('SELECT distinct Title, Directory FROM Video Where Category=? order by Title', (cat_type,))
@@ -176,15 +170,15 @@ class MediaDatabase():
                             epn_cnt = 0
                         dir_cmp.append(di)
                     if 'movie' in di.lower():
-                        category = self.ui.category_dict['movie']
+                        category = self.ui.category_dict['movies']
                     elif 'anime' in di.lower():
                         category = self.ui.category_dict['anime']
                     elif 'cartoon' in di.lower():
-                        category = self.ui.category_dict['cartoon']
+                        category = self.ui.category_dict['cartoons']
                     elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
-                        category = self.ui.category_dict['tv']
+                        category = self.ui.category_dict['tv shows']
                     else:
-                        category = self.ui.category_dict['other']
+                        category = self.ui.category_dict['others']
                     w = [ti, di, na, na, pa, epn_cnt, category]
                     try:
                         cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
@@ -220,15 +214,15 @@ class MediaDatabase():
                             epn_cnt = 0
                         dir_cmp.append(di)
                     if 'movie' in di.lower():
-                        category = self.ui.category_dict['movie']
+                        category = self.ui.category_dict['movies']
                     elif 'anime' in di.lower():
                         category = self.ui.category_dict['anime']
                     elif 'cartoon' in di.lower():
-                        category = self.ui.category_dict['cartoon']
+                        category = self.ui.category_dict['cartoons']
                     elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
-                        category = self.ui.category_dict['tv']
+                        category = self.ui.category_dict['tv shows']
                     else:
-                        category = self.ui.category_dict['other']
+                        category = self.ui.category_dict['others']
                     w = [ti, di, na, na, pa, epn_cnt, category]
                     try:
                         cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
@@ -276,15 +270,15 @@ class MediaDatabase():
                         path = i[0].lower()
                         di, na = os.path.split(i[0])
                         if 'movie' in di.lower():
-                            category = self.ui.category_dict['movie']
+                            category = self.ui.category_dict['movies']
                         elif 'anime' in di.lower():
                             category = self.ui.category_dict['anime']
                         elif 'cartoon' in di.lower():
-                            category = self.ui.category_dict['cartoon']
+                            category = self.ui.category_dict['cartoons']
                         elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
-                            category = self.ui.category_dict['tv']
+                            category = self.ui.category_dict['tv shows']
                         else:
-                            category = self.ui.category_dict['other']
+                            category = self.ui.category_dict['others']
                         qr = 'Update Video Set Category=? Where Path=?'
                         cur.execute(qr, (category, i[0]))
             except Exception as err:
@@ -382,15 +376,15 @@ class MediaDatabase():
                 ti = os.path.basename(di)
                 pa = i
                 if 'movie' in di.lower():
-                    category = self.ui.category_dict['movie']
+                    category = self.ui.category_dict['movies']
                 elif 'anime' in di.lower():
                     category = self.ui.category_dict['anime']
                 elif 'cartoon' in di.lower():
-                    category = self.ui.category_dict['cartoon']
+                    category = self.ui.category_dict['cartoons']
                 elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
-                    category = self.ui.category_dict['tv']
+                    category = self.ui.category_dict['tv shows']
                 else:
-                    category = self.ui.category_dict['other']
+                    category = self.ui.category_dict['others']
                 cur.execute('SELECT Path FROM Video Where Path=?', (i,))
                 rows = cur.fetchall()
                 cur.execute('SELECT Path FROM Video Where Directory=?', (di,))
