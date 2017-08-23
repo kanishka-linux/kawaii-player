@@ -1097,6 +1097,7 @@ class Ui_MainWindow(object):
         self.VerticalLayoutLabel_Dock3.setObjectName(_fromUtf8("VerticalLayoutLabel_Dock3"))
         
         self.list3 = SidebarWidget(self.dockWidgetContents_3, self, home)
+        self.list3.setMouseTracking(True)
         self.list3.setGeometry(QtCore.QRect(20, 100, 130, 201))
         self.list3.setObjectName(_fromUtf8("list3"))
         self.line = QtWidgets.QLineEdit(self.dockWidgetContents_3)
@@ -5038,7 +5039,7 @@ class Ui_MainWindow(object):
         if site == "Local":
             r = self.list1.currentRow()
             new_name = self.original_path_name[r]
-        if self.image_fit_option_val in range(1, 9):
+        if self.image_fit_option_val in range(1, 11):
             if self.image_fit_option_val != 6:
                 img_opt = self.image_fit_option_val
             else:
