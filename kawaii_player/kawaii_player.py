@@ -5723,7 +5723,7 @@ class Ui_MainWindow(object):
             self.subtitle_track.setText("SUB")
             self.audio_track.setText("A/V")
         if (opt == "History" or site == "Music" or site == "Video" 
-                or site == "PlayLists" or site == 'MyServer'):
+                or site == "PlayLists") and site != 'MyServer':
             self.listfound()
         else:
             self.rawlist_highlight()
@@ -6681,7 +6681,7 @@ class Ui_MainWindow(object):
             thumbnail1 = os.path.join(home, 'History', site, name, 'thumbnail.jpg')
             summary_file = os.path.join(home, 'History', site, name, 'summary.txt')
         #print "file_name="+file_name
-        
+        logger.info(file_name)
         if os.path.exists(file_name) and site!="PlayLists":
             #print(site, siteName, name, file_name)
             lines = open_files(file_name, True)
@@ -6701,6 +6701,7 @@ class Ui_MainWindow(object):
                             self.epn_arr_list.append(k+'	'+i)
                             m.append(k)
             elif lines:
+                logger.info(file_name)
                 for i in lines:
                     i = i.strip()
                     if i:
@@ -6727,7 +6728,7 @@ class Ui_MainWindow(object):
                 
             self.videoImage(picn, thumbnail, fanart, summary)
                 
-            if os.path.isfile(str(picn)):
+            if os.path.isfile(file_name):
                 self.list2.clear()
                 self.update_list2()
         else:

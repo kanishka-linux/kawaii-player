@@ -120,7 +120,7 @@ class MediaDatabase():
             cat_type = self.ui.category_dict.get(q.lower())
             if not cat_type:
                 cat_type = self.ui.category_dict['others']
-                logger.info('Category {} not Available Hence sending Others --123---'.format(q))
+                self.logger.info('Category {} not Available Hence sending Others --123---'.format(q))
             if not qVal:
                 try:
                     cur.execute('SELECT distinct Title, Directory FROM Video Where Category=? order by Title', (cat_type,))

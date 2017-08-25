@@ -507,6 +507,7 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
             if user_auth is not None:
                 c.setopt(c.HTTPAUTH, c.HTTPAUTH_BASIC)
                 c.setopt(c.USERPWD, user_auth)
+            
             ver_peer = url.split('/')
             if len(ver_peer) > 3 and os.name != 'nt':
                 ver_peer_get = ver_peer[3]
@@ -517,8 +518,8 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
             c.close()
             content = storage.getvalue()
             content = getContentUnicode(content)
-        except:
-            print('curl failure try again')
+        except Exception as err:
+            print(err, 'curl failure try again', '--523--')
             content = ''
         return content
 
