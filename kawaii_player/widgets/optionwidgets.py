@@ -40,7 +40,7 @@ class SidebarWidget(QtWidgets.QListWidget):
                 ui.scrollArea1.setFocus()
             ui.dockWidget_3.hide()
         elif event.key() == QtCore.Qt.Key_Return:
-            ui.options('clicked')
+            ui.newoptions('clicked')
         elif event.key() == QtCore.Qt.Key_Left:
             ui.list2.setFocus()
             if ui.auto_hide_dock:
