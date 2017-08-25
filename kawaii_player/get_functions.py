@@ -184,7 +184,7 @@ def getContentUnicode(content):
         content = str(content)
     return content
 
-def ccurlCmd(url, external_cookie=None, user_auth=None):
+def ccurlCmd(url, external_cookie=None, user_auth=None, verify_peer=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
@@ -224,9 +224,12 @@ def ccurlCmd(url, external_cookie=None, user_auth=None):
             extra = post
     print("\ndebug info for ccurlCmd url ={0} \n curl_opt = {1} \n extra = {2}\n".format(url, curl_opt, extra))
     command = ccurl_string_get(url, curl_opt, extra)
-    if user_auth != None:
+    if user_auth is not None:
         command.append('--user')
         command.append(user_auth)
+    if verify_peer is False:
+        if '-k' not in command:
+            command.append('-k')
     content = ''
     print(' '.join(command))
     try:
@@ -266,7 +269,7 @@ def read_file_complete(file_path):
     return content
 
 
-def ccurlWget(url, external_cookie=None, user_auth=None):
+def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
@@ -310,7 +313,7 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
     tmp_html = os.path.join(tmp_dst, 'tmp_wget.html')
     tmp_log = os.path.join(tmp_dst, 'tmp_wget_log.txt')
     command = wget_string_get(url, tmp_html, curl_opt, extra, tmp_log)
-    if user_auth != None:
+    if user_auth is not None:
         try:
             user_name = user_auth.split(':')[0]
             user_passwd = user_auth.split(':')[1]
@@ -318,6 +321,9 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
             command.append('--http-password='+user_passwd)
         except Exception as e:
             print(e)
+    if verify_peer is False:
+        if '--no-check-certificate' not in command:
+                command.append('--no-check-certificate')
     content = ''
     #print(' '.join(command))
     try:
@@ -355,7 +361,7 @@ def ccurlWget(url, external_cookie=None, user_auth=None):
     return content
 
 
-def ccurl(url, external_cookie=None, user_auth=None):
+def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
@@ -406,6 +412,9 @@ def ccurl(url, external_cookie=None, user_auth=None):
         #if ca_cert:
         #c.setopt(c.CAINFO, ca_cert)
         #else:
+        pass
+    if verify_peer is False:
+        print(verify_peer,'--verify-peer-')
         c.setopt(c.SSL_VERIFYPEER, False)
     if curl_opt == '-o':
         c.setopt(c.FOLLOWLOCATION, True)
@@ -495,13 +504,14 @@ def ccurl(url, external_cookie=None, user_auth=None):
             c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
         try:
-            if user_auth != None:
+            if user_auth is not None:
                 c.setopt(c.HTTPAUTH, c.HTTPAUTH_BASIC)
                 c.setopt(c.USERPWD, user_auth)
             ver_peer = url.split('/')
             if len(ver_peer) > 3 and os.name != 'nt':
                 ver_peer_get = ver_peer[3]
-                if ver_peer_get.startswith('abs_path') and '&pl_id=' in ver_peer_get:
+                if (ver_peer_get.startswith('abs_path') and
+                        '&pl_id=' in ver_peer_get and verify_peer is not False):
                     c.setopt(c.SSL_VERIFYPEER, False)
             c.perform()
             c.close()
