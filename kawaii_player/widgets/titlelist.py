@@ -397,11 +397,13 @@ class TitleListWidget(QtWidgets.QListWidget):
             else:
                 ui.tab_5.setFocus()
         elif event.key() == QtCore.Qt.Key_Period:
+            site = ui.get_parameters_value(s='site')['site']
             if site == "Music":
                 ui.mpvNextEpnList()
             else:
                 ui.nextp(ui.list3.currentRow())
         elif event.key() == QtCore.Qt.Key_Comma:
+            site = ui.get_parameters_value(s='site')['site']
             if site == "Music":
                 ui.mpvPrevEpnList()
             else:
