@@ -1458,6 +1458,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.options_mode = 'legacy'
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -1666,7 +1667,7 @@ class Ui_MainWindow(object):
         self.list2.itemDoubleClicked['QListWidgetItem*'].connect(self.epnClicked)
         self.list2.currentRowChanged['int'].connect(self.epn_highlight)
         self.list3.itemDoubleClicked['QListWidgetItem*'].connect(
-            lambda var = 'clicked':self.options('clicked')
+            lambda var = 'clicked':self.newoptions('clicked')
             )
         self.forward.clicked.connect(lambda r= "": self.nextp('next'))
         self.backward.clicked.connect(lambda r= "": self.backp('back'))
@@ -5722,7 +5723,7 @@ class Ui_MainWindow(object):
             self.subtitle_track.setText("SUB")
             self.audio_track.setText("A/V")
         if (opt == "History" or site == "Music" or site == "Video" 
-                or site == "PlayLists"):
+                or site == "PlayLists" or site == 'MyServer'):
             self.listfound()
         else:
             self.rawlist_highlight()
@@ -6083,7 +6084,7 @@ class Ui_MainWindow(object):
         try:
             code = 6
             pgn = pgn + 1
-            if (opt != "") and (pgn >= 1):
+            if opt:
                 m = self.site_var.getNextPage(opt_val, pgn, genre_num, self.search_term)
                 self.list1.clear()
                 self.original_path_name[:] = []
@@ -6117,8 +6118,8 @@ class Ui_MainWindow(object):
         
         try:
             pgn = pgn - 1
-            if (opt != "") and (pgn >= 1):
-                m = self.site_var.getNextPage(opt_val, pgn, genre_num, self.search_term)
+            if opt:
+                m = self.site_var.getPrevPage(opt_val, pgn, genre_num, self.search_term)
                 self.list1.clear()
                 self.original_path_name[:] = []
                 for i in m:
@@ -6765,7 +6766,7 @@ class Ui_MainWindow(object):
         opt = "Search"
         m=[]
         criteria = []
-        
+        self.options_mode = 'legacy'
         print(site, self.btn1.currentText().lower())
         
         if site and (site not in site_arr) and self.site_var:
@@ -6791,6 +6792,9 @@ class Ui_MainWindow(object):
                     if not self.local_port:
                         self.local_port = 8001
                     self.torrent_type = 'file'
+                elif tmp.lower() == 'newversion':
+                    criteria.pop()
+                    self.options_mode = 'new'
                 else:
                     finalUrlFound = False
                     refererNeeded = False
@@ -7110,7 +7114,7 @@ class Ui_MainWindow(object):
                     name = new_name_with_info
                 
                         
-                if opt != "History":
+                if opt != "History" or site.lower() == 'myserver':
                     m = []
                     #try:
                     self.text.setText('Wait...Loading')
@@ -7704,7 +7708,7 @@ class Ui_MainWindow(object):
                 img_opt = 1
         else:
             img_opt = 2
-        logger.info(img_opt)
+        logger.info('img_opt={0}'.format(img_opt))
         self.label.clear()
         print(self.label.maximumWidth(), '--max--width--label--')
         try:
@@ -10564,7 +10568,7 @@ class Ui_MainWindow(object):
                 self.mpvplayer_started = False
             self.infoPlay(command)
         else:
-            if type(finalUrl) is list:
+            if isinstance(finalUrl, list):
                 rfr_exists = finalUrl[-1]
                 rfr_needed = False
                 if rfr_exists == 'referer sent':
@@ -10608,12 +10612,6 @@ class Ui_MainWindow(object):
                         if self.mpvplayer_val.processId() > 0:
                             self.mpvplayer_val.kill()
                             self.mpvplayer_started = False
-                            if Player == 'mplayer':
-                                try:
-                                    #subprocess.Popen(['killall', 'mplayer'])
-                                    print('hello')
-                                except:
-                                    pass
                         self.infoPlay(command)
             else:
                 finalUrl = finalUrl.replace('"', '')
@@ -10631,7 +10629,7 @@ class Ui_MainWindow(object):
                     self.mpvplayer_started = False
                 self.infoPlay(command)
     
-        if type(finalUrl) is not list:
+        if not isinstance(finalUrl, list):
             self.final_playing_url = finalUrl.replace('"', '')
             if self.final_playing_url.startswith('http'):
                 current_playing_file_path = self.final_playing_url
@@ -10700,6 +10698,100 @@ class Ui_MainWindow(object):
                     new_epn_title = new_epn_title.replace('#', self.check_symbol, 1)
                 self.list2.addItem(new_epn_title)
                 
+    def newoptions(self, val=None):
+        if self.options_mode == 'legacy':
+            self.options(val)
+        else:
+            self.newoptionmode(val)
+            
+    def newoptionmode(self, val):
+        global opt, home, site, list1_items, pgn
+        t_opt = "History"
+        print(val, '----clicked---', type(val))
+        if val == "clicked":
+            r = self.list3.currentRow()
+            item = self.list3.item(r)
+            if item:
+                t_opt = str(self.list3.currentItem().text())
+        elif val == "history":
+            t_opt = "History"
+        opt = t_opt
+        self.line.clear()
+        self.list1.clear()
+        self.list2.clear()
+        if t_opt == "History" and site.lower() != 'myserver':
+            opt = t_opt
+            file_path = os.path.join(home, 'History', site, 'history.txt')
+            if os.path.isfile(file_path):
+                lines = open_files(file_path, True)
+                lins = open_files(file_path, True)
+                list1_items[:] = []
+                list2_items[:] = []
+                self.original_path_name[:] = []
+                for i in lins:
+                    i = i.strip()
+                    j = i
+                    if '	' in i:
+                        i = i.split('	')[0]
+                    self.list1.addItem(i)
+                    list1_items.append(i)
+                    list2_items.append(i)
+                    self.original_path_name.append(j)
+                self.forward.hide()
+                self.backward.hide()
+        else:
+            self.text.setText('Wait...Loading')
+            QtWidgets.QApplication.processEvents()
+            try:
+                m = self.site_var.getCompleteList(t_opt, genre_num)
+                self.text.setText('Load Complete!')
+            except Exception as e:
+                print(e)
+                self.text.setText('Load Failed!')
+                return 0
+            opt = t_opt
+            list_1 = list_2 = list_3 = False
+            if m:
+                if m[-1] == 0:
+                    list_3 = True
+                    m.pop()
+                elif m[-1] == 1:
+                    list_1 = True
+                    m.pop()
+                elif m[-1] == 2:
+                    list_3 = True
+                    m.pop()
+            if not list_1 and not list_2 and not list_3:
+                list_1 = True
+            if list_3:
+                self.list3.clear()
+                for i in m:
+                    self.list3.addItem(i)
+                self.forward.hide()
+                self.backward.hide()
+            elif list_1:
+                list1_items[:] = []
+                self.original_path_name[:] = []
+                for i in m:
+                    i = i.strip()
+                    if '	' in i:
+                        j = i.split('	')[0]
+                    else:
+                        j = i
+                    self.list1.addItem(j)
+                    self.original_path_name.append(i)
+                self.forward.show()
+                self.backward.show()
+            elif list_2:
+                self.epn_arr_list.clear()
+                for i in m:
+                    if '\t' in i:
+                        j = i.split('\t')[0]
+                    self.list2.addItem(j)
+                    self.epn_arr_list.append(i)
+                self.forward.hide()
+                self.backward.hide()
+        
     def options(self, val=None):
         global opt, pgn, genre_num, site, name, base_url, name1, embed, list1_items
         global pre_opt, mirrorNo, insidePreopt, quality, home, siteName, finalUrlFound
