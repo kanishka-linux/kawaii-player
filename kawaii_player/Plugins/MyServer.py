@@ -107,12 +107,11 @@ class MyServer:
             return criteria
             
     def getFinalUrl(self, name, epn, mirror, quality):
-        if self.url:
-            url = self.url+'quality='+quality
-            content = ccurl(
-                    '{0}#-b#{1}'.format(url, self.cookie_file),verify_peer=False
-                    )
-            print(content)
+        url = self.url+'quality='+quality
+        content = ccurl(
+                '{0}#-b#{1}'.format(url, self.cookie_file),verify_peer=False
+                )
+        print(content)
         final = epn
         if '\t' in epn:
             final = epn.split('\t')[1]
@@ -188,7 +187,8 @@ class MyServer:
                     del self.site_dict['MyServer']
                 except Exception as err:
                     print(err, '--111---')
-                m = self.site_arr
+                m = self.site_arr.copy()
+                m.append('<-')
                 m.append(0)
         elif opt in self.site_arr:
             self.site = opt
@@ -198,10 +198,14 @@ class MyServer:
             else:
                 m.append('<--')
                 m.append(0)
-        elif '<--' in opt:
+        elif opt == '<--' or opt == '<-':
             self.site = None
             self.opt = None
-            m = self.site_arr.copy()
+            if opt == '<--':
+                m = self.site_arr.copy()
+                m.append('<-')
+            else:
+                m = ['Login', 'Discover']
             m.append(0)
         elif opt == 'History':
             self.opt = opt
