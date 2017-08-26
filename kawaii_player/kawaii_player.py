@@ -170,6 +170,7 @@ from widgets.scrollwidgets import *
 from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
+from thread_modules import DiscoverServer, BroadcastServer
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 
@@ -907,7 +908,8 @@ class Ui_MainWindow(object):
                 'Show/Hide Video', 'Show/Hide Cover And Summary', 
                 'Lock Playlist', 'Shuffle', 'Stop After Current File', 
                 'Continue(default Mode)', 'Set Media Server User/PassWord', 
-                'Start Media Server', 'Turn ON Remote Control', 'Set Current Background As Default', 'Settings'
+                'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control', 
+                'Set Current Background As Default', 'Settings'
                 ]
                                 
         self.action_player_menu =[]
@@ -1459,6 +1461,12 @@ class Ui_MainWindow(object):
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.options_mode = 'legacy'
+        self.broadcast_message = 'version'
+        self.broadcast_server = False
+        self.broadcast_thread = None
+        self.discover_server = False
+        self.discover_thread = None
+        self.broadcast_server_list = []
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -1826,7 +1834,7 @@ class Ui_MainWindow(object):
             mpv_i=None, fullsc=None, tab_6=None, cur_label=None, path_final=None,
             idw_val=None, amp=None, cur_ply=None, t6_ply=None, inter=None,
             memory_num=None, show_hide_pl=None, show_hide_tl=None, op=None,
-            qual=None, mir=None, name_val=None, catg=None):
+            qual=None, mir=None, name_val=None, catg=None, local_ip=None):
         global site, curR, quitReally, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator, fullscr, tab_6_size_indicator
@@ -1847,6 +1855,8 @@ class Ui_MainWindow(object):
         if qual:
             quality = qual
             self.quality_val = qual
+        if local_ip:
+            self.local_ip_stream = get_lan_ip()
         if mir:
             mirrorNo = mir
         if name_val:
@@ -2793,8 +2803,6 @@ class Ui_MainWindow(object):
                     curR = self.list2.currentRow()
                     self.epnfound()
         
-        
-        
     def playerPlaylist(self, val):
         global quitReally, playlist_show, site
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
@@ -2804,7 +2812,7 @@ class Ui_MainWindow(object):
             'Show/Hide Video', 'Show/Hide Cover And Summary', 
             'Lock Playlist', 'Shuffle', 'Stop After Current File', 
             'Continue(default Mode)', 'Set Media Server User/PassWord', 
-            'Start Media Server', 'Turn ON Remote Control',
+            'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control',
             'Set Current Background As Default', 'Settings'
             ]
         
@@ -2918,7 +2926,6 @@ class Ui_MainWindow(object):
                         self.local_ip_stream, self.local_port_stream, ui_widget=ui, 
                         logr=logger, hm=home, window=MainWindow)
                     self.local_http_server.start()
-                    
             elif v == 'Stop Media Server':
                 self.start_streaming = False
                 self.action_player_menu[7].setText("Start Media Server")
@@ -2928,18 +2935,34 @@ class Ui_MainWindow(object):
                     msg = 'Stopping Media Server\n '+self.local_ip_stream+':'+str(self.local_port_stream)
                     #subprocess.Popen(["notify-send", msg])
                     send_notification(msg)
+        elif val =="Broadcast Server":
+            v= str(self.action_player_menu[8].text())
+            if v == 'Broadcast Server' and self.local_http_server.isRunning():
+                self.broadcast_server = True
+                self.action_player_menu[8].setText("Stop Broadcasting")
+                if not self.broadcast_thread:
+                    self.broadcast_thread = BroadcastServer(self)
+                    self.broadcast_thread.start()
+                elif isinstance(self.broadcast_thread, BroadcastServer):
+                    if not self.broadcast_thread.isRunning():
+                        self.broadcast_thread.start()
+            elif v == 'Stop Broadcasting':
+                self.broadcast_server = False
+                self.action_player_menu[8].setText("Broadcast Server")
+            elif not self.local_http_server.isRunning():
+                send_notification('No Server To Broadcast. First Start Media Server')
         elif val.lower() == 'turn on remote control':
-            v= str(self.action_player_menu[8].text()).lower()
+            v= str(self.action_player_menu[9].text()).lower()
             msg = "Not Able to Take Action"
             if v == 'turn on remote control':
                 self.remote_control_field = True
-                self.action_player_menu[8].setText("Turn Off Remote Control")
+                self.action_player_menu[9].setText("Turn Off Remote Control")
                 change_opt_file(HOME_OPT_FILE, 'REMOTE_CONTROL=', 'REMOTE_CONTROL=True')
                 msg = "Remote Control Mode Enabled, Now Start Media server to control the player remotely"
             elif v == 'turn off remote control':
                 self.remote_control_field = False
                 self.remote_control = False
-                self.action_player_menu[8].setText("Turn ON Remote Control")
+                self.action_player_menu[9].setText("Turn ON Remote Control")
                 change_opt_file(HOME_OPT_FILE, 'REMOTE_CONTROL=', 'REMOTE_CONTROL=False')
                 msg = "Remote Control Mode Disabled"
             send_notification(msg)
@@ -10718,9 +10741,9 @@ class Ui_MainWindow(object):
             t_opt = "History"
         opt = t_opt
         self.line.clear()
-        self.list1.clear()
         self.list2.clear()
         if t_opt == "History" and site.lower() != 'myserver':
+            self.list1.clear()
             opt = t_opt
             file_path = os.path.join(home, 'History', site, 'history.txt')
             if os.path.isfile(file_path):
@@ -10748,6 +10771,7 @@ class Ui_MainWindow(object):
                 self.text.setText('Load Complete!')
             except Exception as e:
                 print(e)
+                m = []
                 self.text.setText('Load Failed!')
                 return 0
             opt = t_opt
@@ -10762,15 +10786,35 @@ class Ui_MainWindow(object):
                 elif m[-1] == 2:
                     list_3 = True
                     m.pop()
+                elif m[-1] == 3:
+                    m.pop()
+                    self.text.setText('Login Required')
+                    return 0
+                elif m[-1] == 4:
+                    m.pop()
+                    if site.lower() == 'myserver' and opt.lower() == 'discover':
+                        if not self.discover_thread:
+                            self.discover_thread = DiscoverServer(self, True)
+                            self.discover_thread.start()
+                        elif isinstance(self.discover_thread, DiscoverServer):
+                            if not self.discover_thread.isRunning():
+                                self.discover_thread = DiscoverServer(self, True)
+                                self.discover_thread.start()
+                            else:
+                                self.discover_server = False
+                    return 0
+                        
             if not list_1 and not list_2 and not list_3:
                 list_1 = True
             if list_3:
+                self.list1.clear()
                 self.list3.clear()
                 for i in m:
                     self.list3.addItem(i)
                 self.forward.hide()
                 self.backward.hide()
             elif list_1:
+                self.list1.clear()
                 list1_items[:] = []
                 self.original_path_name[:] = []
                 for i in m:
@@ -10784,6 +10828,7 @@ class Ui_MainWindow(object):
                 self.forward.show()
                 self.backward.show()
             elif list_2:
+                self.list1.clear()
                 self.epn_arr_list.clear()
                 for i in m:
                     if '\t' in i:
@@ -12310,7 +12355,7 @@ def main():
                     k = j.lower()
                     if k == 'on' or k == 'true' or k == 'yes':
                         ui.remote_control_field = True
-                        ui.action_player_menu[8].setText("Turn Off Remote Control")
+                        ui.action_player_menu[9].setText("Turn Off Remote Control")
                 except Exception as e:
                     print(e)
             elif i.startswith('ANIME_REVIEW_SITE='):
