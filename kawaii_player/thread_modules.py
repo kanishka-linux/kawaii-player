@@ -22,11 +22,12 @@ import re
 import time
 import ipaddress
 import random
+import socket
 import urllib.request
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from player_functions import ccurl, write_files, open_files
+from player_functions import ccurl, write_files, open_files, send_notification
 from yt import get_yt_url
 
 class FindPosterThread(QtCore.QThread):
@@ -775,3 +776,124 @@ class ThreadingExample(QtCore.QThread):
                     print(err, '--623--')
             tmp_n = os.path.join(TMPDIR, name+'.txt')
             write_files(tmp_n, img, line_by_line=True)
+
+class BroadcastServer(QtCore.QThread):
+
+    broadcast_signal = pyqtSignal(str)
+    
+    def __init__(self, ui_widget, broadcast=None):
+        QtCore.QThread.__init__(self)
+        global ui
+        ui = ui_widget
+        if broadcast:
+            ui.broadcast_server = True
+        self.broadcast_signal.connect(broadcast_server_signal)
+
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        port = str(ui.local_port_stream)
+        print(ui.local_ip_stream, '-----ip--', ui.local_port_stream)
+        msg = 'this is kawaii-player At: port={} https={} msg={}'.format(
+            port, ui.https_media_server, ui.broadcast_message)
+        msg = bytes(msg , 'utf-8')
+        if ui.https_media_server:
+            https_val = 'https'
+        else:
+            https_val = 'http'
+        subnet_mask = ui.local_ip_stream.rsplit('.', 1)[0] + '.255'
+        notify_msg = '{0}://{1}:{2} started broadcasting. Now Clients can Discover it'.format(
+            https_val, ui.local_ip_stream, ui.local_port_stream)
+        send_notification(notify_msg)
+        print(subnet_mask)
+        while ui.broadcast_server:
+            s.sendto(msg, (subnet_mask,12345))
+            time.sleep(1)
+        send_notification('Broadcasting Stopped')
+
+@pyqtSlot(str)
+def broadcast_server_signal(val):
+    send_notification(val)
+
+class DiscoverServer(QtCore.QThread):
+
+    discover_signal = pyqtSignal(str)
+    clear_list = pyqtSignal(str)
+    def __init__(self, ui_widget, start_discovery=None):
+        QtCore.QThread.__init__(self)
+        global ui
+        ui = ui_widget
+        if start_discovery:
+            ui.discover_server = True
+        self.discover_signal.connect(remember_server)
+        self.clear_list.connect(clear_server_list)
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        print('hello world---server discovery')
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind(('', 12345))
+        s.settimeout(60)
+        port_val = ''
+        https_val = ''
+        msg_val = ''
+        send_notification('Started Process of Discovering')
+        self.clear_list.emit('start')
+        while ui.discover_server:
+            try:
+                m = s.recvfrom(1024)
+                val = str(m[0], 'utf-8')
+                server = str(m[1][0])
+                if val.lower().startswith('this is kawaii-player at:'):
+                    val_string = (val.split(':')[1]).strip()
+                    val_arr = val_string.split(' ')
+                    for i in val_arr:
+                        if i.startswith('port='):
+                            port_val = i.split('=')[1]
+                        elif i.startswith('https='):
+                            https_status = i.split('=')[1]
+                            if https_status == 'True':
+                                https_val = 'https'
+                            else:
+                                https_val = 'http'
+                    msg_val = re.search('msg=[^"]*', val_string).group()
+                    msg_val = msg_val.replace('msg=', '', 1)
+                    server_val = '{0}://{1}:{2}/\t{3}'.format(
+                        https_val, server, port_val, msg_val)
+                    if server_val not in ui.broadcast_server_list:
+                        ui.broadcast_server_list.append(server_val)
+                        self.discover_signal.emit(server_val)
+                time.sleep(1)
+            except Exception as e:
+                print('timeout', e)
+                break
+        if not ui.broadcast_server_list:
+            send_notification('No Server Found')
+            self.clear_list.emit('no server')
+        else:
+            send_notification('Stopped Discovering: found {} servers'.format(len(ui.broadcast_server_list)))
+
+@pyqtSlot(str)
+def remember_server(val):
+    ui.text.setText('Found..')
+    ui.original_path_name.append(val)
+    ui.list1.addItem(val.split('\t')[0])
+    
+@pyqtSlot(str)
+def clear_server_list(val):
+    if val == 'start':
+        ui.text.setText('Waiting...(wait time = 60s)')
+    elif val == 'no server':
+        ui.text.setText('Nothing found. Try Manual Login')
+    ui.broadcast_server_list.clear()
+    ui.list1.clear()
+    ui.original_path_name.clear()
+
+@pyqtSlot(str)
+def start_new_player_instance(command):
+    global ui
+    ui.infoPlay(command)
