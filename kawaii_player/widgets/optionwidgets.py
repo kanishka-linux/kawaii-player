@@ -2,6 +2,7 @@ import os
 import datetime
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
+from thread_modules import DiscoverServer
 
 class SidebarWidget(QtWidgets.QListWidget):
     """
@@ -47,6 +48,19 @@ class SidebarWidget(QtWidgets.QListWidget):
                 ui.dockWidget_3.hide()
         elif event.key() == QtCore.Qt.Key_H:
             ui.setPreOpt()
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_D):
+            site = ui.get_parameters_value(s='site')['site']
+            if site.lower() == 'myserver':
+                if not ui.discover_thread:
+                    ui.discover_thread = DiscoverServer(ui, True)
+                    ui.discover_thread.start()
+                elif isinstance(ui.discover_thread, DiscoverServer):
+                    if ui.discover_thread.isRunning():
+                        ui.discover_server = False
+                    else:
+                        ui.discover_thread = DiscoverServer(ui, True)
+                        ui.discover_thread.start()
         elif event.key() == QtCore.Qt.Key_Delete:
             param_dict = ui.get_parameters_value(s='site', b='bookmark')
             site = param_dict['site']
