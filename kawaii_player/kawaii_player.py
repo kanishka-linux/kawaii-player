@@ -5750,7 +5750,8 @@ class Ui_MainWindow(object):
         if (opt == "History" or site == "Music" or site == "Video" 
                 or site == "PlayLists") and site != 'MyServer':
             self.listfound()
-        elif site == 'MyServer' and opt != 'History':
+        elif (site.lower() == 'myserver' and opt.lower() != 'history' and 
+                opt.lower() != 'login' and opt.lower() != 'discover'):
             name_now = ''
             if self.list1.currentItem() and self.myserver_threads_count <= 10:
                 cur_row = self.list1.currentRow()
@@ -5768,7 +5769,9 @@ class Ui_MainWindow(object):
                         category,from_cache=False
                     ))
                 length = len(self.newlistfound_thread_box)-1
-                self.newlistfound_thread_box[length].finished.connect(partial(self.finished_newlistfound, length))
+                self.newlistfound_thread_box[length].finished.connect(
+                    partial(self.finished_newlistfound, length)
+                    )
                 self.newlistfound_thread_box[length].start()
                 self.myserver_threads_count += 1
         else:
