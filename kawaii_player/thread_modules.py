@@ -701,6 +701,33 @@ class ThreadingThumbnail(QtCore.QThread):
                 logger.info("Thumbnail Generation Exception: {0}".format(e))
                 print(e,'--548--')
 
+class GetServerEpisodeInfo(QtCore.QThread):
+
+    def __init__(
+            self, ui_widget, logr, site, opt, siteName, video_local_stream,
+            name, ei, category, from_cache):
+        QtCore.QThread.__init__(self)
+        global ui, logger
+        ui = ui_widget
+        logger = logr
+        self.site = site
+        self.opt = opt
+        self.siteName = siteName
+        self.video_local_stream = video_local_stream
+        self.name = name
+        self.ei = ei
+        self.category = category
+        self.from_cache = from_cache
+        
+    def __del__(self):
+        self.wait()                        
+
+    def run(self):
+        print(self.name)
+        ui.newlistfound(
+            self.site, self.opt, self.siteName, self.video_local_stream,
+            self.name, self.ei, self.category, from_cache=self.from_cache)
+        print('End')
 
 class ThreadingExample(QtCore.QThread):
     
