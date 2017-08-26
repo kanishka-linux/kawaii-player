@@ -737,7 +737,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         extra_fields = 'RemoteField:{0};RemoteControl:{1};'.format(ui.remote_control_field, ui.remote_control)
         for i in html_default_arr:
             if i.lower() == 'video':
-                extra_fields = extra_fields+'Video:Available;Video:History;Video:Anime;Video:Movies;Video:TV Shows;Video:Cartoons;'
+                category_list = ''
+                for arr_cat in ui.category_array:
+                    category_list = category_list+'Video:'+arr_cat+';'
+                extra_fields = extra_fields+'Video:Available;Video:History;'+category_list
             elif i.lower() == 'music':
                 extra_fields = extra_fields+'Music:Artist;Music:Album;Music:Directory;'
             elif i.lower().startswith('playlist'):
