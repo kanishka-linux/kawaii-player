@@ -170,7 +170,7 @@ from widgets.scrollwidgets import *
 from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
-from thread_modules import DiscoverServer, BroadcastServer
+from thread_modules import DiscoverServer, BroadcastServer, GetServerEpisodeInfo
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 
@@ -1467,6 +1467,9 @@ class Ui_MainWindow(object):
         self.discover_server = False
         self.discover_thread = None
         self.broadcast_server_list = []
+        self.myserver_cache = {}
+        self.newlistfound_thread_box = []
+        self.myserver_threads_count = 0
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -5739,18 +5742,45 @@ class Ui_MainWindow(object):
             
     def history_highlight(self):
         global opt, site, name, base_url, name1, embed, pre_opt, bookmark
-        global base_url_picn
+        global base_url_picn, video_local_stream, category
         global base_url_summary
-        #print('history_highlight')
         if site!= "Music":
             self.subtitle_track.setText("SUB")
             self.audio_track.setText("A/V")
         if (opt == "History" or site == "Music" or site == "Video" 
                 or site == "PlayLists") and site != 'MyServer':
             self.listfound()
+        elif site == 'MyServer' and opt != 'History':
+            name_now = ''
+            if self.list1.currentItem() and self.myserver_threads_count <= 10:
+                cur_row = self.list1.currentRow()
+                new_name_with_info = self.original_path_name[cur_row].strip()
+                extra_info = ''
+                if '	' in new_name_with_info:
+                    name_now = new_name_with_info.split('	')[0]
+                    extra_info = new_name_with_info.split('	')[1]
+                else:
+                    name_now = new_name_with_info
+                self.newlistfound_thread_box.append(
+                    GetServerEpisodeInfo(
+                        self, logger, site, opt, siteName,
+                        video_local_stream, name_now, extra_info,
+                        category,from_cache=False
+                    ))
+                length = len(self.newlistfound_thread_box)-1
+                self.newlistfound_thread_box[length].finished.connect(partial(self.finished_newlistfound, length))
+                self.newlistfound_thread_box[length].start()
+                self.myserver_threads_count += 1
         else:
             self.rawlist_highlight()
-    
+            
+    def finished_newlistfound(self, length):
+        if self.myserver_threads_count:
+            self.myserver_threads_count -= 1
+        logger.info('{0} thread remaining'.format(self.myserver_threads_count))
+        logger.info('completed {}'.format(length))
+        self.update_list2()
+        
     def search_highlight(self):
         global opt, site, name, base_url, name1, embed, pre_opt, bookmark
         global base_url_picn
@@ -5763,7 +5793,6 @@ class Ui_MainWindow(object):
             num = int(tmp1)
             self.list1.setCurrentRow(num)
             if opt == "History" or site == "Music":
-            
                 self.listfound()
             else:
                 self.rawlist_highlight()
@@ -6328,6 +6357,8 @@ class Ui_MainWindow(object):
             self.site_var = ''
         self.label.clear()
         self.text.clear()
+        if self.myserver_cache:
+            self.myserver_cache.clear()
         self.original_path_name[:]=[]
         rfr_url = ""
         finalUrlFound = False
@@ -7041,7 +7072,64 @@ class Ui_MainWindow(object):
                 art_n = str(self.list1.item(row).text())
                 name = art_n
         return name
-        
+    
+    def newlistfound(self, site, opt, siteName, video_local_stream,
+                     name, extra_info, category, from_cache=None):
+        global home
+        m = []
+        if (site != "PlayLists" and site != "Music" and site != "Video" 
+                and site!="Local" and site !="None") and name:
+            fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
+            thumbnail = os.path.join(TMPDIR, name+'-thumbnail.jpg')
+            summary = "Summary Not Available"
+            picn = "No.jpg"
+            self.list2.clear()
+            site_variable = '{0}::{1}::{2}::{3}::{4}::{5}'.format(
+                    site, siteName, opt, name, extra_info, category
+                    )
+            print(site_variable)
+            if not from_cache and site_variable not in self.myserver_cache:
+                if opt != "History" or site.lower() == 'myserver':
+                    #self.text.setText('Wait...Loading')
+                    #QtWidgets.QApplication.processEvents()
+                    try:
+                        if video_local_stream:
+                            siteName = os.path.join(home, 'History', site)
+                            if not os.path.exists(siteName):
+                                os.makedirs(siteName)
+                        m, summary, picn, self.record_history, self.depth_list = self.site_var.getEpnList(
+                                name, opt, self.depth_list, extra_info, siteName, 
+                                category)
+                        #self.text.setText('Load..Complete')
+                    except Exception as e:
+                        print(e)
+                        #self.text.setText('Load..Failed')
+                    if not m:
+                        return 0
+                    else:
+                        self.myserver_cache.update({site_variable:m.copy()})
+            else:
+                m = self.myserver_cache.get(site_variable)
+                
+            self.epn_arr_list.clear()
+            if m:
+                for i in m:
+                    self.epn_arr_list.append(i)
+            if from_cache:
+                if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
+                    hist_path = os.path.join(home, 'History', site, siteName, 'history.txt')
+                else:
+                    hist_path = os.path.join(home, 'History', site, 'history.txt')
+
+                hist_dir, last_field = os.path.split(hist_path)
+                hist_site = os.path.join(hist_dir, name)
+                hist_epn = os.path.join(hist_site, 'Ep.txt')
+                hist_sum = os.path.join(hist_site, 'summary.txt')
+                hist_picn = os.path.join(hist_site, 'poster.jpg')
+                self.update_list2()
+                if os.path.isfile(hist_sum) or os.path.isfile(hist_picn):
+                    self.videoImage(picn, thumbnail, fanart, summary)
+    
     def listfound(self):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, path_Local_Dir, bookmark
@@ -7136,7 +7224,6 @@ class Ui_MainWindow(object):
                     extra_info = new_name_with_info.split('	')[1]
                 else:
                     name = new_name_with_info
-                
                         
                 if opt != "History" or site.lower() == 'myserver':
                     m = []
@@ -7181,6 +7268,7 @@ class Ui_MainWindow(object):
                             for i in lines :
                                 i = i.strip()
                                 line_list.append(i)
+                                
                             if new_name_with_info not in line_list:
                                 write_files(hist_path, new_name_with_info, line_by_line=True)
                     
@@ -7194,7 +7282,7 @@ class Ui_MainWindow(object):
                                 os.makedirs(hist_site)
                                 first_try = True
                             
-                            if not first_try:
+                            if not first_try or site == 'MyServer':
                                 lines = open_files(hist_epn, True)
                                 if len(m) > len(lines):
                                     length_old = len(lines)
