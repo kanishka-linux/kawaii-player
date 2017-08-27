@@ -107,11 +107,12 @@ class MyServer:
             return criteria
             
     def getFinalUrl(self, name, epn, mirror, quality):
-        url = self.url+'quality='+quality
-        content = ccurl(
-                '{0}#-b#{1}'.format(url, self.cookie_file),verify_peer=False
-                )
-        print(content)
+        if self.url:
+            url = self.url+'quality='+quality
+            content = ccurl(
+                    '{0}#-b#{1}'.format(url, self.cookie_file),verify_peer=False
+                    )
+            print(content)
         final = epn
         if '\t' in epn:
             final = epn.split('\t')[1]
