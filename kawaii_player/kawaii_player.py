@@ -10877,9 +10877,12 @@ class Ui_MainWindow(object):
                 elif m[-1] == 2:
                     list_3 = True
                     m.pop()
-                elif m[-1] == 3:
-                    m.pop()
-                    self.text.setText('Login Required')
+                elif m[-1] == 3 or m[-1] == 5:
+                    mval = m.pop()
+                    if mval == 3:
+                        self.text.setText('Login Required')
+                    else:
+                        self.text.setText('Logged out')
                     return 0
                 elif m[-1] == 4:
                     m.pop()
