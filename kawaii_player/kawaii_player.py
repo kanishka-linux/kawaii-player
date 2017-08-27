@@ -1472,6 +1472,7 @@ class Ui_MainWindow(object):
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1'}
         self.mpvplayer_aspect_cycle = 0
+        self.setuploadspeed = 0
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -10882,6 +10883,7 @@ class Ui_MainWindow(object):
                     m.pop()
                 elif m[-1] == 3 or m[-1] == 5:
                     mval = m.pop()
+                    self.myserver_cache.clear()
                     if mval == 3:
                         self.text.setText('Login Required')
                     else:
@@ -12130,6 +12132,11 @@ def main():
                     if video_aspect.isdigit():
                         ui.mpvplayer_aspect_cycle = int(video_aspect)
                     print(video_aspect, '--video-aspect--')
+                elif "Upload_Speed" in i:
+                    upspeed = re.sub('\n', '', j)
+                    if upspeed.isnumeric():
+                        ui.setuploadspeed = int(upspeed)
+                    #print(upspeed, '--server-upspeed--')
                 elif "Name_Index" in i:
                     name_i = re.sub('\n', '', j)
                     if name_i.isdigit():
@@ -12833,6 +12840,7 @@ def main():
         f.write("\nMusic_Mode="+str(music_val))
         f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
         f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
+        f.write("\nUpload_Speed="+str(ui.setuploadspeed))
         f.close()
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
