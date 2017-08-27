@@ -1470,6 +1470,8 @@ class Ui_MainWindow(object):
         self.myserver_cache = {}
         self.newlistfound_thread_box = []
         self.myserver_threads_count = 0
+        self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1'}
+        self.mpvplayer_aspect_cycle = 0
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -10399,13 +10401,14 @@ class Ui_MainWindow(object):
     def mplayermpv_command(self, idw, finalUrl, player, a_id=None, s_id=None, rfr=None, a_url=None):
         global site
         finalUrl = finalUrl.replace('"', '')
+        aspect_value = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
         if player == 'mplayer':
             if finalUrl.startswith('http'):
                 command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid {0}'.format(idw)
             else:
                 command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 0 -slave -wid {0}'.format(idw)
         elif player == "mpv":
-            command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect 16:9 -wid {0}'.format(idw)
+            command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect {0} -wid {1}'.format(aspect_value, idw)
         else:
             command = Player
         if a_id:
@@ -12111,31 +12114,31 @@ def main():
                     site_i = re.sub('\n', '', j)
                     if site_i.isdigit():
                         site_index = int(site_i)
-                    
                     print(site_index, '--site-index--')
                 elif "Addon_Index" in i:
                     addon_i = re.sub('\n', '', j)
                     if addon_i.isdigit():
                         addon_index = int(addon_i)
-                    
                     print(addon_index, '--addon-index--')
                 elif "Option_Index" in i:
                     opt_i = re.sub('\n', '', j)
                     if opt_i.isdigit():
                         option_index = int(opt_i)
-                    
                     print(option_index, '--option-index--')
+                elif "Video_Aspect" in i:
+                    video_aspect = re.sub('\n', '', j)
+                    if video_aspect.isdigit():
+                        ui.mpvplayer_aspect_cycle = int(video_aspect)
+                    print(video_aspect, '--video-aspect--')
                 elif "Name_Index" in i:
                     name_i = re.sub('\n', '', j)
                     if name_i.isdigit():
                         name_index = int(name_i)
-                    
                     print(name_index, '--name-index--')
                 elif "Episode_Index" in i:
                     epi_i = re.sub('\n', '', j)
                     if epi_i.isdigit():
                         episode_index = int(epi_i)
-                    
                     print(episode_index, '--episode-index--')
                 elif "Option_Val" in i:
                     opt_v = re.sub('\n', '', j)
@@ -12157,14 +12160,12 @@ def main():
                     dock_o = re.sub('\n', '', j)
                     if dock_o.isdigit():
                         dock_opt = int(dock_o)
-                        
                 elif "Show_Hide_Cover" in i:
                     try:
                         show_hide_cover = int(j)
                         if show_hide_cover == 0:
                             ui.text.hide()
                             ui.label.hide()
-                        
                     except:
                         show_hide_cover = 0
                 elif "Show_Hide_Playlist" in i:
@@ -12173,7 +12174,6 @@ def main():
                         if show_hide_playlist == 0:
                             ui.list2.hide()
                             ui.goto_epn.hide()
-                            
                     except:
                         show_hide_playlist = 0
                 elif "Show_Hide_Titlelist" in i:
@@ -12832,6 +12832,7 @@ def main():
         f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
         f.write("\nMusic_Mode="+str(music_val))
         f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
+        f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
         f.close()
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
