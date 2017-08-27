@@ -1461,7 +1461,7 @@ class Ui_MainWindow(object):
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.options_mode = 'legacy'
-        self.broadcast_message = 'version'
+        self.broadcast_message = 'kawaii-player {0}'.format(self.version_number)
         self.broadcast_server = False
         self.broadcast_thread = None
         self.discover_server = False
@@ -12447,6 +12447,13 @@ def main():
                     if k == 'on' or k == 'true' or k == 'yes':
                         ui.remote_control_field = True
                         ui.action_player_menu[9].setText("Turn Off Remote Control")
+                except Exception as e:
+                    print(e)
+            elif i.startswith('BROADCAST_MESSAGE='):
+                try:
+                    j = j.replace('"', '')
+                    j = j.replace("'", '')
+                    ui.broadcast_message = j
                 except Exception as e:
                     print(e)
             elif i.startswith('ANIME_REVIEW_SITE='):
