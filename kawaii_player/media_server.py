@@ -518,6 +518,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             print(get_bytes, '--get--bytes--', nm_ext)
+            if ui.setuploadspeed:
+                upspeed = ui.setuploadspeed
+                uptime = 1
+            else:
+                upspeed = 512
+                uptime = 0.0001
             t = 0
             old_time = time.time()
             end_read = False
@@ -533,7 +539,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 self.wfile.write(content)
                                 end_read = True
                 if not end_read:
-                    content = f.read(1024*512)
+                    content = f.read(1024*upspeed)
                 while(content) and not end_read:
                     try:
                         self.wfile.write(content)
@@ -542,8 +548,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         if 'Errno 104' in str(e):
                             break
                             print(e)
-                    content = f.read(1024*512)
-                    time.sleep(0.0001)
+                    content = f.read(1024*upspeed)
+                    time.sleep(uptime)
             new_time = time.time()
             elapsed = new_time-old_time
             print(datetime.timedelta(seconds=elapsed), '--elapsed-time--')
