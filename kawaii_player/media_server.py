@@ -469,14 +469,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         if lower_range is not None:
             get_bytes = lower_range
-
+        allow_chunks = False
         logger.info('Range: {0}-{1}'.format(get_bytes, upper_range))
         content_range = True
         if user_agent:
-            user_agent = (user_agent.lower()).strip()
+            user_agent = user_agent.lower()
+            user_agent = user_agent.strip()
         else:
             user_agent = 'mpv'
         print('user_agent=', user_agent)
+        if user_agent.startswith('mpv'):
+            allow_chunks = True
+            logger.info('allow-chunks={0}'.format(allow_chunks))
         if nm.startswith('http'):
             self.send_response(303)
             self.send_header('Location', nm)
@@ -525,9 +529,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 upspeed = 512
                 uptime = 0.0001
             t = 0
-            old_time = time.time()
+            #old_time = time.time()
             end_read = False
             content = None
+            content_limit = 1024*1024*10
+            content_count = 0
             with open(nm, 'rb') as f:
                 if get_bytes and t == 0:
                         f.seek(get_bytes)
@@ -540,20 +546,25 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 end_read = True
                 if not end_read:
                     content = f.read(1024*upspeed)
+                    content_count += 1024*upspeed
                 while(content) and not end_read:
                     try:
                         self.wfile.write(content)
                     except Exception as e:
-                        #print(e, '--error--')
                         if 'Errno 104' in str(e):
-                            break
                             print(e)
+                            break
                     content = f.read(1024*upspeed)
+                    content_count += 1024*upspeed
                     time.sleep(uptime)
-            new_time = time.time()
-            elapsed = new_time-old_time
-            print(datetime.timedelta(seconds=elapsed), '--elapsed-time--')
-            print('--hello--')
+                    if allow_chunks:
+                        if content_count > content_limit:
+                            logger.info('10MB sent')
+                            break
+            #new_time = time.time()
+            #elapsed = new_time-old_time
+            #print(datetime.timedelta(seconds=elapsed), '--elapsed-time--')
+            print('data sent')
             self.proc_req = True
 
     def triggerBookmark(self, row):
