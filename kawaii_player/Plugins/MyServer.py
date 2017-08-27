@@ -103,7 +103,7 @@ class MyServer:
         self.server_name = None
         
     def getOptions(self):
-            criteria = ['Login', 'Discover', 'newversion']
+            criteria = ['Login', 'Logout', 'Discover', 'newversion']
             return criteria
             
     def getFinalUrl(self, name, epn, mirror, quality):
@@ -205,7 +205,7 @@ class MyServer:
                 m = self.site_arr.copy()
                 m.append('<-')
             else:
-                m = ['Login', 'Discover']
+                m = ['Login', 'Logout', 'Discover']
             m.append(0)
         elif opt == 'History':
             self.opt = opt
@@ -220,6 +220,18 @@ class MyServer:
         elif opt.lower() == 'discover':
             self.opt = opt
             m.append(4)
+        elif opt.lower() == 'logout':
+            url_new = self.url+'logout'
+            content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
+            self.opt = opt
+            self.url = None
+            self.passwd = None
+            self.login_success = False
+            self.site_arr.clear()
+            self.site_dict.clear()
+            if os.path.isfile(self.cookie_file):
+                os.remove(self.cookie_file)
+            m.append(5)
         else:
             self.opt = opt
             url_new = self.url+urllib.parse.quote(
