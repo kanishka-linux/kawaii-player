@@ -296,6 +296,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Down):
             self.setCurrentRow(self.count()-1)
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_D):
+            item, ok = QtWidgets.QInputDialog.getText(
+                MainWindow, 'Input Dialog', 'Enter Upload Speed in KB\n0 means unlimited', 
+                QtWidgets.QLineEdit.Normal, str(ui.setuploadspeed))
+            if item and ok:
+                if item.isnumeric():
+                    ui.setuploadspeed = int(item)
+                else:
+                    send_notification('wrong values')
         elif event.key() == QtCore.Qt.Key_Return:
             ui.epnClicked(dock_check=True)
         elif event.key() == QtCore.Qt.Key_Backspace:
@@ -1193,7 +1203,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             editN = menu.addAction("Rename Single Entry (F2)")
             group_rename = menu.addAction("Rename in Group (F3)")
             remove = menu.addAction("Remove Thumbnails")
-            
+            upspeed = menu.addAction("Set Upload Speed (Ctrl+D)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
             
             if self.currentItem():
@@ -1227,6 +1237,15 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if not os.path.exists(file_path):
                         f = open(file_path, 'w')
                         f.close()
+            elif action == upspeed:
+                item, ok = QtWidgets.QInputDialog.getText(
+                    MainWindow, 'Input Dialog', 'Enter Upload Speed in KB\n0 means unlimited', 
+                    QtWidgets.QLineEdit.Normal, str(ui.setuploadspeed))
+                if item and ok:
+                    if item.isnumeric():
+                        ui.setuploadspeed = int(item)
+                    else:
+                        send_notification('wrong values')
             elif action == view_list:
                 ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
                 color:white;background:rgba(0, 0, 0, 30%);
