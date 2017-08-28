@@ -17,6 +17,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Media Server](#media-server)
 
+- [Peer to Peer Mode](#peer-to-peer-mode)
+
 - [Universal Playlist Generation](#universal-playlist-generation)
 
 - [Torrent Streaming Player](#torrent-streaming)
@@ -51,15 +53,15 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 Initially the application started as simple combined audio/video player/manager with support for custom addons for gnu/linux system. GNU/Linux ecosystem has many good music players/managers and video players. But I felt that, a simple lightweight combine audio/video player and library manager which is free and open, with mpv/mplayer as backend, was missing. Hence, I decided to write one with support for custom addons. 
 
-After developing decent combined audio/video management facility within the application, I thought that, once our media collection is organised by particular application, there are instances when we want to access it from other devices. There are many solutions to it in the market but most of them required static centralized 24x7 ON media servers; but I wanted a lightweight, portable and no-heavy setup kind of solution; hence I built media server within the media-player itself, which one can switch on and off anytime from anywhere with just one click. Therefore, now the application is multimedia player using mpv/mplayer as playback engine with remote control and casting support, youtube player, torrent streaming player, library manager (with custom fanart and posters support), custom addons support and portable media server combined.
+After developing decent combined audio/video management facility within the application, I thought that, once our media collection is organised by particular application, there are instances when we want to access it from other devices. There are many solutions to it in the market but most of them required static centralized 24x7 ON media servers; but I wanted a lightweight, portable and no-heavy setup kind of solution; hence I built media server within the media-player itself, which one can switch on and off anytime from anywhere with just one click. Therefore, now the application is multimedia player using mpv/mplayer as playback engine with remote control and casting support, youtube player, torrent streaming player, library manager (with custom fanart and posters support), custom addons support and portable media server (with peer-to-peer mode) combined.
 
 ### Why complicate things by building media-server within media player itself?
 
-Actually, Instead of complicating anything, the built-in media-server can simplify many things, because now-a-days we are surrounded by portable devices everywhere, from which we want to access our media with as little effort as possible.
+Actually, Instead of complicating anything, the built-in media-server can simplify many things, because now-a-days we are surrounded by portable devices everywhere, from which we want to access our media with as little effort as possible. It also allows to create your own local [peer-to-peer](#peer-to-peer-mode) network.
 
 The built-in portable media server of this application can have many use cases. If your family members or friends use different operating systems and you want to share some content which is lying on your working computer quickly, then you can simply create a streaming web interface out of your collection managed by kawaii-player instantly with just one click, for others to stream the content, irrespective of their OS. Alternatively you can generate universal playlist from media server and set expiry limit to it, contents of which can be played/streamed on any device with any popular media player, subject to hardware capacity of mobile device. It doesn't do any transcoding since popular media-players like mpv/mplayer/vlc/kodi can handle anything in the universal playlist. On long journey or travel also, this portable media server can come handy by converting any laptop/netbook as streaming media server for other portable devices surrounding you. There are multiple such use cases of portable media server which users can think of on their own.
 
-Moreover media-server of this application has been designed in such a manner that, user don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort.
+Moreover media-server of this application has been designed in such a manner that, users don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort.
 
 
 ## Features
@@ -116,7 +118,7 @@ Moreover media-server of this application has been designed in such a manner tha
 
 25. [Remote Control using web interface](#remote-control)
 
-
+26. [Peer to Peer Mode](#peer-to-peer-mode)
 
 
 
@@ -127,11 +129,13 @@ Moreover media-server of this application has been designed in such a manner tha
 
 ![kawaii-player](/Images/Watch.png)
 
-It tries to be a simple media manager for audio and video, along with powerful playing capabilities of mpv and mplayer. Users can organise their collection properly into various groups and categories such as watching,incomplete etc.. and can create their own group also for any special category in the bookmark section.  It will keep track of number of episodes user has watched in a series. It will also manage history ,and user will have complete control over it.
+It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
 
-Users can fetch fanart and posters from TVDB website. If proper match is not found then they can directly go to the website using inbuilt browser. In the inbuilt browser right click context-menu has been tweaked, so that users can fetch custom fanart,poster,summary,episode name manually. In Music section, the inbuilt browser can be used to get artist information and poster directly from Last.fm, if default perfect match is not found.
+If your collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default cateories, then it will be categorized automatically and rest will be placed in Others. If users need more categories then can easily create new one. Users can easily rename title entries and playlist entries.  
 
-It's possible to combine local audio, local video and external url into the playlist.
+Users can get fanart/posters/summary for the entire collection. Appropriate options for getting these are available in the Titlelist contextmenu. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in .config/kawaii-player/other_options.txt file). Users will also get to select varios background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9).  
+
+The application can manage history/bookmrks properly. It also supports playlist creation with mixed content. 
 
 ## Thumbnail Mode
 
@@ -219,6 +223,33 @@ Once https enabled, users will find that many media players might not play playl
 
 Note: Users need to use separate port number for media server and torrent streaming feature. Port number along with local IP for torrent streaming feature needs to be set in 'torrent_config.txt' (TORRENT_STREAM_IP field) and that of media server in 'other_options.txt' (LOCAL_STREAM_IP field). Default Settings: 'TORRENT_STREAM_IP=127.0.0.1:8001' and 'LOCAL_STREAM_IP=127.0.0.1:9001'. In default settings one can't access local media from another computer. Users need to change default loopback address to local ip address. Users have to set local IP address and port once only. If local IP address of the media server changes dynamically next time, then the kawaii-player application will try to find out new address automatically. If the application can't find new address then users have to manually change the config files again.
 
+## Peer to Peer Mode
+
+###### [Index](#index)
+
+The portable nature of media server allows the application to run in peer to peer mode. The application can run as client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries with each other on the local network. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
+
+Steps Inovolved in P2P mode for two computers:
+
+1. First check and set local IP address of your machine. (More->Settings)
+
+1. Switch on media server functionality on both. (More->Start Media Server)
+
+2. Goto Addons->MyServer->Login
+
+3. Login requires at least IP address of the server that needs to be connected with. It will also ask for username and password, if it has been set for the server. If the login is successful, then click on the login again to navigate through library of server. 
+
+4. Media servers can broadcast themselves (only in the local network), if broadcast server function is switched on (Available in more menu). Once broadcast server function is switched on, then peers can discover it (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom message which can help to identify it properly, if there are multiple servers running. Peers can get list of servers in the application and then they have to choose which server to connect to. 
+
+5. Broadcast Message needs to be entered into **'BROADCAST_MESSAGE='** field in **.config/kawaii-player/other_options.txt** configuration file. If the field is not there then create it on a newline.
+
+6. It is possible to set upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed if server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
+
+7. For better security, Turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
+
+8. If client does not want to share its library and it just want to access library of the server, then there is no need to switch on client's media server functionality.
+
+
 ## Universal Playlist Generation
 
 ###### [Index](#index)
@@ -303,7 +334,7 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 
 ![kawaii-player](/Images/Web.png)
 
-(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser) 
+(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent link from browser to the server, which will be then streamed back to the browser) 
 
 First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
