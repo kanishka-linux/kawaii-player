@@ -113,7 +113,42 @@ class PlaylistWidget(QtWidgets.QListWidget):
         else:
             msg = 'local file path does not exists: {0}'.format(path)
             send_notification(msg)
-    
+            
+    def queue_item(self):
+        param_dict = ui.get_parameters_value(s='site', v='video_local_stream')
+        site = param_dict['site']
+        video_local_stream = param_dict['video_local_stream']
+        if (site == "Music" or site == "Video" or site == "Local" 
+                or site == "PlayLists" or site == "None"):
+            file_path = os.path.join(home, 'Playlists', 'Queue')
+            if not os.path.exists(file_path):
+                f = open(file_path, 'w')
+                f.close()
+            if not ui.queue_url_list:
+                ui.list6.clear()
+            r = self.currentRow()
+            item = self.item(r)
+            if item:
+                ui.queue_url_list.append(ui.epn_arr_list[r])
+                ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
+                logger.info(ui.queue_url_list)
+                write_files(file_path, ui.epn_arr_list[r], line_by_line=True)
+        elif video_local_stream:
+            if ui.list6.count() > 0:
+                txt = ui.list6.item(0).text()
+                if txt.startswith('Queue Empty:'):
+                    ui.list6.clear()
+            if self.currentItem():
+                ui.list6.addItem(self.currentItem().text()+':'+str(self.currentRow()))
+        else:
+            if not ui.queue_url_list:
+                ui.list6.clear()
+            r = self.currentRow()
+            item = self.item(r)
+            if item:
+                ui.queue_url_list.append(ui.epn_arr_list[r])
+                ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
+                
     def edit_name_list2(self, row):
         site = ui.get_parameters_value(s='site')['site']
         if '	' in ui.epn_arr_list[row]:
@@ -332,40 +367,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(prev_r)
         elif event.key() == QtCore.Qt.Key_W:
             ui.watchToggle()
-        elif event.key() == QtCore.Qt.Key_Q:
-            param_dict = ui.get_parameters_value(s='site', v='video_local_stream')
-            site = param_dict['site']
-            video_local_stream = param_dict['video_local_stream']
-            if (site == "Music" or site == "Video" or site == "Local" 
-                    or site == "PlayLists" or site == "None"):
-                file_path = os.path.join(home, 'Playlists', 'Queue')
-                if not os.path.exists(file_path):
-                    f = open(file_path, 'w')
-                    f.close()
-                if not ui.queue_url_list:
-                    ui.list6.clear()
-                r = self.currentRow()
-                item = self.item(r)
-                if item:
-                    ui.queue_url_list.append(ui.epn_arr_list[r])
-                    ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
-                    logger.info(ui.queue_url_list)
-                    write_files(file_path, ui.epn_arr_list[r], line_by_line=True)
-            elif video_local_stream:
-                if ui.list6.count() > 0:
-                    txt = ui.list6.item(0).text()
-                    if txt.startswith('Queue Empty:'):
-                        ui.list6.clear()
-                if self.currentItem():
-                    ui.list6.addItem(self.currentItem().text()+':'+str(self.currentRow()))
-            else:
-                if not ui.queue_url_list:
-                    ui.list6.clear()
-                r = self.currentRow()
-                item = self.item(r)
-                if item:
-                    ui.queue_url_list.append(ui.epn_arr_list[r])
-                    ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
+        elif (event.modifiers() == QtCore.Qt.ControlModifier and 
+                event.key() == QtCore.Qt.Key_Q):
+            self.queue_item()
         elif event.key() == QtCore.Qt.Key_Delete:
             param_dict = ui.get_parameters_value(s='site', b='bookmark', o='opt')
             site = param_dict['site']
@@ -647,7 +651,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.setCurrentRow(nextr)
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_O:
+        elif (event.modifiers() == QtCore.Qt.ControlModifier and 
+                event.key() == QtCore.Qt.Key_O):
             self.init_offline_mode()
         elif event.key() == QtCore.Qt.Key_2: 
             mirrorNo = 2
@@ -694,22 +699,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             msg = "Mirror No. 9 Selected"
             send_notification(msg)
             ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_H: 
-            quality = "hd"
-            msg = "Video Quality Set to 720P HD"
-            send_notification(msg)
-            ui.set_parameters_value(qual=quality)
-        elif event.key() == QtCore.Qt.Key_B: 
-            quality = "sd480p"
-            msg = "Video Quality Set to 480P SD"
-            send_notification(msg)
-            ui.set_parameters_value(qual=quality)
-        elif event.key() == QtCore.Qt.Key_S:
-            msg = "Video Quality Set to SD"
-            send_notification(msg)
-            quality = "sd"
-            ui.set_parameters_value(qual=quality)
-        elif event.key() == QtCore.Qt.Key_F:
+        elif event.key() == QtCore.Qt.Key_F and ui.mpvplayer_val.processId() > 0:
             if not MainWindow.isHidden():
                 param_dict = ui.get_parameters_value(w='wget', v='video_local_stream',
                                                      t='total_till')
@@ -766,6 +756,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         ui.float_window.showFullScreen()
                     else:
                         ui.float_window.showNormal()
+        else:
+            super(PlaylistWidget, self).keyPressEvent(event)
     
     def name_adjust(self, name):
         nam = re.sub('-|_| ', '+', name)
@@ -993,6 +985,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             thumb = view_menu.addAction("Thumbnail Grid Mode (Shift+Z)")
             save_pls = menu.addAction('Save Current Playlist')
             go_to = menu.addAction("Go To Last.fm")
+            qitem = menu.addAction("Queue Item (Ctrl+Q)")
             fix_ord = menu.addAction("Lock Order (Playlist Only)")
             pls = os.listdir(os.path.join(home, 'Playlists'))
             home_n = os.path.join(home, 'Playlists')
@@ -1029,6 +1022,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if ok and item:
                         file_path = os.path.join(home, 'Playlists', item)
                         write_files(file_path, ui.epn_arr_list, True)
+            elif action == qitem:
+                self.queue_item()
             elif action == view_list:
                 ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
                 color:white;background:rgba(0, 0, 0, 30%);
@@ -1186,22 +1181,30 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     start_offline = menu.addAction('Start In Offline Mode')
                     offline_mode = True
                     
+            qitem = menu.addAction("Queue Item (Ctrl+Q)")
             fix_ord = menu.addAction("Lock Order")
             submenu = QtWidgets.QMenu(menu)
-            
+            submenu.setTitle('TVDB options')
             eplist_info = False
             if (site.lower() == 'video' or site.lower() == 'local'):
-                eplist = menu.addAction("Get Episode Title(TVDB)")
+                eplist = submenu.addAction("Get Episode Title(TVDB)")
                 eplist_info = True
             elif site.lower().startswith('playlist') or site.lower() == 'none':
                 eplist_info = False
             else:
-                eplist = menu.addAction("Get Episode Thumbnails(TVDB)")
+                eplist = submenu.addAction("Get Episode Thumbnails(TVDB)")
                 eplist_info = True
+            
+            eplistM = QtWidgets.QAction("Go To TVDB", self)
+            if site.lower() != 'playlists' and site.lower() != 'none':
+                submenu.addAction(eplistM)
+                menu.addMenu(submenu)
             file_manager = menu.addAction("Open in File Manager")
-            eplistM = menu.addAction("Go To TVDB")
-            editN = menu.addAction("Rename Single Entry (F2)")
-            group_rename = menu.addAction("Rename in Group (F3)")
+            rm_menu = QtWidgets.QMenu(menu)
+            rm_menu.setTitle("Rename Options")
+            editN = rm_menu.addAction("Rename Single Entry (F2)")
+            group_rename = rm_menu.addAction("Rename in Group (F3)")
+            menu.addMenu(rm_menu)
             remove = menu.addAction("Remove Thumbnails")
             upspeed = menu.addAction("Set Upload Speed (Ctrl+D)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
@@ -1237,6 +1240,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if not os.path.exists(file_path):
                         f = open(file_path, 'w')
                         f.close()
+            elif action == qitem:
+                self.queue_item()
             elif action == upspeed:
                 item, ok = QtWidgets.QInputDialog.getText(
                     MainWindow, 'Input Dialog', 'Enter Upload Speed in KB\n0 means unlimited', 
