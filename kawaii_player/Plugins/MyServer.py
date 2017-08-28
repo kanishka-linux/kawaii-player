@@ -286,7 +286,7 @@ class MyServer:
             content = ccurl(url+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
             m = self.get_playlist(content)
             record_history = True
-        elif self.opt.lower() == 'discover':
+        elif self.opt == 'Discover':
             self.handle_login(server_name=name)
             m = []
             record_history = False
