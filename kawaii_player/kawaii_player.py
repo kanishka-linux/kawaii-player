@@ -4415,7 +4415,7 @@ class Ui_MainWindow(object):
                     pass
             
             if (site == "Local" or site == "Music" or site == "Video" 
-                    or site == "None" or site == "PlayLists"):
+                    or site == "None" or site == "PlayLists" or site == 'MyServer'):
                 logger.info('--mpv--nextepn--{0}'.format(current_playing_file_path))
                 self.external_url = self.get_external_url_status(current_playing_file_path)
                 if self.external_url:
@@ -7116,7 +7116,7 @@ class Ui_MainWindow(object):
                         self.myserver_cache.update({site_variable:m.copy()})
             else:
                 m = self.myserver_cache.get(site_variable)
-                
+            self.set_parameters_value(name_val=name)
             self.epn_arr_list.clear()
             if m:
                 for i in m:
@@ -8339,13 +8339,6 @@ class Ui_MainWindow(object):
                 or current_playing_file_path.startswith('"http'))):
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
-            if Player == 'mplayer':
-                if self.mpvplayer_val.processId() > 0:
-                    try:
-                        #subprocess.Popen(['killall', 'mplayer'])
-                        print('hello')
-                    except Exception as e:
-                        print(e)
 
         if epn_goto == 0 and site != "PlayLists" and self.download_video == 0:
             if self.list2.currentItem():
@@ -8377,6 +8370,7 @@ class Ui_MainWindow(object):
                 and finalUrlFound == False and site !="None" and site!= "Music" 
                 and site != "Video" and site!= "Local"):
             hist_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+            logger.info('hist_path={0}'.format(hist_path))
             if ((os.path.exists(hist_path) and (epn_goto == 0)) 
                         or (os.path.exists(hist_path) and bookmark)):
                     if self.epn_arr_list[row].startswith('#'):
@@ -9660,7 +9654,7 @@ class Ui_MainWindow(object):
                             exec(q3)
                             #QtWidgets.QApplication.processEvents()
                         if (site == "Local" or site == "Video" or site == "Music" 
-                                or site == "PlayLists" or site == "None"):
+                                or site == "PlayLists" or site == "None" or site == 'MyServer'):
                             if len(self.queue_url_list)>0 and wget.processId() == 0:
                                 self.getQueueInList()
                             else:
@@ -9895,7 +9889,7 @@ class Ui_MainWindow(object):
                     if quitReally == "no":
                         if (site == "Local" or site == "Video" 
                                 or site == "Music" or site == "PlayLists" 
-                                or site == "None"):
+                                or site == "None" or site == 'MyServer'):
                             if len(self.queue_url_list)>0 and wget.processId() == 0:
                                 self.getQueueInList()
                             else:
@@ -10175,7 +10169,7 @@ class Ui_MainWindow(object):
         
         self.adjust_thumbnail_window(row)
             
-        if site == "None" or site == "Music" or site == "Video":
+        if site == "None" or site == "Music" or site == "Video" or site == 'MyServer':
             
             if '	' in self.epn_arr_list[row]:
                     finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
@@ -10232,7 +10226,7 @@ class Ui_MainWindow(object):
             elif Player == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if not self.external_url and self.mpvplayer_started:
-                    epnShow = '"' + "Queued:  "+ new_epn + '"'
+                    epnShow = '"' + "Playing:  "+ new_epn + '"'
                     t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                     t2 = bytes('\n '+"loadfile "+finalUrl+' \n', 'utf-8')
                     self.mpvplayer_val.write(t2)
@@ -10319,7 +10313,7 @@ class Ui_MainWindow(object):
             return 0
         
         if (site == "Local" or site == "Video" or site == "Music" 
-                or site == "PlayLists" or site == "None"):
+                or site == "PlayLists" or site == "None" or site == 'MyServer'):
             t = self.queue_url_list[0]
             epnShow = '"'+t.split('	')[1]+'"'
             self.epn_name_in_list = t.split('	')[0]
@@ -10734,6 +10728,7 @@ class Ui_MainWindow(object):
                         self.infoPlay(command)
             else:
                 finalUrl = finalUrl.replace('"', '')
+                self.external_url = self.get_external_url_status(finalUrl)
                 try:
                     finalUrl = str(finalUrl)
                 except:
@@ -10747,7 +10742,7 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                 self.infoPlay(command)
-    
+                
         if not isinstance(finalUrl, list):
             self.final_playing_url = finalUrl.replace('"', '')
             if self.final_playing_url.startswith('http'):
