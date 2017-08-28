@@ -364,7 +364,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 r = self.currentRow()
                 item = self.item(r)
                 if item:
-                    ui.queue_url_list.append(r)
+                    ui.queue_url_list.append(ui.epn_arr_list[r])
                     ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
         elif event.key() == QtCore.Qt.Key_Delete:
             param_dict = ui.get_parameters_value(s='site', b='bookmark', o='opt')
