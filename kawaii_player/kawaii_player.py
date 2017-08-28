@@ -8642,39 +8642,39 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                 if isinstance(finalUrl, list):
-                        rfr_exists = finalUrl[-1]
-                        rfr_needed = False
-                        if rfr_exists == 'referer sent':
-                            rfr_needed = True
-                            finalUrl.pop()
-                        if finalUrlFound == True or refererNeeded == True or site=="PlayLists" or rfr_needed:
-                            if refererNeeded == True or rfr_needed:
-                                rfr_url = finalUrl[1]
-                                nepn = '"'+str(finalUrl[0])+'"'
-                                command = self.mplayermpv_command(idw, nepn, Player, rfr=rfr_url)
-                            else:
-                                nepn = str(finalUrl[0])
-                                command = self.mplayermpv_command(idw, nepn, Player)
-                            logger.info(command)
-                        
+                    rfr_exists = finalUrl[-1]
+                    rfr_needed = False
+                    if rfr_exists == 'referer sent':
+                        rfr_needed = True
+                        finalUrl.pop()
+                    if finalUrlFound == True or refererNeeded == True or site=="PlayLists" or rfr_needed:
+                        if refererNeeded == True or rfr_needed:
+                            rfr_url = finalUrl[1]
+                            nepn = '"'+str(finalUrl[0])+'"'
+                            command = self.mplayermpv_command(idw, nepn, Player, rfr=rfr_url)
                         else:
-                        
-                            self.queue_url_list[:]=[]
-                            epnShow = finalUrl[0]
-                            for i in range(len(finalUrl)-1):
-                                self.queue_url_list.append(finalUrl[i+1])
-                            self.queue_url_list.reverse()
-                            command = self.mplayermpv_command(idw, epnShow, Player)
-                        self.infoPlay(command)
+                            nepn = str(finalUrl[0])
+                            command = self.mplayermpv_command(idw, nepn, Player)
+                        logger.info(command)
+                    
+                    else:
+                    
+                        self.queue_url_list[:]=[]
+                        epnShow = finalUrl[0]
+                        for i in range(len(finalUrl)-1):
+                            self.queue_url_list.append(finalUrl[i+1])
+                        self.queue_url_list.reverse()
+                        command = self.mplayermpv_command(idw, epnShow, Player)
+                    self.infoPlay(command)
                 else:
-                        if '""' in finalUrl:
-                            finalUrl = finalUrl.replace('""', '"')
-                        try:
-                            finalUrl = str(finalUrl)
-                        except:
-                            finalUrl = finalUrl
-                        command = self.mplayermpv_command(idw, finalUrl, Player)
-                        self.infoPlay(command)
+                    if '""' in finalUrl:
+                        finalUrl = finalUrl.replace('""', '"')
+                    try:
+                        finalUrl = str(finalUrl)
+                    except:
+                        finalUrl = finalUrl
+                    command = self.mplayermpv_command(idw, finalUrl, Player)
+                    self.infoPlay(command)
             elif self.download_video == 0 and Player != "mpv":
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
@@ -8686,96 +8686,96 @@ class Ui_MainWindow(object):
                         rfr_needed = True
                         finalUrl.pop()
                     if finalUrlFound == True or site=="PlayLists" or rfr_needed:
-                            if refererNeeded == True or rfr_needed:
-                                rfr_url = finalUrl[1]
-                                if Player == "mplayer":
-                                    quitReally = "no"
-                                    idw = str(int(self.tab_5.winId()))
-                                    self.tab_5.show()
-                                    final_url = str(finalUrl[0])
-                                    command = self.mplayermpv_command(idw, final_url, Player, rfr=rfr_url)
-                                    logger.info(command)
-                                    self.infoPlay(command)
-                                else:
-                                    subprocess.Popen([Player, "-referrer", rfr_url, finalUrl[0]])
+                        if refererNeeded == True or rfr_needed:
+                            rfr_url = finalUrl[1]
+                            if Player == "mplayer":
+                                quitReally = "no"
+                                idw = str(int(self.tab_5.winId()))
+                                self.tab_5.show()
+                                final_url = str(finalUrl[0])
+                                command = self.mplayermpv_command(idw, final_url, Player, rfr=rfr_url)
+                                logger.info(command)
+                                self.infoPlay(command)
                             else:
-                                if Player == "mplayer":
-                                    quitReally = "no"
-                                    idw = str(int(self.tab_5.winId()))
-                                    self.tab_5.show()
-                                    final_url = str(finalUrl[0])
-                                    command = self.mplayermpv_command(idw, final_url, Player)
-                                    logger.info(command)
-                                    self.infoPlay(command)
-                                else:
-                                    final_url = str(finalUrl[0])
-                                    subprocess.Popen([Player, final_url])
-                    else:
-                            epnShow = finalUrl[0]
-                            for i in range(len(finalUrl)-1):
-                                self.queue_url_list.append(finalUrl[i+1])
-                            self.queue_url_list.reverse()
-                            command = self.mplayermpv_command(idw, epnShow, Player)
-                            logger.info(command)
-                            self.infoPlay(command)
-                else:
-                        print(Player)
-                        logger.info("15712:Final Url mplayer = {0}".format(finalUrl))
-                        if '""' in finalUrl:
-                            finalUrl = finalUrl.replace('""', '"')
-                        finalUrl = str(finalUrl)
-                        if Player == "mplayer":
-                            quitReally = "no"
-                            idw = str(int(self.tab_5.winId()))
-                            self.tab_5.show()
-                            command = self.mplayermpv_command(idw, finalUrl, Player)
-                            logger.info(command)
-                            self.infoPlay(command)
+                                subprocess.Popen([Player, "-referrer", rfr_url, finalUrl[0]])
                         else:
-                            finalUrl = re.sub('"', "", finalUrl)
-                            subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                            if Player == "mplayer":
+                                quitReally = "no"
+                                idw = str(int(self.tab_5.winId()))
+                                self.tab_5.show()
+                                final_url = str(finalUrl[0])
+                                command = self.mplayermpv_command(idw, final_url, Player)
+                                logger.info(command)
+                                self.infoPlay(command)
+                            else:
+                                final_url = str(finalUrl[0])
+                                subprocess.Popen([Player, final_url])
+                    else:
+                        epnShow = finalUrl[0]
+                        for i in range(len(finalUrl)-1):
+                            self.queue_url_list.append(finalUrl[i+1])
+                        self.queue_url_list.reverse()
+                        command = self.mplayermpv_command(idw, epnShow, Player)
+                        logger.info(command)
+                        self.infoPlay(command)
+                else:
+                    print(Player)
+                    logger.info("15712:Final Url mplayer = {0}".format(finalUrl))
+                    if '""' in finalUrl:
+                        finalUrl = finalUrl.replace('""', '"')
+                    finalUrl = str(finalUrl)
+                    if Player == "mplayer":
+                        quitReally = "no"
+                        idw = str(int(self.tab_5.winId()))
+                        self.tab_5.show()
+                        command = self.mplayermpv_command(idw, finalUrl, Player)
+                        logger.info(command)
+                        self.infoPlay(command)
+                    else:
+                        finalUrl = re.sub('"', "", finalUrl)
+                        subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             elif self.download_video == 1 and refererNeeded == False:
                 if type(finalUrl) is list:
-                        j = 0
-                        length = len(finalUrl)
-                        for i in finalUrl:
-                            if length == 1:
-                                nepn1 = new_epn
-                            else:
-                                nepn1 = new_epn + "-Part-" + str(j+1)
-                            subprocess.Popen(["uget-gtk", "--quiet=yes",
-                                "--http-user-agent="+hdr, finalUrl[j],
-                                "--filename="+nepn1+".mp4"])
-                            j = j+1
+                    j = 0
+                    length = len(finalUrl)
+                    for i in finalUrl:
+                        if length == 1:
+                            nepn1 = new_epn
+                        else:
+                            nepn1 = new_epn + "-Part-" + str(j+1)
+                        subprocess.Popen(["uget-gtk", "--quiet=yes",
+                            "--http-user-agent="+hdr, finalUrl[j],
+                            "--filename="+nepn1+".mp4"])
+                        j = j+1
                 else:
-                        finalUrl = finalUrl.replace('"', '')
-                        self.list2.setFocus()
-                        r = self.list2.currentRow()
-                        print(r)
-                        new_epn = self.list2.item(row).text()
-                        if new_epn.startswith(self.check_symbol):
-                            new_epn = new_epn.replace(self.check_symbol, '', 1)
-                        new_epn = new_epn.replace('/', '-')
-                        new_epn = new_epn.replace('"', '')
-                        if new_epn.startswith('.'):
-                            new_epn = new_epn[1:]
-                        if finalUrl.endswith('.mkv'):
-                            new_epn = new_epn+'.mkv'
-                        else:
-                            new_epn = new_epn+'.mp4'
-                        if site.lower() == 'playlists':
-                            title = self.list1.currentItem().text()
-                        else:
-                            title = name
-                        folder_name = os.path.join(self.default_download_location, title)
-                        if not os.path.exists(folder_name):
-                            os.makedirs(folder_name)
-                        npn = os.path.join(folder_name, new_epn)
-                        
-                        if finalUrl.startswith('http'):
-                            command = wget_string(finalUrl, npn, self.get_fetch_library)
-                            logger.info(command)
-                            self.infoWget(command, 0)
+                    finalUrl = finalUrl.replace('"', '')
+                    self.list2.setFocus()
+                    r = self.list2.currentRow()
+                    print(r)
+                    new_epn = self.list2.item(row).text()
+                    if new_epn.startswith(self.check_symbol):
+                        new_epn = new_epn.replace(self.check_symbol, '', 1)
+                    new_epn = new_epn.replace('/', '-')
+                    new_epn = new_epn.replace('"', '')
+                    if new_epn.startswith('.'):
+                        new_epn = new_epn[1:]
+                    if finalUrl.endswith('.mkv'):
+                        new_epn = new_epn+'.mkv'
+                    else:
+                        new_epn = new_epn+'.mp4'
+                    if site.lower() == 'playlists':
+                        title = self.list1.currentItem().text()
+                    else:
+                        title = name
+                    folder_name = os.path.join(self.default_download_location, title)
+                    if not os.path.exists(folder_name):
+                        os.makedirs(folder_name)
+                    npn = os.path.join(folder_name, new_epn)
+                    
+                    if finalUrl.startswith('http'):
+                        command = wget_string(finalUrl, npn, self.get_fetch_library)
+                        logger.info(command)
+                        self.infoWget(command, 0)
                 self.download_video = 0
             elif refererNeeded == True and self.download_video == 1:
                 rfr = finalUrl[1]
