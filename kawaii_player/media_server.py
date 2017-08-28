@@ -552,7 +552,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         self.wfile.write(content)
                     except Exception as e:
                         if 'Errno 104' in str(e):
-                            print(e)
+                            logger.info(e)
                             break
                     content = f.read(1024*upspeed)
                     content_count += 1024*upspeed
