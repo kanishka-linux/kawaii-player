@@ -1,6 +1,6 @@
 pkgname=kawaii-player
 _pkgname=kawaii-player
-pkgver=2.0.0
+pkgver=2.2.0
 pkgrel=0
 pkgdesc="An Audio/Video Manager and Front End for mpv/mplayer along with functionalities of portable media server"
 arch=(any)
