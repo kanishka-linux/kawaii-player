@@ -229,7 +229,7 @@ Note: Users need to use separate port number for media server and torrent stream
 
 ###### [Index](#index)
 
-The portable nature of media server allows the application to run in peer to peer mode. The application can run as a client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries in streaming mode (without downloading locally) on the local network. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
+The portable nature of media server allows peer to peer mode. The computer running the application can work as client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries in streaming mode (without downloading locally) on the local network. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
 
 Steps Inovolved in P2P mode for two computers:
 
@@ -241,7 +241,7 @@ Steps Inovolved in P2P mode for two computers:
 
 3. Login requires at least IP address of the server that needs to be connected with. It will also ask for username and password, if it has been set for the server. If the login is successful, then click on the login again to navigate through library of server. 
 
-4. Media servers can broadcast themselves, if broadcast server function is switched on (Available in more menu). Once broadcast server function is switched on, then clients can discover it (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Peers can get list of servers in the application itself and then they have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
+4. Media servers can broadcast themselves, if broadcast server function is switched on (Available in more menu). Once broadcast server function is switched on, then clients can discover it (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Clients can get list of servers in the application itself and then they have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
 
 5. Broadcast Message needs to be entered into **'BROADCAST_MESSAGE='** field in **.config/kawaii-player/other_options.txt** configuration file. If the field is not there then create it on a newline.
 
