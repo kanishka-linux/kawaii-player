@@ -129,13 +129,15 @@ Moreover media-server of this application has been designed in such a manner tha
 
 ![kawaii-player](/Images/Watch.png)
 
+Library Management:
+
 It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
 
-If your collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default cateories, then it will be categorized automatically and rest will be placed in Others. If users need more categories then can easily create new one. Users can easily rename title entries and playlist entries.  
+If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries.  
 
-Users can get fanart/posters/summary for the entire collection. Appropriate options for getting these are available in the Titlelist contextmenu. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in .config/kawaii-player/other_options.txt file). Users will also get to select varios background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9).  
+Users can get fanart/posters/summary for the entire collection. If appropriate match is not found then users can directly go to sites such as TVDB/TMDB directly and can grab content using internal browser. The browser's internal contextmenu has been tweaked to facilitate getting required information. The appropriate options for doing these are available in the Titlelist contextmenu. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in .config/kawaii-player/other_options.txt file). Users will also get to select varios background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9). 
 
-The application can manage history/bookmrks properly. It also supports playlist creation with mixed content. 
+The application can manage history/bookmrks and watch/unwatch status properly. It also supports playlist creation with mixed content. 
 
 ## Thumbnail Mode
 
@@ -227,7 +229,7 @@ Note: Users need to use separate port number for media server and torrent stream
 
 ###### [Index](#index)
 
-The portable nature of media server allows the application to run in peer to peer mode. The application can run as client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries with each other on the local network. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
+The portable nature of media server allows the application to run in peer to peer mode. The application can run as a client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries in streaming mode (without downloading locally) on the local network. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
 
 Steps Inovolved in P2P mode for two computers:
 
@@ -239,13 +241,13 @@ Steps Inovolved in P2P mode for two computers:
 
 3. Login requires at least IP address of the server that needs to be connected with. It will also ask for username and password, if it has been set for the server. If the login is successful, then click on the login again to navigate through library of server. 
 
-4. Media servers can broadcast themselves (only in the local network), if broadcast server function is switched on (Available in more menu). Once broadcast server function is switched on, then peers can discover it (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom message which can help to identify it properly, if there are multiple servers running. Peers can get list of servers in the application and then they have to choose which server to connect to. 
+4. Media servers can broadcast themselves, if broadcast server function is switched on (Available in more menu). Once broadcast server function is switched on, then clients can discover it (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Peers can get list of servers in the application itself and then they have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
 
 5. Broadcast Message needs to be entered into **'BROADCAST_MESSAGE='** field in **.config/kawaii-player/other_options.txt** configuration file. If the field is not there then create it on a newline.
 
-6. It is possible to set upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed if server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
+6. It is possible to set upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed - if the server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
 
-7. For better security, Turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
+7. If user wants better security then turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
 
 8. If client does not want to share its library and it just want to access library of the server, then there is no need to switch on client's media server functionality.
 
@@ -334,7 +336,7 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 
 ![kawaii-player](/Images/Web.png)
 
-(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent link from browser to the server, which will be then streamed back to the browser) 
+(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent http/magnet link from browser to the server, which will be then streamed back to the user) 
 
 First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
@@ -438,7 +440,7 @@ Remote Control can be activated by selecting **'More->Turn On Remote Control'**,
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
-youtube-dl gets outdated quickly, hence there is option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user need to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
+youtube-dl gets outdated quickly, hence there is an option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user need to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
 
 **Using Web Interface:** youtube url's can be sent directly to the playlist from web interface with the help of following commands which needs to be entered in the text search box available in the web ui. 
 
@@ -466,14 +468,15 @@ In Music mode only audio will be played and video will be suppressed.
 ![kawaii-player](/Images/Detached_Mode.png)
 
 The Player contains Detached video mode, which can be activated by right clicking tray icon and selecting appropriate entry.
-In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of Unity or GNOME.
+In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of GNOME or KDE.
 
 
 ## Addon Structure
 
 ###### [Index](#index)
 
-In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player,similar to Kodi or Plex, so that you don't have to deal with horrible flash player of the web. Addons are needed to copy into folder *'~/.config/kawaii-player/src/Plugins'*, which are loaded automatically when player starts. 
+In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player. Addons are needed to copy into folder *'~/.config/kawaii-player/src/Plugins'*, which are loaded automatically when player starts. Tutorial for writing addons will be available soon (hopefully).
+
 
 ## Dependencies and Installation
 
@@ -525,7 +528,7 @@ In this player, a weak addon structure has been created, so that one can write a
 		$ chmod +x kawaii_player
 		$ ./kawaii_player
         
-    kawaii-player from version 2.0 onwards contains headless browser supporting both qtwebkit and qtwebengine as backend. It is important for working of some particular kinds of addons. However, In 64 bit binary, the included headless browser supports only qtwebkit as backend (as available in ubuntu 16.04 LTS). Users can activate it using command:
+    kawaii-player from version 2.0 onwards contains headless browser supporting both qtwebkit and qtwebengine as backend. It is important for working of some particular kind of addons. In 64 bit binary, the included headless browser supports only qtwebkit as backend (as available in ubuntu 16.04 LTS). Users can activate it using command:
     
         $ chmod +x hls_cmd_webkit
 
@@ -549,8 +552,7 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	Once application is installed, launch the application using command **kawaii-player** or **kawaii-player-console** from the terminal.
 
-5. Alternative Method (only for gnu/linux systems): Users have to manually install all the dependencies listed below. Then they should clone the repository and go to kawaii_player. Open terminal in that directory and run 'python3 install.py' (or 'python install.py' if default python points to python3). Application launcher will be created in '~/.local/share/applications/'.
-Or they can simply click (or execute using command line) **'kawaii-player-start'** shell script located in the directory to start the player directly **without copying files anywhere**.
+5. Alternative Method (only for gnu/linux systems): Users have to manually install all the dependencies listed below. Then they should clone the repository and go to kawaii_player. Then they can simply click (or execute using command line) **'kawaii-player-start'** shell script located in the directory to start the player directly **without copying files anywhere**.
 
 
 # Dependencies
@@ -633,7 +635,7 @@ dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3
 
 8. On Windows, If fetching of web pages is very slow using pycurl, then install curl or wget and change pycurl to 'curl' or 'wget' in 'other_options.txt' file located in '~\.config\kawaii-player' folder.
 
-9. If the application is installed using setup.py script then it will install two launching scripts kawaii-player (gui script) and kawaii-player-console (console script). On windows, media server was not working properly if the application was opened with gui_script. When application was opened with console script i.e. kawaii-player-console, then media server functionality was working properly, once application was allowed access through windows firewall. There is basically no difference in kawaii-player and kawaii-player-console scripts, only difference is that in kawaii-player-console, terminal will remain opened behind the gui.
+9. If the application is installed using setup.py script then it will install two launching scripts kawaii-player (gui script) and kawaii-player-console (console script). On windows, media server was not working properly if the application was opened with gui_script. When application was opened with console script i.e. kawaii-player-console, then media server functionality was working properly, once application was allowed access through windows firewall. There is basically no difference in kawaii-player and kawaii-player-console scripts, only difference is that in kawaii-player-console, terminal will remain open behind the gui.
 
 10. The application creates configuration folder '~/.config/kawaii-player'. Make sure that the application has write permission to create folders and sub-folders within config directory. Thumbnails generated by ffmpegthumbnailer are also stored in the config directory, hence make sure that ffmpegthumbnailer also has write access to the directory. If you are using **selinux**, then configure it properly. 
 
@@ -645,15 +647,10 @@ dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3
 
 14. Library paths are set in '~/.config/kawaii-player/local.txt' file. If there is a problem setting it from gui then directly enter paths in **'local.txt'** file.
 
-15. If there are some other problems, then turn on logging by setting 'LOGGING' to 'ON', in other_options.txt. It will create 'kawaii-player.log' file in '~/.config/kawaii-player/tmp' folder. Users can analyse the log on their own or can post the log on github issues section. Or alternatively users can post console output if application was started from console.
+15. If there is some problem with mpv/mplayer video playback, then try changing video output driver (vo) to gl or opengl, in the configuration files of mpv/mplayer. mpv config file is: '.config/mpv/config'; mplayer config file is: '.mplayer/config'. Users can also check other available video drivers using command 'mpv/mplayer -vo help'
 
-#### Troubleshooting for alternative method
+16. If there are some other problems, then turn on logging by setting 'LOGGING' to 'ON', in other_options.txt. It will create 'kawaii-player.log' file in '~/.config/kawaii-player/tmp' folder. Users can analyse the log on their own or can post the log on github issues section. Or alternatively users can post console output if application was started from console.
 
-1. If Application Launcher in the menu is not working or programme is crashing then directly go to **"~/.config/kawaii-player/src/"**, open terminal there and run "python3 kawaii_player.py" or "python kawaii_player.py" as per your default python setup. If there is some problem in installation, then you will get idea about it, whether it is missing dependency or something else, or you can report the error as per the message in terminal.
-
-2. If the installation process does not create application launcher then find out whether the destination folder **"~/.local/share/applications/"** exists or not. If it does not exists then create one and repeat the process again. Otherwise users can try copying manually **"~/.config/kawaii-player/kawaii-player.desktop"** to either **"~/.local/share/applications/"** or "/usr/share/applications/"
-
-3. In LXDE, XFCE or Cinnamon ,any new entry of launcher in '~/.local/share/applications/' is instantly shown in Start Menu (In the case of this player, entry will be shown either in Multimedia or Sound & Video). In Ubuntu Unity you will have to either logout and login again or reboot to see the entry in Unity dash Menu.
 
 ## Documentation
 
@@ -735,8 +732,6 @@ for mplayer set aspect in ~/.mplayer/config, all the properties of the mplayer g
 
 Some important parameters that user should set in '~/.mplayer/config' are as follows:
 
-http-header-fields="User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:43.0) Gecko/20100101 Firefox/43.0" {or any other user-agent}
-
 aspect="16:9"
 
 ass=true
@@ -756,8 +751,6 @@ vo=gl
 Users can change the parameters as per their choice.
 
 Similarly, most of the properties of mpv global config file '~/.config/mpv/config/' will work with this player. If possible you should add following line in mpv config file.
-
-user-agent="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:43.0) Gecko/20100101 Firefox/43.0" {or any other user-agent}
 
 ao=pulse 
 
@@ -783,49 +776,47 @@ Escape : show/hide Everything
 
 Right,Left: set focus alternate between Option column, Title column and Playlist column (If Player is not Playing Anything)
 
-Ctrl+1 to Ctrl+8 : Change aspect ratio of background image
+Ctrl+0 to Ctrl+9 : Change aspect ratio of background image
 
 ### Title Column:(if Title list is focussed)
 
-h : show history (history of watched series)
+ctrl + h : show history (history of watched series)
 
 Delete : delete particular item of history
 
-r : randomize the list(if you want random series)
+ctrl + r : randomize the list(if you want random series)
 
-t : sort the Title List
+ctrl + t : sort the Title List
 
 PgUp: Move Entry UP
 
 PgDown: Move Entry Down
 
-ctrl+Right : Get Info from TVDB 
+ctrl+Right : Get Info from TVDB with duckduckgo as backend 
 
-c : copy fanart
+ctrl+Left : Get Info from TMDB with duckduckgo as backend 
 
-shift+c : copy summary
+ctrl+UP : Get Info from TVDB with google as backend
 
-ctrl+c : copy poster
+ctrl+Down: Get Info from TMDB with google as backend
+
+Alt+1 : Get info from TVDB directly without using any search engine backend
+
+Alt+2 : Get info from TMDB directly without using any search engine backend
+
+F2 : Rename Title of the entry in the database.
 
 ### Playlist Column:(If playlist column is focussed)
 
-q : queue the item
+Ctrl+ q : queue the item
 
 Delete : delete particular entry
 
 1 – 9 : select mirror Number (up to 9, if available)
 
-s : select SD quality
-
-h : select HD quality
-
-b : select SD480p quality
-
 w : toggle watch/unwatch
 
-o : start offline mode (If offline mode is already activated then pressing 'o' will enqueue items for offline viewing)
-
-Right: play the item within thumbnail located in the leftmost corner but keep both playlist and title list visible. (can be used as preview mode)
+Ctrl+o : start offline mode (If offline mode is already activated then pressing 'o' will enqueue items for offline viewing)
 
 Left: show title list if it's hidden
 
@@ -842,6 +833,12 @@ Ctrl+Up : Move to first entry
 Ctrl+Down: Move to last entry
 
 F2 : Rename entry
+
+F3 : Rename in Group 
+
+Group rename pattern is: New_common_name_{start_pt-end_pt}. 
+
+Eg. If there are 26 episodes in the list and user want to rename all of them, then select the first entry, press F3 and in the dialog box input 'Episode-S01EP{01-26}'. It will rename episodes in the database. If user wants to rename episodes from 5'th entry, then they should select fifth entry, press F3 and input 'Episode-S01EP{05-26}'
 
 ### Thumbnail Mode:
 
@@ -882,9 +879,9 @@ Users can explore Right click menu of both Playlist Column and Title List Column
 
 5. If users want to remove temporary directory automatically once the programme quits, then they should edit 'TMP_REMOVE' field in the '~/.config/kawaii-player/other_options.txt' and change it to 'yes' from 'no'.
 
-6. By default, the background image follows fit to screen mode without thinking about original aspect ratio of the image. If user want to change it to fit to width or fit to height without changing aspect ratio, then they should try Ctrl+2 or Ctrl+3 global key combination. Users can also try Ctrl+4 to Ctrl+8 shortcuts, to experiment with various available background image modes.
+6. By default, the background image follows fit to screen mode without thinking about original aspect ratio of the image. If user want to change it to fit to width or fit to height without changing aspect ratio, then they should try Ctrl+2 or Ctrl+3 global key combination. Users can also try Ctrl+4 to Ctrl+9 shortcuts, to experiment with various available background image modes.
 
-7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). As of now new features are mainly added to kawaii-player and hence codebase of both projects have diverged a lot, but addons and settings of both are compatible with each other. If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '/.config/AnimeWatch' to '/.config/kawaii-player'.
+7. The project is continuation of my another project [AnimeWatch](https://github.com/kanishka-linux/AnimeWatch). As of now new features are mainly added to kawaii-player and hence codebase of both projects have diverged a lot, but addons and settings of both are compatible with each other. If user wants to export settings of AnimeWatch to kawaii-player, then they should simply copy contents of folder '/.config/AnimeWatch' to '/.config/kawaii-player'. From verson 2.0+ onwards, the codebase of kawaii-player has changed significantly with the addition of many new features, but still it supports some legacy addons of AnimeWatch player. Users of AnimeWatch player are advised to migrate to kawaii-player by properly copying settings folder.
 
 ## Contacts
 
