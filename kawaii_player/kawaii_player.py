@@ -5919,7 +5919,7 @@ class Ui_MainWindow(object):
                     write_files(file_path, lines, line_by_line=True)
                     self.list1.takeItem(row)
                     del item
-        elif opt == "History":
+        elif opt == "History" and not bookmark:
             file_path = ''
             if site == "SubbedAnime" or site == "DubbedAnime":
                 if os.path.exists(os.path.join(home, 'History', site, siteName, 'history.txt')):
