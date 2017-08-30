@@ -320,7 +320,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             r = self.currentRow()
             item = self.item(r)
             if item:
-                if site == "PlayLists":
+                if site == "PlayLists" and not bookmark:
                     index = self.currentRow()
                     item_r  = self.item(index)
                     if item_r:
@@ -346,7 +346,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                     del item
                     if txt in ui.video_dict:
                         del ui.video_dict[txt]
-                elif site == "Music":
+                elif site == "Music" and not bookmark:
                     list3n = (ui.list3.currentItem().text())
                     if (list3n == "Fav-Artist" or list3n == "Fav-Album" 
                             or list3n=="Fav-Directory"):
