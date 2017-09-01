@@ -10,9 +10,12 @@ class WidgetStyleSheet:
         BASEDIR = base
         if dsession is None:
             desktop_session = os.getenv('DESKTOP_SESSION')
-            desktop_session = desktop_session.lower()
+            if desktop_session:
+                desktop_session = desktop_session.lower()
+            else:
+                desktop_session = 'lxde'
         else:
-            desktop_session = 'lxde'
+            desktop_session = dsession
     
     def apply_stylesheet(self, widget=None):
         png_home = os.path.join(BASEDIR, '1.png')
