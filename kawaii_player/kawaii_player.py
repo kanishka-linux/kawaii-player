@@ -1456,6 +1456,7 @@ class Ui_MainWindow(object):
         self.current_background = os.path.join(home, 'default.jpg')
         self.default_background = os.path.join(home, 'default.jpg')
         self.yt_sub_folder = os.path.join(home, 'External-Subtitle')
+        self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = False
@@ -1473,6 +1474,8 @@ class Ui_MainWindow(object):
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1'}
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
+        self.custom_mpv_input_conf = False
+        self.mpv_custom_pause = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -2808,6 +2811,21 @@ class Ui_MainWindow(object):
                 if self.list2.currentItem():
                     curR = self.list2.currentRow()
                     self.epnfound()
+                    
+    def player_play_pause_status(self, status=None):
+        txt = self.player_play_pause.text() 
+        if txt == self.player_buttons['play'] and status == 'play':
+            if self.mpvplayer_val.processId() > 0:
+                if Player == "mpv":
+                    self.player_play_pause.setText(self.player_buttons['pause'])
+                    txt_osd = '\n osd 1 \n'
+                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+        elif txt == self.player_buttons['pause'] and status == 'pause':
+            if self.mpvplayer_val.processId() > 0:
+                if Player == "mpv":
+                    self.player_play_pause.setText(self.player_buttons['play'])
+                    txt_osd = '\n osd 3 \n'
+                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
         
     def playerPlaylist(self, val):
         global quitReally, playlist_show, site
@@ -7997,7 +8015,7 @@ class Ui_MainWindow(object):
             current_playing_file_path = finalUrl
         if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' 
                 and self.mpvplayer_started and not finalUrl.startswith('http')):
-            epnShow = '"' + "Queued:  "+ self.epn_name_in_list + '"'
+            epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
             if Player == "mplayer":
                 t1 = bytes('\n '+'show_text '+epnShow+' \n', 'utf-8')
                 t2 = bytes('\n '+"loadfile "+finalUrl+" replace "+'\n', 'utf-8')
@@ -9401,7 +9419,28 @@ class Ui_MainWindow(object):
                 logger.info(a)
             if 'Audio' in a:
                 logger.info(a)
-            #print(a)
+            if self.custom_mpv_input_conf and Player == 'mpv':
+                if 'set property: fullscreen' in a.lower():
+                    a = 'FULLSCREEN_TOGGLE'
+                if 'playlist-next' in a.lower():
+                    self.mpvNextEpnList()
+                if 'playlist-prev' in a.lower():
+                    self.mpvPrevEpnList()
+                if 'set property: pause' in a.lower():
+                    if self.mpv_custom_pause:
+                        self.mpv_custom_pause = False
+                        self.player_play_pause_status('play')
+                    else:
+                        self.mpv_custom_pause = True
+                        self.player_play_pause_status('pause')
+                if 'set property: video-aspect=' in a.lower():
+                    aspect_val = a.split('=')[1].split(' ')[0]
+                    for asp_ratio in self.mpvplayer_aspect:
+                        if aspect_val == self.mpvplayer_aspect[asp_ratio]:
+                            self.mpvplayer_aspect_cycle = int(asp_ratio)
+                            logger.info('SET ASPECT = {0}::{1}'.format(self.mpvplayer_aspect_cycle, aspect_val))
+                if 'AV:' not in a:
+                    logger.info(a)
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
                 if 'icy info:' in a.lower():
                     song_title = re.search("'[^']*", a)
@@ -9413,7 +9452,6 @@ class Ui_MainWindow(object):
                 self.mplayerLength = 1
                 self.epn_name_in_list = self.epn_name_in_list.strip()
                 server._emitMeta('internet-radio#'+self.epn_name_in_list, site, self.epn_arr_list)
-                
         except Exception as e:
             print(e)
             a = ""
@@ -9454,6 +9492,8 @@ class Ui_MainWindow(object):
                         sub_id = "no"
                     print("sub_id="+sub_id)
                     self.subtitle_track.setText("Sub:"+str(s_id[:8]))
+                if 'FULLSCREEN_TOGGLE' in a:
+                    self.tab_5.player_fs()
                 if "Length_Seconds=" in a and not self.mplayerLength and 'args=' not in a:
                     print(a)
                     if a.startswith(r"b'"):
@@ -9504,9 +9544,9 @@ class Ui_MainWindow(object):
                         if MainWindow.isFullScreen() and layout_mode != "Music":
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
-                            if self.frame_timer.isActive():
-                                self.frame_timer.stop()
-                            self.frame_timer.start(5000)
+                            #if self.frame_timer.isActive():
+                            #    self.frame_timer.stop()
+                            #self.frame_timer.start(5000)
                             
                     t = re.findall("AV:[^)]*[)]|A:[^)]*[)]", a)
                     #print('found ', t)
@@ -9545,11 +9585,14 @@ class Ui_MainWindow(object):
                     if "Paused" in a and not mpv_indicator:
                         out = "(Paused) "+out
                         #print(out)
+                        if self.custom_mpv_input_conf:
+                            self.mpv_custom_pause = True
                     elif "Paused" in a and mpv_indicator:
                         out = "(Paused Caching..) "+out
                         #print(out)
+                        if self.custom_mpv_input_conf:
+                            self.mpv_custom_pause = True
                     out = re.sub('AV:[^0-9]*|A:[^0-9]*', '', out)
-                    
                     #print(out)
                     l = re.findall("[0-9][^ ]*", out)
                     val1 = l[0].split(':')
@@ -9587,9 +9630,6 @@ class Ui_MainWindow(object):
                     if cache_empty == 'yes':
                         try:
                             if new_cache_val > 4:
-                                #if self.mplayer_timer.isActive():
-                                #	self.mplayer_timer.stop()
-                                #self.mplayer_timer.start(10)
                                 cache_empty = 'no'
                                 self.mpvplayer_val.write(b'\n set pause no \n')
                                 self.player_play_pause.setText(self.player_buttons['pause'])
@@ -9597,6 +9637,9 @@ class Ui_MainWindow(object):
                                     mpv_indicator.pop()
                                 if pause_indicator:
                                     pause_indicator.pop()
+                                if self.frame_timer.isActive():
+                                    self.frame_timer.stop()
+                                self.frame_timer.start(100)
                         except Exception as err_val:
                             print(err_val, '--mpv--cache-error--')
                 if "VO:" in a or "AO:" in a or 'Stream opened successfully' in a:
@@ -10403,7 +10446,14 @@ class Ui_MainWindow(object):
             else:
                 command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 0 -slave -wid {0}'.format(idw)
         elif player == "mpv":
-            command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000 --cache-initial=0 --cache-seek-min=100 --cache-pause --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no --no-input-cursor --no-osc --no-osd-bar --ytdl=no --input-file=/dev/stdin --input-terminal=no --input-vo-keyboard=no -video-aspect {0} -wid {1}'.format(aspect_value, idw)
+            self.mpv_custom_pause = False
+            command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
+             --cache-initial=0 --cache-seek-min=100 --cache-pause\
+             --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no\
+             --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
+             --input-file=/dev/stdin --input-terminal=no\
+             --input-vo-keyboard=no -video-aspect {0} -wid {1} --input-conf="{2}"'.format(
+                aspect_value, idw, self.mpv_input_conf)
         else:
             command = Player
         if a_id:
@@ -10441,7 +10491,10 @@ class Ui_MainWindow(object):
                 command = command + ' --no-video'
             elif player == 'mplayer':
                 command = command + ' -novideo'
-        
+        if self.custom_mpv_input_conf:
+            command = re.sub('--input-vo-keyboard=no|--input-terminal=no|--osd-level=0',
+                             '', command)
+        print(command, '---10446---')
         if finalUrl:
             if self.quality_val == 'best':
                 if 'youtube.com' in finalUrl and player == 'mpv':
@@ -12458,7 +12511,14 @@ def main():
                 try:
                     j = j.replace('"', '')
                     j = j.replace("'", '')
-                    ui.broadcast_message = j
+                    if j and j.lower() != 'false':
+                        ui.broadcast_message = j
+                except Exception as e:
+                    print(e)
+            elif i.startswith('MPV_INPUT_CONF='):
+                try:
+                    if j and j.lower() == 'true':
+                        ui.custom_mpv_input_conf = True
                 except Exception as e:
                     print(e)
             elif i.startswith('ANIME_REVIEW_SITE='):
@@ -12514,6 +12574,8 @@ def main():
         f.write("\nANIME_REVIEW_SITE=False")
         f.write("\nGET_MUSIC_METADATA=False")
         f.write("\nREMOTE_CONTROL=False")
+        f.write("\nMPV_INPUT_CONF=False")
+        f.write("\nBROADCAST_MESSAGE=False")
         f.close()
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
