@@ -9434,6 +9434,7 @@ class Ui_MainWindow(object):
                         self.mpv_custom_pause = True
                         self.player_play_pause_status('pause')
                 if 'set property: video-aspect=' in a.lower():
+                    logger.info(a)
                     aspect_val = a.split('=')[1].split(' ')[0]
                     for asp_ratio in self.mpvplayer_aspect:
                         if aspect_val == self.mpvplayer_aspect[asp_ratio]:
