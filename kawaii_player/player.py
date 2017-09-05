@@ -207,6 +207,81 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.float_window.showFullScreen()
                 else:
                     self.ui.float_window.showNormal()
+    
+    def player_quit(self, msg=None):
+        quitReally = "yes"
+        self.ui.set_parameters_value(quit_r=quitReally)
+        if not msg:
+            self.mpvplayer.write(b'\n quit \n')
+        self.ui.player_play_pause.setText(self.ui.player_buttons['play'])
+        param_dict = self.ui.get_parameters_value(
+            wgt='wget', vl='video_local_stream', sh='show_hide_titlelist',
+            sc='show_hide_cover', icn='iconv_r_indicator')
+        wget = param_dict['wget']
+        video_local_stream = param_dict['video_local_stream']
+        show_hide_titlelist = param_dict['show_hide_titlelist']
+        show_hide_cover = param_dict['show_hide_cover']
+        iconv_r_indicator = param_dict['iconv_r_indicator']
+        logger.info(
+            '{0}-{1}-{2}-{3}-{4}'.format(
+            wget, video_local_stream, show_hide_titlelist, show_hide_cover, iconv_r_indicator))
+        if video_local_stream:
+            tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
+            f = open(tmp_pl, 'w')
+            f.close()
+        if not MainWindow.isHidden():
+            if self.ui.tab_6.isHidden() and self.ui.tab_2.isHidden():
+                self.ui.tab_5.showNormal()
+                self.ui.tab_5.hide()
+                if show_hide_titlelist == 1:
+                    self.ui.list1.show()
+                if show_hide_cover == 1:
+                    self.ui.label.show()
+                    self.ui.text.show()
+                if show_hide_titlelist == 1:
+                    self.ui.list2.show()
+                self.ui.list2.setFocus()
+            elif not self.ui.tab_6.isHidden():
+                self.ui.gridLayout.addWidget(self.ui.tab_6, 0, 1, 1, 1)
+                #self.ui.tab_5.setMinimumSize(0, 0)
+                self.ui.gridLayout.setSpacing(5)
+                #self.ui.frame1.hide()
+                self.ui.tab_5.hide()
+                if iconv_r_indicator:
+                    iconv_r = iconv_r_indicator[0]
+                else:
+                    iconv_r = 5
+                self.ui.set_parameters_value(thumb_indicator='empty',
+                                             iconv=iconv_r)
+                #num = self.ui.list2.currentRow()
+                self.ui.thumbnail_label_update_epn()
+                QtWidgets.QApplication.processEvents()
+                self.ui.frame2.show()
+                self.ui.frame1.show()
+                QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
+            if wget:
+                if wget.processId() > 0:
+                    self.ui.progress.show()
+            if MainWindow.isFullScreen():
+                self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                self.ui.frame1.show()
+                MainWindow.showNormal()
+                MainWindow.showMaximized()
+                MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                self.ui.gridLayout.setSpacing(5)
+                self.ui.superGridLayout.setSpacing(0)
+                self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+            if not self.ui.tab_2.isHidden():
+                MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                self.ui.list2.hide()
+                self.ui.goto_epn.hide()
+                self.ui.list1.hide()
+                self.ui.frame.hide()
+        else:
+            if not self.ui.float_window.isHidden():
+                if self.ui.float_window.isFullScreen():
+                    self.ui.float_window.showNormal()
                     
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier
@@ -525,78 +600,6 @@ class PlayerWidget(QtWidgets.QWidget):
         elif event.key() == QtCore.Qt.Key_Comma:
             self.ui.mpvPrevEpnList()
         elif event.key() == QtCore.Qt.Key_Q:
-            quitReally = "yes"
-            self.ui.set_parameters_value(quit_r=quitReally)
-            self.mpvplayer.write(b'\n quit \n')
-            self.ui.player_play_pause.setText(self.ui.player_buttons['play'])
-            param_dict = self.ui.get_parameters_value(
-                wgt='wget', vl='video_local_stream', sh='show_hide_titlelist',
-                sc='show_hide_cover', icn='iconv_r_indicator')
-            wget = param_dict['wget']
-            video_local_stream = param_dict['video_local_stream']
-            show_hide_titlelist = param_dict['show_hide_titlelist']
-            show_hide_cover = param_dict['show_hide_cover']
-            iconv_r_indicator = param_dict['iconv_r_indicator']
-            logger.info(
-                '{0}-{1}-{2}-{3}-{4}'.format(
-                wget, video_local_stream, show_hide_titlelist, show_hide_cover, iconv_r_indicator))
-            if video_local_stream:
-                tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
-                f = open(tmp_pl, 'w')
-                f.close()
-            if not MainWindow.isHidden():
-                if self.ui.tab_6.isHidden() and self.ui.tab_2.isHidden():
-                    self.ui.tab_5.showNormal()
-                    self.ui.tab_5.hide()
-                    if show_hide_titlelist == 1:
-                        self.ui.list1.show()
-                    if show_hide_cover == 1:
-                        self.ui.label.show()
-                        self.ui.text.show()
-                    if show_hide_titlelist == 1:
-                        self.ui.list2.show()
-                    self.ui.list2.setFocus()
-                elif not self.ui.tab_6.isHidden():
-                    self.ui.gridLayout.addWidget(self.ui.tab_6, 0, 1, 1, 1)
-                    #self.ui.tab_5.setMinimumSize(0, 0)
-                    self.ui.gridLayout.setSpacing(5)
-                    #self.ui.frame1.hide()
-                    self.ui.tab_5.hide()
-                    if iconv_r_indicator:
-                        iconv_r = iconv_r_indicator[0]
-                    else:
-                        iconv_r = 5
-                    self.ui.set_parameters_value(thumb_indicator='empty',
-                                                 iconv=iconv_r)
-                    #num = self.ui.list2.currentRow()
-                    self.ui.thumbnail_label_update_epn()
-                    QtWidgets.QApplication.processEvents()
-                    self.ui.frame2.show()
-                    self.ui.frame1.show()
-                    QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
-                if wget:
-                    if wget.processId() > 0:
-                        self.ui.progress.show()
-                if MainWindow.isFullScreen():
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    self.ui.frame1.show()
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    self.ui.gridLayout.setSpacing(5)
-                    self.ui.superGridLayout.setSpacing(0)
-                    self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                if not self.ui.tab_2.isHidden():
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    self.ui.list2.hide()
-                    self.ui.goto_epn.hide()
-                    self.ui.list1.hide()
-                    self.ui.frame.hide()
-            else:
-                if not self.ui.float_window.isHidden():
-                    if self.ui.float_window.isFullScreen():
-                        self.ui.float_window.showNormal()
-                    else:
-                        pass
+            self.player_quit()
+
         #super(List2, self).keyPressEvent(event)
