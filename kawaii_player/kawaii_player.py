@@ -9433,6 +9433,8 @@ class Ui_MainWindow(object):
                     else:
                         self.mpv_custom_pause = True
                         self.player_play_pause_status('pause')
+                if 'Exiting... (Quit)' in a:
+                    self.tab_5.player_quit(msg='already quit')
                 if 'set property: video-aspect=' in a.lower():
                     logger.info(a)
                     aspect_val = a.split('=')[1].split(' ')[0]
@@ -9441,7 +9443,7 @@ class Ui_MainWindow(object):
                             self.mpvplayer_aspect_cycle = int(asp_ratio)
                             logger.info('SET ASPECT = {0}::{1}'.format(self.mpvplayer_aspect_cycle, aspect_val))
                 if 'AV:' not in a:
-                    logger.info(a)
+                    logger.info('-->{0}<--'.format(a))
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
                 if 'icy info:' in a.lower():
                     song_title = re.search("'[^']*", a)
