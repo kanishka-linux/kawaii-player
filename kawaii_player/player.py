@@ -138,75 +138,173 @@ class PlayerWidget(QtWidgets.QWidget):
         self.ui.slider.setValue(t)
     
     def player_fs(self):
-        if not MainWindow.isHidden():
-            param_dict = self.ui.get_parameters_value(
-                wgt='wget', vl='video_local_stream')
-            wget = param_dict['wget']
-            video_local_stream = param_dict['video_local_stream']
-            if not MainWindow.isFullScreen():
-                if not self.ui.tab_6.isHidden():
-                    self.ui.fullscreen_mode = 1
-                elif not self.ui.float_window.isHidden():
-                    self.ui.fullscreen_mode = 2
-                else: 
-                    self.ui.fullscreen_mode = 0
-                self.ui.gridLayout.setSpacing(0)
-                self.ui.superGridLayout.setSpacing(0)
-                self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                self.ui.text.hide()
-                self.ui.label.hide()
-                self.ui.frame1.hide()
-                self.ui.tab_6.hide()
-                self.ui.goto_epn.hide()
-                self.ui.btn20.hide()
+        param_dict_val = self.ui.get_parameters_value(idw='idw', sw='screen_width',
+                                                      sh='screen_height')
+        idw = param_dict_val['idw']
+        screen_width = param_dict_val['screen_width']
+        screen_height = param_dict_val['screen_height']
+        if not idw or idw == str(int(self.winId())):
+            if not MainWindow.isHidden():
+                param_dict = self.ui.get_parameters_value(
+                    wgt='wget', vl='video_local_stream')
+                wget = param_dict['wget']
+                video_local_stream = param_dict['video_local_stream']
                 
-                if wget.processId() > 0 or video_local_stream:
-                    self.ui.progress.hide()
-                    if not self.ui.torrent_frame.isHidden():
-                        self.ui.torrent_frame.hide()
-                self.ui.list2.hide()
-                self.ui.list6.hide()
-                self.ui.list1.hide()
-                self.ui.frame.hide()
-                self.ui.dockWidget_3.hide()
-                self.show()
-                self.setFocus()
-                if not self.ui.tab_2.isHidden():
-                    self.ui.tab_2.hide()
-                if (self.player_val == "mplayer" or self.player_val == "mpv"):
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                MainWindow.showFullScreen()
-            else:
-                self.ui.gridLayout.setSpacing(5)
-                self.ui.superGridLayout.setSpacing(0)
-                self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
-                self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                self.ui.list2.show()
-                self.ui.btn20.show()
-                if wget.processId() > 0 or video_local_stream:
-                    self.ui.progress.show()
-                self.ui.frame1.show()
-                if self.player_val == "mplayer" or self.player_val == "mpv":
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                MainWindow.showNormal()
-                MainWindow.showMaximized()
-                param_dict = self.ui.get_parameters_value(tl='total_till')
-                total_till = param_dict['total_till']
-                if total_till != 0 or self.ui.fullscreen_mode == 1:
-                    self.ui.tab_6.show()
-                    self.ui.list2.hide()
+                if not MainWindow.isFullScreen():
+                    if not self.ui.tab_6.isHidden():
+                        self.ui.fullscreen_mode = 1
+                    elif not self.ui.float_window.isHidden():
+                        self.ui.fullscreen_mode = 2
+                    else: 
+                        self.ui.fullscreen_mode = 0
+                    self.ui.gridLayout.setSpacing(0)
+                    self.ui.superGridLayout.setSpacing(0)
+                    self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                    self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                    self.ui.text.hide()
+                    self.ui.label.hide()
+                    self.ui.frame1.hide()
+                    self.ui.tab_6.hide()
                     self.ui.goto_epn.hide()
-                if self.ui.btn1.currentText().lower() == 'youtube':
+                    self.ui.btn20.hide()
+                    
+                    if wget.processId() > 0 or video_local_stream:
+                        self.ui.progress.hide()
+                        if not self.ui.torrent_frame.isHidden():
+                            self.ui.torrent_frame.hide()
                     self.ui.list2.hide()
-                    self.ui.goto_epn.hide()
-                    self.ui.tab_2.show()
-        else:
-            if not self.ui.float_window.isHidden():
-                if not self.ui.float_window.isFullScreen():
-                    self.ui.float_window.showFullScreen()
+                    self.ui.list6.hide()
+                    self.ui.list1.hide()
+                    self.ui.frame.hide()
+                    self.ui.dockWidget_3.hide()
+                    self.show()
+                    self.setFocus()
+                    if not self.ui.tab_2.isHidden():
+                        self.ui.tab_2.hide()
+                    if (self.player_val == "mplayer" or self.player_val == "mpv"):
+                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                    MainWindow.showFullScreen()
                 else:
-                    self.ui.float_window.showNormal()
+                    self.ui.gridLayout.setSpacing(5)
+                    self.ui.superGridLayout.setSpacing(0)
+                    self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
+                    self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                    self.ui.list2.show()
+                    self.ui.btn20.show()
+                    if wget.processId() > 0 or video_local_stream:
+                        self.ui.progress.show()
+                    self.ui.frame1.show()
+                    if self.player_val == "mplayer" or self.player_val == "mpv":
+                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                    MainWindow.showNormal()
+                    MainWindow.showMaximized()
+                    param_dict = self.ui.get_parameters_value(tl='total_till')
+                    total_till = param_dict['total_till']
+                    if total_till != 0 or self.ui.fullscreen_mode == 1:
+                        self.ui.tab_6.show()
+                        self.ui.list2.hide()
+                        self.ui.goto_epn.hide()
+                    if self.ui.btn1.currentText().lower() == 'youtube':
+                        self.ui.list2.hide()
+                        self.ui.goto_epn.hide()
+                        self.ui.tab_2.show()
+            else:
+                if not self.ui.float_window.isHidden():
+                    if not self.ui.float_window.isFullScreen():
+                        self.ui.float_window.showFullScreen()
+                    else:
+                        self.ui.float_window.showNormal()
+        else:
+            param_dict = self.ui.get_parameters_value(t='tab_6_size_indicator')
+            tab_6_size_indicator = param_dict['tab_6_size_indicator']
+            if tab_6_size_indicator:
+                tab_6_size_indicator.pop()
+            tab_6_size_indicator.append(self.ui.tab_6.width())
+            self.ui.set_parameters_value(tab_6=tab_6_size_indicator)
+            param_dict = self.ui.get_parameters_value(
+                wgt='wget', icn='iconv_r_indicator', i='iconv_r',
+                cl='cur_label_num', fl='fullscr')
+            wget = param_dict['wget']
+            iconv_r_indicator = param_dict['iconv_r_indicator']
+            iconv_r = param_dict['iconv_r']
+            cur_label_num = param_dict['cur_label_num']
+            fullscr = param_dict['fullscr']
+            if not MainWindow.isHidden():
+                if self.ui.video_mode_index == 5:
+                    pass
+                else:
+                    if iconv_r_indicator:
+                        iconv_r = iconv_r_indicator[0]
+                    fullscr = 1 - fullscr
+                    self.ui.set_parameters_value(iconv=iconv_r, fullsc=fullscr)
+                    widget = "self.ui.label_epn_"+str(cur_label_num)
+                    col = (cur_label_num%iconv_r)
+                    row = 2*int(cur_label_num/iconv_r)
+                    new_pos = (row, col)
+                    print(new_pos)
+                    if not MainWindow.isFullScreen():
+                        cur_label = self.ui.list2.currentRow()
+                        p1 = "self.ui.gridLayout2.indexOf(self.ui.label_epn_{0})".format(cur_label)
+                        index = eval(p1)
+                        print(index, '--index--')
+                        self.ui.current_thumbnail_position = self.ui.gridLayout2.getItemPosition(index)
+                        self.ui.tab_6.hide()
+                        p1 = "self.ui.gridLayout.addWidget({0}, 0, 1, 1, 1)".format(widget)
+                        exec(p1)
+                        p2="self.ui.label_epn_"+str(cur_label_num)+".setMaximumSize(QtCore.QSize("+str(screen_width)+", "+str(screen_height)+"))"
+                        exec(p2)
+                        self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                        self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                        self.ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
+                        self.ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
+                        self.ui.gridLayout.setSpacing(0)
+                        self.ui.gridLayout1.setSpacing(0)
+                        self.ui.gridLayout2.setSpacing(0)
+                        self.ui.superGridLayout.setSpacing(0)
+                        MainWindow.showFullScreen()
+                    else:
+                        w = float((self.ui.tab_6.width()-60)/iconv_r)
+                        h = int(w/self.ui.image_aspect_allowed)
+                        width=str(int(w))
+                        height=str(int(h))
+                        r = self.ui.current_thumbnail_position[0]
+                        c = self.ui.current_thumbnail_position[1]
+                        cur_label = self.ui.list2.currentRow()
+                        p6="self.ui.gridLayout2.addWidget(self.ui.label_epn_"+str(cur_label)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
+                        exec(p6)
+                        QtWidgets.QApplication.processEvents()
+                        MainWindow.showNormal()
+                        MainWindow.showMaximized()
+
+                        p1="self.ui.label_epn_"+str(cur_label_num)+".y()"
+                        yy=eval(p1)
+                        self.ui.scrollArea1.verticalScrollBar().setValue(yy)
+                        QtWidgets.QApplication.processEvents()
+                        self.ui.frame1.show()
+                        self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
+                        self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                        self.ui.gridLayout1.setContentsMargins(5, 5, 5, 5)
+                        self.ui.gridLayout2.setContentsMargins(5, 5, 5, 5)
+                        self.ui.gridLayout.setSpacing(5)
+                        self.ui.gridLayout1.setSpacing(5)
+                        self.ui.gridLayout2.setSpacing(5)
+                        self.ui.superGridLayout.setSpacing(5)
+                        self.ui.tab_6.show()
+                        QtWidgets.QApplication.processEvents()
+                        p1="self.ui.label_epn_"+str(cur_label_num)+".setFocus()"
+                        exec(p1)
+                        QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
+            else:
+                if not self.ui.float_window.isHidden():
+                    if not self.ui.float_window.isFullScreen():
+                        cur_label = self.ui.list2.currentRow()
+                        p1 = "self.ui.gridLayout2.indexOf(self.ui.label_epn_{0})".format(cur_label)
+                        index = eval(p1)
+                        print(index, '--index--')
+                        self.ui.current_thumbnail_position = self.ui.gridLayout2.getItemPosition(index)
+                        self.ui.float_window.showFullScreen()
+                    else:
+                        self.ui.float_window.showNormal()
     
     def player_quit(self, msg=None):
         quitReally = "yes"
