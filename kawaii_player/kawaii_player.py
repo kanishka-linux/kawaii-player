@@ -9442,7 +9442,7 @@ class Ui_MainWindow(object):
                         if aspect_val == self.mpvplayer_aspect[asp_ratio]:
                             self.mpvplayer_aspect_cycle = int(asp_ratio)
                             logger.info('SET ASPECT = {0}::{1}'.format(self.mpvplayer_aspect_cycle, aspect_val))
-                if 'AV:' not in a:
+                if a and 'AV:' not in a:
                     logger.info('-->{0}<--'.format(a))
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
                 if 'icy info:' in a.lower():
