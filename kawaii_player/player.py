@@ -305,7 +305,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
             else:
-                self.mpvplayer.write(b'\n seek +10 relative+exact \n')
+                self.mpvplayer.write(b'\n osd-msg-bar seek +10 \n')
             #self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_1:
             self.mpvplayer.write(b'\n add chapter -1 \n')
