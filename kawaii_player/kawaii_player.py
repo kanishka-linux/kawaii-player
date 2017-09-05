@@ -1918,7 +1918,7 @@ class Ui_MainWindow(object):
         global idw, iconv_r, cur_label_num, fullscr, tab_6_size_indicator
         global refererNeeded, server, tab_6_player, memory_num_arr
         global finalUrlFound, interval, name, opt, bookmark, status
-        global base_url, embed, mirrorNo, category
+        global base_url, embed, mirrorNo, category, screen_width, screen_height
         arg_dict = {}
         for key, val in kargs.items():
             arg_dict.update({'{0}'.format(val):eval(str(val))})
