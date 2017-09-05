@@ -2784,7 +2784,6 @@ class Ui_MainWindow(object):
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
-                
                 if self.list2.currentItem():
                     curR = self.list2.currentRow()
                     if not idw or idw == str(int(self.tab_5.winId())):
@@ -2807,7 +2806,6 @@ class Ui_MainWindow(object):
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
-                
                 if self.list2.currentItem():
                     curR = self.list2.currentRow()
                     self.epnfound()
@@ -2818,14 +2816,14 @@ class Ui_MainWindow(object):
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
                     self.player_play_pause.setText(self.player_buttons['pause'])
-                    txt_osd = '\n osd 1 \n'
-                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                    if MainWindow.isFullScreen():
+                        self.frame1.hide()
         elif txt == self.player_buttons['pause'] and status == 'pause':
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
                     self.player_play_pause.setText(self.player_buttons['play'])
-                    txt_osd = '\n osd 3 \n'
-                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                    if MainWindow.isFullScreen():
+                        self.frame1.show()
         
     def playerPlaylist(self, val):
         global quitReally, playlist_show, site
@@ -10495,8 +10493,8 @@ class Ui_MainWindow(object):
             elif player == 'mplayer':
                 command = command + ' -novideo'
         if self.custom_mpv_input_conf:
-            command = re.sub('--input-vo-keyboard=no|--input-terminal=no|--osd-level=0',
-                             '', command)
+            command = re.sub('--input-vo-keyboard=no|--input-terminal=no', '', command)
+            command = command.replace('--osd-level=0', '--osd-level=1')
         print(command, '---10446---')
         if finalUrl:
             if self.quality_val == 'best':
