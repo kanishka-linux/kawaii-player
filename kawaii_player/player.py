@@ -45,7 +45,10 @@ class PlayerWidget(QtWidgets.QWidget):
             self.ui.total_seek = 0
 
     def osd_hide(self):
-        self.mpvplayer.write(b'\n osd 0 \n')
+        if self.player_val == 'mplayer':
+            self.mpvplayer.write(b'\n osd 0 \n')
+        else:
+            self.mpvplayer.write(b'\n set osd-level 0 \n')
 
     def arrow_hide(self):
         if self.player_val == "mplayer" or self.player_val == "mpv":
@@ -474,9 +477,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 and event.key() == QtCore.Qt.Key_Right):
             self.ui.list2.setFocus()
         elif event.key() == QtCore.Qt.Key_Right:
-            txt = '\n osd 1 \n'
-            self.mpvplayer.write(bytes(txt, 'utf-8'))
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.set_slider_val(10)
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -491,6 +494,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek +10 \n')
             #self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_1:
@@ -503,9 +508,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 and event.key() == QtCore.Qt.Key_V):
             self.mpvplayer.write(b'\n cycle ass-vsfilter-aspect-compat \n')
         elif event.key() == QtCore.Qt.Key_Left:
-            txt = '\n osd 1 \n'
-            self.mpvplayer.write(bytes(txt, 'utf-8'))
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.set_slider_val(-10)
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -520,6 +525,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek -10 \n')
             #self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_BracketRight:
@@ -533,31 +540,36 @@ class PlayerWidget(QtWidgets.QWidget):
             else:
                 self.mpvplayer.write(b'\n osd-msg-bar seek -5 \n')
         elif event.key() == QtCore.Qt.Key_0:
-            txt = '\n osd 1 \n'
-            self.mpvplayer.write(bytes(txt, 'utf-8'))
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n volume +5 \n')
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume +5 \n')
         elif event.key() == QtCore.Qt.Key_9:
-            txt = '\n osd 1 \n'
-            self.mpvplayer.write(bytes(txt, 'utf-8'))
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n volume -5 \n')
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume -5 \n')
         elif event.key() == QtCore.Qt.Key_A:
             if self.player_val == 'mpv':
-                self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 4
+                self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
                 aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
                 logger.info('aspect:{0}::value:{1}'.format(self.ui.mpvplayer_aspect_cycle, aspect_val))
                 msg = '\n set video-aspect "{0}" \n'.format(aspect_val)
                 self.mpvplayer.write(bytes(msg, 'utf-8'))
                 if aspect_val == '-1':
                     show_text_val = 'Original Aspect'
+                elif aspect_val == '0':
+                    show_text_val = 'Aspect Ratio Disabled'
                 else:
                     show_text_val = aspect_val
-                #txt_osd = '\n osd 1 \n'
                 txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
                 self.mpvplayer.write(bytes(txt_osd, 'utf-8'))
         elif event.key() == QtCore.Qt.Key_N:
@@ -618,6 +630,8 @@ class PlayerWidget(QtWidgets.QWidget):
                             cache_val=cache_empty, mpv_i=mpv_indicator)
         elif event.key() == QtCore.Qt.Key_Up:
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.set_slider_val(60)
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -628,16 +642,18 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.total_seek = self.ui.total_seek + 60
                     r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
-                    #self.mpvplayer.write('\n'+'seek +10'+'\n')
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
-                    #self.mpvplayer.write('\n'+'seek +60'+'\n')
+                self.frameShowHide()
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek +60 \n')
-            self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_Down:
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.set_slider_val(-60)
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -651,11 +667,15 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
+                self.frameShowHide()
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek -60 \n')
-            self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_PageUp:
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.set_slider_val(300)
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -669,11 +689,15 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
+                self.frameShowHide()
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek +300 \n')
-            self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_PageDown:
             if self.player_val == "mplayer":
+                txt = '\n osd 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.set_slider_val(-300)
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -684,16 +708,19 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.total_seek = self.ui.total_seek - 300
                     r = "Seeking "+str(self.ui.total_seek)+'s'
                     self.ui.progressEpn.setFormat(r)
-                    #self.mpvplayer.write('\n'+'seek +10'+'\n')
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
-                    #self.mpvplayer.write('\n'+'seek -300'+'\n')
+                self.frameShowHide()
             else:
+                txt = '\n set osd-level 1 \n'
+                self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek -300 \n')
-            self.frameShowHide()
         elif event.key() == QtCore.Qt.Key_O:
-            self.mpvplayer.write(b'\n osd \n')
+            if self.player_val == 'mplayer':
+                self.mpvplayer.write(b'\n osd \n')
+            else:
+                self.mpvplayer.write(b'\n cycle osd-level \n')
         elif event.key() == QtCore.Qt.Key_M:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n osd_show_property_text ${filename} \n')
