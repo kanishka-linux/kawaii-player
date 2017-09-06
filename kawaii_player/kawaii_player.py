@@ -1471,7 +1471,7 @@ class Ui_MainWindow(object):
         self.myserver_cache = {}
         self.newlistfound_thread_box = []
         self.myserver_threads_count = 0
-        self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1'}
+        self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -1995,23 +1995,25 @@ class Ui_MainWindow(object):
     
     def seek_to_val(self, val):
         global Player
-        txt1 = '\n osd 1 \n'
         if Player == "mplayer":
+            txt1 = '\n osd 1 \n'
             txt = '\n seek {0}\n'.format(val)
         else:
-            txt = '\n seek {0} relative+exact \n'.format(val)
+            txt1 = '\n set osd-level 1 \n'
+            txt = '\n osd-msg-bar seek {0} relative+exact \n'.format(val)
             print(txt)
         self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         
     def seek_to_vol_val(self, val):
         global Player
-        txt1 = '\n osd 1 \n'
         if Player == "mplayer":
+            txt1 = '\n osd 1 \n'
             txt = '\n volume {0} \n'.format(val)
             self.mpvplayer_val.write(b'')
         else:
-            txt = '\n add ao-volume {0} \n'.format(val)
+            txt1 = '\n set osd-level 1 \n'
+            txt = '\n osd-msg-bar add ao-volume {0} \n'.format(val)
         self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
@@ -2428,7 +2430,11 @@ class Ui_MainWindow(object):
             self.mpvplayer_val.write(t1)
             
     def osd_hide(self):
-        self.mpvplayer_val.write(b'\n osd 0 \n')
+        global Player
+        if Player == 'mplayer':
+            self.mpvplayer_val.write(b'\n osd 0 \n')
+        else:
+            self.mpvplayer_val.write(b'\n set osd-level 0 \n')
         
     def mirrorChange(self):
         global mirrorNo
@@ -2777,10 +2783,10 @@ class Ui_MainWindow(object):
         if txt == self.player_buttons['play']:
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
-                    self.mpvplayer_val.write(b'\n set pause no \n')
-                    self.player_play_pause.setText(self.player_buttons['pause'])
-                    txt_osd = '\n osd 1 \n'
+                    txt_osd = '\n set osd-level 1 \n'
                     self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                    self.mpvplayer_val.write(b'\n osd-msg-bar set pause no \n')
+                    self.player_play_pause.setText(self.player_buttons['pause'])
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
@@ -2799,10 +2805,10 @@ class Ui_MainWindow(object):
         elif txt == self.player_buttons['pause']:
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
+                    txt_osd = '\n set osd-level 3 \n'
+                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause yes \n')
                     self.player_play_pause.setText(self.player_buttons['play'])
-                    txt_osd = '\n osd 3 \n'
-                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
@@ -9412,34 +9418,45 @@ class Ui_MainWindow(object):
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
             if 'volume' in a:
-                print(a)
-            if 'Video' in a:
                 logger.info(a)
-            if 'Audio' in a:
+            elif 'Video' in a:
+                logger.info(a)
+            elif 'Audio' in a:
                 logger.info(a)
             if self.custom_mpv_input_conf and Player == 'mpv':
                 if 'set property: fullscreen' in a.lower():
+                    self.tab_5.player_fs()
                     a = 'FULLSCREEN_TOGGLE'
-                if 'playlist-next' in a.lower():
+                elif 'playlist-next' in a.lower():
                     self.mpvNextEpnList()
-                if 'playlist-prev' in a.lower():
+                elif 'playlist-prev' in a.lower():
                     self.mpvPrevEpnList()
-                if 'set property: pause' in a.lower():
+                elif 'set property: pause' in a.lower():
                     if self.mpv_custom_pause:
                         self.mpv_custom_pause = False
                         self.player_play_pause_status('play')
                     else:
                         self.mpv_custom_pause = True
                         self.player_play_pause_status('pause')
-                if 'Exiting... (Quit)' in a:
+                elif 'Exiting... (Quit)' in a:
                     self.tab_5.player_quit(msg='already quit')
-                if 'set property: video-aspect=' in a.lower():
+                elif 'set property: video-aspect=' in a.lower():
                     logger.info(a)
-                    aspect_val = a.split('=')[1].split(' ')[0]
+                    aspect_val = a.split('video-aspect=')[1].split(' ')[0]
                     for asp_ratio in self.mpvplayer_aspect:
                         if aspect_val == self.mpvplayer_aspect[asp_ratio]:
                             self.mpvplayer_aspect_cycle = int(asp_ratio)
                             logger.info('SET ASPECT = {0}::{1}'.format(self.mpvplayer_aspect_cycle, aspect_val))
+                            a = 'ASPECT CHANGED'
+                            if aspect_val == '-1':
+                                show_text_val = 'Original Aspect'
+                            elif aspect_val == '0':
+                                show_text_val = 'Aspect Ratio Disabled'
+                            else:
+                                show_text_val = aspect_val
+                            txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
+                            self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                            break
                 if a and 'AV:' not in a and 'A:' not in a:
                     logger.info('-->{0}<--'.format(a))
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
@@ -9476,7 +9493,7 @@ class Ui_MainWindow(object):
                         audio_id="no"
                     print("audio_id="+audio_id)
                     self.audio_track.setText("A:"+str(a_id[:8]))
-                if "SUB_ID" in a:
+                elif "SUB_ID" in a:
                     print('--', a, '--')
                     new_arr = a.split('\n')
                     print(new_arr)
@@ -9493,9 +9510,7 @@ class Ui_MainWindow(object):
                         sub_id = "no"
                     print("sub_id="+sub_id)
                     self.subtitle_track.setText("Sub:"+str(s_id[:8]))
-                if 'FULLSCREEN_TOGGLE' in a:
-                    self.tab_5.player_fs()
-                if "Length_Seconds=" in a and not self.mplayerLength and 'args=' not in a:
+                elif "Length_Seconds=" in a and not self.mplayerLength and 'args=' not in a:
                     print(a)
                     if a.startswith(r"b'"):
                         mpl = re.sub('[^"]*Length_Seconds=', '', a)
@@ -9513,12 +9528,12 @@ class Ui_MainWindow(object):
                         print(self.mplayerLength)
                         self.slider.setRange(0, int(self.mplayerLength))
             
-                if "AV:" in a or "A:" in a:
+                elif "AV:" in a or "A:" in a:
                     if not mpv_start:
                         mpv_start.append("Start")
                         try:
                             npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
-                            npn1 = bytes('\n'+'show-text '+npn+' 4000'+'\n', 'utf-8')
+                            npn1 = bytes('\n'+'show-text '+npn+' 2000'+'\n', 'utf-8')
                             self.mpvplayer_val.write(npn1)
                         except:
                             pass
@@ -9537,20 +9552,12 @@ class Ui_MainWindow(object):
                         print("buffering")
                         self.mpvplayer_val.write(b'\n set pause yes \n')
                         self.player_play_pause.setText(self.player_buttons['play'])
-                        #if self.mplayer_timer.isActive():
-                        #	self.mplayer_timer.stop()
-                        #self.mplayer_timer.start(5000)
                         if not pause_indicator:
                             pause_indicator.append('Pause')
                         if MainWindow.isFullScreen() and layout_mode != "Music":
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
-                            #if self.frame_timer.isActive():
-                            #    self.frame_timer.stop()
-                            #self.frame_timer.start(5000)
-                            
                     t = re.findall("AV:[^)]*[)]|A:[^)]*[)]", a)
-                    #print('found ', t)
                     if not t:
                         t = re.findall("AV: [^ ]*|A: [^ ]*", a)
                         if not t:
@@ -9643,17 +9650,18 @@ class Ui_MainWindow(object):
                                 self.frame_timer.start(100)
                         except Exception as err_val:
                             print(err_val, '--mpv--cache-error--')
-                if "VO:" in a or "AO:" in a or 'Stream opened successfully' in a:
+                elif "VO:" in a or "AO:" in a or 'Stream opened successfully' in a:
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
                     if MainWindow.isFullScreen() and layout_mode != "Music":
-                        if desktop_session == 'lxde' or desktop_session == 'lxqt' or desktop_session == 'xfce':
+                        if ((desktop_session == 'lxde' or desktop_session == 'lxqt'
+                                or desktop_session == 'xfce') and 'VO: Description:' not in a):
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
                             self.frame_timer.start(1000)
-                if ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a):
+                elif ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a):
                     if self.player_setLoop_var:
                         if current_playing_file_path.startswith('"'):
                             replay = '\n loadfile {0} replace \n'.format(current_playing_file_path)
@@ -10453,7 +10461,7 @@ class Ui_MainWindow(object):
              --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no\
              --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
              --input-file=/dev/stdin --input-terminal=no\
-             --input-vo-keyboard=no -video-aspect {0} -wid {1} --input-conf="{2}"'.format(
+             --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"'.format(
                 aspect_value, idw, self.mpv_input_conf)
         else:
             command = Player
@@ -12520,6 +12528,7 @@ def main():
                 try:
                     if j and j.lower() == 'true':
                         ui.custom_mpv_input_conf = True
+                    logger.info('mpv_conf: {0}'.format(ui.custom_mpv_input_conf))
                 except Exception as e:
                     print(e)
             elif i.startswith('ANIME_REVIEW_SITE='):
