@@ -6106,7 +6106,7 @@ class Ui_MainWindow(object):
                 pass
                 
     def thumbnail_generated(self):
-        print("Process Ended")
+        print("Thumbnail Process Ended")
         self.threadPoolthumb = self.threadPoolthumb[1:]
         length = len(self.threadPoolthumb)
         if length > 0:
@@ -9661,7 +9661,13 @@ class Ui_MainWindow(object):
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
                             self.frame_timer.start(1000)
-                elif ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a):
+                elif (self.mplayerLength and ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a 
+                        or self.mplayerLength == self.progress_counter)):
+                    if "EOF code: 1" in a:
+                        reason_end = 'EOF code: 1'
+                    else:
+                        reason_end = 'length of file equals progress counter'
+                    logger.info('\ntrack no. {0} ended due to reason={1}\n'.format(curR, reason_end))
                     if self.player_setLoop_var:
                         if current_playing_file_path.startswith('"'):
                             replay = '\n loadfile {0} replace \n'.format(current_playing_file_path)
