@@ -1853,6 +1853,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 j = j + 1
             pls_txt = bytes(pls_txt, 'utf-8')
             self.final_message(pls_txt)
+        elif path.startswith('get_all_category'):
+            pls_txt = self.get_extra_fields()
+            pls_txt = bytes(pls_txt, 'utf-8')
+            self.final_message(pls_txt)
         elif path.startswith('update_video') or path.startswith('update_music'):
             try:
                 if path.startswith('update_video'):
