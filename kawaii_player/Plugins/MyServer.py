@@ -65,7 +65,7 @@ class LoginWidget(QtWidgets.QDialog):
                 send_notification('Enter full IP address starting with http/https properly')
             else:
                 content = ccurl(
-                        '{0}stream_continue.htm#-c#{1}'.format(url, self.server.cookie_file),
+                        '{0}get_all_category.htm#-c#{1}'.format(url, self.server.cookie_file),
                         user_auth=self.auth_info, verify_peer=False
                         )
                 print(content, '>>>>>')
@@ -134,7 +134,7 @@ class MyServer:
             #self.login_widget.setWindowModality(QtCore.Qt.WindowModal)
         else:
             content = ccurl(
-                '{0}stream_continue.htm#-c#{1}'.format(self.url, self.cookie_file),
+                '{0}get_all_category.htm#-c#{1}'.format(self.url, self.cookie_file),
                 user_auth=self.passwd, verify_peer=False
                 )
             print(content, '>>>>>')
@@ -155,7 +155,7 @@ class MyServer:
             print(self.login_success, 'login_success')
             if self.login_success:
                 content = ccurl(
-                    '{0}stream_continue.htm#-b#{1}'.format(self.url, self.cookie_file),
+                    '{0}get_all_category.htm#-b#{1}'.format(self.url, self.cookie_file),
                     user_auth=self.passwd, verify_peer=False
                 )
                 print(content, '>>>>>160')
