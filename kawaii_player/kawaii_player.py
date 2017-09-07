@@ -586,7 +586,7 @@ class Ui_MainWindow(object):
         self.list6.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(2, self.list6, 0)
         self.list6.hide()
-        self.list6.addItem("Queue Empty:\nSelect Item and Press 'Q' to EnQueue it.\nIf Queue List is Empty then Items Will be\nPlayed Sequentially as per Playlist.\n(Queue Feature Works Only With\n Local/Offline Content)\n\nSelect Item and Press 'W' to toggle \nwatch/unwatch status\n")
+        self.list6.addItem("Queue Empty:\nSelect Item and Press 'ctrl+Q' to EnQueue it.\nIf Queue List is Empty then Items Will be\nPlayed Sequentially as per Playlist.\n(Queue Feature Works Only With\n Local/Offline Content)\n\nSelect Item and Press 'W' to toggle \nwatch/unwatch status\n")
         #self.gridLayout.addWidget(self.list2, 0, 2, 1, 1)
         self.frame = QtWidgets.QFrame(MainWindow)
         #self.frame.setMinimumSize(QtCore.QSize(500, 22))
@@ -1409,7 +1409,7 @@ class Ui_MainWindow(object):
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (2, 2, 0, 0)
+        self.version_number = (2, 2, 1, 1)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
