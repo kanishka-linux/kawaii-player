@@ -2243,7 +2243,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if cookie:
             self.send_response(303)
             self.send_header('Set-Cookie', cookie)
-            nm = 'stream_continue.htm'
+            if self.path.startswith('get_all_category'):
+                nm = 'get_all_category.htm'
+            else:
+                nm = 'stream_continue.htm'
             self.send_header('Location', nm)
             self.send_header('Connection', 'close')
             self.end_headers()
