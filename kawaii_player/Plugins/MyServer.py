@@ -69,7 +69,8 @@ class LoginWidget(QtWidgets.QDialog):
                         user_auth=self.auth_info, verify_peer=False
                         )
                 print(content, '>>>>>')
-                if 'Access Not Allowed, Authentication Failed' in content:
+                if ('Access Not Allowed, Authentication Failed' in content or
+                        'You are not authorized to access the content' in content):
                     self.server.login_success = False
                     send_notification('Authentication Failed. Either Username or Password is incorrect')
                 elif not content:
@@ -138,7 +139,8 @@ class MyServer:
                 user_auth=self.passwd, verify_peer=False
                 )
             print(content, '>>>>>')
-            if 'Access Not Allowed, Authentication Failed' in content:
+            if ('Access Not Allowed, Authentication Failed' in content 
+                    or 'You are not authorized to access the content' in content):
                 self.login_success = False
                 self.login_widget = LoginWidget(server=self)
                 self.login_widget.show()
