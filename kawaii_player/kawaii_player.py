@@ -1409,7 +1409,7 @@ class Ui_MainWindow(object):
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (2, 2, 1, 1)
+        self.version_number = (2, 3, 0, 0)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
@@ -4451,7 +4451,10 @@ class Ui_MainWindow(object):
                         self.mpvplayer_val.kill()
                         self.mpvplayer_started = False
                 if len(self.queue_url_list)>0:
-                    self.getQueueInList()
+                    if isinstance(self.queue_url_list[0], int):
+                        self.localGetInList()
+                    else:
+                        self.getQueueInList()
                 else:
                     self.localGetInList()
             else:
@@ -9338,7 +9341,8 @@ class Ui_MainWindow(object):
     def startedW(self):
         global new_epn
         self.progress.setValue(0)
-        self.progress.show()
+        if not MainWindow.isFullScreen():
+            self.progress.show()
         print("Process Started")
         
     def finishedW(self, src):
@@ -9710,16 +9714,21 @@ class Ui_MainWindow(object):
                             exec (q3)
                             q3="self.label_epn_"+str(length_1+cur_label_num)+".setAlignment(QtCore.Qt.AlignCenter)"
                             exec(q3)
-                            #QtWidgets.QApplication.processEvents()
                         if (site == "Local" or site == "Video" or site == "Music" 
                                 or site == "PlayLists" or site == "None" or site == 'MyServer'):
-                            if len(self.queue_url_list)>0 and wget.processId() == 0:
-                                self.getQueueInList()
+                            if len(self.queue_url_list)>0:
+                                if isinstance(self.queue_url_list[0], int):
+                                    self.localGetInList()
+                                else:
+                                    self.getQueueInList()
                             else:
                                 self.localGetInList()
                         else:
-                            if len(self.queue_url_list)>0 and wget.processId() == 0:
-                                self.getQueueInList()
+                            if len(self.queue_url_list)>0:
+                                if isinstance(self.queue_url_list[0], int):
+                                    self.getNextInList()
+                                else:
+                                    self.getQueueInList()
                             else:
                                 self.getNextInList()
                     elif quitReally == "yes": 
@@ -9948,13 +9957,19 @@ class Ui_MainWindow(object):
                         if (site == "Local" or site == "Video" 
                                 or site == "Music" or site == "PlayLists" 
                                 or site == "None" or site == 'MyServer'):
-                            if len(self.queue_url_list)>0 and wget.processId() == 0:
-                                self.getQueueInList()
+                            if len(self.queue_url_list)>0:
+                                if isinstance(self.queue_url_list[0], int):
+                                    self.localGetInList()
+                                else:
+                                    self.getQueueInList()
                             else:
                                 self.localGetInList()
                         else:
-                            if len(self.queue_url_list)>0 and wget.processId() == 0:
-                                self.getQueueInList()
+                            if len(self.queue_url_list)>0:
+                                if isinstance(self.queue_url_list[0], int):
+                                    self.getNextInList()
+                                else:
+                                    self.getQueueInList()
                             else:
                                 self.getNextInList()
                         if self.tab_5.isHidden() and thumbnail_indicator:
