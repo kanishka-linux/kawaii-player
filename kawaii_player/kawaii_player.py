@@ -7280,10 +7280,26 @@ class Ui_MainWindow(object):
                         self.text.setText('Load..Failed')
                     if not m:
                         return 0
+                    else:
+                        level_mark = m[-1]
                     
-                    self.epn_arr_list[:]=[]
-                    for i in m:
-                        self.epn_arr_list.append(i)
+                    if level_mark == 1:
+                        m.pop()
+                        self.original_path_name.clear()
+                        self.list1.clear()
+                        for i in m:
+                            i = i.strip()
+                            if '\t' in i:
+                                j = i.split('\t')[0]
+                            else:
+                                j = i
+                            self.list1.addItem(j)
+                            self.original_path_name.append(i)
+                        return 0
+                    else:
+                        self.epn_arr_list.clear()
+                        for i in m:
+                            self.epn_arr_list.append(i)
                         
                     if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
                         hist_path = os.path.join(home, 'History', site, siteName, 'history.txt')
@@ -8429,7 +8445,7 @@ class Ui_MainWindow(object):
         self.list4.hide()
         self.player_play_pause.setText(self.player_buttons['pause'])
         quitReally = "no"
-
+        finalUrl = ''
         try:
             server._emitMeta("Play", site, self.epn_arr_list)
         except:
@@ -8472,7 +8488,7 @@ class Ui_MainWindow(object):
             return 0
 
         if(site != "SubbedAnime" and site!= "DubbedAnime" and site!="PlayLists" 
-                and finalUrlFound == False and site !="None" and site!= "Music" 
+                and site !="None" and site!= "Music" 
                 and site != "Video" and site!= "Local"):
             hist_path = os.path.join(home, 'History', site, name, 'Ep.txt')
             logger.info('hist_path={0}'.format(hist_path))
@@ -8572,27 +8588,6 @@ class Ui_MainWindow(object):
                             self, logger, 'yt', finalUrl, quality,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
-        elif finalUrlFound == True:
-                row_num = self.list2.currentRow()
-            
-                final = self.epn_arr_list[row_num]
-                logger.info(final)
-                self.mark_History()
-                finalUrl = []
-                final = final.replace('#', '', 1)
-                
-                if '	' in final:
-                    final = final.split('	')[1]
-                    
-                finalUrl.append(final)
-                if refererNeeded == True:
-                    if '	' in self.epn_arr_list[row_num]:
-                        rfr_url = self.epn_arr_list[row_num].split('	')[2]
-                    finalUrl.append(rfr_url)
-                if len(finalUrl) == 1:
-                    finalUrl = finalUrl[0]
-                logger.info(finalUrl)
-                print("++++++++++++++++++++")
         elif site == "SubbedAnime" or site == "DubbedAnime":
             if category != "Movies":
                 file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
@@ -10656,7 +10651,7 @@ class Ui_MainWindow(object):
         self.total_file_size = 0
         self.mplayerLength = 0
         buffering_mplayer = "no"
-        
+        finalUrl = ''
         try:
             server._emitMeta("Next", site, self.epn_arr_list)
         except:
@@ -10706,7 +10701,7 @@ class Ui_MainWindow(object):
         self.set_init_settings()
         
         if (site != "SubbedAnime" and site!= "DubbedAnime" and site!="PlayLists" 
-                and finalUrlFound == False and site!="None" and site!="Music" 
+                and site!="None" and site!="Music" 
                 and site!= "Video" and site!="Local"):
             if opt == "History":
                 self.mark_History()
@@ -10757,27 +10752,6 @@ class Ui_MainWindow(object):
                     self.progressEpn.setFormat('Load Failed!')
                     print('final url not found')
                     return 0
-        elif finalUrlFound == True:
-                row_num = self.list2.currentRow()
-                final = self.epn_arr_list[row_num]
-                logger.info(final)
-                self.mark_History()
-                finalUrl = []
-                if '	' in final:
-                    final = final.replace('#', '', 1)
-                    final = final.split('	')[1]
-                else:
-                    final=re.sub('#', '', final)
-                finalUrl.append(final)
-                if refererNeeded == True:
-                    if '	' in self.epn_arr_list[-1]:
-                        rfr_url = self.epn_arr_list[-1].split('	')[1]
-                    else:
-                        rfr_url = self.epn_arr_list[-1]
-                    logger.info(rfr_url)
-                    finalUrl.append(rfr_url)
-                if len(finalUrl) == 1:
-                    finalUrl = finalUrl[0]
         elif site == "SubbedAnime" or site == "DubbedAnime":
             if category != "Movies":
                 self.mark_History()
