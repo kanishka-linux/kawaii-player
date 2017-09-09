@@ -56,7 +56,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         wget = param_dict['wget']
         if (site.lower() != "Local" and site.lower() != 'video' 
                 and site.lower() != 'music'):
-            if wget.processId() == 0:
+            if wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
                 ui.download_video = 1
                 r = self.currentRow()
                 item = self.item(r)
