@@ -7166,7 +7166,7 @@ class Ui_MainWindow(object):
                 if os.path.isfile(hist_sum) or os.path.isfile(hist_picn):
                     self.videoImage(picn, thumbnail, fanart, summary)
     
-    def listfound(self):
+    def listfound(self, send_list=None):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, path_Local_Dir, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
@@ -7252,32 +7252,57 @@ class Ui_MainWindow(object):
                 and site!="Local" and site !="None"):
             self.list2.clear()
             if self.list1.currentItem():
-                cur_row = self.list1.currentRow()
-                new_name_with_info = self.original_path_name[cur_row].strip()
-                extra_info = ''
-                if '	' in new_name_with_info:
-                    name = new_name_with_info.split('	')[0]
-                    extra_info = new_name_with_info.split('	')[1]
+                m = []
+                if not send_list:
+                    cur_row = self.list1.currentRow()
+                    new_name_with_info = self.original_path_name[cur_row].strip()
+                    extra_info = ''
+                    if '	' in new_name_with_info:
+                        name = new_name_with_info.split('	')[0]
+                        extra_info = new_name_with_info.split('	')[1]
+                    else:
+                        name = new_name_with_info
                 else:
-                    name = new_name_with_info
-                        
+                    m, summary, picn = send_list[0], send_list[1], send_list[2]
+                    self.record_history, self.depth_list = send_list[3], send_list[4]
+                    name, extra_info = send_list[5], send_list[6]
+                    siteName, opt = send_list[7], send_list[8]
+                    cur_row = send_list[9]
+                    new_name_with_info = self.original_path_name[cur_row].strip()
+                    self.text.setText('Load..Complete')
+                    logger.info(m)
+                    logger.info(summary)
+                    logger.info(picn)
+                    logger.info('site={0};opt={1};name={2};extra_info={3}'.format(
+                        site, opt, name, extra_info))
                 if opt != "History" or site.lower() == 'myserver':
-                    m = []
-                    #try:
-                    self.text.setText('Wait...Loading')
-                    QtWidgets.QApplication.processEvents()
-                    try:
-                        if video_local_stream:
-                            siteName = os.path.join(home, 'History', site)
-                            if not os.path.exists(siteName):
-                                os.makedirs(siteName)
-                        m, summary, picn, self.record_history, self.depth_list = self.site_var.getEpnList(
-                                name, opt, self.depth_list, extra_info, siteName, 
-                                category)
-                        self.text.setText('Load..Complete')
-                    except Exception as e:
-                        print(e)
-                        self.text.setText('Load..Failed')
+                    if not send_list:
+                        self.text.setText('Wait...Loading')
+                        QtWidgets.QApplication.processEvents()
+                        try:
+                            if video_local_stream:
+                                siteName = os.path.join(home, 'History', site)
+                                if not os.path.exists(siteName):
+                                    os.makedirs(siteName)
+                            #m, summary, picn, self.record_history, self.depth_list = self.site_var.getEpnList(
+                            #        name, opt, self.depth_list, extra_info, siteName, 
+                            #        category)
+                            #self.text.setText('Load..Complete')
+                            if not self.epn_wait_thread.isRunning():
+                                self.epn_wait_thread = PlayerGetEpn(
+                                    self, logger, 'list', name, opt, 
+                                    self.depth_list, extra_info, siteName,
+                                    category, cur_row)
+                                self.epn_wait_thread.start()
+                                return 0
+                            else:
+                                self.text.setText('Please Wait...Loading of\
+                                                  Earlier Title is in process')
+                                return 0
+                        except Exception as e:
+                            print(e)
+                            self.text.setText('Load..Failed')
+                            return 0
                     if not m:
                         return 0
                     else:
