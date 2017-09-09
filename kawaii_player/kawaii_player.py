@@ -52,6 +52,7 @@ import ipaddress
 import ssl
 import hashlib
 import uuid
+import platform
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
@@ -170,7 +171,8 @@ from widgets.scrollwidgets import *
 from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
-from thread_modules import DiscoverServer, BroadcastServer, GetServerEpisodeInfo
+from thread_modules import DiscoverServer, BroadcastServer
+from thread_modules import GetServerEpisodeInfo, PlayerGetEpn
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 
@@ -1476,6 +1478,9 @@ class Ui_MainWindow(object):
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
         self.mpv_custom_pause = False
+        self.epn_lock_thread = False
+        self.epn_wait_thread = QtCore.QThread()
+        self.epnfound_final_link = ""
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -8331,7 +8336,82 @@ class Ui_MainWindow(object):
             else:
                 nm = self.getdb.epn_return_from_bookmark(nm, from_client=True)
         return nm
-
+    
+    def epnfound_now_start_player(self, url_link, row_val):
+        global site, Player, refererNeeded, idw, current_playing_file_path
+        global refererNeeded, finalUrlFound, quitReally, rfr_url
+        finalUrl = url_link
+        print(row_val, '--epn--row--')
+        if row_val.isnumeric():
+            row = int(row_val)
+        else:
+            row = row_val
+        referer = ''
+        if isinstance(finalUrl, list):
+            rfr_exists = finalUrl[-1]
+            rfr_needed = False
+            if rfr_exists == 'referer sent':
+                rfr_needed = True
+                finalUrl.pop()
+            if refererNeeded or rfr_needed:
+                referer = finalUrl[1]
+            finalUrl = finalUrl[0]
+            
+        finalUrl = finalUrl.replace('"', '')
+        
+        finalUrl = '"'+finalUrl+'"'
+        try:
+            finalUrl = str(finalUrl)
+        except:
+            finalUrl = finalUrl
+        if self.mpvplayer_val.processId() > 0:
+            self.mpvplayer_val.kill()
+            self.mpvplayer_started = False
+        if Player == "mpv":
+            if not referer:
+                command = self.mplayermpv_command(idw, finalUrl, Player)
+            else:
+                command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
+            logger.info(command)
+            self.infoPlay(command)
+        elif Player == "mplayer":
+            quitReally = "no"
+            idw = str(int(self.tab_5.winId()))
+            if site != "Music":
+                self.tab_5.show()
+            if not referer:
+                command = self.mplayermpv_command(idw, finalUrl, Player)
+            else:
+                command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
+            logger.info(command)
+            self.infoPlay(command)
+        else:
+            finalUrl = finalUrl.replace('"', '')
+            subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            
+        if not isinstance(finalUrl, list):
+            self.final_playing_url = finalUrl.replace('"', '')
+            if self.final_playing_url.startswith('http'):
+                current_playing_file_path = self.final_playing_url
+            else:
+                current_playing_file_path = '"'+self.final_playing_url+'"'
+        else:
+            self.final_playing_url = finalUrl[0].replace('"', '')
+            if refererNeeded == True:
+                rfr_url = finalUrl[1].replace('"', '')
+        if self.download_video == 0:
+            self.initial_view_mode()
+        if isinstance(row, int):
+            if '	' in self.epn_arr_list[row]:
+                epn_name = (self.epn_arr_list[row]).split('	')[0]
+            else:
+                epn_name = self.epn_arr_list[row]
+        else:
+            epn_name = row
+        self.epn_name_in_list = epn_name.replace('#', '', 1)
+        if isinstance(row, int):
+            self.paste_background(row)
+        
     def epnfound(self):
         global site, base_url, embed, epn, epn_goto, mirrorNo, list2_items, quality
         global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
@@ -8344,7 +8424,7 @@ class Ui_MainWindow(object):
         global current_playing_file_path
         global music_arr_setting, default_arr_setting, local_torrent_file_path
         global video_local_stream
-
+        print('>>>>>>>>>>><<<<<<<<<<<<')
         buffering_mplayer="no"
         self.list4.hide()
         self.player_play_pause.setText(self.player_buttons['pause'])
@@ -8450,7 +8530,12 @@ class Ui_MainWindow(object):
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
-                        finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
+                        #finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
+                        if not self.epn_wait_thread.isRunning():
+                            self.epn_wait_thread = PlayerGetEpn(
+                                self, logger, 'addons', name, epn, mirrorNo,
+                                quality, row)
+                            self.epn_wait_thread.start()
                 except Exception as e:
                     print(e)
                     self.progressEpn.setFormat('Load Failed!')
@@ -8480,8 +8565,13 @@ class Ui_MainWindow(object):
                 epn = self.epn_name_in_list
                 self.playlistUpdate()
                 if 'youtube.com' in finalUrl:
-                    finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
-                #if is_artist_exists(row):
+                    #finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                    print(self.epn_wait_thread.isRunning())
+                    if not self.epn_wait_thread.isRunning():
+                        self.epn_wait_thread = PlayerGetEpn(
+                            self, logger, 'yt', finalUrl, quality,
+                            self.ytdl_path, row)
+                        self.epn_wait_thread.start()
         elif finalUrlFound == True:
                 row_num = self.list2.currentRow()
             
@@ -8549,8 +8639,13 @@ class Ui_MainWindow(object):
                         self.progressEpn.setFormat('Wait..')
                         QtWidgets.QApplication.processEvents()
                         try:
-                            finalUrl = self.site_var.getFinalUrl(
-                                siteName, name, epn, mirrorNo, category, quality) 
+                            #finalUrl = self.site_var.getFinalUrl(
+                            #    siteName, name, epn, mirrorNo, category, quality) 
+                            if not self.epn_wait_thread.isRunning():
+                                self.epn_wait_thread = PlayerGetEpn(
+                                    self, logger, 'type_one', name, epn, mirrorNo,
+                                    quality, row, siteName, category)
+                                self.epn_wait_thread.start()
                         except Exception as e:
                             print(e)
                             return 0
@@ -8581,8 +8676,13 @@ class Ui_MainWindow(object):
                     self.progressEpn.setFormat('Wait..')
                     QtWidgets.QApplication.processEvents()
                     try:
-                        finalUrl = self.site_var.getFinalUrl(
-                            siteName, name, epn, mirrorNo, quality) 
+                        #finalUrl = self.site_var.getFinalUrl(
+                        #    siteName, name, epn, mirrorNo, quality) 
+                        if not self.epn_wait_thread.isRunning():
+                            self.epn_wait_thread = PlayerGetEpn(
+                                self, logger, 'type_two', name, epn, mirrorNo,
+                                quality, row, siteName)
+                            self.epn_wait_thread.start()
                     except Exception as e:
                         print(e)
                         return 0
@@ -8626,12 +8726,12 @@ class Ui_MainWindow(object):
         if site != "Music":
             self.tab_5.show()
             
-        logger.info(finalUrl)
+        #logger.info(finalUrl)
         print("***********")
         if (site == "Local" or site == "Video" or site == "Music" or site == "None" 
                 or site == "PlayLists" and (not type(finalUrl) is list 
                 or (type(finalUrl) is list and len(finalUrl) == 1)) 
-                and self.download_video == 0):
+                and self.download_video == 0 and not self.epn_wait_thread.isRunning()):
             if type(finalUrl) is list:
                 finalUrl = finalUrl[0]
                 
@@ -8661,7 +8761,7 @@ class Ui_MainWindow(object):
             else:
                 finalUrl = finalUrl.replace('"', '')
                 subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        else:
+        elif not self.epn_wait_thread.isRunning():
             if self.download_video == 0 and Player == "mpv":
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
@@ -8818,22 +8918,23 @@ class Ui_MainWindow(object):
             self.list2.setCurrentRow(row)
         epn_goto = 0
         
-        if not isinstance(finalUrl, list):
-            self.final_playing_url = finalUrl.replace('"', '')
-            if self.final_playing_url.startswith('http'):
-                current_playing_file_path = self.final_playing_url
+        if not self.epn_wait_thread.isRunning():
+            if not isinstance(finalUrl, list):
+                self.final_playing_url = finalUrl.replace('"', '')
+                if self.final_playing_url.startswith('http'):
+                    current_playing_file_path = self.final_playing_url
+                else:
+                    current_playing_file_path = '"'+self.final_playing_url+'"'
             else:
-                current_playing_file_path = '"'+self.final_playing_url+'"'
-        else:
-            self.final_playing_url = finalUrl[0].replace('"', '')
-            if refererNeeded == True:
-                rfr_url = finalUrl[1].replace('"', '')
-                
-        if self.download_video == 0:
-            self.initial_view_mode()
-        self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
-        
-        self.paste_background(row)
+                self.final_playing_url = finalUrl[0].replace('"', '')
+                if refererNeeded == True:
+                    rfr_url = finalUrl[1].replace('"', '')
+                    
+            if self.download_video == 0:
+                self.initial_view_mode()
+            self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
+            
+            self.paste_background(row)
 
 
     def start_torrent_stream(
@@ -9232,58 +9333,72 @@ class Ui_MainWindow(object):
     def start_offline_mode(self, row):
         global site, name, hdr
         if not self.if_file_path_exists_then_play(row, self.list2, False):
-            finalUrl = self.epn_return(row, mode='offline')
-            referer = False
-            if type(finalUrl) is not list:
-                finalUrl = finalUrl.replace('"', '')
-            else:
-                rfr = finalUrl[1]
-                logger.info(rfr)
-                finalUrl = re.sub('#|"', '', finalUrl[0])
-                logger.info(finalUrl)
-                referer = True
+            #finalUrl = self.epn_return(row, mode='offline')
+            if not self.epn_wait_thread.isRunning():
+                self.epn_wait_thread = PlayerGetEpn(
+                    self, logger, 'offline', row, 'offline')
+                self.epn_wait_thread.start()
                 
-            self.list2.setFocus()
-            r = self.list2.currentRow()
-            print(r)
-            new_epn = self.list2.item(row).text()
-            if new_epn.startswith(self.check_symbol):
-                new_epn = new_epn[1:] 
-            new_epn = new_epn.replace('/', '-')
-            new_epn = re.sub('"|.mkv|.mp4', '', new_epn)
-            if new_epn.startswith('.'):
-                new_epn = new_epn[1:]
-            if finalUrl.endswith('.mkv'):
-                new_epn = new_epn+'.mkv'
+    def start_offline_mode_post(self, finalUrl, row):
+        global site, name, hdr
+        referer = False
+        if not isinstance(finalUrl, list):
+            finalUrl = finalUrl.replace('"', '')
+        else:
+            rfr = finalUrl[1]
+            logger.info(rfr)
+            finalUrl = re.sub('#|"', '', finalUrl[0])
+            logger.info(finalUrl)
+            referer = True
+        self.list2.setFocus()
+        r = self.list2.currentRow()
+        print(r)
+        new_epn = self.list2.item(row).text()
+        if new_epn.startswith(self.check_symbol):
+            new_epn = new_epn[1:] 
+        new_epn = new_epn.replace('/', '-')
+        new_epn = re.sub('"|.mkv|.mp4', '', new_epn)
+        if new_epn.startswith('.'):
+            new_epn = new_epn[1:]
+        if finalUrl.endswith('.mkv'):
+            new_epn = new_epn+'.mkv'
+        else:
+            new_epn = new_epn+'.mp4'
+        if self.list1.currentItem():
+            title = self.list1.currentItem().text()
+        else:
+            title = name
+        folder_name = os.path.join(self.default_download_location, title)
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+        npn = os.path.join(folder_name, new_epn)
+        if platform.system().lower() == 'linux':
+            fetch_library = 'wget'
+        else:
+            fetch_library = self.get_fetch_library
+        if finalUrl.startswith('http'):
+            if not referer:
+                command = wget_string(finalUrl, npn, fetch_library)
             else:
-                new_epn = new_epn+'.mp4'
-            if self.list1.currentItem():
-                title = self.list1.currentItem().text()
-            else:
-                title = name
-            folder_name = os.path.join(self.default_download_location, title)
-            if not os.path.exists(folder_name):
-                os.makedirs(folder_name)
-            npn = os.path.join(folder_name, new_epn)
-            if finalUrl.startswith('http'):
-                if not referer:
-                    command = wget_string(finalUrl, npn, self.get_fetch_library)
-                else:
-                    command = wget_string(finalUrl, npn, self.get_fetch_library, rfr)
-                logger.info(command)
-                self.infoWget(command, 0)
+                command = wget_string(finalUrl, npn, fetch_library, rfr)
+            logger.info(command)
+            self.infoWget(command, 0, fetch_library)
         self.download_video = 0
         
-    def dataReadyW(self, p):
+    def dataReadyW(self, p, get_lib):
         global wget, new_epn, quitReally, curR, epn, opt, base_url, Player, site
         global sizeFile
-        print('----------------')
+        #print('----------------', a)
+        if not get_lib:
+            get_fetch_lib = self.get_fetch_library.lower()
+        else:
+            get_fetch_lib = get_lib.lower()
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
             #print(a)
         except:
             a =''
-        if self.get_fetch_library.lower() == 'wget':
+        if get_fetch_lib == 'wget':
             if "Length:" in a:
                 l = re.findall('[(][^)]*[)]', a)
                 if l:
@@ -9325,8 +9440,6 @@ class Ui_MainWindow(object):
                 except Exception as e:
                     print(e)
             word = ' '.join(d)
-            #print(word)
-            #print(c)
             if len(c)<=3 and len(c)>=2:
                 self.curl_progress_end = c[-2]+' '+c[-1]
             elif len(c)>=3:
@@ -9373,41 +9486,19 @@ class Ui_MainWindow(object):
                 del t1
                 del self.queue_url_list[j]
                 print(t, '**************row------num-----------')
-                finalUrl = self.epn_return(t, mode='offline')
-                referer = False
-                if type(finalUrl) is not list:
-                    finalUrl = finalUrl.replace('"', '')
-                else:
-                    rfr = finalUrl[1]
-                    logger.info(rfr)
-                    finalUrl = re.sub('#|"', '', finalUrl[0])
-                    logger.info(finalUrl)
-                    referer = True
-                if self.list1.currentItem():
-                    title = self.list1.currentItem().text()
-                else:
-                    title = name
-                npn = os.path.join(self.default_download_location, title, nepn)
-                if finalUrl.endswith('.mkv'):
-                    npn = npn+'.mkv'
-                else:
-                    npn = npn+'.mp4'
-                if finalUrl.startswith('http'):
-                    if not referer:
-                        command = wget_string(finalUrl, npn, self.get_fetch_library)
-                    else:
-                        command = wget_string(finalUrl, npn, self.get_fetch_library, rfr)
-                    logger.info(command)
-                    self.infoWget(command, 0)
+                if not self.epn_wait_thread.isRunning():
+                    self.epn_wait_thread = PlayerGetEpn(
+                        self, logger, 'offline', t, 'offline')
+                    self.epn_wait_thread.start()
         
-    def infoWget(self, command, src):
+    def infoWget(self, command, src, get_library=None):
         global wget
         wget = QtCore.QProcess()
         wget.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.curl_progress_init = ''
         self.curl_progress_end = ''
         wget.started.connect(self.startedW)
-        wget.readyReadStandardOutput.connect(partial(self.dataReadyW, wget))
+        wget.readyReadStandardOutput.connect(partial(self.dataReadyW, wget, get_library))
         wget.finished.connect(lambda x=src : self.finishedW(src))
         QtCore.QTimer.singleShot(1000, partial(wget.start, command))
         
@@ -10237,7 +10328,12 @@ class Ui_MainWindow(object):
                 self.playlistUpdate()
                 self.list2.setCurrentRow(row)
                 if 'youtube.com' in finalUrl:
-                    finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                    #finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                    if not self.epn_wait_thread.isRunning():
+                        self.epn_wait_thread = PlayerGetEpn(
+                            self, logger, 'yt', finalUrl, quality,
+                            self.ytdl_path, row)
+                        self.epn_wait_thread.start()
                 #self.external_url = self.get_external_url_status(finalUrl)
         
         self.adjust_thumbnail_window(row)
@@ -10276,7 +10372,7 @@ class Ui_MainWindow(object):
         except:
             finalUrl = finalUrl
             
-        if self.mpvplayer_val.processId() > 0:
+        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
             if Player == "mplayer":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if not self.external_url and self.mpvplayer_started:
@@ -10404,11 +10500,13 @@ class Ui_MainWindow(object):
                 idw = str(int(self.tab_5.winId()))
             if 'youtube.com' in epnShow.lower():
                 finalUrl = epnShow.replace('"', '')
-                finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                 epnShow = finalUrl
+                if not self.epn_wait_thread.isRunning():
+                    self.epn_wait_thread = PlayerGetEpn(
+                        self, logger, 'yt', finalUrl, quality,
+                        self.ytdl_path, self.epn_name_in_list)
+                    self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(epnShow)
-            #if not self.external_url and Player == 'mplayer':
-            #	finalUrl = self.get_redirected_url_if_any(finalUrl, self.external_url)
         else:
             epnShow = self.queue_url_list.pop()
             curR = curR - 1
@@ -10418,7 +10516,7 @@ class Ui_MainWindow(object):
         
         epnShowN = '"'+epnShow.replace('"', '')+'"'
         command = self.mplayermpv_command(idw, epnShowN, Player, a_id=audio_id, s_id=sub_id)
-        if self.mpvplayer_val.processId() > 0:
+        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
             
@@ -10648,7 +10746,12 @@ class Ui_MainWindow(object):
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
-                        finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
+                        #finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
+                        if not self.epn_wait_thread.isRunning():
+                            self.epn_wait_thread = PlayerGetEpn(
+                                self, logger, 'addons', name, epn, mirrorNo,
+                                quality, row)
+                            self.epn_wait_thread.start()
                 except Exception as e:
                     print(e)
                     self.progressEpn.setFormat('Load Failed!')
@@ -10702,9 +10805,14 @@ class Ui_MainWindow(object):
                         self.progressEpn.setFormat('Wait..')
                         QtWidgets.QApplication.processEvents()
                         try:
-                            finalUrl = self.site_var.getFinalUrl(
-                                siteName, name, epn, mirrorNo, category, quality
-                                ) 
+                            #finalUrl = self.site_var.getFinalUrl(
+                            #    siteName, name, epn, mirrorNo, category, quality
+                            #    )
+                            if not self.epn_wait_thread.isRunning():
+                                self.epn_wait_thread = PlayerGetEpn(
+                                    self, logger, 'type_one', name, epn, mirrorNo,
+                                    quality, row, siteName, category)
+                                self.epn_wait_thread.start()
                         except Exception as e:
                             print(e)
                             return 0
@@ -10714,9 +10822,14 @@ class Ui_MainWindow(object):
                     self.progressEpn.setFormat('Wait..')
                     QtWidgets.QApplication.processEvents()
                     try:
-                        finalUrl = self.site_var.getFinalUrl(
-                            siteName, name, epn, mirrorNo, quality
-                            ) 
+                        #finalUrl = self.site_var.getFinalUrl(
+                        #    siteName, name, epn, mirrorNo, quality
+                        #    ) 
+                        if not self.epn_wait_thread.isRunning():
+                            self.epn_wait_thread = PlayerGetEpn(
+                                self, logger, 'type_two', name, epn, mirrorNo,
+                                quality, row, siteName)
+                            self.epn_wait_thread.start()
                     except Exception as e:
                         print(e)
                         return 0
@@ -10745,8 +10858,8 @@ class Ui_MainWindow(object):
                 
         new_epn = self.epn_name_in_list
         
-        if (site == "Local" or site == "Video" or site == "Music" 
-                or site == "None" or site == "PlayLists"):
+        if ((site == "Local" or site == "Video" or site == "Music" 
+                or site == "None" or site == "PlayLists") and not self.epn_wait_thread.isRunning()):
             if type(finalUrl) is list:
                 finalUrl = finalUrl[0]
             finalUrl = finalUrl.replace('"', '')
@@ -10763,7 +10876,7 @@ class Ui_MainWindow(object):
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
             self.infoPlay(command)
-        else:
+        elif not self.epn_wait_thread.isRunning():
             if isinstance(finalUrl, list):
                 rfr_exists = finalUrl[-1]
                 rfr_needed = False
@@ -10825,17 +10938,18 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                 self.infoPlay(command)
-                
-        if not isinstance(finalUrl, list):
-            self.final_playing_url = finalUrl.replace('"', '')
-            if self.final_playing_url.startswith('http'):
-                current_playing_file_path = self.final_playing_url
+        
+        if not self.epn_wait_thread.isRunning():
+            if not isinstance(finalUrl, list):
+                self.final_playing_url = finalUrl.replace('"', '')
+                if self.final_playing_url.startswith('http'):
+                    current_playing_file_path = self.final_playing_url
+                else:
+                    current_playing_file_path = '"'+self.final_playing_url+'"'
             else:
-                current_playing_file_path = '"'+self.final_playing_url+'"'
-        else:
-            self.final_playing_url = finalUrl[0].replace('"', '')
-            if refererNeeded == True:
-                rfr_url = finalUrl[1].replace('"', '')
+                self.final_playing_url = finalUrl[0].replace('"', '')
+                if refererNeeded == True:
+                    rfr_url = finalUrl[1].replace('"', '')
     
     def play_video_url(self, player, url):
         print('hello')
