@@ -626,6 +626,7 @@ class PlayerGetEpn(QtCore.QThread):
     get_offline_signal = pyqtSignal(str, int)
     get_epn_signal_list = pyqtSignal(list, str)
     get_offline_signal_list = pyqtSignal(list, int)
+    get_listfound_signal = pyqtSignal(list)
     
     def __init__(self, ui_widget, logr, epn_type, *args):
         QtCore.QThread.__init__(self)
@@ -652,6 +653,14 @@ class PlayerGetEpn(QtCore.QThread):
         elif self.epn_type == 'offline':
             self.row = args[0]
             self.mode = args[1]
+        elif self.epn_type == 'list':
+            self.name = args[0]
+            self.opt = args[1]
+            self.depth_list = args[2]
+            self.extra_info = args[3]
+            self.siteName = args[4]
+            self.category = args[5]
+            self.row = args[6]
         else:
             pass
         #self.command = command
@@ -660,6 +669,7 @@ class PlayerGetEpn(QtCore.QThread):
         self.get_offline_signal.connect(connect_to_offline_mode)
         self.get_epn_signal_list.connect(connect_to_epn_generator_list)
         self.get_offline_signal_list.connect(connect_to_offline_mode_list)
+        self.get_listfound_signal.connect(connect_to_listfound_signal)
         
     def __del__(self):
         self.wait()                        
@@ -680,17 +690,32 @@ class PlayerGetEpn(QtCore.QThread):
                                                self.mirrorNo, self.quality)
         elif self.epn_type == 'offline':
             finalUrl = ui.epn_return(self.row, mode=self.mode)
-        ui.epnfound_final_link = finalUrl
+        elif self.epn_type == 'list':
+            mytuple = ui.site_var.getEpnList(self.name, self.opt,
+                                             self.depth_list, self.extra_info,
+                                             self.siteName, self.category)
+            mylist = []
+            for i in mytuple:
+                mylist.append(i)
+            mylist.append(self.name)
+            mylist.append(self.extra_info)
+            mylist.append(self.siteName)
+            mylist.append(self.opt)
+            mylist.append(self.row)
+        if self.epn_type != 'list':
+            ui.epnfound_final_link = finalUrl
         if not isinstance(finalUrl, list):
-            if self.epn_type != 'offline':
-                self.get_epn_signal.emit(finalUrl, str(self.row))
-            else:
+            if self.epn_type == 'offline':
                 self.get_offline_signal.emit(finalUrl, self.row)
-        else:
-            if self.epn_type != 'offline':
-                self.get_epn_signal_list.emit(finalUrl, str(self.row))
+            elif self.epn_type == 'list':
+                self.get_listfound_signal.emit(mylist)
             else:
+                self.get_epn_signal.emit(finalUrl, str(self.row))
+        else:
+            if self.epn_type == 'offline':
                 self.get_offline_signal_list.emit(finalUrl, self.row)
+            else:
+                self.get_epn_signal_list.emit(finalUrl, str(self.row))
         
 @pyqtSlot(str, str)
 def connect_to_epn_generator(url, row):
@@ -712,6 +737,11 @@ def connect_to_epn_generator_list(url, row):
 def connect_to_offline_mode_list(url, row):
     global ui
     ui.start_offline_mode_post(url, row)
+    
+@pyqtSlot(list)
+def connect_to_listfound_signal(mylist):
+    global ui
+    ui.listfound(send_list=mylist)
 
 class GetIpThread(QtCore.QThread):
     
