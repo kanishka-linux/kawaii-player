@@ -620,6 +620,99 @@ def start_new_player_instance(command):
     global ui
     ui.infoPlay(command)
 
+class PlayerGetEpn(QtCore.QThread):
+
+    get_epn_signal = pyqtSignal(str, str)
+    get_offline_signal = pyqtSignal(str, int)
+    get_epn_signal_list = pyqtSignal(list, str)
+    get_offline_signal_list = pyqtSignal(list, int)
+    
+    def __init__(self, ui_widget, logr, epn_type, *args):
+        QtCore.QThread.__init__(self)
+        global ui, logger
+        ui = ui_widget
+        logger = logr
+        self.epn_type = epn_type
+        if self.epn_type == 'yt':
+            self.final = args[0]
+            self.quality = args[1]
+            self.yt_path = args[2]
+            self.row = args[3]
+        elif (self.epn_type == 'addons' or self.epn_type == 'type_one' 
+                or self.epn_type == 'type_two'):
+            self.name = args[0]
+            self.epn = args[1]
+            self.mirrorNo = args[2]
+            self.quality = args[3]
+            self.row = args[4]
+            if self.epn_type == 'type_two' or self.epn_type == 'type_one':
+                self.siteName = args[5]
+                if self.epn_type == 'type_one':
+                    self.category = args[6]
+        elif self.epn_type == 'offline':
+            self.row = args[0]
+            self.mode = args[1]
+        else:
+            pass
+        #self.command = command
+        logger.info(args)
+        self.get_epn_signal.connect(connect_to_epn_generator)
+        self.get_offline_signal.connect(connect_to_offline_mode)
+        self.get_epn_signal_list.connect(connect_to_epn_generator_list)
+        self.get_offline_signal_list.connect(connect_to_offline_mode_list)
+        
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        finalUrl = ""
+        if self.epn_type == 'yt':
+            finalUrl = get_yt_url(self.final, self.quality, self.yt_path, logger)
+        elif self.epn_type == 'addons':
+            finalUrl = ui.site_var.getFinalUrl(self.name, self.epn,
+                                               self.mirrorNo, self.quality)
+        elif self.epn_type == 'type_one':
+            finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
+                                               self.mirrorNo, self.category,
+                                               self.quality)
+        elif self.epn_type == 'type_two':
+            finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
+                                               self.mirrorNo, self.quality)
+        elif self.epn_type == 'offline':
+            finalUrl = ui.epn_return(self.row, mode=self.mode)
+        ui.epnfound_final_link = finalUrl
+        if not isinstance(finalUrl, list):
+            if self.epn_type != 'offline':
+                self.get_epn_signal.emit(finalUrl, str(self.row))
+            else:
+                self.get_offline_signal.emit(finalUrl, self.row)
+        else:
+            if self.epn_type != 'offline':
+                self.get_epn_signal_list.emit(finalUrl, str(self.row))
+            else:
+                self.get_offline_signal_list.emit(finalUrl, self.row)
+        
+@pyqtSlot(str, str)
+def connect_to_epn_generator(url, row):
+    global ui
+    ui.epnfound_now_start_player(url, row)
+    
+@pyqtSlot(str, int)
+def connect_to_offline_mode(url, row):
+    global ui
+    ui.start_offline_mode_post(url, row)
+    
+@pyqtSlot(list, str)
+def connect_to_epn_generator_list(url, row):
+    global ui
+    print('<<<<<<<<<<<<<\n\n{0}\n\n>>>>>>>>>'.format(url))
+    ui.epnfound_now_start_player(url, row)
+    
+@pyqtSlot(list, int)
+def connect_to_offline_mode_list(url, row):
+    global ui
+    ui.start_offline_mode_post(url, row)
+
 class GetIpThread(QtCore.QThread):
     
     got_ip_signal = pyqtSignal(str)
