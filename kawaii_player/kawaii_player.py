@@ -6870,12 +6870,11 @@ class Ui_MainWindow(object):
                 self.list3.clear()
                 print(criteria)
                 tmp = criteria[-1]
-                if tmp == "FinalUrl:Referer:":
+                if tmp.lower() == 'newversion':
                     criteria.pop()
-                    finalUrlFound = True
-                    refererNeeded = True
-                    video_local_stream = False
-                elif tmp == 'LocalStreaming':
+                    self.options_mode = 'new'
+                    tmp = criteria[-1]
+                if tmp == 'LocalStreaming':
                     criteria.pop()
                     video_local_stream = True
                     if not self.local_ip:
@@ -6883,9 +6882,6 @@ class Ui_MainWindow(object):
                     if not self.local_port:
                         self.local_port = 8001
                     self.torrent_type = 'file'
-                elif tmp.lower() == 'newversion':
-                    criteria.pop()
-                    self.options_mode = 'new'
                 else:
                     finalUrlFound = False
                     refererNeeded = False
@@ -11015,7 +11011,7 @@ class Ui_MainWindow(object):
             self.newoptionmode(val)
             
     def newoptionmode(self, val):
-        global opt, home, site, list1_items, pgn
+        global opt, home, site, list1_items, pgn, video_local_stream
         t_opt = "History"
         print(val, '----clicked---', type(val))
         if val == "clicked":
@@ -11052,14 +11048,30 @@ class Ui_MainWindow(object):
         else:
             self.text.setText('Wait...Loading')
             QtWidgets.QApplication.processEvents()
-            try:
-                m = self.site_var.getCompleteList(t_opt, genre_num)
-                self.text.setText('Load Complete!')
-            except Exception as e:
-                print(e)
-                m = []
-                self.text.setText('Load Failed!')
-                return 0
+            if video_local_stream:
+                try:
+                    history_folder = os.path.join(home, 'History', site)
+                    if not os.path.exists(history_folder):
+                        os.makedirs(history_folder)
+                    m = self.site_var.getCompleteList(
+                            t_opt, self.list6, self.progress, 
+                            self.tmp_download_folder, history_folder
+                            )
+                    self.text.setText('Load Complete!')
+                except Exception as e:
+                    print(e)
+                    m = []
+                    self.text.setText('Load Failed!')
+                    return 0
+            else:
+                try:
+                    m = self.site_var.getCompleteList(t_opt, genre_num)
+                    self.text.setText('Load Complete!')
+                except Exception as e:
+                    print(e)
+                    m = []
+                    self.text.setText('Load Failed!')
+                    return 0
             opt = t_opt
             list_1 = list_2 = list_3 = False
             if m:
