@@ -26,9 +26,10 @@ class Shoutcast():
     def __init__(self, tmp):
         self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
         self.tmp_dir = tmp
+        self.genre = []
         
     def getOptions(self):
-            criteria = ['History', 'Genre']
+            criteria = ['History', 'Genre', 'newversion']
             return criteria
         
     def getFinalUrl(self, name, epn, mir, quality):
@@ -72,19 +73,26 @@ class Shoutcast():
         
     def getCompleteList(self, opt, genre_num):
         m = []
-        if opt == 'Genre' and genre_num == 0:
-            url = "http://www.shoutcast.com/"
-            content = ccurl(url)
-            m = re.findall('Genre[^"]name[^"]*', content)
-            j = 0
-            for i in m:
-                m[j] = re.sub('Genre[^"]name=', '', i)
-                m[j] = re.sub("[+]|%20", ' ', m[j])
-                j = j+1
-            m.sort()
-            print(m)
-            n = ["History", "Genre"]
-            m = n + m
+        url = None
+        if opt == '<----':
+            m = ['Genre', 'History', 0]
+        elif opt == 'Genre':
+            if self.genre:
+                m = self.genre.copy()
+            else:
+                url = "http://www.shoutcast.com/"
+                content = ccurl(url)
+                m = re.findall('Genre[^"]name[^"]*', content)
+                j = 0
+                for i in m:
+                    m[j] = re.sub('Genre[^"]name=', '', i)
+                    m[j] = re.sub("[+]|%20", ' ', m[j])
+                    j = j+1
+                m.sort()
+                print(m)
+                self.genre = m.copy()
+            m.append('<----')
+            m.append(0)
         elif opt == 'History':
             pass
         elif opt == 'TV':
@@ -94,6 +102,7 @@ class Shoutcast():
             post = 'genrename='+opt
             content = ccurl(url+'#'+'-d'+'#'+post)
             m = self.process_page(content)
+            m.append(1)
         print(opt, url)
         return m
     

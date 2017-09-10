@@ -37,7 +37,7 @@ class Torrent():
         self.tmp_dir = tmp
         
     def getOptions(self):
-        criteria = ['Open', 'History', 'LocalStreaming']
+        criteria = ['Open', 'History', 'LocalStreaming', 'newversion']
         return criteria
         
     def search(self, name):
@@ -80,6 +80,7 @@ class Torrent():
                     torrent_handle.pause()
                     stream_session.pause()
                     m = [name]
+        m.append(1)
         return m
     
     def getEpnList(self, name, opt, depth_list, extra_info, siteName, category):
