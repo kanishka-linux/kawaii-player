@@ -235,6 +235,7 @@ def get_hls_path():
             print(e, '--43--')
             from hls_webkit.hls_engine_webkit import BrowseUrlT
             webkit = True
+            print('webkit available')
         hls_dir, hls_file = os.path.split(sys.executable)
         if hls_file.startswith('python'):
             frozen_file = False	
