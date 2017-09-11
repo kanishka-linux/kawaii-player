@@ -7262,21 +7262,23 @@ class Ui_MainWindow(object):
                                 siteName = os.path.join(home, 'History', site)
                                 if not os.path.exists(siteName):
                                     os.makedirs(siteName)
-                            #m, summary, picn, self.record_history, self.depth_list = self.site_var.getEpnList(
-                            #        name, opt, self.depth_list, extra_info, siteName, 
-                            #        category)
-                            #self.text.setText('Load..Complete')
-                            if not self.epn_wait_thread.isRunning():
-                                self.epn_wait_thread = PlayerGetEpn(
-                                    self, logger, 'list', name, opt, 
-                                    self.depth_list, extra_info, siteName,
-                                    category, cur_row)
-                                self.epn_wait_thread.start()
-                                return 0
+                            if site.lower() == 'myserver':
+                                m, summary, picn, self.record_history, self.depth_list = self.site_var.getEpnList(
+                                    name, opt, self.depth_list, extra_info, siteName, 
+                                    category)
+                                self.text.setText('Load..Complete')
                             else:
-                                self.text.setText('Please Wait...Loading of\
-                                                  Earlier Title is in process')
-                                return 0
+                                if not self.epn_wait_thread.isRunning():
+                                    self.epn_wait_thread = PlayerGetEpn(
+                                        self, logger, 'list', name, opt, 
+                                        self.depth_list, extra_info, siteName,
+                                        category, cur_row)
+                                    self.epn_wait_thread.start()
+                                    return 0
+                                else:
+                                    self.text.setText('Please Wait...Loading of\
+                                                      Earlier Title is in process')
+                                    return 0
                         except Exception as e:
                             print(e)
                             self.text.setText('Load..Failed')
