@@ -1481,6 +1481,8 @@ class Ui_MainWindow(object):
         self.epn_lock_thread = False
         self.epn_wait_thread = QtCore.QThread()
         self.epnfound_final_link = ""
+        self.eof_reached = False
+        self.eof_lock = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -9379,7 +9381,6 @@ class Ui_MainWindow(object):
         global new_tray_widget, video_local_stream, pause_indicator
         global epn_name_in_list, mpv_indicator, mpv_start, idw, cur_label_num
         global sub_id, audio_id, current_playing_file_path, wget, desktop_session
-        
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
             if 'volume' in a:
@@ -9424,6 +9425,14 @@ class Ui_MainWindow(object):
                             break
                 if a and 'AV:' not in a and 'A:' not in a:
                     logger.info('-->{0}<--'.format(a))
+            if (Player == 'mpv' and self.mplayerLength
+                    and ("EOF code: 1" in a 
+                    or "HTTP error 403 Forbidden" in a 
+                    or self.mplayerLength == self.progress_counter
+                    or 'finished playback, success (reason 0)' in a)):
+                if not self.eof_reached:
+                    self.eof_reached = True
+                    self.eof_lock = True
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
                 if 'icy info:' in a.lower():
                     song_title = re.search("'[^']*", a)
@@ -9475,7 +9484,8 @@ class Ui_MainWindow(object):
                         sub_id = "no"
                     print("sub_id="+sub_id)
                     self.subtitle_track.setText("Sub:"+str(s_id[:8]))
-                elif "Length_Seconds=" in a and not self.mplayerLength and 'args=' not in a:
+                elif ("Length_Seconds=" in a and not self.mplayerLength 
+                        and 'args=' not in a and not self.eof_reached):
                     print(a)
                     if a.startswith(r"b'"):
                         mpl = re.sub('[^"]*Length_Seconds=', '', a)
@@ -9492,8 +9502,7 @@ class Ui_MainWindow(object):
                         print(mpl)
                         print(self.mplayerLength)
                         self.slider.setRange(0, int(self.mplayerLength))
-            
-                elif "AV:" in a or "A:" in a:
+                elif ("AV:" in a or "A:" in a) and not self.eof_reached:
                     if not mpv_start:
                         mpv_start.append("Start")
                         try:
@@ -9618,6 +9627,8 @@ class Ui_MainWindow(object):
                 elif "VO:" in a or "AO:" in a or 'Stream opened successfully' in a:
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
+                    self.eof_reached = False
+                    self.eof_lock = False
                     if MainWindow.isFullScreen() and layout_mode != "Music":
                         if ((desktop_session == 'lxde' or desktop_session == 'lxqt'
                                 or desktop_session == 'xfce') and 'VO: Description:' not in a):
@@ -9626,15 +9637,15 @@ class Ui_MainWindow(object):
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
                             self.frame_timer.start(1000)
-                elif (self.mplayerLength and ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a 
-                        or self.mplayerLength == self.progress_counter) 
+                elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
+                    self.eof_lock = False
                     if "EOF code: 1" in a:
                         reason_end = 'EOF code: 1'
                     else:
                         reason_end = 'length of file equals progress counter'
-                    logger.info('\ntrack no. {0} ended due to reason={1}\n'.format(curR, reason_end))
-                    print('\ntrack no. {0} ended due to reason={1}\n'.format(curR, reason_end))
+                    logger.info('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
+                    print('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
                     print(self.mplayerLength, self.progress_counter)
                     if self.player_setLoop_var:
                         if current_playing_file_path.startswith('"'):
@@ -9989,6 +10000,8 @@ class Ui_MainWindow(object):
 
     def infoPlay(self, command):
         global Player, site, new_epn, mpv_indicator, cache_empty
+        self.eof_reached = False
+        self.eof_lock = False
         if not command:
             t = "Loading Failed: No Url/File Found. Try Again"
             self.progressEpn.setFormat(t)
