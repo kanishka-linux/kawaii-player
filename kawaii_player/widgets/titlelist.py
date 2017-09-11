@@ -374,7 +374,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 else:
                     ui.deleteHistory()
         elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_H:
-            ui.setPreOpt()
+            ui.setPreOpt('fromtitlelist')
         elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_R:
             ui.shuffleList()
         elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_T:
@@ -1050,7 +1050,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                     if self.currentItem():
                         self.edit_name_list1(self.currentRow())
             elif action == history:
-                ui.setPreOpt()
+                ui.setPreOpt('fromtitlelist')
             elif action == rem_fanart:
                 path = ui.get_current_directory()
                 fanart = os.path.join(path, 'fanart.jpg')
