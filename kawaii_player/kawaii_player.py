@@ -5540,15 +5540,19 @@ class Ui_MainWindow(object):
                     self.list1.addItem(t)
                     hist_arr.append(j[5])
                     self.original_path_name.append(j[5])
-        elif siteName:
-            opt = "History"
-            self.options('history')	
         else:
             if option_val:
-                opt = option_val
+                if option_val == 'fromtitlelist':
+                    opt = 'History'
+                else:
+                    opt = option_val
             else:
                 opt = "History"
-            self.options(opt.lower())
+            print(site, option_val, ':setpreopt:')
+            if site.lower() == 'myserver' and option_val == 'fromtitlelist':
+                self.newoptions('history+offline')
+            else:
+                self.newoptions(opt.lower())
                 
     def mark_video_list(self, mark_val, row):
         global site
@@ -6387,7 +6391,7 @@ class Ui_MainWindow(object):
         finalUrlFound = False
         refererNeeded = False
         site = str(self.btn1.currentText())
-        siteName = None
+        siteName = ""
         if not self.btnAddon.isHidden():
             self.btnAddon.hide()
         if not self.btnHistory.isHidden():
@@ -6494,7 +6498,7 @@ class Ui_MainWindow(object):
         self.label.clear()
         self.text.clear()
         site = (self.btnAddon.currentText())
-        siteName = None
+        siteName = ""
         print(type(self.site_var), site, '--addon-changed--')
         plugin_path = os.path.join(home, 'src', 'Plugins', site+'.py')
         if os.path.exists(plugin_path):
@@ -9623,13 +9627,15 @@ class Ui_MainWindow(object):
                                 self.frame_timer.stop()
                             self.frame_timer.start(1000)
                 elif (self.mplayerLength and ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a 
-                        or self.mplayerLength == self.progress_counter)):
+                        or self.mplayerLength == self.progress_counter) 
+                        and not self.epn_wait_thread.isRunning()):
                     if "EOF code: 1" in a:
                         reason_end = 'EOF code: 1'
                     else:
                         reason_end = 'length of file equals progress counter'
                     logger.info('\ntrack no. {0} ended due to reason={1}\n'.format(curR, reason_end))
                     print('\ntrack no. {0} ended due to reason={1}\n'.format(curR, reason_end))
+                    print(self.mplayerLength, self.progress_counter)
                     if self.player_setLoop_var:
                         if current_playing_file_path.startswith('"'):
                             replay = '\n loadfile {0} replace \n'.format(current_playing_file_path)
@@ -10747,19 +10753,25 @@ class Ui_MainWindow(object):
     def newoptionmode(self, val):
         global opt, home, site, list1_items, pgn, video_local_stream, siteName
         t_opt = "History"
+        offline_history = False
         print(val, '----clicked---', type(val))
         if val == "clicked":
             row_number = self.list3.currentRow()
             item = self.list3.item(row_number)
             if item:
                 t_opt = str(self.list3.currentItem().text())
+        elif val == 'history+offline':
+            t_opt = 'History'
+            row_number = 0
+            offline_history = True
         elif val == "history":
             t_opt = "History"
             row_number = 0
         opt = t_opt
         self.line.clear()
         self.list2.clear()
-        if t_opt == "History" and site.lower() != 'myserver':
+        print(offline_history, val, opt, ':newoptions:')
+        if (t_opt == "History" and site.lower() != 'myserver') or offline_history:
             self.list1.clear()
             opt = t_opt
             if siteName:
@@ -11665,7 +11677,6 @@ def main():
     epn = ''
     name = ''
     site = "Local"
-    siteName = None
     genre_num = 0
     opt = ""
     pgn = 1
