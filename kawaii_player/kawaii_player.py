@@ -10852,12 +10852,12 @@ class Ui_MainWindow(object):
                     m.pop()
                 elif code == 3 or code == 5:
                     if site.lower() == 'myserver':
-                        mval = m.pop()
                         self.myserver_cache.clear()
-                        if mval == 3:
-                            self.text.setText('Login Required')
-                        else:
-                            self.text.setText('Logged out')
+                    mval = m.pop()
+                    if mval == 3:
+                        self.text.setText('Login Required')
+                    else:
+                        self.text.setText('Logged out')
                     return 0
                 elif code == 4:
                     m.pop()
