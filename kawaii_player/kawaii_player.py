@@ -9424,7 +9424,7 @@ class Ui_MainWindow(object):
                             self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                             break
                 if a and 'AV:' not in a and 'A:' not in a:
-                    logger.info('-->{0}<--'.format(a))
+                    logger.debug('-->{0}<--'.format(a))
             if (Player == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a 
                     or "HTTP error 403 Forbidden" in a 
@@ -9644,9 +9644,8 @@ class Ui_MainWindow(object):
                         reason_end = 'EOF code: 1'
                     else:
                         reason_end = 'length of file equals progress counter'
-                    logger.info('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
-                    print('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
-                    print(self.mplayerLength, self.progress_counter)
+                    logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
+                    logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
                     if self.player_setLoop_var:
                         pass
                     else:
@@ -12313,6 +12312,7 @@ def main():
             ui.btnWebReviews.addItem(i)
     if not ui.logging_module:
         logger.disabled = True
+        
     arr_setting = []
     
     arr_setting.append(show_hide_titlelist)
