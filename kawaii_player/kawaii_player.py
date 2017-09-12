@@ -1415,7 +1415,7 @@ class Ui_MainWindow(object):
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
-        self.player_setLoop_var = 0
+        self.player_setLoop_var = False
         self.playerPlaylist_setLoop_var = 0
         self.thread_server = QtCore.QThread()
         self.do_get_thread = QtCore.QThread()
@@ -2764,7 +2764,7 @@ class Ui_MainWindow(object):
         #txt = self.player_loop_file.text()
         
         if txt == self.player_buttons['unlock']:
-            self.player_setLoop_var = 1
+            self.player_setLoop_var = True
             self.player_loop_file.setText(self.player_buttons['lock'])
             new_tray_widget.lock.setText(self.player_buttons['lock'])
             quitReally = 'no'
@@ -2774,7 +2774,7 @@ class Ui_MainWindow(object):
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
         else:
-            self.player_setLoop_var = 0
+            self.player_setLoop_var = False
             self.player_loop_file.setText(self.player_buttons['unlock'])
             new_tray_widget.lock.setText(self.player_buttons['unlock'])
             if self.mpvplayer_val.processId() > 0:
@@ -2906,7 +2906,7 @@ class Ui_MainWindow(object):
         elif val == "Lock File":
             v = str(self.action_player_menu[5].text())
             if v == "Lock File":
-                self.player_setLoop_var = 1
+                self.player_setLoop_var = True
                 self.action_player_menu[5].setText("UnLock File")
                 self.player_loop_file.setText("unLock")
                 if Player == 'mpv':
@@ -2914,7 +2914,7 @@ class Ui_MainWindow(object):
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
             elif v == "UnLock File":
-                    self.player_setLoop_var = 0
+                    self.player_setLoop_var = False
                     self.action_player_menu[5].setText("Lock File")
                     self.player_loop_file.setText("Lock")
                     if Player == 'mpv':
@@ -2931,7 +2931,6 @@ class Ui_MainWindow(object):
                     self.action_player_menu[2].setText("Lock Playlist")
         elif val == "Stop After Current File":
             quitReally = "yes"
-            #self.player_setLoop_var = 0
         elif val == "Continue(default Mode)":
             quitReally = "no"
         elif val == "Shuffle":
@@ -6379,6 +6378,7 @@ class Ui_MainWindow(object):
         global rfr_url, finalUrlFound, refererNeeded
         global video_local_stream, siteName
         
+        self.options_mode = 'legacy'
         genre_num = 0
         #total_till = 0
         if self.site_var:
@@ -9430,7 +9430,7 @@ class Ui_MainWindow(object):
                     or "HTTP error 403 Forbidden" in a 
                     or self.mplayerLength == self.progress_counter
                     or 'finished playback, success (reason 0)' in a)):
-                if not self.eof_reached:
+                if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
                     self.eof_lock = True
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
@@ -9648,14 +9648,7 @@ class Ui_MainWindow(object):
                     print('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
                     print(self.mplayerLength, self.progress_counter)
                     if self.player_setLoop_var:
-                        if current_playing_file_path.startswith('"'):
-                            replay = '\n loadfile {0} replace \n'.format(current_playing_file_path)
-                        else:
-                            replay = '\n loadfile "{0}" replace \n'.format(current_playing_file_path)
-                        t2 = bytes(replay, 'utf-8')
-                        #logger.info(t2)
-                        self.mpvplayer_val.write(t2)
-                        return 0
+                        pass
                     else:
                         if not self.queue_url_list:
                             if self.list2.count() == 0:
@@ -10011,7 +10004,7 @@ class Ui_MainWindow(object):
             cache_empty = 'no'
             if command.startswith('mplayer') and OSNAME == 'nt':
                 command = command + ' -vo gl'
-            if self.player_setLoop_var == 1:
+            if self.player_setLoop_var:
                 if Player == 'mplayer':
                     command = command+' -loop 0'
                     
@@ -10040,7 +10033,7 @@ class Ui_MainWindow(object):
                 logger.info(command)
                 logger.info('infoplay--18165--')
                 self.mpvplayer_started = True
-                if self.player_setLoop_var == 1 and Player == 'mpv':
+                if self.player_setLoop_var and Player == 'mpv':
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
                 
     def adjust_thumbnail_window(self, row):
