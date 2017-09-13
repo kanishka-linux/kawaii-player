@@ -129,16 +129,6 @@ The media-server of this application has been designed in such a manner that, us
 
 ![kawaii-player](/Images/Watch.png)
 
-Library Management:
-
-It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
-
-If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries.  
-
-Users can get fanart/posters/summary for the entire collection. If appropriate match is not found then users can directly go to sites such as TVDB/TMDB directly using internal browser and can grab the content. The browser's internal contextmenu has been tweaked to facilitate getting required information. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in .config/kawaii-player/other_options.txt file). Users will also get to select various background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9). 
-
-The application can manage history/bookmrks and watch/unwatch status properly. It also supports playlist creation with mixed content. 
-
 ## Thumbnail Mode
 
 ###### [Index](#index)
@@ -552,8 +542,9 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	Once application is installed, launch the application using command **kawaii-player** or **kawaii-player-console** from the terminal.
 
-5. Alternative Method (only for gnu/linux systems): Users have to manually install all the dependencies listed below. Then they should clone the repository and go to kawaii_player. Then they can simply click (or execute using command line) **'kawaii-player-start'** shell script located in the directory to start the player directly **without copying files anywhere**.
+5. Tips for Windows users (only using setup.py method).
 
+If users find that some python dependencies (particularly pycurl and lxml) can't be installed properly, then they should grab appropriate binaries of these packages from [gohlke's site](http://www.lfd.uci.edu/~gohlke/pythonlibs/). Once all python based dependencies are installed, users need to install non-python dependencies like mpv/mplayer or curl/wget. In order to install these non-python packages, just grab binaries of these packages from official sites, extract them and add their path to window's system path. If users are finding some difficulty in setting path variable, then they can just dump all these extracted non-python binaries i.e. mpv/mplayer and curl/wget to the location '~/.config/kawaii-player/src/'; once it is done the application will automatically recognize them.
 
 # Dependencies
 
@@ -667,13 +658,27 @@ If users are still not satisfied with mpv or mplayer, then they can also launch 
 Middle column, is the “Title Column”, It will consists of name of the series.
 Last Column to the extreme right, is the “Playlist column”, which will contain playlist items which will be played sequentially in the default mode, you will just have to select entry and press enter or double click.
 
+### Library Management:
+
+It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
+
+If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries.  
+
+Users can get fanart/posters/summary for the entire collection. If appropriate match is not found then users can directly go to sites such as TVDB/TMDB directly using internal browser and can grab the content. The browser's internal contextmenu has been tweaked to facilitate getting required information. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in *'~/.config/kawaii-player/other_options.txt'* file). Users will also get to select various background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9). 
+
+The application can manage history/bookmarks and watch/unwatch status properly. It also supports playlist creation with mixed content. 
+
 ### KeyBoard Shortcuts:
 
 Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, it's volume will be in sync with global volume. So global volume key will work. If user has setup d-bus shortcut keys for play/pause/next/previous then they will also work.
 
 There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen).
 
+From version 2.4 onwards, the application can accept keyboard shortcuts as defined in mpv's input.conf file. By default it will read input.conf file located at **'~/.config/kawaii-player/src/input.conf'**. Users can customize this file as per their preferences. If the file is deleted or some shortcuts are not defined there then it will try to behave as per input.conf located at **'~/.config/mpv/input.conf'** or will start accepting mpv's default keybindings. In order to use this feature, users need to enter **'MPV_INPUT_CONF=True'**, in the file **'~/.config/kawaii-player/other_options.txt'**. Once MPV_INPUT_CONF is set to True, the application will respect mpv's input.conf and its default keybindings. 
+
 ### Player Shortcuts(once video is focussed, if it's not focussed take mouse pointer over the playing video):
+
+(When MPV_INPUT_CONF is set to False or player's default shortcuts)
 
 q : quit
 
@@ -725,7 +730,7 @@ PgDown : 300s-
 
 9 : volume down 
 
-a : change aspect ratio (works with mpv: default aspect is 16:9 for mpv)
+a : change aspect ratio (works with mpv)
 
 
 for mplayer set aspect in ~/.mplayer/config, all the properties of the mplayer global config file will be taken by the internal mplayer.
