@@ -219,11 +219,11 @@ Note: Users need to use separate port number for media server and torrent stream
 
 ###### [Index](#index)
 
-The portable nature of media server allows the application to work in peer to peer mode. The computer running the application can behave as client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries in streaming mode (without downloading locally) on the local network. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
+The portable nature of media server allows the application to work in peer to peer mode. The computer running the application can behave as client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries in streaming mode with each other without downloading locally. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
 
 Steps Inovolved in P2P mode for two computers:
 
-1. First check and set local IP address of your machine. (More->Settings)
+1. First check and setup local IP address of both machines. (More->Settings)
 
 1. Switch on media server functionality on both. (More->Start Media Server)
 
@@ -231,11 +231,11 @@ Steps Inovolved in P2P mode for two computers:
 
 3. Login requires at least IP address of the server that needs to be connected with. It will also ask for username and password, if it has been set for the server. If the login is successful, then click on the login again to navigate through library of server. 
 
-4. It is possible for Media servers to broadcast themselves with custom message (Option is available in **more** menu). Once broadcast server function is switched on, then clients can discover it (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Clients can get list of servers in the application itself and then they have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
+4. It is possible for Media servers to broadcast themselves(Option is available in **more** menu). Once broadcast server function is switched on, then clients can discover it automatically (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Clients can get list of servers in the application itself along with broadcast message, after that they will have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
 
 5. Broadcast Message needs to be entered into **'BROADCAST_MESSAGE='** field in **.config/kawaii-player/other_options.txt** configuration file. If the field is not there then create it on a newline.
 
-6. It is possible to set upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed - if the server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
+6. It is possible to setup upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed - if the server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
 
 7. If user wants better security then turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
 
