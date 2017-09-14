@@ -89,8 +89,6 @@ if (not BROWSER_BACKEND or (BROWSER_BACKEND != 'QTWEBKIT'
 
 if BROWSER_BACKEND == 'QTWEBENGINE':
     try:
-        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-        from PyQt5 import Qt
         from PyQt5 import QtWebEngineWidgets, QtWebEngineCore
         from PyQt5.QtWebEngineWidgets import QWebEngineView
         from browser import Browser
@@ -10873,16 +10871,22 @@ class Ui_MainWindow(object):
                     return 0
                 elif code == 4:
                     m.pop()
-                    if site.lower() == 'myserver' and opt.lower() == 'discover':
-                        if not self.discover_thread:
-                            self.discover_thread = DiscoverServer(self, True)
-                            self.discover_thread.start()
-                        elif isinstance(self.discover_thread, DiscoverServer):
-                            if not self.discover_thread.isRunning():
+                    if OSNAME == 'nt':
+                        self.text.setText('This feature known to cause crashes\
+                                           in windows hence it has been disabled.\
+                                           Users have to manually enter IP address\
+                                           during login')
+                    else:
+                        if site.lower() == 'myserver' and opt.lower() == 'discover':
+                            if not self.discover_thread:
                                 self.discover_thread = DiscoverServer(self, True)
                                 self.discover_thread.start()
-                            else:
-                                self.discover_server = False
+                            elif isinstance(self.discover_thread, DiscoverServer):
+                                if not self.discover_thread.isRunning():
+                                    self.discover_thread = DiscoverServer(self, True)
+                                    self.discover_thread.start()
+                                else:
+                                    self.discover_server = False
                     return 0
                         
             if not list_1 and not list_2 and not list_3:
