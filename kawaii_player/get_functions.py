@@ -350,10 +350,8 @@ def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None):
 
     if os.path.exists(tmp_html):
         os.remove(tmp_html)
-        #print('removed ', tmp_html)
     if os.path.exists(tmp_log):
         os.remove(tmp_log)
-        #print('removed ', tmp_log)
     if '-I' in curl_opt:
         pass
     elif curl_opt == '-d':
@@ -400,7 +398,6 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
                 postfield = urllib.parse.urlencode(post_data)
             print(postfield, '--postfields--')
     url = str(url)
-    #c.setopt(c.URL, url)
     try:
         c.setopt(c.URL, url)
     except UnicodeEncodeError as e:
@@ -408,11 +405,11 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
         c.setopt(c.URL, url.encode('utf-8'))
     storage = BytesIO()
     if os.name == 'nt':
-        #ca_cert = get_ca_certificate()
-        #if ca_cert:
-        #c.setopt(c.CAINFO, ca_cert)
-        #else:
-        pass
+        ca_cert = get_ca_certificate()
+        if ca_cert:
+            c.setopt(c.CAINFO, ca_cert)
+        else:
+            pass
     if verify_peer is False:
         print(verify_peer,'--verify-peer-')
         c.setopt(c.SSL_VERIFYPEER, False)
