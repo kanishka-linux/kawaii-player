@@ -33,15 +33,14 @@ import pycurl
 from PyQt5 import QtWidgets, QtCore
 from get_functions import wget_string, get_ca_certificate
 
-#if os.name == 'nt':
-#import tkinter
 OSNAME = os.name
 
-def send_notification(txt, display=None):
+def send_notification(txt, display=None, code=None):
     try:
         if os.name == 'posix':
             subprocess.Popen(['notify-send', txt])
-            #qmsg_message(txt)
+        elif os.name == 'nt' and code == 0:
+            pass
         elif os.name == 'nt' and display != 'posix':
             qmsg_message(txt)
     except Exception as e:
