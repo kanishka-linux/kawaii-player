@@ -9,8 +9,9 @@ try:
     from stream import get_torrent_info_magnet
 except Exception as err:
     print(err, '--11--')
-    notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
-    send_notification(notify_txt)
+    notify_txt = 'python3 bindings for libtorrent are broken\
+                  Torrent Streaming feature will be disabled'
+    send_notification(notify_txt, code=0)
     
 class ServerLib:
     
