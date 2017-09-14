@@ -18,6 +18,9 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+
+OSNAME=os.name
+
 import sys
 if getattr(sys, 'frozen', False):
     BASEDIR, BASEFILE = os.path.split(os.path.abspath(sys.executable))
@@ -86,6 +89,8 @@ if (not BROWSER_BACKEND or (BROWSER_BACKEND != 'QTWEBKIT'
 
 if BROWSER_BACKEND == 'QTWEBENGINE':
     try:
+        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+        from PyQt5 import Qt
         from PyQt5 import QtWebEngineWidgets, QtWebEngineCore
         from PyQt5.QtWebEngineWidgets import QWebEngineView
         from browser import Browser
@@ -106,7 +111,7 @@ if BROWSER_BACKEND == 'QTWEBENGINE':
         except Exception as err_msg:
             print(err_msg)
             msg_txt = 'Browser Backend Not Available. Install either QtWebKit or QtWebEngine'
-            send_notification(msg_txt)
+            send_notification(msg_txt, code=0)
 elif BROWSER_BACKEND == 'QTWEBKIT':
     try:
         from PyQt5 import QtWebKitWidgets
@@ -115,9 +120,10 @@ elif BROWSER_BACKEND == 'QTWEBKIT':
         from hls_webkit.hls_engine_webkit import BrowseUrlT
         QT_WEB_ENGINE = False
         print('Directly Using QTWEBKIT')
-    except:
+    except Exception as err_msg:
+        print(err_msg)
         msg_txt = 'QTWEBKIT Not Available, Try QTWEBENGINE'
-        send_notification(msg_txt)
+        send_notification(msg_txt, code=0)
 
 TMPDIR = get_tmp_dir()
 
@@ -130,7 +136,7 @@ if TMPDIR and not os.path.exists(TMPDIR):
         
 logger = set_logger('kawaii-player.log', TMPDIR)
 
-OSNAME=os.name
+
 print(TMPDIR, OSNAME)
 
 try:
@@ -155,8 +161,9 @@ try:
     from stream import get_torrent_download_location
 except Exception as e:
     print(e, '---156---')
-    notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
-    send_notification(notify_txt, display='posix')
+    notify_txt = 'python3 bindings for libtorrent are broken\
+                 Torrent Streaming feature will be disabled'
+    send_notification(notify_txt, code=0)
 
 from settings_widget import LoginAuth
 from media_server import ThreadServerLocal
