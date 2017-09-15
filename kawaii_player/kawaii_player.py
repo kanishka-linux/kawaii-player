@@ -593,7 +593,13 @@ class Ui_MainWindow(object):
         self.list6.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(2, self.list6, 0)
         self.list6.hide()
-        self.list6.addItem("Queue Empty:\nSelect Item and Press 'ctrl+Q' to EnQueue it.\nIf Queue List is Empty then Items Will be\nPlayed Sequentially as per Playlist.\n(Queue Feature Works Only With\n Local/Offline Content)\n\nSelect Item and Press 'W' to toggle \nwatch/unwatch status\n")
+        self.list6.addItem("Queue Empty:\
+Select Item and Press 'ctrl+Q' to EnQueue it.\
+If Queue List is Empty then Items Will be\
+Played Sequentially as per Playlist.\
+(Queue Feature Works Only With\n Local/Offline Content)\
+Select Item and Press 'W' to toggle\
+watch/unwatch status")
         #self.gridLayout.addWidget(self.list2, 0, 2, 1, 1)
         self.frame = QtWidgets.QFrame(MainWindow)
         #self.frame.setMinimumSize(QtCore.QSize(500, 22))
@@ -1488,6 +1494,9 @@ class Ui_MainWindow(object):
         self.epnfound_final_link = ""
         self.eof_reached = False
         self.eof_lock = False
+        self.detach_fullscreen = False
+        self.tray_widget = None
+        self.web_review_browser_started = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -2975,21 +2984,24 @@ class Ui_MainWindow(object):
                     #subprocess.Popen(["notify-send", msg])
                     send_notification(msg)
         elif val =="Broadcast Server":
-            v= str(self.action_player_menu[8].text())
-            if v == 'Broadcast Server' and self.local_http_server.isRunning():
-                self.broadcast_server = True
-                self.action_player_menu[8].setText("Stop Broadcasting")
-                if not self.broadcast_thread:
-                    self.broadcast_thread = BroadcastServer(self)
-                    self.broadcast_thread.start()
-                elif isinstance(self.broadcast_thread, BroadcastServer):
-                    if not self.broadcast_thread.isRunning():
+            if OSNAME == 'nt':
+                send_notification('Broadcasting not available on This platform')
+            else:
+                v= str(self.action_player_menu[8].text())
+                if v == 'Broadcast Server' and self.local_http_server.isRunning():
+                    self.broadcast_server = True
+                    self.action_player_menu[8].setText("Stop Broadcasting")
+                    if not self.broadcast_thread:
+                        self.broadcast_thread = BroadcastServer(self)
                         self.broadcast_thread.start()
-            elif v == 'Stop Broadcasting':
-                self.broadcast_server = False
-                self.action_player_menu[8].setText("Broadcast Server")
-            elif not self.local_http_server.isRunning():
-                send_notification('No Server To Broadcast. First Start Media Server')
+                    elif isinstance(self.broadcast_thread, BroadcastServer):
+                        if not self.broadcast_thread.isRunning():
+                            self.broadcast_thread.start()
+                elif v == 'Stop Broadcasting':
+                    self.broadcast_server = False
+                    self.action_player_menu[8].setText("Broadcast Server")
+                elif not self.local_http_server.isRunning():
+                    send_notification('No Server To Broadcast. First Start Media Server')
         elif val.lower() == 'turn on remote control':
             v= str(self.action_player_menu[9].text()).lower()
             msg = "Not Able to Take Action"
@@ -5835,58 +5847,61 @@ class Ui_MainWindow(object):
         update_pl_thumb = True
         
         if not self.epn_arr_list:
-            return 0
-            
-        if self.list2.isHidden():
-            update_pl_thumb = False
-            
-        print(update_pl_thumb, 'update_playlist_thumb')
-        row = self.list2.currentRow()
-        self.list2.clear()
-        k = 0
-        for i in self.epn_arr_list:
-            i = i.strip()
-            if '	' in i:
-                i = i.split('	')[0]
-                i = i.replace('_', ' ')
-                if i.startswith('#'):
-                    i = i.replace('#', self.check_symbol, 1)
-                    self.list2.addItem((i))
-                else:
-                    self.list2.addItem((i))
-            else:
-                if site == "Local" or finalUrlFound == True:
-                    #j = i.split('/')[-1]
-                    j = os.path.basename(i)
-                    if i.startswith('#') and j:
-                        j = j.replace('#', self.check_symbol, 1)
-                else:
-                    j = i
-                j = j.replace('_', ' ')
-                if j.startswith('#'):
-                    j = j.replace('#', self.check_symbol, 1)
-                    self.list2.addItem((j))	
-                else:
-                    self.list2.addItem((j))
-            k = k+1
-        self.list2.setCurrentRow(row)
-        if self.list2.count() < 30:
-            QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
-                                    self.list_with_thumbnail, update_pl_thumb))
+            pass
         else:
-            QtCore.QTimer.singleShot(100, partial(self.set_icon_list2, self.epn_arr_list, 
-                                    self.list_with_thumbnail, update_pl_thumb))
+            if self.list2.isHidden():
+                update_pl_thumb = False
+                
+            print(update_pl_thumb, 'update_playlist_thumb')
+            row = self.list2.currentRow()
+            self.list2.clear()
+            k = 0
+            for i in self.epn_arr_list:
+                i = i.strip()
+                if '	' in i:
+                    i = i.split('	')[0]
+                    i = i.replace('_', ' ')
+                    if i.startswith('#'):
+                        i = i.replace('#', self.check_symbol, 1)
+                        self.list2.addItem((i))
+                    else:
+                        self.list2.addItem((i))
+                else:
+                    if site == "Local" or finalUrlFound == True:
+                        #j = i.split('/')[-1]
+                        j = os.path.basename(i)
+                        if i.startswith('#') and j:
+                            j = j.replace('#', self.check_symbol, 1)
+                    else:
+                        j = i
+                    j = j.replace('_', ' ')
+                    if j.startswith('#'):
+                        j = j.replace('#', self.check_symbol, 1)
+                        self.list2.addItem((j))	
+                    else:
+                        self.list2.addItem((j))
+                k = k+1
+            self.list2.setCurrentRow(row)
+            if self.list2.count() < 30:
+                QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
+                                        self.list_with_thumbnail, update_pl_thumb))
+            else:
+                QtCore.QTimer.singleShot(100, partial(self.set_icon_list2, self.epn_arr_list, 
+                                        self.list_with_thumbnail, update_pl_thumb))
     
     def set_icon_list2(self, epnArr, list_thumb, update_pl):
         for k in range(len(epnArr)):
             if list_thumb and update_pl:
-                icon_name = self.get_thumbnail_image_path(k, epnArr[k])
-                icon_new_pixel = self.create_new_image_pixel(icon_name, 128)
-                if os.path.exists(icon_new_pixel):
-                    try:
-                        self.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
-                    except:
-                        pass
+                try:
+                    icon_name = self.get_thumbnail_image_path(k, epnArr[k])
+                    icon_new_pixel = self.create_new_image_pixel(icon_name, 128)
+                    if os.path.exists(icon_new_pixel):
+                        try:
+                            self.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+                        except:
+                            pass
+                except Exception as e:
+                    print(e)
         txt_str = str(self.list1.count())+'/'+str(self.list2.count())
         self.page_number.setText(txt_str)
         
@@ -6549,7 +6564,7 @@ class Ui_MainWindow(object):
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
         global name, nam, old_manager, new_manager, home, screen_width, quality
         global site
-        
+        self.web_review_browser_started = True
         btn_hide = self.horizontalLayout_player_opt.itemAt(14)
         print(btn_hide, '--hide--btn--')
         original_srch_txt = None
@@ -7129,14 +7144,14 @@ class Ui_MainWindow(object):
                     except Exception as e:
                         print(e)
                     if not m:
-                        return 0
+                        pass
                     else:
                         self.myserver_cache.update({site_variable:m.copy()})
             else:
                 m = self.myserver_cache.get(site_variable)
-            self.set_parameters_value(name_val=name)
-            self.epn_arr_list.clear()
             if m:
+                self.set_parameters_value(name_val=name)
+                self.epn_arr_list.clear()
                 for i in m:
                     self.epn_arr_list.append(i)
             if from_cache:
@@ -10460,11 +10475,11 @@ class Ui_MainWindow(object):
         elif player == "mpv":
             self.mpv_custom_pause = False
             command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
-             --cache-initial=0 --cache-seek-min=100 --cache-pause\
-             --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no\
-             --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
-             --input-file=/dev/stdin --input-terminal=no\
-             --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"'.format(
+ --cache-initial=0 --cache-seek-min=100 --cache-pause\
+ --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no\
+ --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
+ --input-file=/dev/stdin --input-terminal=no\
+ --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"'.format(
                 aspect_value, idw, self.mpv_input_conf)
         else:
             command = Player
@@ -12480,6 +12495,7 @@ def main():
         tray = SystemAppIndicator(ui_widget=ui, home=home, window=MainWindow, logr=logger)
         tray.right_menu.setup_globals(screen_width, screen_height)
         tray.show()
+        ui.tray_widget = tray
     except Exception as e:
         print('System Tray Failed with Exception: {0}'.format(e))
         tray = None
