@@ -53,6 +53,7 @@ class PlayerWidget(QtWidgets.QWidget):
     def arrow_hide(self):
         if self.player_val == "mplayer" or self.player_val == "mpv":
             self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            self.setFocus()
         print("arrow hide")
 
     def frameShowHide(self):
@@ -154,39 +155,47 @@ class PlayerWidget(QtWidgets.QWidget):
                 video_local_stream = param_dict['video_local_stream']
                 
                 if not MainWindow.isFullScreen():
-                    if not self.ui.tab_6.isHidden():
-                        self.ui.fullscreen_mode = 1
-                    elif not self.ui.float_window.isHidden():
-                        self.ui.fullscreen_mode = 2
-                    else: 
-                        self.ui.fullscreen_mode = 0
-                    self.ui.gridLayout.setSpacing(0)
-                    self.ui.superGridLayout.setSpacing(0)
-                    self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                    self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                    self.ui.text.hide()
-                    self.ui.label.hide()
-                    self.ui.frame1.hide()
-                    self.ui.tab_6.hide()
-                    self.ui.goto_epn.hide()
-                    self.ui.btn20.hide()
-                    
-                    if wget.processId() > 0 or video_local_stream:
-                        self.ui.progress.hide()
-                        if not self.ui.torrent_frame.isHidden():
-                            self.ui.torrent_frame.hide()
-                    self.ui.list2.hide()
-                    self.ui.list6.hide()
-                    self.ui.list1.hide()
-                    self.ui.frame.hide()
-                    self.ui.dockWidget_3.hide()
-                    self.show()
-                    self.setFocus()
-                    if not self.ui.tab_2.isHidden():
-                        self.ui.tab_2.hide()
-                    if (self.player_val == "mplayer" or self.player_val == "mpv"):
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                    MainWindow.showFullScreen()
+                    if os.name == 'nt' and self.ui.web_review_browser_started:
+                        self.ui.detach_fullscreen = True
+                        MainWindow.hide()
+                        self.ui.tray_widget.right_menu._detach_video()
+                        if not self.ui.float_window.isFullScreen():
+                            self.ui.float_window.showFullScreen()
+                            self.ui.tab_5.setFocus()
+                    else:
+                        if not self.ui.tab_6.isHidden():
+                            self.ui.fullscreen_mode = 1
+                        elif not self.ui.float_window.isHidden():
+                            self.ui.fullscreen_mode = 2
+                        else: 
+                            self.ui.fullscreen_mode = 0
+                        self.ui.gridLayout.setSpacing(0)
+                        self.ui.superGridLayout.setSpacing(0)
+                        self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                        self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                        self.ui.text.hide()
+                        self.ui.label.hide()
+                        self.ui.frame1.hide()
+                        self.ui.tab_6.hide()
+                        self.ui.goto_epn.hide()
+                        self.ui.btn20.hide()
+                        
+                        if wget.processId() > 0 or video_local_stream:
+                            self.ui.progress.hide()
+                            if not self.ui.torrent_frame.isHidden():
+                                self.ui.torrent_frame.hide()
+                        self.ui.list2.hide()
+                        self.ui.list6.hide()
+                        self.ui.list1.hide()
+                        self.ui.frame.hide()
+                        self.ui.dockWidget_3.hide()
+                        self.show()
+                        self.setFocus()
+                        if not self.ui.tab_2.isHidden():
+                            self.ui.tab_2.hide()
+                        if (self.player_val == "mplayer" or self.player_val == "mpv"):
+                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                        MainWindow.showFullScreen()
                 else:
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(0)
@@ -212,11 +221,16 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.goto_epn.hide()
                         self.ui.tab_2.show()
             else:
-                if not self.ui.float_window.isHidden():
-                    if not self.ui.float_window.isFullScreen():
-                        self.ui.float_window.showFullScreen()
-                    else:
-                        self.ui.float_window.showNormal()
+                if self.ui.detach_fullscreen:
+                    self.ui.detach_fullscreen = False
+                    self.ui.tray_widget.right_menu._detach_video()
+                    self.ui.tab_5.setFocus()
+                else:
+                    if not self.ui.float_window.isHidden():
+                        if not self.ui.float_window.isFullScreen():
+                            self.ui.float_window.showFullScreen()
+                        else:
+                            self.ui.float_window.showNormal()
         else:
             param_dict = self.ui.get_parameters_value(t='tab_6_size_indicator')
             tab_6_size_indicator = param_dict['tab_6_size_indicator']
@@ -815,4 +829,4 @@ class PlayerWidget(QtWidgets.QWidget):
         elif event.key() == QtCore.Qt.Key_Q:
             self.player_quit()
 
-        #super(List2, self).keyPressEvent(event)
+        #super(PlayerWidget, self).keyPressEvent(event)
