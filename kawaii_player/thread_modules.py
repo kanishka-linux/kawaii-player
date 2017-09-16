@@ -678,7 +678,8 @@ class PlayerGetEpn(QtCore.QThread):
         finalUrl = ""
         try:
             if self.epn_type == 'yt':
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path, logger)
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='a+v')
             elif self.epn_type == 'addons':
                 finalUrl = ui.site_var.getFinalUrl(self.name, self.epn,
                                                    self.mirrorNo, self.quality)
