@@ -16,6 +16,7 @@ class PlayerWidget(QtWidgets.QWidget):
         self.mpvplayer = None
         self.player_val = None
         self.ui.total_seek = 0
+        self.dblclk = False
         self.arrow_timer = QtCore.QTimer()
         self.arrow_timer.timeout.connect(self.arrow_hide)
         self.arrow_timer.setSingleShot(True)
@@ -65,13 +66,22 @@ class PlayerWidget(QtWidgets.QWidget):
             else:
                 self.ui.frame_timer.stop()
                 self.ui.frame_timer.start(2000)
-
+    
     def mouseReleaseEvent(self, event):
-        print(event.type())
-        if event.button() == QtCore.Qt.LeftButton:
+        if event.button() == QtCore.Qt.LeftButton and not self.dblclk:
             if self.mpvplayer.processId() > 0:
-                self.ui.playerPlayPause()
-
+                logger.debug('{0}:{1}'.format(event.type(), 'left-click'))
+                if self.player_val == 'mplayer':
+                    self.mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
+                elif self.player_val == 'mpv':
+                    self.mpvplayer.write(b'\n cycle pause \n')
+        
+    def mouseDoubleClickEvent(self, event):
+        self.dblclk = True
+        logger.debug('{0}:{1}'.format(event.type(), 'dblclk'))
+        self.player_fs()
+        self.dblclk = False
+        
     def mouseMoveEvent(self, event):
         self.setFocus()
         pos = event.pos()
