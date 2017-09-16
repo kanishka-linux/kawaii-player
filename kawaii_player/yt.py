@@ -113,7 +113,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                                 [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
                                  'best', '-g', '--playlist-end', '1', url])
                             final_url = str(final_url, 'utf-8')
-                        elif mode == 'music':
+                        elif mode == 'music' or (mode == 'a+v' and ytdl_path != 'default'):
                             final_url = subprocess.check_output(
                                 [youtube_dl, '-g', url])
                             final_url = str(final_url, 'utf-8')
@@ -224,7 +224,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
             else:
                 send_notification('youtube-dl is already newest version')
         
-    logger.info(final_url)
+    logger.debug('yt-link:>>{0}'.format(final_url))
     return final_url
 
 def get_yt_sub(url, name, dest_dir, tmp_dir, ytdl_path, log):
