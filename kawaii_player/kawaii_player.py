@@ -1497,6 +1497,7 @@ watch/unwatch status")
         self.detach_fullscreen = False
         self.tray_widget = None
         self.web_review_browser_started = False
+        self.external_audio_file = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -8067,8 +8068,8 @@ watch/unwatch status")
             finalUrl = finalUrl.replace('"', '')
         else:
             current_playing_file_path = finalUrl
-        if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' 
-                and self.mpvplayer_started and not finalUrl.startswith('http')):
+        if (self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
+                and not finalUrl.startswith('http') and not self.external_audio_file):
             epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
             if Player == "mplayer":
                 t1 = bytes('\n '+'show_text '+epnShow+' \n', 'utf-8')
@@ -8087,6 +8088,7 @@ watch/unwatch status")
             if self.mpvplayer_val.processId()>0:
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
+                self.external_audio_file = False
             if OSNAME == 'posix':
                 if not win_id:
                     idw = str(int(self.tab_5.winId()))
@@ -8391,6 +8393,14 @@ watch/unwatch status")
         else:
             row = row_val
         referer = ''
+        aurl = None
+        self.external_audio_file = False
+        if '::' in finalUrl:
+            aurl = finalUrl.split('::')[1]
+            if aurl.startswith('http'):
+                finalUrl = finalUrl.split('::')[0]
+                self.external_audio_file = True
+        
         if isinstance(finalUrl, list):
             rfr_exists = finalUrl[-1]
             rfr_needed = False
@@ -8413,7 +8423,7 @@ watch/unwatch status")
             self.mpvplayer_started = False
         if Player == "mpv":
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, Player)
+                command = self.mplayermpv_command(idw, finalUrl, Player, a_url=aurl)
             else:
                 command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
             logger.info(command)
@@ -9440,7 +9450,8 @@ watch/unwatch status")
                             self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                             break
                 if a and 'AV:' not in a and 'A:' not in a:
-                    logger.debug('-->{0}<--'.format(a))
+                    #logger.debug('-->{0}<--'.format(a))
+                    pass
             if (Player == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a 
                     or "HTTP error 403 Forbidden" in a 
@@ -10171,6 +10182,7 @@ watch/unwatch status")
         print(self.player_setLoop_var)
         row = self.list2.currentRow()
         print('--line--15677--')
+        logger.debug('external-audio-file={0}'.format(self.external_audio_file))
         if row > len(self.epn_arr_list) or row < 0:
             row = len(self.epn_arr_list)-1
         finalUrl = ""
@@ -10270,7 +10282,8 @@ watch/unwatch status")
         if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
             if Player == "mplayer":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
-                if not self.external_url and self.mpvplayer_started:
+                if (not self.external_url and self.mpvplayer_started 
+                        and not self.external_audio_file):
                     #try:
                     epnShow = '"' + "Queued:  "+ new_epn + '"'
                     t1 = bytes('\n '+'show_text '+(epnShow)+' \n', 'utf-8')
@@ -10284,24 +10297,27 @@ watch/unwatch status")
                 else:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
+                    self.external_audio_file = False
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
             elif Player == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
-                if not self.external_url and self.mpvplayer_started:
+                if (not self.external_url and self.mpvplayer_started 
+                        and not self.external_audio_file):
                     epnShow = '"' + "Playing:  "+ new_epn + '"'
                     t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                     t2 = bytes('\n '+"loadfile "+finalUrl+' \n', 'utf-8')
                     self.mpvplayer_val.write(t2)
                     self.mpvplayer_val.write(t1)
-                    logger.info(t2)
+                    logger.debug('mpv::{0}'.format(t2))
                 else:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
+                    self.external_audio_file = False
                     self.infoPlay(command)
                     #self.external_url = False
-                    logger.info(command)
+                    logger.debug('mpv-restart{0}'.format(command))
             
             print("mpv=" + str(self.mpvplayer_val.processId()))
         elif not self.epn_wait_thread.isRunning():
@@ -10416,16 +10432,17 @@ watch/unwatch status")
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
             
             if Player == 'mpv':
-                if not self.external_url:
+                if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
                     logger.info(t2)
                 else:
                     self.mpvplayer_val.write(b'\n quit \n')
+                    self.external_audio_file = False
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
             elif Player == "mplayer":
-                if not self.external_url:
+                if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
                     logger.info(t2)
                     if self.mplayer_SubTimer.isActive():
@@ -10434,6 +10451,7 @@ watch/unwatch status")
                 else:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
+                    self.external_audio_file = False
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
@@ -10459,7 +10477,8 @@ watch/unwatch status")
         else:
             current_playing_file_path = '"'+epnShow+'"'
         
-    def mplayermpv_command(self, idw, finalUrl, player, a_id=None, s_id=None, rfr=None, a_url=None):
+    def mplayermpv_command(self, idw, finalUrl, player, a_id=None, s_id=None,
+                           rfr=None, a_url=None):
         global site
         finalUrl = finalUrl.replace('"', '')
         aspect_value = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
