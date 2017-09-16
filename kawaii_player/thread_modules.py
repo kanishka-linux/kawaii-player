@@ -676,32 +676,35 @@ class PlayerGetEpn(QtCore.QThread):
     
     def run(self):
         finalUrl = ""
-        if self.epn_type == 'yt':
-            finalUrl = get_yt_url(self.final, self.quality, self.yt_path, logger)
-        elif self.epn_type == 'addons':
-            finalUrl = ui.site_var.getFinalUrl(self.name, self.epn,
-                                               self.mirrorNo, self.quality)
-        elif self.epn_type == 'type_one':
-            finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
-                                               self.mirrorNo, self.category,
-                                               self.quality)
-        elif self.epn_type == 'type_two':
-            finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
-                                               self.mirrorNo, self.quality)
-        elif self.epn_type == 'offline':
-            finalUrl = ui.epn_return(self.row, mode=self.mode)
-        elif self.epn_type == 'list':
-            mytuple = ui.site_var.getEpnList(self.name, self.opt,
-                                             self.depth_list, self.extra_info,
-                                             self.siteName, self.category)
-            mylist = []
-            for i in mytuple:
-                mylist.append(i)
-            mylist.append(self.name)
-            mylist.append(self.extra_info)
-            mylist.append(self.siteName)
-            mylist.append(self.opt)
-            mylist.append(self.row)
+        try:
+            if self.epn_type == 'yt':
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path, logger)
+            elif self.epn_type == 'addons':
+                finalUrl = ui.site_var.getFinalUrl(self.name, self.epn,
+                                                   self.mirrorNo, self.quality)
+            elif self.epn_type == 'type_one':
+                finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
+                                                   self.mirrorNo, self.category,
+                                                   self.quality)
+            elif self.epn_type == 'type_two':
+                finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
+                                                   self.mirrorNo, self.quality)
+            elif self.epn_type == 'offline':
+                finalUrl = ui.epn_return(self.row, mode=self.mode)
+            elif self.epn_type == 'list':
+                mytuple = ui.site_var.getEpnList(self.name, self.opt,
+                                                 self.depth_list, self.extra_info,
+                                                 self.siteName, self.category)
+                mylist = []
+                for i in mytuple:
+                    mylist.append(i)
+                mylist.append(self.name)
+                mylist.append(self.extra_info)
+                mylist.append(self.siteName)
+                mylist.append(self.opt)
+                mylist.append(self.row)
+        except Exception as err:
+            print(err, '--707--')
         if self.epn_type != 'list':
             ui.epnfound_final_link = finalUrl
         if not isinstance(finalUrl, list):
