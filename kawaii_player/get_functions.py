@@ -53,6 +53,7 @@ def ccurl_string_get(url, opt, extra, download_manager=None):
             extra = '"'+extra+'"'
     if os.name == 'nt' and not download_manager:
         url = url.replace('&', '^&')
+    url = url.replace(' ', '%20')
     if not opt and not extra:
         command = ["curl", "-L", "-A", hdr, url]
     elif opt == '-L':
@@ -96,6 +97,7 @@ def ccurl_string_get(url, opt, extra, download_manager=None):
         if ver_peer_get.startswith('abs_path') and '&pl_id=' in ver_peer_get:
             if '-k' not in command:
                 command.append('-k')
+    command.append('-g')
     #print(command)
     return command
 
