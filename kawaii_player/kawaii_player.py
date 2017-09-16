@@ -2806,7 +2806,7 @@ watch/unwatch status")
                 if Player == "mpv":
                     txt_osd = '\n set osd-level 1 \n'
                     self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
-                    self.mpvplayer_val.write(b'\n osd-msg-bar set pause no \n')
+                    self.mpvplayer_val.write(b'\n set pause no \n')
                     self.player_play_pause.setText(self.player_buttons['pause'])
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
@@ -2981,27 +2981,23 @@ watch/unwatch status")
                     self.local_http_server.httpd.shutdown()
                     self.local_http_server.quit()
                     msg = 'Stopping Media Server\n '+self.local_ip_stream+':'+str(self.local_port_stream)
-                    #subprocess.Popen(["notify-send", msg])
                     send_notification(msg)
         elif val =="Broadcast Server":
-            if OSNAME == 'nt':
-                send_notification('Broadcasting not available on This platform')
-            else:
-                v= str(self.action_player_menu[8].text())
-                if v == 'Broadcast Server' and self.local_http_server.isRunning():
-                    self.broadcast_server = True
-                    self.action_player_menu[8].setText("Stop Broadcasting")
-                    if not self.broadcast_thread:
-                        self.broadcast_thread = BroadcastServer(self)
+            v= str(self.action_player_menu[8].text())
+            if v == 'Broadcast Server' and self.local_http_server.isRunning():
+                self.broadcast_server = True
+                self.action_player_menu[8].setText("Stop Broadcasting")
+                if not self.broadcast_thread:
+                    self.broadcast_thread = BroadcastServer(self)
+                    self.broadcast_thread.start()
+                elif isinstance(self.broadcast_thread, BroadcastServer):
+                    if not self.broadcast_thread.isRunning():
                         self.broadcast_thread.start()
-                    elif isinstance(self.broadcast_thread, BroadcastServer):
-                        if not self.broadcast_thread.isRunning():
-                            self.broadcast_thread.start()
-                elif v == 'Stop Broadcasting':
-                    self.broadcast_server = False
-                    self.action_player_menu[8].setText("Broadcast Server")
-                elif not self.local_http_server.isRunning():
-                    send_notification('No Server To Broadcast. First Start Media Server')
+            elif v == 'Stop Broadcasting':
+                self.broadcast_server = False
+                self.action_player_menu[8].setText("Broadcast Server")
+            elif not self.local_http_server.isRunning():
+                send_notification('No Server To Broadcast. First Start Media Server')
         elif val.lower() == 'turn on remote control':
             v= str(self.action_player_menu[9].text()).lower()
             msg = "Not Able to Take Action"
@@ -10886,22 +10882,16 @@ watch/unwatch status")
                     return 0
                 elif code == 4:
                     m.pop()
-                    if OSNAME == 'nt':
-                        self.text.setText('This feature known to cause crashes\
-                                           in windows hence it has been disabled.\
-                                           Users have to manually enter IP address\
-                                           during login')
-                    else:
-                        if site.lower() == 'myserver' and opt.lower() == 'discover':
-                            if not self.discover_thread:
+                    if site.lower() == 'myserver' and opt.lower() == 'discover':
+                        if not self.discover_thread:
+                            self.discover_thread = DiscoverServer(self, True)
+                            self.discover_thread.start()
+                        elif isinstance(self.discover_thread, DiscoverServer):
+                            if not self.discover_thread.isRunning():
                                 self.discover_thread = DiscoverServer(self, True)
                                 self.discover_thread.start()
-                            elif isinstance(self.discover_thread, DiscoverServer):
-                                if not self.discover_thread.isRunning():
-                                    self.discover_thread = DiscoverServer(self, True)
-                                    self.discover_thread.start()
-                                else:
-                                    self.discover_server = False
+                            else:
+                                self.discover_server = False
                     return 0
                         
             if not list_1 and not list_2 and not list_3:
