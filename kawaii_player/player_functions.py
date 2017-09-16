@@ -40,9 +40,9 @@ def send_notification(txt, display=None, code=None):
         if os.name == 'posix':
             subprocess.Popen(['notify-send', txt])
         elif os.name == 'nt' and code == 0:
-            pass
+            print(txt)
         elif os.name == 'nt' and display != 'posix':
-            qmsg_message(txt)
+            subprocess.Popen(['msg', '*', txt])
     except Exception as e:
         print(e)
 
