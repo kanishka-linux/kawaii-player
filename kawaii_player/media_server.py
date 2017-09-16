@@ -707,6 +707,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     n_art = n_art.replace('_', ' ')
                 if '_' in n_out:
                     n_out = n_out.replace('_', ' ')
+                if n_art.lower() == 'none':
+                    n_art = ''
                 if ui.https_media_server:
                     http_val = "https" 
                 if play_id:
@@ -982,6 +984,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         j = 'abs_path='+n_url
                     if '_' in n_art:
                         n_art = n_art.replace('_', ' ')
+                    if n_art.lower() == 'none':
+                        n_art = ''
                     if '_' in n_out:
                         n_out = n_out.replace('_', ' ')
                     if play_id:
