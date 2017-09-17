@@ -545,7 +545,8 @@ class YTdlThread(QtCore.QThread):
     def run(self):
         final_url = ''
         try:
-            final_url = get_yt_url(self.url, self.quality, self.path, self.loger)
+            final_url = get_yt_url(self.url, self.quality, self.path,
+                                   self.loger, mode='a+v')
             self.gotlink.emit(final_url, self.nm)
             try:
                 if not self.nm:
@@ -569,7 +570,8 @@ def start_player_directly(final_url, nm):
     if final_url:
         print(final_url, '--youtube--')
         ui.epn_name_in_list = nm
-        ui.watchDirectly(final_url, nm, 'no')
+        #ui.watchDirectly(final_url, nm, 'no')
+        ui.epnfound_now_start_player(final_url, nm)
 
 class DownloadThread(QtCore.QThread):
 
