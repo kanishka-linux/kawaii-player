@@ -28,7 +28,7 @@ from socketserver import ThreadingMixIn
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 import libtorrent as lt
-from player_functions import send_notification
+from player_functions import send_notification, get_home_dir
 
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
@@ -511,9 +511,8 @@ class TorrentThread(QtCore.QThread):
         self.progress_signal_end.emit('complete')
 
 def change_config_file(ip, port):
-    config_file = os.path.join(
-        os.path.expanduser('~'), '.config', 'kawaii-player', 
-        'torrent_config.txt')
+    home_dir = get_home_dir()
+    config_file = os.path.join(home_dir, 'torrent_config.txt')
     new_ip = 'TORRENT_STREAM_IP='+ip+':'+str(port)
     content = open(config_file, 'r').read()
     content = re.sub('TORRENT_STREAM_IP=[^\n]*', new_ip, content)
