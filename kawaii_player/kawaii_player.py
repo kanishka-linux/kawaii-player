@@ -9410,9 +9410,9 @@ watch/unwatch status")
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
             if 'volume' in a:
-                logger.info(a)
+                logger.debug(a)
             elif 'Video' in a:
-                logger.info(a)
+                logger.debug(a)
             elif 'Audio' in a:
                 logger.info(a)
             if self.custom_mpv_input_conf and Player == 'mpv':
@@ -9433,7 +9433,7 @@ watch/unwatch status")
                 elif 'Exiting... (Quit)' in a:
                     self.tab_5.player_quit(msg='already quit')
                 elif 'set property: video-aspect=' in a.lower():
-                    logger.info(a)
+                    logger.debug(a)
                     aspect_val = a.split('video-aspect=')[1].split(' ')[0]
                     for asp_ratio in self.mpvplayer_aspect:
                         if aspect_val == self.mpvplayer_aspect[asp_ratio]:
