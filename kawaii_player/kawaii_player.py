@@ -7166,6 +7166,18 @@ watch/unwatch status")
                 if os.path.isfile(hist_sum) or os.path.isfile(hist_picn):
                     self.videoImage(picn, thumbnail, fanart, summary)
     
+    def replace_special_characters(self, newname, replc_dict):
+        if '\t' in newname:
+            title, restpart = newname.split('\t', 1)
+        else:
+            title = newname
+            restpart = ''
+        for i in replc_dict:
+            title = title.replace(i, replc_dict[i])
+        if restpart:
+            title = title+'\t'+restpart
+        return title
+    
     def listfound(self, send_list=None):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, path_Local_Dir, bookmark
@@ -7341,6 +7353,9 @@ watch/unwatch status")
                         f = open(hist_path, 'w').close()
                     print(self.record_history, '--self.record_history---')
                     if os.path.isfile(hist_path) and self.record_history:
+                        if OSNAME != 'posix':
+                            replc_dict = {':':'-', '|':'-', '&':'-and-'}
+                            new_name_with_info = self.replace_special_characters(new_name_with_info, replc_dict)
                         if (os.stat(hist_path).st_size == 0):
                             write_files(hist_path, new_name_with_info, line_by_line=True)
                         else:
@@ -7354,6 +7369,9 @@ watch/unwatch status")
                                 write_files(hist_path, new_name_with_info, line_by_line=True)
                     
                     hist_dir, last_field = os.path.split(hist_path)
+                    if OSNAME != 'posix':
+                        replc_dict = {':':'-', '|':'-', '&':'-and-'}
+                        name = self.replace_special_characters(name, replc_dict)
                     hist_site = os.path.join(hist_dir, name)
                     hist_epn = os.path.join(hist_site, 'Ep.txt')
                     if (not os.path.exists(hist_site) and self.record_history) or (os.path.exists(hist_epn)):
@@ -7380,6 +7398,9 @@ watch/unwatch status")
                             print(e)
                             return 0
                 else:
+                    if OSNAME != 'posix':
+                        replc_dict = {':':'-', '|':'-', '&':'-and-'}
+                        name = self.replace_special_characters(name, replc_dict)
                     if siteName:
                         hist_site = os.path.join(home, 'History', site, siteName, name)
                     else:
