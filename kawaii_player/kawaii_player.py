@@ -8068,7 +8068,7 @@ watch/unwatch status")
             finalUrl = finalUrl.replace('"', '')
         else:
             current_playing_file_path = finalUrl
-        if (self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
+        if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' and self.mpvplayer_started
                 and not finalUrl.startswith('http') and not self.external_audio_file):
             epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
             if Player == "mplayer":
