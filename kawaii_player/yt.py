@@ -29,16 +29,15 @@ import shutil
 from functools import partial
 from tempfile import mkstemp
 from PyQt5 import QtCore
-from player_functions import send_notification, ccurl
+from player_functions import send_notification, ccurl, get_home_dir
 
 
 def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     final_url = ''
     url = url.replace('"', '')
     m = []
-    ytdl_stamp = os.path.join(
-        os.path.expanduser('~'), '.config', 'kawaii-player', 'tmp', 
-        'ytdl_update_stamp.txt')
+    home_dir = get_home_dir()
+    ytdl_stamp = os.path.join(home_dir, 'tmp', 'ytdl_update_stamp.txt')
     if ytdl_path:
         if ytdl_path == 'default':
             youtube_dl = 'youtube-dl'
