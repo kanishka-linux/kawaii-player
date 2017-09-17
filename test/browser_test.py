@@ -23,7 +23,7 @@ if __name__ == '__main__':
     BASEDIR, BASEFILE = os.path.split(os.path.abspath(__file__))
     parent_basedir, __ = os.path.split(BASEDIR)
     print(parent_basedir)
-    home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii_player_test')
+    home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player-test')
     if not os.path.exists(home):
         os.makedirs(home)
     sys.path.insert(0, parent_basedir)
