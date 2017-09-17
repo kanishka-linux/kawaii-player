@@ -765,7 +765,7 @@ watch/unwatch status")
             screen_width = 800
             screen_height = 400
             aspect = (screen_width/screen_height)
-            home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii_player_test')
+            home = get_home_dir(mode='test')
             if not os.path.exists(home):
                 os.makedirs(home)
         self.width_allowed = int((screen_width)/4.5)
@@ -8493,7 +8493,7 @@ watch/unwatch status")
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
         global mpv, mpvAlive, indexQueue, Player, startPlayer
-        global new_epn, idw, home1, quitReally, buffering_mplayer
+        global new_epn, idw, quitReally, buffering_mplayer
         global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
         global current_playing_file_path
@@ -9084,7 +9084,7 @@ watch/unwatch status")
         global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
         global video_local_stream
         global mpv, mpvAlive, indexQueue, Player, startPlayer
-        global new_epn, idw, home1, quitReally, buffering_mplayer
+        global new_epn, idw, quitReally, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
         if self.if_file_path_exists_then_play(row, self.list2, False):
@@ -11612,7 +11612,7 @@ def main():
     global mpvAlive, pre_opt, insidePreopt, posterManually, labelGeometry
     global new_tray_widget
     global list2_items, quality, indexQueue, Player, startPlayer
-    global rfr_url, category, fullscr, curR, idw, idwMain, home, home1
+    global rfr_url, category, fullscr, curR, idw, idwMain, home
     global player_focus, fullscrT, artist_name_mplayer
     global pict_arr, name_arr, summary_arr, total_till, tmp_name, browse_cnt
     global label_arr, hist_arr, nxtImg_cnt, view_layout, quitReally, toggleCache
@@ -11709,8 +11709,7 @@ def main():
     summary_arr=[]
     browse_cnt = 0
     tmp_name=[]
-    home1 = os.path.expanduser("~")
-    home = os.path.join(home1, '.config', 'kawaii-player')
+    home = get_home_dir()
     curR = 0
     fullscr = 0
     category = "Animes"
@@ -11800,6 +11799,13 @@ def main():
         tray_png = os.path.join(BASEDIR, 'tray.png')
         if os.path.exists(tray_png):
             shutil.copy(tray_png, os.path.join(src_new, 'tray.png'))
+        depend_path = os.path.join(BASEDIR, 'extra')
+        if os.path.isdir(depend_path):
+            m = os.listdir(depend_path)
+            for i in m:
+                depend_nm = os.path.join(depend_path, i)
+                if os.path.isfile(depend_nm):
+                    shutil.copy(depend_nm, src_new)
     picn = os.path.join(home, 'default.jpg')
     if not os.path.exists(picn):
         picn_1 = os.path.join(BASEDIR, 'default.jpg')
@@ -12702,8 +12708,6 @@ def main():
         f.close()
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
-    if os.path.exists(TMPDIR) and '.config' not in TMPDIR:
-        shutil.rmtree(TMPDIR)
     print(ret, '--Return--')
     del app
     sys.exit(ret)
