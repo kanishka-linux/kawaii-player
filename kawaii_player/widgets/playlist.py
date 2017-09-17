@@ -47,6 +47,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
             ui.dockWidget_3.hide()
+        if ui.tab_5.arrow_timer.isActive():
+            ui.tab_5.arrow_timer.stop()
         self.setFocus()
 
     def init_offline_mode(self):
