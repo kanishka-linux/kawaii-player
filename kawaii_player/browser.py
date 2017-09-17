@@ -305,6 +305,9 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             title = title.replace('#', '')
             if title.startswith('.'):
                 title = title[1:]
+            if os.name != 'posix':
+                title = title.replace(':', '-')
+                title = title.replace('|', '-')
             n_url = 'https://m.youtube.com/watch?v='+yt_id
             w = title+'	'+n_url+'	'+'NONE'
             new_arr.append(w)
@@ -322,6 +325,9 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             title = title.replace('#', '')
         if title.startswith('.'):
             title = title[1:]
+        if os.name != 'posix':
+            title = title.replace(':', '-')
+            title = title.replace('|', '-')
         #print(title, url, file_path)
         if 'list=' in url:
             title = title + '-Playlist'
