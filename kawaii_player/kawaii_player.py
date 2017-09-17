@@ -8407,6 +8407,8 @@ watch/unwatch status")
         global refererNeeded, finalUrlFound, quitReally, rfr_url, curR
         finalUrl = url_link
         print(row_val, '--epn--row--')
+        if not idw:
+            idw = str(int(self.tab_5.winId()))
         if row_val.isnumeric():
             row = int(row_val)
             curR = row
