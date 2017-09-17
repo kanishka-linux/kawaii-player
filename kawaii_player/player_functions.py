@@ -198,8 +198,11 @@ def get_tmp_dir():
         TMPDIR = os.path.join(home_dir, 'tmp')
     return TMPDIR
 
-def get_home_dir():
-    home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player')
+def get_home_dir(mode=None):
+    if mode == 'test':
+        home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player-test')
+    else:
+        home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player')
     return home
 
 def change_opt_file(config_file, old, new):
