@@ -109,7 +109,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         history_txt = os.path.join(home, 'History', site, 'history.txt')
                         path_dir = os.path.join(home, 'History', site, old_name)
         if os.path.exists(path_dir):
-            subprocess.Popen(['xdg-open', path_dir])
+            if os.name == 'posix':
+                subprocess.Popen(['xdg-open', path_dir])
+            elif os.name == 'nt':
+                subprocess.Popen(['start', path_dir], shell=True)
         else:
             msg = 'local file path does not exists: {0}'.format(path)
             send_notification(msg)
