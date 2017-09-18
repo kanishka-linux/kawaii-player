@@ -7239,6 +7239,10 @@ watch/unwatch status")
                         video_local_stream = False
                 if len(tmp1) >=10:
                     new_dir_path = tmp1[9]
+                    if OSNAME == 'nt':
+                        if len(tmp1) == 11:
+                            new_dir_path = new_dir_path + ':' + tmp1[10]
+                        
                 print(finalUrlFound)
                 print(refererNeeded)
                 print(video_local_stream)
