@@ -173,6 +173,9 @@ class ServerLib:
                             video_local_stream = False
                     if len(tmp1) >= 10:
                         new_dir_path = tmp1[9]
+                        if os.name == 'nt':
+                            if len(tmp1) == 11:
+                                new_dir_path = new_dir_path + ':' + tmp1[10]
                     print(finalUrlFound)
                     print(refererNeeded)
                     
