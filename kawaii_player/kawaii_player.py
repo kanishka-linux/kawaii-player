@@ -1422,7 +1422,7 @@ watch/unwatch status")
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (2, 4, 0, 0)
+        self.version_number = (2, 5, 0, 0)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
