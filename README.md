@@ -223,23 +223,25 @@ The portable nature of media server allows the application to work in peer to pe
 
 Steps Inovolved in P2P mode for two computers:
 
-1. First check and setup local IP address of both machines. (More->Settings)
+1. First add some items in the library (by clicking on the library button) and then update video and music section.
 
-1. Switch on media server functionality on both. (More->Start Media Server)
+2. Then check and setup local IP address of both machines. (More->Settings)
 
-2. Goto Addons->MyServer->Login
+3. Switch on media server functionality on both. (More->Start Media Server)
 
-3. Login requires at least IP address of the server that needs to be connected with. It will also ask for username and password, if it has been set for the server. If the login is successful, then click on the login again to navigate through library of server. 
+4. Goto Addons->MyServer->Login
 
-4. It is possible for Media servers to broadcast themselves(Option is available in **more** menu). Once broadcast server function is switched on, then clients can discover it automatically (Addons->MyServer->Discover). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Clients can get list of servers in the application itself along with broadcast message, after that they will have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
+5. Login requires at least IP address of the server that needs to be connected with (in the form http://192.168.2.3/ , if https is enabled for the server then write address accordingly). It will also ask for username and password. Users can leave username/password field blank if it has been not set for the server. Once the login is successful message is displayed, click on the login again to navigate through library of server. 
 
-5. Broadcast Message needs to be entered into **'BROADCAST_MESSAGE='** field in **.config/kawaii-player/other_options.txt** configuration file. If the field is not there then create it on a newline.
+6. It is possible for Media servers to broadcast themselves(Option is available in **more** menu), so that other clients can discover it automatically by switching on their discover functionality (Addons->MyServer->Discover: on client side). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Clients can get list of servers in the application itself along with broadcast message, after that they will have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
 
-6. It is possible to setup upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed - if the server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
+7. Broadcast Message needs to be entered into **'BROADCAST_MESSAGE='** field in **.config/kawaii-player/other_options.txt** configuration file. If the field is not there then create it on a newline.
 
-7. If user wants better security then turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
+8. It is possible to setup upload speed in KB for the server (The upload speed will be same for all connected clients). Right click on playlist (rightmost column), and select 'Set Upload Speed'. There is no way to setup download speed - if the server is running as a client of another server. Streaming of media is handled by mpv/mplayer, hence download speed can't be controlled externally.
 
-8. If client does not want to share its library and it just want to access library of the server, then there is no need to switch on client's media server functionality.
+9. If user wants better security then turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
+
+10. If client does not want to share its library and it just want to access library of the server, then there is no need for the client to switch on its media server functionality.
 
 
 ## Universal Playlist Generation
@@ -513,7 +515,7 @@ In this player, a weak addon structure has been created, so that one can write a
 
 3. Using self contained binary for 64-bit gnu/linux systems:
 	
-	Grab *'x86_64-bin.tar.bz2'* or *'x86_64-bin.7z'* package from latest stable release section, extract it, go to the extracted folder, open terminal in it and execute following commands, to directly open the application:
+	Grab *'gnu.linux.x86_64-bin.7z'* package from latest stable release section, extract it, go to the extracted folder, open terminal in it and execute following commands, to directly open the application:
 	
 		$ chmod +x kawaii_player
 		$ ./kawaii_player
@@ -522,7 +524,8 @@ In this player, a weak addon structure has been created, so that one can write a
     
         $ chmod +x hls_cmd_webkit
 
-	The 64-bit binary is built against Ubuntu 16.04 LTS as base and contains all python based dependencies. Users will have to install only non-python based dependencies like mpv/mplayer/ffmpegthumbnailer externally. The binary has been tested on Ubuntu, Mint and Fedora.
+	The 64-bit binary is built against Ubuntu 16.04 LTS as base and contains all python based dependencies. Users will have to install only non-python based dependencies like mpv/mplayer/ffmpegthumbnailer externally using their native package manager.
+
 
 4. **Using setup.py** (Common method for all including gnu/linux, windows and other unix like systems): 
 		
@@ -542,9 +545,13 @@ In this player, a weak addon structure has been created, so that one can write a
 	
 	Once application is installed, launch the application using command **kawaii-player** or **kawaii-player-console** from the terminal.
 
-5. Tips for Windows users (only using setup.py method).
+5. Tips for Windows users.
 
-    If users find that some python dependencies (particularly pycurl and lxml) can't be installed properly, then they should grab appropriate binaries of these packages from [gohlke's site](http://www.lfd.uci.edu/~gohlke/pythonlibs/). Once all python based dependencies are installed, users need to install non-python dependencies like mpv/mplayer or curl/wget. In order to install these non-python packages, just grab binaries of these packages from official sites, extract them and add their path to window's system path. If users are finding some difficulty in setting path variable, then they can just dump all these extracted non-python binaries i.e. mpv/mplayer and curl/wget to the location '~/.config/kawaii-player/src/'; once it is done the application will automatically recognize them.
+    If users find that some python dependencies (particularly pycurl and lxml) can't be installed properly, then they should grab appropriate binaries of these packages from [gohlke's site](http://www.lfd.uci.edu/~gohlke/pythonlibs/). Once all python based dependencies are installed, users need to install non-python dependencies like mpv/mplayer or curl/wget. In order to install these non-python packages, just grab binaries of these packages from official sites, extract them and add their path to window's system path. If users are finding some difficulty in setting path variable, then they can just dump all these extracted non-python binaries i.e. mpv/mplayer and curl/wget to the location '~/.config/kawaii-player/src/'; once it is done the application will automatically recognize them. Python3-libtorrent as a binary is not available on PyPI, hence users will have to build and install it from source, in order to use torrent-streaming feature.
+    
+    **Directly using self contained binary:** 
+    
+    kawaii-player v2.5 has released binary for 64-bit windows 10. This binary packs all the python based dependencies (except python3-libtorrent) along with mpv and curl. Just grab the binary for windows from release section, extract it, go to extracted folder and then click on **kawaii_player** file to launch the application. In **~\.config\kawaii-player\other_options.txt** file, windows users have to changes 'GET_LIBRARY=pycurl' to 'GET_LIBRARY=curl', in order to use curl directly. pycurl was running too slow on windows for fetching webpages, hence it is advisable to use curl directly instead. Users can also change 'YTDL_PATH=DEFAULT' to 'YTDL_PATH=AUTOMATIC', that will grab updated youtube-dl automatically, for playing youtube videos. On windows youtube-dl requires 'msvc 2010 redistributable package (x86)' - which they have to install from microsoft's website.
 
 # Dependencies
 
@@ -636,7 +643,7 @@ dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3
 
 13. If there is screen tearing in fullscreen video in ubuntu unity, then install ccsm (compizconfig settings manager) and try toggling option **'ccsm->composite->undirect-fullscreen-window'**
 
-14. Library paths are set in '~/.config/kawaii-player/local.txt' file. If there is a problem setting it from gui then directly enter paths in **'local.txt'** file.
+14. Library paths are set in '~/.config/kawaii-player/local.txt' file. If there is a problem setting it from GUI, then directly enter paths in **'local.txt'** file.
 
 15. If there is some problem with mpv/mplayer video playback, then try changing video output driver (vo) to gl or opengl, in the configuration files of mpv/mplayer. mpv config file is: '.config/mpv/config'; mplayer config file is: '.mplayer/config'. Users can also check other available video drivers using command 'mpv/mplayer -vo help'
 
