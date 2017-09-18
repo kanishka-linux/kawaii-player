@@ -10310,7 +10310,7 @@ watch/unwatch status")
             if Player == "mplayer":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if (not self.external_url and self.mpvplayer_started 
-                        and not self.external_audio_file):
+                        and not self.external_audio_file and OSNAME == 'posix'):
                     #try:
                     epnShow = '"' + "Queued:  "+ new_epn + '"'
                     t1 = bytes('\n '+'show_text '+(epnShow)+' \n', 'utf-8')
@@ -10331,7 +10331,7 @@ watch/unwatch status")
             elif Player == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if (not self.external_url and self.mpvplayer_started 
-                        and not self.external_audio_file):
+                        and not self.external_audio_file and OSNAME == 'posix'):
                     epnShow = '"' + "Playing:  "+ new_epn + '"'
                     t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                     t2 = bytes('\n '+"loadfile "+finalUrl+' \n', 'utf-8')
