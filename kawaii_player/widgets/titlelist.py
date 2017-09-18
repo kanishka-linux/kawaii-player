@@ -187,7 +187,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 file_path = os.path.join(home, 'Bookmark', 'bookmark.txt')
                 write_files(file_path, tmp, line_by_line=True)
                 note = name + " is Bookmarked"
-                send_notification(note)
+                send_notification(note, code=0)
         elif event.key() == QtCore.Qt.Key_PageUp:
             param_dict = ui.get_parameters_value(
                 b='bookmark', s='site', o='opt', st='status', sn='siteName')
@@ -536,7 +536,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             lines.append(tmp)
             write_files(file_path, lines, line_by_line=True)
             note = name + " is Added to "+val+" Category"
-            send_notification(note)
+            send_notification(note, code=0)
 
     def triggerPlaylist(self, value):
         print('Menu Clicked')
@@ -573,7 +573,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 msg = 'Invalid Category'
         else:
             msg = 'This operation not allowed in this section'
-        send_notification(msg)
+        send_notification(msg, code=0)
         logger.info('{0}: --588--{1}'.format(msg, ui.category_dict))
         
     def delete_category_video(self, site, category):
@@ -611,7 +611,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             logger.info('Category {0} set to ::{1}'.format(category, 'Others'))
             logger.info('Category Dict: {0}\nCategory Array: {1}'.format(ui.category_dict, ui.category_array))
             msg = 'Category {0} Removed; Removed Items are in Others Category'.format(category)
-            send_notification(msg)
+            send_notification(msg, code=0)
         else:
             send_notification('Wrong Parameters')
             
