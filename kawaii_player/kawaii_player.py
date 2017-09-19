@@ -2217,36 +2217,50 @@ watch/unwatch status")
                 if os.path.exists(picn) and os.stat(picn).st_size:
                     self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
             else:
-                if inter.endswith('s'):
-                    inter = inter[:-1]
-                #self.progressEpn.setFormat('Generating Thumbnail Wait..')
-                self.mpv_thumbnail_lock = True
-                if 'youtube.com' in path:
-                    new_tmp = new_tmp.replace('"', '')
-                    subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
-                                    "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                                    "--start="+str(inter)+"%", "--frames=1"
-                                    , path])
-                else:
-                    if Player == 'mpv':
-                        new_tmp = new_tmp.replace('"', '')
-                        subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
-                        "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                        "--start="+str(inter)+"%", "--frames=1", path], shell=True)
-                    elif Player == 'mplayer':
-                        subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
-                        '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
-                        "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
-                        path], shell=True)
-                    
-                picn_path = os.path.join(TMPDIR, '00000001.jpg')
-                if os.path.exists(picn_path):
-                    shutil.copy(picn_path, picn)
-                    os.remove(picn_path)
+                if path.endswith('.mp3') or path.endswith('.flac'):
+                    try:
+                        f = mutagen.File(path)
+                        artwork = f.tags['APIC:'].data
+                        with open(picn, 'wb') as img:
+                            img.write(artwork) 
+                    except Exception as e:
+                        try:
+                            f = open(picn, 'w').close()
+                            print(e, '--9048--')
+                        except Exception as e:
+                            print(e, '--9065--')
+                    logger.info("{0}:{1}".format(path, picn))
                     if os.path.exists(picn) and os.stat(picn).st_size:
                         self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
-                self.mpv_thumbnail_lock = False
-            #self.progressEpn.setFormat('Thumbnail Generated..')
+                else:
+                    if inter.endswith('s'):
+                        inter = inter[:-1]
+                    self.mpv_thumbnail_lock = True
+                    if 'youtube.com' in path:
+                        new_tmp = new_tmp.replace('"', '')
+                        subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
+                                        "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
+                                        "--start="+str(inter)+"%", "--frames=1"
+                                        , path])
+                    else:
+                        if Player == 'mpv':
+                            new_tmp = new_tmp.replace('"', '')
+                            subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
+                            "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
+                            "--start="+str(inter)+"%", "--frames=1", path], shell=True)
+                        elif Player == 'mplayer':
+                            subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
+                            '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
+                            "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
+                            path], shell=True)
+                        
+                    picn_path = os.path.join(TMPDIR, '00000001.jpg')
+                    if os.path.exists(picn_path):
+                        shutil.copy(picn_path, picn)
+                        os.remove(picn_path)
+                        if os.path.exists(picn) and os.stat(picn).st_size:
+                            self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+                    self.mpv_thumbnail_lock = False
     
     def create_new_image_pixel(self, art_url, pixel):
         art_url_name = str(pixel)+'px.'+os.path.basename(art_url)
@@ -3979,12 +3993,16 @@ watch/unwatch status")
             else:
                 nameEpn = os.path.basename(title)
                 path = title
+            if OSNAME != 'posix':
+                nameEpn = self.replace_special_characters(nameEpn)
             if path.startswith('abs_path='):
                 path = self.if_path_is_rel(path, thumbnail=True)
             if self.list1.currentItem():
                 name_t = self.list1.currentItem().text()
             else:
                 name_t = ''
+            if OSNAME != 'posix':
+                name_t = self.replace_special_characters(name_t)
             if self.list3.currentItem():
                 if self.list3.currentItem().text() == 'Playlist':
                     picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
@@ -4007,6 +4025,8 @@ watch/unwatch status")
                 if os.path.exists(picn):
                     if os.stat(picn).st_size == 0:
                         art_n =title.split('	')[2]
+                        if OSNAME != 'posix':
+                            art_n = self.replace_special_characters(art_n)
                         pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
                         if os.path.exists(pic):
                             picn = pic
@@ -4015,6 +4035,8 @@ watch/unwatch status")
             if item:
                 nameEpn = title.split('	')[0]
                 nameEpn = str(nameEpn)
+                if OSNAME != 'posix':
+                    nameEpn = self.replace_special_characters(nameEpn)
                 try:
                     path = title.split('	')[1]
                     if path.startswith('abs_path='):
@@ -4050,7 +4072,12 @@ watch/unwatch status")
                     nameEpn = title.split('	')[0]
                 else:
                     nameEpn = title
-            picnD = os.path.join(home, 'thumbnails', name)
+            if OSNAME != 'posix':
+                nameEpn = self.replace_special_characters(nameEpn)
+                namedir = self.replace_special_characters(name)
+            else:
+                namedir = name
+            picnD = os.path.join(home, 'thumbnails', namedir)
             if not os.path.exists(picnD):
                 try:
                     os.makedirs(picnD)
@@ -7166,7 +7193,12 @@ watch/unwatch status")
                 if os.path.isfile(hist_sum) or os.path.isfile(hist_picn):
                     self.videoImage(picn, thumbnail, fanart, summary)
     
-    def replace_special_characters(self, newname, replc_dict):
+    def replace_special_characters(self, newname, replc_dict=None):
+        if not replc_dict:
+            replc_dict = {
+                ':':'-', '|':'-', '&':'-and-', '?':'-', '+':'-', '#':'-',
+                '"':'-', '*':'-'
+                }
         if '\t' in newname:
             title, restpart = newname.split('\t', 1)
         else:
@@ -7358,8 +7390,7 @@ watch/unwatch status")
                     print(self.record_history, '--self.record_history---')
                     if os.path.isfile(hist_path) and self.record_history:
                         if OSNAME != 'posix':
-                            replc_dict = {':':'-', '|':'-', '&':'-and-'}
-                            new_name_with_info = self.replace_special_characters(new_name_with_info, replc_dict)
+                            new_name_with_info = self.replace_special_characters(new_name_with_info)
                         if (os.stat(hist_path).st_size == 0):
                             write_files(hist_path, new_name_with_info, line_by_line=True)
                         else:
@@ -7374,8 +7405,7 @@ watch/unwatch status")
                     
                     hist_dir, last_field = os.path.split(hist_path)
                     if OSNAME != 'posix':
-                        replc_dict = {':':'-', '|':'-', '&':'-and-'}
-                        name = self.replace_special_characters(name, replc_dict)
+                        name = self.replace_special_characters(name)
                     hist_site = os.path.join(hist_dir, name)
                     hist_epn = os.path.join(hist_site, 'Ep.txt')
                     if (not os.path.exists(hist_site) and self.record_history) or (os.path.exists(hist_epn)):
@@ -7403,8 +7433,7 @@ watch/unwatch status")
                             return 0
                 else:
                     if OSNAME != 'posix':
-                        replc_dict = {':':'-', '|':'-', '&':'-and-'}
-                        name = self.replace_special_characters(name, replc_dict)
+                        name = self.replace_special_characters(name)
                     if siteName:
                         hist_site = os.path.join(home, 'History', site, siteName, name)
                     else:
@@ -7601,6 +7630,8 @@ watch/unwatch status")
                         nm = nm.replace('/', '-')
                 else:
                     nm = artist_name_mplayer
+                if OSNAME != 'posix':
+                    nm = self.replace_special_characters(nm)
                 music_dir_art_name = os.path.join(home, 'Music', 'Artist', nm)
                 logger.info(music_dir_art_name)
                 if not os.path.exists(music_dir_art_name):
@@ -7642,6 +7673,8 @@ watch/unwatch status")
                     artist_name_mplayer = nm
                 else:
                     artist_name_mplayer = ''
+                if OSNAME != 'posix':
+                    nm = self.replace_special_characters(nm)
                 music_dir_art_name = os.path.join(home, 'Music', 'Artist', nm)
                 logger.info('music_dir_art_name={0}'.format(music_dir_art_name))
                 if not os.path.exists(music_dir_art_name):
