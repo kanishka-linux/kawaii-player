@@ -8601,12 +8601,14 @@ watch/unwatch status")
                         n_epn = '#'+self.epn_arr_list[row]
                         file_path = hist_path
                         lines = open_files(file_path, True)
-                        if "\n" in lines[row]:
-                            lines[row] = n_epn + "\n"
+                        if row < len(lines):
+                            if "\n" in lines[row]:
+                                lines[row] = n_epn + "\n"
+                            else:
+                                lines[row] = n_epn
+                            write_files(file_path, lines, line_by_line=True)
                         else:
-                            lines[row] = n_epn
-                        
-                        write_files(file_path, lines, line_by_line=True)
+                            logger.debug('row > playlist')
                         txt = self.check_symbol + self.epn_arr_list[row]
                     txt = txt.replace('_', ' ', 1)
                     if '	' in txt:
