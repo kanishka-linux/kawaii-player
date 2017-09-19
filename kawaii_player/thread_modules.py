@@ -222,7 +222,7 @@ class FindPosterThread(QtCore.QThread):
                 if img:
                     url = img[0]
                     try:
-                        ccurl(url+'#'+'-o'+'#'+thumb)
+                        ccurl(url, curl_opt='-o', out_file=thumb)
                     except Exception as err:
                         print(err, '--151--')
             elif (self.copy_poster or self.copy_fanart) and url and direct_url:
@@ -252,7 +252,7 @@ class FindPosterThread(QtCore.QThread):
                     final = ''
                 try:
                     if final.startswith('http'):
-                        ccurl(final+'#'+'-o'+'#'+thumb)
+                        ccurl(final, curl_opt='-o', out_file=thumb)
                 except Exception as e:
                     print(e)
         else:

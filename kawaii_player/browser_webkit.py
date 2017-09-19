@@ -550,7 +550,7 @@ class Browser(QtWebKitWidgets.QWebView):
         else:
             url = url.toString()
             if url:
-                t_content = ccurl(url+'#'+'-I')
+                t_content = ccurl(url, curl_opt='-I')
                 if 'image/jpeg' in t_content and not 'Location:' in t_content:
                     pass
                 elif 'image/jpeg' in t_content and 'Location:' in t_content:

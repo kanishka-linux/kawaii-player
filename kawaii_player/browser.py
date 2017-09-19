@@ -260,7 +260,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
     def urlHeaders(self, url):
         m = []
         o = []
-        content = ccurl(url+'#'+'-I')
+        content = ccurl(url, curl_opt='-I')
         n = content.split('\n')
         #print(n)
         k = 0
@@ -612,7 +612,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 url = self.media_url
             print(url, self.media_url, '--media--url--')
             if url:
-                t_content = ccurl(url+'#'+'-I')
+                t_content = ccurl(url, curl_opt='-I')
                 if 'image/jpeg' in t_content and not 'Location:' in t_content:
                     pass
                 elif 'image/jpeg' in t_content and 'Location:' in t_content:
