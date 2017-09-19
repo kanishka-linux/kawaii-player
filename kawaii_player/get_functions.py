@@ -158,13 +158,7 @@ def wget_string_get(url, dest, opt, extra, tmp_log, download_manager=None):
     elif opt == '-d':
         post = '--post-data='+'"'+extra+'"'
         command = ["wget", "--read-timeout=60", "--user-agent="+hdr, post, url, "-O", dest]
-    #print(command)
     if os.name == 'nt':
-        #ca_cert = get_ca_certificate()
-        #if ca_cert:
-        #	cert = "--ca-certificate="+'"'+ca_cert+'"'
-        #	command.append(cert)
-        #else:
         command.append('--no-check-certificate')
     ver_peer = url.split('/')
     if len(ver_peer) > 3:
@@ -172,7 +166,6 @@ def wget_string_get(url, dest, opt, extra, tmp_log, download_manager=None):
         if ver_peer_get.startswith('abs_path') and '&pl_id=' in ver_peer_get:
             if '--no-check-command' not in command:
                 command.append('--no-check-certificate')
-    #print(command)
     return command
 
 
@@ -186,23 +179,28 @@ def getContentUnicode(content):
         content = str(content)
     return content
 
-def ccurlCmd(url, external_cookie=None, user_auth=None, verify_peer=None):
+def ccurlCmd(url, external_cookie=None, user_auth=None, verify_peer=None,
+             curl_opt=None, out_file=None, referer=None, post_data=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
 
     print(url)
-    curl_opt = ''
-    picn_op = ''
-    rfr = ''
-    nUrl = url
+    if curl_opt:
+        legacy = False
+    else:
+        curl_opt = ''
+        picn_op = ''
+        rfr = ''
+        nUrl = url
+        postfield = ''
+        legacy = True
     extra = ''
-    postfield = ''
     if not external_cookie:
         cookie_file = ''
     else:
         cookie_file = external_cookie
-    if '#' in url:
+    if '#' in url and legacy:
         curl_opt = nUrl.split('#')[1]
         url = nUrl.split('#')[0]
         print(curl_opt, url, '----------------------------------')
@@ -224,6 +222,35 @@ def ccurlCmd(url, external_cookie=None, user_auth=None, verify_peer=None):
             post = post.replace('"', '')
             post = post.replace("'", '')
             extra = post
+    else:
+        wrong_param = False
+        if curl_opt == '-o':
+            if out_file:
+                picn_op = extra = out_file
+                if cookie_file:
+                    extra = picn_op+'#'+cookie_file
+            else:
+                wrong_param = True
+        elif curl_opt == '-Ie' or curl_opt == '-e':
+            if referer:
+                rfr = extra = referer
+            else:
+                wrong_param = True
+        elif (curl_opt == '-Icb' or curl_opt == '-bc' or curl_opt == '-b' 
+               or curl_opt == '-Ib' or curl_opt == '-c'):
+            if external_cookie:
+                cookie_file = extra = external_cookie
+            else:
+                wrong_param = True
+        elif curl_opt == '-d':
+            if post_data:
+                post = extra = post_data
+            else:
+                wrong_param = True
+        if wrong_param:
+            print('--wrong parameters--')
+            return ''
+            
     print("\ndebug info for ccurlCmd url ={0} \n curl_opt = {1} \n extra = {2}\n".format(url, curl_opt, extra))
     command = ccurl_string_get(url, curl_opt, extra)
     if user_auth is not None:
@@ -271,22 +298,27 @@ def read_file_complete(file_path):
     return content
 
 
-def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None):
+def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None,
+              curl_opt=None, out_file=None, referer=None, post_data=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
     print(url)
-    curl_opt = ''
-    picn_op = ''
-    rfr = ''
-    nUrl = url
+    if curl_opt:
+        legacy = False
+    else:
+        curl_opt = ''
+        picn_op = ''
+        rfr = ''
+        nUrl = url
+        postfield = ''
+        legacy = True
     extra = ''
-    postfield = ''
     if not external_cookie:
         cookie_file = ''
     else:
         cookie_file = external_cookie
-    if '#' in url:
+    if '#' in url and legacy:
         curl_opt = nUrl.split('#')[1]
         url = nUrl.split('#')[0]
         print(curl_opt, url, '----------------------------------')
@@ -308,7 +340,35 @@ def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None):
             post = post.replace('"', '')
             post = post.replace("'", '')
             extra = post
-
+    else:
+        wrong_param = False
+        if curl_opt == '-o':
+            if out_file:
+                picn_op = extra = out_file
+                if cookie_file:
+                    extra = picn_op+'#'+cookie_file
+            else:
+                wrong_param = True
+        elif curl_opt == '-Ie' or curl_opt == '-e':
+            if referer:
+                rfr = extra = referer
+            else:
+                wrong_param = True
+        elif (curl_opt == '-Icb' or curl_opt == '-bc' or curl_opt == '-b' 
+               or curl_opt == '-Ib' or curl_opt == '-c'):
+            if external_cookie:
+                cookie_file = extra = external_cookie
+            else:
+                wrong_param = True
+        elif curl_opt == '-d':
+            if post_data:
+                post = extra = post_data
+            else:
+                wrong_param = True
+        if wrong_param:
+            print('--wrong parameters--')
+            return ''
+            
     tmp_dst = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player', 'tmp')
     if not os.path.exists(tmp_dst):
         os.makedirs(tmp_dst)
@@ -361,22 +421,27 @@ def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None):
     return content
 
 
-def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
+def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
+          curl_opt=None, out_file=None, referer=None, post_data=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
     print(url)
     c = pycurl.Curl()
-    curl_opt = ''
-    picn_op = ''
-    rfr = ''
-    nUrl = url
-    postfield = ''
     if not external_cookie:
         cookie_file = ''
     else:
         cookie_file = external_cookie
-    if '#' in url:
+    if curl_opt:
+        legacy = False
+    else:
+        curl_opt = ''
+        picn_op = ''
+        rfr = ''
+        nUrl = url
+        postfield = ''
+        legacy = True
+    if '#' in url and legacy:
         curl_opt = nUrl.split('#')[1]
         url = nUrl.split('#')[0]
         print(curl_opt, url, '----------------------------------')
@@ -399,6 +464,38 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
                 post_data = {str(post1):str(post2)}
                 postfield = urllib.parse.urlencode(post_data)
             print(postfield, '--postfields--')
+    else:
+        wrong_param = False
+        if curl_opt == '-o':
+            if out_file:
+                picn_op = out_file
+            else:
+                wrong_param = True
+        elif curl_opt == '-Ie' or curl_opt == '-e':
+            if referer:
+                rfr = referer
+            else:
+                wrong_param = True
+        elif (curl_opt == '-Icb' or curl_opt == '-bc' or curl_opt == '-b' 
+               or curl_opt == '-Ib' or curl_opt == '-c'):
+            if external_cookie:
+                cookie_file = external_cookie
+            else:
+                wrong_param = True
+        elif curl_opt == '-d':
+            if post_data:
+                post = post_data.replace('"', '')
+                post = post_data.replace("'", '')
+                post1 = post.split('=')[0]
+                post2 = post.split('=')[1]
+                post_data = {str(post1):str(post2)}
+                postfield = urllib.parse.urlencode(post_data)
+            else:
+                wrong_param = True
+        if wrong_param:
+            print('--wrong parameters--')
+            return ''
+                
     url = str(url)
     try:
         c.setopt(c.URL, url)
@@ -423,13 +520,14 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None):
         try:
             f = open(picn_op, 'wb')
             c.setopt(c.WRITEDATA, f)
-        except:
+        except Exception as err:
+            print(err, 'not able to write file')
             return 0
         try:
             c.perform()
             c.close()
-        except:
-            print('failure in obtaining image try again')
+        except Exception as err:
+            print('failure in obtaining image try again', err)
             pass
         f.close()
     else:
