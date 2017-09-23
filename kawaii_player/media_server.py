@@ -2054,6 +2054,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             content = open(thumb_path, 'rb').read()
         else:
             new_file = os.path.join(home, '128px.default.jpg')
+            default_jpg = os.path.join(home, 'default.jpg')
+            if not os.path.exists(new_file):
+                ui.create_new_image_pixel(default_jpg, '128')
             content = open(new_file, 'rb').read()
         self.send_response(200)
         self.send_header('Content-type', 'image/jpg')
