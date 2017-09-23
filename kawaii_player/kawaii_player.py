@@ -2270,6 +2270,7 @@ watch/unwatch status")
         art_url_name = str(pixel)+'px.'+os.path.basename(art_url)
         path_thumb, new_title = os.path.split(art_url)
         abs_path_thumb = os.path.join(path_thumb, art_url_name)
+        logger.debug(abs_path_thumb)
         try:
             if not os.path.exists(abs_path_thumb) and os.path.exists(art_url):
                 basewidth = pixel
