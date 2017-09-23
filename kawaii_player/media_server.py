@@ -230,9 +230,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     pls_append = True
             if created:
                 if pls_append:
-                    msg = 'Appended to Playlist: {0}, now refresh browser'.format(new_var)
+                    msg = 'Appended to Playlist: {0}'.format(new_var)
                 else:
-                    msg = 'New Playlist: {0} created, now refresh browser'.format(new_var)
+                    msg = 'New Playlist: {0} created'.format(new_var)
             else:
                 msg = 'Playlist creation failed'
             self.final_message(bytes(msg, 'utf-8'))
@@ -1829,8 +1829,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 file_path = os.path.join(home, 'Playlists', n_path)
                 if not os.path.exists(file_path):
                     f = open(file_path, 'w').close()
+                    msg = '1:OK'
+                else:
+                    msg = '2:WRONG'
             else:
-                msg = 'Nothing Created: Wrong Parameters'
+                msg = '3:FALSE'
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
         elif path.startswith('delete_playlist='):
