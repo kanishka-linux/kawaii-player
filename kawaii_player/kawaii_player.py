@@ -2188,7 +2188,8 @@ watch/unwatch status")
             self.auto_hide_dock = True
             self.dockWidget_3.hide()
             
-    def generate_thumbnail_method(self, picn, interval, path):
+    def generate_thumbnail_method(self, picn, interval, path,
+                                  width_allowed=None, from_client=None):
         global Player
         path = path.replace('"', '')
         inter = str(interval)
@@ -2196,7 +2197,10 @@ watch/unwatch status")
         new_tmp = '"'+TMPDIR+'"'
         if not self.mpv_thumbnail_lock:
             if OSNAME == 'posix':
-                wd = str(self.width_allowed)
+                if width_allowed:
+                    wd = str(width_allowed)
+                else:
+                    wd = str(self.width_allowed)
                 if path.endswith('.mp3') or path.endswith('.flac'):
                     try:
                         f = mutagen.File(path)
@@ -2214,7 +2218,7 @@ watch/unwatch status")
                     subprocess.call(["ffmpegthumbnailer", "-i", path, "-o", picn, 
                                 "-t", str(inter), '-q', '10', '-s', wd])
                 logger.info("{0}:{1}".format(path, picn))
-                if os.path.exists(picn) and os.stat(picn).st_size:
+                if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                     self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
             else:
                 if path.endswith('.mp3') or path.endswith('.flac'):
@@ -6075,7 +6079,7 @@ watch/unwatch status")
             picnD = ''
             picn = ''
             if (site == "PlayLists" or site == "Local" or site == "Video" 
-                    or site == "Music"):
+                    or site == "Music" or site.lower() == "myserver"):
                 if site == 'PlayLists':
                     playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
                     if not os.path.exists(playlist_dir):
@@ -6117,10 +6121,15 @@ watch/unwatch status")
                 if ((picn and not os.path.exists(picn) 
                         and 'http' not in path) 
                         or (picn and not os.path.exists(picn) 
-                        and 'http' in path and 'youtube.com' in path )):
+                        and 'http' in path and 'youtube.com' in path)
+                        or (picn and site.lower() == 'myserver' and 'http' in path)):
                     path = path.replace('"', '')
-                    if 'http' in path and 'youtube.com' in path and '/watch?' in path:
-                        path = self.create_img_url(path)
+                    if (('http' in path and 'youtube.com' in path and '/watch?' in path) or 
+                            ('http' in path and site.lower() == 'myserver')):
+                        if site.lower() == 'myserver':
+                            path = path+'.image'
+                        else:
+                            path = self.create_img_url(path)
                     self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
                     self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
                     length = len(self.threadPoolthumb)
