@@ -704,7 +704,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.frame1.show()
                         i = 0
                         ui.play_file_now(finalUrl)
-                        thumbnail_indicator[:] = []
                         iconv_r = 1
                         ui.set_parameters_value(iconv=iconv_r, thumb_indicator='empty')
                         ui.thumbnail_label_update_epn()
