@@ -2033,7 +2033,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def process_image_url(self, path):
         global ui, home, logger
-        thumbnail_dir = os.path.join(TMPDIR, 'myserver')
+        thumbnail_dir = os.path.join(home, thumbnails, 'thumbnail_server')
         if not os.path.exists(thumbnail_dir):
             os.makedirs(thumbnail_dir)
         thumb_name_bytes = bytes(path, 'utf-8')
@@ -2048,7 +2048,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ccurl(img_url, curl_opt='-o', out_file=thumb_path)
             
         if not os.path.exists(thumb_path) and not path.startswith('http'):
-            ui.generate_thumbnail_method(thumb_path, '10', path)
+            ui.generate_thumbnail_method(thumb_path, 10, path, from_client=True)
         
         if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
             content = open(thumb_path, 'rb').read()
