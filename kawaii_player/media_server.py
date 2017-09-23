@@ -2033,7 +2033,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def process_image_url(self, path):
         global ui, home, logger
-        thumbnail_dir = os.path.join(home, thumbnails, 'thumbnail_server')
+        thumbnail_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
         if not os.path.exists(thumbnail_dir):
             os.makedirs(thumbnail_dir)
         thumb_name_bytes = bytes(path, 'utf-8')
