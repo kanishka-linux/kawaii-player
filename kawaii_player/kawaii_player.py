@@ -4236,6 +4236,7 @@ watch/unwatch status")
                 else:
                     nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
                     path = (self.epn_arr_list[browse_cnt])
+                nameEpn = nameEpn.strip()
                 if self.list1.currentItem():
                     name_t = self.list1.currentItem().text()
                 else:
@@ -6051,9 +6052,10 @@ watch/unwatch status")
     def epn_highlight(self):
         global home, site
         num = self.list2.currentRow()
+        move_ahead = True
         if num < 0:
-            return 0
-        if self.list2.currentItem() and num < len(self.epn_arr_list):
+            move_ahead = False
+        if self.list2.currentItem() and num < len(self.epn_arr_list) and move_ahead:
             epn_h = self.list2.currentItem().text()
             inter_val = 10
             
@@ -6067,7 +6069,7 @@ watch/unwatch status")
             if site == "PlayLists":
                 path = path.replace('"', '')
             logger.info(path)
-            a1 = a
+            a1 = a.strip()
             self.text.clear()
             if site != "Music":
                 self.text.setText((a1))
