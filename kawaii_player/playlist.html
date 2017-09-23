@@ -103,11 +103,12 @@ Text box can also be used to input text commands to server as follows
 </div>
 <br>
 <div id="pls_custom" class ="pls_custom_" hidden="hidden">
-	<input id="create_playlist" title="Enter Custom Playlist Name which has to be created or select existing playlist from another side menu" type="search" placeholder="Create Custom Playlist OR" onkeypress="return _create_custom_playlist(event)">
-	<select id="only_playlist" onchange="_existing_playlist()"></select>
+	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist(event)">Create Playlist</button>
+	<select id="only_playlist"></select>
 	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
-	<h3 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Drag and drop playlist item in this space which will be then appended to the selected playlist or newly created playlist. Users can also drop entries on <i>Top</i> label which will appear over lower right corner while scrolling down the page.</h3>
+    <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
+	<h3 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Click on items to add them to selected playlist. Hide this editing box once playlist has been created/edited and saved, otherwise clicked items won't play</h3>
 	<ol id="playlist_custom"></ol>
 </div>
 <br>
@@ -348,15 +349,6 @@ function _delete_pls(e){
 	}
 }
 
-function _existing_playlist(){
-	var val = _only_playlist.value;
-	if (val != 'select_existing_playlist'){
-		_create_playlist.value = val;
-	}
-	else{
-		_create_playlist.value = '';
-	}
-}
 
 _playlist_custom.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "LI") {
@@ -748,7 +740,9 @@ function _sync_pls(){
 				console.log(response);
 				_title.innerHTML = response;
 		})
-	}
+	}else{
+        _title.innerHTML = 'Plese Select Existing Playlist first in which you have to save items';
+    }
 }
 
 function show_player_window(){
@@ -868,19 +862,65 @@ function custom_drop(e){
 	e.target.style.border = "";
 }
 
+function click_to_add_to_playlist(e){
+	console.log('---click on add to playlist--')
+	console.log(e);
+	 var link_ = e.getAttribute("data-mp3");
+	 var text_ = e.innerHTML;
+	
+    var new_opt = document.createElement('li');
+	new_opt.innerHTML = text_;
+	new_opt.setAttribute('data-mp3',link_);
+	new_opt.setAttribute('draggable','true');
+	new_opt.setAttribute('ondragstart','drag_start_remove(event)');
+	_playlist_custom.appendChild(new_opt);
+}
+
 function _create_custom_playlist(e){
-	if(e.keyCode==13){
-		var z = document.getElementById("create_playlist");
-		console.log(z.value);
-		if (z.value != null){
-			var new_url = "create_playlist="+z.value;
+    var prompt_val = prompt("Enter Playlist Name:", "myplaylist")
+	if(prompt_val != null && prompt_val != ''){
+            console.log(prompt_val)
+			var new_url = "create_playlist="+prompt_val;
 			var client = new getRequest();
 				client.get(new_url, function(response) {
 				console.log(response);
-				_title.innerHTML = response+', or refresh playlist section again';
+                if (response == '1:OK'){
+                    _title.innerHTML = 'playlist successfully created';
+                    var client = new getRequest();
+                    client.get('get_all_playlist', function(response) {
+                        console.log(response);
+                        var w = response.split('\n');
+                        w.sort()
+                        console.log(w);
+                        req = document.getElementById("only_playlist");
+                        req.innerHTML = '';
+                        for(i=0;i<w.length;i++){
+                            if (i == 0){
+                                var new_opt = document.createElement("option");
+                                new_opt.text = 'Select Existing Playlist';
+                                new_opt.value = 'select_existing_playlist';
+                                req.appendChild(new_opt);
+                            }
+                            k = w[i];
+                            var new_opt = document.createElement("option");
+                            new_opt.text = k.substring(0,45);
+                            new_opt.value = k;
+                            req.appendChild(new_opt);
+                            //console.log(req);
+                        }
+                    var site_tmp = document.getElementById('site_option')
+                    site_tmp.innerHTML = site_tmp.innerHTML+';PlayLists:'+prompt_val+';'
+                    onDocReady()
+                    })
+                }else if (response == '2:WRONG'){
+                    _title.innerHTML = 'file already exists; choose different name';
+                }else {
+                    _title.innerHTML = 'wrong pparameters';
+                }
 			})
-		}
-	}
+	}else{
+        _title.innerHTML = 'No Input Given';
+    }
 }
 
 function drag_start_remove(e){
@@ -1684,6 +1724,7 @@ _custom_pls.addEventListener("click", function () {
 		client.get('get_all_playlist', function(response) {
 			console.log(response);
 			var w = response.split('\n');
+            w.sort()
 			console.log(w);
 			req = document.getElementById("only_playlist");
 			req.innerHTML = '';
@@ -1710,6 +1751,11 @@ _custom_pls.addEventListener("click", function () {
   
 });
 
+function _clear_pls_button(){
+    r = document.getElementById('playlist_custom')
+    while(r.firstChild){r.removeChild(r.firstChild);}
+}
+
 window.onscroll = function () {
     if (pageYOffset >= 200) {
         document.getElementById('backToTop').style.visibility = "visible";
@@ -1725,7 +1771,6 @@ document.getElementById('backToTop').onclick = function()
 
 window.addEventListener("resize", resizeWindowEvent);
 _player.addEventListener("ended", playNext);
-//_playlist.addEventListener("dblclick", function (e) {
 _playlist.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "LI") {
         
@@ -1740,7 +1785,11 @@ _playlist.addEventListener("click", function (e) {
 		//console.log(i);
 		//_clicked_index = i;
 		}
-		playlistItemClick(e.target,'playlist');
+        if( !_pls_custom.hidden){
+            click_to_add_to_playlist(e.target)
+        }else{
+            playlistItemClick(e.target,'playlist');
+        }
 		console.log(e.target);
 		//_title.innerHTML = e.target.innerHTML;
     }
