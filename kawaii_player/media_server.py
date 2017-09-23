@@ -718,7 +718,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if self.path.endswith('.pls'):
                     pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i), out, n_art, n_out)
                 elif self.path.endswith('.htm') or self.path.endswith('.html'):
-                    pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}">{0} - {1}</li>'.format(n_art, n_out, out, str(i+1))
+                    pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}"><img src="{4}" width="128">{0} - {1}</li>'.format(n_art, n_out, out, str(i+1), out+'.image')
                 else:
                     pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
                 _new_epnArrList.append(n_out+'	'+j+'	'+n_art)
@@ -1422,7 +1422,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         nm = ui.epn_return(row)
                         if nm.startswith('"'):
                             nm = nm.replace('"', '')
-                    elif 'youtube.com' in nm and not self.path.endswith('.subtitle') and not self.path.endswith('.getsub'):
+                    elif ('youtube.com' in nm and not self.path.endswith('.subtitle') 
+                            and not self.path.endswith('.getsub') and not self.path.endswith('.image')):
                         nm = get_yt_url(nm, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
                         if '::' in nm:
                             vid, aud = nm.split('::')
@@ -1436,6 +1437,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         self.process_subtitle_url(nm)
                 elif self.path.endswith('.getsub'):
                     self.process_subtitle_url(nm, status='getsub')
+                elif self.path.endswith('.image'):
+                    self.process_image_url(nm)
                 elif self.path.endswith('.download'):
                     if 'youtube.com' in old_nm:
                         captions = self.check_yt_captions(old_nm)
@@ -2028,6 +2031,40 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.final_message(b'Got it!. update video section or refresh playlist')
         logger.info('captions={0}-{1}-{2}'.format(captions, url, ok_val))
 
+    def process_image_url(self, path):
+        global ui, home, logger
+        thumbnail_dir = os.path.join(TMPDIR, 'myserver')
+        if not os.path.exists(thumbnail_dir):
+            os.makedirs(thumbnail_dir)
+        thumb_name_bytes = bytes(path, 'utf-8')
+        h = hashlib.sha256(thumb_name_bytes)
+        thumb_name = h.hexdigest()
+        thumb_path = os.path.join(thumbnail_dir, thumb_name+'.jpg')
+        logger.debug(thumb_path)
+        if 'youtube.com' in path:
+            img_url = ui.create_img_url(path)
+            logger.debug(img_url)
+            if not os.path.exists(thumb_path) and img_url:
+                ccurl(img_url, curl_opt='-o', out_file=thumb_path)
+            
+        if not os.path.exists(thumb_path) and not path.startswith('http'):
+            ui.generate_thumbnail_method(thumb_path, '10', path)
+        
+        if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
+            content = open(thumb_path, 'rb').read()
+        else:
+            new_file = os.path.join(home, '128px.default.jpg')
+            content = open(new_file, 'rb').read()
+        self.send_response(200)
+        self.send_header('Content-type', 'image/jpg')
+        self.send_header('Content-Length', len(content))
+        self.send_header('Connection', 'close')
+        self.end_headers()
+        try:
+            self.wfile.write(content)
+        except Exception as e:
+            print(e)
+        
     def check_local_subtitle(self, path, external=None):
         result = None
         ext = ['.srt', '.ass', '.en.srt', '.en.ass', '.en.vtt']
