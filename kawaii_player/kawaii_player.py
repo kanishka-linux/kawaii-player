@@ -3989,7 +3989,7 @@ watch/unwatch status")
         title = row_string.strip()
         
         path = ''
-        if site == "Local" or site=="None" or site == "Music" or site == "Video":
+        if (site == "Local" or site=="None" or site == "Music" or site == "Video" or site.lower() == 'myserver'):
             if '	' in title:
                 nameEpn = title.split('	')[0]
                 
@@ -4094,11 +4094,15 @@ watch/unwatch status")
                 picn = picn[1:]
         inter = "10s"
         if ((picn and not os.path.exists(picn) and 'http' not in path) 
-                or (picn and not os.path.exists(picn) and 'http' in path 
-                and 'youtube.com' in path )):
+                or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
+                or (picn and 'http' in path and site.lower() == 'myserver')):
             path = path.replace('"', '')
-            if 'http' in path and 'youtube.com' in path and '/watch?' in path:
-                path = self.create_img_url(path)
+            if (('http' in path and 'youtube.com' in path and '/watch?' in path) or
+                    ('http' in path and site.lower() == 'myserver')):
+                if site.lower() == 'myserver':
+                    path = path + '.image'
+                else:
+                    path = self.create_img_url(path)
             self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
             self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
             length = len(self.threadPoolthumb)
