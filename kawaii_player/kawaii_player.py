@@ -2234,7 +2234,7 @@ watch/unwatch status")
                         except Exception as e:
                             print(e, '--9065--')
                     logger.info("{0}:{1}".format(path, picn))
-                    if os.path.exists(picn) and os.stat(picn).st_size:
+                    if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                         self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
                 else:
                     if inter.endswith('s'):
@@ -2262,7 +2262,7 @@ watch/unwatch status")
                     if os.path.exists(picn_path):
                         shutil.copy(picn_path, picn)
                         os.remove(picn_path)
-                        if os.path.exists(picn) and os.stat(picn).st_size:
+                        if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                             self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
                     self.mpv_thumbnail_lock = False
     
@@ -4225,7 +4225,8 @@ watch/unwatch status")
         logger.info("browse-cnt="+str(browse_cnt))
         logger.info("length="+str(length))
         while(browse_cnt<length and browse_cnt < len(self.epn_arr_list)):
-            if site == "Local" or site=="None" or site == "Music" or site == "Video":
+            if (site == "Local" or site=="None" or site == "Music"
+                    or site == "Video" or site.lower() == 'myserver'):
                 if '	' in self.epn_arr_list[browse_cnt]:
                     nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
                     
@@ -4253,26 +4254,16 @@ watch/unwatch status")
                 path = path.replace('"', '')
                 if not os.path.exists(picn) and not path.startswith('http'):
                     self.generate_thumbnail_method(picn, 10, path)
-                elif (not os.path.exists(picn) and path.startswith('http') 
-                            and 'youtube.com' in path):
-                        if '/watch?' in path:
-                            a = path.split('?')[-1]
-                            b = a.split('&')
-                            if b:
-                                for i in b:
-                                    j = i.split('=')
-                                    k = (j[0], j[1])
-                                    m.append(k)
-                            else:
-                                j = a.split('=')
-                                k = (j[0], j[1])
-                                m.append(k)
-                            d = dict(m)
+                elif ((not os.path.exists(picn) and path.startswith('http') and 'youtube.com' in path)
+                            or (path.startswith('http') and site.lower() == 'myserver')):
+                        if 'youtube.com' in path:
+                            img_url = self.create_img_url(path)
+                        elif site.lower() == 'myserver':
+                            img_url = path + '.image'
                         try:
-                            img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
                             ccurl(img_url+'#'+'-o'+'#'+picn)
-                        except:
-                            pass
+                        except Exception as err:
+                            print(err, '--4266--')
                 if site == "Music":
                     if os.path.exists(picn):
                         if os.stat(picn).st_size == 0:
@@ -6038,6 +6029,7 @@ watch/unwatch status")
             
     def create_img_url(self, path):
         m = []
+        img_url = ''
         if '/watch?' in path:
             a = path.split('?')[-1]
             b = a.split('&')
@@ -6052,7 +6044,7 @@ watch/unwatch status")
                 m.append(k)
             d = dict(m)
             img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
-            return img_url
+        return img_url
     
     def epn_highlight(self):
         global home, site
