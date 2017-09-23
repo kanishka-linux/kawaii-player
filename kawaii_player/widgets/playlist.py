@@ -1300,7 +1300,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if ui.list1.currentItem():
                         nm = (ui.list1.currentItem().text())
                         dest = os.path.join(home, "thumbnails", nm, newEpn+'.jpg')
-                        dest = ui.get_thumbnail_image_path(r, newEpn)
+                        dest = ui.get_thumbnail_image_path(r, newEpn, only_name=True)
                         if os.path.exists(dest):
                             os.remove(dest)
                             small_nm_1, new_title = os.path.split(dest)
