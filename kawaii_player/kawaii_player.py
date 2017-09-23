@@ -3984,7 +3984,7 @@ watch/unwatch status")
                     k = 0
             total_till_epn = length1
             
-    def get_thumbnail_image_path(self, row_cnt, row_string):
+    def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None):
         global site, home, name
         picn = ''
         title = row_string.strip()
@@ -4094,9 +4094,11 @@ watch/unwatch status")
             if picn.startswith(self.check_symbol):
                 picn = picn[1:]
         inter = "10s"
+        if only_name:
+            return picn
         if ((picn and not os.path.exists(picn) and 'http' not in path) 
                 or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
-                or (picn and 'http' in path and site.lower() == 'myserver')):
+                or (picn and 'http' in path and site.lower() == 'myserver' and not os.path.exists(picn))):
             path = path.replace('"', '')
             if (('http' in path and 'youtube.com' in path and '/watch?' in path) or
                     ('http' in path and site.lower() == 'myserver')):
@@ -4255,7 +4257,7 @@ watch/unwatch status")
                 if not os.path.exists(picn) and not path.startswith('http'):
                     self.generate_thumbnail_method(picn, 10, path)
                 elif ((not os.path.exists(picn) and path.startswith('http') and 'youtube.com' in path)
-                            or (path.startswith('http') and site.lower() == 'myserver')):
+                            or (path.startswith('http') and site.lower() == 'myserver' and not os.path.exists(picn))):
                         if 'youtube.com' in path:
                             img_url = self.create_img_url(path)
                         elif site.lower() == 'myserver':
@@ -6115,11 +6117,9 @@ watch/unwatch status")
                             print(e)
                             return 0
                     picn = os.path.join(picnD, a1)+'.jpg'
-                if ((picn and not os.path.exists(picn) 
-                        and 'http' not in path) 
-                        or (picn and not os.path.exists(picn) 
-                        and 'http' in path and 'youtube.com' in path)
-                        or (picn and site.lower() == 'myserver' and 'http' in path)):
+                if ((picn and not os.path.exists(picn) and 'http' not in path) 
+                        or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
+                        or (picn and site.lower() == 'myserver' and 'http' in path and not os.path.exists(picn))):
                     path = path.replace('"', '')
                     if (('http' in path and 'youtube.com' in path and '/watch?' in path) or 
                             ('http' in path and site.lower() == 'myserver')):
