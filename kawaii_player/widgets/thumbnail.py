@@ -1429,6 +1429,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 height = ui.label.height()
                 print("num="+str(num))
                 ui.list2.setCurrentRow(num)
+                print(memory_num_arr)
                 if memory_num_arr:
                     t_num = memory_num_arr.pop()
                 else:
@@ -1438,6 +1439,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     #ui.epnfound_return()
                     path_final_Url = ui.epn_return(num)
                     interval = 10
+                else:
+                    path_final_Url = ui.get_parameters_value(path_final='path_final_Url')['path_final_Url']
                 memory_num_arr.append(num)
                 ui.set_parameters_value(inter=interval, path_final=path_final_Url,
                                         memory_num=memory_num_arr)
@@ -1448,7 +1451,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 a = a.replace('#', '', 1)
                 if a.startswith(ui.check_symbol):
                     a = a[1:]
-                picnD = os.path.join(home, 'thumbnails', name)
+                a = a.strip()
+                if os.name != 'posix':
+                    a = ui.replace_special_characters(a)
+                if site.lower() == 'myserver':
+                    picnD = os.path.join(home, 'thumbnails', 'MyServer', name)
+                else:
+                    picnD = os.path.join(home, 'thumbnails', name)
                 if not os.path.exists(picnD):
                     os.makedirs(picnD)
                 picn = os.path.join(picnD, a+'.jpg')
@@ -1458,7 +1467,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 path_final_Url = str(path_final_Url)
                 path_final_Url = path_final_Url.replace('"', '')
                 ui.set_parameters_value(path_final=path_final_Url)
-                if path_final_Url.startswith('/'):
+                if not path_final_Url.startswith('http'):
                     path_final_Url = '"'+path_final_Url+'"'
                 subprocess.call(
                     ["mpv", "--vo=image", "--no-sub", "--ytdl=no", "--quiet", "--no-audio", 
