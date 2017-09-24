@@ -821,7 +821,7 @@ class ThreadingThumbnail(QtCore.QThread):
         if not os.path.exists(self.picn) and self.path:
             try:
                 if (self.path.startswith('http') and 
-                    (self.path.endswith('.jpg') or self.path.endswith('.png'))):
+                    (self.path.endswith('.jpg') or self.path.endswith('.png') or self.path.endswith('.image'))):
                     ccurl(self.path+'#'+'-o'+'#'+self.picn)
                     ui.image_fit_option(self.picn, self.picn, fit_size=6, widget=ui.label)
                 else:
