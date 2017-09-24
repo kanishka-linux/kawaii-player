@@ -800,6 +800,19 @@ function optChange(){
 			new_opt.setAttribute('ondragend','drag_end(event)');
 			new_opt.setAttribute('ondragenter','drag_enter(event)');
 			new_opt.setAttribute('ondragleave','drag_leave(event)');
+            
+            //img_div = document.createElement('div');
+            //img_div.setAttribute('id', 'img-id');
+            //img_opt = document.createElement('img');
+            //img_opt.setAttribute('src', b+'.image');
+            //img_opt.setAttribute('width', '128');
+            //img_div.appendChild(img_opt)
+            //img_info = document.createElement('div');
+            //img_info.setAttribute('id', 'img-info')
+            //img_info.innerHTML = indx.toString() + ' '+ a
+            //img_div.appendChild(img_info)
+            //new_opt.appendChild(img_div)
+            
 			r.appendChild(new_opt);
 			indx += 1;
 			}
@@ -1258,8 +1271,22 @@ function playlistItemClick(clickedElement,mode) {
 	_final_url = new_src;
 	_final_name = clickedElement.innerHTML;
 	var _clicked_num = clickedElement.getAttribute("data-num");
-	_title.innerHTML = _clicked_num+" "+clickedElement.innerHTML;
-	document.title = _title.innerHTML;
+	var tmp_name = _clicked_num+" "+clickedElement.innerHTML;
+    document.title = tmp_name;
+    
+    while(_title.firstChild){_title.removeChild(_title.firstChild);}
+    img_div = document.createElement('div');
+    img_div.setAttribute('id', 'img-id');
+    img_opt = document.createElement('img');
+    img_opt.setAttribute('src', _final_url+'.image');
+    img_opt.setAttribute('width', '128');
+    img_div.appendChild(img_opt)
+    img_info = document.createElement('div');
+    img_info.setAttribute('id', 'img-info')
+    img_info.innerHTML = document.title
+    img_div.appendChild(img_info)
+    _title.appendChild(img_div)
+	
 	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'Remote Off'){
 		_player.src = new_src;
