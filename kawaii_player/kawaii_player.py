@@ -6129,6 +6129,7 @@ watch/unwatch status")
                             path = path+'.image'
                         else:
                             path = self.create_img_url(path)
+                    logger.debug('path-------{0}---'.format(path))
                     self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
                     self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
                     length = len(self.threadPoolthumb)
