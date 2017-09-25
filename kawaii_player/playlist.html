@@ -138,6 +138,7 @@ Text box can also be used to input text commands to server as follows
 		<menuitem label='hello' onclick="menu_clicked(label)"> </menuitem>
 		<menuitem label='world' onclick="menu_clicked(label)"> </menuitem>
 	</menu>
+    <menuitem label='Queue Item' onclick="menu_clicked_queue(label)"></menuitem>
 	<menuitem label='Add To Current Playlist' onclick="menu_clicked_playlist(label)"></menuitem>
 	<menuitem label='Remove From Playlist' onclick="menu_clicked_remove(label)"></menuitem>
 </menu>
@@ -344,6 +345,21 @@ function menu_clicked_playlist(e){
 	console.log(response);
 	_title.innerHTML = response;
 	})
+}
+
+function menu_clicked_queue(e){
+    var playlist = _only_playlist.value;
+    pls_val = false;
+    if(playlist == null || !playlist){
+        var new_opt = document.createElement("option");
+        new_opt.text = 'Select Existing Playlist';
+        new_opt.value = 'select_existing_playlist';
+        _only_playlist.appendChild(new_opt);
+	}else{
+        _only_playlist.value = 'select_existing_playlist';
+    }
+	console.log(playlist);
+    click_to_add_to_playlist(_playlist_selected_element);    
 }
 
 function _delete_pls(e){
