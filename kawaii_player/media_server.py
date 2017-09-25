@@ -2040,7 +2040,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         h = hashlib.sha256(thumb_name_bytes)
         thumb_name = h.hexdigest()
         thumb_path = os.path.join(thumbnail_dir, thumb_name+'.jpg')
-        new_thumb_path = os.path.join(thumbnail_dir, '256px.'+thumb_name+'.jpg')
+        new_thumb_path = os.path.join(thumbnail_dir, '480px.'+thumb_name+'.jpg')
         logger.debug(thumb_path)
         got_http_image = False
         if 'youtube.com' in path:
@@ -2055,7 +2055,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.generate_thumbnail_method(thumb_path, 10, path, from_client=True)
             if not os.path.exists(new_thumb_path): 
                 if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
-                    ui.create_new_image_pixel(thumb_path, 256)
+                    ui.create_new_image_pixel(thumb_path, 480)
                     thumb_path = new_thumb_path
             else:
                 thumb_path = new_thumb_path
@@ -2067,10 +2067,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
             content = open(thumb_path, 'rb').read()
         else:
-            new_file = os.path.join(home, '128px.default.jpg')
+            new_file = os.path.join(home, '480px.default.jpg')
             default_jpg = os.path.join(home, 'default.jpg')
             if not os.path.exists(new_file):
-                ui.create_new_image_pixel(default_jpg, 128)
+                ui.create_new_image_pixel(default_jpg, 480)
             content = open(new_file, 'rb').read()
         self.send_response(200)
         self.send_header('Content-type', 'image/jpg')
