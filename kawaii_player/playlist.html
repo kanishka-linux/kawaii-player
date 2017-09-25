@@ -111,21 +111,21 @@ Text box can also be used to input text commands to server as follows
 
 </div>
 <br>
+<div id="display_option" class="option_display">
+<select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
+<button id="opt_val_ok" hidden="hidden">Go</button>
+</div>
+<br>
 <div id="pls_custom" class ="pls_custom_" hidden="hidden">
 	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist(event)">Create Playlist</button>
 	<select id="only_playlist"></select>
 	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
     <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
-	<h4 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Click on items to add them to selected existing playlist. If no playlist is selected but items are added in the list then the list will be treated as queue</h4>
+	<h4 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Click on items to add them to selected existing playlist. If no playlist is selected but items are added to the list then the list will be treated as queue</h4>
 	<ol id="playlist_custom"></ol>
 </div>
-<br>
-<div id="display_option" class="option_display">
-<select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
-<button id="opt_val_ok" hidden="hidden">Go</button>
-</div>
-<br>
+
 </div>
 <br>
 <div id="site_option" hidden></div>
