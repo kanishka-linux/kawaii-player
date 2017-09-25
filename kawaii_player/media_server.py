@@ -2040,16 +2040,30 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         h = hashlib.sha256(thumb_name_bytes)
         thumb_name = h.hexdigest()
         thumb_path = os.path.join(thumbnail_dir, thumb_name+'.jpg')
+        new_thumb_path = os.path.join(thumbnail_dir, '256px.'+thumb_name+'.jpg')
         logger.debug(thumb_path)
+        got_http_image = False
         if 'youtube.com' in path:
             img_url = ui.create_img_url(path)
             logger.debug(img_url)
             if not os.path.exists(thumb_path) and img_url:
                 ccurl(img_url, curl_opt='-o', out_file=thumb_path)
+                got_http_image = True
+                
+        if (not os.path.exists(thumb_path) and not path.startswith('http')) or got_http_image:
+            if not got_http_image:
+                ui.generate_thumbnail_method(thumb_path, 10, path, from_client=True)
+            if not os.path.exists(new_thumb_path): 
+                if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
+                    ui.create_new_image_pixel(thumb_path, 256)
+                    thumb_path = new_thumb_path
+            else:
+                thumb_path = new_thumb_path
+        elif os.path.exists(new_thumb_path): 
+            if os.stat(new_thumb_path).st_size:
+                thumb_path = new_thumb_path
             
-        if not os.path.exists(thumb_path) and not path.startswith('http'):
-            ui.generate_thumbnail_method(thumb_path, 10, path, from_client=True)
-        
+                    
         if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
             content = open(thumb_path, 'rb').read()
         else:
