@@ -32,8 +32,17 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 <meta name="referrer" content="no-referrer">
 
-<div class= "video_section">
 
+
+
+<div class= "video_section">
+<div id="title_music">
+    <img id="img-id" src="">
+    <br>
+    <div id="img-info">
+    </div>
+    <br>
+</div>
 <video id="player" width="640" height="480" controls>
 	<track kind="captions" label="English" srclang="en" src="" default>
 </video>
@@ -65,7 +74,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="empty_btn">--</button>
 <button id="home">Home</button>
 <button id="minimal">Options</button>
-<button id="custom_pls" title="Manage Playlist">Playlist</button>
+<button id="custom_pls" title="Manage Playlist and Queues">Playlist / Q</button>
 <button id="logout">Logout</button>
 </div>
 <br>
@@ -108,7 +117,7 @@ Text box can also be used to input text commands to server as follows
 	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
     <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
-	<h3 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Click on items to add them to selected playlist. Hide this editing box once playlist has been created/edited and saved, otherwise clicked items won't play</h3>
+	<h4 ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Click on items to add them to selected existing playlist. If no playlist is selected but items are added in the list then the list will be treated as queue</h4>
 	<ol id="playlist_custom"></ol>
 </div>
 <br>
@@ -142,6 +151,14 @@ transparent background for captions
 video::cue {
       background-color: transparent;
    }
+   
+img {
+  display: block;
+  max-width:480px;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+}
 --->
 
 <style>
@@ -152,6 +169,7 @@ div.video_section.div.site_selection{float:left;}
 div.pls{max-width:640px;float:left;}
 div.pls_custom_{max-width:640px;float:left;}
 div.title{max-width:100%;}
+div.title_music{max-width:100%;}
 
 .Buttons{max-width:100%;
     margin: 2px;
@@ -248,6 +266,9 @@ var _player = document.getElementById("player"),
     _next = document.getElementById("next"),
     _play = document.getElementById("play"),
     _title = document.getElementById("title"),
+    _title_music = document.getElementById("title_music"),
+    _img_id = document.getElementById("img-id"),
+    _img_info = document.getElementById("img-info"),
     _shuffle = document.getElementById("shuffle"),
     _m3u = document.getElementById("m3u"),
     _logout = document.getElementById("logout"),
@@ -289,6 +310,7 @@ var _player = document.getElementById("player"),
     _final_url = "";
     _final_name = "";
     _subtitle_status = "off";
+    show_image = false;
     _prev = document.getElementById("prev");
     
 
@@ -878,14 +900,15 @@ function custom_drop(e){
 function click_to_add_to_playlist(e){
 	console.log('---click on add to playlist--')
 	console.log(e);
-	 var link_ = e.getAttribute("data-mp3");
-	 var text_ = e.innerHTML;
-	
+    var link_ = e.getAttribute("data-mp3");
+    var text_ = e.innerHTML;
+	var data_num = e.getAttribute("data-num");
     var new_opt = document.createElement('li');
 	new_opt.innerHTML = text_;
 	new_opt.setAttribute('data-mp3',link_);
 	new_opt.setAttribute('draggable','true');
 	new_opt.setAttribute('ondragstart','drag_start_remove(event)');
+    new_opt.setAttribute('data-num', data_num)
 	_playlist_custom.appendChild(new_opt);
 }
 
@@ -1162,7 +1185,7 @@ function onDocReady(){
 	z.hidden = "";
 	//_selection_site.hidden = "hidden";
 	w = window.innerWidth;
-	if(w < 640)
+	if(w <= 640)
 		{_player.width=(w-30).toString();
 		_player.height=parseInt((480/640)*w).toString();
 		console.log(screen.width);}
@@ -1261,32 +1284,49 @@ function get_subtitle(src){
 }
 
 function playlistItemClick(clickedElement,mode) {
-    var selected = _playlist.querySelector(".selected");
-    console.log(mode)
-    if (selected) {
-        selected.classList.remove("selected");
+    if (mode != 'queue'){
+        var selected = _playlist.querySelector(".selected");
+        console.log(mode)
+        if (selected) {
+            selected.classList.remove("selected");
+        }
+        clickedElement.classList.add("selected");
     }
-    clickedElement.classList.add("selected");
 	var new_src = clickedElement.getAttribute("data-mp3");
 	_final_url = new_src;
 	_final_name = clickedElement.innerHTML;
+    show_image = false
+    if (_final_url.indexOf('abs_path=') >= 0){
+        var base_dec = _final_url.split('abs_path=')[1]
+        if (base_dec.indexOf('/') >= 0){
+            base_arr_index = base_dec.lastIndexOf('/');
+            base_dec = base_dec.slice(0, base_arr_index);
+        }
+        if (base_dec.indexOf('&pl_id=') >= 0){
+            base_dec = _final_url.split('&pl_id=')[0];
+        }
+        base_dec = atob(base_dec)
+        if (base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')){
+            _player.height = "40";
+            show_image = true;
+        }else{
+            _player.height = "480";
+        }
+    }
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	var tmp_name = _clicked_num+" "+clickedElement.innerHTML;
     document.title = tmp_name;
-    
-    while(_title.firstChild){_title.removeChild(_title.firstChild);}
-    img_div = document.createElement('div');
-    img_div.setAttribute('id', 'img-id');
-    img_opt = document.createElement('img');
-    img_opt.setAttribute('src', _final_url+'.image');
-    //img_opt.setAttribute('width', '128');
-    img_div.appendChild(img_opt)
-    img_info = document.createElement('div');
-    img_info.setAttribute('id', 'img-info')
-    img_info.innerHTML = document.title
-    img_div.appendChild(img_info)
-    _title.appendChild(img_div)
-	
+    if (show_image){
+        console.log(_img_id.src);
+        console.log('----1323-----');
+        _img_id.src = _final_url+'.image';
+        _img_info.innerHTML = document.title;
+        _title.innerHTML = "";
+    }else{
+        _img_id.src = "";
+        _img_info.innerHTML = "";
+        _title.innerHTML = tmp_name;
+    }
 	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'Remote Off'){
 		_player.src = new_src;
@@ -1294,6 +1334,24 @@ function playlistItemClick(clickedElement,mode) {
 			get_subtitle(new_src+".subtitle");
 		}
 		_player.play();
+        var win_width = window.innerWidth;
+        if(win_width <= 640){
+            _player.width=(win_width-30).toString();
+            if (show_image){
+                _player.height = "40";
+                if (win_width <= 480){
+                    //_img_id.style.display = 'block';
+                    //_img_id.style.maxHeight = '300px';
+                    //_img_id.style.maxWidth = _player.width+'px';
+                    //_img_id.style.width = 'auto';
+                    //_img_id.style.height = 'auto';
+                    _img_id.width = _player.width;
+                }
+            }else{
+                _player.height=parseInt((480/640)*win_width).toString();
+            }
+            console.log(screen.width);
+        }
 	}
 	else{
 		
@@ -1334,26 +1392,46 @@ function playlistItemClick(clickedElement,mode) {
 		}
 	}
 	
+    if (mode == 'queue'){
+        _playlist_custom.removeChild(clickedElement);
+    }
 }
 
 function playNext() {
-	console.log(_player.loop,'----------1039------playNext--')
-	var selected = _playlist.querySelector("li.selected");
-	if (_remote_val == 'on'){_clicked_index = _clicked_index + 1}
-	if (selected && selected.nextSibling) {
-		if (_loop.innerHTML == '\u21BA'){
-			playlistItemClick(selected,'nextplay');
-		}
-		else{
-			playlistItemClick(selected.nextSibling,'nextplay');
-		}
+    var playlist = _only_playlist.value;
+    var select_pls = false;
+    console.log('--playNext--')
+    console.log(playlist)
+    if(playlist == 'select_existing_playlist' || playlist == 'Queue'){
+		select_pls = true;
 	}
-	else{
-		var first = _playlist.firstChild;
-		console.log(first);
-		playlistItemClick(first,'nextplay');
-	}
-	
+    console.log(select_pls)
+    var queue = false;
+    if (select_pls){
+        var pls_custom_child = _playlist_custom.firstChild;
+        if (pls_custom_child){
+            playlistItemClick(pls_custom_child, 'queue');
+            queue = true;
+        }
+    }
+    if (!queue){
+        console.log(_player.loop,'----------1039------playNext--')
+        var selected = _playlist.querySelector("li.selected");
+        if (_remote_val == 'on'){_clicked_index = _clicked_index + 1}
+        if (selected && selected.nextSibling) {
+            if (_loop.innerHTML == '\u21BA'){
+                playlistItemClick(selected,'nextplay');
+            }
+            else{
+                playlistItemClick(selected.nextSibling,'nextplay');
+            }
+        }
+        else{
+            var first = _playlist.firstChild;
+            console.log(first);
+            playlistItemClick(first,'nextplay');
+        }
+    }
 }
 
 _shuffle.addEventListener("click", function () {
@@ -1856,11 +1934,30 @@ var postRequest = function() {
 
 function resizeWindowEvent(){
 	w = window.innerWidth;
-	if(w < 640)
-		{_player.width=(w-30).toString();
-		_player.height=parseInt((480/640)*w).toString();
-		console.log(screen.width);}
-	else {_player.width="640";_player.height="480";}
+	if(w <= 640){
+        _player.width=(w-30).toString();
+        if (show_image){
+            _player.height = "40";
+            if(w <=480){
+                _img_id.width = _player.width;
+                //_img_id.style.display = 'block';
+                //_img_id.style.maxHeight = '300px';
+                //_img_id.style.maxWidth = _player.width+'px';
+                //_img_id.style.width = 'auto';
+                //_img_id.style.height = 'auto';
+            }
+        }else{
+            _player.height=parseInt((480/640)*w).toString();
+        }
+		console.log(screen.width);
+    }else {
+        _player.width="640"; 
+        if (show_image){
+            _player.height="40";
+        }else{
+            _player.height="480";
+        }
+    }
 }
 
 
