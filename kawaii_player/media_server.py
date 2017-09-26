@@ -754,7 +754,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         global html_default_arr, home, ui, logger
         #extra_fields = ''
 
-        extra_fields = 'RemoteField:{0};RemoteControl:{1};'.format(ui.remote_control_field, ui.remote_control)
+        extra_fields = 'RemoteField:{0};RemoteControl:{1};Thumbnails:{2};'.format(
+            ui.remote_control_field, ui.remote_control, ui.show_client_thumbnails
+            )
         for i in html_default_arr:
             if i.lower() == 'video':
                 category_list = ''
@@ -1757,6 +1759,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if ui.remote_control_field:
                     ui.remote_control = False
             msg = 'Remote Control Set {0}'.format(ui.remote_control)
+            msg = bytes(msg, 'utf-8')
+            self.final_message(msg)
+        elif path.startswith('show_thumbnails'):
+            ui.show_client_thumbnails = True
+            msg = 'Thumbnails Set To {0}'.format(ui.show_client_thumbnails)
+            msg = bytes(msg, 'utf-8')
+            self.final_message(msg)
+        elif path.startswith('hide_thumbnails'):
+            ui.show_client_thumbnails = False
+            msg = 'Thumbnails Set To {0}'.format(ui.show_client_thumbnails)
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
         elif path.startswith('get_torrent='):
