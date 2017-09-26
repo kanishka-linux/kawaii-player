@@ -150,15 +150,21 @@ Text box can also be used to input text commands to server as follows
 
 
 <nav id="context-menu-bar" class="context-menu">
-    <ul class="context-menu__items">
-      <li class="context-menu__item" onclick="menu_clicked_add_to_playlist(event)">
-        Add To Playlist
+    <ul class="context-menu__items" id="custom_context_menu_playlist">
+      <li class="context-menu__item" onclick="menu_clicked_playnow(event)">
+        Play Now
       </li>
       <li class="context-menu__item" onclick="menu_clicked_queue('hide')">
         Queue Item
       </li>
+      <li class="context-menu__item" onclick="menu_clicked_add_to_playlist(event)">
+        Add To Playlist
+      </li>
       <li class="context-menu__item" onclick="menu_clicked_playlist('hide')">
         Add To Selected Playlist
+      </li>
+      <li class="context-menu__item" onclick="show_thumbnails_image('hide')">
+        Show Thumbnails
       </li>
       <li class="context-menu__item" onclick="_create_custom_playlist('hide')">
         Create New Playlist
@@ -289,6 +295,7 @@ div.title_music{max-width:100%;}
     padding: 10px;
     background-color:#f5f5f5;
     margin: 10px 0px 0px 0px;
+    float: left;
 }
 
 .video_section{max-width:640px;}
@@ -409,10 +416,12 @@ var _player = document.getElementById("player"),
     show_image = false;
     _prev = document.getElementById("prev");
     _custom_context = document.getElementById("context-menu-bar");
+    _custom_context_menu_playlist = document.getElementById("custom_context_menu_playlist");
     _playlist_context_menu = document.getElementById("playlist_context_menu");
     pls_arr = [];
     last_position_scrollbar = 0;
     _old_playlist_selected_color = 'white';
+    _show_thumbnails = false;
     
 
 // functions
@@ -421,8 +430,8 @@ var _player = document.getElementById("player"),
 function menu_clicked(e){
     var playlist = e;
     var pl = _playlist_selected_element;
-    console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.innerHTML);
-    var new_url = 'add_to_playlist='+playlist+'&'+pl.innerHTML+'&'+pl.getAttribute('data-mp3');
+    console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.title);
+    var new_url = 'add_to_playlist='+playlist+'&'+pl.title+'&'+pl.getAttribute('data-mp3');
     console.log(new_url);
     var client = new getRequest();
 	client.get(new_url, function(response) {
@@ -432,6 +441,12 @@ function menu_clicked(e){
     pl.style.backgroundColor = _old_playlist_selected_color;
 }
 
+//function contextmenu_mouseout(e){
+//    _custom_context.style.display = "none";
+//    var pl = _playlist_selected_element;
+//    pl.style.backgroundColor = _old_playlist_selected_color;
+//}
+
 function menu_clicked_playlist(e){
     var playlist = _only_playlist.value;
     if(playlist == 'select_existing_playlist' || playlist == null || !playlist){
@@ -440,7 +455,7 @@ function menu_clicked_playlist(e){
 	console.log(playlist);
     var pl = _playlist_selected_element;
     //console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.innerHTML);
-    var new_url = 'add_to_playlist='+playlist+'&'+pl.innerHTML+'&'+pl.getAttribute('data-mp3');
+    var new_url = 'add_to_playlist='+playlist+'&'+pl.title+'&'+pl.getAttribute('data-mp3');
     //console.log(new_url);
     var client = new getRequest();
 	client.get(new_url, function(response) {
@@ -454,6 +469,14 @@ function menu_clicked_playlist(e){
         _title.innerHTML = response;
     }
     pl.style.backgroundColor = _old_playlist_selected_color;
+}
+
+function menu_clicked_playnow(e){
+    _custom_context.style.display = "none";
+    var pl = _playlist_selected_element;
+    playlistItemClick(pl,'playlist');
+    pl.style.backgroundColor = _old_playlist_selected_color;
+    
 }
 
 function menu_clicked_queue(e){
@@ -506,6 +529,82 @@ function _delete_pls(e){
     _playlist_selected_element.style.backgroundColor = _old_playlist_selected_color;
 }
 
+
+function show_thumbnails_image(e){
+    _custom_context.style.display = "none";
+    _playlist_selected_element.style.backgroundColor = _old_playlist_selected_color;
+    var pl = _custom_context_menu_playlist;
+    var r = pl.firstChild;
+    k = 0
+    while(r){
+        //console.log(r.nodeName);
+        //console.log(k);
+        var node = r.nodeName;
+        var txt = r.innerHTML;
+        if (node == 'LI'){
+            txt = txt.trim();
+        }else{
+            txt = null;
+        }
+        if (txt){
+            console.log(txt);
+            if (txt == 'Show Thumbnails'){
+                r.innerHTML = 'Hide Thumbnails';
+                _show_thumbnails = true;
+                break;
+            }else if (txt == 'Hide Thumbnails'){
+                r.innerHTML = 'Show Thumbnails';
+                _show_thumbnails = false;
+                break
+            }
+        }
+        r = r.nextSibling;
+        k += 1;
+    }
+    
+    if (_show_thumbnails){
+        var client = new getRequest();
+		client.get('show_thumbnails', function(response) {
+        console.log(response);
+	})
+    }else{
+        var client = new getRequest();
+		client.get('hide_thumbnails', function(response) {
+        console.log(response);
+	})
+    }
+}
+
+function show_thumbnails_image_set(e){
+    var pl = _custom_context_menu_playlist;
+    var r = pl.firstChild;
+    k = 0
+    while(r){
+        var node = r.nodeName;
+        var txt = r.innerHTML;
+        if (node == 'LI'){
+            txt = txt.trim();
+        }else{
+            txt = null;
+        }
+        if (txt){
+            console.log(txt);
+            if (txt == 'Show Thumbnails'){
+                if (_show_thumbnails){
+                    r.innerHTML = 'Hide Thumbnails';
+                }
+                break;
+            }else if (txt == 'Hide Thumbnails'){
+                if (!_show_thumbnails){
+                    r.innerHTML = 'Show Thumbnails';
+                }
+                break
+            }
+        }
+        r = r.nextSibling;
+        k += 1;
+    }
+}
 
 _playlist_custom.addEventListener("click", function (e) {
     if (e.target && e.target.nodeName === "LI") {
@@ -739,7 +838,7 @@ function searchFunction(e){
 			while(first){
 				num = first.getAttribute('data-num');
 				data = first.getAttribute('data-mp3');
-				title = first.innerHTML;
+				title = first.title;
 				dict[num] = {'title':title,'data':data};
 				first = first.nextSibling;
 			}
@@ -867,7 +966,9 @@ function searchFunction(e){
 				var a = m[i].substring(10,500);
 				var b = m[i+1];
 				var new_opt = document.createElement('li');
-				new_opt.innerHTML = a;
+                if (!_show_thumbnails){
+                    new_opt.innerHTML = a;
+                }
 				new_opt.setAttribute('data-mp3',b);
 				new_opt.setAttribute('draggable','true');
 				new_opt.setAttribute('ondragstart','drag_start(event)');
@@ -877,6 +978,11 @@ function searchFunction(e){
 				new_opt.setAttribute('ondragenter','drag_enter(event)');
 				new_opt.setAttribute('ondragleave','drag_leave(event)');
 				new_opt.setAttribute('data-num',indx.toString());
+                new_opt.setAttribute('title', a);
+                if (_show_thumbnails){
+                    img_div = add_thumbnail_to_playlist(a, b);
+                    new_opt.appendChild(img_div);
+                }
 				r.appendChild(new_opt);
 				indx += 1;
 				}
@@ -895,7 +1001,7 @@ function _sync_pls(){
 		while(first){
 			num = i.toString();
 			data = first.getAttribute('data-mp3');
-			title = first.innerHTML;
+			title = first.title;
 			dict[num] = {'title':title,'data':data};
 			first = first.nextSibling;
 			i += 1;
@@ -955,7 +1061,9 @@ function optChange(){
 			var a = m[i].substring(10,500);
 			var b = m[i+1];
 			var new_opt = document.createElement('li');
-			new_opt.innerHTML = a;
+            if (!_show_thumbnails){
+                new_opt.innerHTML = a;
+            }
 			new_opt.setAttribute('data-mp3',b);
 			new_opt.setAttribute('data-num',indx.toString());
 			new_opt.setAttribute('draggable','true');
@@ -965,19 +1073,11 @@ function optChange(){
 			new_opt.setAttribute('ondragend','drag_end(event)');
 			new_opt.setAttribute('ondragenter','drag_enter(event)');
 			new_opt.setAttribute('ondragleave','drag_leave(event)');
-            
-            //img_div = document.createElement('div');
-            //img_div.setAttribute('id', 'img-id');
-            //img_opt = document.createElement('img');
-            //img_opt.setAttribute('src', b+'.image');
-            //img_opt.setAttribute('width', '128');
-            //img_div.appendChild(img_opt)
-            //img_info = document.createElement('div');
-            //img_info.setAttribute('id', 'img-info')
-            //img_info.innerHTML = indx.toString() + ' '+ a
-            //img_div.appendChild(img_info)
-            //new_opt.appendChild(img_div)
-            
+            new_opt.setAttribute('title', a);
+            if (_show_thumbnails){
+                img_div = add_thumbnail_to_playlist(a, b);
+                new_opt.appendChild(img_div);
+            }
 			r.appendChild(new_opt);
 			indx += 1;
 			}
@@ -1010,6 +1110,27 @@ function optChange(){
 	}
 	var z = document.getElementById("type_search");
 	z.value = "";
+}
+
+function add_thumbnail_to_playlist(a, b){
+    img_div = document.createElement('div');
+    img_div.setAttribute('id', 'img-id');
+    img_opt = document.createElement('img');
+    img_opt.setAttribute('src', b+'.image');
+    img_opt.setAttribute('width', '128');
+    //img_opt.style.float = 'left';
+    img_div.appendChild(img_opt)
+    img_info = document.createElement('div');
+    img_info.setAttribute('id', 'img-info');
+    img_info.style.maxWidth = '128px';
+    img_info.style.float = 'right';
+    img_info.innerHTML = a.slice(0, 45);
+    img_info.style.padding = "0px";
+    img_info.style.margin = "0px 0px 0px 4px";
+    //img_info.style.fontSize = "12px";
+    img_div.appendChild(img_info)
+    img_div.style.display = 'block';
+    return img_div;
 }
 
 function drag_start(e){
@@ -1052,6 +1173,7 @@ function click_to_add_to_playlist(e){
 	new_opt.setAttribute('draggable','true');
 	new_opt.setAttribute('ondragstart','drag_start_remove(event)');
     new_opt.setAttribute('data-num', data_num)
+    new_opt.setAttribute('title', e.title);
 	_playlist_custom.appendChild(new_opt);
 }
 
@@ -1338,7 +1460,10 @@ function onDocReady(){
 		_toggle_subtitle.hidden = "";
 		_toggle_audio.hidden = "";
 		}
-	
+	if (w[2].toLowerCase() == 'thumbnails:true'){
+        _show_thumbnails = true;
+        show_thumbnails_image_set('True');
+    }
 	var x = document.getElementById("site").value;
 	console.log(x);
 	
@@ -1452,7 +1577,9 @@ function optValChange(){
 		var a = m[i].substring(10,500);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
-		new_opt.innerHTML = a;
+        if (!_show_thumbnails){
+            new_opt.innerHTML = a;
+        }
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('draggable','true');
@@ -1463,6 +1590,11 @@ function optValChange(){
 		new_opt.setAttribute('ondragenter','drag_enter(event)');
 		new_opt.setAttribute('ondragleave','drag_leave(event)');
 		new_opt.setAttribute('width','100%');
+        new_opt.setAttribute('title', a);
+        if (_show_thumbnails){
+            img_div = add_thumbnail_to_playlist(a, b);
+            new_opt.appendChild(img_div);
+        }
 		r.appendChild(new_opt);
 		indx += 1;
 		}
@@ -1515,7 +1647,7 @@ function playlistItemClick(clickedElement,mode) {
         }
     }
 	var _clicked_num = clickedElement.getAttribute("data-num");
-	var tmp_name = _clicked_num+" "+clickedElement.innerHTML;
+	var tmp_name = _clicked_num+" "+clickedElement.title;
     document.title = tmp_name;
     if (show_image){
         console.log(_img_id.src);
@@ -1667,7 +1799,9 @@ _shuffle.addEventListener("click", function () {
 		var a = m[i].substring(10,100);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
-		new_opt.innerHTML = a;
+        if (!_show_thumbnails){
+            new_opt.innerHTML = a;
+        }
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('draggable','true');
@@ -1677,6 +1811,11 @@ _shuffle.addEventListener("click", function () {
 		new_opt.setAttribute('ondragend','drag_end(event)');
 		new_opt.setAttribute('ondragenter','drag_enter(event)');
 		new_opt.setAttribute('ondragleave','drag_leave(event)');
+        new_opt.setAttribute('title', a);
+        if (_show_thumbnails){
+            img_div = add_thumbnail_to_playlist(a, b);
+            new_opt.appendChild(img_div);
+        }
 		r.appendChild(new_opt);
 		indx += 1;
 		}
@@ -1699,7 +1838,9 @@ function populate_playlist(new_url){
 		var a = m[i].substring(10,100);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
-		new_opt.innerHTML = a;
+        if (!_show_thumbnails){
+            new_opt.innerHTML = a;
+        }
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('draggable','true');
@@ -1709,6 +1850,11 @@ function populate_playlist(new_url){
 		new_opt.setAttribute('ondragend','drag_end(event)');
 		new_opt.setAttribute('ondragenter','drag_enter(event)');
 		new_opt.setAttribute('ondragleave','drag_leave(event)');
+        new_opt.setAttribute('title', a);
+        if (_show_thumbnails){
+            img_div = add_thumbnail_to_playlist(a ,b);
+            new_opt.appendChild(img_div);
+        }
 		r.appendChild(new_opt);
 		indx += 1;
 		}
@@ -2091,36 +2237,55 @@ document.getElementById('backToTop').onclick = function()
 window.addEventListener("resize", resizeWindowEvent);
 _player.addEventListener("ended", playNext);
 _playlist.addEventListener("click", function (e) {
-    if (e.target && e.target.nodeName === "LI") {
-        
-        
+    var target = e.target;
+    var req_node = get_clicked_node(target);
+    
+    if (req_node) {
         if (_remote_val == 'on'){
-        var child = e.target
-		//while( (child = child.previousSibling) != null ){ 
-		//	console.log(i);
-		//	i++;
-		//}
-		//var i = parseInt(child.getAttribute("data-num"))
-		//console.log(i);
-		//_clicked_index = i;
+            var child = req_node;
 		}
         if( !_pls_custom.hidden){
-            click_to_add_to_playlist(e.target)
+            click_to_add_to_playlist(req_node)
         }else{
-            playlistItemClick(e.target,'playlist');
+            playlistItemClick(req_node,'playlist');
         }
-		console.log(e.target);
-		//_title.innerHTML = e.target.innerHTML;
     }
 })
 
+function get_clicked_node(target){
+    var req_node = target;
+    if (_show_thumbnails){
+        console.log(target);
+        console.log(target.parentNode);
+        if (target && (target.nodeName == "IMG" || target.nodeName == "DIV")){
+            req_node = target.parentNode;
+            if (req_node.nodeName == "IMG" || req_node.nodeName == "DIV"){
+                req_node = req_node.parentNode;
+            }
+        }else if (target && target.nodeName == "LI"){
+            req_node = target;
+        }
+    } else{
+        if (target && target.nodeName == "LI"){
+            req_node = target;
+        }
+    }
+    
+    if (req_node.nodeName != "LI"){
+        req_node = null;
+    }
+    
+    return req_node;
+}
 
 _playlist.addEventListener("contextmenu", function (e) {
-    if (e.target && e.target.nodeName === "LI") {
-		_playlist_selected_element = e.target;
+    var target = e.target;
+    var req_node = get_clicked_node(target);
+    
+    if (req_node) {
+		_playlist_selected_element = req_node;
         e.preventDefault();
         var ctxMenu = document.getElementById('context-menu-bar');
-        
         ctxMenu.style.display = "block";
         ctxMenu.style.left = (e.pageX - 10)+"px";
         ctxMenu.style.top = (e.pageY - 10)+"px";
