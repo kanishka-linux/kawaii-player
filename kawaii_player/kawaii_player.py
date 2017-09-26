@@ -1498,6 +1498,7 @@ watch/unwatch status")
         self.tray_widget = None
         self.web_review_browser_started = False
         self.external_audio_file = False
+        self.show_client_thumbnails = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
