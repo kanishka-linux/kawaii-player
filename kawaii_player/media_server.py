@@ -178,6 +178,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             for k in j:
                 logger.info('title={0}, data={1}'.format(k, j[k]))
                 if (k == 'title'):
+                    j[k] = j[k].strip()
                     title_arr = j[k].split(' - ', 1)
                     if len(title_arr) >= 2:
                         new_title = title_arr[1].strip()
@@ -1794,12 +1795,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             n_path = path.replace('add_to_playlist=', '', 1)
             arr = n_path.split('&')
             pls_name = arr[0]
-            artist = arr[1].split(' - ')[0]
-            title = arr[1].split(' - ')[1]
+            entry_info = arr[1]
+            entry_info = entry_info.strip()
+            if entry_info.startswith('- '):
+                entry_info = entry_info.replace('- ', 'NONE - ', 1)
+                
+            artist = entry_info.split(' - ')[0]
+            artist = artist.strip()
+            if not artist:
+                artist = 'NONE'
+            title = entry_info.split(' - ')[1]
             data_link = re.search('abs_path=[^"]*|relative_path=[^"]*', n_path).group()
             txt = 'artist={3}:\npls-name={0}:\ntitle={1}:\nlink={2}'.format(pls_name, title, data_link, artist)
             logger.info(txt)
-            txt = '{0} added to {1}'.format(arr[1], arr[0])
+            txt = '{0} added to {1}'.format(entry_info, pls_name)
             msg = bytes(txt, 'utf-8')
             self.final_message(msg)
             new_line = title+'	'+data_link+'	'+artist
