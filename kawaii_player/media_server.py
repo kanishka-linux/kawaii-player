@@ -2073,6 +2073,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 
         if (not os.path.exists(thumb_path) and not path.startswith('http')) or got_http_image:
             if not got_http_image:
+                if os.name != 'posix':
+                    start_counter = 0
+                    while ui.mpv_thumbnail_lock:
+                        time.sleep(0.5)
+                        start_counter += 1
+                        if start_counter > 60:
+                            break
                 ui.generate_thumbnail_method(thumb_path, 10, path, from_client=True)
             if not os.path.exists(new_thumb_path): 
                 if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
