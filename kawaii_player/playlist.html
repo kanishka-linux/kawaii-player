@@ -34,7 +34,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-
+<body>
 <div class= "video_section">
 <div id="title_music">
     <img id="img-id" src="">
@@ -77,7 +77,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="custom_pls" title="Manage Playlist and Queues">Playlist / Q</button>
 <button id="logout">Logout</button>
 </div>
-<br>
+
 <div id="selection_site" class="site_selection">
 <select id="site" onchange="siteChange()"></select>
 <select id="opt" onchange="optChange()"></select>
@@ -110,20 +110,20 @@ Text box can also be used to input text commands to server as follows
 "  type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
 </div>
-<br>
+
 <div id="display_option" class="option_display">
 <select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
 <button id="opt_val_ok" hidden="hidden">Go</button>
 </div>
-<br>
+
 <div id="pls_custom" class ="pls_custom_" hidden="hidden">
-	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create Playlist</button>
+	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create</button>
 	<select id="only_playlist"></select>
 	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
     <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
     <div id="queue_info" class="queue_info">
-	Click on items to add them to selected existing playlist. If no playlist is selected but items are added to the list then the list will be treated as queue. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist.
+	Click on items to add them to selected existing playlist. If no playlist is selected but items are added to the list then the list will be treated as queue. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
     </div>
 	<ol id="playlist_custom" class="playlist_custom"></ol>
 </div>
@@ -196,19 +196,21 @@ video::cue {
 .selected {font-weight: bold}
 div.toTop{position:fixed;bottom: 1em;right: 1em;}
 
-div.video_section{float:left;}
+div.video_section{float:left;max-width:640px;}
 div.video_section.div.site_selection{float:left;}
 div.pls{max-width:640px;float:left;}
 div.pls_custom_{max-width:640px;float:left;}
 div.title{max-width:100%;}
 div.title_music{max-width:100%;}
 
+/* context menu */
+
 .context-menu {
   display: none;
   position: absolute;
   z-index: 10;
   padding: 12px 0;
-  width: 240px;
+  max-width: 240px;
   background-color: #fff;
   border: solid 1px #dfdfdf;
   box-shadow: 1px 1px 2px #cfcfcf;
@@ -238,7 +240,7 @@ div.title_music{max-width:100%;}
   position: absolute;
   z-index: 10;
   padding: 12px 0;
-  width: 240px;
+  max-width: 240px;
   background-color: #fff;
   border: solid 1px #dfdfdf;
   box-shadow: 1px 1px 2px #cfcfcf;
@@ -252,17 +254,160 @@ div.title_music{max-width:100%;}
   text-decoration: none;
 }
 
+/* Editing queue and playlist buttons*/
+
+.pls_custom_ select{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.pls_custom_ select:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.pls_custom_ button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    width:96px;
+}
+
+.pls_custom_ button:hover {
+    background-color: #aab7b8;
+    color: black; 
+}
+
+/* Display option buttons */
+
+.option_display {max-width:100%;
+    margin: 0px 0px 0px 2px;
+    padding: 2px;
+    float:left;
+    
+    }
+
+.option_display select{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.option_display select:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.option_display button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    width:96px;
+}
+
+.option_display button:hover {
+    background-color: #aab7b8;
+    color: black; 
+}
+
+/* Main Select Buttons with search box*/
+
+.site_selection {max-width:100%;
+    margin: 0px 0px 0px 2px;
+    padding: 2px;
+    float:left;
+    
+    }
+
+.site_selection input{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.site_selection input:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.site_selection select{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.site_selection select:hover{
+    background-color: #aab7b8;
+    color: black;   
+}
+
+.site_selection button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    width:96px;
+}
+
+.site_selection button:hover {
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.site_selection button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
+/* Primary Control Buttons*/
+
 .Buttons{max-width:100%;
-    margin: 2px;
+    margin: 2px 0px 0px 2px;
     padding: 2px;
     float:left;
     
     }
 
 .Buttons button{
-    background-color: gray;
+    background-color: white;
     border: none;
-    color: white;
+    color: black;
     padding:8px;
     text-align: center;
     text-decoration: none;
@@ -285,20 +430,20 @@ div.title_music{max-width:100%;}
     padding: 4px;
     float:left;
     }
-    
-.option_display{max-width:100%;
-    margin: 2px;
-    padding: 2px;
-    float:left;}
-    
+
+/* Info queue*/
+
 .queue_info {
     padding: 10px;
-    background-color:#f5f5f5;
-    margin: 10px 0px 0px 0px;
-    float: left;
+    background-color:white;
+    margin: 10px 0px 10px 0px;
+    color: black;
+    float:left;
+    max-width:100%;
 }
 
-.video_section{max-width:640px;}
+/* Main Playlist */
+
 .pls ul {
     list-style-type: none;
     margin: 0;
@@ -316,15 +461,19 @@ div.title_music{max-width:100%;}
     background-color: yellow;
 }
 
+/* Editing Queue and Playlist*/
+
 .playlist_custom{
-    background-color:#f5f5f5;
+    background-color:white;
     border: 1px;
+    padding 10px;
+    float: left;
 }
 
 .playlist_custom ul {
     list-style-type: none;
-    margin: 0;
-    padding: 0;
+    margin: 10px;
+    padding: 10px;
     float:left;
     max-width:100%;
 }
@@ -471,6 +620,11 @@ function menu_clicked_playlist(e){
     pl.style.backgroundColor = _old_playlist_selected_color;
 }
 
+function hide_extra_info(e){
+    var elm = document.getElementById("queue_info");
+    elm.hidden = "hidden";
+}
+
 function menu_clicked_playnow(e){
     _custom_context.style.display = "none";
     var pl = _playlist_selected_element;
@@ -537,8 +691,6 @@ function show_thumbnails_image(e){
     var r = pl.firstChild;
     k = 0
     while(r){
-        //console.log(r.nodeName);
-        //console.log(k);
         var node = r.nodeName;
         var txt = r.innerHTML;
         if (node == 'LI'){
@@ -573,6 +725,7 @@ function show_thumbnails_image(e){
         console.log(response);
 	})
     }
+    add_remove_image_node_to_playlist();
 }
 
 function show_thumbnails_image_set(e){
@@ -603,6 +756,39 @@ function show_thumbnails_image_set(e){
         }
         r = r.nextSibling;
         k += 1;
+    }
+    
+    add_remove_image_node_to_playlist();
+}
+
+function add_remove_image_node_to_playlist(){
+    console.log('add_remove_image_node_to_playlist');
+    console.log(_show_thumbnails);
+    if (_show_thumbnails){
+        var r = document.getElementById("playlist");
+        var first = r.firstChild;
+        while(first){
+            //console.log(r.nodeName);
+            if (first.nodeName == "LI"){
+                a = first.title;
+                b = first.getAttribute("data-mp3");
+                first.innerHTML = "";
+                img_div = add_thumbnail_to_playlist(a, b);
+                first.appendChild(img_div);
+                //console.log(a, b);
+            }
+            first = first.nextSibling;
+        }
+    } else{
+        var r = document.getElementById("playlist");
+        var first = r.firstChild;
+        while(first){
+            if (first.nodeName == "LI"){
+                while(first.firstChild){first.removeChild(first.firstChild);}
+                first.innerHTML = first.title;
+            }
+            first = first.nextSibling
+        }
     }
 }
 
@@ -1824,12 +2010,13 @@ _shuffle.addEventListener("click", function () {
 	
 });
 
-function populate_playlist(new_url){
-	var client = new getRequest();
-	client.get(new_url, function(response) {
-	console.log(response);
-	
-	m = response.split('\n');
+function populate_playlist_only(response, mode){
+    console.log(response);
+    if (mode == 0){
+        m = response.split('\n');
+    }else if (mode == 1){
+        m = response
+    }
 	r = document.getElementById('playlist')
 	console.log(m)
 	while(r.firstChild){r.removeChild(r.firstChild);}
@@ -1858,6 +2045,12 @@ function populate_playlist(new_url){
 		r.appendChild(new_opt);
 		indx += 1;
 		}
+}
+
+function populate_playlist(new_url){
+	var client = new getRequest();
+	client.get(new_url, function(response) {
+        populate_playlist_only(response, 0);
 	})
 }
 
@@ -2354,4 +2547,5 @@ function resizeWindowEvent(){
 
 onDocReady();
 </script>
+</body>
 </html>
