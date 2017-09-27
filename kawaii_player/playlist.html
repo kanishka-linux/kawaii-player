@@ -203,6 +203,10 @@ div.pls_custom_{max-width:640px;float:left;}
 div.title{max-width:100%;}
 div.title_music{max-width:100%;}
 
+.toTop:hover{
+    background-color:#d7dbdd;
+}
+
 /* context menu */
 
 .context-menu {
@@ -291,11 +295,12 @@ div.title_music{max-width:100%;}
 
 /* Display option buttons */
 
-.option_display {max-width:100%;
+.option_display {
+    max-width:100%;
     margin: 0px 0px 0px 2px;
     padding: 2px;
     float:left;
-    
+    display:block;
     }
 
 .option_display select{
@@ -333,7 +338,8 @@ div.title_music{max-width:100%;}
 
 /* Main Select Buttons with search box*/
 
-.site_selection {max-width:100%;
+.site_selection {
+    max-width:100%;
     margin: 0px 0px 0px 2px;
     padding: 2px;
     float:left;
@@ -448,7 +454,7 @@ div.title_music{max-width:100%;}
     list-style-type: none;
     margin: 0;
     padding: 0;
-    float:left;
+    /*float:left;*/
     max-width:100%;
 }
 .pls li {
@@ -1281,12 +1287,18 @@ function optChange(){
 		while(r.firstChild){r.removeChild(r.firstChild);}
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
-			var txt = m[i].substring(0,45);
+			var txt = m[i];
+            if (txt.length > 30){
+                txt = txt.slice(0,28)+ '..'
+            }
 			if (txt){
-			new_opt.text = txt;
-			new_opt.value = m[i];
-			//console.log(i,txt);
-			r.appendChild(new_opt);}
+                new_opt.text = txt;
+                new_opt.value = m[i];
+                new_opt.title = m[i];
+                //console.log(i,txt);
+                r.appendChild(new_opt);
+                //new_opt.style.overflow = 'auto';
+            }
 		}
 		_display_option.hidden = "";
 		r.hidden = "";
@@ -1299,23 +1311,51 @@ function optChange(){
 }
 
 function add_thumbnail_to_playlist(a, b){
+    width = window.innerWidth;
     img_div = document.createElement('div');
     img_div.setAttribute('id', 'img-id');
     img_opt = document.createElement('img');
     img_opt.setAttribute('src', b+'.image');
-    img_opt.setAttribute('width', '128');
-    //img_opt.style.float = 'left';
+    console.log(width, '----');
+    width_length = 128;
+    if (width > 350){
+        img_opt.setAttribute('width', '128');
+    }else{
+        width_length = width/3
+        img_opt.setAttribute('width', (width_length).toString());
+    }
+    img_opt.style.float = 'left';
     img_div.appendChild(img_opt)
+    img_opt.style.margin = "0px 4px 0px 0px";
     img_info = document.createElement('div');
     img_info.setAttribute('id', 'img-info');
-    img_info.style.maxWidth = '128px';
-    img_info.style.float = 'right';
-    img_info.innerHTML = a.slice(0, 45);
-    img_info.style.padding = "0px";
-    img_info.style.margin = "0px 0px 0px 4px";
+    
+    if (width <= 480){
+        if (width > 350){
+            img_info.style.maxWidth = '128px';
+            if (a.length > 45){
+                a = a.slice(0, 45)+ '..';
+            }
+        }else{
+            img_info.style.maxWidth = width_length.toString() + 'px';
+            if (a.length > 30){
+                a = a.slice(0, 30)+ '..';
+            }
+        }
+        img_info.style.margin = "0px 0px 0px 4px";
+    }else{
+        img_info.style.maxWidth = '256px';
+        img_info.style.margin = "0px 0px 0px 4px";
+    }
+    img_info.innerHTML = a;
+    img_info.style.float = 'left';
+    //img_info.style.padding = "0px";
+    
     //img_info.style.fontSize = "12px";
     img_div.appendChild(img_info)
-    img_div.style.display = 'block';
+    //img_div.style.display = 'block';
+    img_div.style.overflow = 'auto';
+    //img_div.style.margin = "0px 0px 4px 4px";
     return img_div;
 }
 
@@ -2533,6 +2573,10 @@ function resizeWindowEvent(){
             _player.height=parseInt((480/640)*w).toString();
         }
 		console.log(screen.width);
+        console.log(_player.width);
+        if (_show_thumbnails){
+            add_remove_image_node_to_playlist();
+        }
     }else {
         _player.width="640"; 
         if (show_image){
