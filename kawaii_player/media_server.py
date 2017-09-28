@@ -1216,7 +1216,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if nm.startswith('"'):
                 nm = nm.replace('"', '')
             self.process_url(nm, get_bytes)
-        elif path.startswith('playlist_'):
+        elif path.startswith('playlist_') or path.startswith('queueitem_'):
             try:
                 pl, row = path.split('_', 1)
                 if row.isnumeric():
@@ -1227,7 +1227,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     b = b'Playing file'
                     self.final_message(b)
                     remote_signal = doGETSignal()
-                    remote_signal.control_signal.emit(row_num, 'normal')
+                    if path.startswith('playlist_'):
+                        remote_signal.control_signal.emit(row_num, 'normal')
+                    else:
+                        remote_signal.control_signal.emit(row_num, 'queue')
                 else:
                     b = b'Remote Control Not Allowed'
                     self.final_message(b)
@@ -2414,6 +2417,10 @@ def start_player_remotely(nm, mode):
         if item:
             ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         print('---1523---')
+    elif mode == 'queue':
+        nm = nm - 1
+        if nm < len(ui.epn_arr_list):
+            ui.queue_url_list.append(ui.epn_arr_list[nm])
     else:
         if mode == 'playpause':
             ui.player_play_pause.clicked.emit()
@@ -2426,6 +2433,8 @@ def start_player_remotely(nm, mode):
         else:
             if ui.mpvplayer_val.processId() > 0:
                 if mode == 'stop':
+                    if MainWindow.isFullScreen():
+                        ui.player_fullscreen.clicked.emit()
                     ui.player_stop.clicked.emit()
                 elif mode == 'loop':
                     ui.player_loop_file.clicked.emit()
