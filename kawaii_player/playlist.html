@@ -35,8 +35,8 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 
 <body>
-<div class= "video_section">
-<div id="title_music">
+<div class= "video_section" id="video_section">
+<div id="title_music" class="title_music">
     <img id="img-id" src="">
     <br>
     <div id="img-info">
@@ -47,7 +47,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 	<track kind="captions" label="English" srclang="en" src="" default>
 </video>
 <br>
-<div id="title"></div>
+<div id="title" class="title_video"></div>
 <br>
 <div id="buttons_div" class="Buttons">
 <button id="play">Play/Pause</button>
@@ -72,6 +72,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="m3u" title="Get Playlist in m3u format">Get M3U</button>
 <button id="remote_btn">Remote Off</button>
 <button id="empty_btn">--</button>
+<button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#8595</button>
 <button id="home">Home</button>
 <button id="minimal">Options</button>
 <button id="custom_pls" title="Manage Playlist and Queues">Playlist / Q</button>
@@ -123,7 +124,7 @@ Text box can also be used to input text commands to server as follows
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
     <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
     <div id="queue_info" class="queue_info">
-	Click on items to add them to selected existing playlist. If no playlist is selected but items are added to the list then the list will be treated as queue. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
+	Click on items to add them to queue. If some existing playlist is selected then the queue can be saved to that playlist. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
     </div>
 	<ol id="playlist_custom" class="playlist_custom"></ol>
 </div>
@@ -196,15 +197,27 @@ video::cue {
 .selected {font-weight: bold}
 div.toTop{position:fixed;bottom: 1em;right: 1em;}
 
-div.video_section{float:left;max-width:640px;}
-div.video_section.div.site_selection{float:left;}
-div.pls{max-width:640px;float:left;}
-div.pls_custom_{max-width:640px;float:left;}
+div.video_section{float:left;}
+div.video_section.div.site_selection{float:left;max-width:1000px;}
+div.pls{float:left;}
+div.pls_custom_{float:left;}
 div.title{max-width:100%;}
 div.title_music{max-width:100%;}
 
 .toTop:hover{
     background-color:#d7dbdd;
+}
+
+.title_music{
+    margin: 10px 0px 0px 4px;
+    float:left;
+    text-align: center;
+}
+
+.title_video{
+    margin: 10px 0px 0px 4px;
+    float:left;
+    text-align:center;
 }
 
 /* context menu */
@@ -309,7 +322,7 @@ div.title_music{max-width:100%;}
     border: none;
     color: black;
     padding:7px;
-    text-align: center;
+    /*text-align: center;*/
     text-decoration: none;
     float:left;
     max-width:100%;
@@ -407,7 +420,6 @@ div.title_music{max-width:100%;}
     margin: 2px 0px 0px 2px;
     padding: 2px;
     float:left;
-    
     }
 
 .Buttons button{
@@ -471,14 +483,14 @@ div.title_music{max-width:100%;}
 
 .playlist_custom{
     background-color:white;
-    border: 1px;
-    padding 10px;
+    /*border: 1px;*/
+    /*margin: 0px 0px 0px 10px;*/
+    /*padding: 10px;*/
     float: left;
 }
 
 .playlist_custom ul {
     list-style-type: none;
-    margin: 10px;
     padding: 10px;
     float:left;
     max-width:100%;
@@ -577,10 +589,16 @@ var _player = document.getElementById("player"),
     last_position_scrollbar = 0;
     _old_playlist_selected_color = 'white';
     _show_thumbnails = false;
+    _video_section = document.getElementById("video_section");
+    _aspect_ratio = 16/9;
+    _top_xy = [0,0];
     
 
 // functions
 
+function goto_last_position(event){
+    window.scrollTo(_top_xy[0], _top_xy[1]);
+}
 
 function menu_clicked(e){
     var playlist = e;
@@ -1356,13 +1374,9 @@ function add_thumbnail_to_playlist(a, b){
     }
     img_info.innerHTML = a;
     img_info.style.float = 'left';
-    //img_info.style.padding = "0px";
-    
-    //img_info.style.fontSize = "12px";
+    //img_info.style.textAlign = 'justify';
     img_div.appendChild(img_info)
-    //img_div.style.display = 'block';
     img_div.style.overflow = 'auto';
-    //img_div.style.margin = "0px 0px 4px 4px";
     return img_div;
 }
 
@@ -1745,8 +1759,17 @@ function onDocReady(){
 	w = window.innerWidth;
 	if(w <= 640)
 		{_player.width=(w-30).toString();
-		_player.height=parseInt((480/640)*w).toString();
+        _video_section.style.width = _player.width +'px';
+        //_buttons_div.style.width = _player.width+ 'px';
+		_player.height=parseInt((1/_aspect_ratio)*w).toString();
 		console.log(screen.width);}
+    else{
+        var new_width = w*0.6;
+        _player.width = new_width.toString();
+        _video_section.style.width = _player.width + 'px';
+        //_buttons_div.style.width = _player.width+ 'px';
+        _player.height=parseInt((1/_aspect_ratio)*new_width).toString();
+        }
     pls_arr.sort()
 	console.log(pls_arr);
 	
@@ -1875,30 +1898,32 @@ function playlistItemClick(clickedElement,mode) {
         if (base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')){
             _player.height = "40";
             show_image = true;
-        }else{
-            _player.height = "480";
         }
     }
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	var tmp_name = clickedElement.innerHTML;
+    var win_width = window.innerWidth;
     document.title = _clicked_num+" "+clickedElement.title;
     if (show_image){
         console.log(_img_id.src);
         console.log('----1323-----');
         _img_id.src = _final_url+'.image';
-        if (_show_thumbnails){
-            _img_info.innerHTML = tmp_name;
-        }else{
-            _img_info.innerHTML = document.title;
-        }
+        _img_info.innerHTML = document.title;
         _title.innerHTML = "";
     }else{
         _img_id.src = "";
         _img_info.innerHTML = "";
         if (_show_thumbnails){
-            _title.innerHTML = tmp_name;
+            if (win_width <= 640){
+                _title.innerHTML = document.title;
+                _title.style.textAlign = 'center';
+            }else{
+                _title.innerHTML = tmp_name;
+                _title.style.textAlign = 'left';
+            }
         }else{
             _title.innerHTML = document.title;
+            _title.style.textAlign = 'left';
         }
         
     }
@@ -1909,23 +1934,21 @@ function playlistItemClick(clickedElement,mode) {
 			get_subtitle(new_src+".subtitle");
 		}
 		_player.play();
-        var win_width = window.innerWidth;
+        
         if(win_width <= 640){
-            _player.width=(win_width-30).toString();
+            new_width = (win_width-30).toString();
+            _player.width = new_width.toString();
+            _video_section.style.width = new_width + 'px';
+            //_buttons_div.style.width = new_width+ 'px';
+            _player.height=parseInt((1/_aspect_ratio)*new_width).toString();
             if (show_image){
                 _player.height = "40";
-                if (win_width <= 480){
-                    //_img_id.style.display = 'block';
-                    //_img_id.style.maxHeight = '300px';
-                    //_img_id.style.maxWidth = _player.width+'px';
-                    //_img_id.style.width = 'auto';
-                    //_img_id.style.height = 'auto';
+                if (win_width <= 480 && _img_id.width != _player.width){
                     _img_id.width = _player.width;
                 }
-            }else{
-                _player.height=parseInt((480/640)*win_width).toString();
             }
             console.log(screen.width);
+            console.log(win_width);
         }
 	}
 	else{
@@ -2480,6 +2503,8 @@ window.onscroll = function () {
 
 document.getElementById('backToTop').onclick = function()
 {
+    _top_xy = [window.pageXOffset, window.pageYOffset];
+    
     window.scrollTo(0, 0);
 };
 
@@ -2490,6 +2515,7 @@ _playlist.addEventListener("click", function (e) {
     var req_node = get_clicked_node(target);
     
     if (req_node) {
+        _top_xy = [window.pageXOffset, window.pageYOffset];
         if (_remote_val == 'on'){
             var child = req_node;
 		}
@@ -2539,6 +2565,7 @@ _playlist.addEventListener("contextmenu", function (e) {
         ctxMenu.style.left = (e.pageX - 10)+"px";
         ctxMenu.style.top = (e.pageY - 10)+"px";
         last_position_scrollbar = e.pageY;
+        _top_xy = [window.pageXOffset, window.pageYOffset];
         _old_playlist_selected_color = _playlist_selected_element.style.backgroundColor
         _playlist_selected_element.style.backgroundColor = '#dcdcdc';
         
@@ -2573,20 +2600,18 @@ var postRequest = function() {
 
 function resizeWindowEvent(){
 	w = window.innerWidth;
+    h = window.innerHeight;
 	if(w <= 640){
         _player.width=(w-30).toString();
+        _video_section.style.width = _player.width + 'px';
+        //_buttons_div.style.width = _player.width+ 'px';
         if (show_image){
             _player.height = "40";
             if(w <=480){
                 _img_id.width = _player.width;
-                //_img_id.style.display = 'block';
-                //_img_id.style.maxHeight = '300px';
-                //_img_id.style.maxWidth = _player.width+'px';
-                //_img_id.style.width = 'auto';
-                //_img_id.style.height = 'auto';
             }
         }else{
-            _player.height=parseInt((480/640)*w).toString();
+            _player.height=parseInt((1/_aspect_ratio)*w).toString();
         }
 		console.log(screen.width);
         console.log(_player.width);
@@ -2594,11 +2619,20 @@ function resizeWindowEvent(){
             add_remove_image_node_to_playlist();
         }
     }else {
-        _player.width="640"; 
+        var new_width = w - 30;
+        if (new_width > 1000){
+            new_width = new_width*0.6;
+        } 
+        _player.width = new_width.toString();
+        _video_section.style.width = new_width + 'px';
+        //_buttons_div.style.width = new_width+ 'px';
         if (show_image){
             _player.height="40";
         }else{
-            _player.height="480";
+            _player.height=parseInt((1/_aspect_ratio)*new_width).toString();
+        }
+        if (_show_thumbnails){
+            add_remove_image_node_to_playlist();
         }
     }
 }
