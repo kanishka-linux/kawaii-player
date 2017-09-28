@@ -657,6 +657,13 @@ function menu_clicked_queue(e){
         _custom_context.style.display = "none";
     }   
     _playlist_selected_element.style.backgroundColor = _old_playlist_selected_color;
+    if (_remote_val == 'on'){
+        var num_val = _playlist_selected_element.getAttribute('data-num');
+        var req_val = 'queueitem_'+num_val;
+        var client = new getRequest();
+        client.get(req_val, function(response) {
+        console.log(response);
+	})}
 }
 
 function _delete_pls(e){
@@ -1873,18 +1880,27 @@ function playlistItemClick(clickedElement,mode) {
         }
     }
 	var _clicked_num = clickedElement.getAttribute("data-num");
-	var tmp_name = _clicked_num+" "+clickedElement.title;
-    document.title = tmp_name;
+	var tmp_name = clickedElement.innerHTML;
+    document.title = _clicked_num+" "+clickedElement.title;
     if (show_image){
         console.log(_img_id.src);
         console.log('----1323-----');
         _img_id.src = _final_url+'.image';
-        _img_info.innerHTML = document.title;
+        if (_show_thumbnails){
+            _img_info.innerHTML = tmp_name;
+        }else{
+            _img_info.innerHTML = document.title;
+        }
         _title.innerHTML = "";
     }else{
         _img_id.src = "";
         _img_info.innerHTML = "";
-        _title.innerHTML = tmp_name;
+        if (_show_thumbnails){
+            _title.innerHTML = tmp_name;
+        }else{
+            _title.innerHTML = document.title;
+        }
+        
     }
 	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'Remote Off'){
