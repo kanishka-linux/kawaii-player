@@ -50,11 +50,11 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <div id="title" class="title_video"></div>
 <br>
 <div id="buttons_div" class="Buttons">
-<button id="play">Play/Pause</button>
-<button id="stop">Stop</button>
+<button id="play" onclick="play_on_click()">Play/Pause</button>
+<button id="stop" onclick="stop_on_click()">Stop</button>
 <button id="loop">Lock</button>
-<button id="prev">Prev</button>
-<button id="next">Next</button>
+<button id="prev" onclick="prev_on_click()">Prev</button>
+<button id="next" onclick="next_on_click()">Next</button>
 <button id="shuffle">Shuffle</button>
 <button id="seek10" hidden="hidden">10s+</button>
 <button id="seek_10" hidden="hidden">10s-</button>
@@ -145,10 +145,11 @@ Text box can also be used to input text commands to server as follows
 	<menuitem label='Add To Current Playlist' onclick="menu_clicked_playlist(label)"></menuitem>
 	<menuitem label='Remove From Playlist' onclick="menu_clicked_remove(label)"></menuitem>
 </menu>
+<!--
 <div class="toTop">
 <div id="backToTop" ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Top</div>
 </div>
-
+-->
 
 <nav id="context-menu-bar" class="context-menu">
     <ul class="context-menu__items" id="custom_context_menu_playlist">
@@ -184,6 +185,33 @@ Text box can also be used to input text commands to server as follows
     </ul>
 </nav>
 
+<div id="player_control" class="player_control">
+    <div class="player_control_col1" onclick="play_on_click()">
+        <img id="player_control_image" src="" height="64">
+    </div>
+    <div class="player_control_col2" onclick="back_to_top()">
+        <div id="player_control_info" class="player_control_info"></div>
+    </div>
+    <div class="player_control_col3">
+        <button onclick="next_on_click()">Next</button>
+        <button onclick="prev_on_click()">Prev</button>
+    
+    </div>
+    <div class="player_control_col4">
+        <button onclick="stop_on_click()">Stop</button>
+        <button id="btn_minimize" onclick="hide_control_bar()">min</button>
+    </div>
+    <!--
+    <div class="player_control_col5">
+        <button id="backToTop" onclick="back_to_top()">&#8593</button>
+        <button id="btn_minimize" onclick="hide_control_bar()">min</button>
+    </div>
+    -->
+    </div>
+</div>
+
+<button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
+
 <!---
 
 transparent background for captions
@@ -195,8 +223,22 @@ video::cue {
 
 <style>
 .selected {font-weight: bold}
-div.toTop{position:fixed;bottom: 1em;right: 1em;}
-
+/*div.toTop{position:fixed;bottom: 1em;right: 1em;}*/
+.btn_maximize{
+    position:fixed;bottom: 1px;right: 1px;height:32px; width:32px;
+    background-color:#333;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    padding: 2px 2px;
+    color: white;
+    border-radius:3px;
+    }
+.btn_maximize:hover{
+    background-color: green;
+    color: black; 
+}
 div.video_section{float:left;}
 div.video_section.div.site_selection{float:left;max-width:1000px;}
 div.pls{float:left;}
@@ -204,8 +246,68 @@ div.pls_custom_{float:left;}
 div.title{max-width:100%;}
 div.title_music{max-width:100%;}
 
-.toTop:hover{
-    background-color:#d7dbdd;
+.player_control{
+    background-color:#333;
+    position:fixed;
+    bottom: 0px;
+    right: 0px;
+    max-height: 64px;
+    display:grid;
+    grid-gap: 2px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 64px;
+}
+
+.player_control_col1{
+    grid-column : 1;
+}
+
+.player_control_col2{
+    grid-column : 2 ;
+}
+
+.player_control_col3{
+    grid-column : 3;
+}
+
+.player_control_col4{
+    grid-column : 4;
+}
+
+.player_control_col5{
+    grid-column : 5;
+}
+
+.player_control img{
+    margin: 1px 1px 1px 1px;
+}
+
+
+
+.player_control_info{
+    float:left;
+    font-size: 11px;
+    color: white;
+    padding: 7px 7px;
+    margin: 0px 2px 0px 2px;
+}
+.player_control button{
+    font-size: 10px;
+    background-color: #333;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    float:right;
+    padding: 0px;
+    color: white;
+    width:56px;
+    height:32px;
+}
+
+.player_control button:hover {
+    background-color: green;
+    color: black; 
 }
 
 .title_music{
@@ -590,11 +692,30 @@ var _player = document.getElementById("player"),
     _old_playlist_selected_color = 'white';
     _show_thumbnails = false;
     _video_section = document.getElementById("video_section");
+    _player_control_info = document.getElementById("player_control_info")
+    _player_control_image = document.getElementById("player_control_image")
     _aspect_ratio = 16/9;
     _top_xy = [0,0];
+    _minimize_control_bar = false;
     
 
 // functions
+
+function hide_control_bar(){
+    var r = document.getElementById("player_control");
+    r.style.visibility = "hidden";
+    var u = document.getElementById("btn_maximize");
+    u.style.visibility = "visible";
+    _minimize_control_bar = true;
+}
+
+function show_control_bar(){
+    var u = document.getElementById("btn_maximize");
+    u.style.visibility = "hidden";
+    var r = document.getElementById("player_control");
+    r.style.visibility = "visible";
+    _minimize_control_bar = false;
+}
 
 function goto_last_position(event){
     window.scrollTo(_top_xy[0], _top_xy[1]);
@@ -1902,8 +2023,11 @@ function playlistItemClick(clickedElement,mode) {
     }
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	var tmp_name = clickedElement.innerHTML;
+    
     var win_width = window.innerWidth;
     document.title = _clicked_num+" "+clickedElement.title;
+    _player_control_info.innerHTML = document.title;
+    _player_control_image.src = _final_url + '.image'
     if (show_image){
         console.log(_img_id.src);
         console.log('----1323-----');
@@ -2226,7 +2350,7 @@ _logout.addEventListener("click", function () {
     window.location.href = 'logout';
 });
 
-_stop.addEventListener("click", function () {
+function stop_on_click(){
 	if (_remote_val == 'off'){_player.pause();_player.src = "";}
     else{
     var client = new getRequest();
@@ -2235,7 +2359,7 @@ _stop.addEventListener("click", function () {
 	})
     
 	}
-});
+}
 
 _seek_10.addEventListener("click", function () {
 	if (_remote_val == 'on'){
@@ -2310,7 +2434,7 @@ _fullscreen.addEventListener("click", function () {
 	})}
 });
 
-_prev.addEventListener("click", function () {
+function prev_on_click(){
 	var selected = _playlist.querySelector("li.selected");
 	if (_remote_val == 'on'){_clicked_index = _clicked_index - 1}
     if (selected && selected.previousSibling) {
@@ -2318,9 +2442,9 @@ _prev.addEventListener("click", function () {
 		//_title.innerHTML = selected.previousSibling.innerHTML;
     }
     
-});
+}
 
-_next.addEventListener("click", function () {
+function next_on_click(){
 	var selected = _playlist.querySelector("li.selected");
 	if (_remote_val == 'on'){_clicked_index = _clicked_index + 1;}
     if (selected && selected.nextSibling) {
@@ -2335,9 +2459,9 @@ _next.addEventListener("click", function () {
 		//_title.innerHTML = first.innerHTML;
 	}
 	
-});
+}
 
-_play.addEventListener("click", function () {
+function play_on_click(){
 	var selected = _playlist.querySelector("li.selected");
     
     if (_remote_val == 'on'){
@@ -2361,7 +2485,7 @@ _play.addEventListener("click", function () {
 			}
 			}
 		}
-});
+}
 
 
 function gotoChildNode(num){
@@ -2495,16 +2619,22 @@ function _clear_pls_button(){
 
 window.onscroll = function () {
     if (pageYOffset >= 200) {
-        document.getElementById('backToTop').style.visibility = "visible";
-    } else {
- document.getElementById('backToTop').style.visibility = "hidden";
+        if (_minimize_control_bar){
+            document.getElementById('player_control').style.visibility = "hidden";
+            document.getElementById("btn_maximize").style.visibility = "visible";
+        }else{
+            document.getElementById('player_control').style.visibility = "visible";
+            document.getElementById("btn_maximize").style.visibility = "hidden";
+        }
+    }else{
+        
+            document.getElementById("btn_maximize").style.visibility = "hidden";
+            document.getElementById('player_control').style.visibility = "hidden";
     }
 };
 
-document.getElementById('backToTop').onclick = function()
-{
-    _top_xy = [window.pageXOffset, window.pageYOffset];
-    
+function back_to_top(){
+    _top_xy = [window.pageXOffset, window.pageYOffset];    
     window.scrollTo(0, 0);
 };
 
