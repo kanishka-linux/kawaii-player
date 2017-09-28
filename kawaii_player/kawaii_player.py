@@ -10458,16 +10458,21 @@ watch/unwatch status")
             pass
         self.external_url = False
         #print(self.list6.item(0).text(), self.queue_url_list)
-        if self.if_file_path_exists_then_play(0, self.list6, True):
-            del self.queue_url_list[0]
-            self.list6.takeItem(0)
-            del t1
-            return 0
+        if self.list6.item(0):
+            if self.if_file_path_exists_then_play(0, self.list6, True):
+                del self.queue_url_list[0]
+                self.list6.takeItem(0)
+                del t1
+                return 0
         
         if (site == "Local" or site == "Video" or site == "Music" 
                 or site == "PlayLists" or site == "None" or site == 'MyServer'):
             t = self.queue_url_list[0]
-            epnShow = '"'+t.split('	')[1]+'"'
+            epnShow = t.split('	')[1]
+            epnShow = epnShow.replace('"', '')
+            if epnShow.startswith('abs_path=') or epnShow.startswith('relative_path='):
+                epnShow = self.if_path_is_rel(epnShow)
+            epnShow = '"'+epnShow+'"'
             self.epn_name_in_list = t.split('	')[0]
             if self.epn_name_in_list.startswith('#'):
                 self.epn_name_in_list = self.epn_name_in_list[1:]
@@ -10477,8 +10482,9 @@ watch/unwatch status")
                     artist_name_mplayer = ""
             del self.queue_url_list[0]
             t1 = self.list6.item(0)
-            self.list6.takeItem(0)
-            del t1
+            if t1:
+                self.list6.takeItem(0)
+                del t1
             if not idw:
                 idw = str(int(self.tab_5.winId()))
             if 'youtube.com' in epnShow.lower():
