@@ -653,7 +653,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     new_k = k.split('	')[-1]
                     if '##' in k:
                         name = new_k.rsplit('##', 1)[-1]
-                        n_art = name
+                        n_art = ""
                 n_url_file = getdb.get_file_name_from_bookmark(site, site_option, name, i, epnArrList)
                 logger.info(name)
                 if (site.lower() == 'video' or site.lower() == 'music' or 
@@ -2000,6 +2000,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     msg = "No Playlist was selected, hence can't sync arrangement"
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
+        elif path.startswith('default.jpg'):
+            default_jpg = os.path.join(home, 'default.jpg')
+            content = open(default_jpg, 'rb').read()
+            self.send_response(200)
+            self.send_header('Content-type', 'image/jpg')
+            self.send_header('Content-Length', len(content))
+            self.send_header('Connection', 'close')
+            self.end_headers()
+            try:
+                self.wfile.write(content)
+            except Exception as e:
+                print(e)
         else:
             nm = 'stream_continue.htm'
             self.send_response(303)
