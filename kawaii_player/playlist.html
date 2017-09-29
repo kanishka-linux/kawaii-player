@@ -190,6 +190,7 @@ Text box can also be used to input text commands to server as follows
 </nav>
 
 <button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
+<button class="btn_to_top" id="btn_to_top" onclick="back_to_top()">&#8593;</button>
 
 <div id="player_control" class="player_control">
     <div class="player_control_col1" title="click to go to top" onclick="back_to_top()">
@@ -245,6 +246,23 @@ video::cue {
     background-color: green;
     color: black; 
 }
+
+.btn_to_top{
+    position:fixed;bottom: 34px;right: 1px;height:32px; width:32px;
+    background-color:#333;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    padding: 2px 2px;
+    color: white;
+    border-radius:3px;
+    }
+.btn_to_top:hover{
+    background-color: green;
+    color: black; 
+}
+
 div.video_section{float:left;}
 div.video_section.div.site_selection{float:left;max-width:1000px;}
 div.pls{float:left;}
@@ -260,8 +278,9 @@ div.title_music{max-width:100%;}
     max-height: 64px;
     display:grid;
     grid-gap: 2px;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: minmax(96px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
     grid-template-rows: 64px;
+    grid-column-gap: 1fr;
     visibility: hidden;
 }
 
@@ -297,6 +316,7 @@ div.title_music{max-width:100%;}
     color: white;
     padding: 7px 7px;
     margin: 0px 2px 0px 2px;
+    width:100%;
 }
 .player_control button{
     /*font-size: 10px;*/
@@ -705,8 +725,8 @@ var _player = document.getElementById("player"),
     _top_xy = [0,0];
     _minimize_control_bar = true;
     _hide_options = false;
-    _remote_control_buttons = document.getElementById("remote_control_buttons")
-
+    _remote_control_buttons = document.getElementById("remote_control_buttons");
+    _player_dimensions = ["640", "480"];
 // functions
 
 function hide_control_bar(){
@@ -714,12 +734,16 @@ function hide_control_bar(){
     r.style.visibility = "hidden";
     var u = document.getElementById("btn_maximize");
     u.style.visibility = "visible";
+    var v = document.getElementById("btn_to_top");
+    v.style.visibility = "visible";
     _minimize_control_bar = true;
 }
 
 function show_control_bar(){
     var u = document.getElementById("btn_maximize");
     u.style.visibility = "hidden";
+    var v = document.getElementById("btn_to_top");
+    v.style.visibility = "hidden";
     var r = document.getElementById("player_control");
     r.style.visibility = "visible";
     _minimize_control_bar = false;
@@ -1988,7 +2012,7 @@ function playlistItemClick(clickedElement,mode) {
 	var new_src = clickedElement.getAttribute("data-mp3");
 	_final_url = new_src;
 	_final_name = clickedElement.innerHTML;
-    show_image = false
+    
     if (_final_url.indexOf('abs_path=') >= 0){
         var base_dec = _final_url.split('abs_path=')[1]
         if (base_dec.indexOf('/') >= 0){
@@ -1999,10 +2023,19 @@ function playlistItemClick(clickedElement,mode) {
             base_dec = _final_url.split('&pl_id=')[0];
         }
         base_dec = atob(base_dec)
-        if (base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')){
+        if ((base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')) && !show_image){
+            _player_dimensions = [_player.width, _player.height]
             _player.height = "40";
             show_image = true;
+        }else if ((base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')) && show_image){
+            ;
+        }else if (show_image){
+            show_image = false;
+            _player.width = _player_dimensions[0];
+            _player.height = _player_dimensions[1];
         }
+    }else{
+        show_image = false
     }
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	var tmp_name = clickedElement.innerHTML;
@@ -2600,14 +2633,16 @@ window.onscroll = function () {
         if (_minimize_control_bar){
             document.getElementById('player_control').style.visibility = "hidden";
             document.getElementById("btn_maximize").style.visibility = "visible";
+            document.getElementById("btn_to_top").style.visibility = "visible";
         }else{
             document.getElementById('player_control').style.visibility = "visible";
             document.getElementById("btn_maximize").style.visibility = "hidden";
+            document.getElementById("btn_to_top").style.visibility = "hidden";
         }
     }else{
-        
-            document.getElementById("btn_maximize").style.visibility = "hidden";
-            document.getElementById('player_control').style.visibility = "hidden";
+        document.getElementById("btn_to_top").style.visibility = "hidden";
+        document.getElementById("btn_maximize").style.visibility = "hidden";
+        document.getElementById('player_control').style.visibility = "hidden";
     }
 };
 
