@@ -56,19 +56,6 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="prev" onclick="prev_on_click()">Prev</button>
 <button id="next" onclick="next_on_click()">Next</button>
 <button id="shuffle">Shuffle</button>
-<button id="seek10" hidden="hidden">10s+</button>
-<button id="seek_10" hidden="hidden">10s-</button>
-<button id="seek60" hidden="hidden">60s+</button>
-<button id="seek_60" hidden="hidden">60s-</button>
-<button id="seek5m" hidden="hidden">5m+</button>
-<button id="seek_5m" hidden="hidden">5m-</button>
-<button id="vol5" hidden="hidden">vol++</button>
-<button id="vol_5" hidden="hidden">vol--</button>
-<button id="fullscreen" title="Toggle Fullscreen" hidden="hidden">F</button>
-<button id="show_player" hidden="hidden" title="Show Player" onclick="show_player_window()">Show</button>
-<button id="hide_player" hidden="hidden" title="Hide Player" onclick="hide_player_window()">Hide</button>
-<button id="toggle_audio" hidden="hidden" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
-<button id="toggle_subtitle" hidden="hidden" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
 <button id="m3u" title="Get Playlist in m3u format">Get M3U</button>
 <button id="remote_btn">Remote Off</button>
 <button id="empty_btn">--</button>
@@ -77,6 +64,21 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="minimal">Options</button>
 <button id="custom_pls" title="Manage Playlist and Queues">Playlist / Q</button>
 <button id="logout">Logout</button>
+<div id="remote_control_buttons">
+    <button id="seek10">10s+</button>
+    <button id="seek_10">10s-</button>
+    <button id="seek60">60s+</button>
+    <button id="seek_60">60s-</button>
+    <button id="seek5m">5m+</button>
+    <button id="seek_5m">5m-</button>
+    <button id="vol5">vol++</button>
+    <button id="vol_5">vol--</button>
+    <button id="fullscreen" title="Toggle Fullscreen">F</button>
+    <button id="show_player" title="Show Player" onclick="show_player_window()">Show</button>
+    <button id="hide_player" title="Hide Player" onclick="hide_player_window()">Hide</button>
+    <button id="toggle_audio" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
+    <button id="toggle_subtitle" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
+</div>
 </div>
 
 <div id="selection_site" class="site_selection">
@@ -110,12 +112,14 @@ Text box can also be used to input text commands to server as follows
 23. quality:{sd,hd,best} 
 "  type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
 
-</div>
-
 <div id="display_option" class="option_display">
 <select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
 <button id="opt_val_ok" hidden="hidden">Go</button>
 </div>
+
+</div>
+
+
 
 <div id="pls_custom" class ="pls_custom_" hidden="hidden">
 	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create</button>
@@ -185,21 +189,23 @@ Text box can also be used to input text commands to server as follows
     </ul>
 </nav>
 
+<button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
+
 <div id="player_control" class="player_control">
-    <div class="player_control_col1" onclick="play_on_click()">
+    <div class="player_control_col1" title="click to go to top" onclick="back_to_top()">
         <img id="player_control_image" src="" height="64">
     </div>
     <div class="player_control_col2" onclick="back_to_top()">
         <div id="player_control_info" class="player_control_info"></div>
     </div>
     <div class="player_control_col3">
-        <button onclick="next_on_click()">Next</button>
-        <button onclick="prev_on_click()">Prev</button>
+        <button onclick="next_on_click()">&#x23f5;</button>
+        <button onclick="prev_on_click()">&#x23f4;</button>
     
     </div>
     <div class="player_control_col4">
-        <button onclick="stop_on_click()">Stop</button>
-        <button id="btn_minimize" onclick="hide_control_bar()">min</button>
+        <button onclick="play_on_click()" title="play/pause">&#x23f8;&#x23f5;</button>
+        <button id="btn_minimize" onclick="hide_control_bar()" title="minimize">--</button>
     </div>
     <!--
     <div class="player_control_col5">
@@ -210,7 +216,7 @@ Text box can also be used to input text commands to server as follows
     </div>
 </div>
 
-<button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
+
 
 <!---
 
@@ -256,6 +262,7 @@ div.title_music{max-width:100%;}
     grid-gap: 2px;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     grid-template-rows: 64px;
+    visibility: hidden;
 }
 
 .player_control_col1{
@@ -292,16 +299,16 @@ div.title_music{max-width:100%;}
     margin: 0px 2px 0px 2px;
 }
 .player_control button{
-    font-size: 10px;
+    /*font-size: 10px;*/
     background-color: #333;
     border: none;
     color: black;
     text-align: center;
     text-decoration: none;
-    float:right;
+    float:left;
     padding: 0px;
     color: white;
-    width:56px;
+    width:100%;
     height:32px;
 }
 
@@ -415,7 +422,7 @@ div.title_music{max-width:100%;}
     margin: 0px 0px 0px 2px;
     padding: 2px;
     float:left;
-    display:block;
+    display:grid;
     }
 
 .option_display select{
@@ -443,7 +450,7 @@ div.title_music{max-width:100%;}
     text-align: center;
     text-decoration: none;
     float:left;
-    width:96px;
+    width:100%;
 }
 
 .option_display button:hover {
@@ -458,7 +465,7 @@ div.title_music{max-width:100%;}
     margin: 0px 0px 0px 2px;
     padding: 2px;
     float:left;
-    
+    display:grid;
     }
 
 .site_selection input{
@@ -467,7 +474,6 @@ div.title_music{max-width:100%;}
     border: none;
     color: black;
     padding:8px;
-    text-align: center;
     text-decoration: none;
     float:left;
     max-width:100%;
@@ -484,7 +490,6 @@ div.title_music{max-width:100%;}
     border: none;
     color: black;
     padding:7px;
-    text-align: center;
     text-decoration: none;
     float:left;
     max-width:100%;
@@ -503,7 +508,7 @@ div.title_music{max-width:100%;}
     text-align: center;
     text-decoration: none;
     float:left;
-    width:96px;
+    width:100%;
 }
 
 .site_selection button:hover {
@@ -533,6 +538,7 @@ div.title_music{max-width:100%;}
     text-decoration: none;
     float:left;
     width:96px;
+    display: grid;
 }
 
 .Buttons button:hover {
@@ -696,8 +702,9 @@ var _player = document.getElementById("player"),
     _player_control_image = document.getElementById("player_control_image")
     _aspect_ratio = 16/9;
     _top_xy = [0,0];
-    _minimize_control_bar = false;
-    
+    _minimize_control_bar = true;
+    _hide_options = false;
+    _remote_control_buttons = document.getElementById("remote_control_buttons")
 
 // functions
 
@@ -916,32 +923,26 @@ function show_thumbnails_image_set(e){
 function add_remove_image_node_to_playlist(){
     console.log('add_remove_image_node_to_playlist');
     console.log(_show_thumbnails);
-    if (_show_thumbnails){
-        var r = document.getElementById("playlist");
-        var first = r.firstChild;
-        while(first){
-            //console.log(r.nodeName);
-            if (first.nodeName == "LI"){
-                a = first.title;
-                b = first.getAttribute("data-mp3");
-                first.innerHTML = "";
-                img_div = add_thumbnail_to_playlist(a, b);
-                first.appendChild(img_div);
-                //console.log(a, b);
+    
+    var r = document.getElementById("playlist");
+    var first = r.firstChild;
+    while(first){
+        //console.log(r.nodeName);
+        if (first.nodeName == "LI"){
+            a = first.title;
+            b = first.getAttribute("data-mp3");
+            first.innerHTML = "";
+            if (_show_thumbnails){
+                img_div = add_thumbnail_to_playlist(a, b, 0);
+            }else{
+                img_div = add_thumbnail_to_playlist(a, b, 1);
             }
-            first = first.nextSibling;
+            first.appendChild(img_div);
+            //console.log(a, b);
         }
-    } else{
-        var r = document.getElementById("playlist");
-        var first = r.firstChild;
-        while(first){
-            if (first.nodeName == "LI"){
-                while(first.firstChild){first.removeChild(first.firstChild);}
-                first.innerHTML = first.title;
-            }
-            first = first.nextSibling
-        }
+        first = first.nextSibling;
     }
+     
 }
 
 _playlist_custom.addEventListener("click", function (e) {
@@ -1318,7 +1319,7 @@ function searchFunction(e){
 				new_opt.setAttribute('data-num',indx.toString());
                 new_opt.setAttribute('title', a);
                 if (_show_thumbnails){
-                    img_div = add_thumbnail_to_playlist(a, b);
+                    img_div = add_thumbnail_to_playlist(a, b, 0);
                     new_opt.appendChild(img_div);
                 }
 				r.appendChild(new_opt);
@@ -1399,9 +1400,6 @@ function optChange(){
 			var a = m[i].substring(10,500);
 			var b = m[i+1];
 			var new_opt = document.createElement('li');
-            if (!_show_thumbnails){
-                new_opt.innerHTML = a;
-            }
 			new_opt.setAttribute('data-mp3',b);
 			new_opt.setAttribute('data-num',indx.toString());
 			new_opt.setAttribute('draggable','true');
@@ -1413,9 +1411,11 @@ function optChange(){
 			new_opt.setAttribute('ondragleave','drag_leave(event)');
             new_opt.setAttribute('title', a);
             if (_show_thumbnails){
-                img_div = add_thumbnail_to_playlist(a, b);
-                new_opt.appendChild(img_div);
+                img_div = add_thumbnail_to_playlist(a, b, 0);
+            }else{
+                img_div = add_thumbnail_to_playlist(a, b, 1);
             }
+            new_opt.appendChild(img_div);
 			r.appendChild(new_opt);
 			indx += 1;
 			}
@@ -1456,12 +1456,16 @@ function optChange(){
 	z.value = "";
 }
 
-function add_thumbnail_to_playlist(a, b){
+function add_thumbnail_to_playlist(a, b, mode){
     width = window.innerWidth;
     img_div = document.createElement('div');
     img_div.setAttribute('id', 'img-id');
     img_opt = document.createElement('img');
-    img_opt.setAttribute('src', b+'.image');
+    if (mode == 0){
+        img_opt.setAttribute('src', b+'.image');
+    }else{
+        img_opt.setAttribute('src', '');
+    }
     console.log(width, '----');
     width_length = 128;
     if (width > 350){
@@ -1476,7 +1480,7 @@ function add_thumbnail_to_playlist(a, b){
     img_info = document.createElement('div');
     img_info.setAttribute('id', 'img-info');
     
-    if (width <= 480){
+    if (width <= 480 && mode == 0){
         if (width > 350){
             img_info.style.maxWidth = '128px';
             if (a.length > 45){
@@ -1784,53 +1788,31 @@ function onDocReady(){
 	var w = z.split(';');
 	console.log(w);
 	if (w[0].toLowerCase() == 'remotefield:false'){
-		_seek_10.hidden = "hidden";
-		_seek_10_.hidden = "hidden";
-		_seek_60.hidden = "hidden";
-		_seek_60_.hidden = "hidden";
-		_seek_5m.hidden = "hidden";
-		_seek_5m_.hidden = "hidden";
-		_vol_5.hidden = "hidden";
-		_vol_5_.hidden = "hidden";
-		_fullscreen.hidden = "hidden";
-		_remote.hidden = "hidden";
-		_show_player.hidden = "hidden";
-		_hide_player.hidden = "hidden";
-		_toggle_subtitle.hidden = "hidden";
-		_toggle_audio.hidden = "hidden";
-		_empty_btn.hidden = "";
+		_remote_control_buttons.style.visibility = "hidden";
+		//_empty_btn.style.visibility = "visible";
 		_empty_btn.innerHTML = "--";
 		
 	}else if (w[0].toLowerCase() == 'remotefield:true'){
-		_remote.hidden = "";
-		_empty_btn.hidden = "hidden";
+		_remote.style.visibility = "visible";
+		//_empty_btn.style.visibility = "hidden";
 		_empty_btn.innerHTML = "--";
 		}
 	
 	if (w[1].toLowerCase() == 'remotecontrol:false'){
 		_remote.innerHTML = 'Remote Off';
 		_remote_val = 'off';
-		
+		_remote_control_buttons.style.visibility = "hidden";
 	}else if (w[1].toLowerCase() == 'remotecontrol:true'){
 		_remote.innerHTML = 'Remote On';
 		_remote_val = 'on';
-		_seek_10.hidden = "";
-		_seek_10_.hidden= "";
-		_seek_60.hidden = "";
-		_seek_60_.hidden = "";
-		_seek_5m.hidden = "";
-		_seek_5m_.hidden = "";
-		_vol_5.hidden = "";
-		_vol_5_.hidden = "";
-		_fullscreen.hidden = "";
-		_show_player.hidden = "";
-		_hide_player.hidden = "";
-		_toggle_subtitle.hidden = "";
-		_toggle_audio.hidden = "";
+		_remote_control_buttons.style.visibility = "visible";
 		}
 	if (w[2].toLowerCase() == 'thumbnails:true'){
         _show_thumbnails = true;
         show_thumbnails_image_set('True');
+    }else{
+        _show_thumbnails = false;
+        show_thumbnails_image_set('False');
     }
 	var x = document.getElementById("site").value;
 	console.log(x);
@@ -1954,9 +1936,6 @@ function optValChange(){
 		var a = m[i].substring(10,500);
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
-        if (!_show_thumbnails){
-            new_opt.innerHTML = a;
-        }
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('draggable','true');
@@ -1969,7 +1948,10 @@ function optValChange(){
 		new_opt.setAttribute('width','100%');
         new_opt.setAttribute('title', a);
         if (_show_thumbnails){
-            img_div = add_thumbnail_to_playlist(a, b);
+            img_div = add_thumbnail_to_playlist(a, b, 0);
+            new_opt.appendChild(img_div);
+        }else{
+            img_div = add_thumbnail_to_playlist(a, b, 1);
             new_opt.appendChild(img_div);
         }
 		r.appendChild(new_opt);
@@ -2202,7 +2184,7 @@ _shuffle.addEventListener("click", function () {
 		new_opt.setAttribute('ondragleave','drag_leave(event)');
         new_opt.setAttribute('title', a);
         if (_show_thumbnails){
-            img_div = add_thumbnail_to_playlist(a, b);
+            img_div = add_thumbnail_to_playlist(a, b, 0);
             new_opt.appendChild(img_div);
         }
 		r.appendChild(new_opt);
@@ -2242,7 +2224,7 @@ function populate_playlist_only(response, mode){
 		new_opt.setAttribute('ondragleave','drag_leave(event)');
         new_opt.setAttribute('title', a);
         if (_show_thumbnails){
-            img_div = add_thumbnail_to_playlist(a ,b);
+            img_div = add_thumbnail_to_playlist(a ,b, 0);
             new_opt.appendChild(img_div);
         }
 		r.appendChild(new_opt);
@@ -2298,25 +2280,17 @@ _remote.addEventListener("click", function () {
 	
 	var old_var= _remote.innerHTML;
     if (old_var == 'Remote Off'){
-			_remote.innerHTML = 'Remote On';
-			_remote_val = 'on'
 			var client = new getRequest();
 			client.get('remote_on.htm', function(response) {
 			console.log(response);
-			_seek_10.hidden = "";
-			_seek_10_.hidden= "";
-			_seek_60.hidden = "";
-			_seek_60_.hidden = "";
-			_seek_5m.hidden = "";
-			_seek_5m_.hidden = "";
-			_vol_5.hidden = "";
-			_vol_5_.hidden = "";
-			_fullscreen.hidden = "";
-			_show_player.hidden = "";
-			_hide_player.hidden = "";
-			_toggle_subtitle.hidden = "";
-			_toggle_audio.hidden = "";
-			_title.innerHTML = "Refresh the playlist";
+            if (response.toLowerCase() == 'remote control set true'){
+                _remote.innerHTML = 'Remote On';
+                _remote_val = 'on'
+                _remote_control_buttons.style.visibility = "visible";
+                _title.innerHTML = "Remote control enabled. Refresh the playlist";
+            }else{
+                _title.innerHTML = "Remote control is not enabled on server. First enable this feature on server";
+            }
 	})
 		}
 	else {
@@ -2325,19 +2299,7 @@ _remote.addEventListener("click", function () {
 		var client = new getRequest();
 			client.get('remote_off.htm', function(response) {
 			console.log(response);
-			_seek_10.hidden = "hidden";
-			_seek_10_.hidden = "hidden";
-			_seek_60.hidden = "hidden";
-			_seek_60_.hidden = "hidden";
-			_seek_5m.hidden = "hidden";
-			_seek_5m_.hidden = "hidden";
-			_vol_5.hidden = "hidden";
-			_vol_5_.hidden = "hidden";
-			_fullscreen.hidden = "hidden";
-			_show_player.hidden = "hidden";
-			_hide_player.hidden = "hidden";
-			_toggle_subtitle.hidden = "hidden";
-			_toggle_audio.hidden = "hidden";
+            _remote_control_buttons.style.visibility = "hidden";
 	})
 	}
 });
@@ -2551,12 +2513,14 @@ _opt_ok.addEventListener("click", function () {
 });
 
 _minimal.addEventListener("click", function () {
-	if (_selection_site.hidden){
-		_selection_site.hidden="";
-		_display_option.hidden="";}
+	if (_hide_options){
+        _hide_options = false;
+		_selection_site.style.visibility="visible";
+		_display_option.style.visibility="visible";}
 	else{
-		_selection_site.hidden="hidden";
-		_display_option.hidden="hidden";
+        _hide_options = true;
+		_selection_site.style.visibility="hidden";
+		_display_option.style.visibility="hidden";
 		}
 });
 
@@ -2659,21 +2623,15 @@ _playlist.addEventListener("click", function (e) {
 
 function get_clicked_node(target){
     var req_node = target;
-    if (_show_thumbnails){
-        console.log(target);
-        console.log(target.parentNode);
-        if (target && (target.nodeName == "IMG" || target.nodeName == "DIV")){
-            req_node = target.parentNode;
-            if (req_node.nodeName == "IMG" || req_node.nodeName == "DIV"){
-                req_node = req_node.parentNode;
-            }
-        }else if (target && target.nodeName == "LI"){
-            req_node = target;
+    console.log(target);
+    console.log(target.parentNode);
+    if (target && (target.nodeName == "IMG" || target.nodeName == "DIV")){
+        req_node = target.parentNode;
+        if (req_node.nodeName == "IMG" || req_node.nodeName == "DIV"){
+            req_node = req_node.parentNode;
         }
-    } else{
-        if (target && target.nodeName == "LI"){
-            req_node = target;
-        }
+    }else if (target && target.nodeName == "LI"){
+        req_node = target;
     }
     
     if (req_node.nodeName != "LI"){
