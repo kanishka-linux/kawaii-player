@@ -57,7 +57,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="next" onclick="next_on_click()">Next</button>
 <button id="shuffle">Shuffle</button>
 <button id="m3u" title="Get Playlist in m3u format">Get M3U</button>
-<button id="remote_btn">Remote Off</button>
+<button id="remote_btn" title="Turn on/off remote control">R:Off</button>
 <button id="empty_btn">--</button>
 <button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#8595</button>
 <button id="home">Home</button>
@@ -524,8 +524,8 @@ div.title_music{max-width:100%;}
 /* Primary Control Buttons*/
 
 .Buttons{max-width:100%;
-    margin: 2px 0px 0px 2px;
-    padding: 2px;
+    margin: 0px 0px 0px 0px;
+    padding: 7px;
     float:left;
     }
 
@@ -537,8 +537,9 @@ div.title_music{max-width:100%;}
     text-align: center;
     text-decoration: none;
     float:left;
-    width:96px;
+    width:86px;
     display: grid;
+    grid-template-columns: 1fr;
 }
 
 .Buttons button:hover {
@@ -1788,24 +1789,24 @@ function onDocReady(){
 	var w = z.split(';');
 	console.log(w);
 	if (w[0].toLowerCase() == 'remotefield:false'){
-		_remote_control_buttons.style.visibility = "hidden";
-		//_empty_btn.style.visibility = "visible";
+		_remote.style.display = "none";
+		_empty_btn.style.display = "block";
 		_empty_btn.innerHTML = "--";
 		
 	}else if (w[0].toLowerCase() == 'remotefield:true'){
-		_remote.style.visibility = "visible";
-		//_empty_btn.style.visibility = "hidden";
+		_remote.style.display = "block";
+		_empty_btn.style.display = "none";
 		_empty_btn.innerHTML = "--";
 		}
 	
 	if (w[1].toLowerCase() == 'remotecontrol:false'){
-		_remote.innerHTML = 'Remote Off';
+		_remote.innerHTML = 'R:Off';
 		_remote_val = 'off';
-		_remote_control_buttons.style.visibility = "hidden";
+		_remote_control_buttons.style.display = "none";
 	}else if (w[1].toLowerCase() == 'remotecontrol:true'){
-		_remote.innerHTML = 'Remote On';
+		_remote.innerHTML = 'R:On';
 		_remote_val = 'on';
-		_remote_control_buttons.style.visibility = "visible";
+		_remote_control_buttons.style.display = "block";
 		}
 	if (w[2].toLowerCase() == 'thumbnails:true'){
         _show_thumbnails = true;
@@ -2034,7 +2035,7 @@ function playlistItemClick(clickedElement,mode) {
         
     }
 	_clicked_index = parseInt(_clicked_num);
-    if (_remote.innerHTML == 'Remote Off'){
+    if (_remote.innerHTML == 'R:Off'){
 		_player.src = new_src;
 		if (_subtitle_status == 'on'){
 			get_subtitle(new_src+".subtitle");
@@ -2279,13 +2280,14 @@ _m3u.addEventListener("click", function () {
 _remote.addEventListener("click", function () {
 	
 	var old_var= _remote.innerHTML;
-    if (old_var == 'Remote Off'){
+    if (old_var == 'R:Off'){
 			var client = new getRequest();
 			client.get('remote_on.htm', function(response) {
 			console.log(response);
             if (response.toLowerCase() == 'remote control set true'){
-                _remote.innerHTML = 'Remote On';
+                _remote.innerHTML = 'R:On';
                 _remote_val = 'on'
+                _remote_control_buttons.style.display = "block";
                 _remote_control_buttons.style.visibility = "visible";
                 _title.innerHTML = "Remote control enabled. Refresh the playlist";
             }else{
@@ -2294,12 +2296,14 @@ _remote.addEventListener("click", function () {
 	})
 		}
 	else {
-		_remote.innerHTML = 'Remote Off';
+		_remote.innerHTML = 'R:Off';
 		_remote_val = 'off'
 		var client = new getRequest();
 			client.get('remote_off.htm', function(response) {
 			console.log(response);
             _remote_control_buttons.style.visibility = "hidden";
+            _remote_control_buttons.style.display = "none";
+            _title.innerHTML = "Remote control disabled.";
 	})
 	}
 });
@@ -2515,12 +2519,22 @@ _opt_ok.addEventListener("click", function () {
 _minimal.addEventListener("click", function () {
 	if (_hide_options){
         _hide_options = false;
-		_selection_site.style.visibility="visible";
-		_display_option.style.visibility="visible";}
+        _selection_site.style.display="grid";
+		_display_option.style.display="grid";
+		//_selection_site.style.visibility="visible";
+		//_display_option.style.visibility="visible";
+        //_selection_site.hidden = "";
+        //_display_option.hidden = "";
+        }
+        
 	else{
         _hide_options = true;
-		_selection_site.style.visibility="hidden";
-		_display_option.style.visibility="hidden";
+        _selection_site.style.display="none";
+		_display_option.style.display="none";
+		//_selection_site.style.visibility="hidden";
+		//_display_option.style.visibility="hidden";
+        //_selection_site.hidden = "hidden";
+        //_display_option.hidden = "hidden";
 		}
 });
 
