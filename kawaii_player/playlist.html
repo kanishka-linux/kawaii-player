@@ -56,14 +56,6 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="prev" onclick="prev_on_click()">Prev</button>
 <button id="next" onclick="next_on_click()">Next</button>
 <button id="shuffle">Shuffle</button>
-<button id="m3u" title="Get Playlist in m3u format">Get M3U</button>
-<button id="remote_btn" title="Turn on/off remote control">R:Off</button>
-<button id="empty_btn">--</button>
-<button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#8595</button>
-<button id="home">Home</button>
-<button id="minimal">Options</button>
-<button id="custom_pls" title="Manage Playlist and Queues">Playlist / Q</button>
-<button id="logout">Logout</button>
 <div id="remote_control_buttons">
     <button id="seek10">10s+</button>
     <button id="seek_10">10s-</button>
@@ -79,6 +71,15 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
     <button id="toggle_audio" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
     <button id="toggle_subtitle" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
 </div>
+<button id="m3u" title="Get Playlist in m3u format" title="Get Playlist in M3U format">M3U</button>
+<button id="remote_btn" title="Turn on/off remote control">R:Off</button>
+<button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
+<button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#8595</button>
+<!--<button id="home">Home</button>-->
+<button id="minimal">Menu</button>
+<button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
+<button id="logout">Logout</button>
+<!--&#x1f5d1;wastebasket-->
 </div>
 
 <div id="selection_site" class="site_selection">
@@ -128,7 +129,7 @@ Text box can also be used to input text commands to server as follows
 	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
     <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
     <div id="queue_info" class="queue_info">
-	Click on items to add them to queue. If some existing playlist is selected then the queue can be saved to that playlist. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
+	Click on items to add them to queue. Select some existing playlist and press save button, in order to save queued items to that playlist. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
     </div>
 	<ol id="playlist_custom" class="playlist_custom"></ol>
 </div>
@@ -183,6 +184,21 @@ Text box can also be used to input text commands to server as follows
       </li>
     </ul>
 </nav>
+
+<nav id="context-menu-bar-custom" class="context-menu-bar-custom">
+    <ul class="context-menu__items" id="custom_context_menu_playlist_queue">
+      <li class="context-menu__item" onclick="menu_clicked_playnow_queue(event)">
+        Play Now
+      </li>
+      <li class="context-menu__item" onclick="menu_clicked_remove_queue('hide')">
+        Remove Item From Queue
+      </li>
+      <li class="context-menu__item" onclick="menu_clicked_hide_queue('hide')">
+        Hide This Menu
+      </li>
+    </ul>
+</nav>
+
 
 <nav id="playlist_context_menu" class="playlist_context_menu">
     <ul id="playlist_context_menu_items" class="playlist_context_menu_items">
@@ -280,7 +296,6 @@ div.title_music{max-width:100%;}
     grid-gap: 2px;
     grid-template-columns: minmax(96px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
     grid-template-rows: 64px;
-    grid-column-gap: 1fr;
     visibility: hidden;
 }
 
@@ -337,6 +352,11 @@ div.title_music{max-width:100%;}
     color: black; 
 }
 
+.player_control button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
 .title_music{
     margin: 10px 0px 0px 4px;
     float:left;
@@ -349,7 +369,7 @@ div.title_music{max-width:100%;}
     text-align:center;
 }
 
-/* context menu */
+/* context menu main playlist*/
 
 .context-menu {
   display: none;
@@ -400,6 +420,62 @@ div.title_music{max-width:100%;}
   text-decoration: none;
 }
 
+/*Context Menu Queue*/
+
+
+.context-menu-bar-custom {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 12px 0;
+  max-width: 240px;
+  background-color: #fff;
+  border: solid 1px #dfdfdf;
+  box-shadow: 1px 1px 2px #cfcfcf;
+  
+    context-menu__items {
+      list-style: none;
+      margin: 2px;
+      padding: 2px;
+      color: #0066aa;
+      text-decoration: none;
+    }
+
+    context-menu__item:hover {
+      color: black;
+      background-color: #dcdcdc;
+    }
+
+    context-menu__item {
+      display: block;
+      margin: 4px;
+      padding: 4px;
+    }
+  
+}
+
+
+
+.playlist_context_menu {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 12px 0;
+  max-width: 240px;
+  background-color: #fff;
+  border: solid 1px #dfdfdf;
+  box-shadow: 1px 1px 2px #cfcfcf;
+}
+
+.playlist_context_menu_items {
+  list-style: none;
+  margin: 2px;
+  padding: 2px;
+  color: #0066aa;
+  text-decoration: none;
+}
+
+
 /* Editing queue and playlist buttons*/
 
 .pls_custom_ select{
@@ -433,6 +509,11 @@ div.title_music{max-width:100%;}
 .pls_custom_ button:hover {
     background-color: #aab7b8;
     color: black; 
+}
+
+.pls_custom_ button:active {
+    background-color: #4CAF50;
+    color: white;
 }
 
 /* Display option buttons */
@@ -476,6 +557,11 @@ div.title_music{max-width:100%;}
 .option_display button:hover {
     background-color: #aab7b8;
     color: black; 
+}
+
+.option_display button:active {
+    background-color: #4CAF50;
+    color: white;
 }
 
 /* Main Select Buttons with search box*/
@@ -557,9 +643,11 @@ div.title_music{max-width:100%;}
     text-align: center;
     text-decoration: none;
     float:left;
-    width:86px;
+    /*width:86px;*/
     display: grid;
-    grid-template-columns: 1fr;
+    width: 25%;
+    height: 32px;
+    /*grid-template-columns: repeat(auto-fill, minmax(32px, 86px));*/
 }
 
 .Buttons button:hover {
@@ -671,7 +759,7 @@ var _player = document.getElementById("player"),
     _shuffle = document.getElementById("shuffle"),
     _m3u = document.getElementById("m3u"),
     _logout = document.getElementById("logout"),
-    _home = document.getElementById("home"),
+    //_home = document.getElementById("home"),
     _remote = document.getElementById("remote_btn"),
     _opt_ok = document.getElementById("opt_ok"),
     _opt_val_ok = document.getElementById("opt_val_ok"),
@@ -718,6 +806,8 @@ var _player = document.getElementById("player"),
     last_position_scrollbar = 0;
     _old_playlist_selected_color = 'white';
     _show_thumbnails = false;
+    _old_queue_selected_color = 'white';
+    _queue_selected_element = "";
     _video_section = document.getElementById("video_section");
     _player_control_info = document.getElementById("player_control_info")
     _player_control_image = document.getElementById("player_control_image")
@@ -727,6 +817,8 @@ var _player = document.getElementById("player"),
     _hide_options = false;
     _remote_control_buttons = document.getElementById("remote_control_buttons");
     _player_dimensions = ["640", "480"];
+    _queue_context = document.getElementById("context-menu-bar-custom");
+    _custom_context_menu_playlist_queue = document.getElementById("custom_context_menu_playlist_queue");
 // functions
 
 function hide_control_bar(){
@@ -836,6 +928,27 @@ function menu_clicked_queue(e){
         console.log(response);
 	})}
 }
+
+
+
+function menu_clicked_playnow_queue(e){
+    _queue_context.style.display = "none";
+    playlistItemClick(_queue_selected_element,'queue_context');
+    _queue_selected_element.style.backgroundColor = _old_queue_selected_color;
+}
+
+function menu_clicked_hide_queue(e){
+    _queue_context.style.display = "none";
+    _queue_selected_element.style.backgroundColor = _old_queue_selected_color;
+}
+
+function menu_clicked_remove_queue(e){
+    _playlist_custom.removeChild(_queue_selected_element);
+    if (e == 'hide') {
+        _queue_context.style.display = "none";
+    }  
+}
+
 
 function _delete_pls(e){
 	console.log(e);
@@ -1330,9 +1443,6 @@ function searchFunction(e){
 				var a = m[i].substring(10,500);
 				var b = m[i+1];
 				var new_opt = document.createElement('li');
-                if (!_show_thumbnails){
-                    new_opt.innerHTML = a;
-                }
 				new_opt.setAttribute('data-mp3',b);
 				new_opt.setAttribute('draggable','true');
 				new_opt.setAttribute('ondragstart','drag_start(event)');
@@ -1345,8 +1455,11 @@ function searchFunction(e){
                 new_opt.setAttribute('title', a);
                 if (_show_thumbnails){
                     img_div = add_thumbnail_to_playlist(a, b, 0);
-                    new_opt.appendChild(img_div);
+                }else {
+                    img_div = add_thumbnail_to_playlist(a, b, 1);
+                    
                 }
+                new_opt.appendChild(img_div);
 				r.appendChild(new_opt);
 				indx += 1;
 				}
@@ -1423,6 +1536,11 @@ function optChange(){
 		var indx = 1;
 		for(i=1;i<m.length-1;i+=2){
 			var a = m[i].substring(10,500);
+            a = a.trim();
+            if (a.startsWith('-')){
+                a = a.slice(1, 500);
+                a = a.trim();
+            }
 			var b = m[i+1];
 			var new_opt = document.createElement('li');
 			new_opt.setAttribute('data-mp3',b);
@@ -1445,7 +1563,7 @@ function optChange(){
 			indx += 1;
 			}
 		})
-		_display_option.hidden = "hidden";
+		_display_option.style.display = "none";
 		
 	}else{
 		var z = 'site='+y+'&opt='+x;
@@ -1471,7 +1589,7 @@ function optChange(){
                 //new_opt.style.overflow = 'auto';
             }
 		}
-		_display_option.hidden = "";
+		_display_option.style.display = "grid";
 		r.hidden = "";
 		_opt_val_ok.hidden = "";
 		
@@ -1536,26 +1654,81 @@ function drag_start(e){
     e.dataTransfer.setData("link", e.target.getAttribute('data-mp3'));
     e.dataTransfer.setData("num", e.target.getAttribute('data-num'));
     e.dataTransfer.setData("text", e.target.innerHTML);
+    e.dataTransfer.setData("title", e.target.title);
     e.dataTransfer.setData("node", e.target);
     e.dataTransfer.setDragImage(e.target,0,0);
     _drag_start_y = e.clientY;
 }
 
 function custom_drop(e){
-	console.log('---on--drop---custom--')
+    try{
+		e.target.style.border = "";}
+	catch(err){
+		console.log(err);
+	}
+	console.log('---on--drop---')
 	console.log(e);
 	e.preventDefault();
 	 var link_ = e.dataTransfer.getData("link");
 	 var num_ = e.dataTransfer.getData("num");
 	 var text_ = e.dataTransfer.getData("text");
+	 var node_ = e.dataTransfer.getData("node");
+     var title_drop = e.dataTransfer.getData("title");
+	// console.log(link_);
 	
-	 var new_opt = document.createElement('li');
+	// console.log(text_);
+	var num_target = e.target.getAttribute('data-num');
+    var new_opt = document.createElement('li');
+	console.log(node_);
+    console.log(num_,num_target);
 	new_opt.innerHTML = text_;
 	new_opt.setAttribute('data-mp3',link_);
 	new_opt.setAttribute('draggable','true');
-	new_opt.setAttribute('ondragstart','drag_start_remove(event)');
-	_playlist_custom.appendChild(new_opt);
-	e.target.style.border = "";
+	new_opt.setAttribute('ondragstart','drag_start(event)');
+	new_opt.setAttribute('ondrop','custom_drop(event)');
+	new_opt.setAttribute('ondragover','drag_over(event)');
+	new_opt.setAttribute('ondragend','drag_end(event)');
+	new_opt.setAttribute('ondragenter','drag_enter(event)');
+	new_opt.setAttribute('ondragleave','drag_leave(event)');
+	new_opt.setAttribute('data-num',num_target);
+    new_opt.setAttribute('title',title_drop);
+	if (parseInt(num_) >= parseInt(num_target)){
+		_playlist_custom.insertBefore(new_opt,e.target);
+	}
+	else{
+		if (e.target.nextSibling){
+			_playlist_custom.insertBefore(new_opt,e.target.nextSibling);
+		}
+		else{
+			_playlist_custom.appendChild(new_opt);
+		}
+	}
+	first = _playlist_custom.firstChild;
+     e.stopPropagation();
+     //console.log(e.target);
+     indx = 1;
+     while(first){
+		cnt_indx = first.getAttribute('data-num');
+		if(cnt_indx == num_){
+			first.setAttribute('data-num','-1');
+			first = first.nextSibling;
+		}
+		else{
+			first.setAttribute('data-num',indx.toString());
+			first = first.nextSibling;
+			indx = indx +1; 
+		}
+	}
+	first = _playlist_custom.firstChild;
+	while(first){
+		cnt_indx = first.getAttribute('data-num');
+		if(cnt_indx == '-1'){
+			_playlist_custom.removeChild(first);
+			break;
+		}
+		first = first.nextSibling;
+	}
+    
 }
 
 function click_to_add_to_playlist(e){
@@ -1568,7 +1741,14 @@ function click_to_add_to_playlist(e){
 	new_opt.innerHTML = text_;
 	new_opt.setAttribute('data-mp3',link_);
 	new_opt.setAttribute('draggable','true');
-	new_opt.setAttribute('ondragstart','drag_start_remove(event)');
+    
+    new_opt.setAttribute('ondragstart','drag_start(event)');
+	new_opt.setAttribute('ondrop','custom_drop(event)');
+	new_opt.setAttribute('ondragover','drag_over(event)');
+	new_opt.setAttribute('ondragend','drag_end(event)');
+	new_opt.setAttribute('ondragenter','drag_enter(event)');
+	new_opt.setAttribute('ondragleave','drag_leave(event)');
+    
     new_opt.setAttribute('data-num', data_num)
     new_opt.setAttribute('title', e.title);
 	_playlist_custom.appendChild(new_opt);
@@ -1697,13 +1877,14 @@ function on_drop(e){
 	 var num_ = e.dataTransfer.getData("num");
 	 var text_ = e.dataTransfer.getData("text");
 	 var node_ = e.dataTransfer.getData("node");
+     var title_drop = e.dataTransfer.getData("title");
 	// console.log(link_);
 	
 	// console.log(text_);
 	var num_target = e.target.getAttribute('data-num');
-	 var new_opt = document.createElement('li');
+    var new_opt = document.createElement('li');
 	console.log(node_);
-	 console.log(num_,num_target);
+    console.log(num_,num_target);
 	new_opt.innerHTML = text_;
 	new_opt.setAttribute('data-mp3',link_);
 	new_opt.setAttribute('draggable','true');
@@ -1714,6 +1895,7 @@ function on_drop(e){
 	new_opt.setAttribute('ondragenter','drag_enter(event)');
 	new_opt.setAttribute('ondragleave','drag_leave(event)');
 	new_opt.setAttribute('data-num',num_target);
+    new_opt.setAttribute('title',title_drop);
 	if (parseInt(num_) >= parseInt(num_target)){
 		_playlist.insertBefore(new_opt,e.target);
 	}
@@ -1888,14 +2070,14 @@ function onDocReady(){
 	if(w <= 640)
 		{_player.width=(w-30).toString();
         _video_section.style.width = _player.width +'px';
-        //_buttons_div.style.width = _player.width+ 'px';
+        _buttons_div.style.width = _player.width+ 'px';
 		_player.height=parseInt((1/_aspect_ratio)*w).toString();
 		console.log(screen.width);}
     else{
         var new_width = w*0.6;
         _player.width = new_width.toString();
         _video_section.style.width = _player.width + 'px';
-        //_buttons_div.style.width = _player.width+ 'px';
+        _buttons_div.style.width = _player.width+ 'px';
         _player.height=parseInt((1/_aspect_ratio)*new_width).toString();
         }
     pls_arr.sort()
@@ -1959,6 +2141,12 @@ function optValChange(){
 	var indx = 1;
 	for(i=1;i<m.length-1;i+=2){
 		var a = m[i].substring(10,500);
+        a = a.trim();
+        if (a.startsWith('-')){
+            console.log('startswith -----');
+            a = a.slice(1, 500);
+            a = a.trim();
+        }
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
 		new_opt.setAttribute('data-mp3',b);
@@ -2001,7 +2189,7 @@ function get_subtitle(src){
 }
 
 function playlistItemClick(clickedElement,mode) {
-    if (mode != 'queue'){
+    if (mode != 'queue' && mode != 'queue_context'){
         var selected = _playlist.querySelector(".selected");
         console.log(mode)
         if (selected) {
@@ -2341,9 +2529,9 @@ _remote.addEventListener("click", function () {
 	}
 });
 
-_home.addEventListener("click", function () {
+/*_home.addEventListener("click", function () {
     window.location.href = 'stream_continue.htm';
-});
+});*/
 
 _logout.addEventListener("click", function () {
     window.location.href = 'logout';
@@ -2709,6 +2897,24 @@ _playlist.addEventListener("contextmenu", function (e) {
     }
 })
 
+_playlist_custom.addEventListener("contextmenu", function (e) {
+    var target = e.target;
+    var req_node = get_clicked_node(target);
+    
+    if (req_node) {
+		_queue_selected_element = req_node;
+        e.preventDefault();
+        var ctxMenu = document.getElementById('context-menu-bar-custom');
+        ctxMenu.style.display = "block";
+        ctxMenu.style.left = (e.pageX - 10)+"px";
+        ctxMenu.style.top = (e.pageY - 10)+"px";
+        _top_xy = [window.pageXOffset, window.pageYOffset];
+        _old_queue_selected_color = _queue_selected_element.style.backgroundColor
+        _queue_selected_element.style.backgroundColor = '#dcdcdc';
+        
+    }
+})
+
 var getRequest = function() {
     this.get = function(url, callbak) {
         var http_req = new XMLHttpRequest();
@@ -2741,7 +2947,7 @@ function resizeWindowEvent(){
 	if(w <= 640){
         _player.width=(w-30).toString();
         _video_section.style.width = _player.width + 'px';
-        //_buttons_div.style.width = _player.width+ 'px';
+        _buttons_div.style.width = _player.width+ 'px';
         if (show_image){
             _player.height = "40";
             if(w <=480){
@@ -2762,7 +2968,7 @@ function resizeWindowEvent(){
         } 
         _player.width = new_width.toString();
         _video_section.style.width = new_width + 'px';
-        //_buttons_div.style.width = new_width+ 'px';
+        _buttons_div.style.width = new_width+ 'px';
         if (show_image){
             _player.height="40";
         }else{
