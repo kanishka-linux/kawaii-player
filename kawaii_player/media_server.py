@@ -1027,9 +1027,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     new_field = ''
                     for i in html_default_arr:
                         new_field = new_field+'<option value="{0}">{1}</option>'.format(i.lower(), i)
+                    copy_new_field = new_field
                     new_field = '<select id="site" onchange="siteChange()">{0}</select>'.format(new_field)
                     logger.info(new_field)
-                    pls_txt = pls_txt.replace('<select id="site" onchange="siteChange()"></select>', new_field)
+                    
+                    new_field_select = '<select id="first_select" onchange="siteChangeTop()">{0}</select>'.format(copy_new_field)
+                    
+                    pls_txt = pls_txt.replace('<select id="site" onchange="siteChange()"></select>', new_field, 1)
+                    pls_txt = pls_txt.replace('<select id="first_select" onchange="siteChangeTop()"></select>', new_field_select, 1)
+                    
                     extra_fields = self.get_extra_fields()
                     logger.info(extra_fields)
                     pls_txt = re.sub('<div id="site_option" hidden></div>', extra_fields, pls_txt)
@@ -1538,6 +1544,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 self.process_subtitle_url(loc, status='reload')
                             else:
                                 self.process_subtitle_url(loc)
+                        elif self.path.endswith('.image'):
+                            loc = get_torrent_download_location(old_nm, home, ui.torrent_download_folder)
+                            self.process_image_url(loc)
                         else:
                             new_torrent_signal.new_signal.emit(old_nm)
                             logger.info('--nm---{0}'.format(nm))
@@ -1562,8 +1571,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             b = b'Remote Control Not Allowed'
                             self.final_message(b)
                     else:
-                        nm = getdb.epn_return_from_bookmark(nm, from_client=True)
-                        self.process_url(nm, get_bytes)
+                        if self.path.endswith('.image'):
+                            self.process_image_url(nm)
+                        else:
+                            nm = getdb.epn_return_from_bookmark(nm, from_client=True)
+                            self.process_url(nm, get_bytes)
             except Exception as e:
                 print(e)
         elif path.startswith('stop_torrent'):
@@ -2102,7 +2114,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if not os.path.exists(thumb_path) and img_url:
                 ccurl(img_url, curl_opt='-o', out_file=thumb_path)
                 got_http_image = True
-                
+        logger.debug("path:--thumbnail--{0}".format(path))
         if (not os.path.exists(thumb_path) and not path.startswith('http')) or got_http_image:
             if not got_http_image:
                 start_counter = 0
