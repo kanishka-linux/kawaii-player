@@ -68,7 +68,7 @@ div.video_section.div.site_selection{float:left;max-width:1000px;}
 div.pls{float:left;}
 div.pls_custom_{float:left;}
 div.title{max-width:100%;}
-div.title_music{max-width:100%;}
+div.title_music{max-width:100%; margin: 20px 0px 10px 2px;}
 
 .player_control{
     background-color:#333;
@@ -216,8 +216,9 @@ div.title_music{max-width:100%;}
   background-color: #fff;
   border: solid 1px #dfdfdf;
   box-shadow: 1px 1px 2px #cfcfcf;
+  }
   
-    context-menu__items {
+.context-menu-bar-custom context-menu__items {
       list-style: none;
       margin: 2px;
       padding: 2px;
@@ -225,18 +226,17 @@ div.title_music{max-width:100%;}
       text-decoration: none;
     }
 
-    context-menu__item:hover {
+.context-menu-bar-custom context-menu__item:hover {
       color: black;
       background-color: #dcdcdc;
     }
 
-    context-menu__item {
+.context-menu-bar-custom context-menu__item {
       display: block;
       margin: 4px;
       padding: 4px;
     }
   
-}
 
 
 
@@ -409,6 +409,100 @@ div.title_music{max-width:100%;}
 .site_selection button:active {
   background-color: #3e8e41;
   box-shadow: 0 5px #666;
+}
+
+/*Top Menu Bar*/
+
+.top_menu_bar{
+    position:fixed;top: 1px;right: 1px;height:48px;
+    display: grid;
+    grid-gap: 0px;
+    grid-template-columns: minmax(64px, 2000px) minmax(32px, 32px);
+    grid-template-rows: 48px;
+   /* grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
+    grid-template-rows: 32px;*/
+    /*grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(96px, 2000px) minmax(48px, 2000px) minmax(10px, 32px);
+    grid-template-rows: 48px;
+    margin: 0px 0px 10px 0px;*/
+    }
+
+.top_menu_bar_sub{
+    display: grid;
+    grid-gap: 0px;
+    /*grid-template-columns: 1fr 1fr 1fr 1fr 1fr;*/
+   /* grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
+    grid-template-rows: 32px;*/
+    grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(64px, 2000px) minmax(48px, 2000px);
+    grid-template-rows: 48px;
+    margin: 0px 0px 10px 0px;
+}
+
+.top_menu_bar select{
+        background-color: white;
+        background-color:#333;
+        border: none;
+        color: white;
+        padding:8px;
+        text-align: center;
+        text-decoration: none;
+        float:left;
+        /*width:86px;*/
+        width: 100%;
+        height: 48px;
+        
+        
+        
+    }
+
+.top_menu_bar select:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.top_menu_bar button{
+        background-color: white;
+        background-color:#333;
+        border: none;
+        color: white;
+        padding:8px;
+        text-align: center;
+        text-decoration: none;
+        float:left;
+        /*width:86px;*/
+        width: 100%;
+        height: 48px;
+        border-radius: 4px;
+        /*grid-template-columns: repeat(auto-fill, minmax(32px, 86px));*/
+    }
+
+.top_menu_bar button:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.top_menu_bar button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
+.top_menu_bar input{
+        background-color: white;
+        background-color:#333;
+        border: none;
+        color: white;
+        padding:8px;
+        text-align: center;
+        text-decoration: none;
+        float:left;
+        /*width:86px;*/
+        width: 100%;
+        height: 48px;
+        /*grid-template-columns: repeat(auto-fill, minmax(32px, 86px));*/
+    }
+
+.top_menu_bar input:hover{
+    background-color: #aab7b8;
+    color: black; 
 }
 
 /* Primary Control Buttons*/
