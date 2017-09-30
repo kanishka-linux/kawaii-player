@@ -74,8 +74,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
         except Exception as e:
             get_bytes = 0
-        print(get_bytes, '--head--')
-        print(self.headers, '--head--')
+        #print(get_bytes, '--head--')
+        #print(self.headers, '--head--')
 
         logger.info(self.path)
         path = self.path.replace('/', '', 1)
@@ -276,7 +276,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if (cur_time - old_time) > ui.cookie_expiry_limit*3600:
                     cookie_verified = False
                     del self.client_auth_dict[uid_c]
-                    print('deleting client cookie due to timeout')
+                    logger.debug('deleting client cookie due to timeout')
                 else:
                     cookie_verified = True
                 if '&pl_id=' in path:
@@ -365,13 +365,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     ui.client_auth_arr.append(client_addr)
                 uid = str(uuid.uuid4())
                 while uid in self.client_auth_dict:
-                    print("no unique ID, Generating again")
+                    logger.debug("no unique ID, Generating again")
                     uid = str(uuid.uuid4())
                     time.sleep(0.5)
                 uid_pl = str(uuid.uuid4())
                 uid_pl = uid_pl.replace('-', '')
                 while uid_pl in self.playlist_auth_dict:
-                    print("no unique playlist ID, Generating again")
+                    logger.debug("no unique playlist ID, Generating again")
                     uid_pl = str(uuid.uuid4())
                     uid_pl = uid_pl.replace('-', '')
                     time.sleep(0.5)
@@ -394,7 +394,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 elif ui.access_from_outside_network:
                     if not ui.my_public_ip:
                         try:
-                            print('trying to get external public ip')
+                            logger.debug('trying to get external public ip')
                             my_ip = str(ccurl('https://diagnostic.opendns.com/myip'))
                             try:
                                 new_ip_object = ipaddress.ip_address(my_ip)
@@ -610,7 +610,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 write_files(file_name, epnArrList, True)
             nav_signal = doGETSignal()
             nav_signal.nav_remote.emit('TMP_PLAYLIST')
-            print('---718---')
+            #print('---718---')
 
     def create_playlist(
             self, site, site_option, name, epnArrList, new_video_local_stream, 
@@ -730,7 +730,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             pls_txt = pls_txt+footer
         elif self.path.endswith('.htm') or self.path.endswith('.html'):
             pls_txt = pls_txt+'</ol>'
-            playlist_htm = os.path.join(BASEDIR, 'playlist.html')
+            playlist_htm = os.path.join(BASEDIR, 'web', 'playlist.html')
             if os.path.exists(playlist_htm):
                 play_htm = open_files(playlist_htm, False)
                 #print(play_htm)
@@ -846,12 +846,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if row_digit:
                     if len(new_arr) > row_digit:
                         new_arr = new_arr[row_digit:]
-                print(row_digit)
-                print(new_arr)
+                #print(row_digit)
+                #print(new_arr)
             if path.lower().startswith('stream_shuffle'):
                 new_arr = random.sample(new_arr, len(new_arr))
-            print(new_arr)
-            print(self.client_address)
+            #print(new_arr)
+            #print(self.client_address)
             if path.endswith('.html') or path.endswith('.htm'):
                 pls_txt = '<ol id="playlist">'
             elif path.endswith('.pls'):
@@ -1020,7 +1020,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 pls_txt = pls_txt+footer
             elif path.endswith('.htm') or path.endswith('.html'):
                 pls_txt = pls_txt+'</ol>'
-                playlist_htm = os.path.join(BASEDIR, 'playlist.html')
+                playlist_htm = os.path.join(BASEDIR, 'web', 'playlist.html')
                 if os.path.exists(playlist_htm):
                     play_htm = open_files(playlist_htm, False)
                     pls_txt = re.sub('<ol id="playlist"></ol>', pls_txt, play_htm)
@@ -1102,7 +1102,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 pls_txt = pls_txt+footer
             elif path.endswith('.htm') or path.endswith('.html'):
                 pls_txt = pls_txt+'</ol>'
-                playlist_htm = os.path.join(BASEDIR, 'playlist.html')
+                playlist_htm = os.path.join(BASEDIR, 'web', 'playlist.html')
                 if os.path.exists(playlist_htm):
                     play_htm = open_files(playlist_htm, False)
                     pls_txt = re.sub('<ol id="playlist"></ol>', pls_txt, play_htm)
@@ -1168,9 +1168,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if st_o and not srch:
                         srch = st_o
                         #st_o = 'NONE'
-            print(st, st_o, srch)
+            #print(st, st_o, srch)
             if st and st_o and srch:
-                print(srch_exact, '=srch_exact', st, st_o, srch)
+                #print(srch_exact, '=srch_exact', st, st_o, srch)
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
@@ -1179,9 +1179,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         st, st_o, srch, epn_arr, new_str, st_nm, my_ipaddress, 
                         shuffle_list, play_id)
             elif st and st_o:
-                #if not srch:
-                #	srch = st_o
-                print(srch_exact, '=srch_exact')
+                ##if not srch:
+                ##	srch = st_o
+                #print(srch_exact, '=srch_exact')
                 original_path_name = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
@@ -1468,7 +1468,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 else:
                     self.process_url(nm, get_bytes, status=num_row)
                     process_url = True
-                print(ui.remote_control, ui.remote_control_field, path, '--1440--')
+                #print(ui.remote_control, ui.remote_control_field, path, '--1440--')
                 if ui.remote_control and ui.remote_control_field:
                     if 'playlist_index=' in self.path:
                         row_num_val = self.path.rsplit('playlist_index=', 1)[1]
@@ -1478,7 +1478,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             row_num = int(row_num_val)
                         else:
                             mode = row_num_val
-                        print(row_num, '--row--num--playlist--', mode)
+                        #print(row_num, '--row--num--playlist--', mode)
                         remote_signal = doGETSignal()
                         remote_signal.control_signal.emit(row_num, mode)
                     else:
@@ -1543,7 +1543,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             logger.info('--nm---{0}'.format(nm))
                             self.process_url(nm, get_bytes)
                 else:
-                    print(ui.remote_control, ui.remote_control_field, path)
+                    #print(ui.remote_control, ui.remote_control_field, path)
                     if ui.remote_control and ui.remote_control_field:
                         if 'playlist_index=' in self.path:
                             row_num_val = self.path.rsplit('playlist_index=', 1)[1]
@@ -1731,18 +1731,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     del ui.client_auth_arr[index]
                     
                 cookie_val = self.headers['Cookie']
-                print(cookie_val, '--cookie--')
+                #print(cookie_val, '--cookie--')
                 if cookie_val:
                     try:
                         uid_c = cookie_val.split('=')[1]
                         if uid_c in self.client_auth_dict:
                             del self.client_auth_dict[uid_c]
-                            print('deleting client cookie')
+                            #print('deleting client cookie')
                     except Exception as err_val:
                         print(err_val)
-                print(self.client_auth_dict)
-                print(self.playlist_auth_dict)
-                print("client: {0} logged out".format(client_addr))
+                logger.debug(self.client_auth_dict)
+                logger.debug(self.playlist_auth_dict)
+                logger.debug("client: {0} logged out".format(client_addr))
                 txt = "Logged out. Now Clear Browser Cookies, Cache, ACTIVE LOGINS to avoid auto-login. In desktop browsers these options can be found by pressing shift+ctrl+del. If auto-login still persists, try restarting the browser."
                 txt_b = bytes(txt, 'utf-8')
                 self.final_message(txt_b)
@@ -2012,6 +2012,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(content)
             except Exception as e:
                 print(e)
+        elif path.startswith('style.css') or path.startswith('myscript.js'):
+            if path.startswith('style.css'):
+                default_file = os.path.join(BASEDIR, 'web', 'style.css')
+                self.send_response(200)
+                self.send_header('Content-type', 'text/css')
+            else:
+                default_file = os.path.join(BASEDIR, 'web', 'myscript.js')
+                self.send_response(200)
+                self.send_header('Content-type', 'text/javascript')
+            content = open(default_file, 'rb').read()
+            self.send_header('Content-Length', len(content))
+            self.send_header('Connection', 'close')
+            self.end_headers()
+            try:
+                self.wfile.write(content)
+            except Exception as e:
+                print(e)
         else:
             nm = 'stream_continue.htm'
             self.send_response(303)
@@ -2088,13 +2105,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 
         if (not os.path.exists(thumb_path) and not path.startswith('http')) or got_http_image:
             if not got_http_image:
-                if os.name != 'posix':
-                    start_counter = 0
-                    while ui.mpv_thumbnail_lock:
-                        time.sleep(0.5)
-                        start_counter += 1
-                        if start_counter > 60:
-                            break
+                start_counter = 0
+                while ui.mpv_thumbnail_lock:
+                    time.sleep(0.5)
+                    start_counter += 1
+                    if start_counter > 120:
+                        break
                 ui.generate_thumbnail_method(thumb_path, 10, path, from_client=True)
             if not os.path.exists(new_thumb_path): 
                 if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
@@ -2417,7 +2433,7 @@ def get_my_ip_regularly(nm):
 def start_player_remotely(nm, mode):
     global ui, curR, MainWindow
 
-    print(nm, mode, '--2133--')
+    #print(nm, mode, '--2133--')
     if mode == 'normal':
         if nm < ui.list2.count() and nm >= 0:
             curR = nm
@@ -2428,7 +2444,7 @@ def start_player_remotely(nm, mode):
         item = ui.list2.item(curR)
         if item:
             ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-        print('---1523---')
+        #print('---1523---')
     elif mode == 'queue':
         nm = nm - 1
         if nm < len(ui.epn_arr_list):
@@ -2437,10 +2453,10 @@ def start_player_remotely(nm, mode):
         if mode == 'playpause':
             ui.player_play_pause.clicked.emit()
         elif mode == 'show_player':
-            print('show--window---2149')
+            #print('show--window---2149')
             ui.player_show_btn.clicked.emit()
         elif mode == 'hide_player':
-            print('hide--window---2152')
+            #print('hide--window---2152')
             ui.player_hide_btn.clicked.emit()
         else:
             if ui.mpvplayer_val.processId() > 0:
