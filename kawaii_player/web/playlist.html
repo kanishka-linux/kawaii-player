@@ -76,7 +76,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
 <button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#8595</button>
 <!--<button id="home">Home</button>-->
-<button id="minimal">Menu</button>
+<button id="minimal" onclick="hide_alternate_menu_buttons()">Menu</button>
 <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
 <button id="logout">Logout</button>
 <!--&#x1f5d1;wastebasket-->
@@ -111,7 +111,7 @@ Text box can also be used to input text commands to server as follows
 21. yt:audio (play only audio) 
 22. yt:audiovideo (regular video) 
 23. quality:{sd,hd,best} 
-"  type="search" placeholder="Search Text" onkeypress="return searchFunction(event)" hidden="hidden">
+"  type="search" placeholder="Search Text" onkeypress="return searchFunction(event, 0)" hidden="hidden">
 
 <div id="display_option" class="option_display">
 <select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
@@ -232,6 +232,17 @@ Text box can also be used to input text commands to server as follows
     -->
     </div>
 </div>
+
+<div id="top_menu_bar" class="top_menu_bar">
+    <div id="top_menu_bar_sub" class="top_menu_bar_sub">
+    <select id="first_select" onchange="siteChangeTop()"></select>
+    <select id="second_select" onchange="optChangeTop()"></select>
+    <select id="third_select" onchange="optValChangeTop()"></select>
+    <input id="search_text_top" title="Enter Text to Search" type="search" placeholder="Search Box" onkeypress="return searchFunction(event, 1)">
+    </div>
+    <button onclick="max_min_top_bar()">M</button>
+</div>
+
 <script type = 'text/javascript' src="myscript.js">
 </script>
 </body>
