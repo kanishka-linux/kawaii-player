@@ -32,28 +32,26 @@ package() {
 		_plugin_path="$file/"
 		for plugins in "${_plugin_path}"*;do
 			plugin_name=$(echo $plugins | rev | cut -d'/' -f1 | rev)
-			if [ plugin_name != 'installPlugins.py' ];then
+            if [ plugin_name == 'kawaii-player.desktop' ]; then
+                echo $plugins
+                echo 'desktop file copying'
+                cat "${_plugin_path}kawaii-player.desktop" | sed 's/Exec=/Exec=python -B \/usr\/share\/kawaii-player\/kawaii_player.py \%f/g' > "${pkgdir}/usr/share/applications/kawaii-player.desktop"
+			elif [ plugin_name != 'installPlugins.py' ];then
 				echo $plugins
 				echo 'Plugins copying'
 				install -Dm755 "$plugins" "${pkgdir}/usr/share/${_pkgname}/${nm}/"
 			fi
 		done
   	else
-		if [ $nm == 'kawaii-player.desktop' ];then
-			echo $file
-			echo 'desktop file copying'
-			cat "$file" | sed 's/Exec=/Exec=python -B \/usr\/share\/kawaii-player\/kawaii_player.py \%f/g' > "${pkgdir}/usr/share/applications/kawaii-player.desktop"
-		elif [ $nm == 'kawaii-player' ];then
+		if [ $nm == 'kawaii-player' ];then
 			echo $file
 			echo 'kawaii-player script'
 			install -Dm755 "$file" "${pkgdir}/usr/bin/kawaii-player"
 			chmod +x "${pkgdir}/usr/bin/kawaii-player"
 		else 
-			if [ $nm != 'install.py' ];then
-				echo $file
-				echo 'source files copying'
-				install -Dm755 "$file" "${pkgdir}/usr/share/${_pkgname}/"
-			fi
+            echo $file
+            echo 'source files copying'
+            install -Dm755 "$file" "${pkgdir}/usr/share/${_pkgname}/"
 		fi
 	fi
   done
