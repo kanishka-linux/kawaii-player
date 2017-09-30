@@ -1,0 +1,517 @@
+/*
+
+Copyright (C) 2017 kanishka-linux kanishka.linux@gmail.com
+
+This file is part of kawaii-player.
+
+kawaii-player is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+kawaii-player is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+
+/*
+
+transparent background for captions
+
+video::cue {
+      background-color: transparent;
+   }
+*/
+
+.selected {font-weight: bold}
+/*div.toTop{position:fixed;bottom: 1em;right: 1em;}*/
+.btn_maximize{
+    position:fixed;bottom: 1px;right: 1px;height:32px; width:32px;
+    background-color:#333;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    padding: 2px 2px;
+    color: white;
+    border-radius:3px;
+    }
+.btn_maximize:hover{
+    background-color: green;
+    color: black; 
+}
+
+.btn_to_top{
+    position:fixed;bottom: 34px;right: 1px;height:32px; width:32px;
+    background-color:#333;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    padding: 2px 2px;
+    color: white;
+    border-radius:3px;
+    }
+.btn_to_top:hover{
+    background-color: green;
+    color: black; 
+}
+
+div.video_section{float:left;}
+div.video_section.div.site_selection{float:left;max-width:1000px;}
+div.pls{float:left;}
+div.pls_custom_{float:left;}
+div.title{max-width:100%;}
+div.title_music{max-width:100%;}
+
+.player_control{
+    background-color:#333;
+    position:fixed;
+    bottom: 0px;
+    right: 0px;
+    max-height: 64px;
+    display:grid;
+    grid-gap: 2px;
+    grid-template-columns: minmax(96px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
+    grid-template-rows: 64px;
+    visibility: hidden;
+}
+
+.player_control_col1{
+    grid-column : 1;
+}
+
+.player_control_col2{
+    grid-column : 2 ;
+}
+
+.player_control_col3{
+    grid-column : 3;
+}
+
+.player_control_col4{
+    grid-column : 4;
+}
+
+.player_control_col5{
+    grid-column : 5;
+}
+
+.player_control img{
+    margin: 1px 1px 1px 1px;
+}
+
+
+
+.player_control_info{
+    float:left;
+    font-size: 11px;
+    color: white;
+    padding: 7px 7px;
+    margin: 0px 2px 0px 2px;
+    width:100%;
+}
+.player_control button{
+    /*font-size: 10px;*/
+    background-color: #333;
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    padding: 0px;
+    color: white;
+    width:100%;
+    height:32px;
+}
+
+.player_control button:hover {
+    background-color: green;
+    color: black; 
+}
+
+.player_control button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
+.title_music{
+    margin: 10px 0px 0px 4px;
+    float:left;
+    text-align: center;
+}
+
+.title_video{
+    margin: 10px 0px 0px 4px;
+    float:left;
+    text-align:center;
+}
+
+/* context menu main playlist*/
+
+.context-menu {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 12px 0;
+  max-width: 240px;
+  background-color: #fff;
+  border: solid 1px #dfdfdf;
+  box-shadow: 1px 1px 2px #cfcfcf;
+}
+
+.context-menu__items {
+  list-style: none;
+  margin: 2px;
+  padding: 2px;
+  color: #0066aa;
+  text-decoration: none;
+}
+
+.context-menu__item:hover {
+  color: black;
+  background-color: #dcdcdc;
+}
+
+.context-menu__item {
+  display: block;
+  margin: 4px;
+  padding: 4px;
+}
+
+.playlist_context_menu {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 12px 0;
+  max-width: 240px;
+  background-color: #fff;
+  border: solid 1px #dfdfdf;
+  box-shadow: 1px 1px 2px #cfcfcf;
+}
+
+.playlist_context_menu_items {
+  list-style: none;
+  margin: 2px;
+  padding: 2px;
+  color: #0066aa;
+  text-decoration: none;
+}
+
+/*Context Menu Queue*/
+
+
+.context-menu-bar-custom {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 12px 0;
+  max-width: 240px;
+  background-color: #fff;
+  border: solid 1px #dfdfdf;
+  box-shadow: 1px 1px 2px #cfcfcf;
+  
+    context-menu__items {
+      list-style: none;
+      margin: 2px;
+      padding: 2px;
+      color: #0066aa;
+      text-decoration: none;
+    }
+
+    context-menu__item:hover {
+      color: black;
+      background-color: #dcdcdc;
+    }
+
+    context-menu__item {
+      display: block;
+      margin: 4px;
+      padding: 4px;
+    }
+  
+}
+
+
+
+.playlist_context_menu {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  padding: 12px 0;
+  max-width: 240px;
+  background-color: #fff;
+  border: solid 1px #dfdfdf;
+  box-shadow: 1px 1px 2px #cfcfcf;
+}
+
+.playlist_context_menu_items {
+  list-style: none;
+  margin: 2px;
+  padding: 2px;
+  color: #0066aa;
+  text-decoration: none;
+}
+
+
+/* Editing queue and playlist buttons*/
+
+.pls_custom_ select{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.pls_custom_ select:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.pls_custom_ button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    width:96px;
+}
+
+.pls_custom_ button:hover {
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.pls_custom_ button:active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Display option buttons */
+
+.option_display {
+    max-width:100%;
+    margin: 0px 0px 0px 2px;
+    padding: 2px;
+    float:left;
+    display:grid;
+    }
+
+.option_display select{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    /*text-align: center;*/
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.option_display select:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.option_display button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    width:100%;
+}
+
+.option_display button:hover {
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.option_display button:active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Main Select Buttons with search box*/
+
+.site_selection {
+    max-width:100%;
+    margin: 0px 0px 0px 2px;
+    padding: 2px;
+    float:left;
+    display:grid;
+    }
+
+.site_selection input{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.site_selection input:hover{
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.site_selection select{
+    
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-decoration: none;
+    float:left;
+    max-width:100%;
+}
+
+.site_selection select:hover{
+    background-color: #aab7b8;
+    color: black;   
+}
+
+.site_selection button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    width:100%;
+}
+
+.site_selection button:hover {
+    background-color: #aab7b8;
+    color: black; 
+}
+
+.site_selection button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
+/* Primary Control Buttons*/
+
+.Buttons{max-width:100%;
+    margin: 0px 0px 0px 0px;
+    padding: 7px;
+    float:left;
+    }
+
+.Buttons button{
+    background-color: white;
+    border: none;
+    color: black;
+    padding:8px;
+    text-align: center;
+    text-decoration: none;
+    float:left;
+    /*width:86px;*/
+    display: grid;
+    width: 25%;
+    height: 32px;
+    /*grid-template-columns: repeat(auto-fill, minmax(32px, 86px));*/
+}
+
+.Buttons button:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.Buttons button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+}
+
+.site_selection{max-width:100%;
+    margin: 2px;
+    padding: 4px;
+    float:left;
+    }
+
+/* Info queue*/
+
+.queue_info {
+    padding: 10px;
+    background-color:white;
+    margin: 10px 0px 10px 0px;
+    color: black;
+    float:left;
+    max-width:100%;
+}
+
+/* Main Playlist */
+
+.pls ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    /*float:left;*/
+    max-width:100%;
+}
+.pls li {
+	max-width: 100%;
+    padding: 8px;
+    margin-bottom: 7px;
+   
+}
+.pls li:hover {
+    background-color: yellow;
+}
+
+/* Editing Queue and Playlist*/
+
+.playlist_custom{
+    background-color:white;
+    /*border: 1px;*/
+    /*margin: 0px 0px 0px 10px;*/
+    /*padding: 10px;*/
+    float: left;
+}
+
+.playlist_custom ul {
+    list-style-type: none;
+    padding: 10px;
+    float:left;
+    max-width:100%;
+}
+.playlist_custom li {
+	max-width: 100%;
+    padding: 8px;
+    margin-bottom: 7px;
+   
+}
+.playlist_custom li:hover {
+    background-color: yellow;
+}
+
+
+
+[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
