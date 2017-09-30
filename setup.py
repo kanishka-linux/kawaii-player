@@ -52,11 +52,6 @@ setup(
         'gui_scripts':['kawaii-player = kawaii_player.kawaii_player:main'], 
         'console_scripts':['kawaii-player-console = kawaii_player.kawaii_player:main']
         }, 
-    package_data={
-        'kawaii_player':['tray.png', 'default.jpg', 
-        'kawaii-player.desktop', 'input.conf', 'kawaii-player-start', 
-        '1.png', 'Instructions', 'playlist.html']
-        }, 
     install_requires=install_dependencies, 
     description="A Audio/Video manager, multimedia player and portable media server", 
 )
