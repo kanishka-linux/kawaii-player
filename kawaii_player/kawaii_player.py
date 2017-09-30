@@ -28,6 +28,7 @@ else:
     BASEDIR, BASEFILE = os.path.split(os.path.abspath(__file__))
 print(BASEDIR, BASEFILE, os.getcwd())
 sys.path.insert(0, BASEDIR)
+RESOURCE_DIR = os.path.join(BASEDIR, 'resources')
 print(sys.path)
 
 import urllib.parse
@@ -468,7 +469,7 @@ class Ui_MainWindow(object):
             screen_width = scr_width
         if scr_height is not None:
             screen_height = scr_height
-        icon_path = os.path.join(BASEDIR, 'tray.png')
+        icon_path = os.path.join(RESOURCE_DIR, 'tray.png')
         if not os.path.exists(icon_path):
             icon_path = '/usr/share/kawaii-player/tray.png'
         if os.path.exists(icon_path):
@@ -2202,6 +2203,8 @@ watch/unwatch status")
                     wd = str(width_allowed)
                 else:
                     wd = str(self.width_allowed)
+                if from_client:
+                    self.mpv_thumbnail_lock = True
                 if path.endswith('.mp3') or path.endswith('.flac'):
                     try:
                         f = mutagen.File(path)
@@ -2219,6 +2222,8 @@ watch/unwatch status")
                     subprocess.call(["ffmpegthumbnailer", "-i", path, "-o", picn, 
                                 "-t", str(inter), '-q', '10', '-s', wd])
                 logger.info("{0}:{1}".format(path, picn))
+                if from_client:
+                    self.mpv_thumbnail_lock = False
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                     self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
             else:
@@ -3185,7 +3190,7 @@ watch/unwatch status")
                     border:rgba(0, 0, 0, 30%);
                 }
                 QMenu{
-                    font: bold 12px;color:black;background-image:url('1.png');
+                    font: bold 12px;color:black;background-image:url('resources/1.png');
                 }
             """
             )
@@ -3323,7 +3328,7 @@ watch/unwatch status")
                     border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
                 web.setStyleSheet(
                     """QMenu{font: bold 12px;color:black;
-                    background-image:url('1.png');}""")
+                    background-image:url('resources/1.png');}""")
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
@@ -11844,18 +11849,17 @@ def main():
     if not os.path.exists(os.path.join(home, 'src')):
         src_new = os.path.join(home, 'src')
         os.makedirs(src_new)
-        input_conf = os.path.join(BASEDIR, 'input.conf')
-        if os.path.exists(input_conf):
-            shutil.copy(input_conf, os.path.join(src_new, 'input.conf'))
-        png_n = os.path.join(BASEDIR, '1.png')
-        if os.path.exists(png_n):
-            shutil.copy(png_n, os.path.join(src_new, '1.png'))
-        introspect_xml = os.path.join(BASEDIR, 'introspect.xml')
-        if os.path.exists(introspect_xml):
-            shutil.copy(introspect_xml, os.path.join(src_new, 'introspect.xml'))
-        tray_png = os.path.join(BASEDIR, 'tray.png')
-        if os.path.exists(tray_png):
-            shutil.copy(tray_png, os.path.join(src_new, 'tray.png'))
+        if os.path.exists(RESOURCE_DIR):
+            m = os.listdir(RESOURCE_DIR)
+            for i in m:
+                src_path = os.path.join(RESOURCE_DIR, i)
+                if os.path.isfile(src_path):
+                    if i == 'default.jpg':
+                        shutil.copy(src_path, home)
+                    elif i == 'kawaii-player.desktop':
+                        pass
+                    else:
+                        shutil.copy(src_path, src_new)
         depend_path = os.path.join(BASEDIR, 'extra')
         if os.path.isdir(depend_path):
             m = os.listdir(depend_path)
@@ -11865,7 +11869,7 @@ def main():
                     shutil.copy(depend_nm, src_new)
     picn = os.path.join(home, 'default.jpg')
     if not os.path.exists(picn):
-        picn_1 = os.path.join(BASEDIR, 'default.jpg')
+        picn_1 = os.path.join(RESOURCE_DIR, 'default.jpg')
         if os.path.exists(picn_1):
             shutil.copy(picn_1, picn)
             
@@ -11983,7 +11987,7 @@ def main():
                         color: violet;}
                         QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
                         QMenu{font: bold 12px;color:black;
-                        background-image:url('1.png');}""")
+                        background-image:url('resources/1.png');}""")
                     else:
                         ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
                         color:white;background:rgba(0, 0, 0, 30%);
@@ -11993,7 +11997,7 @@ def main():
                         color: violet;}
                         QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
                         QMenu{font: bold 12px;color:black;
-                        background-image:url('1.png');}""")
+                        background-image:url('resources/1.png');}""")
                         ui.list_with_thumbnail = False
                 elif "Site_Index" in i:
                     site_i = re.sub('\n', '', j)
