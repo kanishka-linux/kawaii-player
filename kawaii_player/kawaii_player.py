@@ -3190,7 +3190,7 @@ watch/unwatch status")
                     border:rgba(0, 0, 0, 30%);
                 }
                 QMenu{
-                    font: bold 12px;color:black;background-image:url('resources/1.png');
+                    font: bold 12px;color:black;background-image:url('1.png');
                 }
             """
             )
@@ -3328,7 +3328,7 @@ watch/unwatch status")
                     border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
                 web.setStyleSheet(
                     """QMenu{font: bold 12px;color:black;
-                    background-image:url('resources/1.png');}""")
+                    background-image:url('1.png');}""")
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
@@ -11987,7 +11987,7 @@ def main():
                         color: violet;}
                         QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
                         QMenu{font: bold 12px;color:black;
-                        background-image:url('resources/1.png');}""")
+                        background-image:url('1.png');}""")
                     else:
                         ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
                         color:white;background:rgba(0, 0, 0, 30%);
@@ -11997,7 +11997,7 @@ def main():
                         color: violet;}
                         QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
                         QMenu{font: bold 12px;color:black;
-                        background-image:url('resources/1.png');}""")
+                        background-image:url('1.png');}""")
                         ui.list_with_thumbnail = False
                 elif "Site_Index" in i:
                     site_i = re.sub('\n', '', j)
