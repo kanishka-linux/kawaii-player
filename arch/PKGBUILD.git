@@ -31,11 +31,11 @@ package() {
 		_plugin_path="$file/"
 		for plugins in "${_plugin_path}"*;do
 			plugin_name=$(echo $plugins | rev | cut -d'/' -f1 | rev)
-            if [ plugin_name == 'kawaii-player.desktop' ]; then
+            if [ $plugin_name == 'kawaii-player.desktop' ]; then
                 echo $plugins
                 echo 'desktop file copying'
                 cat "${_plugin_path}kawaii-player.desktop" | sed 's/Exec=/Exec=python -B \/usr\/share\/kawaii-player\/kawaii_player.py \%f/g' > "${pkgdir}/usr/share/applications/kawaii-player.desktop"
-			elif [ plugin_name != 'installPlugins.py' ];then
+			elif [ $plugin_name != 'installPlugins.py' ];then
 				echo $plugins
 				echo 'Plugins copying'
 				install -Dm755 "$plugins" "${pkgdir}/usr/share/${_pkgname}/${nm}/"
