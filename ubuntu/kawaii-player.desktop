@@ -2,7 +2,7 @@
 [Desktop Entry]
 Type=Application
 Name=Kawaii-Player
-Icon=/usr/share/kawaii-player/tray.png
+Icon=/usr/share/resources/tray.png
 Exec=python3 -B /usr/share/kawaii-player/kawaii_player.py %f
 Terminal=false
 NoDisplay=false
