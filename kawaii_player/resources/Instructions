@@ -1,0 +1,16 @@
+dependencies=('python3' 'qt5-webengine' 'python3-pyqt5' 'python3-pycurl' 'python3-urllib3' 'curl' 'libnotify' 'libtorrent-rasterbar' 'python3-dbus'
+        'python3-beautifulsoup4' 'python3-psutil' 'python3-pillow' 'python3-lxml' 'mpv' 'mplayer' 'ffmpegthumbnailer' 'sqlite3' 'python3-pytaglib' 'youtube-dl' 'livestreamer' ' wget')
+
+In some distributions more dependencies might be required which are listed below
+
+('python3-livestreamer' 'python3-libtorrent' 'python3-dbus.mainloop.pyqt5' 'python3-pyqt5.qtwebkit')
+
+Name of dependencies may vary from distro to distro. 
+
+First Remove or uninstall any other version of the AnimeWatch. After uninstall either backup or remove '~/.config/AnimeWatch/src' directory, since it might contain incompatible Addons or plugins, because of which programme might not work.
+
+Make sure qt5-webengine is installed. If qt5-webengine is not packaged in your linux distro then it will fallback to qtwebkit.
+
+Now In the 'AnimeWatch-PyQt5' directory open a terminal and run 'python install.py'. Now application launcher should be created in '~/.local/share/applications/' directory. If application launcher is not working, then directly go to '~/.config/AnimeWatch/src' directory, open terminal and run 'python3 -B animeWatch.py'.
+
+If you don't want't to run 'install.py' script, then you can simply use './animewatch-start' bash script to launch the player directly from within the source folder without copying installation files anywhere on the system. If you are using 'animewatch-start' script then you need to copy manually contents of 'Plugins' folder to the destination '~/.config/AnimeWatch/src/Plugins/' in order to use addons. If there is no default background then copy 'default.jpg' to '~/.config/AnimeWatch' and '1.png' to '~/.config/AnimeWatch/src/'
