@@ -10505,7 +10505,7 @@ watch/unwatch status")
         
         epnShowN = '"'+epnShow.replace('"', '')+'"'
         command = self.mplayermpv_command(idw, epnShowN, Player, a_id=audio_id, s_id=sub_id)
-        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
+        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning() and OSNAME == 'posix':
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
             
