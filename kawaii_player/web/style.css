@@ -70,17 +70,58 @@ div.pls_custom_{float:left;}
 div.title{max-width:100%;}
 div.title_music{max-width:100%; margin: 20px 0px 10px 2px;}
 
-.player_control{
+.player_control_progress{
     background-color:#333;
     position:fixed;
     bottom: 0px;
     right: 0px;
-    max-height: 64px;
+    display:grid;
+    max-height: 84px;
+    grid-template-columns: minmax(96px, 20000px);
+    grid-template-rows: 20px 64px;
+    visibility: hidden;
+}
+
+
+.player_progress{
+width: 100%;
+grid-column: 1;
+display: grid;
+grid-template-columns: minmax(16px, 96px) minmax(64px, 20000px);
+grid-template-rows: 12px;
+}
+
+.player_start_time{
+width: 96px;
+grid-column: 1;
+color: white;
+text-align: center;
+
+}
+
+/*.player_end_time{
+width: 0%;
+grid-column: 3;
+color: white;
+text-align: center;
+}*/
+
+.player_progress progress{
+width: 100%;
+background-color:gray;
+color: green;
+grid-column: 2;
+border: 0px;
+height: 12px;
+}
+
+.player_control{
+    background-color:#333;
     display:grid;
     grid-gap: 5px;
     grid-template-columns: minmax(96px, 128px) minmax(64px, 20000px) minmax(32px, 96px) minmax(32px, 96px);
     grid-template-rows: 64px;
-    visibility: hidden;
+    grid-column = 2;
 }
 
 .player_control_col1{
