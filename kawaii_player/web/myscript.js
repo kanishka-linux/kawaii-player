@@ -206,6 +206,7 @@ function menu_clicked_playlist(e){
         _title.innerHTML = response;
     }
     pl.style.backgroundColor = _old_playlist_selected_color;
+    window.scrollTo(_top_xy[0], _top_xy[1]);
 }
 
 function hide_extra_info(e){
@@ -1253,8 +1254,9 @@ function menu_clicked_add_to_playlist(e){
         create_playlist_dynamically(1);
     }
     _playlist_context_menu.style.display = "block";
-    _playlist_context_menu.style.left = (e.pageX)+"px";
-    _playlist_context_menu.style.top = (e.pageY)+"px";
+    _playlist_context_menu.style.left = (e.pageX-10)+"px";
+    _playlist_context_menu.style.top = (e.pageY-10)+"px";
+    //window.scrollTo(_top_xy[0], _top_xy[1]);
 }
 
 function playlist_contextmenu_clicked(label){
@@ -1264,6 +1266,7 @@ function playlist_contextmenu_clicked(label){
         menu_clicked_playlist('hide');
     }
     _playlist_context_menu.style.display = "none";
+    _playlist_selected_element.style.backgroundColor = _old_playlist_selected_color;
 }
 
 function playlist_hover_in(e){
@@ -2428,6 +2431,16 @@ _playlist_custom.addEventListener("contextmenu", function (e) {
         
     }
 });
+
+/*_player.addEventListener('mouseover', function(e){
+    console.log('hover');
+    _player.controls = true;
+});
+
+_player.addEventListener('mouseout', function(e){
+    console.log('hover');
+    _player.controls = false;
+});*/
 
 var getRequest = function() {
     this.get = function(url, callbak) {
