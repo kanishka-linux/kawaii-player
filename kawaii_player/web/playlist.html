@@ -208,31 +208,31 @@ Text box can also be used to input text commands to server as follows
 <button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
 <button class="btn_to_top" id="btn_to_top" onclick="back_to_top()">&#8593;</button>
 
-<div id="player_control" class="player_control">
-    <div class="player_control_col1" title="click to go to top" onclick="back_to_top()">
-        <img id="player_control_image" src="" height="64">
+<div id="player_control_progress" class="player_control_progress">
+    <div id="player_progress_div" class="player_progress">
+        <div id="player_start_time" class="player_start_time"></div>
+        <progress id="player_progress" value="0" max="100"></progress>
+        <div id="player_end_time" class="player_end_time"></div>
     </div>
-    <div class="player_control_col2" onclick="back_to_top()">
-        <p id="player_control_info" class="player_control_info"></p>
-    </div>
-    <div class="player_control_col3">
-        <button onclick="next_on_click()">&#x23f5;</button>
-        <button onclick="prev_on_click()">&#x23f4;</button>
-    
-    </div>
-    <div class="player_control_col4">
-        <button onclick="play_on_click()" title="play/pause">&#x23f8;&#x23f5;</button>
-        <button id="btn_minimize" onclick="hide_control_bar()" title="minimize">--</button>
-    </div>
-    <!--
-    <div class="player_control_col5">
-        <button id="backToTop" onclick="back_to_top()">&#8593</button>
-        <button id="btn_minimize" onclick="hide_control_bar()">min</button>
-    </div>
-    -->
+    <div id="player_control" class="player_control">
+        <div class="player_control_col1" title="click to go to top" onclick="back_to_top()">
+            <img id="player_control_image" src="" height="64">
+        </div>
+        <div class="player_control_col2" onclick="back_to_top()">
+            <p id="player_control_info" class="player_control_info"></p>
+        </div>
+        <div class="player_control_col3">
+            <button onclick="next_on_click()">&#x23f5;</button>
+            <button onclick="prev_on_click()">&#x23f4;</button>
+        
+        </div>
+        <div class="player_control_col4">
+            <button onclick="play_on_click()" title="play/pause">&#x23f8;&#x23f5;</button>
+            <button id="btn_minimize" onclick="hide_control_bar()" title="minimize">--</button>
+        </div>
+        </div>
     </div>
 </div>
-
 <div id="top_menu_bar" class="top_menu_bar">
     <div id="top_menu_bar_sub" class="top_menu_bar_sub">
     <select id="first_select" onchange="siteChangeTop()"></select>
