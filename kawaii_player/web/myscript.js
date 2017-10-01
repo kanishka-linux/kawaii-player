@@ -128,15 +128,40 @@ function goto_last_position(event){
 }
 
 function max_min_top_bar(){
+    console.log(_hide_top_bar, _top_menu_bar_sub.style.display);
+    
     if (!_hide_top_bar){
         _hide_top_bar = true;
-    _top_menu_bar_sub.style.visibility = 'hidden';
+        if (_top_menu_bar_sub.style.display == 'grid'){
+            _top_menu_bar_sub.style.visibility = 'hidden';
+        }else{
+            _top_menu_bar_sub.style.display = 'none';
+        }
     }else{
         _hide_top_bar = false;
-        _top_menu_bar_sub.style.visibility = 'visible';
+        if (_top_menu_bar_sub.style.display == 'grid'){
+            _top_menu_bar_sub.style.visibility = 'visible';
+        }else{
+            _top_menu_bar_sub.style.display = 'block';
+            _top_menu_bar_sub.style.visibility = "visible";
+        }
     }
-    
-   
+}
+
+function top_bar_change_layout(){
+    w = window.innerWidth;
+    if (w < 450){
+        _top_menu_bar.style.display = 'block'
+        _top_menu_bar_sub.style.display = 'block';
+        if (_top_menu_bar_sub.style.visibility == 'hidden'){
+            _top_menu_bar_sub.style.display = 'none';
+            _hide_top_bar = true;
+        }
+    }else{
+        _top_menu_bar.style.display = 'grid'
+         _top_menu_bar_sub.style.display = 'grid';
+        _hide_top_bar = false;
+    }
 }
 
 function menu_clicked(e){
@@ -1536,6 +1561,8 @@ function onDocReady(){
     create_playlist_select_options(pls_arr, 1);
 	while(_player.firstChild){_player.removeChild(_player.firstChild);}
     hide_alternate_menu_buttons();
+    top_bar_change_layout();
+    max_min_top_bar();
 }
 
 function siteChange(){
@@ -1756,8 +1783,8 @@ function playlistItemClick(clickedElement,mode) {
     
     var win_width = window.innerWidth;
     document.title = _clicked_num+" "+clickedElement.title;
-    //_player_control_info.innerHTML = document.title;
-    //_player_control_image.src = _final_url + '.image'
+    _player_control_info.innerHTML = document.title;
+    _player_control_image.src = _final_url + '.image'
     _player.poster = _final_url + '.image'
     if (show_image){
         console.log(_img_id.src);
@@ -2465,6 +2492,7 @@ function resizeWindowEvent(){
             add_remove_image_node_to_playlist();
         }
     }
+    top_bar_change_layout();
 }
 
 onDocReady();
