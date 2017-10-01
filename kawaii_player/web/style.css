@@ -77,8 +77,8 @@ div.title_music{max-width:100%; margin: 20px 0px 10px 2px;}
     right: 0px;
     max-height: 64px;
     display:grid;
-    grid-gap: 2px;
-    grid-template-columns: minmax(96px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
+    grid-gap: 5px;
+    grid-template-columns: minmax(96px, 128px) minmax(64px, 20000px) minmax(32px, 96px) minmax(32px, 96px);
     grid-template-rows: 64px;
     visibility: hidden;
 }
@@ -417,22 +417,14 @@ div.title_music{max-width:100%; margin: 20px 0px 10px 2px;}
     position:fixed;top: 1px;right: 1px;height:48px;
     display: grid;
     grid-gap: 0px;
-    grid-template-columns: minmax(64px, 2000px) minmax(32px, 32px);
+    grid-template-columns: minmax(64px, 20000px) minmax(32px, 32px);
     grid-template-rows: 48px;
-   /* grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
-    grid-template-rows: 32px;*/
-    /*grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(96px, 2000px) minmax(48px, 2000px) minmax(10px, 32px);
-    grid-template-rows: 48px;
-    margin: 0px 0px 10px 0px;*/
     }
 
 .top_menu_bar_sub{
     display: grid;
     grid-gap: 0px;
-    /*grid-template-columns: 1fr 1fr 1fr 1fr 1fr;*/
-   /* grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(64px, 2000px) minmax(32px, 2000px) minmax(32px, 2000px);
-    grid-template-rows: 32px;*/
-    grid-template-columns: minmax(64px, 2000px) minmax(64px, 2000px) minmax(64px, 2000px) minmax(48px, 2000px);
+    grid-template-columns: minmax(64px, 20000px) minmax(64px, 20000px) minmax(64px, 20000px) minmax(48px, 20000px);
     grid-template-rows: 48px;
     margin: 0px 0px 10px 0px;
 }
