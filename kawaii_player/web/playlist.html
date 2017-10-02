@@ -50,11 +50,11 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <div id="title" class="title_video"></div>
 <br>
 <div id="buttons_div" class="Buttons">
-<button id="play" onclick="play_on_click()">Play/Pause</button>
-<button id="prev" onclick="prev_on_click()">Prev</button>
-<button id="next" onclick="next_on_click()">Next</button>
-<button id="stop" onclick="stop_on_click()">Stop</button>
-<button id="loop">Lock</button>
+<button id="play" onclick="play_on_click()" title="Play/Pause">&#x23f5;/&#x23f8;</button>
+<button id="prev" onclick="prev_on_click()" title="Prev">&#8826;</button>
+<button id="next" onclick="next_on_click()" title="Next">&#8827;</button>
+<button id="stop" onclick="stop_on_click()" title="Stop">&#9632;</button>
+<button id="loop" onclick="start_loop(0)">Lock</button>
 <button id="shuffle">Shuffle</button>
 <div id="remote_control_buttons">
     <button id="seek10">10s+</button>
@@ -74,7 +74,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="m3u" title="Get Playlist in m3u format" title="Get Playlist in M3U format">M3U</button>
 <button id="remote_btn" title="Turn on/off remote control">R:Off</button>
 <button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
-<button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#8595</button>
+<button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#9660;</button>
 <!--<button id="home">Home</button>-->
 <button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide Alternate Menu Bar">Menu</button>
 <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
@@ -206,7 +206,7 @@ Text box can also be used to input text commands to server as follows
 </nav>
 
 <button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
-<button class="btn_to_top" id="btn_to_top" onclick="back_to_top()">&#8593;</button>
+<button class="btn_to_top" id="btn_to_top" onclick="back_to_top()">&#9650;</button>
 
 <div id="player_control_progress" class="player_control_progress">
     <div id="player_progress_div" class="player_progress">
@@ -215,19 +215,19 @@ Text box can also be used to input text commands to server as follows
         <div id="player_end_time" class="player_end_time"></div>
     </div>
     <div id="player_control" class="player_control">
-        <div class="player_control_col1" title="click to go to top" onclick="back_to_top()">
+        <div class="player_control_col1" title="click to loop" onclick="start_loop(1)">
             <img id="player_control_image" src="" height="64">
         </div>
         <div class="player_control_col2" onclick="back_to_top()">
             <p id="player_control_info" class="player_control_info"></p>
         </div>
         <div class="player_control_col3">
-            <button onclick="next_on_click()">&#x23f5;</button>
-            <button onclick="prev_on_click()">&#x23f4;</button>
+            <button title="Next" onclick="next_on_click()">&#8827;</button>
+            <button title="Prev" onclick="prev_on_click()">&#8826;</button>
         
         </div>
         <div class="player_control_col4">
-            <button onclick="play_on_click()" title="play/pause">&#x23f8;&#x23f5;</button>
+            <button onclick="play_on_click()" title="play/pause">&#x23f5;/&#x23f8;</button>
             <button id="btn_minimize" onclick="hide_control_bar()" title="minimize">--</button>
         </div>
         </div>
