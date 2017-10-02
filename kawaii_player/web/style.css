@@ -151,7 +151,7 @@ height: 12px;
 
 
 .player_control_info{
-    float:left;
+    float:center;
     text-align: center;
     font-size: 12px;
     color: white;
@@ -193,7 +193,7 @@ height: 12px;
 
 .title_video{
     margin: 10px 0px 0px 4px;
-    float:left;
+    float:center;
     text-align:center;
 }
 
@@ -493,8 +493,8 @@ height: 12px;
     }
 
 .top_menu_bar select:hover{
-    background-color: #aab7b8;
-    color: black; 
+    background-color: #262423;
+    color: white; 
 }
 
 .top_menu_bar button{
@@ -514,7 +514,7 @@ height: 12px;
     }
 
 .top_menu_bar button:hover {
-    background-color: #4CAF50;
+    background-color: #262423;
     color: white;
 }
 
@@ -539,8 +539,8 @@ height: 12px;
     }
 
 .top_menu_bar input:hover{
-    background-color: #aab7b8;
-    color: black; 
+    background-color: #262423;
+    color: white; 
 }
 
 /* Primary Control Buttons*/
