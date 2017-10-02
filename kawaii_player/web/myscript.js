@@ -106,6 +106,7 @@ var _player = document.getElementById("player"),
     _player_start_time = document.getElementById('player_start_time');
     _player_end_time = document.getElementById('player_end_time');
     _btn_minimize = document.getElementById("btn_minimize");
+    _mydatalist = document.getElementById("mydatalist");
 // functions
 
 function hide_control_bar(){
@@ -1067,6 +1068,7 @@ function optChangeTop(){
 		m = response.split('\n');
         console.log(response);
         _third_select.innerHTML = "";
+        _mydatalist.innerHTML = "";
 		//while(_third_select.firstChild){_third_select.removeChild(_third_select.firstChild);}
         if (_first_select.value.toLowerCase() === 'playlists' || !response){
             var new_opt = document.createElement('option');
@@ -1084,15 +1086,17 @@ function optChangeTop(){
         
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
+            var new_opt_data = document.createElement('option');
 			var txt = m[i];
             if (txt.length > 30){
                 txt = txt.slice(0,28)+ '..'
             }
 			if (txt){
-                new_opt.text = txt;
-                new_opt.value = m[i];
-                new_opt.title = m[i];
+                new_opt.text = new_opt_data.text = txt;
+                new_opt.value = new_opt_data.value = m[i];
+                new_opt.title = new_opt_data.title = m[i];
                 _third_select.appendChild(new_opt);
+                _mydatalist.append(new_opt_data);
             }
 		}
         console.log(_first_select.value, _second_select.value, _third_select.value);
@@ -1874,6 +1878,7 @@ function playlistItemClick(clickedElement,mode) {
             
             console.log(screen.width);
             console.log(win_width);
+            
         }
 	}
 	else{
@@ -2002,23 +2007,26 @@ _shuffle.addEventListener("click", function () {
 });
 
 function populate_playlist_only(response, mode){
-    console.log(response);
+    //console.log(response);
     if (mode == 0){
         m = response.split('\n');
     }else if (mode == 1){
         m = response
     }
 	r = document.getElementById('playlist')
-	console.log(m)
+	//console.log(m)
 	while(r.firstChild){r.removeChild(r.firstChild);}
 	var indx = 1;
 	for(i=1;i<m.length-1;i+=2){
-		var a = m[i].substring(10,100);
+		var a = m[i].substring(10,500);
+        a = a.trim();
+        if (a.startsWith('-')){
+            console.log('startswith -----');
+            a = a.slice(1, 500);
+            a = a.trim();
+        }
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
-        if (!_show_thumbnails){
-            new_opt.innerHTML = a;
-        }
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('draggable','true');
@@ -2030,9 +2038,11 @@ function populate_playlist_only(response, mode){
 		new_opt.setAttribute('ondragleave','drag_leave(event)');
         new_opt.setAttribute('title', a);
         if (_show_thumbnails){
-            img_div = add_thumbnail_to_playlist(a ,b, 0);
-            new_opt.appendChild(img_div);
+            img_div = add_thumbnail_to_playlist(a, b, 0);
+        }else{
+            img_div = add_thumbnail_to_playlist(a, b, 1);
         }
+        new_opt.appendChild(img_div);
 		r.appendChild(new_opt);
 		indx += 1;
 		}
@@ -2194,6 +2204,35 @@ function prev_on_click(){
 		//_title.innerHTML = selected.previousSibling.innerHTML;
     }
     
+}
+
+function get_next_playlist(){
+    var client = new getRequest();
+	client.get('get_next_playlist', function(response) {
+    populate_playlist_only(response, 0);
+	})
+}
+
+function get_last_playlist(){
+    var client = new getRequest();
+	client.get('get_last_playlist', function(response) {
+    populate_playlist_only(response, 0);
+	})
+}
+
+function get_first_playlist(){
+    var client = new getRequest();
+	client.get('get_first_playlist', function(response) {
+    populate_playlist_only(response, 0);
+	})
+}
+
+function get_previous_playlist(){
+    console.log('get_previous')
+    var client = new getRequest();
+	client.get('get_previous_playlist', function(response) {
+    populate_playlist_only(response, 0);
+	})
 }
 
 function next_on_click(){
