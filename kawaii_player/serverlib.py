@@ -209,7 +209,12 @@ class ServerLib:
                     criteria = site_var.getOptions() 
                     print(criteria)
                     tmp = criteria[-1]
+                    if tmp.lower() == 'newversion':
+                        criteria.pop()
+                        ui.options_mode = 'new'
+                        tmp = criteria[-1]
                     if tmp == 'LocalStreaming':
+                        criteria.pop()
                         video_local_stream = True
                         new_video_local_stream = True
             else:
@@ -818,6 +823,7 @@ class ServerLib:
                         write_files(hist_epn, file_arr, line_by_line=True)
                     except Exception as e:
                         print(e)
+        return name
 
     def epn_return_from_bookmark(self, tmp_bookmark, from_client=None):
         """
