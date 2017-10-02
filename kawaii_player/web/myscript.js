@@ -105,6 +105,7 @@ var _player = document.getElementById("player"),
     _hide_top_bar = false;
     _player_start_time = document.getElementById('player_start_time');
     _player_end_time = document.getElementById('player_end_time');
+    _btn_minimize = document.getElementById("btn_minimize");
 // functions
 
 function hide_control_bar(){
@@ -115,6 +116,10 @@ function hide_control_bar(){
     var v = document.getElementById("btn_to_top");
     v.style.visibility = "visible";
     _minimize_control_bar = true;
+    if (_player_progress_status){
+        clearInterval(_player_progress_status);
+        _player_progress_status = null;
+    }
 }
 
 function show_control_bar(){
@@ -125,6 +130,9 @@ function show_control_bar(){
     var r = document.getElementById("player_control_progress");
     r.style.visibility = "visible";
     _minimize_control_bar = false;
+    if (!_player_progress_status){
+        _player_progress_status = setInterval(update_progress_bar, 1000);
+    }
 }
 
 function goto_last_position(event){
@@ -492,13 +500,16 @@ function human_readable_time(time)
 function update_progress_bar(){
     total = _player.duration;
     cur_time = _player.currentTime;
+    //console.log(total, cur_time);
     if (total && cur_time){
         dur_int = parseInt(_player.duration);
-        cur_int = parseInt(_player.currentTime);
         _player_progress.max = dur_int;
-        _player_progress.value = cur_int;
         dur_val = human_readable_time(dur_int);
+        
+        cur_int = parseInt(_player.currentTime);
+        _player_progress.value = cur_int;
         cur_val = human_readable_time(cur_int);
+        
         _player_start_time.innerHTML = cur_val+ '/' + dur_val;
         //console.log(val);
         //_player_progress.setAttribute('data-label', val);
@@ -1826,8 +1837,8 @@ function playlistItemClick(clickedElement,mode) {
     _player_control_info.innerHTML = document.title;
     _player_control_image.src = _final_url + '.image'
     _player.poster = _final_url + '.image'
-    _img_id.src = "";
-    _img_info.innerHTML = "";
+    //_img_id.src = "";
+    //_img_info.innerHTML = "";
     if (_show_thumbnails){
         if (win_width <= 640){
             _title.innerHTML = document.title;
@@ -1840,7 +1851,7 @@ function playlistItemClick(clickedElement,mode) {
         _title.innerHTML = document.title;
         _title.style.textAlign = 'left';
     }
-        
+    //console.log(_title.style.textAlign);
 	_clicked_index = parseInt(_clicked_num);
     if (_remote.innerHTML == 'R:Off'){
 		_player.src = new_src;
@@ -2267,15 +2278,16 @@ function gotoChildNode(num){
 	}
 }
 
-_loop.addEventListener("click", function () {
+function start_loop(mode){
     var old_var= _loop.innerHTML;
     if (old_var == 'Lock'){
-			_loop.innerHTML = '\u21BA';
+			_loop.innerHTML = _btn_minimize.innerHTML = '\u21BA';
 			_player.loop = "loop";
 		}
 	else {
 		_loop.innerHTML = 'Lock';
 		_player.loop = "";
+        _btn_minimize.innerHTML = '--';
 	}
 	if (_remote_val == 'on'){
 		var client = new getRequest();
@@ -2284,7 +2296,7 @@ _loop.addEventListener("click", function () {
 		// do something with response
 	})
 	}
-});
+}
 
 _opt_ok.addEventListener("click", function () {
   optChange();
