@@ -1136,7 +1136,37 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(pls_txt)
             except Exception as e:
                 print(e)
-        elif path.lower().startswith('site='):
+        elif (path.lower().startswith('site=') or path.startswith('get_previous_playlist')
+                or path.startswith('get_next_playlist') or path.startswith('get_last_playlist')
+                or path.startswith('get_first_playlist')):
+            ret_val = None
+            get_pls = False
+            if path.startswith("site="):
+                logger.debug(path)
+            elif path.startswith('get_next_playlist'):
+                ret_val = ui.navigate_playlist_history.get_next()
+                get_pls = True
+            elif path.startswith('get_previous_playlist'):
+                ret_val = ui.navigate_playlist_history.get_prev()
+                get_pls = True
+            elif path.startswith('get_last_playlist'):
+                ret_val = ui.navigate_playlist_history.get_item()
+                get_pls = True
+            elif path.startswith('get_first_playlist'):
+                ret_val = ui.navigate_playlist_history.get_item(index=0)
+                get_pls = True
+                
+            logger.debug(ret_val)
+            if get_pls:
+                if ret_val is not None:
+                    path = ret_val
+                    logger.debug('total={0}::ptr={1}'.format(
+                        ui.navigate_playlist_history.get_total, ui.navigate_playlist_history.get_ptr
+                        ))
+                    logger.debug(ui.navigate_playlist_history.get_list())
+                else:
+                    path = 'stream_continue.htm'
+                
             new_arr = path.split('&')
             logger.info(new_arr)
             st = ''
@@ -1184,6 +1214,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     pls_txt = self.create_playlist(
                         st, st_o, srch, epn_arr, new_str, st_nm, my_ipaddress, 
                         shuffle_list, play_id)
+                    if ret_val is None:
+                        ui.navigate_playlist_history.add_item(path)
             elif st and st_o:
                 ##if not srch:
                 ##	srch = st_o
