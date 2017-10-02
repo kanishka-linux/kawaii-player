@@ -74,6 +74,7 @@ from player_functions import get_tmp_dir, naturallysorted, set_logger
 from player_functions import get_home_dir, change_opt_file, create_ssl_cert
 from player_functions import set_user_password, get_lan_ip
 from yt import get_yt_url, get_yt_sub_
+from ds import CustomList
 
 HOME_DIR = get_home_dir()
 HOME_OPT_FILE = os.path.join(HOME_DIR, 'other_options.txt')
@@ -1500,6 +1501,7 @@ watch/unwatch status")
         self.web_review_browser_started = False
         self.external_audio_file = False
         self.show_client_thumbnails = False
+        self.navigate_playlist_history = CustomList()
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
