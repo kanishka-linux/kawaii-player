@@ -545,7 +545,29 @@ function searchFunction(e, mode){
 				var client = new getRequest();
 				client.get(new_url, function(response) {
 				console.log(response);
-				_title.innerHTML = response;
+                if (response.startsWith('OK:')){
+                    file_name = response.split(':')[1];
+                    var new_opt = document.createElement('option');
+                    var txt = file_name;
+                    if (txt.length > 30){
+                        txt = txt.slice(0,28)+ '..'
+                    }
+                    if (txt){
+                        new_opt.text = txt;
+                        new_opt.value = file_name;
+                        new_opt.title = file_name;
+                        _third_select.appendChild(new_opt);
+                        _first_select.value = 'torrent';
+                        siteChangeTop()
+                        //_second_select.value = 'history';
+                        //optChangeTop();
+                        //_third_select.value = file_name;
+                        _title.innerHTML = 'Got Torrent: Go To Torrent->History'
+                    }
+                }else{
+                    _title.innerHTML = 'Failed Fetching Torrent';
+                }
+				
 				})
 			}
 			else{
@@ -588,6 +610,7 @@ function searchFunction(e, mode){
 							client.get(new_url, function(response) {
 							console.log(response);
 							_title.innerHTML = response;
+                            _third_select.remove(_third_select.selectedIndex);
 						})
 						}
 					}
@@ -1083,13 +1106,15 @@ function optChangeTop(){
             _third_select.appendChild(new_opt);
             
         } 
-        
+        win_width = window.innerWidth;
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
             var new_opt_data = document.createElement('option');
 			var txt = m[i];
-            if (txt.length > 30){
-                txt = txt.slice(0,28)+ '..'
+            if (win_width <= 640){
+                if (txt.length > 30){
+                    txt = txt.slice(0,28)+ '..'
+                }
             }
 			if (txt){
                 new_opt.text = new_opt_data.text = txt;
