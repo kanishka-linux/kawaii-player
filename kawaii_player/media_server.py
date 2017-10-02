@@ -1827,8 +1827,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 msg = 'Empty Response'
                 hist_folder = os.path.join(home, 'History', 'Torrent')
                 try:
-                    getdb.record_torrent(new_url, hist_folder)
-                    msg = 'Got Torrent: refresh Torrent->History'
+                    ret_val = getdb.record_torrent(new_url, hist_folder)
+                    if ret_val:
+                        msg = 'OK:{0}'.format(ret_val)
+                    else:
+                        msg = 'Failed'
                 except Exception as e:
                     print(e)
                     msg = 'Fetching Torrent Failed'
@@ -2147,7 +2150,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ccurl(img_url, curl_opt='-o', out_file=thumb_path)
                 got_http_image = True
         logger.debug("path:--thumbnail--{0}".format(path))
-        if (not os.path.exists(thumb_path) and not path.startswith('http')) or got_http_image:
+        if ((not os.path.exists(thumb_path) and not path.startswith('http') 
+                and not path.startswith('relative_path=')) or got_http_image):
             if not got_http_image:
                 start_counter = 0
                 while ui.mpv_thumbnail_lock:
