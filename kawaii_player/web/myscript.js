@@ -439,8 +439,8 @@ function menu_clicked_hide(e){
 }
 
 function menu_clicked_remove(e){
-	var site_val = document.getElementById("site").value.toLowerCase();
-	var opt = document.getElementById("opt").value;
+	var site_val = _first_select.value.toLowerCase();
+	var opt = _second_select.value;
 	var pl = _playlist_selected_element;
 	if(site_val == 'playlists' && opt != null){
 		console.log(site_val,opt)
@@ -714,6 +714,18 @@ function searchFunction(e, mode){
 			}
 			z.value = '';
 		}
+        else if(z.value.startsWith("clear:")){
+			var new_z = z.value.replace("clear:","");
+			if (new_z != null && new_z.toLowerCase() == 'playlist_history'){
+				var new_url = "clear_playlist_history";
+				var client = new getRequest();
+				client.get(new_url, function(response) {
+				console.log(response);
+				_title.innerHTML = response;
+			})
+			}
+			z.value = '';
+		}
 		else if(z.value.startsWith("save_playlist:")){
 			var new_z = z.value.replace("save_playlist:","");
 			first = _playlist.firstChild;
@@ -814,6 +826,9 @@ function searchFunction(e, mode){
 					client.get(new_url, function(response) {
 					console.log(response);
 					_title.innerHTML = response;
+                    if (mode == 1){
+                        optChangeTop();
+                    }
 					if (new_z == 'getsub'){
 						if (response.toLowerCase() == 'got subtitle'){
 							get_subtitle(_final_url+'.subtitle');
