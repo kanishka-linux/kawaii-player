@@ -12408,8 +12408,11 @@ def main():
         f.write("\nDEFAULT_DOWNLOAD_LOCATION="+TMPDIR)
         f.write("\nKEEP_BACKGROUND_CONSTANT=no")
         f.write("\nTMP_REMOVE=no")
-        f.write("\nGET_LIBRARY=pycurl")
-        f.write("\nIMAGE_FIT_OPTION=1")
+        if OSNAME == 'nt':
+            f.write("\nGET_LIBRARY=curl")
+        else:
+            f.write("\nGET_LIBRARY=pycurl")
+        f.write("\nIMAGE_FIT_OPTION=3")
         f.write("\nAUTH=NONE")
         f.write("\nACCESS_FROM_OUTSIDE_NETWORK=False")
         f.write("\nCLOUD_IP_FILE=none")
