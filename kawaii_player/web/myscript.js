@@ -862,6 +862,7 @@ function searchFunction(e, mode){
                 option = _second_select;
                 opt_val = _second_select.value;
             }
+            
 			opt = "&opt="+option.value.toLowerCase();
             if (mode == 0){
                 srch = "&s="+z.value.replace(" ","+");
@@ -888,6 +889,11 @@ function searchFunction(e, mode){
 			var indx = 1;
 			for(i=1;i<m.length-1;i+=2){
 				var a = m[i].substring(10,500);
+                a = a.trim();
+                if (a.startsWith('-')){
+                    a = a.slice(1, 500);
+                    a = a.trim();
+                }
 				var b = m[i+1];
 				var new_opt = document.createElement('li');
 				new_opt.setAttribute('data-mp3',b);
@@ -911,7 +917,18 @@ function searchFunction(e, mode){
 				indx += 1;
 				}
 			})
-			}
+            if (mode == 1){
+                if (site_val.toLowerCase() == 'playlists'){
+                    for(i=0; i<pls_arr.length; i++){
+                        if (z.value.toLowerCase() === pls_arr[i].toLowerCase()){
+                            _second_select.value = pls_arr[i];
+                            break;
+                            
+                        }
+                    }
+                }
+            }
+        }
 	}
 }
 
@@ -1719,6 +1736,14 @@ function siteChangeTop(){
 			_second_select.appendChild(new_opt);
 			}
 		}
+    if (_first_select.value.toLowerCase() == 'playlists'){
+        _mydatalist.innerHTML = "";
+        for(i = 0; i<=pls_arr.length;i++){
+            new_opt = document.createElement('option');
+            new_opt.value = new_opt.text = new_opt.title = pls_arr[i];
+            _mydatalist.appendChild(new_opt);
+        }
+    }
     if (_first_select.value != 'select' && _second_select.value != 'select_category'){
         optChangeTop();
     }
