@@ -96,4 +96,9 @@ class CustomList:
         
     def get_list(self):
         return self.mylist
+        
+    def clear(self):
+        self.mylist.clear()
+        self.index = -1
+        self.ptr = -1
                 
