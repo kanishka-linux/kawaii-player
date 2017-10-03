@@ -487,6 +487,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Location', nm)
             self.send_header('Connection', 'close')
             self.end_headers()
+            logger.debug('\nRedirecting...\n')
         else:
             if '.' in nm:
                 nm_ext = nm.rsplit('.', 1)[1]
