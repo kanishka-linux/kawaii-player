@@ -2047,6 +2047,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     msg = "No Playlist was selected, hence can't sync arrangement"
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
+        elif path.startswith('clear_playlist_history'):
+            ui.navigate_playlist_history.clear()
+            msg = bytes('playlist navigation history cleared', 'utf-8')
+            self.final_message(msg)
         elif path.startswith('default.jpg'):
             default_jpg = os.path.join(home, 'default.jpg')
             content = open(default_jpg, 'rb').read()
