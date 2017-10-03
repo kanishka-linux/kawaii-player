@@ -76,7 +76,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
 <button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#9660;</button>
 <!--<button id="home">Home</button>-->
-<button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide Alternate Menu">Menu</button>
+<button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">Menu</button>
 <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
 <button id="logout">Logout</button>
 <button id="first_playlist" onclick="get_first_playlist()" title="Navigate to first accessed playlist">First</button>
@@ -142,9 +142,10 @@ Text box can also be used to input text commands to server as follows
 <br>
 <div id="site_option" hidden></div>
 <br>
-<div class ="pls" contextmenu ="MyMenu">
+<div class ="pls">
 <ol id="playlist"></ol>
 </div>
+<!--
 <menu type="context" id ="MyMenu"> 
 	<menu label="Add To Playlist" id ="menu_playlist"> 
 		<menuitem label='hello' onclick="menu_clicked(label)"> </menuitem>
@@ -154,7 +155,6 @@ Text box can also be used to input text commands to server as follows
 	<menuitem label='Add To Current Playlist' onclick="menu_clicked_playlist(label)"></menuitem>
 	<menuitem label='Remove From Playlist' onclick="menu_clicked_remove(label)"></menuitem>
 </menu>
-<!--
 <div class="toTop">
 <div id="backToTop" ondrop="custom_drop(event)" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)">Top</div>
 </div>
