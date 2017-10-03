@@ -2377,7 +2377,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 pls_path = os.path.join(home, 'Playlists', pls)
                 logger.info(pls_path)
                 if not yt_playlist and pls_path:
-                    new_line = title + '	'+url+ '	'+ 'YouTube'
+                    new_line = title + '	'+url+ '	'+ 'NONE'
                     logger.info(new_line)
                     if os.path.exists(pls_path):
                         write_files(pls_path, new_line, line_by_line=True)
@@ -2392,7 +2392,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         try:
                             j = 'https://www.youtube.com/watch?v='+i['data-video-id']
                             k = i['data-video-title']
-                            l = k+'	'+j+'	'+'YouTube'
+                            l = k+'	'+j+'	'+'NONE'
                             arr.append(l)
                         except Exception as e:
                             print(e, '--2004--')
