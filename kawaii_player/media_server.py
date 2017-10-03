@@ -2024,7 +2024,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if pls and src >= 0 and dest >= 0:
                     file_path = os.path.join(home, 'Playlists', pls)
                     lines = open_files(file_path, lines_read=True)
-                    new_lines = [i.strip() for i in lines]
+                    new_lines = [i.strip() for i in lines if i.strip()]
                     if ((src >= dest and src < len(new_lines)) or 
                             (src < dest and dest <= len(new_lines))):
                         src_val = new_lines[src]
