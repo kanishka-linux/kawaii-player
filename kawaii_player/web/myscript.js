@@ -1484,8 +1484,8 @@ function on_drop(e){
 		}
 		first = first.nextSibling;
 	}
-	var site_val = document.getElementById("site").value.toLowerCase();
-	var opt = document.getElementById("opt").value;
+	var site_val = _first_select.value.toLowerCase();
+	var opt = _second_select.value;
 	console.log(opt,'--opt--');
 	if (site_val == 'playlists' && opt != null && opt){
 		new_url = 'change_playlist_order='+opt+'&'+num_+'&'+num_target;
