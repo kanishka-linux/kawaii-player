@@ -2044,6 +2044,11 @@ _shuffle.addEventListener("click", function () {
 	var indx = 1;
 	for(i=1;i<m.length-1;i+=2){
 		var a = m[i].substring(10,100);
+        a = a.trim();
+        if (a.startsWith('-')){
+            a = a.slice(1, 500);
+            a = a.trim();
+        }
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
         if (!_show_thumbnails){
