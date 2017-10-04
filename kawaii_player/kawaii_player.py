@@ -996,16 +996,25 @@ watch/unwatch status")
         self.player_seek_5m_.clicked.connect(lambda x=0: self.seek_to_val(-300))
         self.player_seek_5m_.hide()
         
+        self.client_seek_val = 0
+        
+        self.player_seek_all = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_all.setObjectName(_fromUtf8("player_seek_all"))
+        self.horizontalLayout_player_opt.insertWidget(24, self.player_seek_all, 0)
+        self.player_seek_all.setText('all')
+        self.player_seek_all.clicked.connect(self.seek_to_val_abs)
+        self.player_seek_all.hide()
+        
         self.player_show_btn = QtWidgets.QPushButton(self.player_opt)
         self.player_show_btn.setObjectName(_fromUtf8("player_show_btn"))
-        self.horizontalLayout_player_opt.insertWidget(24, self.player_show_btn, 0)
+        self.horizontalLayout_player_opt.insertWidget(25, self.player_show_btn, 0)
         self.player_show_btn.setText('Show')
         self.player_show_btn.clicked.connect(MainWindow.show)
         self.player_show_btn.hide()
         
         self.player_hide_btn = QtWidgets.QPushButton(self.player_opt)
         self.player_hide_btn.setObjectName(_fromUtf8("player_hide_btn"))
-        self.horizontalLayout_player_opt.insertWidget(25, self.player_hide_btn, 0)
+        self.horizontalLayout_player_opt.insertWidget(26, self.player_hide_btn, 0)
         self.player_hide_btn.setText('Hide')
         self.player_hide_btn.clicked.connect(MainWindow.hide)
         self.player_hide_btn.hide()
@@ -1502,6 +1511,7 @@ watch/unwatch status")
         self.external_audio_file = False
         self.show_client_thumbnails = False
         self.navigate_playlist_history = CustomList()
+        
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -2018,6 +2028,19 @@ watch/unwatch status")
                     self.float_window.showFullScreen()
                 else:
                     self.float_window.showNormal()
+                    
+    def seek_to_val_abs(self):
+        global Player
+        val = self.client_seek_val
+        if Player == "mplayer":
+            txt1 = '\n osd 1 \n'
+            txt = '\n seek {0}\n'.format(val)
+        else:
+            txt1 = '\n set osd-level 1 \n'
+            txt = '\n osd-msg-bar seek {0} absolute \n'.format(val)
+            print(txt)
+        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def seek_to_val(self, val):
         global Player
