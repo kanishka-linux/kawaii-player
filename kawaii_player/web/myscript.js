@@ -1975,7 +1975,7 @@ function playlistItemClick(clickedElement,mode) {
 		console.log(new_src)
 	}
 	
-	if (_site_value.value.toLowerCase() == 'torrent'){
+	if (_first_select.value.toLowerCase() == 'torrent'){
 		if(!_get_torrent_status || _get_torrent_status == null){
 			torrent_status('status');
 			_get_torrent_status = setInterval(torrent_status,5000);
