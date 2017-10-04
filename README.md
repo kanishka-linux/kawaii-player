@@ -414,6 +414,8 @@ The computer running kawaii-player can be used as youtube-casting or torrent-cas
 
 ###### [Index](#index)
 
+![kawaii-player](/Images/Remote.png)
+
 Remote Control can be activated by selecting **'More->Turn On Remote Control'**, (or user can directly add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**). Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, they can see new button labeled **'R:Off'**. Clicking the button, will enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling current playing instance of kawaii-player.
 
 (For best experience, use latest version of mpv. Some commands pertaining to volume control won't work on old version.)
