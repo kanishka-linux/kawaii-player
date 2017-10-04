@@ -1347,6 +1347,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
+        elif path.lower().startswith('seek_abs_'):
+            seek_val = 0
+            if ui.remote_control and ui.remote_control_field:
+                val = path.replace('seek_abs_', '', 1)
+                seek_val = 0
+                try:
+                    seek_val_float = float(val)
+                    seek_val = int(ui.mplayerLength*(seek_val_float/100))
+                except Exception as err:
+                    print(err, '--1358--seek-abs--')
+                seek_str = 'seek {0}/{1}'.format(seek_val, ui.mplayerLength)
+                self.final_message(bytes(seek_str, 'utf-8'))
+                remote_signal = doGETSignal()
+                remote_signal.control_signal.emit(seek_val, 'seek')
+            else:
+                b = b'Remote Control Not Allowed'
+                self.final_message(b)
         elif path.lower() == 'volume5':
             if ui.remote_control and ui.remote_control_field:
                 b = b'volume +5'
@@ -2536,6 +2553,9 @@ def start_player_remotely(nm, mode):
                         ui.player_seek_5m.clicked.emit()
                     elif nm == -300:
                         ui.player_seek_5m_.clicked.emit()
+                    else:
+                        ui.client_seek_val = nm
+                        ui.player_seek_all.clicked.emit()
                 elif mode == 'volume':
                     if nm == 5:
                         ui.player_vol_5.clicked.emit()
