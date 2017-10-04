@@ -398,7 +398,7 @@ Web Interface, contains a search text box which can be used to send text command
 		$ yt:d:youtube_link (add link to server playlist and download for offline viewing on server)
 		$ yt:getsub (get subtitle if available)
 		
-**About Playlist Support:** Web Interface allows creation and manipulation of playlists. In firefox, users will get right click context menu using which they can add and remove playlist entries. In Chromium, users have to use drag and drop feature to drop entries to custom place. If playlist is very long, then drag and drop feature can be cumbersome. In such case user should drop entries on '**Top**' label, which will appear over lower right corner. By clicking on '**Top**' label users can directly go to top of page, but it can also be used as dropping place for custom playlist entries.
+**About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session.
 
 **Get M3U:** User can click on the *'Get M3U'* button to generate universal playlist in M3U format, which can be played on any device and on most of the popular clients that support http streaming. User can save the playlist or can directly open it with their favourite media player application. If Firefox is directly playing the playlist, then it might be due to some external web plugin. For example, during installation of vlc, it can also install web plugin for firefox. Users need to disable such plugin to get the playlist, or they can simply open the url **without '.htm' extension** from within the vlc itself, if 'https' and cookie are not enabled. vlc can easily deal with basic username and password based authentication.
 
@@ -414,7 +414,7 @@ The computer running kawaii-player can be used as youtube-casting or torrent-cas
 
 ###### [Index](#index)
 
-Remote Control can be activated by selecting **'More->Turn On Remote Control'**, (or user can directly add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**). Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, they can see new button labeled **'Remote Off'**. Clicking the button, will enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling current playing instance of kawaii-player.
+Remote Control can be activated by selecting **'More->Turn On Remote Control'**, (or user can directly add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**). Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, they can see new button labeled **'R:Off'**. Clicking the button, will enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling current playing instance of kawaii-player.
 
 (For best experience, use latest version of mpv. Some commands pertaining to volume control won't work on old version.)
 
