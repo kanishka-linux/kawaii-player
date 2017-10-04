@@ -131,7 +131,7 @@ function show_control_bar(){
     var r = document.getElementById("player_control_progress");
     r.style.visibility = "visible";
     _minimize_control_bar = false;
-    if (!_player_progress_status){
+    if (!_player_progress_status && _remote_val == 'off'){
         _player_progress_status = setInterval(update_progress_bar, 1000);
     }
 }
@@ -2539,13 +2539,38 @@ _player_progress.addEventListener("click", function(e){
     x = val['x'];
     w = val['width'];
     console.log(x, w)
+    var time_diff = 0;
     if (_player.duration){
         new_val = parseInt(((e.pageX - x)/w)*_player.duration);
         _player.currentTime = new_val;
         _player_progress.value = new_val;
+        console.log(new_val);
     }
-    console.log(new_val);
+    
+    
+    if (_remote_val == 'on'){
+        new_val = (((e.pageX - x)/w)*100).toFixed(2);
+        var seek_val = "seek_abs_"+new_val.toString();
+        console.log(seek_val);
+		var client = new getRequest();
+		client.get(seek_val, function(response) {
+			console.log(response);
+            response = response.replace('seek ', '');
+            seek_val = parseInt(response.split('/')[0]);
+            seek_total = parseInt(response.split('/')[1]);
+            _player_progress.value = seek_val;
+            _player_progress.max = seek_total;
+            seek_start = human_readable_time(seek_val);
+            seek_end = human_readable_time(seek_total);
+            _player_start_time.innerHTML = seek_start + '/' + seek_end;
+            _player.progress.title = seek_start;
+		// do something with response
+	})
+	}
 });
+
+
+
 
 function get_clicked_node(target){
     var req_node = target;
