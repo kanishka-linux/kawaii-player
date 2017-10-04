@@ -143,21 +143,13 @@ Thumbnails of local video files are automatically generated with the help of 'ff
 
 ###### [Index](#index)
 
+
+
 The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Settings->Check'** menu. **After changing the address user needs to restart the player**. Alternatively, user can check default local network address using cli tools like 'ifconfig' on any gnu/linux based systems ,and then manually edit '~/.config/kawaii-player/other_options.txt' file and change the field "LOCAL_STREAM_IP" appropriately with local network address, and then restart the player. Once you've set up the 'LOCAL_STREAM_IP' field properly, then you should be able to access the current playlist on the kawaii-player, from any device on the network. 
 
+![kawaii-player](/Images/Web_New.png)
 
-**A very simple web interface** ([as shown in Torrent Streaming Section](#torrent-streaming)) has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.2.2:9001', then web interface can be opened at **192.168.2.2:9001/stream_continue.htm** or **192.168.2.2:9001/index.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.2.2:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
-
-**Playlist Creation and Sync using web interface**: Web UI allows creation and syncing of the user generated playlist. In Firefox browser, user will get custom right click context menu using which, user can add or remove entry to and from playlist.
-Chrome, doesn't implement HTML5 compliant context menu creation, hence Chrome users will have to use traditional drg and drop method. Users can perform certain operations on playlists using *Text Search Box* with the help of following commands.
-
-		$ create_playlist:playlist_name (This will create custom empty playlist with name *playlist_name* on the server, if it has already not been created)
-		$ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
-
-**Update Collection:** Use following commands in text search box of web UI
-
-		$ update:video (will update video section)
-		$ update:music (will update music section)
+**A very simple web interface** (as shown above) has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.2.2:9001', then web interface can be opened at **192.168.2.2:9001/stream_continue.htm** or **192.168.2.2:9001/index.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.2.2:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
 
 **Use like Streaming Radio:** The media server can be used similar to internet radio station without transcoding. It won't behave like exact internet streaming radio, but it can be made to mimic like one. If server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the kawaii-player in it's playlist. If mpv or mplayer are used as clients then their commands will looked like as below:
 
@@ -328,7 +320,7 @@ Note: Key 'q' used on playing video will quit the playing instance, and the same
 
 ![kawaii-player](/Images/Web.png)
 
-(Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent http/magnet link from browser to the server, which will be then streamed back to the user) 
+(Older Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent http/magnet link from browser to the server, which will be then streamed back to the user) 
 
 First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
@@ -377,6 +369,7 @@ Web Interface, contains a search text box which can be used to send text command
 		$ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
 		$ update:video (will update video section)
 		$ update:music (will update music section)
+        $ clear:playlist_history (clear playlist navigation history)
 		
 		$ sub:on (Turn on subtitle if ffmpeg is installed on server)
 		$ sub:off (Turn off subtitles)
@@ -551,7 +544,7 @@ In this player, a weak addon structure has been created, so that one can write a
     
     **Directly using self contained binary:** 
     
-    kawaii-player v2.5 has released binary for 64-bit windows 10. This binary packs all the python based dependencies (except python3-libtorrent) along with mpv and curl. Just grab the binary for windows from release section, extract it, go to extracted folder and then click on **kawaii_player** file to launch the application. In **~\.config\kawaii-player\other_options.txt** file, windows users have to changes 'GET_LIBRARY=pycurl' to 'GET_LIBRARY=curl', in order to use curl directly. pycurl was running too slow on windows for fetching webpages, hence it is advisable to use curl directly instead. Users can also change 'YTDL_PATH=DEFAULT' to 'YTDL_PATH=AUTOMATIC', that will grab updated youtube-dl automatically, for playing youtube videos. On windows youtube-dl requires 'msvc 2010 redistributable package (x86)' - which they have to install from microsoft's website.
+    kawaii-player from v2.5+ onwards is being released with experimental binary for 64-bit windows 10. This binary packs all the python based dependencies (except python3-libtorrent) along with mpv and curl. Just grab the binary for windows from release section, extract it, go to extracted folder and then click on **kawaii_player** file to launch the application. In **~\.config\kawaii-player\other_options.txt** file, windows users have to changes 'GET_LIBRARY=pycurl' to 'GET_LIBRARY=curl', in order to use curl directly. pycurl was running too slow on windows for fetching webpages, hence it is advisable to use curl directly instead. Users can also change 'YTDL_PATH=DEFAULT' to 'YTDL_PATH=AUTOMATIC', that will grab updated youtube-dl automatically, for playing youtube videos. On windows youtube-dl requires 'msvc 2010 redistributable package (x86)' - which they have to install from microsoft's website.
 
 # Dependencies
 
