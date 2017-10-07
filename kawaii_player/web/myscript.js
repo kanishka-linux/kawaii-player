@@ -1860,6 +1860,32 @@ function get_subtitle(src){
 	_player.textTracks[0].mode = 'showing';
 }
 
+function check_extension(url){
+    var music_file_status = false;
+    if (url.indexOf('abs_path=') >= 0){
+        var base_dec = url.split('abs_path=')[1]
+        if (base_dec.indexOf('/') >= 0){
+            base_arr_index = base_dec.lastIndexOf('/');
+            base_dec = base_dec.slice(0, base_arr_index);
+        }
+        if (base_dec.indexOf('&pl_id=') >= 0){
+            base_dec = url.split('&pl_id=')[0];
+        }
+        base_dec = atob(base_dec)
+        if ((base_dec.endsWith('.mp3') || base_dec.endsWith('.flac'))){
+           music_file_status = true
+           var preloadLink = document.createElement("link");
+            preloadLink.href = url;
+            preloadLink.rel = "preload";
+            preloadLink.as = "audio";
+            preloadLink.type = "audio/mpeg";
+            document.head.appendChild(preloadLink);
+            console.log('--preloading-------');
+        }
+    }
+    return music_file_status;
+}
+
 function playlistItemClick(clickedElement,mode) {
     if (mode != 'queue' && mode != 'queue_context'){
         var selected = _playlist.querySelector(".selected");
@@ -1872,32 +1898,7 @@ function playlistItemClick(clickedElement,mode) {
 	var new_src = clickedElement.getAttribute("data-mp3");
 	_final_url = new_src;
 	_final_name = clickedElement.innerHTML;
-    /*
-    if (_final_url.indexOf('abs_path=') >= 0){
-        var base_dec = _final_url.split('abs_path=')[1]
-        if (base_dec.indexOf('/') >= 0){
-            base_arr_index = base_dec.lastIndexOf('/');
-            base_dec = base_dec.slice(0, base_arr_index);
-        }
-        if (base_dec.indexOf('&pl_id=') >= 0){
-            base_dec = _final_url.split('&pl_id=')[0];
-        }
-        base_dec = atob(base_dec)
-        if ((base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')) && !show_image){
-            _player_dimensions = [_player.width, _player.height]
-            _player.height = "40";
-            show_image = true;
-            ;
-        }else if ((base_dec.endsWith('.mp3') || base_dec.endsWith('.flac')) && show_image){
-            ;
-        }else if (show_image){
-            show_image = false;
-            _player.width = _player_dimensions[0];
-            _player.height = _player_dimensions[1];
-        }
-    }else{
-        show_image = false
-    }*/
+    
 	var _clicked_num = clickedElement.getAttribute("data-num");
 	var tmp_name = clickedElement.innerHTML;
     
@@ -2126,13 +2127,27 @@ function populate_playlist(new_url){
 }
 
 _m3u.addEventListener("click", function () {
-	
+	/*
     if (_current_working_m3u.startsWith('site')){
         var new_url = _current_working_m3u;
     }else{
         new_url = 'stream_continue.m3u';
     }
-    window.location.href = new_url;
+    window.location.href = new_url;*/
+    first = _playlist.firstChild;
+    var new_url = "get_playlist_in_m3u";
+    dict = {};
+    while(first){
+        num = first.getAttribute('data-num');
+        data = first.getAttribute('data-mp3');
+        title = first.title;
+        dict[num] = {'title':title,'data':data};
+        first = first.nextSibling;
+    }
+    var client = new postRequest();
+        client.post(new_url,dict,function(response) {
+            window.location.href = response;
+    })
 });
 
 _remote.addEventListener("click", function () {
