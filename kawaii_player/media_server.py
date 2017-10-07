@@ -59,6 +59,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     proc_req = True
     client_auth_dict = {}
     playlist_auth_dict = {}
+    playlist_m3u_dict = {}
 
     def process_HEAD(self):
         global ui, logger, getdb
@@ -237,6 +238,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 msg = 'Playlist creation failed'
             self.final_message(bytes(msg, 'utf-8'))
+        elif self.path.startswith('/get_playlist_in_m3u'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            logger.info(content)
+            new_dict = json.loads(content)
+            pls_txt = '#EXTM3U\n'
+            for i in new_dict:
+                pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(new_dict[i]['title'], new_dict[i]['data'])
+            logger.debug(pls_txt)
+            dict_pls_len = str(len(self.playlist_m3u_dict) + 1)
+            if dict_pls_len in self.playlist_m3u_dict:
+                del self.playlist_m3u_dict[dict_pls_len]
+            self.playlist_m3u_dict.update({str(dict_pls_len):pls_txt})
+            url_response = 'm3u_playlist_{0}.m3u'.format(dict_pls_len)
+            self.final_message(bytes(url_response, 'utf-8'))
+            
 
     def do_init_function(self, type_request=None):
         global ui, curR, logger
@@ -2065,6 +2083,28 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     msg = "No Playlist was selected, hence can't sync arrangement"
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
+        elif path.startswith('m3u_playlist_'):
+            try:
+                pls_num = (path.split('_')[2]).replace('.m3u', '')
+                if pls_num.isnumeric():
+                    pls_txt = self.playlist_m3u_dict.get(pls_num)
+                    if not pls_txt:
+                        pls_txt = '#EXTM3U\n'
+                    else:
+                        del self.playlist_m3u_dict[pls_num]
+                    pls_txt = bytes(pls_txt, 'utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-type', 'audio/mpegurl')
+                    size = len(pls_txt)
+                    self.send_header('Content-Length', str(size))
+                    self.send_header('Connection', 'close')
+                    self.end_headers()
+                    try:
+                        self.wfile.write(pls_txt)
+                    except Exception as e:
+                        print(e)
+            except Exception as err:
+                print(err, '--2091--')
         elif path.startswith('clear_playlist_history'):
             ui.navigate_playlist_history.clear()
             msg = bytes('playlist navigation history cleared', 'utf-8')
