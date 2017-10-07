@@ -244,9 +244,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 content = str(content, 'utf-8')
             logger.info(content)
             new_dict = json.loads(content)
+            sort_key_arr = [int(i) for i in new_dict]
+            sort_key_arr.sort()
             pls_txt = '#EXTM3U\n'
-            for i in new_dict:
-                pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(new_dict[i]['title'], new_dict[i]['data'])
+            for i in sort_key_arr:
+                pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(
+                    new_dict[str(i)]['title'], new_dict[str(i)]['data']
+                    )
             logger.debug(pls_txt)
             dict_pls_len = str(len(self.playlist_m3u_dict) + 1)
             if dict_pls_len in self.playlist_m3u_dict:
