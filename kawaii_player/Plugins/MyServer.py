@@ -263,6 +263,8 @@ class MyServer:
                         n_epn = n_epn.replace('NONE - ', '', 1)
                     if n_epn.startswith('-'):
                         n_epn = n_epn.replace('-', '', 1)
+                    if '/' in n_epn:
+                        n_epn = n_epn.replace('/', '-')
                     n_epn = n_epn.strip()
                     if i+1 < length:
                         entry_epn = n_epn+'\t'+lines[i+1].strip()+'\t'+'NONE'
