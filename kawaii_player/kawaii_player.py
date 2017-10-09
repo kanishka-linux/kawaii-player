@@ -4177,7 +4177,7 @@ watch/unwatch status")
                 else:
                     path = self.create_img_url(path)
             self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
-            self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
+            self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(partial(self.thumbnail_generated, row_cnt, picn))
             length = len(self.threadPoolthumb)
             if length == 1:
                 if not self.threadPoolthumb[0].isRunning():
@@ -6201,7 +6201,7 @@ watch/unwatch status")
                             path = self.create_img_url(path)
                     logger.debug('path-------{0}---'.format(path))
                     self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
-                    self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(self.thumbnail_generated)
+                    self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(partial(self.thumbnail_generated, self.list2.currentRow(), picn))
                     length = len(self.threadPoolthumb)
                     if length == 1:
                         if not self.threadPoolthumb[0].isRunning():
@@ -6228,7 +6228,17 @@ watch/unwatch status")
             else:
                 pass
                 
-    def thumbnail_generated(self):
+    def thumbnail_generated(self, row=None, picn=None):
+        try:
+            icon_new_pixel = self.create_new_image_pixel(picn, 128)
+            if os.path.exists(icon_new_pixel):
+                try:
+                    if row < self.list2.count():
+                        self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+                except Exception as err:
+                    print(err, '--6238--')
+        except Exception as err:
+            print(err, '--6240--')
         print("Thumbnail Process Ended")
         self.threadPoolthumb = self.threadPoolthumb[1:]
         length = len(self.threadPoolthumb)
