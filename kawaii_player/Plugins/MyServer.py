@@ -258,8 +258,12 @@ class MyServer:
             try:
                 if 'EXTINF' in lines[i]:
                     n_epn = (lines[i].strip()).split(',', 1)[1]
+                    n_epn = n_epn.strip()
                     if n_epn.startswith('NONE - '):
                         n_epn = n_epn.replace('NONE - ', '', 1)
+                    if n_epn.startswith('-'):
+                        n_epn = n_epn.replace('-', '', 1)
+                    n_epn = n_epn.strip()
                     if i+1 < length:
                         entry_epn = n_epn+'\t'+lines[i+1].strip()+'\t'+'NONE'
                         m.append(entry_epn)
