@@ -2664,6 +2664,10 @@ def navigate_player_remotely(nm):
             row = ui.list1.row(i)
             ui.list1.setFocus()
             ui.list1.setCurrentRow(row)
+            item = ui.list1.item(row)
+            if item:
+                ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            
     
 
 @pyqtSlot(str)
