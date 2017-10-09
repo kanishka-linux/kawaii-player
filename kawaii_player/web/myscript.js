@@ -2242,6 +2242,13 @@ _remote.addEventListener("click", function () {
 	
 	var old_var= _remote.innerHTML;
     if (old_var == 'R:Off'){
+            if (_player_progress_status){
+                clearInterval(_player_progress_status);
+                _player_progress_status = null;
+            }
+            if (!_remote_control_status || _remote_control_status==null){
+                _remote_control_status = setInterval(remote_control_update, 1000);
+            }
 			var client = new getRequest();
 			client.get('remote_on.htm', function(response) {
 			console.log(response);
@@ -2258,17 +2265,22 @@ _remote.addEventListener("click", function () {
 		}
 	else {
 		_remote.innerHTML = 'R:Off';
-		_remote_val = 'off'
+		_remote_val = 'off';
+        if (_remote_control_status){
+            clearInterval(_remote_control_status);
+            _remote_control_status = null;
+        }
+        if(!_player_progress_status || _player_progress_status == null){
+        _player_progress_status = setInterval(update_progress_bar, 1000);
+        }
+        //_can_play_sync = false;
 		var client = new getRequest();
 			client.get('remote_off.htm', function(response) {
 			console.log(response);
             _remote_control_buttons.style.visibility = "hidden";
             _remote_control_buttons.style.display = "none";
             _title.innerHTML = "Remote control disabled.";
-            if (_remote_control_status){
-                clearInterval(_remote_control_status);
-                _remote_control_status = null;
-            }
+            
 	})
 	}
 });
@@ -2282,6 +2294,7 @@ _logout.addEventListener("click", function () {
 });
 
 function stop_on_click(){
+    _can_play_sync = false;
 	if (_remote_val == 'off'){
         _player.pause();
         _player.src = "";
@@ -2713,7 +2726,25 @@ _player_progress.addEventListener("click", function(e){
 	}
 });
 
-
+_player_progress.addEventListener("mousemove", function(e){
+    val = _player_progress.getBoundingClientRect();
+    //console.log(val);
+    x = val['x'];
+    w = val['width'];
+    //console.log(x, w)
+    var time_diff = 0;
+    if (_player.duration){
+        new_val = parseInt(((e.pageX - x)/w)*_player.duration);
+        _player_progress.title = human_readable_time(new_val);
+        //console.log(new_val);
+    }
+    
+    
+    if (_remote_val == 'on' && !_player.duration){
+        new_val = parseInt(((e.pageX - x)/w)*parseInt(_player_progress.max));
+        _player_progress.title = human_readable_time(new_val);
+	}
+});
 
 
 function get_clicked_node(target){
