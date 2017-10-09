@@ -107,6 +107,10 @@ var _player = document.getElementById("player"),
     _player_end_time = document.getElementById('player_end_time');
     _btn_minimize = document.getElementById("btn_minimize");
     _mydatalist = document.getElementById("mydatalist");
+    _clicked_num = '1';
+    _clicked_element = null;
+    _remote_control_status = null;
+    _can_play_sync = false;
 // functions
 
 function hide_control_bar(){
@@ -481,6 +485,85 @@ function torrent_status(val){
 	client.get(new_url, function(response) {
 	//console.log(response);
 	_title.innerHTML = response;
+	})
+}
+
+function remote_control_update(){
+    var new_url = 'get_remote_control_status';
+    var client = new getRequest();
+	client.get(new_url, function(response) {
+	//console.log(response);
+    if (response.indexOf('::') >= 0){
+            var arr_val = response.split('::');
+            var total = arr_val[0];
+            var cur_time = arr_val[1];
+            var index_row = arr_val[2];
+            
+            dur_int = parseInt(total);
+            _player_progress.max = dur_int;
+            dur_val = human_readable_time(dur_int);
+            
+            cur_int = parseInt(cur_time);
+            _player_progress.value = cur_int;
+            cur_val = human_readable_time(cur_int);
+            
+            _player_start_time.innerHTML = cur_val+ '/' + dur_val;
+            
+            if (_clicked_num != index_row){
+                _clicked_num = index_row;
+                first = _playlist.firstChild;
+                var data_num = 1;
+                clickedElement = null;
+                while(first){
+                    data_num = first.getAttribute('data-num');
+                    if (data_num === _clicked_num){
+                        clickedElement = first;
+                        break;
+                    }
+                    first = first.nextSibling;
+                }
+                
+                var selected = _playlist.querySelector(".selected");
+                if (selected) {
+                    selected.classList.remove("selected");
+                }
+                if (clickedElement){
+                    clickedElement.classList.add("selected");
+                    document.title = _clicked_num+" "+clickedElement.title;
+                    _final_url = clickedElement.getAttribute('data-mp3');
+                    _player_control_info.innerHTML = document.title;
+                    _player_control_image.src = _final_url + '.image'
+                    _player.src = _final_url;
+                    _player.poster = _final_url + '.image'
+                    
+                    var tmp_name = clickedElement.innerHTML;
+    
+                    var win_width = window.innerWidth;
+                    if (_show_thumbnails){
+                        if (win_width <= 640){
+                            _title.innerHTML = document.title;
+                            _title.style.textAlign = 'center';
+                        }else{
+                            _title.innerHTML = tmp_name;
+                            _title.style.textAlign = 'left';
+                        }
+                    }else{
+                        _title.innerHTML = document.title;
+                        _title.style.textAlign = 'left';
+                    }
+                    console.log('_can_play_sync');
+                    console.log(_can_play_sync);
+                    if(_can_play_sync){
+                        var client = new getRequest();
+                        client.get('playpause_pause', function(response) {
+                        console.log(response);
+                        })
+                    }
+                    
+                }
+            }
+            
+    }
 	})
 }
 
@@ -1898,8 +1981,8 @@ function playlistItemClick(clickedElement,mode) {
 	var new_src = clickedElement.getAttribute("data-mp3");
 	_final_url = new_src;
 	_final_name = clickedElement.innerHTML;
-    
-	var _clicked_num = clickedElement.getAttribute("data-num");
+    _clicked_element = clickedElement;
+	_clicked_num = clickedElement.getAttribute("data-num");
 	var tmp_name = clickedElement.innerHTML;
     
     var win_width = window.innerWidth;
@@ -1974,6 +2057,9 @@ function playlistItemClick(clickedElement,mode) {
 		}
 		_player.src = new_src
 		console.log(new_src)
+        if (!_remote_control_status || _remote_control_status==null){
+            _remote_control_status = setInterval(remote_control_update, 1000);
+        }
 	}
 	
 	if (_first_select.value.toLowerCase() == 'torrent'){
@@ -1989,6 +2075,8 @@ function playlistItemClick(clickedElement,mode) {
     if (mode == 'queue'){
         _playlist_custom.removeChild(clickedElement);
     }
+    
+    
 }
 
 function playNext() {
@@ -2177,6 +2265,10 @@ _remote.addEventListener("click", function () {
             _remote_control_buttons.style.visibility = "hidden";
             _remote_control_buttons.style.display = "none";
             _title.innerHTML = "Remote control disabled.";
+            if (_remote_control_status){
+                clearInterval(_remote_control_status);
+                _remote_control_status = null;
+            }
 	})
 	}
 });
@@ -2203,6 +2295,10 @@ function stop_on_click(){
     var client = new getRequest();
 		client.get('playerstop', function(response) {
 			console.log(response);
+            if (_remote_control_status){
+                clearInterval(_remote_control_status);
+                _remote_control_status = null;
+            }
 	})
     
 	}
@@ -2529,8 +2625,41 @@ function back_to_top(){
     window.scrollTo(0, 0);
 }
 
+
+function playback_started(){
+    if(_remote_val == 'off'){
+        _can_play_sync = false;
+    }else{
+        _can_play_sync = true;
+        var client = new getRequest();
+		client.get('playpause_play', function(response) {
+        console.log(response);
+        })
+        _player.play();
+        
+    }
+}
+
+function player_can_play(){
+    if (_remote_val == 'on' && _can_play_sync){
+        var client = new getRequest();
+		client.get('playpause_play', function(response) {
+        console.log(response);
+        })
+        _player.play();
+    }
+}
+
+function playNext_decide(){
+    if (_remote_val == 'off'){
+        playNext();
+    }
+}
+
 window.addEventListener("resize", resizeWindowEvent);
-_player.addEventListener("ended", playNext);
+_player.addEventListener("ended", playNext_decide);
+_player.addEventListener("playing", playback_started);
+_player.addEventListener("canplaythrough", player_can_play);
 _playlist.addEventListener("click", function (e) {
     var target = e.target;
     var req_node = get_clicked_node(target);
@@ -2578,7 +2707,7 @@ _player_progress.addEventListener("click", function(e){
             seek_start = human_readable_time(seek_val);
             seek_end = human_readable_time(seek_total);
             _player_start_time.innerHTML = seek_start + '/' + seek_end;
-            _player.progress.title = seek_start;
+            //_player_progress.title = seek_start;
 		// do something with response
 	})
 	}
