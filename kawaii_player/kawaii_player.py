@@ -6230,13 +6230,14 @@ watch/unwatch status")
                 
     def thumbnail_generated(self, row=None, picn=None):
         try:
-            icon_new_pixel = self.create_new_image_pixel(picn, 128)
-            if os.path.exists(icon_new_pixel):
-                try:
-                    if row < self.list2.count():
-                        self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
-                except Exception as err:
-                    print(err, '--6238--')
+            if self.list_with_thumbnail:
+                icon_new_pixel = self.create_new_image_pixel(picn, 128)
+                if os.path.exists(icon_new_pixel):
+                    try:
+                        if row < self.list2.count():
+                            self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+                    except Exception as err:
+                        print(err, '--6238--')
         except Exception as err:
             print(err, '--6240--')
         print("Thumbnail Process Ended")
