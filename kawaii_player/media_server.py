@@ -1315,6 +1315,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
+        elif path.lower() == 'playpause_pause':
+            if ui.remote_control and ui.remote_control_field:
+                b = 'playpause_pause:{0}'.format(curR)
+                self.final_message(bytes(b, 'utf-8'))
+                remote_signal = doGETSignal()
+                remote_signal.control_signal.emit(-1000, 'playpause_pause')
+            else:
+                b = b'Remote Control Not Allowed'
+                self.final_message(b)
+        elif path.lower() == 'playpause_play':
+            if ui.remote_control and ui.remote_control_field:
+                b = 'playpause_play:{0}'.format(curR)
+                self.final_message(bytes(b, 'utf-8'))
+                remote_signal = doGETSignal()
+                remote_signal.control_signal.emit(-1000, 'playpause_play')
+            else:
+                b = b'Remote Control Not Allowed'
+                self.final_message(b)
         elif path.lower() == 'seek10':
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek +10s'
@@ -1476,6 +1494,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
+        elif path.lower() == 'get_remote_control_status':
+            try:
+                if ui.remote_control and ui.remote_control_field:
+                    msg = str(ui.mplayerLength)+'::'+str(ui.progress_counter)+'::'+str(ui.list2.currentRow()+1)
+                    self.final_message(bytes(msg, 'utf-8'))
+                else:
+                    b = b'Remote Control Not Allowed'
+                    self.final_message(b)
+            except Exception as err:
+                print(err, '--1488--')
+                self.final_message(b'error')
         elif path.startswith('abs_path='):
             try:
                 process_url = False
@@ -2548,7 +2577,7 @@ def start_player_remotely(nm, mode):
     global ui, curR, MainWindow
 
     #print(nm, mode, '--2133--')
-    if mode == 'normal':
+    if mode == 'normal' and ui.list2.count():
         if nm < ui.list2.count() and nm >= 0:
             curR = nm
         else:
@@ -2566,6 +2595,10 @@ def start_player_remotely(nm, mode):
     else:
         if mode == 'playpause':
             ui.player_play_pause.clicked.emit()
+        elif mode == 'playpause_play':
+            ui.player_play_pause_play.clicked.emit()
+        elif mode == 'playpause_pause':
+            ui.player_play_pause_pause.clicked.emit()
         elif mode == 'show_player':
             #print('show--window---2149')
             ui.player_show_btn.clicked.emit()
