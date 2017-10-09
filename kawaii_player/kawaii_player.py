@@ -1005,19 +1005,36 @@ watch/unwatch status")
         self.player_seek_all.clicked.connect(self.seek_to_val_abs)
         self.player_seek_all.hide()
         
+        self.player_play_pause_play = QtWidgets.QPushButton(self.player_opt)
+        self.player_play_pause_play.setObjectName(_fromUtf8("player_play_pause_play"))
+        self.horizontalLayout_player_opt.insertWidget(25, self.player_play_pause_play, 0)
+        self.player_play_pause_play.setText('play')
+        self.player_play_pause_play.clicked.connect(self.player_force_play)
+        self.player_play_pause_play.hide()
+        
+        self.player_play_pause_pause = QtWidgets.QPushButton(self.player_opt)
+        self.player_play_pause_pause.setObjectName(_fromUtf8("player_play_pause_pause"))
+        self.horizontalLayout_player_opt.insertWidget(26, self.player_play_pause_pause, 0)
+        self.player_play_pause_pause.setText('pause')
+        self.player_play_pause_pause.clicked.connect(self.player_force_pause)
+        self.player_play_pause_pause.hide()
+        
         self.player_show_btn = QtWidgets.QPushButton(self.player_opt)
         self.player_show_btn.setObjectName(_fromUtf8("player_show_btn"))
-        self.horizontalLayout_player_opt.insertWidget(25, self.player_show_btn, 0)
+        self.horizontalLayout_player_opt.insertWidget(27, self.player_show_btn, 0)
         self.player_show_btn.setText('Show')
         self.player_show_btn.clicked.connect(MainWindow.show)
         self.player_show_btn.hide()
         
         self.player_hide_btn = QtWidgets.QPushButton(self.player_opt)
         self.player_hide_btn.setObjectName(_fromUtf8("player_hide_btn"))
-        self.horizontalLayout_player_opt.insertWidget(26, self.player_hide_btn, 0)
+        self.horizontalLayout_player_opt.insertWidget(28, self.player_hide_btn, 0)
         self.player_hide_btn.setText('Hide')
         self.player_hide_btn.clicked.connect(MainWindow.hide)
         self.player_hide_btn.hide()
+        
+        
+        
         
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
@@ -2741,7 +2758,8 @@ watch/unwatch status")
         
         if self.mpvplayer_val.processId() > 0:
             quitReally = "yes"
-            self.mpvplayer_val.write(b'\n quit \n')
+            #self.mpvplayer_val.write(b'\n quit \n')
+            self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
             if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
                 if not self.float_window.isHidden():
@@ -2887,7 +2905,28 @@ watch/unwatch status")
                 if self.list2.currentItem():
                     curR = self.list2.currentRow()
                     self.epnfound()
-                    
+    
+    def player_force_play(self):
+        global curR, idw, cur_label_num
+        if self.mpvplayer_val.processId() > 0:
+            if Player == "mpv":
+                txt_osd = '\n set osd-level 1 \n'
+                self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                self.mpvplayer_val.write(b'\n set pause no \n')
+                self.player_play_pause.setText(self.player_buttons['pause'])
+            else:
+                self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
+            
+    def player_force_pause(self):
+        global curR, idw, cur_label_num
+        if Player == "mpv":
+            txt_osd = '\n set osd-level 3 \n'
+            self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+            self.mpvplayer_val.write(b'\n set pause yes \n')
+            self.player_play_pause.setText(self.player_buttons['play'])
+        else:
+            self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
+    
     def player_play_pause_status(self, status=None):
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play'] and status == 'play':
@@ -10488,6 +10527,10 @@ watch/unwatch status")
             pass
         self.external_url = False
         #print(self.list6.item(0).text(), self.queue_url_list)
+        if self.list6.item(0):
+            old_txt = self.list6.item(0).text()
+            if old_txt.lower().startswith('queue empty:'):
+                self.list6.clear()
         if self.list6.item(0):
             if self.if_file_path_exists_then_play(0, self.list6, True):
                 del self.queue_url_list[0]
