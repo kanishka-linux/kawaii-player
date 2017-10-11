@@ -1896,14 +1896,15 @@ watch/unwatch status")
             mpv_i=None, fullsc=None, tab_6=None, cur_label=None, path_final=None,
             idw_val=None, amp=None, cur_ply=None, t6_ply=None, inter=None,
             memory_num=None, show_hide_pl=None, show_hide_tl=None, op=None,
-            qual=None, mir=None, name_val=None, catg=None, local_ip=None):
+            qual=None, mir=None, name_val=None, catg=None, local_ip=None,
+            book_mark=None):
         global site, curR, quitReally, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator, fullscr, tab_6_size_indicator
         global cur_label_num, path_final_Url, idw, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
         global show_hide_playlist, show_hide_titlelist, opt, quality, mirrorNo
-        global name, category
+        global name, category, bookmark
         if siteval:
             site = siteval
         if curRow:
@@ -1914,6 +1915,8 @@ watch/unwatch status")
             category = catg
         if op:
             opt = op
+        if book_mark:
+            bookmark = True
         if qual:
             quality = qual
             self.quality_val = qual
