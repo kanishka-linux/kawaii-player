@@ -1156,6 +1156,7 @@ function optChangeTop(){
 	var y = _first_select.value.toLowerCase();
     console.log(_first_select.value, _second_select.value, _third_select.value);
 	if(y.startsWith('playlists')){
+        x = _second_select.value;
 		var new_url = 'site='+y+'&opt='+x+'&s=&exact.m3u';
         _current_working_m3u = new_url;
 		var client = new getRequest();
