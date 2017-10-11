@@ -614,7 +614,9 @@ function searchFunction(e, mode){
             var z = _search_text_top;
         }
 		console.log(z.value);
-		
+		if (z.value.length == 0){
+            z.value = 'abc';
+        }
 		if (z.value.startsWith("torrent:")){
 			new_val = z.value.replace("torrent:","");
 			if (new_val.startsWith('http') || new_val.startsWith('magnet')){
@@ -2626,10 +2628,24 @@ window.onscroll = function () {
             document.getElementById("btn_maximize").style.visibility = "hidden";
             document.getElementById("btn_to_top").style.visibility = "hidden";
         }
+        if (_hide_top_bar){
+            if (_top_menu_bar_sub.style.display == 'grid'){
+                _top_menu_bar_sub.style.visibility = 'hidden';
+            }else{
+                _top_menu_bar_sub.style.display = 'none';
+            }
+        }
     }else{
         document.getElementById("btn_to_top").style.visibility = "hidden";
         document.getElementById("btn_maximize").style.visibility = "hidden";
         document.getElementById('player_control_progress').style.visibility = "hidden";
+        if (_hide_top_bar){
+            if (_top_menu_bar_sub.style.display == 'grid'){
+                _top_menu_bar_sub.style.visibility = 'hidden';
+            }else{
+                _top_menu_bar_sub.style.display = 'none';
+            }
+        }
     }
 };
 
