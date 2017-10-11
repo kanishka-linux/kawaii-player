@@ -2659,23 +2659,25 @@ def total_ui_navigation(st, st_o, srch):
             index = ui.btn1.findText('Video')
             site = 'Video'
             ui.set_parameters_value(siteval=site)
-            if index >= 0:
+            if index >= 0 and ui.btn1.currentText().lower() != 'video':
                 ui.btn1.setCurrentIndex(0)
                 ui.btn1.setCurrentIndex(index)
             time.sleep(0.5)
-            ui.list3.setFocus()
-            ui.list3.setCurrentRow(0)
             list3_index = 0
             if st_o.lower() != 'update' and st_o.lower() != 'updateall':
                 for i in range(0, ui.list3.count()):
                     item = ui.list3.item(i)
                     txt = item.text()
                     if txt.lower() == st_o.lower():
-                        ui.set_parameters_value(op=txt)
-                        ui.list3.setCurrentRow(i)
-                        ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                        time.sleep(0.5)
-                        break
+                        if not ui.list3.currentItem():
+                            ui.list3.setFocus()
+                            ui.list3.setCurrentRow(0)
+                        if ui.list3.currentItem().text().lower() != txt.lower():
+                            ui.set_parameters_value(op=txt)
+                            ui.list3.setCurrentRow(i)
+                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            time.sleep(0.5)
+                            break
                 list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
                 if len(list_item) > 0:
                     for i in list_item:
@@ -2689,23 +2691,25 @@ def total_ui_navigation(st, st_o, srch):
             index = ui.btn1.findText('Music')
             site = 'Music'
             ui.set_parameters_value(siteval=site)
-            if index >= 0:
+            if index >= 0 and ui.btn1.currentText().lower() != 'music':
                 ui.btn1.setCurrentIndex(0)
                 ui.btn1.setCurrentIndex(index)
             time.sleep(0.5)
-            ui.list3.setFocus()
-            ui.list3.setCurrentRow(0)
             list3_index = 0
-            if st_o.lower() == 'artist' and st_o.lower() != 'album' or st_o.lower() == 'directory':
+            if st_o.lower() == 'artist' or st_o.lower() == 'album' or st_o.lower() == 'directory':
                 for i in range(0, ui.list3.count()):
                     item = ui.list3.item(i)
                     txt = item.text()
                     if txt.lower() == st_o.lower():
-                        ui.set_parameters_value(op=txt)
-                        ui.list3.setCurrentRow(i)
-                        ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                        time.sleep(0.5)
-                        break
+                        if not ui.list3.currentItem():
+                            ui.list3.setFocus()
+                            ui.list3.setCurrentRow(0)
+                        if ui.list3.currentItem().text().lower() != txt.lower():
+                            ui.set_parameters_value(op=txt)
+                            ui.list3.setCurrentRow(i)
+                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            time.sleep(0.5)
+                            break
                 list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
                 if len(list_item) > 0:
                     for i in list_item:
@@ -2719,7 +2723,7 @@ def total_ui_navigation(st, st_o, srch):
             index = ui.btn1.findText('PlayLists')
             site = 'PlayLists'
             ui.set_parameters_value(siteval=site)
-            if index >= 0:
+            if index >= 0 and ui.btn1.currentText().lower() != 'playlists':
                 ui.btn1.setCurrentIndex(0)
                 ui.btn1.setCurrentIndex(index)
             time.sleep(0.5)
@@ -2740,7 +2744,7 @@ def total_ui_navigation(st, st_o, srch):
                             ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
         elif st.lower() == 'bookmark':
             index = ui.btn1.findText('Bookmark')
-            if index >= 0:
+            if index >= 0 and ui.btn1.currentText().lower() != 'bookmark':
                 ui.btn1.setCurrentIndex(0)
                 ui.btn1.setCurrentIndex(index)
             time.sleep(0.5)
@@ -2768,7 +2772,7 @@ def total_ui_navigation(st, st_o, srch):
                             ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
         elif st:
             index = ui.btn1.findText('Addons')
-            if index >= 0:
+            if index >= 0 and ui.btn1.currentText().lower() != 'addons':
                 ui.btn1.setCurrentIndex(0)
                 ui.btn1.setCurrentIndex(index)
             time.sleep(0.5)
@@ -2780,13 +2784,16 @@ def total_ui_navigation(st, st_o, srch):
             if index_val:
                 site = index_val
                 ui.set_parameters_value(siteval=site)
-                index = ui.btn1.findText(index_val)
-                if index >= 0:
+                index = ui.btnAddon.findText(index_val)
+                if index >= 0 and ui.btnAddon.currentText().lower() != site.lower():
                     ui.btnAddon.setCurrentIndex(0)
                     ui.btnAddon.setCurrentIndex(index)
                 time.sleep(0.5)
                 list_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
-                if len(list_item) > 0:
+                if not ui.list3.currentItem():
+                    ui.list3.setFocus()
+                    ui.list3.setCurrentRow(0)
+                if len(list_item) > 0 and ui.list3.currentItem().text().lower() != 'history':
                     for i in list_item:
                         row = ui.list3.row(i)
                         ui.list3.setFocus()
