@@ -624,16 +624,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def write_to_tmp_playlist(self, epnArrList, _new_epnArrList=None):
         global home
         if epnArrList:
-            #epnArrList = [i.replace('#', '-') for i in epnArrList]
             file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
             f = open(file_name, 'w').close()
             if _new_epnArrList:
                 write_files(file_name, _new_epnArrList, True)
             else:
                 write_files(file_name, epnArrList, True)
-            nav_signal = doGETSignal()
-            nav_signal.nav_remote.emit('TMP_PLAYLIST')
-            #print('---718---')
+            #nav_signal = doGETSignal()
+            #nav_signal.nav_remote.emit('TMP_PLAYLIST')
 
     def create_playlist(
             self, site, site_option, name, epnArrList, new_video_local_stream, 
@@ -1226,10 +1224,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if st.startswith('playlist'):
                     if st_o and not srch:
                         srch = st_o
-                        #st_o = 'NONE'
-            #print(st, st_o, srch)
+            st_arr = [st, st_o, srch]
             if st and st_o and srch:
-                #print(srch_exact, '=srch_exact', st, st_o, srch)
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
@@ -1240,9 +1236,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if ret_val is None:
                         ui.navigate_playlist_history.add_item(path)
             elif st and st_o:
-                ##if not srch:
-                ##	srch = st_o
-                #print(srch_exact, '=srch_exact')
                 original_path_name = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
@@ -1264,6 +1257,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(pls_txt)
             except Exception as e:
                 print(e)
+            if ui.remote_control and ui.remote_control_field:
+                nav_remote = doGETSignal()
+                nav_remote.total_navigation.emit(st_arr[0], st_arr[1], st_arr[2])
         elif path.lower() == 'play' or not path:
             self.row = ui.list2.currentRow()
             if self.row < 0:
@@ -2553,6 +2549,7 @@ class doGETSignal(QtCore.QObject):
     nav_remote = pyqtSignal(str)
     delete_torrent_signal = pyqtSignal(str)
     update_signal = pyqtSignal(str)
+    total_navigation = pyqtSignal(str, str, str)
     def __init__(self):
         QtCore.QObject.__init__(self)
         self.new_signal.connect(goto_ui_jump)
@@ -2561,6 +2558,7 @@ class doGETSignal(QtCore.QObject):
         self.nav_remote.connect(navigate_player_remotely)
         self.delete_torrent_signal.connect(delete_torrent_history)
         self.update_signal.connect(update_databse_signal)
+        self.total_navigation.connect(total_ui_navigation)
         
 @pyqtSlot(str)
 def goto_ui_jump(nm):
@@ -2652,6 +2650,161 @@ def start_player_remotely(nm, mode):
                 elif mode == 'toggle_audio':
                     ui.audio_track.clicked.emit()
 
+
+@pyqtSlot(str, str, str)
+def total_ui_navigation(st, st_o, srch):
+    global ui
+    if st:
+        if st.lower() == 'video':
+            index = ui.btn1.findText('Video')
+            site = 'Video'
+            ui.set_parameters_value(siteval=site)
+            if index >= 0:
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            ui.list3.setFocus()
+            ui.list3.setCurrentRow(0)
+            list3_index = 0
+            if st_o.lower() != 'update' and st_o.lower() != 'updateall':
+                for i in range(0, ui.list3.count()):
+                    item = ui.list3.item(i)
+                    txt = item.text()
+                    if txt.lower() == st_o.lower():
+                        ui.set_parameters_value(op=txt)
+                        ui.list3.setCurrentRow(i)
+                        ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                        time.sleep(0.5)
+                        break
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        elif st.lower() == 'music':
+            index = ui.btn1.findText('Music')
+            site = 'Music'
+            ui.set_parameters_value(siteval=site)
+            if index >= 0:
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            ui.list3.setFocus()
+            ui.list3.setCurrentRow(0)
+            list3_index = 0
+            if st_o.lower() == 'artist' and st_o.lower() != 'album' or st_o.lower() == 'directory':
+                for i in range(0, ui.list3.count()):
+                    item = ui.list3.item(i)
+                    txt = item.text()
+                    if txt.lower() == st_o.lower():
+                        ui.set_parameters_value(op=txt)
+                        ui.list3.setCurrentRow(i)
+                        ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                        time.sleep(0.5)
+                        break
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        elif st.lower() == 'playlists':
+            index = ui.btn1.findText('PlayLists')
+            site = 'PlayLists'
+            ui.set_parameters_value(siteval=site)
+            if index >= 0:
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            ui.list3.setFocus()
+            ui.list3.setCurrentRow(0)
+            item = ui.list3.item(0)
+            if srch:
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                logger.debug('::::::::{0}'.format(srch))
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        logger.debug(':::::row:::{0}::::::::'.format(row))
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        elif st.lower() == 'bookmark':
+            index = ui.btn1.findText('Bookmark')
+            if index >= 0:
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            ui.list3.setFocus()
+            if st_o:
+                if st_o.lower() == 'bookmark':
+                    st_o = 'all'
+                for i in range(0, ui.list3.count()):
+                    item = ui.list3.item(i)
+                    txt = item.text()
+                    if txt.lower() == st_o.lower():
+                        ui.list3.setCurrentRow(i)
+                        time.sleep(0.5)
+                        break
+                logger.debug('::::::::{0}'.format(srch))
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        logger.debug(':::::row:::{0}::::::::'.format(row))
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        elif st:
+            index = ui.btn1.findText('Addons')
+            if index >= 0:
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            index_val = ''
+            for i,j in enumerate(ui.addons_option_arr):
+                if j.lower() == st.lower():
+                    index_val = j
+                    break
+            if index_val:
+                site = index_val
+                ui.set_parameters_value(siteval=site)
+                index = ui.btn1.findText(index_val)
+                if index >= 0:
+                    ui.btnAddon.setCurrentIndex(0)
+                    ui.btnAddon.setCurrentIndex(index)
+                time.sleep(0.5)
+                list_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list3.row(i)
+                        ui.list3.setFocus()
+                        ui.list3.setCurrentRow(row)
+                        item = ui.list3.item(row)
+                        if item:
+                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                time.sleep(0.5)
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                    
 
 @pyqtSlot(str)
 def navigate_player_remotely(nm):
