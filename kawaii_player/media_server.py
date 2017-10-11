@@ -887,7 +887,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     n_url_file = ui.if_file_path_exists_then_play(k, ui.list2, play_now=False)
                     if (site.lower() == 'video' or site.lower() == 'music' or 
                             site.lower() == 'local' or site.lower() == 'playlists' 
-                            or site.lower() == 'none'):
+                            or site.lower() == 'none' or site.lower() == 'myserver'):
                         if '	' in epnArrList[k]:
                             n_out = epnArrList[k].split('	')[0]
                             if n_out.startswith('#'):
@@ -2241,6 +2241,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if 'youtube.com' in path:
             img_url = ui.create_img_url(path)
             logger.debug(img_url)
+            if not os.path.exists(thumb_path) and img_url:
+                ccurl(img_url, curl_opt='-o', out_file=thumb_path)
+                got_http_image = True
+        elif path.startswith('http') and 'abs_path=' in path:
+            img_url = path
+            if not path.endswith('.image'):
+                img_url = path + '.image'
             if not os.path.exists(thumb_path) and img_url:
                 ccurl(img_url, curl_opt='-o', out_file=thumb_path)
                 got_http_image = True
