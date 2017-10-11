@@ -349,25 +349,35 @@ class TitleListWidget(QtWidgets.QListWidget):
                 elif site == "Music" and not bookmark:
                     list3n = (ui.list3.currentItem().text())
                     if (list3n == "Fav-Artist" or list3n == "Fav-Album" 
-                            or list3n=="Fav-Directory"):
+                            or list3n=="Fav-Directory" or list3n == 'Artist'
+                            or list3n == 'Album' or list3n == 'Title'
+                            or list3n == 'Directory'):
                         conn = sqlite3.connect(os.path.join(home, 'Music', 'Music.db'))
                         cur = conn.cursor()
-                        qVal = str(self.currentItem().text())
+                        qVal = ui.original_path_name[r]
                         logger.info('{0}--qval'.format(qVal))
-                        tmp = str(ui.list3.currentItem().text())
-                        if tmp == "Fav-Artist":
+                        qr = None
+                        if list3n == "Fav-Artist":
                             qr = 'Update Music Set Favourite="no" Where Artist=?'
-                            cur.execute(qr, (qVal, ))
-                        elif tmp == "Fav-Album":
+                        elif list3n == "Fav-Album":
                             qr = 'Update Music Set Favourite="no" Where Album=?'
-                            cur.execute(qr, (qVal, ))
-                        elif tmp == "Fav-Directory":
+                        elif list3n == "Fav-Directory":
                             qr = 'Update Music Set Favourite="no" Where Directory=?'
+                        elif list3n == "Artist":
+                            qr = 'Delete From Music Where Artist=?'
+                        elif list3n == 'Album':
+                            qr = 'Delete From Music Where Album=?'
+                        elif list3n == "Directory":
+                            qr = 'Delete From Music Where Directory=?'
+                        if qr:
                             cur.execute(qr, (qVal, ))
-                        logger.info("Number of rows updated: %d" % cur.rowcount)
+                            logger.debug('qr={0}::qVal={1}'.format(qr, qVal))
+                            self.takeItem(r)
+                            del item
+                            logger.info("Number of rows updated: %d" % cur.rowcount)
+                            del ui.original_path_name[r]
                         conn.commit()
                         conn.close()
-                        ui.options_clicked()
                         self.setCurrentRow(r)
                 elif site == 'None':
                     print("Nothing to delete")
