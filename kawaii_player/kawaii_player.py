@@ -5982,12 +5982,12 @@ watch/unwatch status")
                         self.list2.addItem((j))
                 k = k+1
             self.list2.setCurrentRow(row)
-            if self.list2.count() < 30:
-                QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
-                                        self.list_with_thumbnail, update_pl_thumb))
-            else:
-                QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
-                                        self.list_with_thumbnail, update_pl_thumb))
+            #if self.list2.count() < 30:
+            QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
+                                     self.list_with_thumbnail, update_pl_thumb))
+            #else:
+            #    QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
+            #                            self.list_with_thumbnail, update_pl_thumb))
     
     def set_icon_list2(self, epnArr, list_thumb, update_pl):
         for k in range(len(epnArr)):
