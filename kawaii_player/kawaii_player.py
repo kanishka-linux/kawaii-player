@@ -5986,7 +5986,7 @@ watch/unwatch status")
                 QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
                                         self.list_with_thumbnail, update_pl_thumb))
             else:
-                QtCore.QTimer.singleShot(100, partial(self.set_icon_list2, self.epn_arr_list, 
+                QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
                                         self.list_with_thumbnail, update_pl_thumb))
     
     def set_icon_list2(self, epnArr, list_thumb, update_pl):
