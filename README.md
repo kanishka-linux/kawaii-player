@@ -61,8 +61,6 @@ Actually, Instead of complicating anything, the built-in media-server can simpli
 
 The built-in portable media server of this application can have many use cases. If your family members or friends use different operating systems and you want to share some content which is lying on your working computer quickly, then you can simply create a streaming web interface out of your collection managed by kawaii-player instantly with just one click, for others to stream the content, irrespective of their OS. Alternatively you can generate universal playlist from media server and set expiry limit to it, contents of which can be played/streamed on any device with any popular media player, subject to hardware capacity of mobile device. It doesn't do any transcoding since popular media-players like mpv/mplayer/vlc/kodi can handle anything in the universal playlist. On long journey or travel also, this portable media server can come handy by converting any laptop/netbook as streaming media server for other portable devices surrounding you. It also allows to create your own local [peer-to-peer](#peer-to-peer-mode) network. There are multiple such use cases of portable media server which users can think of on their own. 
 
-The media-server of this application has been designed in such a manner that, users don't have to depend on third party to access their own media, even from outside the network. Users can create their own media-server wherever they go using wi-fi. If there is no wi-fi, then user can easily create their own private wi-fi network by converting any android device as wi-fi hotspot without much effort.
-
 
 ## Features
 
@@ -145,7 +143,7 @@ Thumbnails of local video files are automatically generated with the help of 'ff
 
 
 
-The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Settings->Check'** menu. **After changing the address user needs to restart the player**. Alternatively, user can check default local network address using cli tools like 'ifconfig' on any gnu/linux based systems ,and then manually edit '~/.config/kawaii-player/other_options.txt' file and change the field "LOCAL_STREAM_IP" appropriately with local network address, and then restart the player. Once you've set up the 'LOCAL_STREAM_IP' field properly, then you should be able to access the current playlist on the kawaii-player, from any device on the network. 
+The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Settings->Check'** menu. **After changing the address user needs to restart the player**. 
 
 ![kawaii-player](/Images/Web_New.png)
 
@@ -313,15 +311,13 @@ This feature is based on libtorrent-rasterbar {which is being used by bittorrent
 Once Torrent streaming will start, a progress bar will appear to the right side, which will show basic information about torrent.
 If user will click on this progress bar then they will get controls for stopping torrent and for setting upload/download speed.
 
-If torrent contains multiple files then users can enqueue the desired files by selecting appropriate entry in Playlist column and pressing 'key q'.
- 
-Note: Key 'q' used on playing video will quit the playing instance, and the same key 'q' used on playlist column will queue the item.
+If torrent contains multiple files then users can enqueue the desired files by selecting appropriate entry in Playlist column and pressing 'key ctrl+q'.
 
 **Using Web Interface for managing and accessing Torrent Streaming server remotely:**
 
 ![kawaii-player](/Images/Web.png)
 
-(Old Web interface showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent http/magnet link from browser to the server, which will be then streamed back to the user) 
+(**Old Web interface** showing running of three torrents fetched from **archive.org**. One of them being played directly in the browser. It means users can send some torrent http/magnet link from browser to the server, which will be then streamed back to the user) 
 
 First, set up ip address and port properly for both media server and torrent streaming in *'other_options.txt'* and *'torrent_config.txt'* files (Make sure that port number is different in both the files. By default media server port is 9001 and that of torrent streaming server is 8001). Then start media server and open web interface. In web ui, user will find a text box for searching media within the server. This *search box* can be used for controlling torrent streaming on the media server with the help of text commands. Following are the list of commands which can be used for controlling behaviour of torrent:
 
@@ -669,7 +665,15 @@ Last Column to the extreme right, is the “Playlist column”, which will conta
 
 It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
 
-If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries.  
+If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries. 
+
+If a TV Show has multiple seasons, then the application can recognize a folder as a separate season, if it is placed in a separate folder starting with name 'Season'. For example consider folder structure, **Anime->Mushishi->Season 1** and *Anime->Mushishi->Season 2*. If the folder structure is organized as above, then the application will show entries as **Mushishi-Season 1** and **Mushishi-Season 2**, in the video Anime Section.
+
+If users are not satisfied with default categorization, then they can create their own categories like Music Video, Anime Movies, Cartoon Movies, Hollywood movies etc.. from the title list contextmenu, and then can add desired titles to them.
+
+The video section contains two update options i.e. Update and UpdateAll. The **Update** option will add new entries to the database without deleting older one, while **UpdateAll** option will remove all the unreachable links from the database. If users frequently attach and remove external hard drives to laptop/desktops, then it is advisable to use only **Update** option, as it will preserve non-reachable links.
+
+The Video section, also contains two options **Directory and Available**. The Directory option will list the entire video collection, while the Available option will list only reachable videos.
 
 Users can get fanart/posters/summary for the entire collection. If appropriate match is not found then users can directly go to sites such as TVDB/TMDB directly using internal browser and can grab the content. The browser's internal contextmenu has been tweaked to facilitate getting required information. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in *'~/.config/kawaii-player/other_options.txt'* file). Users will also get to select various background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9). 
 
@@ -794,7 +798,7 @@ Ctrl+0 to Ctrl+9 : Change aspect ratio of background image
 
 ctrl + h : show history (history of watched series)
 
-Delete : delete particular item of history
+Delete : delete particular item from database
 
 ctrl + r : randomize the list(if you want random series)
 
@@ -891,7 +895,7 @@ Users can explore Right click menu of both Playlist Column and Title List Column
 
 5. If users want to remove temporary directory automatically once the programme quits, then they should edit 'TMP_REMOVE' field in the '~/.config/kawaii-player/other_options.txt' and change it to 'yes' from 'no'.
 
-6. By default, the background image follows fit to screen mode without thinking about original aspect ratio of the image. If user want to change it to fit to width or fit to height without changing aspect ratio, then they should try Ctrl+2 or Ctrl+3 global key combination. Users can also try Ctrl+4 to Ctrl+9 shortcuts, to experiment with various available background image modes.
+6. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+4 to Ctrl+9 shortcuts, to experiment with various available background image modes.
 
 ## Contacts
 
