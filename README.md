@@ -667,7 +667,7 @@ It tries to be a simple media manager for both audio and video, along with power
 
 If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries. 
 
-If a TV Show has multiple seasons, then the application can recognize a folder as a separate season, if it is placed in a separate folder starting with name 'Season'. For example consider folder structure, **Anime->Mushishi->Season 1** and *Anime->Mushishi->Season 2*. If the folder structure is organized as above, then the application will show entries as **Mushishi-Season 1** and **Mushishi-Season 2**, in the video Anime Section.
+If a TV Show has multiple seasons, then the application can recognize a folder as a separate season, if it's name starts with 'Season'. For example consider folder structure, *Anime->Mushishi->Season 1* and *Anime->Mushishi->Season 2*. If the folder structure is organized like, then the application will show entries as **Mushishi-Season 1** and **Mushishi-Season 2**, in the video Anime Section.
 
 If users are not satisfied with default categorization, then they can create their own categories like Music Video, Anime Movies, Cartoon Movies, Hollywood movies etc.. from the title list contextmenu, and then can add desired titles to them.
 
