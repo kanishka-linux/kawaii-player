@@ -395,7 +395,7 @@ Web Interface, contains a search text box which can be used to send text command
 		$ yt:d:youtube_link (add link to server playlist and download for offline viewing on server)
 		$ yt:getsub (get subtitle if available)
 		
-**About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session.
+**About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session. The playlist, which is displayed on the web interface also provides contextmenu that provides variety of options. This contextmenu is shown on right clicking any playlist entry. On android firefox, users have to press playlist entry to see the contextmenu. On android chrome, users have to press the thumbnail image to see the contextmenu.
 
 **Get M3U:** User can click on the *'Get M3U'* button to generate universal playlist in M3U format, which can be played on any device and on most of the popular clients that support http streaming. User can save the playlist or can directly open it with their favourite media player application. If Firefox is directly playing the playlist, then it might be due to some external web plugin. For example, during installation of vlc, it can also install web plugin for firefox. Users need to disable such plugin to get the playlist, or they can simply open the url **without '.htm' extension** from within the vlc itself, if 'https' and cookie are not enabled. vlc can easily deal with basic username and password based authentication.
 
