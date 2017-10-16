@@ -607,7 +607,7 @@ sudo apt install python3 python3-pyqt5 python3-pycurl python3-pil python3-bs4 py
 
 first enable rpmfusion repository
 
-dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3-pycurl python3-lxml python3-beautifulsoup4 python3-pytaglib python3-mutagen rb_libtorrent-python3 curl wget libnotify python3-dbus python3-pillow python3-dbus
+dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3-pycurl python3-lxml python3-beautifulsoup4 python3-pytaglib python3-mutagen rb_libtorrent-python3 curl wget libnotify python3-dbus python3-pillow
 
 ## Troubleshooting
 
@@ -689,7 +689,7 @@ From version 2.4 onwards, the application can accept keyboard shortcuts as defin
 
 ### Player Shortcuts(once video is focussed, if it's not focussed take mouse pointer over the playing video):
 
-(When MPV_INPUT_CONF is set to False or player's default shortcuts)
+(When MPV_INPUT_CONF is set to False)
 
 q : quit
 
@@ -895,7 +895,7 @@ Users can explore Right click menu of both Playlist Column and Title List Column
 
 5. If users want to remove temporary directory automatically once the programme quits, then they should edit 'TMP_REMOVE' field in the '~/.config/kawaii-player/other_options.txt' and change it to 'yes' from 'no'.
 
-6. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+4 to Ctrl+9 shortcuts, to experiment with various available background image modes.
+6. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+0 to Ctrl+9 shortcuts, to experiment with various available background image modes.
 
 ## Contacts
 
