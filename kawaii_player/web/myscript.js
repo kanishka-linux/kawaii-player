@@ -1648,6 +1648,7 @@ function onDocReady(){
 	var y = document.getElementById("site_option");
 	var z = y.innerHTML;
 	var w = z.split(';');
+    var user_agent = window.navigator.userAgent.toLowerCase();
 	console.log(w);
 	if (w[0].toLowerCase() == 'remotefield:false'){
 		_remote.style.display = "none";
@@ -1669,7 +1670,7 @@ function onDocReady(){
 		_remote_val = 'on';
 		_remote_control_buttons.style.display = "block";
 		}
-	if (w[2].toLowerCase() == 'thumbnails:true'){
+	if (w[2].toLowerCase() == 'thumbnails:true' || (user_agent.indexOf('android')>=0 && user_agent.indexOf('chrome')>=0)){
         _show_thumbnails = true;
         show_thumbnails_image_set('True');
     }else{
