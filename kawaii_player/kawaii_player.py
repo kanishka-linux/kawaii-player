@@ -179,7 +179,7 @@ from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
 from thread_modules import DiscoverServer, BroadcastServer
-from thread_modules import GetServerEpisodeInfo, PlayerGetEpn
+from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 
@@ -1528,7 +1528,7 @@ watch/unwatch status")
         self.external_audio_file = False
         self.show_client_thumbnails = False
         self.navigate_playlist_history = CustomList()
-        
+        self.set_thumbnail_thread_list = []
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -4056,8 +4056,8 @@ watch/unwatch status")
                     j = j+2*iconv_r
                     k = 0
             total_till_epn = length1
-            
-    def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None):
+    
+    def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None, title_list=None):
         global site, home, name
         picn = ''
         title = row_string.strip()
@@ -4075,10 +4075,13 @@ watch/unwatch status")
                 nameEpn = self.replace_special_characters(nameEpn)
             if path.startswith('abs_path='):
                 path = self.if_path_is_rel(path, thumbnail=True)
-            if self.list1.currentItem():
-                name_t = self.list1.currentItem().text()
+            if title_list:
+                name_t = title_list
             else:
-                name_t = ''
+                if self.list1.currentItem():
+                    name_t = self.list1.currentItem().text()
+                else:
+                    name_t = ''
             if OSNAME != 'posix':
                 name_t = self.replace_special_characters(name_t)
             if self.list3.currentItem():
@@ -4128,7 +4131,12 @@ watch/unwatch status")
                     except Exception as e:
                         print(e)
                         return os.path.join(home, 'default.jpg')
-                pl_n = self.list1.currentItem().text()
+                if title_list:
+                    pl_n = title_list
+                else:
+                    pl_n = self.list1.currentItem().text()
+                if OSNAME != 'posix':
+                    pl_n = self.replace_special_characters(pl_n)
                 playlist_name = os.path.join(playlist_dir, pl_n)
                 if not os.path.exists(playlist_name):
                     os.makedirs(playlist_name)
@@ -5982,9 +5990,28 @@ watch/unwatch status")
                         self.list2.addItem((j))
                 k = k+1
             self.list2.setCurrentRow(row)
-            QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
-                                     self.list_with_thumbnail, update_pl_thumb))
-    
+            #QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
+            #                         self.list_with_thumbnail, update_pl_thumb))
+            #if not self.set_thumbnail_thread_list:
+            if self.list1.currentItem():
+                title_list = self.list1.currentItem().text()
+            else:
+                title_list = 'NONE'
+            new_thread = SetThumbnail(self, logger, self.epn_arr_list, update_pl_thumb, title_list)
+            self.set_thumbnail_thread_list.append(new_thread)
+            self.set_thumbnail_thread_list[len(self.set_thumbnail_thread_list) - 1].finished.connect(
+                partial(self.thumbnail_thread_finished, len(self.set_thumbnail_thread_list) - 1))
+            self.set_thumbnail_thread_list[len(self.set_thumbnail_thread_list) - 1].start()
+            
+    def thumbnail_thread_finished(self, k):
+        logger.debug('Title No {0} thumbnail finished'.format(k))
+        txt_str = str(self.list1.count())+'/'+str(self.list2.count())
+        self.page_number.setText(txt_str)
+        m = self.set_thumbnail_thread_list[k]
+        self.set_thumbnail_thread_list[k] = None
+        del m
+        
+        
     def set_icon_list2(self, epnArr, list_thumb, update_pl):
         for k in range(len(epnArr)):
             if list_thumb and update_pl:
