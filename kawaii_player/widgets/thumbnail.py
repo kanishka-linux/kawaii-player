@@ -1238,53 +1238,24 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 nm = ui.list1.currentItem().text()
             else:
                 nm = ''
-            if site != "Local" and finalUrlFound == False:
-                if '	' in ui.epn_arr_list[num]:
-                    a = ui.epn_arr_list[num].split('	')[0]
-                    a = a.replace('#', '', 1)
-                    if a.startswith(ui.check_symbol):
-                        a = a[1:]
+            picn = ui.get_thumbnail_image_path(num, ui.epn_arr_list[num], only_name=True)
+            if os.path.exists(picn):
+                os.remove(picn)
+                small_nm_1, new_title = os.path.split(picn)
+                small_nm_2 = '128px.'+new_title
+                small_nm_3 = '480px.'+new_title
+                new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+                small_thumb = os.path.join(small_nm_1, small_nm_3)
+                logger.info(new_small_thumb)
+                if os.path.exists(new_small_thumb):
+                    os.remove(new_small_thumb)
+                if os.path.exists(small_thumb):
+                    os.remove(small_thumb)
+                if thumbnail_grid:
+                    q1="ui.label_epn_"+str(num)+".clear()"
                 else:
-                    a = (str(ui.epn_arr_list[num])).replace('#', '', 1)
-                    if a.startswith(ui.check_symbol):
-                        a = a[1:]
-                if ui.list3.currentItem() and site == 'Music':
-                    if ui.list3.currentItem().text() == 'Playlist':
-                        picn = os.path.join(home, 'thumbnails', 'PlayLists', nm, a+'.jpg')
-                    else:
-                        picn = os.path.join(home, 'thumbnails', site, nm, a+'.jpg')
-                else:
-                    picn = os.path.join(home, 'thumbnails', site, nm, a+'.jpg')
-                if os.path.exists(picn):
-                    os.remove(picn)
-                    small_nm_1, new_title = os.path.split(picn)
-                    small_nm_2 = '128px.'+new_title
-                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
-                    logger.info(new_small_thumb)
-                    if os.path.exists(new_small_thumb):
-                        os.remove(new_small_thumb)
-                    if thumbnail_grid:
-                        q1="ui.label_epn_"+str(num)+".clear()"
-                    else:
-                        q1="ui.label.clear()"
-                    exec(q1)
-                    
-            elif site =="Local" or finalUrlFound == True or site=="PlayLists":
-                if '	' in ui.epn_arr_list[num]:
-                    a = (ui.epn_arr_list[num]).split('	')[0]
-                else:
-                    a = os.path.basename(ui.epn_arr_list[num])
-                a1 = (str(a)).replace('#', '', 1)
-                if a1.startswith(ui.check_symbol):
-                    a1 = a1[1:]
-                picn = os.path.join(home, 'thumbnails', nm, a1+'.jpg')
-                if os.path.exists(picn):
-                    os.remove(picn)
-                    if thumbnail_grid:
-                        q1="ui.label_epn_"+str(num)+".clear()"
-                    else:
-                        q1="ui.label.clear()"
-                    exec(q1)
+                    q1="ui.label.clear()"
+                exec(q1)
             interval = 0
             ui.set_parameters_value(inter=interval)
         elif action == thumb:
@@ -1305,29 +1276,33 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 memory_num_arr.append(num)
                 ui.set_parameters_value(inter=interval, memory_num=memory_num_arr)
                 if '	' in ui.epn_arr_list[num]:
-                    a = (ui.epn_arr_list[num]).split('	')[0]
                     path = (ui.epn_arr_list[num]).split('	')[1]
                 else:	
-                    a = os.path.basename(ui.epn_arr_list[num])
-                    path = (ui.epn_arr_list[num])
-                path = path.replace('#', '', 1)
-                if site == "PlayLists":
-                    path = path.replace('"', '')
-                logger.info(path)
-                a1 = a
-                a1 = a1.replace('#', '', 1)
-                if a1.startswith(ui.check_symbol):
-                    a1 = a1[1:]
-                picnD = os.path.join(home, 'thumbnails', name)
-                if not os.path.exists(picnD):
-                    os.makedirs(picnD)
-                picn = os.path.join(picnD, a1+'.jpg')
-                picn_new = picn
+                    path = ui.epn_arr_list[num]
+                if path.startswith('#'):
+                    path = path.replace('#', '', 1)
+                if path.startswith('"'):
+                    path = path.replace('"', '', 1)
+                picn = picn_new = ui.get_thumbnail_image_path(num, ui.epn_arr_list[num], only_name=True)
+                if os.path.exists(picn_new):
+                    small_nm_1, new_title = os.path.split(picn_new)
+                    small_nm_2 = '128px.'+new_title
+                    small_nm_3 = '480px.'+new_title
+                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+                    small_thumb = os.path.join(small_nm_1, small_nm_3)
+                    logger.info(new_small_thumb)
+                    if os.path.exists(new_small_thumb):
+                        os.remove(new_small_thumb)
+                    if os.path.exists(picn_new):
+                        os.remove(picn_new)
+                    if os.path.exists(small_thumb):
+                        os.remove(small_thumb)
+                        
                 interval = (interval + 10)
                 ui.set_parameters_value(inter=interval)
                 inter = str(interval)+'s'
                 path = str(path)
-                path = path.replace('"', '')
+                """
                 if finalUrlFound == True and refererNeeded == True:
                     rfr_url = path_final_Url[1]
                     rfr = "--referrer="+rfr_url
@@ -1342,27 +1317,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     if os.path.exists(tmp_img):
                         shutil.copy(tmp_img, picn)
                         os.remove(tmp_img)
-                elif site == "PlayLists":
+                """
+                if site == "PlayLists":
                     rfr_url = str((ui.epn_arr_list[num]).split('	')[2])
                     rfr_url1 = rfr_url.replace('"', '')
                     rfr_url1 = rfr_url1.replace("'", '')
                     logger.info(rfr_url1)
-                    playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
-                    if not os.path.exists(playlist_dir):
-                        os.makedirs(playlist_dir)
-                    if ui.list1.currentItem():
-                        pl_n = ui.list1.currentItem().text()
-                        playlist_name = os.path.join(playlist_dir, pl_n)
-                        if not os.path.exists(playlist_name):
-                            os.makedirs(playlist_name)
-                        picnD = os.path.join(playlist_name, a1)
-                        try:
-                            picn = picnD+'.jpg'
-                        except:
-                            picn = str(picnD)+'.jpg'
                     if rfr_url1.lower().startswith('http'):
-                        path = path.replace('"', '')
-                        path = path
                         rfr = "--referrer="+rfr_url
                         logger.info(rfr)
                         subprocess.call([
@@ -1390,22 +1351,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         else:
                             ui.generate_thumbnail_method(picn, inter, path)
                 else:
-                    logger.info(path +'************')
-                    if ui.list1.currentItem():
-                        name_t = ui.list1.currentItem().text()
-                    else:
-                        name_t = ''
-                    if ui.list3.currentItem() and site == 'Music':
-                        if ui.list3.currentItem().text() == 'Playlist':
-                            picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
-                        else:
-                            picnD = os.path.join(home, 'thumbnails', site, name_t)
-                    else:
-                        picnD = os.path.join(home, 'thumbnails', site, name_t)
-                    if not os.path.exists(picnD):
-                        os.makedirs(picnD)
-                    picn = os.path.join(picnD, a1)+'.jpg'
-                    picn_new = picn
                     ui.generate_thumbnail_method(picn, inter, path)
                 picn = ui.image_fit_option(picn, '', fit_size=6, widget_size=(int(width), int(height)))
                 img = QtGui.QPixmap(picn, "1")			
@@ -1417,13 +1362,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if interval == 100:
                     interval = 10
                     ui.set_parameters_value(inter=interval)
-                if os.path.exists(picn_new):
-                    small_nm_1, new_title = os.path.split(picn_new)
-                    small_nm_2 = '128px.'+new_title
-                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
-                    logger.info(new_small_thumb)
-                    if os.path.exists(new_small_thumb):
-                        os.remove(new_small_thumb)
+                
             else:
                 width = ui.label.width()
                 height = ui.label.height()
@@ -1460,7 +1399,20 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     picnD = os.path.join(home, 'thumbnails', name)
                 if not os.path.exists(picnD):
                     os.makedirs(picnD)
-                picn = os.path.join(picnD, a+'.jpg')
+                picn = picn_new = os.path.join(picnD, a+'.jpg')
+                if os.path.exists(picn_new):
+                    small_nm_1, new_title = os.path.split(picn_new)
+                    small_nm_2 = '128px.'+new_title
+                    small_nm_3 = '480px.'+new_title
+                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+                    small_thumb = os.path.join(small_nm_1, small_nm_3)
+                    logger.info(new_small_thumb)
+                    if os.path.exists(new_small_thumb):
+                        os.remove(new_small_thumb)
+                    if os.path.exists(picn_new):
+                        os.remove(picn_new)
+                    if os.path.exists(small_thumb):
+                        os.remove(small_thumb)
                 interval = (interval + 10)
                 ui.set_parameters_value(inter=interval)
                 inter = str(interval)+'s'
@@ -1489,13 +1441,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if interval == 100:
                     interval = 10
                     ui.set_parameters_value(inter=interval)
-                if os.path.exists(picn):
-                    small_nm_1, new_title = os.path.split(picn)
-                    small_nm_2 = '128px.'+new_title
-                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
-                    logger.info(new_small_thumb)
-                    if os.path.exists(new_small_thumb):
-                        os.remove(new_small_thumb)
 
 
 class TitleThumbnailWidget(QtWidgets.QLabel):
