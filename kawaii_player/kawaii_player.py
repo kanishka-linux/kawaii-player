@@ -178,7 +178,7 @@ from widgets.scrollwidgets import *
 from thread_modules import FindPosterThread, ThreadingThumbnail
 from thread_modules import ThreadingExample, DownloadThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
-from thread_modules import DiscoverServer, BroadcastServer
+from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
 from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
@@ -1529,6 +1529,7 @@ watch/unwatch status")
         self.show_client_thumbnails = False
         self.navigate_playlist_history = CustomList()
         self.set_thumbnail_thread_list = []
+        self.thread_grid_thumbnail = []
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -4061,20 +4062,16 @@ watch/unwatch status")
         global site, home, name
         picn = ''
         title = row_string.strip()
-        
         path = ''
-        if (site == "Local" or site=="None" or site == "Music" or site == "Video" or site.lower() == 'myserver'):
-            if '	' in title:
-                nameEpn = title.split('	')[0]
-                
-                path = title.split('	')[1]
-            else:
-                nameEpn = os.path.basename(title)
-                path = title
-            if OSNAME != 'posix':
-                nameEpn = self.replace_special_characters(nameEpn)
-            if path.startswith('abs_path='):
-                path = self.if_path_is_rel(path, thumbnail=True)
+        if (site == "Local" or site=="None" or site == "Music" 
+                or site.lower() == 'playlists' or site == "Video" 
+                or site.lower() == 'myserver'):
+            
+            thumbnail_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
+            if not os.path.exists(thumbnail_dir):
+                os.makedirs(thumbnail_dir)
+            
+            
             if title_list:
                 name_t = title_list
             else:
@@ -4082,26 +4079,20 @@ watch/unwatch status")
                     name_t = self.list1.currentItem().text()
                 else:
                     name_t = ''
-            if OSNAME != 'posix':
-                name_t = self.replace_special_characters(name_t)
-            if self.list3.currentItem():
-                if self.list3.currentItem().text() == 'Playlist':
-                    picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
-                else:
-                    picnD = os.path.join(home, 'thumbnails', site, name_t)
+                    
+            if '	' in title:
+                path = title.split('	')[1]
             else:
-                picnD = os.path.join(home, 'thumbnails', site, name_t)
-            if not os.path.exists(picnD):
-                try:
-                    os.makedirs(picnD)
-                except Exception as e:
-                    print(e)
-                    return os.path.join(home, 'default.jpg')
-            picn = os.path.join(picnD, nameEpn)+'.jpg'
-            picn = picn.replace('#', '', 1)
-            if picn.startswith(self.check_symbol):
-                picn = picn[1:]
+                path = name_t +'_'+ title
+                
+            if path.startswith('abs_path='):
+                path = self.if_path_is_rel(path, thumbnail=True)
+                
             path = path.replace('"', '')
+            thumb_name_bytes = bytes(path, 'utf-8')
+            h = hashlib.sha256(thumb_name_bytes)
+            thumb_name = h.hexdigest()
+            picn = os.path.join(thumbnail_dir, thumb_name+'.jpg')
             if site == "Music":
                 if os.path.exists(picn):
                     if os.stat(picn).st_size == 0:
@@ -4111,58 +4102,25 @@ watch/unwatch status")
                         pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
                         if os.path.exists(pic):
                             picn = pic
-        elif site == "PlayLists":
-            item = self.list2.item(row_cnt)
-            if item:
-                nameEpn = title.split('	')[0]
-                nameEpn = str(nameEpn)
-                if OSNAME != 'posix':
-                    nameEpn = self.replace_special_characters(nameEpn)
-                try:
-                    path = title.split('	')[1]
-                    if path.startswith('abs_path='):
-                        path = self.if_path_is_rel(path, thumbnail=True)
-                except:
-                    return ''
-                playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
-                if not os.path.exists(playlist_dir):
-                    try:
-                        os.makedirs(playlist_dir)
-                    except Exception as e:
-                        print(e)
-                        return os.path.join(home, 'default.jpg')
-                if title_list:
-                    pl_n = title_list
-                else:
-                    pl_n = self.list1.currentItem().text()
-                if OSNAME != 'posix':
-                    pl_n = self.replace_special_characters(pl_n)
-                playlist_name = os.path.join(playlist_dir, pl_n)
-                if not os.path.exists(playlist_name):
-                    os.makedirs(playlist_name)
-                picnD = os.path.join(playlist_name, nameEpn)
-                picn = picnD+'.jpg'
-                picn = picn.replace('#', '', 1)
-                if picn.startswith(self.check_symbol):
-                    picn = picn[1:]
-                path = path.replace('"', '')
         else:
-            if finalUrlFound == True:
-                if '	' in title:
-                    nameEpn = title.split('	')[0]
-                
-                else:
-                    nameEpn = os.path.basename(title)
+            if '	' in title:
+                nameEpn = title.split('	')[0]
             else:
-                if '	' in title:
-                    nameEpn = title.split('	')[0]
+                nameEpn = title
+                
+            if title_list:
+                name_t = title_list
+            else:
+                if self.list1.currentItem():
+                    name_t = self.list1.currentItem().text()
                 else:
-                    nameEpn = title
+                    name_t = ''
+                    
             if OSNAME != 'posix':
                 nameEpn = self.replace_special_characters(nameEpn)
-                namedir = self.replace_special_characters(name)
+                namedir = self.replace_special_characters(name_t)
             else:
-                namedir = name
+                namedir = name_t
             picnD = os.path.join(home, 'thumbnails', namedir)
             if not os.path.exists(picnD):
                 try:
@@ -4177,6 +4135,7 @@ watch/unwatch status")
         inter = "10s"
         if only_name:
             return picn
+            
         if ((picn and not os.path.exists(picn) and 'http' not in path) 
                 or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
                 or (picn and 'http' in path and site.lower() == 'myserver' and not os.path.exists(picn))):
@@ -4188,13 +4147,14 @@ watch/unwatch status")
                 else:
                     path = self.create_img_url(path)
             self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
-            self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(partial(self.thumbnail_generated, row_cnt, picn))
+            self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(
+                partial(self.thumbnail_generated, row_cnt, picn))
             length = len(self.threadPoolthumb)
             if length == 1:
                 if not self.threadPoolthumb[0].isRunning():
                     self.threadPoolthumb[0].start()
         return picn
-        
+    
     def thumbnailEpn(self):
         global total_till, browse_cnt, home, iconv_r, site
         global thumbnail_indicator, tab_6_size_indicator
@@ -4309,7 +4269,8 @@ watch/unwatch status")
         logger.info("length="+str(length))
         while(browse_cnt<length and browse_cnt < len(self.epn_arr_list)):
             if (site == "Local" or site=="None" or site == "Music"
-                    or site == "Video" or site.lower() == 'myserver'):
+                    or site == "Video" or site.lower() == 'myserver' 
+                    or site.lower() == 'playlists'):
                 if '	' in self.epn_arr_list[browse_cnt]:
                     nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
                     
@@ -4322,81 +4283,7 @@ watch/unwatch status")
                     name_t = self.list1.currentItem().text()
                 else:
                     name_t = ''
-                if self.list3.currentItem():
-                    if self.list3.currentItem().text() == 'Playlist':
-                        picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
-                    else:
-                        picnD = os.path.join(home, 'thumbnails', site, name_t)
-                else:
-                    picnD = os.path.join(home, 'thumbnails', site, name_t)
-                if not os.path.exists(picnD):
-                    os.makedirs(picnD)
-                picn = os.path.join(picnD, nameEpn)+'.jpg'
-                picn = picn.replace('#', '', 1)
-                if picn.startswith(self.check_symbol):
-                    picn = picn[1:]
-                path = path.replace('"', '')
-                if not os.path.exists(picn) and not path.startswith('http'):
-                    self.generate_thumbnail_method(picn, 10, path)
-                elif ((not os.path.exists(picn) and path.startswith('http') and 'youtube.com' in path)
-                            or (path.startswith('http') and site.lower() == 'myserver' and not os.path.exists(picn))):
-                        if 'youtube.com' in path:
-                            img_url = self.create_img_url(path)
-                        elif site.lower() == 'myserver':
-                            img_url = path + '.image'
-                        try:
-                            ccurl(img_url+'#'+'-o'+'#'+picn)
-                        except Exception as err:
-                            print(err, '--4266--')
-                if site == "Music":
-                    if os.path.exists(picn):
-                        if os.stat(picn).st_size == 0:
-                            art_n =(self.epn_arr_list[browse_cnt]).split('	')[2]
-                            pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
-                            if os.path.exists(pic):
-                                picn = pic
-            elif site == "PlayLists":
-                item = self.list2.item(browse_cnt)
-                if item:
-                    nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
-                    nameEpn = str(nameEpn)
-                    path = ((self.epn_arr_list[browse_cnt]).split('	')[1])
-                    playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
-                    if not os.path.exists(playlist_dir):
-                        os.makedirs(playlist_dir)
-                    pl_n = self.list1.currentItem().text()
-                    playlist_name = os.path.join(playlist_dir, pl_n)
-                    if not os.path.exists(playlist_name):
-                        os.makedirs(playlist_name)
-                    picnD = os.path.join(playlist_name, nameEpn)
-                    picn = picnD+'.jpg'
-                    picn = picn.replace('#', '', 1)
-                    if picn.startswith(self.check_symbol):
-                        picn = picn[1:]
-                    path1 = path.replace('"', '')
-                    if not os.path.exists(picn) and not path1.startswith('http'):
-                        self.generate_thumbnail_method(picn, 10, path1)
-                    elif (not os.path.exists(picn) and path1.startswith('http') 
-                            and 'youtube.com' in path1):
-                        if '/watch?' in path1:
-                            a = path1.split('?')[-1]
-                            b = a.split('&')
-                            if b:
-                                for i in b:
-                                    j = i.split('=')
-                                    k = (j[0], j[1])
-                                    m.append(k)
-                            else:
-                                j = a.split('=')
-                                k = (j[0], j[1])
-                                m.append(k)
-                            d = dict(m)
-                        try:
-                            img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
-                            ccurl(img_url+'#'+'-o'+'#'+picn)
-                            self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
-                        except:
-                            pass
+                picn = self.get_thumbnail_image_path(browse_cnt, self.epn_arr_list[browse_cnt])
             else:
                 if finalUrlFound == True:
                     if '	' in self.epn_arr_list[browse_cnt]:
@@ -4414,32 +4301,38 @@ watch/unwatch status")
                 picnD = os.path.join(home, 'thumbnails', name)
                 if not os.path.exists(picnD):
                     os.makedirs(picnD)
-                picn = picnD+'/'+nameEpn+'.jpg'
+                picn = os.path.join(picnD, nameEpn+'.jpg')
                 picn = picn.replace('#', '', 1)
                 if picn.startswith(self.check_symbol):
                     picn = picn[1:]
-                
-            if nameEpn.startswith('#'):
-                nameEpn = nameEpn.replace('#', self.check_symbol, 1)
-            if os.path.exists(picn):
-                picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(width), int(height)))
-                img = QtGui.QPixmap(picn, "1")
-                q1="self.label_epn_"+str(browse_cnt)+".setPixmap(img)"
-                exec (q1)
-                
-            sumry = "<html><h1>"+nameEpn+"</h1></html>"
             
-            q3="self.label_epn_"+str(length+browse_cnt)+".setText((nameEpn))"
-            exec (q3)
-            q3="self.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
-            exec(q3)
-            
-            if (browse_cnt%10) == 0 or browse_cnt == 0:
-                QtWidgets.QApplication.processEvents()
-            browse_cnt = browse_cnt+1
+            #if os.path.exists(picn):
+            #    picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(width), int(height)))
+            #    img = QtGui.QPixmap(picn, "1")
+            #    q1="self.label_epn_"+str(browse_cnt)+".setPixmap(img)"
+            #    exec (q1)
+            #else:
+            new_obj = SetThumbnailGrid(self, logger, browse_cnt, picn, '',
+                                       fit_size=6, widget_size=(int(width), int(height)),
+                                       length=length, nameEpn=nameEpn)
+            self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
+                                       self.grid_thumbnail_process_finished,
+                                       browse_cnt)
+            browse_cnt += 1
+        
+    
+    def grid_thumbnail_process_finished(self, k):
+        if (k%10) == 0 or k == 0:
+            QtWidgets.QApplication.processEvents()
+        logger.debug('finished={0}'.format(k))
         QtWidgets.QApplication.processEvents()
-        QtWidgets.QApplication.processEvents()
-
+        
+    def append_to_thread_list(self, thread_arr, thread_obj, finish_fun, *args):
+        thread_arr.append(thread_obj)
+        length = len(thread_arr) - 1
+        thread_arr[length].finished.connect(partial(finish_fun, args[0]))
+        thread_arr[length].start()
+    
     def searchAnime(self):
         global fullscrT, idwMain, idw
         self.filter_btn_options()
@@ -5480,7 +5373,7 @@ watch/unwatch status")
                 print('--Thread Already Running--')
                 return 0
         if (site != "Local" and site != "Video"):
-            for r in range(len(self.epn_arr_list)):
+            for r, val in enumerate(self.epn_arr_list):
                 if finalUrlFound == True:
                     if '	' in self.epn_arr_list[r]:
                         newEpn = self.epn_arr_list[r].split('	')[0]
@@ -5503,7 +5396,8 @@ watch/unwatch status")
                         img_url = "http:"+img_url
                         command = "wget --user-agent="+'"'+hdr+'" '+'"'+img_url+'"'+" -O "+'"'+dest+'"'
                         self.downloadWget.append(DownloadThread(self, img_url+'#'+'-o'+'#'+dest))
-                        self.downloadWget[len(self.downloadWget)-1].finished.connect(lambda x=dest: self.download_thread_finished(dest))
+                        self.downloadWget[len(self.downloadWget)-1].finished.connect(
+                            partial(self.download_thread_finished, dest, r))
                     
             if self.downloadWget:
                 length = len(self.downloadWget)
@@ -5511,10 +5405,17 @@ watch/unwatch status")
                     if i < length:
                         self.downloadWget[i].start()
                 
-    def download_thread_finished(self, dest):
+    def download_thread_finished(self, dest, r):
         logger.info("Download tvdb image: {0} :completed".format(dest))
         self.image_fit_option(dest, dest, fit_size=6, widget=self.label)
         logger.info("Image: {0} : aspect ratio changed".format(dest))
+        try:
+            if r < self.list2.count():
+                icon_new_pixel = ui.create_new_image_pixel(dest, 128)
+                if os.path.exists(icon_new_pixel):
+                    self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
+        except Exception as e:
+            print(e)
         self.downloadWget_cnt = self.downloadWget_cnt+1
         if self.downloadWget_cnt == 5:
             self.downloadWget = self.downloadWget[5:]
@@ -6153,102 +6054,7 @@ watch/unwatch status")
             move_ahead = False
         if self.list2.currentItem() and num < len(self.epn_arr_list) and move_ahead:
             epn_h = self.list2.currentItem().text()
-            inter_val = 10
-            
-            if '	' in self.epn_arr_list[num]:
-                a = (self.epn_arr_list[num]).split('	')[0]
-                path = (self.epn_arr_list[num]).split('	')[1]
-            else:	
-                a = os.path.basename(self.epn_arr_list[num])
-                path = (self.epn_arr_list[num])
-            path = path.replace('#', '', 1)
-            if site == "PlayLists":
-                path = path.replace('"', '')
-            logger.info(path)
-            a1 = a.strip()
-            self.text.clear()
-            if site != "Music":
-                self.text.setText((a1))
-            a1 = a1.replace('#', '', 1)
-            if a1.startswith(self.check_symbol):
-                a1 = a1[1:]
-            inter = str(inter_val)+'s'
-            picnD = ''
-            picn = ''
-            if (site == "PlayLists" or site == "Local" or site == "Video" 
-                    or site == "Music" or site.lower() == "myserver"):
-                if site == 'PlayLists':
-                    playlist_dir = os.path.join(home, 'thumbnails', 'PlayLists')
-                    if not os.path.exists(playlist_dir):
-                        os.makedirs(playlist_dir)
-                    if self.list1.currentItem():
-                        pl_n = self.list1.currentItem().text()
-                        playlist_name = os.path.join(playlist_dir, pl_n)
-                        if not os.path.exists(playlist_name):
-                            try:
-                                os.makedirs(playlist_name)
-                            except Exception as e:
-                                print(e)
-                                return 0
-                        picnD = os.path.join(playlist_name, a1)
-                        try:
-                            picn = picnD+'.jpg'
-                        except:
-                            picn = str(picnD)+'.jpg'
-                else:
-                    if self.list1.currentItem():
-                        name_t = self.list1.currentItem().text()
-                    else:
-                        name_t = ''
-                    if self.list3.currentItem() and site == 'Music':
-                        if self.list3.currentItem().text() == 'Playlist':
-                            picnD = os.path.join(home, 'thumbnails', 'PlayLists', name_t)
-                        else:
-                            picnD = os.path.join(home, 'thumbnails', site, name_t)
-                    else:
-                        picnD = os.path.join(home, 'thumbnails', site, name_t)
-                    #print(picnD, '=picnD')
-                    if not os.path.exists(picnD):
-                        try:
-                            os.makedirs(picnD)
-                        except Exception as e:
-                            print(e)
-                            return 0
-                    picn = os.path.join(picnD, a1)+'.jpg'
-                if ((picn and not os.path.exists(picn) and 'http' not in path) 
-                        or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
-                        or (picn and site.lower() == 'myserver' and 'http' in path and not os.path.exists(picn))):
-                    path = path.replace('"', '')
-                    if (('http' in path and 'youtube.com' in path and '/watch?' in path) or 
-                            ('http' in path and site.lower() == 'myserver')):
-                        if site.lower() == 'myserver':
-                            path = path+'.image'
-                        else:
-                            path = self.create_img_url(path)
-                    logger.debug('path-------{0}---'.format(path))
-                    self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
-                    self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(partial(self.thumbnail_generated, self.list2.currentRow(), picn))
-                    length = len(self.threadPoolthumb)
-                    if length == 1:
-                        if not self.threadPoolthumb[0].isRunning():
-                            self.threadPoolthumb[0].start()
-                    
-            if not picnD:
-                if self.list1.currentItem():
-                    name_t = self.list1.currentItem().text()
-                else:
-                    name_t = ''
-                picnD = os.path.join(home, 'thumbnails', name_t)
-                if not os.path.exists(picnD):
-                    try:
-                        os.makedirs(picnD)
-                    except Exception as e:
-                        print(e)
-                        return 0
-                try:
-                    picn = os.path.join(picnD, a1)+'.jpg'
-                except:
-                    picn = os.path.join(picnD, str(a1))+'.jpg'
+            picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
             if os.path.exists(picn):
                 self.label.setPixmap(QtGui.QPixmap(picn, "1"))
             else:
@@ -6256,6 +6062,9 @@ watch/unwatch status")
                 
     def thumbnail_generated(self, row=None, picn=None):
         try:
+            if os.path.exists(picn):
+                if not os.stat(picn).st_size:
+                    picn = self.default_background
             if self.list_with_thumbnail:
                 icon_new_pixel = self.create_new_image_pixel(picn, 128)
                 if os.path.exists(icon_new_pixel):
