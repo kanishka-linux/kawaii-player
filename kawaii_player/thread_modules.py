@@ -25,7 +25,7 @@ import random
 import socket
 import urllib.request
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import ccurl, write_files, open_files, send_notification
 from yt import get_yt_url
@@ -830,6 +830,44 @@ class ThreadingThumbnail(QtCore.QThread):
                 logger.info("Thumbnail Generation Exception: {0}".format(e))
                 print(e,'--548--')
 
+
+class SetThumbnail(QtCore.QThread):
+    setThumb = pyqtSignal(int, str, str)
+    def __init__(self, ui_widget, logr, epn_arr, update_pl, title_list):
+        QtCore.QThread.__init__(self)
+        global ui, logger
+        ui = ui_widget
+        logger = logr
+        self.epn_arr = epn_arr.copy()
+        self.update_pl = update_pl
+        self.title_list = title_list
+        self.setThumb.connect(apply_thumbnail_to_playlist)
+        
+    def __del__(self):
+        self.wait()                        
+
+    def run(self):
+        generate_thumbnail = False
+        if ui.list1.currentItem():
+            txt = ui.list1.currentItem().text()
+            if txt == self.title_list:
+                generate_thumbnail = True
+        if generate_thumbnail:
+            for i, k in enumerate(self.epn_arr):
+                if ui.list_with_thumbnail and self.update_pl:
+                    self.setThumb.emit(i, k, self.title_list)
+
+@pyqtSlot(int, str, str)
+def apply_thumbnail_to_playlist(k, i, title):
+    try:
+        if k < ui.list2.count():
+            icon_name = ui.get_thumbnail_image_path(k, i, title_list=title)
+            icon_new_pixel = ui.create_new_image_pixel(icon_name, 128)
+            if os.path.exists(icon_new_pixel):
+                ui.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+    except Exception as e:
+        print(e)
+        
 class GetServerEpisodeInfo(QtCore.QThread):
 
     def __init__(
