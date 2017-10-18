@@ -23,9 +23,10 @@ import time
 import ipaddress
 import random
 import socket
+import shutil
 import urllib.request
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import ccurl, write_files, open_files, send_notification
 from yt import get_yt_url
@@ -821,7 +822,8 @@ class ThreadingThumbnail(QtCore.QThread):
         if not os.path.exists(self.picn) and self.path:
             try:
                 if (self.path.startswith('http') and 
-                    (self.path.endswith('.jpg') or self.path.endswith('.png') or self.path.endswith('.image'))):
+                        (self.path.endswith('.jpg') or self.path.endswith('.png')
+                         or self.path.endswith('.image'))):
                     ccurl(self.path+'#'+'-o'+'#'+self.picn)
                     ui.image_fit_option(self.picn, self.picn, fit_size=6, widget=ui.label)
                 else:
@@ -867,7 +869,73 @@ def apply_thumbnail_to_playlist(k, i, title):
                 ui.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
     except Exception as e:
         print(e)
+
+
+class SetThumbnailGrid(QtCore.QThread):
+    setThumbGrid = pyqtSignal(int, str, str, int, tuple, int, str)
+    setThumbGridTitle = pyqtSignal(int, str, str, int, tuple, int, str)
+    def __init__(self, ui_widget, logr, browse_cnt, picn, val, fit_size,
+                 widget_size, length, nameEpn):
+        QtCore.QThread.__init__(self)
+        global ui, logger
+        ui = ui_widget
+        logger = logr
+        self.browse_cnt = browse_cnt
+        self.picn = picn
+        self.val = val
+        self.fit_size = fit_size
+        self.widget_size = widget_size
+        self.length = length
+        self.nameEpn = nameEpn
+        self.setThumbGrid.connect(apply_to_thumbnail_grid)
+        self.setThumbGridTitle.connect(apply_title_to_thumbnail_grid)
         
+    def __del__(self):
+        self.wait()                        
+
+    def run(self):
+        counter = 0
+        while True and counter < 60:
+            if os.path.isfile(self.picn):
+                break
+            time.sleep(0.5)
+            counter += 1
+        self.setThumbGridTitle.emit(self.browse_cnt, self.picn, self.val,
+                                    self.fit_size, self.widget_size, self.length,
+                                    self.nameEpn)
+        if os.path.exists(self.picn):
+            self.setThumbGrid.emit(self.browse_cnt, self.picn, self.val,
+                                   self.fit_size, self.widget_size, self.length,
+                                   self.nameEpn)
+
+@pyqtSlot(int, str, str, int, tuple, int, str)
+def apply_title_to_thumbnail_grid(browse_cnt, picn, val, fit_size, widget_size, length, nameEpn):
+    try:
+        if nameEpn.startswith('#'):
+            nameEpn = nameEpn.replace('#', ui.check_symbol, 1)
+        sumry = "<html><h1>"+nameEpn+"</h1></html>"
+        q3="ui.label_epn_"+str(length+browse_cnt)+".setText((nameEpn))"
+        exec (q3)
+        q3="ui.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
+        exec(q3)
+        QtWidgets.QApplication.processEvents()
+    except Exception as err:
+        print(err, '--917--')
+
+@pyqtSlot(int, str, str, int, tuple, int, str)
+def apply_to_thumbnail_grid(browse_cnt, picn, val, fit_size, widget_size, length, nameEpn):
+    try:
+        picn_old = picn
+        picn = ui.image_fit_option(picn, '', fit_size=fit_size, widget_size=widget_size)
+        #print(picn)
+        shutil.copy(picn, picn_old)
+        img = QtGui.QPixmap(picn, "1")
+        q1="ui.label_epn_"+str(browse_cnt)+".setPixmap(img)"
+        exec (q1)
+        QtWidgets.QApplication.processEvents()
+    except Exception as err:
+        print(err, '--917--')
+
 class GetServerEpisodeInfo(QtCore.QThread):
 
     def __init__(
