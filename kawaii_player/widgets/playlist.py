@@ -1210,7 +1210,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
             editN = rm_menu.addAction("Rename Single Entry (F2)")
             group_rename = rm_menu.addAction("Rename in Group (F3)")
             menu.addMenu(rm_menu)
-            remove = menu.addAction("Remove Thumbnails")
+            thumb_menu = QtWidgets.QMenu(menu)
+            thumb_menu.setTitle("Remove Thumbnails")
+            menu.addMenu(thumb_menu)
+            remove_all = thumb_menu.addAction("Remove All")
+            remove_selected = thumb_menu.addAction("Remove Selected")
             upspeed = menu.addAction("Set Upload Speed (Ctrl+D)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
             
@@ -1287,29 +1291,35 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if not ui.float_window.isHidden():
                     self.setMaximumHeight(16777215)
                 ui.update_list2()
-            elif action == remove:
-                r = 0
-                for i in ui.epn_arr_list:
-                    if '	' in i:
-                        newEpn = (ui.epn_arr_list[r]).split('	')[0]
-                    else:
-                        newEpn = name+'-'+(ui.epn_arr_list[r])
-                    newEpn = newEpn.replace('#', '', 1)
-                    if newEpn.startswith(ui.check_symbol):
-                        newEpn = newEpn[1:]
-                    if ui.list1.currentItem():
-                        nm = (ui.list1.currentItem().text())
-                        dest = os.path.join(home, "thumbnails", nm, newEpn+'.jpg')
-                        dest = ui.get_thumbnail_image_path(r, newEpn, only_name=True)
-                        if os.path.exists(dest):
-                            os.remove(dest)
-                            small_nm_1, new_title = os.path.split(dest)
-                            small_nm_2 = '128px.'+new_title
-                            new_small_thumb = os.path.join(small_nm_1, small_nm_2)
-                            logger.info(new_small_thumb)
-                            if os.path.exists(new_small_thumb):
-                                os.remove(new_small_thumb)
-                    r = r+1
+            elif action == remove_all:
+                for i, j in enumerate(ui.epn_arr_list):
+                    dest = ui.get_thumbnail_image_path(i, j, only_name=True)
+                    if os.path.exists(dest):
+                        os.remove(dest)
+                        small_nm_1, new_title = os.path.split(dest)
+                        small_nm_2 = '128px.'+new_title
+                        small_nm_3 = '480px.'+new_title
+                        new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+                        small_thumb = os.path.join(small_nm_1, small_nm_3)
+                        logger.info(new_small_thumb)
+                        if os.path.exists(new_small_thumb):
+                            os.remove(new_small_thumb)
+                        if os.path.exists(small_thumb):
+                            os.remove(small_thumb)
+            elif action == remove_selected:
+                dest = ui.get_thumbnail_image_path(r, ui.epn_arr_list[r], only_name=True)
+                if os.path.exists(dest):
+                    os.remove(dest)
+                    small_nm_1, new_title = os.path.split(dest)
+                    small_nm_2 = '128px.'+new_title
+                    small_nm_3 = '480px.'+new_title
+                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+                    small_thumb = os.path.join(small_nm_1, small_nm_3)
+                    logger.info(new_small_thumb)
+                    if os.path.exists(new_small_thumb):
+                        os.remove(new_small_thumb)
+                    if os.path.exists(small_thumb):
+                        os.remove(small_thumb)
             elif action == editN and not ui.list1.isHidden():
                 if ui.epn_arr_list:
                     print('Editing Name')
