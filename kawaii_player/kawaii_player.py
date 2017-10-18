@@ -7266,7 +7266,7 @@ watch/unwatch status")
             thumbnail = os.path.join(TMPDIR, name+'-thumbnail.jpg')
             summary = "Summary Not Available"
             picn = "No.jpg"
-            self.list2.clear()
+            #self.list2.clear()
             site_variable = '{0}::{1}::{2}::{3}::{4}::{5}'.format(
                     site, siteName, opt, name, extra_info, category
                     )
