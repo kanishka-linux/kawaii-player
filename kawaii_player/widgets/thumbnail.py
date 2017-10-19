@@ -651,6 +651,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     new_epn = new_epn.replace('#', '', 1)
                 ui.epn_name_in_list = new_epn
                 finalUrl = ui.epn_return(num)
+                if finalUrl.startswith('"'):
+                    finalUrl = finalUrl.replace('"', '')
+                elif finalUrl.startswith("'"):
+                    finalUrl = finalUrl.replace("'", '')
                 if num < ui.list2.count():
                     ui.list2.setCurrentRow(num)
                     idw = str(int(ui.tab_5.winId()))
@@ -695,6 +699,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.epn_name_in_list = new_epn
                     ui.list2.setCurrentRow(num)
                     finalUrl = ui.epn_return(num)
+                    if finalUrl.startswith('"'):
+                        finalUrl = finalUrl.replace('"', '')
+                    elif finalUrl.startswith("'"):
+                        finalUrl = finalUrl.replace("'", '')
                     if num < ui.list2.count():
                         ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
                         ui.gridLayout.addWidget(ui.tab_6, 0, 2, 1, 1)
@@ -795,6 +803,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.epn_name_in_list = new_epn
             
             finalUrl = ui.epn_return(num)
+            if finalUrl.startswith('"'):
+                finalUrl = finalUrl.replace('"', '')
+            elif finalUrl.startswith("'"):
+                finalUrl = finalUrl.replace("'", '')
             if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
                 finalUrl = ui.if_path_is_rel(finalUrl)
             if num < ui.list2.count():
@@ -879,6 +891,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.epn_name_in_list = new_epn
 
             finalUrl = ui.epn_return(num)
+            if finalUrl.startswith('"'):
+                finalUrl = finalUrl.replace('"', '')
+            elif finalUrl.startswith("'"):
+                finalUrl = finalUrl.replace("'", '')
             if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
                 finalUrl = ui.if_path_is_rel(finalUrl)
             if num < ui.list2.count():
@@ -920,6 +936,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 new_epn = os.path.basename(ui.epn_arr_list[num])
                 ui.epn_name_in_list = new_epn
             finalUrl = ui.epn_return(num)
+            if finalUrl.startswith('"'):
+                finalUrl = finalUrl.replace('"', '')
+            elif finalUrl.startswith("'"):
+                finalUrl = finalUrl.replace("'", '')
             if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
                 finalUrl = ui.if_path_is_rel(finalUrl)
             tmp_idw = str(int(ui.label.winId()))
