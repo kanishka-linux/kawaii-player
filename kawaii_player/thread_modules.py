@@ -914,13 +914,6 @@ def apply_to_thumbnail_grid(browse_cnt, picn, val, fit_size, widget_size, length
         img = QtGui.QPixmap(picn_old, "1")
         q1="ui.label_epn_"+str(browse_cnt)+".setPixmap(img)"
         exec (q1)
-        if nameEpn.startswith('#'):
-            nameEpn = nameEpn.replace('#', ui.check_symbol, 1)
-        sumry = "<html><h1>"+nameEpn+"</h1></html>"
-        q3="ui.label_epn_"+str(length+browse_cnt)+".setText((nameEpn))"
-        exec (q3)
-        q3="ui.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
-        exec(q3)
         #QtWidgets.QApplication.processEvents()
     except Exception as err:
         print(err, '--917--')
