@@ -874,7 +874,7 @@ def apply_thumbnail_to_playlist(k, i, title):
 class SetThumbnailGrid(QtCore.QThread):
     setThumbGrid = pyqtSignal(int, str, str, int, tuple, int, str)
     def __init__(self, ui_widget, logr, browse_cnt, picn, val, fit_size,
-                 widget_size, length, nameEpn):
+                 widget_size, length, nameEpn, path=None):
         QtCore.QThread.__init__(self)
         global ui, logger
         ui = ui_widget
@@ -887,15 +887,21 @@ class SetThumbnailGrid(QtCore.QThread):
         self.length = length
         self.nameEpn = nameEpn
         self.setThumbGrid.connect(apply_to_thumbnail_grid)
+        self.path = path
         
     def __del__(self):
         self.wait()                        
 
     def run(self):
+        counter_limit = 10
+        if self.path is not None:
+            if self.path.startswith('http'):
+                counter_limit = 120
         counter = 0
-        while True and counter < 60:
+        while True and counter < counter_limit:
             if os.path.isfile(self.picn):
-                break
+                if os.stat(self.picn).st_size:
+                    break
             time.sleep(0.5)
             counter += 1
         if os.path.exists(self.picn):
@@ -908,10 +914,7 @@ def apply_to_thumbnail_grid(browse_cnt, picn, val, fit_size, widget_size, length
     try:
         picn_old = picn
         picn = ui.image_fit_option(picn_old, '', fit_size=fit_size, widget_size=widget_size)
-        #print(picn)
-        if not os.stat(picn_old).st_size:
-            shutil.copy(picn, picn_old)
-        img = QtGui.QPixmap(picn_old, "1")
+        img = QtGui.QPixmap(picn, "1")
         q1="ui.label_epn_"+str(browse_cnt)+".setPixmap(img)"
         exec (q1)
         #QtWidgets.QApplication.processEvents()
