@@ -2331,7 +2331,11 @@ watch/unwatch status")
                 wpercent = (basewidth / float(img.size[0]))
                 hsize = int((float(img.size[1]) * float(wpercent)))
                 img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-                img.save(str(abs_path_thumb))
+                try:
+                    img.save(str(abs_path_thumb))
+                except Exception as err:
+                    print(err)
+                    self.handle_png_to_jpg(abs_path_thumb, img)
             elif not os.path.exists(art_url):
                 art_url_name = str(pixel)+'px.'+os.path.basename(self.default_background)
                 path_thumb, new_title = os.path.split(self.default_background)
@@ -2343,7 +2347,11 @@ watch/unwatch status")
                     wpercent = (basewidth / float(img.size[0]))
                     hsize = int((float(img.size[1]) * float(wpercent)))
                     img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-                    img.save(str(abs_path_thumb))
+                    try:
+                        img.save(str(abs_path_thumb))
+                    except Exception as err:
+                        print(err)
+                        self.handle_png_to_jpg(abs_path_thumb, img)
         except:
             art_url_name = str(pixel)+'px.'+os.path.basename(self.default_background)
             path_thumb, new_title = os.path.split(self.default_background)
@@ -2354,7 +2362,11 @@ watch/unwatch status")
                 wpercent = (basewidth / float(img.size[0]))
                 hsize = int((float(img.size[1]) * float(wpercent)))
                 img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-                img.save(str(abs_path_thumb))
+                try:
+                    img.save(str(abs_path_thumb))
+                except Exception as err:
+                    print(err)
+                    self.handle_png_to_jpg(abs_path_thumb, img)
             
         return abs_path_thumb
         
@@ -7780,8 +7792,11 @@ watch/unwatch status")
                     img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                     bg = Image.new(color, (basewidth, hsize))
                     bg.paste(img, (0, 0))
-                    bg.save(str(fanart), 'JPEG', quality=100)
-                    #img.save(str(fanart))
+                    try:
+                        bg.save(str(fanart), 'JPEG', quality=100)
+                    except Exception as err:
+                        print(err)
+                        self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 3:
                     baseheight = screen_height
                     try:
@@ -7796,7 +7811,11 @@ watch/unwatch status")
                     #img.save(str(fanart), 'JPEG', quality=100)
                     bg = Image.new(color, (wsize, screen_height))
                     bg.paste(img, (0, 0))
-                    bg.save(str(fanart), 'JPEG', quality=100)
+                    try:
+                        bg.save(str(fanart), 'JPEG', quality=100)
+                    except Exception as err:
+                        print(err)
+                        self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 7:
                     baseheight = screen_height
                     try:
@@ -7811,7 +7830,11 @@ watch/unwatch status")
                     bg = Image.new(color, (wsize+20, baseheight))
                     offset = (0, 0)
                     bg.paste(img, offset)
-                    bg.save(str(fanart), 'JPEG', quality=100)
+                    try:
+                        bg.save(str(fanart), 'JPEG', quality=100)
+                    except Exception as err:
+                        print(err)
+                        self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 5 or fit_size == 8:
                     baseheight = screen_height
                     try:
@@ -7830,7 +7853,11 @@ watch/unwatch status")
                     else:
                         offset = (int((0)), int((screen_height-baseheight)/2))
                     bg.paste(img, offset)
-                    bg.save(str(fanart), 'JPEG', quality=100)
+                    try:
+                        bg.save(str(fanart), 'JPEG', quality=100)
+                    except Exception as err:
+                        print(err)
+                        self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 9 or fit_size == 10:
                     baseheight = screen_height - (self.frame1.height()+self.label.height()+100)
                     #baseheight = screen_height - self.label.x()
@@ -7856,7 +7883,11 @@ watch/unwatch status")
                         #new_offset = (20+basewidth, 20)
                         bg.paste(img, offset)
                         #bg.paste(img, new_offset)
-                        bg.save(str(fanart), 'JPEG', quality=100)
+                        try:
+                            bg.save(str(fanart), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(fanart, bg)
                     else:
                         wp = float(baseheight/hsize)
                         nbw = int(float(wp)*float(basewidth))
@@ -7868,7 +7899,11 @@ watch/unwatch status")
                             new_offset = (20+nbw, 20)
                         bg.paste(img, offset)
                         bg.paste(img, new_offset)
-                        bg.save(str(fanart), 'JPEG', quality=100)
+                        try:
+                            bg.save(str(fanart), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 6 or fit_size == 4:
                     if widget and fit_size == 6:
                         if widget == self.label:
@@ -7889,6 +7924,7 @@ watch/unwatch status")
                             baseheight = self.float_window.height()
                     logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
                     bg = Image.new(color, (basewidth, baseheight))
+                    #logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
                     try:
                         if os.path.exists(picn) and os.stat(picn).st_size:
                             img = Image.open(str(picn))
@@ -7911,26 +7947,54 @@ watch/unwatch status")
                         img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                         offset = (0, int((baseheight-hsize)/2))
                     bg.paste(img, offset)
+                    
                     if widget and fit_size == 6:
                         if widget == self.label:
-                            img.save(str(fanart), 'JPEG', quality=100)
+                            try:
+                                img.save(str(fanart), 'JPEG', quality=100)
+                            except Exception as err:
+                                print(err)
+                                self.handle_png_to_jpg(fanart, img)
                         elif widget == self.float_window:
                             tmp_img = (os.path.join(TMPDIR, 'tmp.jpg'))
-                            bg.save(str(tmp_img), 'JPEG', quality=100)
+                            try:
+                                bg.save(str(tmp_img), 'JPEG', quality=100)
+                            except Exception as err:
+                                print(err)
+                                self.handle_png_to_jpg(tmp_img, bg)
                             return tmp_img
                     elif widget_size:
                         tmp_img = (os.path.join(TMPDIR, 'tmp.jpg'))
-                        img.save(str(tmp_img), 'JPEG', quality=100)
+                        try:
+                            img.save(str(tmp_img), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(tmp_img, img)
                         return tmp_img
                     elif fit_size == 4:
-                        bg.save(str(fanart), 'JPEG', quality=100)
+                        try:
+                            bg.save(str(fanart), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(fanart, bg)
                     else:
                         tmp_img = (os.path.join(TMPDIR, 'tmp.jpg'))
-                        bg.save(str(tmp_img), 'JPEG', quality=100)
+                        try:
+                            bg.save(str(tmp_img), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(tmp_img, bg)
                         return tmp_img
         except Exception as e:
             print(e, ':Error in resizing and changing aspect ratio --13353--')
-            
+    
+    def handle_png_to_jpg(self, fanart, img):
+        newfanart = fanart.rsplit('.')[0]+'.png'
+        img.save(str(newfanart), 'PNG', quality=100)
+        img_new = Image.open(newfanart)
+        img_new_rgb = img_new.convert("RGB")
+        img_new_rgb.save(fanart, 'JPEG', quality=100)
+    
     def change_aspect_only(self, picn):
         global screen_height, screen_width
         basewidth = self.label.maximumWidth()
