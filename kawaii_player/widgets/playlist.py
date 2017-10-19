@@ -169,17 +169,31 @@ class PlaylistWidget(QtWidgets.QListWidget):
             QtWidgets.QLineEdit.Normal, default_text)
             
         if ok and item:
-            nm = item
+            if '::' in item:
+                nm = item.split('::')[0]
+                artist = item.split('::')[1]
+            else:
+                nm = item
+                artist = None
+            logger.debug('{0}::{1}'.format(nm, artist))
             t = ui.epn_arr_list[row]
             logger.info("4282--{0}-{1}-{2}".format(nm, row, t))
             if ('	' in t and '	' not in nm and site != "Video" 
-                    and site != "None" and site != 'PlayLists'):
+                    and site != "None" and site != 'PlayLists'
+                    and not ui.music_playlist):
                 r = t.split('	')[1]
                 ui.epn_arr_list[row] = nm + '	'+r
                 ui.mark_History()
-            elif site == 'PlayLists':
-                tmp = ui.epn_arr_list[row]
-                tmp = re.sub('[^	]*', nm, tmp, 1)
+            elif site == 'PlayLists' or ui.music_playlist:
+                if artist is None:
+                    tmp = ui.epn_arr_list[row]
+                    tmp = re.sub('[^	]*', nm, tmp, 1)
+                else:
+                    tmp_arr = ui.epn_arr_list[row].split('\t')
+                    tmp = nm + '\t' + tmp_arr[1] + '\t' + artist
+                    logger.debug(tmp_arr)
+                    logger.debug(tmp)
+                logger.debug(tmp)
                 ui.epn_arr_list[row] = tmp
                 if ui.list1.currentItem():
                     pls_n = os.path.join(
