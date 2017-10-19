@@ -1530,6 +1530,7 @@ watch/unwatch status")
         self.navigate_playlist_history = CustomList()
         self.set_thumbnail_thread_list = []
         self.thread_grid_thumbnail = []
+        self.music_playlist = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -4201,6 +4202,16 @@ watch/unwatch status")
             #j = 5
             j = iconv_r+1
             k = 0
+            
+            length1 = 2*length
+            ii = length
+            if iconv_r == 1:
+                jj = 3
+            else:
+                jj = 2*iconv_r
+            kk = 0
+            hei_ght= str(int((int(height)/3)))
+            
             while(i<length):
                 p1="self.label_epn_"+str(i)+" = ThumbnailWidget(self.scrollAreaWidgetContents1)"
                 p4 = "self.label_epn_{0}.setup_globals(MainWindow, ui, home, TMPDIR, logger, screen_width, screen_height)".format(i)
@@ -4220,6 +4231,53 @@ watch/unwatch status")
                 exec(p6)
                 exec(p8)
                 exec(p12)
+                
+                counter = i
+                if (site == "Local" or site=="None" or site == "Music"
+                    or site == "Video" or site.lower() == 'myserver' 
+                    or site.lower() == 'playlists'):
+                    if '	' in self.epn_arr_list[counter]:
+                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                        
+                        path = ((self.epn_arr_list[counter]).split('	')[1])
+                    else:
+                        nameEpn = os.path.basename(self.epn_arr_list[counter])
+                        path = (self.epn_arr_list[counter])
+                    nameEpn = nameEpn.strip()
+                    if self.list1.currentItem():
+                        name_t = self.list1.currentItem().text()
+                    else:
+                        name_t = ''
+                    picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
+                else:
+                    if finalUrlFound == True:
+                        if '	' in self.epn_arr_list[counter]:
+                            nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                        
+                        else:
+                            nameEpn = os.path.basename(self.epn_arr_list[counter])
+                        nameEpn = nameEpn
+                    else:
+                        if '	' in self.epn_arr_list[counter]:
+                            nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                        else:
+                            nameEpn = (self.epn_arr_list[counter])
+                        nameEpn = nameEpn
+                    picnD = os.path.join(home, 'thumbnails', name)
+                    if not os.path.exists(picnD):
+                        os.makedirs(picnD)
+                    picn = os.path.join(picnD, nameEpn+'.jpg')
+                    picn = picn.replace('#', '', 1)
+                    if picn.startswith(self.check_symbol):
+                        picn = picn[1:]
+                        
+                new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
+                                           fit_size=6, widget_size=(int(width), int(height)),
+                                           length=length, nameEpn=nameEpn)
+                self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
+                                           self.grid_thumbnail_process_finished,
+                                           counter)
+                
                 QtWidgets.QApplication.processEvents()
                 i=i+1
                 if (i%50) == 0:
@@ -4230,25 +4288,19 @@ watch/unwatch status")
                     j = j + 2*iconv_r
                     k = 0
         
-            length1 = 2*length
-            i = length
-            if iconv_r == 1:
-                j = 3
-            else:
-                j = 2*iconv_r
-            k = 0
-            hei_ght= str(int((int(height)/2)))
-            while(i<length1):
-                p1="self.label_epn_"+str(i)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents1)"
-                p7 = "l_"+str(i)+" = weakref.ref(self.label_epn_"+str(i)+")"
-                p2="self.label_epn_"+str(i)+".setMinimumWidth("+width+")"
-                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
+            
+                #while(i<length1):
+                p1="self.label_epn_"+str(ii)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents1)"
+                p7 = "l_"+str(ii)+" = weakref.ref(self.label_epn_"+str(ii)+")"
+                p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
+                p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
+                p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
                 
-                p9="self.label_epn_"+str(i)+".setMaximumHeight("+hei_ght+")"
-                p10="self.label_epn_"+str(i)+".lineWrapMode()"
-                p11="self.label_epn_"+str(i)+".setReadOnly(True)"
-               
+                p9="self.label_epn_"+str(ii)+".setMaximumHeight("+hei_ght+")"
+                p10="self.label_epn_"+str(ii)+".lineWrapMode()"
+                p11="self.label_epn_"+str(ii)+".setReadOnly(True)"
+                p12 = "self.label_epn_{0}.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(ii)
+                p13 = "self.label_epn_{0}.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(ii)
                 exec(p1)
                 exec(p7)
                 exec(p2)
@@ -4257,67 +4309,29 @@ watch/unwatch status")
                 exec(p9)
                 exec(p10)
                 exec(p11)
+                exec(p12)
+                exec(p13)
+                if nameEpn.startswith('#'):
+                    nameEpn = nameEpn.replace('#', self.check_symbol, 1)
+                sumry = "<html><h1>"+nameEpn+"</h1></html>"
+                q3="ui.label_epn_"+str(ii)+".setText((nameEpn))"
+                exec (q3)
+                q3="ui.label_epn_"+str(ii)+".setAlignment(QtCore.Qt.AlignCenter)"
+                exec(q3)
+                
                 QtWidgets.QApplication.processEvents()
-                i=i+1
-                if (i%50) == 0:
+                ii += 1
+                if (ii%50) == 0:
                     QtWidgets.QApplication.processEvents()
-                    logger.info('created {0} label-text-frame'.format(i))
-                k = k+1
-                if k == iconv_r:
-                    j = j+2*iconv_r
-                    k = 0
+                    logger.info('created {0} label-text-frame'.format(ii))
+                kk += 1
+                if kk == iconv_r:
+                    jj = jj+2*iconv_r
+                    kk = 0
             total_till_epn = length1
     
         logger.info("browse-cnt="+str(browse_cnt))
         logger.info("length="+str(length))
-        counter = 0
-        while(counter<length and counter < len(self.epn_arr_list)):
-            if (site == "Local" or site=="None" or site == "Music"
-                    or site == "Video" or site.lower() == 'myserver' 
-                    or site.lower() == 'playlists'):
-                if '	' in self.epn_arr_list[counter]:
-                    nameEpn = (self.epn_arr_list[counter]).split('	')[0]
-                    
-                    path = ((self.epn_arr_list[counter]).split('	')[1])
-                else:
-                    nameEpn = os.path.basename(self.epn_arr_list[counter])
-                    path = (self.epn_arr_list[counter])
-                nameEpn = nameEpn.strip()
-                if self.list1.currentItem():
-                    name_t = self.list1.currentItem().text()
-                else:
-                    name_t = ''
-                picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
-            else:
-                if finalUrlFound == True:
-                    if '	' in self.epn_arr_list[counter]:
-                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
-                    
-                    else:
-                        nameEpn = os.path.basename(self.epn_arr_list[counter])
-                    nameEpn = nameEpn
-                else:
-                    if '	' in self.epn_arr_list[counter]:
-                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
-                    else:
-                        nameEpn = (self.epn_arr_list[counter])
-                    nameEpn = nameEpn
-                picnD = os.path.join(home, 'thumbnails', name)
-                if not os.path.exists(picnD):
-                    os.makedirs(picnD)
-                picn = os.path.join(picnD, nameEpn+'.jpg')
-                picn = picn.replace('#', '', 1)
-                if picn.startswith(self.check_symbol):
-                    picn = picn[1:]
-                    
-            new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
-                                       fit_size=6, widget_size=(int(width), int(height)),
-                                       length=length, nameEpn=nameEpn)
-            self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
-                                       self.grid_thumbnail_process_finished,
-                                       counter)
-            counter += 1
-        
     
     def grid_thumbnail_process_finished(self, k):
         #if (k%10) == 0 or k == 0:
@@ -6346,6 +6360,7 @@ watch/unwatch status")
         global video_local_stream, siteName
         
         self.options_mode = 'legacy'
+        self.music_playlist = False
         genre_num = 0
         #total_till = 0
         if self.site_var:
@@ -6816,6 +6831,7 @@ watch/unwatch status")
         m=[]
         criteria = []
         self.options_mode = 'legacy'
+        self.music_playlist = False
         print(site, self.btn1.currentText().lower())
         
         if site and (site not in site_arr) and self.site_var:
@@ -11018,6 +11034,7 @@ watch/unwatch status")
                     artist.append(i[0])
             self.list1.clear()
             self.original_path_name[:] = []
+            self.music_playlist = False
             if (music_opt == "Artist" or music_opt == "Album" or music_opt == "Title" 
                     or music_opt == "Fav-Artist" or music_opt == "Fav-Album"):
                 for i in artist:
@@ -11030,6 +11047,7 @@ watch/unwatch status")
                     i = os.path.basename(i)
                     self.list1.addItem((i))
             elif music_opt == "Playlist":
+                self.music_playlist = True
                 for i in artist:
                     self.original_path_name.append(os.path.join(home, 'Playlist', i))
                     self.list1.addItem((i))
