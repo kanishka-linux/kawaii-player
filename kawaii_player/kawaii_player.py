@@ -4220,6 +4220,7 @@ watch/unwatch status")
                 exec(p6)
                 exec(p8)
                 exec(p12)
+                QtWidgets.QApplication.processEvents()
                 i=i+1
                 if (i%50) == 0:
                     QtWidgets.QApplication.processEvents()
@@ -4256,7 +4257,7 @@ watch/unwatch status")
                 exec(p9)
                 exec(p10)
                 exec(p11)
-                
+                QtWidgets.QApplication.processEvents()
                 i=i+1
                 if (i%50) == 0:
                     QtWidgets.QApplication.processEvents()
@@ -4319,10 +4320,10 @@ watch/unwatch status")
         
     
     def grid_thumbnail_process_finished(self, k):
-        if (k%10) == 0 or k == 0:
-            QtWidgets.QApplication.processEvents()
+        #if (k%10) == 0 or k == 0:
+        #    QtWidgets.QApplication.processEvents()
         logger.debug('finished={0}'.format(k))
-        QtWidgets.QApplication.processEvents()
+        #QtWidgets.QApplication.processEvents()
         
     def append_to_thread_list(self, thread_arr, thread_obj, finish_fun, *args):
         thread_arr.append(thread_obj)
@@ -8035,7 +8036,10 @@ watch/unwatch status")
     def play_file_now(self, file_name, win_id=None):
         global Player, epn_name_in_list, idw, quitReally
         global current_playing_file_path, cur_label_num
-            
+        
+        if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
+            file_name = self.if_path_is_rel(file_name)
+        
         self.mplayerLength = 0
         quitReally = 'no'
         logger.info(file_name)
