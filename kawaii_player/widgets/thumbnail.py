@@ -793,8 +793,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 new_epn = new_epn.replace('#', '', 1)
 
             ui.epn_name_in_list = new_epn
-
+            
             finalUrl = ui.epn_return(num)
+            if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
+                finalUrl = ui.if_path_is_rel(finalUrl)
             if num < ui.list2.count():
                 ui.list2.setCurrentRow(num)
                 p1 = "ui.label_epn_"+str(num)+".winId()"
@@ -877,6 +879,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.epn_name_in_list = new_epn
 
             finalUrl = ui.epn_return(num)
+            if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
+                finalUrl = ui.if_path_is_rel(finalUrl)
             if num < ui.list2.count():
                 ui.list2.setCurrentRow(num)
                 p1 = "ui.label_epn_"+str(num)+".winId()"
@@ -916,6 +920,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 new_epn = os.path.basename(ui.epn_arr_list[num])
                 ui.epn_name_in_list = new_epn
             finalUrl = ui.epn_return(num)
+            if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
+                finalUrl = ui.if_path_is_rel(finalUrl)
             tmp_idw = str(int(ui.label.winId()))
             idw = ui.get_parameters_value(i='idw')['idw']
             if tmp_idw != idw:
@@ -1262,7 +1268,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
             width = self.width()
             height = self.height()
             if (site == "Local" or finalUrlFound == True or site=="None" 
-                    or site =="PlayLists" or site == "Video" or site == "Music"):
+                    or site =="PlayLists" or site == "Video" or site == "Music"
+                    or site == "MyServer"):
                 ui.list2.setCurrentRow(num)
                 if memory_num_arr:
                     t_num = memory_num_arr.pop()
