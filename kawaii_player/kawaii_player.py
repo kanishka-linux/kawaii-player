@@ -3801,6 +3801,7 @@ watch/unwatch status")
             
         width = str(int(w))
         height = str(int(h))
+        hei_ght= str(int(h/3))
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
@@ -3847,6 +3848,8 @@ watch/unwatch status")
                 exec(p6)
                 exec(p8)
                 exec(p9)
+                QtWidgets.QApplication.processEvents()
+                
                 if value_str == "deleted":
                     p1="self.label_"+str(length+i)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)"
                     p7 = "l_"+str(length+i)+" = weakref.ref(self.label_"+str(length+i)+")"
@@ -3854,12 +3857,14 @@ watch/unwatch status")
                     exec(p7)
                     print("creating")
                 p2="self.label_"+str(length+i)+".setMinimumWidth("+width+")"
-                p3="self.label_"+str(length+i)+".setMaximumHeight("+height+")"
+                p3="self.label_"+str(length+i)+".setMaximumHeight("+hei_ght+")"
                 p4 = "self.label_"+str(length+i)+".lineWrapMode()"
                 p5="self.label_"+str(length+i)+".setObjectName(_fromUtf8("+'"'+"label_"+str(length+i)+'"'+"))"
                 p6="self.gridLayout1.addWidget(self.label_"+str(length+i)+", "+str(j1)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
                 #p8="self.label_"+str(length+i)+".setAlignment(QtCore.Qt.AlignCenter)"
                 p9="self.label_"+str(length+i)+".setReadOnly(True)"
+                p12 = "self.label_{0}.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(length+i)
+                p13 = "self.label_{0}.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(length+i)
                 exec(p2)
                 exec(p3)
                 exec(p4)
@@ -3867,19 +3872,19 @@ watch/unwatch status")
                 exec(p6)
                 #exec(p8)
                 exec(p9)
+                exec(p12)
+                exec(p13)
                 if value_str == "deleted":
                     self.display_image(i, "image", dimn=dim_tuple)
                     
                 i=i+1
                 k = k+1
-                if (i%10) == 0 or i == 0:
-                    QtWidgets.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
                 if k == iconv_r:
                     j = j + 2*iconv_r
                     j1 = j1+2*iconv_r
                     k = 0
                     
-        QtWidgets.QApplication.processEvents()
         self.lock_process = False
             
     def thumbnail_label_update(self):
@@ -4032,6 +4037,53 @@ watch/unwatch status")
                 #exec (p4)
                 exec (p5)
                 exec (p6)
+                
+                counter = i
+                if (site == "Local" or site=="None" or site == "Music"
+                    or site == "Video" or site.lower() == 'myserver' 
+                    or site.lower() == 'playlists'):
+                    if '	' in self.epn_arr_list[counter]:
+                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                        
+                        path = ((self.epn_arr_list[counter]).split('	')[1])
+                    else:
+                        nameEpn = os.path.basename(self.epn_arr_list[counter])
+                        path = (self.epn_arr_list[counter])
+                    nameEpn = nameEpn.strip()
+                    if self.list1.currentItem():
+                        name_t = self.list1.currentItem().text()
+                    else:
+                        name_t = ''
+                    picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
+                else:
+                    if finalUrlFound == True:
+                        if '	' in self.epn_arr_list[counter]:
+                            nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                        
+                        else:
+                            nameEpn = os.path.basename(self.epn_arr_list[counter])
+                        nameEpn = nameEpn
+                    else:
+                        if '	' in self.epn_arr_list[counter]:
+                            nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                        else:
+                            nameEpn = (self.epn_arr_list[counter])
+                        nameEpn = nameEpn
+                    picnD = os.path.join(home, 'thumbnails', name)
+                    if not os.path.exists(picnD):
+                        os.makedirs(picnD)
+                    picn = os.path.join(picnD, nameEpn+'.jpg')
+                    picn = picn.replace('#', '', 1)
+                    if picn.startswith(self.check_symbol):
+                        picn = picn[1:]
+                
+                picn_old = picn
+                picn = self.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
+                img = QtGui.QPixmap(picn, "1")
+                q1="self.label_epn_"+str(counter)+".setPixmap(img)"
+                exec (q1)
+                
+                QtWidgets.QApplication.processEvents()
                 i=i+1
                 k = k+1
                 if k == iconv_r:
@@ -4053,6 +4105,7 @@ watch/unwatch status")
                 exec (p2)
                 exec (p5)
                 exec (p6)
+                QtWidgets.QApplication.processEvents()
                 i=i+1
                 k = k+1
                 if k == iconv_r:
@@ -4060,7 +4113,8 @@ watch/unwatch status")
                     k = 0
             total_till_epn = length1
     
-    def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None, title_list=None):
+    def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None,
+                                 title_list=None, start_async=None, send_path=None):
         global site, home, name
         picn = ''
         title = row_string.strip()
@@ -4086,7 +4140,7 @@ watch/unwatch status")
                 path = title.split('	')[1]
             else:
                 path = name_t +'_'+ title
-                
+            
             if path.startswith('abs_path='):
                 path = self.if_path_is_rel(path, thumbnail=True)
                 
@@ -4095,6 +4149,7 @@ watch/unwatch status")
             h = hashlib.sha256(thumb_name_bytes)
             thumb_name = h.hexdigest()
             picn = os.path.join(thumbnail_dir, thumb_name+'.jpg')
+            pic = ''
             if site == "Music":
                 if os.path.exists(picn):
                     if os.stat(picn).st_size == 0:
@@ -4104,6 +4159,8 @@ watch/unwatch status")
                         pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
                         if os.path.exists(pic):
                             picn = pic
+                            logger.debug(picn)
+            logger.debug('\npicn_thumb={0}::pic_music={1}\n'.format(picn, pic))
         else:
             if '	' in title:
                 nameEpn = title.split('	')[0]
@@ -4135,12 +4192,15 @@ watch/unwatch status")
             if picn.startswith(self.check_symbol):
                 picn = picn[1:]
         inter = "10s"
-        if only_name:
+        if send_path and only_name:
+            return (picn, path)
+        elif only_name:
             return picn
             
         if ((picn and not os.path.exists(picn) and 'http' not in path) 
                 or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
-                or (picn and 'http' in path and site.lower() == 'myserver' and not os.path.exists(picn))):
+                or (picn and 'http' in path and site.lower() == 'myserver' and not os.path.exists(picn))
+                or start_async):
             path = path.replace('"', '')
             if (('http' in path and 'youtube.com' in path and '/watch?' in path) or
                     ('http' in path and site.lower() == 'myserver')):
@@ -4233,6 +4293,7 @@ watch/unwatch status")
                 exec(p12)
                 
                 counter = i
+                start_already = False
                 if (site == "Local" or site=="None" or site == "Music"
                     or site == "Video" or site.lower() == 'myserver' 
                     or site.lower() == 'playlists'):
@@ -4248,7 +4309,19 @@ watch/unwatch status")
                         name_t = self.list1.currentItem().text()
                     else:
                         name_t = ''
-                    picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
+                    picn, path = self.get_thumbnail_image_path(
+                        counter, self.epn_arr_list[counter], only_name=True,
+                        send_path=True)
+                    
+                    if not os.path.exists(picn):
+                        picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter], start_async=True)
+                        new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
+                                                   fit_size=6, widget_size=(int(width), int(height)),
+                                                   length=length, nameEpn=nameEpn, path=path)
+                        self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
+                                                   self.grid_thumbnail_process_finished,
+                                                   counter)
+                        start_already = True
                 else:
                     if finalUrlFound == True:
                         if '	' in self.epn_arr_list[counter]:
@@ -4271,25 +4344,28 @@ watch/unwatch status")
                     if picn.startswith(self.check_symbol):
                         picn = picn[1:]
                         
-                new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
-                                           fit_size=6, widget_size=(int(width), int(height)),
-                                           length=length, nameEpn=nameEpn)
-                self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
-                                           self.grid_thumbnail_process_finished,
-                                           counter)
+                #new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
+                #                           fit_size=6, widget_size=(int(width), int(height)),
+                #                           length=length, nameEpn=nameEpn)
+                #self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
+                #                           self.grid_thumbnail_process_finished,
+                #                           counter)
+                
+                if not start_already:
+                    picn_old = picn
+                    picn = ui.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
+                    img = QtGui.QPixmap(picn, "1")
+                    q1="ui.label_epn_"+str(counter)+".setPixmap(img)"
+                    exec (q1)
                 
                 QtWidgets.QApplication.processEvents()
                 i=i+1
-                if (i%50) == 0:
-                    QtWidgets.QApplication.processEvents()
-                    logger.info('created {0} label-frame'.format(i))
                 k = k+1
                 if k == iconv_r:
                     j = j + 2*iconv_r
                     k = 0
         
             
-                #while(i<length1):
                 p1="self.label_epn_"+str(ii)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents1)"
                 p7 = "l_"+str(ii)+" = weakref.ref(self.label_epn_"+str(ii)+")"
                 p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
@@ -4321,17 +4397,12 @@ watch/unwatch status")
                 
                 QtWidgets.QApplication.processEvents()
                 ii += 1
-                if (ii%50) == 0:
-                    QtWidgets.QApplication.processEvents()
-                    logger.info('created {0} label-text-frame'.format(ii))
                 kk += 1
                 if kk == iconv_r:
                     jj = jj+2*iconv_r
                     kk = 0
             total_till_epn = length1
-    
-        logger.info("browse-cnt="+str(browse_cnt))
-        logger.info("length="+str(length))
+            QtWidgets.QApplication.processEvents()
     
     def grid_thumbnail_process_finished(self, k):
         #if (k%10) == 0 or k == 0:
@@ -7816,6 +7887,7 @@ watch/unwatch status")
                         else:
                             basewidth = self.float_window.width()
                             baseheight = self.float_window.height()
+                    logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
                     bg = Image.new(color, (basewidth, baseheight))
                     try:
                         if os.path.exists(picn) and os.stat(picn).st_size:
@@ -7908,8 +7980,14 @@ watch/unwatch status")
                     if not os.path.exists(original_fanart):
                         shutil.copy(picn, original_fanart)
                     self.image_fit_option(picn, fanart, fit_size=img_opt)
-                if not os.path.isfile(thumbnail):
+                get_thumbnail = False
+                if os.path.isfile(thumbnail):
+                    if not os.stat(thumbnail).st_size:
+                        get_thumbnail = True
+                elif not os.path.isfile(thumbnail):
+                    get_thumbnail = True
                     #self.image_fit_option(picn, thumbnail, fit_size=450)
+                if get_thumbnail:
                     self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
                 poster = picn
                 picn = thumbnail
