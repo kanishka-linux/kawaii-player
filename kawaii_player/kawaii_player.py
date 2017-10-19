@@ -3770,7 +3770,8 @@ watch/unwatch status")
             logger.info(tmp_name)
         else:
             if (site == "Local" or site == "None" or site == "PlayLists" 
-                    or site=="Video" or site=="Music" or opt == "History"):
+                    or site=="Video" or site=="Music" or opt == "History"
+                    or site == 'MyServer'):
                 length = self.list1.count()
             
         if iconv_r == 1 and not self.tab_5.isHidden():
@@ -3812,7 +3813,7 @@ watch/unwatch status")
             k = 0
             if opt != "History":
                 if (site == "Local" or site == "Video" or site == "Music" 
-                        or site=='PlayLists'):
+                        or site=='PlayLists' or site == 'MyServer'):
                     length = len(tmp_name)
                 else:
                     length = 100
@@ -4258,6 +4259,7 @@ watch/unwatch status")
                 
                 i=i+1
                 if (i%50) == 0:
+                    QtWidgets.QApplication.processEvents()
                     logger.info('created {0} label-text-frame'.format(i))
                 k = k+1
                 if k == iconv_r:
@@ -4267,36 +4269,37 @@ watch/unwatch status")
     
         logger.info("browse-cnt="+str(browse_cnt))
         logger.info("length="+str(length))
-        while(browse_cnt<length and browse_cnt < len(self.epn_arr_list)):
+        counter = 0
+        while(counter<length and counter < len(self.epn_arr_list)):
             if (site == "Local" or site=="None" or site == "Music"
                     or site == "Video" or site.lower() == 'myserver' 
                     or site.lower() == 'playlists'):
-                if '	' in self.epn_arr_list[browse_cnt]:
-                    nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
+                if '	' in self.epn_arr_list[counter]:
+                    nameEpn = (self.epn_arr_list[counter]).split('	')[0]
                     
-                    path = ((self.epn_arr_list[browse_cnt]).split('	')[1])
+                    path = ((self.epn_arr_list[counter]).split('	')[1])
                 else:
-                    nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
-                    path = (self.epn_arr_list[browse_cnt])
+                    nameEpn = os.path.basename(self.epn_arr_list[counter])
+                    path = (self.epn_arr_list[counter])
                 nameEpn = nameEpn.strip()
                 if self.list1.currentItem():
                     name_t = self.list1.currentItem().text()
                 else:
                     name_t = ''
-                picn = self.get_thumbnail_image_path(browse_cnt, self.epn_arr_list[browse_cnt])
+                picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
             else:
                 if finalUrlFound == True:
-                    if '	' in self.epn_arr_list[browse_cnt]:
-                        nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
+                    if '	' in self.epn_arr_list[counter]:
+                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
                     
                     else:
-                        nameEpn = os.path.basename(self.epn_arr_list[browse_cnt])
+                        nameEpn = os.path.basename(self.epn_arr_list[counter])
                     nameEpn = nameEpn
                 else:
-                    if '	' in self.epn_arr_list[browse_cnt]:
-                        nameEpn = (self.epn_arr_list[browse_cnt]).split('	')[0]
+                    if '	' in self.epn_arr_list[counter]:
+                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
                     else:
-                        nameEpn = (self.epn_arr_list[browse_cnt])
+                        nameEpn = (self.epn_arr_list[counter])
                     nameEpn = nameEpn
                 picnD = os.path.join(home, 'thumbnails', name)
                 if not os.path.exists(picnD):
@@ -4305,20 +4308,14 @@ watch/unwatch status")
                 picn = picn.replace('#', '', 1)
                 if picn.startswith(self.check_symbol):
                     picn = picn[1:]
-            
-            #if os.path.exists(picn):
-            #    picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(width), int(height)))
-            #    img = QtGui.QPixmap(picn, "1")
-            #    q1="self.label_epn_"+str(browse_cnt)+".setPixmap(img)"
-            #    exec (q1)
-            #else:
-            new_obj = SetThumbnailGrid(self, logger, browse_cnt, picn, '',
+                    
+            new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
                                        fit_size=6, widget_size=(int(width), int(height)),
                                        length=length, nameEpn=nameEpn)
             self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
                                        self.grid_thumbnail_process_finished,
-                                       browse_cnt)
-            browse_cnt += 1
+                                       counter)
+            counter += 1
         
     
     def grid_thumbnail_process_finished(self, k):
@@ -10930,8 +10927,9 @@ watch/unwatch status")
                         j = i.split('	')[0]
                     else:
                         j = i
-                    self.list1.addItem(j)
-                    self.original_path_name.append(i)
+                    if j:
+                        self.list1.addItem(j)
+                        self.original_path_name.append(i)
                 self.forward.show()
                 self.backward.show()
             elif list_2:
