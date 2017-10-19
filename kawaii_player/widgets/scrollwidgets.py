@@ -315,7 +315,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             if not ui.scrollArea.isHidden():
                 ui.next_page('not_deleted')
             elif not ui.scrollArea1.isHidden():
-                ui.thumbnail_label_update()
+                ui.thumbnail_label_update_epn()
             if iconv_r > 1:
                 w = float((ui.tab_6.width()-60)/iconv_r)
                 #h = float((9*w)/16)
@@ -338,7 +338,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 #ui.thumbnail_label_update()
             elif not ui.scrollArea1.isHidden():
                 #ui.thumbnailEpn()
-                ui.thumbnail_label_update()
+                ui.thumbnail_label_update_epn()
             if iconv_r > 1:
                 w = float((ui.tab_6.width()-60)/iconv_r)
                 #h = float((9*w)/16)
