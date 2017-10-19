@@ -911,7 +911,7 @@ def apply_to_thumbnail_grid(browse_cnt, picn, val, fit_size, widget_size, length
         #print(picn)
         if not os.stat(picn_old).st_size:
             shutil.copy(picn, picn_old)
-        img = QtGui.QPixmap(picn, "1")
+        img = QtGui.QPixmap(picn_old, "1")
         q1="ui.label_epn_"+str(browse_cnt)+".setPixmap(img)"
         exec (q1)
         if nameEpn.startswith('#'):
@@ -921,6 +921,7 @@ def apply_to_thumbnail_grid(browse_cnt, picn, val, fit_size, widget_size, length
         exec (q3)
         q3="ui.label_epn_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
         exec(q3)
+        #QtWidgets.QApplication.processEvents()
     except Exception as err:
         print(err, '--917--')
 
