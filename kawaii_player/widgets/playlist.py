@@ -890,7 +890,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         logger.info(file_path)
         site = ui.get_parameters_value(s='site')['site']
         if (site == "Music" or site == "Video" or site == "Local" 
-                or site == "None" or site == 'PlayLists'):
+                or site == "None" or site == 'PlayLists' or site == 'MyServer'):
             if os.path.exists(file_path):
                 i = self.currentRow()
                 sumr = ui.epn_arr_list[i].split('	')[0]
