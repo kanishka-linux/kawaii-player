@@ -11172,6 +11172,7 @@ watch/unwatch status")
                 pls = os.path.join(home, 'Playlists')
                 if os.path.exists(pls):
                     m = os.listdir(pls)
+                    m.sort()
                     for i in m:
                         artist.append(i)
             else:
