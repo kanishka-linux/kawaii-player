@@ -4170,8 +4170,9 @@ watch/unwatch status")
                             art_n = self.replace_special_characters(art_n)
                         pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
                         if os.path.exists(pic):
-                            picn = pic
-                            logger.debug(picn)
+                            if os.stat(pic).st_size:
+                                shutil.copy(pic, picn)
+                                picn = pic
             logger.debug('\npicn_thumb={0}::pic_music={1}\n'.format(picn, pic))
         else:
             if '	' in title:
