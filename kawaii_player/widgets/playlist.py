@@ -986,7 +986,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     writing_failed = False
                     if os.path.exists(file_path):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
-
+    
+    def remove_thumbnails(self, row, row_item):
+        dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
+        if os.path.exists(dest):
+            os.remove(dest)
+            small_nm_1, new_title = os.path.split(dest)
+            small_nm_2 = '128px.'+new_title
+            small_nm_3 = '480px.'+new_title
+            new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+            small_thumb = os.path.join(small_nm_1, small_nm_3)
+            logger.info(new_small_thumb)
+            if os.path.exists(new_small_thumb):
+                os.remove(new_small_thumb)
+            if os.path.exists(small_thumb):
+                os.remove(small_thumb)
+    
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(s='site', n='name')
         site = param_dict['site']
@@ -1021,6 +1036,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
             default = menu.addAction("Set Default Background")
             delPosters = menu.addAction("Delete Poster")
             delInfo = menu.addAction("Delete Info")
+            thumb_menu = QtWidgets.QMenu(menu)
+            thumb_menu.setTitle("Remove Thumbnails")
+            menu.addMenu(thumb_menu)
+            remove_all = thumb_menu.addAction("Remove All")
+            remove_selected = thumb_menu.addAction("Remove Selected")
+            
             action = menu.exec_(self.mapToGlobal(event.pos()))
             for i in range(len(item_m)):
                 if action == item_m[i]:
@@ -1098,6 +1119,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
                                   action='search_by_name')
             elif action == fix_ord:
                 self.fix_order()
+            elif action == remove_all:
+                for i, j in enumerate(ui.epn_arr_list):
+                    self.remove_thumbnails(i ,j)
+            elif action == remove_selected:
+                r = self.currentRow()
+                self.remove_thumbnails(r ,ui.epn_arr_list[r])
             elif action == delInfo or action == delPosters or action == default:
                 if (ui.list3.currentItem()):
                     if str(ui.list3.currentItem().text()) == "Artist":
@@ -1307,33 +1334,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 ui.update_list2()
             elif action == remove_all:
                 for i, j in enumerate(ui.epn_arr_list):
-                    dest = ui.get_thumbnail_image_path(i, j, only_name=True)
-                    if os.path.exists(dest):
-                        os.remove(dest)
-                        small_nm_1, new_title = os.path.split(dest)
-                        small_nm_2 = '128px.'+new_title
-                        small_nm_3 = '480px.'+new_title
-                        new_small_thumb = os.path.join(small_nm_1, small_nm_2)
-                        small_thumb = os.path.join(small_nm_1, small_nm_3)
-                        logger.info(new_small_thumb)
-                        if os.path.exists(new_small_thumb):
-                            os.remove(new_small_thumb)
-                        if os.path.exists(small_thumb):
-                            os.remove(small_thumb)
+                    self.remove_thumbnails(i ,j)
             elif action == remove_selected:
-                dest = ui.get_thumbnail_image_path(r, ui.epn_arr_list[r], only_name=True)
-                if os.path.exists(dest):
-                    os.remove(dest)
-                    small_nm_1, new_title = os.path.split(dest)
-                    small_nm_2 = '128px.'+new_title
-                    small_nm_3 = '480px.'+new_title
-                    new_small_thumb = os.path.join(small_nm_1, small_nm_2)
-                    small_thumb = os.path.join(small_nm_1, small_nm_3)
-                    logger.info(new_small_thumb)
-                    if os.path.exists(new_small_thumb):
-                        os.remove(new_small_thumb)
-                    if os.path.exists(small_thumb):
-                        os.remove(small_thumb)
+                self.remove_thumbnails(r ,ui.epn_arr_list[r])
             elif action == editN and not ui.list1.isHidden():
                 if ui.epn_arr_list:
                     print('Editing Name')
