@@ -191,7 +191,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.frame1.hide()
                         self.ui.tab_6.hide()
                         self.ui.goto_epn.hide()
-                        self.ui.btn20.hide()
+                        #self.ui.btn20.hide()
                         
                         if wget.processId() > 0 or video_local_stream:
                             self.ui.progress.hide()
@@ -379,6 +379,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.gridLayout.addWidget(self.ui.tab_6, 0, 1, 1, 1)
                     #self.ui.tab_5.setMinimumSize(0, 0)
                     self.ui.gridLayout.setSpacing(5)
+                    self.ui.tab_6.setMaximumSize(10000, 10000)
                     #self.ui.frame1.hide()
                     self.ui.tab_5.hide()
                     if iconv_r_indicator:
@@ -388,10 +389,12 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.set_parameters_value(thumb_indicator='empty',
                                                  iconv=iconv_r)
                     #num = self.ui.list2.currentRow()
-                    self.ui.thumbnail_label_update_epn()
-                    QtWidgets.QApplication.processEvents()
+                    ##self.ui.thumbnail_label_update_epn()
+                    
                     self.ui.frame2.show()
                     self.ui.frame1.show()
+                    self.ui.labelFrame2.show()
+                    QtWidgets.QApplication.processEvents()
                     QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
                 if wget:
                     if wget.processId() > 0:
