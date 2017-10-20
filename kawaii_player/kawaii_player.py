@@ -4168,7 +4168,7 @@ watch/unwatch status")
                         art_n =title.split('	')[2]
                         if OSNAME != 'posix':
                             art_n = self.replace_special_characters(art_n)
-                        pic = os.path.join(home, 'Music', 'Artist', art_n, 'thumbnail.jpg')
+                        pic = os.path.join(home, 'Music', 'Artist', art_n, 'poster.jpg')
                         if os.path.exists(pic):
                             if os.stat(pic).st_size:
                                 shutil.copy(pic, picn)
@@ -6152,6 +6152,9 @@ watch/unwatch status")
             epn_h = self.list2.currentItem().text()
             picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
             if os.path.exists(picn):
+                w = self.label.width()
+                h = self.label.height()
+                picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(w, h))
                 self.label.setPixmap(QtGui.QPixmap(picn, "1"))
             else:
                 pass
