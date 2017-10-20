@@ -1343,6 +1343,10 @@ watch/unwatch status")
         
         self.horizontalLayout10.insertWidget(2, self.frame2, 0)
         
+        self.btn20.setMaximumWidth(96)
+        self.comboBoxMode.setMaximumWidth(96)
+        self.btn201.setMaximumWidth(96)
+        
         self.horizontalLayout_101.insertWidget(0, self.btn20, 0)
         self.horizontalLayout_101.insertWidget(1, self.comboBoxMode, 0)
         self.horizontalLayout_101.insertWidget(2, self.labelFrame2, 0)
@@ -2004,7 +2008,7 @@ watch/unwatch status")
                 self.frame1.hide()
                 self.tab_6.hide()
                 self.goto_epn.hide()
-                self.btn20.hide()
+                #self.btn20.hide()
                 if wget.processId() > 0 or video_local_stream:
                     self.progress.hide()
                     if not self.torrent_frame.isHidden():
@@ -2272,7 +2276,14 @@ watch/unwatch status")
                 if from_client:
                     self.mpv_thumbnail_lock = False
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                    self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+                    #self.image_fit_option(picn, picn, fit_size=6, widget_size=(480, 360))
+                    self.create_new_image_pixel(picn, 128)
+                    self.create_new_image_pixel(picn, 480)
+                    label_name = 'label.'+os.path.basename(picn)
+                    path_thumb, new_title = os.path.split(picn)
+                    new_picn = os.path.join(path_thumb, label_name)
+                    if not os.path.exists(new_picn):
+                        self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
             else:
                 if path.endswith('.mp3') or path.endswith('.flac'):
                     try:
@@ -2316,7 +2327,9 @@ watch/unwatch status")
                         shutil.copy(picn_path, picn)
                         os.remove(picn_path)
                         if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                            self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+                            #self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+                            self.create_new_image_pixel(picn, 128)
+                            self.create_new_image_pixel(picn, 480)
                     self.mpv_thumbnail_lock = False
     
     def create_new_image_pixel(self, art_url, pixel):
@@ -2824,6 +2837,7 @@ watch/unwatch status")
                             iconv_r = iconv_r_indicator[0]
                         else:
                             iconv_r = 5
+                        self.labelFrame2.show()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             if MainWindow.isFullScreen():
                 MainWindow.showNormal()
@@ -4242,6 +4256,7 @@ watch/unwatch status")
             self.tab_6.setMaximumSize(self.width_allowed, 16777215)
         else:
             self.tab_6.setMaximumSize(16777215, 16777215)
+        self.labelFrame2.show()
         print("width="+str(self.tab_6.width()))
         if iconv_r > 1:
             w = float((self.tab_6.width()-60)/iconv_r)
@@ -4402,12 +4417,14 @@ watch/unwatch status")
                 exec(p13)
                 if nameEpn.startswith('#'):
                     nameEpn = nameEpn.replace('#', self.check_symbol, 1)
-                sumry = "<html><h1>"+nameEpn+"</h1></html>"
+                sumry = "<html><h4>"+nameEpn+"</h4></html>"
+                sumry = sumry.replace('"', '')
                 q3="ui.label_epn_"+str(ii)+".setText((nameEpn))"
                 exec (q3)
                 q3="ui.label_epn_"+str(ii)+".setAlignment(QtCore.Qt.AlignCenter)"
                 exec(q3)
-                
+                q3='ui.label_epn_{0}.setToolTip("{1}")'.format(ii, sumry)
+                exec(q3)
                 QtWidgets.QApplication.processEvents()
                 ii += 1
                 kk += 1
@@ -6152,10 +6169,13 @@ watch/unwatch status")
             epn_h = self.list2.currentItem().text()
             picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
             if os.path.exists(picn):
-                w = self.label.width()
-                h = self.label.height()
-                picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(w, h))
-                self.label.setPixmap(QtGui.QPixmap(picn, "1"))
+                label_name = 'label.'+os.path.basename(picn)
+                path_thumb, new_title = os.path.split(picn)
+                new_picn = os.path.join(path_thumb, label_name)
+                if not os.path.exists(new_picn):
+                    self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
+                if os.path.isfile(new_picn):
+                    self.label.setPixmap(QtGui.QPixmap(new_picn, "1"))
             else:
                 pass
                 
