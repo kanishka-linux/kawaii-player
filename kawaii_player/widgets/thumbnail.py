@@ -1211,7 +1211,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.setFocus()
         if action == queue_item:
             if (site == "Music" or site == "Video" or site == "Local" 
-                    or site == "PlayLists" or site == "None"):
+                    or site == "PlayLists" or site == "None" or site == "MyServer"):
                 file_path = os.path.join(home, 'Playlists', 'Queue')
                 if not os.path.exists(file_path):
                     f = open(file_path, 'w')
