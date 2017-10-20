@@ -735,7 +735,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     ui.frame1.hide()
                     ui.tab_6.hide()
                     ui.goto_epn.hide()
-                    ui.btn20.hide()
+                    #ui.btn20.hide()
                     if wget.processId() > 0 or video_local_stream:
                         ui.progress.hide()
                         if not ui.torrent_frame.isHidden():
@@ -994,13 +994,17 @@ class PlaylistWidget(QtWidgets.QListWidget):
             small_nm_1, new_title = os.path.split(dest)
             small_nm_2 = '128px.'+new_title
             small_nm_3 = '480px.'+new_title
+            small_nm_4 = 'label.'+new_title
             new_small_thumb = os.path.join(small_nm_1, small_nm_2)
             small_thumb = os.path.join(small_nm_1, small_nm_3)
+            small_label = os.path.join(small_nm_1, small_nm_4)
             logger.info(new_small_thumb)
             if os.path.exists(new_small_thumb):
                 os.remove(new_small_thumb)
             if os.path.exists(small_thumb):
                 os.remove(small_thumb)
+            if os.path.exists(small_label):
+                os.remove(small_label)
     
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(s='site', n='name')

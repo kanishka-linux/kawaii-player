@@ -630,6 +630,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         ui.set_parameters_value(curRow=curR)
         if var_mode == 1:
             ui.label_search.clear()
+            ui.labelFrame2.hide()
             tab_6_player = "False"
             if tab_6_size_indicator:
                 tab_6_size_indicator.pop()
@@ -1270,13 +1271,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 small_nm_1, new_title = os.path.split(picn)
                 small_nm_2 = '128px.'+new_title
                 small_nm_3 = '480px.'+new_title
+                small_nm_4 = 'label.'+new_title
                 new_small_thumb = os.path.join(small_nm_1, small_nm_2)
                 small_thumb = os.path.join(small_nm_1, small_nm_3)
+                label_thumb = os.path.join(small_nm_1, small_nm_4)
                 logger.info(new_small_thumb)
                 if os.path.exists(new_small_thumb):
                     os.remove(new_small_thumb)
                 if os.path.exists(small_thumb):
                     os.remove(small_thumb)
+                if os.path.exists(label_thumb):
+                    os.remove(label_thumb)
                 if thumbnail_grid:
                     q1="ui.label_epn_"+str(num)+".clear()"
                 else:
@@ -1315,8 +1320,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     small_nm_1, new_title = os.path.split(picn_new)
                     small_nm_2 = '128px.'+new_title
                     small_nm_3 = '480px.'+new_title
+                    small_nm_4 = 'label.'+new_title
                     new_small_thumb = os.path.join(small_nm_1, small_nm_2)
                     small_thumb = os.path.join(small_nm_1, small_nm_3)
+                    label_thumb = os.path.join(small_nm_1, small_nm_4)
                     logger.info(new_small_thumb)
                     if os.path.exists(new_small_thumb):
                         os.remove(new_small_thumb)
@@ -1324,6 +1331,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         os.remove(picn_new)
                     if os.path.exists(small_thumb):
                         os.remove(small_thumb)
+                    if os.path.exists(label_thumb):
+                        os.remove(label_thumb)
                         
                 interval = (interval + 10)
                 ui.set_parameters_value(inter=interval)
