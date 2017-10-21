@@ -4417,6 +4417,7 @@ watch/unwatch status")
                 exec(p13)
                 if nameEpn.startswith('#'):
                     nameEpn = nameEpn.replace('#', self.check_symbol, 1)
+                nameEpn = nameEpn.replace('_', ' ')
                 sumry = "<html><h4>"+nameEpn+"</h4></html>"
                 sumry = sumry.replace('"', '')
                 q3="ui.label_epn_"+str(ii)+".setText((nameEpn))"
@@ -4882,16 +4883,37 @@ watch/unwatch status")
                 self.tab_5.show()
                 self.frame1.show()
                 iconv_r = 1
-                self.gridLayout.addWidget(self.tab_6, 0, 2, 1, 1)	
-            else:	
-                self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)		
+                self.gridLayout.addWidget(self.tab_6, 0, 2, 1, 1)
+            else:
+                self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
             self.tab_6.show()
             self.thumbnailEpn()
             self.tab_2.hide()
-            if self.mpvplayer_val.processId()>0:
-                self.scrollArea1.verticalScrollBar().setValue((curR+1)*200+(curR+1)*10)
-            else:
-                self.scrollArea1.verticalScrollBar().setValue(((num+1)/4)*200+((num+1)/4)*10)
+            #if self.mpvplayer_val.processId()>0:
+            #    self.scrollArea1.verticalScrollBar().setValue((curR+1)*200+(curR+1)*10)
+            #else:
+            #    self.scrollArea1.verticalScrollBar().setValue(((num+1)/4)*200+((num+1)/4)*10)
+            QtWidgets.QApplication.processEvents()
+            try:
+                if self.list2.currentItem():
+                    r = self.list2.currentRow()
+                    p1 = "self.label_epn_"+str(r)+".y()"
+                    yy = eval(p1)
+                    self.scrollArea1.verticalScrollBar().setValue(yy -10)
+                    p1 = "self.label_epn_"+str(r)+".setFocus()"
+                    exec(p1)
+                    new_cnt = r+self.list2.count()
+                    p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
+                    exec(p1)
+                    p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
+                    txt = eval(p1)
+                    p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
+                    exec(p1)
+                    p1 = "self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
+                    exec(p1)
+                    self.labelFrame2.setText(txt)
+            except Exception as err:
+                print(err)
         else:
             self.tab_6.hide()
             self.list1.show()
