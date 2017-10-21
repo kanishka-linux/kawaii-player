@@ -244,6 +244,8 @@ class MyServer:
             content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
             #print(content)
             m = content.split('\n')
+            if self.site.lower() == 'video' or self.site.lower() == 'music':
+                m = [i.replace('::::', '\t', 1) for i in m]
             m.append(1)
         if not m and opt.lower() == 'login':
             m.append(3)
@@ -288,6 +290,8 @@ class MyServer:
             else:
                 opt_val = self.opt.lower()
                 name_val = name
+            if self.site.lower() == 'video' or self.site.lower() == 'music':
+                name_val = extra_info+'.hash'
             url_new = 'site={0}&opt={1}&s={2}&exact.m3u'.format(self.site.lower(), opt_val, name_val)
             url_new = urllib.parse.quote(url_new)
             url = self.url+url_new
