@@ -43,6 +43,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
         TMPDIR = tmp
         home = home_var
         logger = logr
+        self.upcount = 0
+        self.downcount = 0
+        self.count_limit = 1
 
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
@@ -216,6 +219,45 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if dir_path in ui.video_dict:
                     del ui.video_dict[dir_path]
             ui.update_list2()
+            
+    def get_default_name(self, row, mode=None):
+        site = ui.get_parameters_value(s='site')['site']
+        if site == "Video" and mode == 'default':
+            video_db = os.path.join(home, 'VideoDB', 'Video.db')
+            conn = sqlite3.connect(video_db)
+            cur = conn.cursor()
+            txt = ui.epn_arr_list[row].split('	')[1]
+            item = os.path.basename(txt)
+            item = item.replace('_', ' ')
+            qr = 'Update Video Set EP_NAME=? Where Path=?'
+            cur.execute(qr, (item, txt))
+            conn.commit()
+            conn.close()
+            tmp = ui.epn_arr_list[row]
+            tmp = re.sub('[^	]*', item, tmp, 1)
+            ui.epn_arr_list[row] = tmp
+            dir_path, file_path = os.path.split(txt)
+            if dir_path in ui.video_dict:
+                del ui.video_dict[dir_path]
+        elif site == "Video" and mode == 'default_all':
+            video_db = os.path.join(home, 'VideoDB', 'Video.db')
+            conn = sqlite3.connect(video_db)
+            cur = conn.cursor()
+            for row, row_item in enumerate(ui.epn_arr_list):
+                txt = row_item.split('	')[1]
+                item = os.path.basename(txt)
+                item = item.replace('_', ' ')
+                qr = 'Update Video Set EP_NAME=? Where Path=?'
+                cur.execute(qr, (item, txt))
+                tmp = row_item
+                tmp = re.sub('[^	]*', item, tmp, 1)
+                ui.epn_arr_list[row] = tmp
+            conn.commit()
+            conn.close()
+            dir_path, file_path = os.path.split(txt)
+            if dir_path in ui.video_dict:
+                del ui.video_dict[dir_path]
+        ui.update_list2()
     
     def edit_name_in_group(self, row):
         site = ui.get_parameters_value(s='site')['site']
@@ -375,14 +417,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
         elif event.key() == QtCore.Qt.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
-                self.setCurrentRow(self.count()-1)
+                self.downcount += 1
+                if self.downcount > self.count_limit:
+                    self.setCurrentRow(0)
+                    self.downcount = 0
             else:
+                self.downcount = 0
                 self.setCurrentRow(nextr)
         elif event.key() == QtCore.Qt.Key_Up:
             prev_r = self.currentRow() - 1
-            if self.currentRow() == 0:
-                self.setCurrentRow(0)
+            if prev_r == -1:
+                self.upcount += 1
+                if self.upcount > self.count_limit:
+                    self.setCurrentRow(self.count()-1)
+                    self.upcount = 0
             else:
+                self.upcount = 0
                 self.setCurrentRow(prev_r)
         elif event.key() == QtCore.Qt.Key_W:
             ui.watchToggle()
@@ -523,34 +573,44 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
-                        txt = ui.epn_arr_list[r].split('	')[1]
-                        cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
-                        rows = cur.fetchall()
-                        num1 = int(rows[0][0])
-                        print(num1, '--num1')
                         if r > 0:
+                            txt = ui.epn_arr_list[r].split('	')[1]
+                            cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
+                            rows = cur.fetchall()
+                            num1 = int(rows[0][0])
                             txt1 = ui.epn_arr_list[r-1].split('	')[1]
                             ui.epn_arr_list[r], ui.epn_arr_list[r-1] = ui.epn_arr_list[r-1], ui.epn_arr_list[r]
-                        else:
-                            txt1 = ui.epn_arr_list[-1].split('	')[1]
-                            ui.epn_arr_list[r], ui.epn_arr_list[-1] = ui.epn_arr_list[-1], ui.epn_arr_list[r]
-                        cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
-                        rows = cur.fetchall()
-                        num2 = int(rows[0][0])
-                        print(num2, '---num2')
-                        qr = 'Update Video Set EPN=? Where Path=?'
-                        cur.execute(qr, (num2, txt))
-                        qr = 'Update Video Set EPN=? Where Path=?'
-                        cur.execute(qr, (num1, txt1))
-                        conn.commit()
-                        conn.close()
-                        self.takeItem(r)
-                        del item
-                        if r > 0:
-                            self.insertItem(r-1, ui.epn_arr_list[r-1].split('	')[0])
+                            cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
+                            rows = cur.fetchall()
+                            num2 = int(rows[0][0])
+                            print(num2, '---num2')
+                            qr = 'Update Video Set EPN=? Where Path=?'
+                            cur.execute(qr, (num2, txt))
+                            qr = 'Update Video Set EPN=? Where Path=?'
+                            cur.execute(qr, (num1, txt1))
+                            conn.commit()
+                            conn.close()
+                            self.takeItem(r)
+                            self.insertItem(r-1, item)
                             row_n = r-1
                         else:
-                            self.insertItem(len(ui.epn_arr_list)-1, ui.epn_arr_list[-1].split('	')[0])
+                            txt = ui.epn_arr_list[-1].split('	')[1]
+                            length = len(ui.epn_arr_list)
+                            for row, row_item in enumerate(ui.epn_arr_list):
+                                txt = row_item.split('\t')[1]
+                                num = row - 1
+                                if num < 0:
+                                    num = num % length
+                                print(num, '---num2')
+                                qr = 'Update Video Set EPN=? Where Path=?'
+                                cur.execute(qr, (num, txt))
+                            first_txt = ui.epn_arr_list[0]
+                            del ui.epn_arr_list[0]
+                            ui.epn_arr_list.append(first_txt)
+                            conn.commit()
+                            conn.close()
+                            self.takeItem(r)
+                            self.addItem(item)
                             row_n = len(ui.epn_arr_list)-1
                         self.setCurrentRow(row_n)
                         dir_path, file_path = os.path.split(txt)
@@ -613,36 +673,47 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
-                        txt = ui.epn_arr_list[r].split('	')[1]
-                        cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
-                        rows = cur.fetchall()
-                        num1 = int(rows[0][0])
-                        print(num1, '--num1')
-                        print(self.count()-1, '--cnt-1')
                         if r < len(ui.epn_arr_list) - 1:
+                            txt = ui.epn_arr_list[r].split('	')[1]
+                            cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
+                            rows = cur.fetchall()
+                            num1 = int(rows[0][0])
+                            print(num1, '--num1')
+                            print(self.count()-1, '--cnt-1')
                             txt1 = ui.epn_arr_list[r+1].split('	')[1]
                             ui.epn_arr_list[r], ui.epn_arr_list[r+1] = ui.epn_arr_list[r+1], ui.epn_arr_list[r]
-                        else:
-                            txt1 = ui.epn_arr_list[0].split('	')[1]
-                            ui.epn_arr_list[r], ui.epn_arr_list[0] = ui.epn_arr_list[0], ui.epn_arr_list[r]
-                        cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
-                        rows = cur.fetchall()
-                        num2 = int(rows[0][0])
-                        print(num2, '---num2')
-                        qr = 'Update Video Set EPN=? Where Path=?'
-                        cur.execute(qr, (num2, txt))
-                        qr = 'Update Video Set EPN=? Where Path=?'
-                        cur.execute(qr, (num1, txt1))
-                        conn.commit()
-                        conn.close()
-                        self.takeItem(r)
-                        del item
-                        if r < len(ui.epn_arr_list) - 1:
-                            print('--here--')
-                            self.insertItem(r+1, ui.epn_arr_list[r+1].split('	')[0])
+                            cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
+                            rows = cur.fetchall()
+                            num2 = int(rows[0][0])
+                            print(num2, '---num2')
+                            qr = 'Update Video Set EPN=? Where Path=?'
+                            cur.execute(qr, (num2, txt))
+                            qr = 'Update Video Set EPN=? Where Path=?'
+                            cur.execute(qr, (num1, txt1))
+                            conn.commit()
+                            conn.close()
+                            self.takeItem(r)
+                            self.insertItem(r+1, item)
                             row_n = r+1
                         else:
-                            self.insertItem(0, ui.epn_arr_list[0].split('	')[0])
+                            length = len(ui.epn_arr_list)
+                            txt = ui.epn_arr_list[0].split('\t')[1]
+                            for row, row_item in enumerate(ui.epn_arr_list):
+                                txt = row_item.split('\t')[1]
+                                num = row+1
+                                if num >= length:
+                                    num = num % length
+                                print(num, '---num2')
+                                qr = 'Update Video Set EPN=? Where Path=?'
+                                cur.execute(qr, (num, txt))
+                            last_txt = ui.epn_arr_list[-1]
+                            del ui.epn_arr_list[-1]
+                            ui.epn_arr_list.insert(0, last_txt)
+                            self.takeItem(r)
+                            self.insertItem(0, item)
+                            conn.commit()
+                            conn.close()
+                            #ui.update_list2()
                             row_n = 0
                         self.setCurrentRow(row_n)
                         dir_path, file_path = os.path.split(txt)
@@ -1254,6 +1325,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             rm_menu.setTitle("Rename Options")
             editN = rm_menu.addAction("Rename Single Entry (F2)")
             group_rename = rm_menu.addAction("Rename in Group (F3)")
+            default_name = rm_menu.addAction("Default Name")
+            default_name_all = rm_menu.addAction("Default Name All")
             menu.addMenu(rm_menu)
             thumb_menu = QtWidgets.QMenu(menu)
             thumb_menu.setTitle("Remove Thumbnails")
@@ -1351,6 +1424,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     print('Batch Renaming in database')
                     if self.currentItem():
                         self.edit_name_in_group(self.currentRow())
+            elif action == default_name and not ui.list1.isHidden():
+                if ui.epn_arr_list:
+                    print('Default Name')
+                    if self.currentItem():
+                        self.get_default_name(self.currentRow(), mode='default')
+            elif action == default_name_all and not ui.list1.isHidden():
+                if ui.epn_arr_list:
+                    print('Batch Renaming in database')
+                    if self.currentItem():
+                        self.get_default_name(self.currentRow(), mode='default_all')
             elif action == file_manager:
                 if ui.epn_arr_list:
                     if self.currentItem():
