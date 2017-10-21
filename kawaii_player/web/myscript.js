@@ -1256,8 +1256,8 @@ function optChangeTop(){
 			if (txt){
                 new_opt.text = new_opt_data.text = txt;
                 if (colon_present){
-                    new_opt.value = new_opt_data.value = m[i].split('::::')[1];
-                    new_opt.title = new_opt_data.title = m[i].split('::::')[0];
+                    new_opt.value = m[i].split('::::')[1];
+                    new_opt.title = new_opt_data.title = new_opt_data.value = m[i].split('::::')[0];
                 }else{
                     new_opt.value = new_opt_data.value = m[i];
                     new_opt.title = new_opt_data.title = m[i];
