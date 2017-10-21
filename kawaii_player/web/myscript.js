@@ -1118,6 +1118,10 @@ function optChange(){
 	}else{
 		var z = 'site='+y+'&opt='+x;
 		var client = new getRequest();
+        var colon_present = false;
+        if (y == 'video' || y == 'music'){
+            colon_present = true;
+        }
 		client.get(z, function(response) {
 		//console.log(response);
 		m = response.split('\n');
@@ -1127,13 +1131,21 @@ function optChange(){
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
 			var txt = m[i];
+            if (colon_present){
+                txt = txt.split('::::')[0]
+            }
             if (txt.length > 30){
                 txt = txt.slice(0,28)+ '..'
             }
 			if (txt){
                 new_opt.text = txt;
-                new_opt.value = m[i];
-                new_opt.title = m[i];
+                if (colon_present){
+                    new_opt.value = m[i].split('::::')[1];
+                    new_opt.title = m[i].split('::::')[0];
+                }else{
+                    new_opt.value = m[i];
+                    new_opt.title = m[i];
+                }
                 //console.log(i,txt);
                 r.appendChild(new_opt);
                 //new_opt.style.overflow = 'auto';
@@ -1225,10 +1237,17 @@ function optChangeTop(){
             
         } 
         win_width = window.innerWidth;
+        var colon_present = false;
+        if (y == 'video' || y == 'music'){
+            colon_present = true;
+        }
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
             var new_opt_data = document.createElement('option');
 			var txt = m[i];
+            if (colon_present){
+                txt = txt.split('::::')[0]
+            }
             if (win_width <= 640){
                 if (txt.length > 30){
                     txt = txt.slice(0,28)+ '..'
@@ -1236,8 +1255,13 @@ function optChangeTop(){
             }
 			if (txt){
                 new_opt.text = new_opt_data.text = txt;
-                new_opt.value = new_opt_data.value = m[i];
-                new_opt.title = new_opt_data.title = m[i];
+                if (colon_present){
+                    new_opt.value = new_opt_data.value = m[i].split('::::')[1];
+                    new_opt.title = new_opt_data.title = m[i].split('::::')[0];
+                }else{
+                    new_opt.value = new_opt_data.value = m[i];
+                    new_opt.title = new_opt_data.title = m[i];
+                }
                 _third_select.appendChild(new_opt);
                 _mydatalist.append(new_opt_data);
             }
@@ -1841,7 +1865,11 @@ function optValChange(){
 	var y = document.getElementById("opt").value.toLowerCase();
 	var z = document.getElementById("opt_val").value;
 	console.log(z)
-	var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact.m3u';
+    if (x == 'video' || x == 'music'){
+        var new_url = 'site='+x+'&opt='+y+'&s='+z+'.hash'+'&exact.m3u';
+    }else{
+        var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact.m3u';
+    }
     _current_working_m3u = new_url;
 	var client = new getRequest();
 	client.get(new_url, function(response) {
@@ -1893,7 +1921,11 @@ function optValChangeTop(){
 	var y = _second_select.value.toLowerCase();
 	var z = _third_select.value;
 	console.log(z)
-	var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact.m3u';
+    if (x == 'video' || x == 'music'){
+        var new_url = 'site='+x+'&opt='+y+'&s='+z+'.hash'+'&exact.m3u';
+    }else{
+        var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact.m3u';
+    }
     _current_working_m3u = new_url;
 	var client = new getRequest();
 	client.get(new_url, function(response) {
