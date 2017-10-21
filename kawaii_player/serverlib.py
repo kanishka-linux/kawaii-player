@@ -2,6 +2,7 @@ import os
 import re
 import imp
 import shutil
+import hashlib
 from player_functions import open_files, write_files, ccurl, send_notification
 
 try:
@@ -326,15 +327,17 @@ class ServerLib:
                     for i in m:
                         artist.append(i)
             else:
+                """
                 if search_exact and music_opt.lower() != 'directory':
                     m = ui.media_data.get_music_db(music_db, music_opt, search_term)
                     for i in m:
                         artist.append(i[1]+'	'+i[2]+'	'+i[0])
                     send_list_direct = True
                 else:
-                    m = ui.media_data.get_music_db(music_db, music_opt, "")
-                    for i in m:
-                        artist.append(i[0])
+                """
+                m = ui.media_data.get_music_db(music_db, music_opt, "")
+                for i in m:
+                    artist.append(i[0])
             if send_list_direct:
                 print('exact search on')
                 new_epnArrList = [i for i in artist]
@@ -631,11 +634,29 @@ class ServerLib:
                     music_opt = tmp[0]+'-'+sub_tmp[0].upper()+sub_tmp[1:]
             artist = []
             logger.info(original_path_name)
+            hash_srch = None
+            hash_dir = None
+            if search_term.endswith('.hash'):
+                hash_srch = search_term.rsplit('.', 1)[0]
+                logger.debug(hash_srch)
             for index, value in enumerate(original_path_name):
                 if music_opt.lower() == 'directory' or music_opt.lower() == 'fav-directory':
                     search_field = os.path.basename(value).lower()
+                    if hash_srch:
+                        hash_dir = bytes(value, 'utf-8')
                 else:
                     search_field = value.lower()
+                    if hash_srch:
+                        hash_dir = bytes(value.split('\t')[0], 'utf-8')
+                logger.debug(value)
+                if hash_srch and hash_dir:
+                    h = hashlib.sha256(hash_dir)
+                    hash_val = h.hexdigest()
+                    if hash_val == hash_srch:
+                        search_term = search_field
+                    else:
+                        continue
+                
                 if ((search_term in search_field and not search_exact) or 
                         (search_term == search_field and search_exact)):
                     if '	' in value.lower():
@@ -694,12 +715,24 @@ class ServerLib:
                                 epnArrList.append(i)
         elif site.lower() == "video":
             epnArrList = []
+            hash_srch = None
+            if search_term.endswith('.hash'):
+                hash_srch = search_term.rsplit('.', 1)[0]
+                logger.debug(hash_srch)
             for index, value in enumerate(original_path_name):
                 if '	' in value.lower():
                     art_n = value.split('	')[0]
                 else:
                     art_n = value.strip()
                 search_field = art_n.lower()
+                if hash_srch:
+                    hash_dir = bytes(value.split('\t')[1], 'utf-8')
+                    h = hashlib.sha256(hash_dir)
+                    hash_val = h.hexdigest()
+                    if hash_val == hash_srch:
+                        search_term = search_field
+                    else:
+                        continue
                 if ((search_term in  search_field and not search_exact) or 
                         (search_term == search_field and search_exact)):
                     
