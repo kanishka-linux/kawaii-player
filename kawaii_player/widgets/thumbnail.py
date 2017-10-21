@@ -427,6 +427,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                             nameEpn = (str(ui.epn_arr_list[cur_label_num])).split('	')[0]
                         else:
                             nameEpn = os.path.basename(ui.epn_arr_list[cur_label_num])
+                        if nameEpn.startswith('#'):
+                            nameEpn = nameEpn.replace('#', ui.check_symbol, 1)
+                        nameEpn = nameEpn.replace('_', ' ')
                         length_1 = ui.list2.count()
                         q3="ui.label_epn_"+str(length_1+cur_label_num)+".setText(nameEpn)"
                         exec (q3)
@@ -728,12 +731,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
             else:
                 newTitle = ui.check_symbol+ui.epn_name_in_list	
             sumry = "<html><h1>"+ui.epn_name_in_list+"</h1></html>"
+            newTitle = newTitle.replace('_', ' ')
             q3="ui.label_epn_"+str(title_num)+".setText((newTitle))"
             exec (q3)
             q3="ui.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignCenter)"
             exec(q3)
             t= ui.epn_name_in_list[:20]
-            ui.labelFrame2.setText(t)
+            ui.labelFrame2.setText(newTitle)
             QtWidgets.QApplication.processEvents()
             if site == "Music":
                 self.setFocus()
@@ -799,8 +803,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 new_epn = os.path.basename(ui.epn_arr_list[num])
 
             if new_epn.startswith('#'):
-                new_epn = new_epn.replace('#', '', 1)
-
+                new_epn = new_epn.replace('#', ui.check_symbol, 1)
+            new_epn = new_epn.replace('_', ' ')
             ui.epn_name_in_list = new_epn
             
             finalUrl = ui.epn_return(num)
