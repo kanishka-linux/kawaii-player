@@ -60,7 +60,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     client_auth_dict = {}
     playlist_auth_dict = {}
     playlist_m3u_dict = {}
-
+    media_server_cache = {}
+    
     def process_HEAD(self):
         global ui, logger, getdb
         global path_final_Url, curR
@@ -612,12 +613,28 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def create_option_playlist(self, site, site_option, original_path_name):
         k = ''
         for i in original_path_name:
+            dir_hash = None
+            logger.debug(i)
             i = i.strip()
+            old_i = i
             if '	' in i:
                 i = i.split('	')[0]
-            if site.lower() == 'music' and site_option.lower() == 'directory':
-                dir_m, i = os.path.split(i)
-            i = i+'\n'
+            if site.lower() == 'music': 
+                if site_option.lower() == 'directory':
+                    dir_m, i = os.path.split(i)
+                else:
+                    i = old_i
+                dir_byte = bytes(old_i, 'utf-8')
+                h = hashlib.sha256(dir_byte)
+                dir_hash = h.hexdigest()
+            elif site.lower() == 'video':
+                dir_byte = bytes(old_i.split('\t')[1], 'utf-8')
+                h = hashlib.sha256(dir_byte)
+                dir_hash = h.hexdigest()
+            if dir_hash:
+                i = i+'::::'+dir_hash+'\n'
+            else:
+                i = i+'\n'
             k = k+i
         return k
 
@@ -1196,6 +1213,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             srch_exact = False
             shuffle_list = False
             pls_txt = 'Nothing'
+            url_format = 'htm'
             for i in new_arr:
                 logger.info(i)
                 if i.startswith('site='):
@@ -1212,6 +1230,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         srch = srch.replace('&shuffle', '')
                     if (srch.endswith('.pls') or srch.endswith('.m3u') 
                             or srch.endswith('.htm') or srch.endswith('.html')):
+                        if srch.endswith('.m3u'):
+                            url_format = 'm3u'
+                        elif srch.endswith('.pls'):
+                            url_format = 'pls'
                         srch = srch.rsplit('.', 1)[0]
                     srch = srch.replace('+', ' ')
                 elif i.startswith('exact'):
@@ -1225,6 +1247,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if st_o and not srch:
                         srch = st_o
             st_arr = [st, st_o, srch]
+            myvar = str(st)+'::'+str(st_o)+'::'+str(srch)+'::'+str(srch_exact)+'::'+str(url_format)
             if st and st_o and srch:
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
@@ -1260,6 +1283,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 nav_remote = doGETSignal()
                 nav_remote.total_navigation.emit(st_arr[0], st_arr[1], st_arr[2])
+            
+            if myvar not in self.media_server_cache:
+                self.media_server_cache.update({myvar:pls_txt})
         elif path.lower() == 'play' or not path:
             self.row = ui.list2.currentRow()
             if self.row < 0:
