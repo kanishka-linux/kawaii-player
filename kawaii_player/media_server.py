@@ -60,7 +60,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     client_auth_dict = {}
     playlist_auth_dict = {}
     playlist_m3u_dict = {}
-    media_server_cache = {}
+    media_server_cache_video = {}
+    media_server_cache_music = {}
+    media_server_cache_playlist = {}
     
     def process_HEAD(self):
         global ui, logger, getdb
@@ -1212,7 +1214,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             srch = ''
             srch_exact = False
             shuffle_list = False
-            pls_txt = 'Nothing'
+            pls_cache = False
+            pls_txt = ''
             url_format = 'htm'
             for i in new_arr:
                 logger.info(i)
@@ -1248,7 +1251,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         srch = st_o
             st_arr = [st, st_o, srch]
             myvar = str(st)+'::'+str(st_o)+'::'+str(srch)+'::'+str(srch_exact)+'::'+str(url_format)
-            if st and st_o and srch:
+            if st.startswith('video') or st.startswith('music') or st.startswith('playlist'):
+                if st.startswith('video'):
+                    pls_txt = self.media_server_cache_video.get(myvar)
+                elif st.startswith('music'):
+                    pls_txt = self.media_server_cache_music.get(myvar)
+                else:
+                    pls_txt = self.media_server_cache_playlist.get(myvar)
+                if pls_txt and path != 'stream_continue.htm' and not shuffle_list:
+                    logger.debug('Sending From Cache')
+                    pls_cache = True
+            if st and st_o and srch and not pls_cache:
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
@@ -1258,7 +1271,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         shuffle_list, play_id)
                     if ret_val is None:
                         ui.navigate_playlist_history.add_item(path)
-            elif st and st_o:
+            elif st and st_o and not pls_cache:
                 original_path_name = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
                 pls_txt = ''
@@ -1270,7 +1283,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
-            pls_txt = bytes(pls_txt, 'utf-8')
+            if not pls_cache:
+                pls_txt = bytes(pls_txt, 'utf-8')
             size = len(pls_txt)
             #size = size - get_bytes
             self.send_header('Content-Length', str(size))
@@ -1284,8 +1298,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 nav_remote = doGETSignal()
                 nav_remote.total_navigation.emit(st_arr[0], st_arr[1], st_arr[2])
             
-            if myvar not in self.media_server_cache:
-                self.media_server_cache.update({myvar:pls_txt})
+            if not pls_cache: 
+                if st.startswith('video'):
+                    self.media_server_cache_video.update({myvar:pls_txt})
+                elif st.startswith('music'):
+                    self.media_server_cache_music.update({myvar:pls_txt})
+                elif st.startswith('playlist'):
+                    self.media_server_cache_playlist.update({myvar:pls_txt})
         elif path.lower() == 'play' or not path:
             self.row = ui.list2.currentRow()
             if self.row < 0:
@@ -1945,6 +1964,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 msg = bytes(msg, 'utf-8')
                 self.final_message(msg)
         elif path.startswith('add_to_playlist='):
+            self.media_server_cache_playlist.clear()
             n_path = path.replace('add_to_playlist=', '', 1)
             arr = n_path.split('&')
             pls_name = arr[0]
@@ -1952,12 +1972,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             entry_info = entry_info.strip()
             if entry_info.startswith('- '):
                 entry_info = entry_info.replace('- ', 'NONE - ', 1)
-                
-            artist = entry_info.split(' - ')[0]
+            
+            if '-' in entry_info:
+                artist = entry_info.split(' - ')[0]
+            else:
+                artist = ''
             artist = artist.strip()
             if not artist:
                 artist = 'NONE'
-            title = entry_info.split(' - ')[1]
+            if '-' in entry_info:
+                title = entry_info.split(' - ')[1]
+            else:
+                title = entry_info
             data_link = re.search('abs_path=[^"]*|relative_path=[^"]*', n_path).group()
             txt = 'artist={3}:\npls-name={0}:\ntitle={1}:\nlink={2}'.format(pls_name, title, data_link, artist)
             logger.info(txt)
@@ -1968,6 +1994,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             file_path = os.path.join(home, 'Playlists', pls_name)
             write_files(file_path, new_line, line_by_line=True)
         elif path.startswith('remove_from_playlist='):
+            self.media_server_cache_playlist.clear()
             n_path = path.replace('remove_from_playlist=', '', 1)
             arr = n_path.split('&')
             pls_name = arr[0]
@@ -1987,6 +2014,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
         elif path.startswith('create_playlist='):
+            self.media_server_cache_playlist.clear()
             n_path = path.replace('create_playlist=', '', 1)
             n_path = n_path.strip()
             msg = 'creating playlist: {0}\nrefresh browser'.format(n_path)
@@ -2002,6 +2030,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             msg = bytes(msg, 'utf-8')
             self.final_message(msg)
         elif path.startswith('delete_playlist='):
+            self.media_server_cache_playlist.clear()
             n_path = path.replace('delete_playlist=', '', 1)
             n_path = n_path.strip()
             msg = 'Nothing deleted: Wrong Parameters'
@@ -2033,8 +2062,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             try:
                 if path.startswith('update_video'):
                     val = 'video'
+                    self.media_server_cache_video.clear()
                 else:
                     val = 'music'
+                    self.media_server_cache_music.clear()
                 remote_signal = doGETSignal()
                 remote_signal.update_signal.emit(val)
                 msg = '{0} section updated successfully: refresh browser'.format(val)
@@ -2045,6 +2076,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 msg = bytes('Error in updating', 'utf-8')
                 self.final_message(msg)
         elif path.startswith('youtube_url='):
+            self.media_server_cache_playlist.clear()
             try:
                 msg = 'Something wrong in parameters'
                 logger.info('{0}---1903--'.format(path))
@@ -2098,6 +2130,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 msg = bytes('Error in setting quality', 'utf-8')
             self.final_message(msg)
         elif path.startswith('change_playlist_order='):
+            self.media_server_cache_playlist.clear()
             n_path = path.replace('change_playlist_order=', '', 1)
             n_path = n_path.strip()
             arr = n_path.split('&')
@@ -2161,6 +2194,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as err:
                 print(err, '--2091--')
         elif path.startswith('clear_playlist_history'):
+            self.media_server_cache_playlist.clear()
+            ui.navigate_playlist_history.clear()
+            msg = bytes('playlist navigation history cleared', 'utf-8')
+            self.final_message(msg)
+        elif path.startswith('clear_all_cache'):
+            self.media_server_cache_playlist.clear()
+            self.media_server_cache_music.clear()
+            self.media_server_cache_video.clear()
             ui.navigate_playlist_history.clear()
             msg = bytes('playlist navigation history cleared', 'utf-8')
             self.final_message(msg)
