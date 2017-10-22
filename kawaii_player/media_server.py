@@ -63,6 +63,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     media_server_cache_video = {}
     media_server_cache_music = {}
     media_server_cache_playlist = {}
+    playlist_shuffle_list = []
     
     def process_HEAD(self):
         global ui, logger, getdb
@@ -658,6 +659,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         global logger, html_default_arr, getdb
         old_name = []
         _new_epnArrList = []
+        self.playlist_shuffle_list[:] = []
         n_url_name = 'unknown'
         if self.path.endswith('.pls'):
             pls_txt = '[playlist]'
@@ -669,6 +671,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         new_index = 0
         if shuffle_list:
             epnArrList = random.sample(epnArrList, len(epnArrList))
+            if ui.remote_control and ui.remote_control_field:
+                self.playlist_shuffle_list = epnArrList.copy()
         site_pls = False
         if site.lower().startswith('playlist'):
             site_pls = True
@@ -843,9 +847,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             r='curR', path='path_final_Url', s='site')
         curR = arg_dict['curR']
         path_final_Url = arg_dict['path_final_Url']
-        epnArrList = ui.epn_arr_list
+        epnArrList = ui.epn_arr_list.copy()
         site = arg_dict['site']
-
+        self.playlist_shuffle_list[:] = []
         if not my_ip_addr:
             my_ipaddress = ui.local_ip_stream
         else:
@@ -863,6 +867,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             n_art = ''
             n_url = ''
             n_url_name = 'unknown'
+            shuffle_list = False
             if ui.list1.currentItem():
                 list1_row = ui.list1.currentRow()
             else:
@@ -889,7 +894,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 #print(row_digit)
                 #print(new_arr)
             if path.lower().startswith('stream_shuffle'):
+                shuffle_list = True
                 new_arr = random.sample(new_arr, len(new_arr))
+                if ui.remote_control and ui.remote_control_field:
+                    self.playlist_shuffle_list = [epnArrList[i] for i in new_arr]
             #print(new_arr)
             #print(self.client_address)
             if path.endswith('.html') or path.endswith('.htm'):
@@ -1097,6 +1105,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print(e)
             if ui.remote_control and ui.remote_control_field:
                 self.write_to_tmp_playlist(epnArrList)
+                if self.playlist_shuffle_list and shuffle_list:
+                    ui.epn_arr_list = self.playlist_shuffle_list.copy()
+                    nav_remote = doGETSignal()
+                    nav_remote.total_navigation.emit('', '', '', shuffle_list)
         elif (path.lower().startswith('channel_sync.')):
             if path.endswith('.html') or path.endswith('.htm'):
                 pls_txt = '<ol id="playlist">'
@@ -1295,8 +1307,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
             if ui.remote_control and ui.remote_control_field:
+                if self.playlist_shuffle_list and shuffle_list:
+                    ui.epn_arr_list = self.playlist_shuffle_list.copy()
                 nav_remote = doGETSignal()
-                nav_remote.total_navigation.emit(st_arr[0], st_arr[1], st_arr[2])
+                nav_remote.total_navigation.emit(st_arr[0], st_arr[1],
+                                                 st_arr[2], shuffle_list)
             
             if not pls_cache: 
                 if st.startswith('video'):
@@ -1935,6 +1950,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             logger.info(new_url)
             if new_url.startswith('http') or new_url.startswith('magnet'):
                 msg = 'Empty Response'
+                ret_val = ''
                 hist_folder = os.path.join(home, 'History', 'Torrent')
                 try:
                     ret_val = getdb.record_torrent(new_url, hist_folder)
@@ -1947,6 +1963,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     msg = 'Fetching Torrent Failed'
                 msg = bytes(msg, 'utf-8')
                 self.final_message(msg)
+                if ui.remote_control and ui.remote_control_field and ret_val:
+                    ui.btn1.setCurrentIndex(0)
+                    ui.btnAddon.setCurrentIndex(0)
+                    nav_remote = doGETSignal()
+                    nav_remote.total_navigation.emit('Torrent', 'History', ret_val, False)
             elif new_url.startswith('delete'):
                 var_name = new_url.replace('delete&', '', 1)
                 if var_name:
@@ -2616,7 +2637,7 @@ class doGETSignal(QtCore.QObject):
     nav_remote = pyqtSignal(str)
     delete_torrent_signal = pyqtSignal(str)
     update_signal = pyqtSignal(str)
-    total_navigation = pyqtSignal(str, str, str)
+    total_navigation = pyqtSignal(str, str, str, bool)
     def __init__(self):
         QtCore.QObject.__init__(self)
         self.new_signal.connect(goto_ui_jump)
@@ -2635,7 +2656,8 @@ def goto_ui_jump(nm):
 
 @pyqtSlot(str)
 def stop_torrent_from_client(nm):
-    ui.stop_torrent(from_client=True)
+    #ui.stop_torrent(from_client=True)
+    ui.label_torrent_stop.clicked.emit()
 
 """
 @pyqtSlot(str)
@@ -2717,11 +2739,43 @@ def start_player_remotely(nm, mode):
                 elif mode == 'toggle_audio':
                     ui.audio_track.clicked.emit()
 
+def find_and_set_index(st, st_o, srch):
+    index = None
+    mode = -1
+    if srch.endswith('.hash'):
+        srch = srch.rsplit('.')[0]
+    if st.lower() == 'video':
+        mode = 0
+    elif st.lower() == 'music':
+        mode = 1
+        
+    for i, val in enumerate(ui.original_path_name):
+        val = val.strip()
+        if mode == 0:
+            new_val = val.split('\t')[1]
+        else:
+            new_val = val
+        hash_val = bytes(new_val, 'utf-8')
+        h = hashlib.sha256(hash_val)
+        hash_dir = h.hexdigest()
+        if hash_dir == srch:
+            index = i
+            break
+    if index is not None:
+        if index < ui.list1.count():
+            ui.list1.setFocus()
+            ui.list1.setCurrentRow(index)
+            item = ui.list1.item(index)
+            if item:
+                ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
 
-@pyqtSlot(str, str, str)
-def total_ui_navigation(st, st_o, srch):
+@pyqtSlot(str, str, str, bool)
+def total_ui_navigation(st, st_o, srch, shuffle):
     global ui
-    if st:
+    logger.debug('\n{0}::{1}::{2}::{3}\n'.format(st, st_o, srch, shuffle))
+    if shuffle:
+       ui.player_btn_update_list2.clicked.emit() 
+    elif st:
         if st.lower() == 'video':
             index = ui.btn1.findText('Video')
             site = 'Video'
@@ -2745,15 +2799,7 @@ def total_ui_navigation(st, st_o, srch):
                             ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
                             time.sleep(0.5)
                             break
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
-                if len(list_item) > 0:
-                    for i in list_item:
-                        row = ui.list1.row(i)
-                        ui.list1.setFocus()
-                        ui.list1.setCurrentRow(row)
-                        item = ui.list1.item(row)
-                        if item:
-                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                find_and_set_index(st, st_o, srch)
         elif st.lower() == 'music':
             index = ui.btn1.findText('Music')
             site = 'Music'
@@ -2777,15 +2823,7 @@ def total_ui_navigation(st, st_o, srch):
                             ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
                             time.sleep(0.5)
                             break
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
-                if len(list_item) > 0:
-                    for i in list_item:
-                        row = ui.list1.row(i)
-                        ui.list1.setFocus()
-                        ui.list1.setCurrentRow(row)
-                        item = ui.list1.item(row)
-                        if item:
-                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                find_and_set_index(st, st_o, srch)
         elif st.lower() == 'playlists':
             index = ui.btn1.findText('PlayLists')
             site = 'PlayLists'
