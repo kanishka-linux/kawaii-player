@@ -1033,6 +1033,12 @@ watch/unwatch status")
         self.player_hide_btn.clicked.connect(MainWindow.hide)
         self.player_hide_btn.hide()
         
+        self.player_btn_update_list2 = QtWidgets.QPushButton(self.player_opt)
+        self.player_btn_update_list2.setObjectName(_fromUtf8("player_btn_update_list2"))
+        self.horizontalLayout_player_opt.insertWidget(29, self.player_btn_update_list2, 0)
+        self.player_btn_update_list2.setText('Shuffle')
+        self.player_btn_update_list2.clicked.connect(self.update_list2)
+        self.player_btn_update_list2.hide()
         
         
         
@@ -2849,14 +2855,11 @@ watch/unwatch status")
         global site
         if (site == "Local" or site =="Video" or site == "Music" 
                 or site == "PlayLists" or self.epn_arr_list):
-            t = self.epn_arr_list[0]
-            if '	' in t:
-                print("++++++++++++++++")
-                m = random.sample(self.epn_arr_list, len(self.epn_arr_list))
-                self.epn_arr_list[:] = []
-                self.epn_arr_list = m
-                self.list2.clear()
-                self.update_list2()
+            if self.epn_arr_list:
+                if '	' in self.epn_arr_list[0]:
+                    print("++++++++++++++++")
+                    self.epn_arr_list = random.sample(self.epn_arr_list, len(self.epn_arr_list))
+                    self.update_list2()
             
     def playerPlaylist1(self, val):
         if val == "Shuffle":
