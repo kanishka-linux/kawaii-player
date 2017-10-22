@@ -610,9 +610,12 @@ function searchFunction(e, mode){
 	if(e.keyCode==13){
         if (mode == 0){
             var z = document.getElementById("type_search");
+            var site = document.getElementById("site");
         }else{
             var z = _search_text_top;
+            var site = _first_select;
         }
+        var site_val = site.value.toLowerCase();
 		console.log(z.value);
 		if (z.value.length == 0){
             z.value = 'abc';
@@ -656,12 +659,6 @@ function searchFunction(e, mode){
 				})
 			}
 			else{
-                if (mode == 0){
-                    site = document.getElementById("site");
-                }else{
-                    site = _first_select;
-                }
-				site_val = site.value.toLowerCase();
 				if (site_val == 'torrent'){
 					new_val = z.value.replace("torrent:","");
 					if (new_val == 'stop'){
@@ -783,7 +780,9 @@ function searchFunction(e, mode){
 						_title.innerHTML = response;
 						})
 					}
-				}
+				}else{
+                    _title.innerHTML = 'Please Select Torrent Section First Before Issueing Torrent Commands';
+                }
 			}
 			z.value = '';
 		}
