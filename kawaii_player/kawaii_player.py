@@ -8168,6 +8168,14 @@ watch/unwatch status")
             new_epn = list_widget.item(row).text().replace('#', '', 1)
         else:
             new_epn = ''
+        final_val = ''
+        if row < len(self.epn_arr_list):
+            if '\t' in self.epn_arr_list[row]:
+                final_val = self.epn_arr_list[row].split('\t')[1]
+            else:
+                final_val = self.epn_arr_list[row]
+            if final_val.startswith('abs_path=') or final_val.startswith('relative_path='):
+                final_val = self.if_path_is_rel(final_val, thumbnail=True)
         if new_epn.startswith(self.check_symbol):
             new_epn = new_epn[1:]
         new_epn = new_epn.replace('/', '-')
@@ -8180,8 +8188,7 @@ watch/unwatch status")
             if '?' in new_epn:
                 new_epn = new_epn.replace('?', '_')
         try:
-            if (site.lower() == 'playlists' or (site.lower() == 'music' 
-                    and self.list3.currentItem().text().lower() == 'playlist')):
+            if (site.lower() == 'playlists' or self.music_playlist):
                 try:
                     title = self.list1.currentItem().text()
                 except:
@@ -8190,8 +8197,7 @@ watch/unwatch status")
                 title = name
         except:
             title = self.epn_arr_list[row].split('	')[0]
-            file_name_mkv = self.epn_arr_list[row].split('	')[1]
-            file_name_mp4 = self.epn_arr_list[row].split('	')[1]
+            file_name_mkv = file_name_mp4 = final_val
             logger.info('--14986--function_get_file_name={0}-{1}'.format(file_name_mkv, file_name_mp4))
             return file_name_mp4, file_name_mkv
 
@@ -8202,13 +8208,13 @@ watch/unwatch status")
             new_epn_mp4 = new_epn+'.mp4'
             file_name_mkv = os.path.join(self.default_download_location, title, new_epn_mkv)
             file_name_mp4 = os.path.join(self.default_download_location, title, new_epn_mp4)
-        elif (site.lower() == 'playlists' or opt_val == 'youtube' 
-                or (site.lower() == 'music' 
-                and self.list3.currentItem().text().lower() == 'playlist')):
+        elif (site.lower() == 'playlists' or opt_val == 'youtube' or self.music_playlist):
             if list_widget == self.list2:
-                st = self.epn_arr_list[row].split('	')[1]
+                st = final_val
             elif list_widget == self.list6:
                 st = self.queue_url_list[row].split('	')[1]
+                if st.startswith('abs_path=') or st.startswith('relative_path='):
+                    st = self.if_path_is_rel(st)
             st = st.replace('"', '')
             if st.startswith('http'):
                 new_epn_mkv = new_epn+'.mp4'
@@ -8224,15 +8230,16 @@ watch/unwatch status")
                 or site.lower() == 'local' or site.lower() == 'none'):
             if not self.queue_url_list:
                 print(row)
-                file_name_mkv = self.epn_arr_list[row].split('	')[1]
-                file_name_mp4 = self.epn_arr_list[row].split('	')[1]
+                file_name_mkv = file_name_mp4 = final_val
             else:
                 queue_split = []
                 if row < len(self.queue_url_list):
                     queue_split = self.queue_url_list[row].split('	')
                 if len(queue_split) > 1:
-                    file_name_mkv = queue_split[1]
-                    file_name_mp4 = queue_split[1]
+                    st = queue_split[1]
+                    if st.startswith('abs_path=') or st.startswith('relative_path='):
+                        st = self.if_path_is_rel(st)
+                    file_name_mkv = file_name_mp4 = st
                 
         logger.info('function---15025--{0}-{1}'.format(file_name_mkv, file_name_mp4))
         return file_name_mp4, file_name_mkv
