@@ -352,8 +352,8 @@ class tab6(QtWidgets.QWidget):
         if (ui.tab_6.width() > 500 and tab_6_player == "False" 
                     and iconv_r != 1 and not ui.lock_process):
                 #browse_cnt = 0
-                if tab_6_size_indicator:
-                    tab_6_size_indicator.pop()
+                #if tab_6_size_indicator:
+                #    tab_6_size_indicator.pop()
                 tab_6_size_indicator.append(ui.tab_6.width())
                 if not ui.scrollArea.isHidden():
                         print('--------resizing----')
@@ -378,12 +378,12 @@ class tab6(QtWidgets.QWidget):
         global site, iconv_r, browse_cnt, total_till, browse_cnt
         global tab_6_size_indicator
         
-        if tab_6_size_indicator:
-            tab_6_size_indicator.pop()
+        #if tab_6_size_indicator:
+        #    tab_6_size_indicator.pop()
         tab_6_size_indicator.append(ui.tab_6.width())
         if event.key() == QtCore.Qt.Key_F:
-            if tab_6_size_indicator:
-                tab_6_size_indicator.pop()
+            #if tab_6_size_indicator:
+            #    tab_6_size_indicator.pop()
             if self.width() > 500:
                 tab_6_size_indicator.append(self.width())
             fullscr = 1 - fullscr
@@ -1956,7 +1956,7 @@ watch/unwatch status")
         if show_hide_tl:
             show_hide_titlelist = show_hide_tl
         if tab_6:
-            tab_6_size_indicator = tab_6
+            tab_6_size_indicator = tab_6.copy()
         if idw_val:
             idw = idw_val
         if fullsc:
@@ -2693,6 +2693,8 @@ watch/unwatch status")
                 #p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
                 #txt = eval(p1)
                 txt = self.list2.item(num).text()
+                if txt.startswith('#'):
+                    txt = txt.replace('#', self.check_symbol, 1)
                 try:
                     p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
                     exec(p1)
@@ -2794,16 +2796,22 @@ watch/unwatch status")
             self.thumbnail_label_update_epn()
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             
-    def playerStop(self):
+    def playerStop(self, msg=None):
         global quitReally, thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, curR, wget, Player, show_hide_cover
         global show_hide_playlist, show_hide_titlelist, video_local_stream
         global idw, new_tray_widget
         
-        if self.mpvplayer_val.processId() > 0:
+        if self.mpvplayer_val.processId() > 0 or msg:
             quitReally = "yes"
             #self.mpvplayer_val.write(b'\n quit \n')
-            self.mpvplayer_val.kill()
+            if msg:
+                if msg.lower() == 'already quit':
+                    logger.debug(msg)
+                else:
+                    self.mpvplayer_val.kill()
+            else:
+                self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
             if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
                 if not self.float_window.isHidden():
@@ -2845,13 +2853,14 @@ watch/unwatch status")
                         self.gridLayout.setSpacing(5)
                         self.tab_6.setMaximumSize(10000, 10000)
                         self.tab_5.hide()
-                        i = 0
+                        tab_6_size_indicator.append(screen_width-20)
                         thumbnail_indicator[:]=[]
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
                         else:
                             iconv_r = 5
                         ui.scrollArea1.verticalScrollBar().setValue(0)
+                        QtWidgets.QApplication.processEvents()
                         self.frame2.show()
                         self.frame1.show()
                         self.labelFrame2.show()
@@ -3830,7 +3839,7 @@ watch/unwatch status")
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[0]-60)/iconv_r
+                        l= (tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -3942,7 +3951,6 @@ watch/unwatch status")
         else:
             self.tab_6.setMaximumSize(16777215, 16777215)
         print("width="+str(self.tab_6.width()))
-        
         if iconv_r > 1:
             w = float((self.tab_6.width()-60)/iconv_r)
             #h = float((9*w)/16)
@@ -3950,7 +3958,7 @@ watch/unwatch status")
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[0]-60)/iconv_r
+                        l= (tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -4031,7 +4039,7 @@ watch/unwatch status")
         else:
             self.tab_6.setMaximumSize(10000, 10000)
         print("width="+str(self.tab_6.width()))
-        
+        QtWidgets.QApplication.processEvents()
         if iconv_r > 1:
             w = float((self.tab_6.width()-60)/iconv_r)
             #h = float((9*w)/16)
@@ -4039,7 +4047,7 @@ watch/unwatch status")
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[0]-60)/iconv_r
+                        l= (tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -4276,7 +4284,7 @@ watch/unwatch status")
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[0]-60)/iconv_r
+                        l= (tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -9642,7 +9650,7 @@ watch/unwatch status")
                         self.mpv_custom_pause = True
                         self.player_play_pause_status('pause')
                 elif 'Exiting... (Quit)' in a:
-                    self.tab_5.player_quit(msg='already quit')
+                    self.playerStop(msg='already quit')
                 elif 'set property: video-aspect=' in a.lower():
                     logger.debug(a)
                     aspect_val = a.split('video-aspect=')[1].split(' ')[0]
