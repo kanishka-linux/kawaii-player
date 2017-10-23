@@ -247,8 +247,8 @@ class PlayerWidget(QtWidgets.QWidget):
         else:
             param_dict = self.ui.get_parameters_value(t='tab_6_size_indicator')
             tab_6_size_indicator = param_dict['tab_6_size_indicator']
-            if tab_6_size_indicator:
-                tab_6_size_indicator.pop()
+            #if tab_6_size_indicator:
+            #    tab_6_size_indicator.pop()
             tab_6_size_indicator.append(self.ui.tab_6.width())
             self.ui.set_parameters_value(tab_6=tab_6_size_indicator)
             param_dict = self.ui.get_parameters_value(
@@ -335,8 +335,11 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.float_window.showFullScreen()
                     else:
                         self.ui.float_window.showNormal()
-    
+
     def player_quit(self, msg=None):
+        self.ui.player_stop.clicked.emit()
+    
+    def player_quit_old(self, msg=None):
         quitReally = "yes"
         self.ui.set_parameters_value(quit_r=quitReally)
         if not msg:
@@ -347,15 +350,20 @@ class PlayerWidget(QtWidgets.QWidget):
         screen_width = param_dict_val['screen_width']
         screen_height = param_dict_val['screen_height']
         if not idw or idw == str(int(self.winId())):
+            #self.ui.player_stop.clicked.emit()
+            #return 0
             self.ui.player_play_pause.setText(self.ui.player_buttons['play'])
             param_dict = self.ui.get_parameters_value(
                 wgt='wget', vl='video_local_stream', sh='show_hide_titlelist',
-                sc='show_hide_cover', icn='iconv_r_indicator')
+                sc='show_hide_cover', icn='iconv_r_indicator',
+                tab_6_sz='tab_6_size_indicator', screen_width='screen_width')
             wget = param_dict['wget']
             video_local_stream = param_dict['video_local_stream']
             show_hide_titlelist = param_dict['show_hide_titlelist']
             show_hide_cover = param_dict['show_hide_cover']
             iconv_r_indicator = param_dict['iconv_r_indicator']
+            tab_6_size_indicator = param_dict['tab_6_size_indicator']
+            screen_width = param_dict['screen_width']
             logger.info(
                 '{0}-{1}-{2}-{3}-{4}'.format(
                 wget, video_local_stream, show_hide_titlelist, show_hide_cover, iconv_r_indicator))
@@ -380,6 +388,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     #self.ui.tab_5.setMinimumSize(0, 0)
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.tab_6.setMaximumSize(10000, 10000)
+                    tab_6_size_indicator.append(screen_width-40)
                     #self.ui.frame1.hide()
                     self.ui.tab_5.hide()
                     if iconv_r_indicator:
@@ -387,13 +396,15 @@ class PlayerWidget(QtWidgets.QWidget):
                     else:
                         iconv_r = 5
                     self.ui.set_parameters_value(thumb_indicator='empty',
-                                                 iconv=iconv_r)
+                                                 iconv=iconv_r, tab_6=tab_6_size_indicator)
+                    QtWidgets.QApplication.processEvents()
                     #num = self.ui.list2.currentRow()
                     ##self.ui.thumbnail_label_update_epn()
-                    logger.debug(iconv_r)
+                    self.ui.scrollArea1.verticalScrollBar().setValue(0)
                     self.ui.frame2.show()
                     self.ui.frame1.show()
                     self.ui.labelFrame2.show()
+                    self.ui.thumbnail_label_update_epn()
                     QtWidgets.QApplication.processEvents()
                     QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
                 if wget:
@@ -422,8 +433,8 @@ class PlayerWidget(QtWidgets.QWidget):
         else:
             param_dict = self.ui.get_parameters_value(t='tab_6_size_indicator')
             tab_6_size_indicator = param_dict['tab_6_size_indicator']
-            if tab_6_size_indicator:
-                tab_6_size_indicator.pop()
+            #if tab_6_size_indicator:
+            #    tab_6_size_indicator.pop()
             tab_6_size_indicator.append(self.ui.tab_6.width())
             self.ui.set_parameters_value(tab_6=tab_6_size_indicator)
             param_dict = self.ui.get_parameters_value(
@@ -448,6 +459,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         nameEpn = (str(self.ui.epn_arr_list[cur_label_num])).split('	')[0]
                     else:
                         nameEpn = os.path.basename(self.ui.epn_arr_list[cur_label_num])
+                    if nameEpn.startswith('#'):
+                        nameEpn = nameEpn.replace('#', ui.check_symbol, 1)
                     length_1 = self.ui.list2.count()
                     q3="self.ui.label_epn_"+str(length_1+cur_label_num)+".setText(nameEpn)"
                     exec (q3)
