@@ -5939,8 +5939,8 @@ watch/unwatch status")
         if (opt == "History" or site == "Music" or site == "Video" 
                 or site == "PlayLists") and site != 'MyServer':
             self.listfound()
-        elif (site.lower() == 'myserver' and opt.lower() != 'history' and 
-                opt.lower() != 'login' and opt.lower() != 'discover'):
+        elif (site.lower() == 'myserver' and opt.lower() != 'login' 
+                and opt.lower() != 'discover'):
             name_now = ''
             if self.list1.currentItem() and self.myserver_threads_count <= 10:
                 cur_row = self.list1.currentRow()
