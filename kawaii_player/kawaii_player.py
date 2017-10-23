@@ -361,6 +361,7 @@ class tab6(QtWidgets.QWidget):
                         QtWidgets.QApplication.processEvents()
                 elif not ui.scrollArea1.isHidden():
                         ui.thumbnail_label_update()
+                        logger.debug('updating thumbnail window')
                         
     def mouseMoveEvent(self, event):
         print('Tab_6')
@@ -2714,8 +2715,12 @@ watch/unwatch status")
             r = 0
         print(r, '--thumbnail_number--', cur_label_num)
         QtWidgets.QApplication.processEvents()
-        p1="self.label_epn_"+str(cur_label_num)+".y()"
-        yy=eval(p1)
+        try:
+            p1="self.label_epn_"+str(cur_label_num)+".y()"
+            yy=eval(p1)
+        except Exception as err:
+            print(err)
+            yy = 0
         self.scrollArea1.verticalScrollBar().setValue(yy-10)
         QtWidgets.QApplication.processEvents()
         self.frame1.show()
@@ -2731,8 +2736,11 @@ watch/unwatch status")
         self.superGridLayout.setSpacing(5)
         self.tab_6.show()
         QtWidgets.QApplication.processEvents()
-        p1="self.label_epn_"+str(r)+".setFocus()"
-        exec(p1)
+        try:
+            p1="self.label_epn_"+str(r)+".setFocus()"
+            exec(p1)
+        except Exception as err:
+            print(err)
         if not context:
             self.mark_epn_thumbnail_label(cur_label_num)
         
@@ -2783,7 +2791,7 @@ watch/unwatch status")
             self.superGridLayout.setSpacing(5)
             self.tab_6.show()
         else:
-            self.thumbnail_label_update()
+            self.thumbnail_label_update_epn()
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             
     def playerStop(self):
@@ -2843,7 +2851,12 @@ watch/unwatch status")
                             iconv_r = iconv_r_indicator[0]
                         else:
                             iconv_r = 5
+                        ui.scrollArea1.verticalScrollBar().setValue(0)
+                        self.frame2.show()
+                        self.frame1.show()
                         self.labelFrame2.show()
+                        self.thumbnail_label_update_epn()
+                        QtWidgets.QApplication.processEvents()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             if MainWindow.isFullScreen():
                 MainWindow.showNormal()
@@ -3944,7 +3957,7 @@ watch/unwatch status")
                     #h = float((9*w)/16)
                     h = int(w/self.image_aspect_allowed)
         elif iconv_r == 1:
-            w = float(self.tab_6.width()-60)
+            w = float(self.tab_6.width()-40)
             #w = float(self.tab_6.width())
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
@@ -3968,6 +3981,13 @@ watch/unwatch status")
             #j = 5
             j = iconv_r+1
             k = 0
+            length1 = 2*length
+            ii = length
+            if iconv_r == 1:
+                jj = 3
+            else:
+                jj = 2*iconv_r
+            kk = 0
             while(i<length):
                 p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
                 p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
@@ -3985,28 +4005,18 @@ watch/unwatch status")
                     j = j + 2*iconv_r
                     k = 0
                     
-            length1 = 2*length
-            i = length
-            if iconv_r == 1:
-                j = 3
-            else:
-                j = 2*iconv_r
-            k = 0
-            while(i<length1):
-                p2="self.label_epn_"+str(i)+".setMinimumWidth("+width+")"
-                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
+                p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
+                p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
+                p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
                 exec (p2)
                 exec (p5)
                 exec (p6)
-                i=i+1
-                k = k+1
-                if k == iconv_r:
-                    j = j+2*iconv_r
-                    k = 0
+                ii += 1
+                kk += 1
+                if kk == iconv_r:
+                    jj = jj + 2*iconv_r
+                    kk = 0
             total_till_epn = length1
-        print(browse_cnt)
-        print(length)
             
     def thumbnail_label_update_epn(self):
         global total_till, browse_cnt, home, iconv_r, site
@@ -4036,7 +4046,7 @@ watch/unwatch status")
                     #h = float((9*w)/16)
                     h = int(w/self.image_aspect_allowed)
         elif iconv_r == 1:
-            w = float(self.tab_6.width()-60)
+            w = float(self.tab_6.width()-40)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
         width = str(int(w))
@@ -4055,6 +4065,13 @@ watch/unwatch status")
             i = 0
             j = iconv_r+1
             k = 0
+            length1 = 2*length
+            ii = length
+            if iconv_r == 1:
+                jj = 3
+            else:
+                jj = 2*iconv_r
+            kk = 0
             while(i<length):
                 p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
                 p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
@@ -4112,34 +4129,26 @@ watch/unwatch status")
                 q1="self.label_epn_"+str(counter)+".setPixmap(img)"
                 exec (q1)
                 
-                QtWidgets.QApplication.processEvents()
                 i=i+1
                 k = k+1
                 if k == iconv_r:
                     j = j + 2*iconv_r
                     k = 0
         
-            length1 = 2*length
-            i = length
-            if iconv_r == 1:
-                j = 3
-            else:
-                j = 2*iconv_r
-            k = 0
-        
-            while(i<length1):
-                p2="self.label_epn_"+str(i)+".setMinimumWidth("+width+")"
-                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                exec (p2)
-                exec (p5)
-                exec (p6)
+                p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
+                p3="self.label_epn_"+str(ii)+".setMaximumWidth("+width+")"
+                p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
+                p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
+                exec(p2)
+                exec(p3)
+                exec(p5)
+                exec(p6)
+                ii += 1
+                kk += 1
+                if kk == iconv_r:
+                    jj = jj + 2*iconv_r
+                    kk = 0
                 QtWidgets.QApplication.processEvents()
-                i=i+1
-                k = k+1
-                if k == iconv_r:
-                    j = j+2*iconv_r
-                    k = 0
             total_till_epn = length1
     
     def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None,
@@ -4273,7 +4282,7 @@ watch/unwatch status")
                     w = float(l)
                     h = int(w/self.image_aspect_allowed)
         elif iconv_r == 1:
-            w = float(self.tab_6.width()-60)
+            w = float(self.tab_6.width()-40)
             h = int(w/self.image_aspect_allowed)
         width = str(int(w))
         height = str(int(h))
@@ -11416,12 +11425,12 @@ watch/unwatch status")
                         if not self.scrollArea.isHidden():
                             self.next_page('deleted')
                         elif not self.scrollArea1.isHidden():
-                            self.thumbnail_label_update()
+                            self.thumbnail_label_update_epn()
                     elif total_till == 0:
                         if not self.scrollArea.isHidden():
                             self.next_page('deleted')
                         elif not self.scrollArea1.isHidden():
-                            self.thumbnail_label_update()
+                            self.thumbnail_label_update_epn()
                     
         list1_items[:] = []	
         for i in range(self.list1.count()):
