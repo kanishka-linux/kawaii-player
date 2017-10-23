@@ -135,7 +135,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if not ui.scrollArea.isHidden():
                     ui.next_page('not_deleted')
                 elif not ui.scrollArea1.isHidden():
-                    ui.thumbnail_label_update()
+                    ui.thumbnail_label_update_epn()
                 if iconv_r > 1:
                     w = float((ui.tab_6.width()-60)/iconv_r)
                     h = int(w/ui.image_aspect_allowed)
@@ -156,7 +156,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if not ui.scrollArea.isHidden():
                     ui.next_page('not_deleted')
                 elif not ui.scrollArea1.isHidden():
-                    ui.thumbnail_label_update()
+                    ui.thumbnail_label_update_epn()
                 if iconv_r > 1:
                     w = float((ui.tab_6.width()-60)/iconv_r)
                     h = int(w/ui.image_aspect_allowed)
@@ -471,7 +471,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                             ui.tab_6.show()
                             QtCore.QTimer.singleShot(1000, ui.update_thumbnail_position)
                         else:
-                            ui.thumbnail_label_update()
+                            ui.thumbnail_label_update_epn()
                             QtWidgets.QApplication.processEvents()
                             QtWidgets.QApplication.processEvents()
                             p1="ui.label_epn_"+str(cur_label_num)+".y()"
@@ -842,7 +842,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.set_parameters_value(iconv=iconv_r)
             ui.tab_6.setMaximumSize(ui.width_allowed, 16777215) # (400, 1000) earlier
 
-            ui.thumbnail_label_update()
+            ui.thumbnail_label_update_epn()
             tab_6_player = "True"
             
             ui.set_parameters_value(t6_ply=tab_6_player)
