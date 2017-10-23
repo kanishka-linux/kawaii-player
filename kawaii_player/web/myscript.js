@@ -111,6 +111,7 @@ var _player = document.getElementById("player"),
     _clicked_element = null;
     _remote_control_status = null;
     _can_play_sync = false;
+    _remote_queue_value = 0;
 // functions
 
 function hide_control_bar(){
@@ -257,13 +258,6 @@ function menu_clicked_queue(e){
         _custom_context.style.display = "none";
     }   
     _playlist_selected_element.style.backgroundColor = _old_playlist_selected_color;
-    if (_remote_val == 'on'){
-        var num_val = _playlist_selected_element.getAttribute('data-num');
-        var req_val = 'queueitem_'+num_val;
-        var client = new getRequest();
-        client.get(req_val, function(response) {
-        console.log(response);
-	})}
 }
 
 
@@ -280,6 +274,22 @@ function menu_clicked_hide_queue(e){
 }
 
 function menu_clicked_remove_queue(e){
+    if (_remote_val == 'on'){
+        var index = 0;
+        var first = _playlist_custom.firstChild;
+        while(first){
+            if (first == _queue_selected_element){
+                break
+            }
+            first = first.nextSibling;
+            index += 1;
+        }
+        var req_val = 'queue_remove_item_'+index.toString();
+        var client = new getRequest();
+        client.get(req_val, function(response) {
+        console.log(response);
+        _remote_queue_value -= 1;
+	})}
     _playlist_custom.removeChild(_queue_selected_element);
     if (e == 'hide') {
         _queue_context.style.display = "none";
@@ -492,12 +502,13 @@ function remote_control_update(){
     var new_url = 'get_remote_control_status';
     var client = new getRequest();
 	client.get(new_url, function(response) {
-	//console.log(response);
+	console.log(response);
     if (response.indexOf('::') >= 0){
             var arr_val = response.split('::');
             var total = arr_val[0];
             var cur_time = arr_val[1];
             var index_row = arr_val[2];
+            var queue_list = parseInt(arr_val[3]);
             
             dur_int = parseInt(total);
             _player_progress.max = dur_int;
@@ -560,6 +571,35 @@ function remote_control_update(){
                         })
                     }
                     
+                    
+                }
+            }else if(queue_list != _remote_queue_value){
+                var clickedElement = _playlist_custom.firstChild;
+                if (clickedElement){
+                    document.title = clickedElement.getAttribute('data-num')+" "+clickedElement.title;
+                    _final_url = clickedElement.getAttribute('data-mp3');
+                    _player_control_info.innerHTML = document.title;
+                    _player_control_image.src = _final_url + '.image'
+                    _player.src = _final_url;
+                    _player.poster = _final_url + '.image'
+                    
+                    var tmp_name = clickedElement.innerHTML;
+    
+                    var win_width = window.innerWidth;
+                    if (_show_thumbnails){
+                        if (win_width <= 640){
+                            _title.innerHTML = document.title;
+                            _title.style.textAlign = 'center';
+                        }else{
+                            _title.innerHTML = tmp_name;
+                            _title.style.textAlign = 'left';
+                        }
+                    }else{
+                        _title.innerHTML = document.title;
+                        _title.style.textAlign = 'left';
+                    }
+                    _playlist_custom.removeChild(clickedElement);
+                    _remote_queue_value -= 1;
                 }
             }
             
@@ -1428,6 +1468,14 @@ function click_to_add_to_playlist(e){
     new_opt.setAttribute('data-num', data_num)
     new_opt.setAttribute('title', e.title);
 	_playlist_custom.appendChild(new_opt);
+    
+    if (_remote_val == 'on'){
+        var req_val = 'queueitem_'+data_num;
+        var client = new getRequest();
+        client.get(req_val, function(response) {
+        console.log(response);
+        _remote_queue_value += 1;
+	})}
 }
 
 function create_playlist_dynamically(mode){
@@ -1672,6 +1720,9 @@ function onDocReady(){
 	var z = y.innerHTML;
 	var w = z.split(';');
     var user_agent = window.navigator.userAgent.toLowerCase();
+    //if (user_agent.indexOf('android')>=0){
+    //    _buttons_div.style.height = '64px';
+    //}
 	console.log(w);
 	if (w[0].toLowerCase() == 'remotefield:false'){
 		_remote.style.display = "none";
@@ -1786,6 +1837,8 @@ function onDocReady(){
     hide_alternate_menu_buttons();
     top_bar_change_layout();
     max_min_top_bar();
+    
+    
 }
 
 function siteChange(){
@@ -2175,9 +2228,6 @@ _shuffle.addEventListener("click", function () {
         }
 		var b = m[i+1];
 		var new_opt = document.createElement('li');
-        if (!_show_thumbnails){
-            new_opt.innerHTML = a;
-        }
 		new_opt.setAttribute('data-mp3',b);
 		new_opt.setAttribute('data-num',indx.toString());
 		new_opt.setAttribute('draggable','true');
@@ -2190,8 +2240,10 @@ _shuffle.addEventListener("click", function () {
         new_opt.setAttribute('title', a);
         if (_show_thumbnails){
             img_div = add_thumbnail_to_playlist(a, b, 0);
-            new_opt.appendChild(img_div);
+        }else{
+            img_div = add_thumbnail_to_playlist(a, b, 1);
         }
+        new_opt.appendChild(img_div);
 		r.appendChild(new_opt);
 		indx += 1;
 		}
