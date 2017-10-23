@@ -390,7 +390,7 @@ class PlayerWidget(QtWidgets.QWidget):
                                                  iconv=iconv_r)
                     #num = self.ui.list2.currentRow()
                     ##self.ui.thumbnail_label_update_epn()
-                    
+                    logger.debug(iconv_r)
                     self.ui.frame2.show()
                     self.ui.frame1.show()
                     self.ui.labelFrame2.show()
