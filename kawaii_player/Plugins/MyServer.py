@@ -219,6 +219,8 @@ class MyServer:
             content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
             #print(content)
             m = content.split('\n')
+            if self.site.lower() == 'video' or self.site.lower() == 'music':
+                m = [i.replace('::::', '\t', 1) for i in m]
             m.append(1)
         elif opt.lower() == 'discover':
             self.opt = opt
