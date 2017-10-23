@@ -1333,21 +1333,25 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if nm.startswith('"'):
                 nm = nm.replace('"', '')
             self.process_url(nm, get_bytes)
-        elif path.startswith('playlist_') or path.startswith('queueitem_'):
+        elif path.startswith('playlist_') or path.startswith('queueitem_') or path.startswith('queue_remove_item_'):
             try:
-                pl, row = path.split('_', 1)
+                pl, row = path.rsplit('_', 1)
                 if row.isnumeric():
                     row_num = int(row)
                 else:
                     row_num = -1000
                 if ui.remote_control and ui.remote_control_field:
                     b = b'Playing file'
-                    self.final_message(b)
                     remote_signal = doGETSignal()
                     if path.startswith('playlist_'):
                         remote_signal.control_signal.emit(row_num, 'normal')
-                    else:
+                    elif path.startswith('queueitem_'):
+                        b = b'queued'
                         remote_signal.control_signal.emit(row_num, 'queue')
+                    elif path.startswith('queue_remove_item_'):
+                        b = b'queued item removed'
+                        remote_signal.control_signal.emit(row_num, 'queue_remove')
+                    self.final_message(b)
                 else:
                     b = b'Remote Control Not Allowed'
                     self.final_message(b)
@@ -1553,7 +1557,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif path.lower() == 'get_remote_control_status':
             try:
                 if ui.remote_control and ui.remote_control_field:
-                    msg = str(ui.mplayerLength)+'::'+str(ui.progress_counter)+'::'+str(ui.list2.currentRow()+1)
+                    msg = str(ui.mplayerLength)+'::'+str(ui.progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))
                     self.final_message(bytes(msg, 'utf-8'))
                 else:
                     b = b'Remote Control Not Allowed'
@@ -2686,6 +2690,12 @@ def start_player_remotely(nm, mode):
         nm = nm - 1
         if nm < len(ui.epn_arr_list):
             ui.queue_url_list.append(ui.epn_arr_list[nm])
+            logger.debug(nm)
+            logger.debug(ui.queue_url_list)
+    elif mode == 'queue_remove':
+        if nm < len(ui.queue_url_list):
+            del ui.queue_url_list[nm]
+            logger.debug(ui.queue_url_list)
     else:
         if mode == 'playpause':
             ui.player_play_pause.clicked.emit()
