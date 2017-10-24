@@ -2847,6 +2847,7 @@ watch/unwatch status")
                             and (str(idw) != str(int(self.label.winId())))):
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
+                        self.scrollArea1.verticalScrollBar().setValue(0)
                         self.thumbnail_window_present_mode()
                     elif (str(idw) == str(int(self.tab_5.winId()))):
                         self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
@@ -2859,7 +2860,7 @@ watch/unwatch status")
                             iconv_r = iconv_r_indicator[0]
                         else:
                             iconv_r = 5
-                        ui.scrollArea1.verticalScrollBar().setValue(0)
+                        self.scrollArea1.verticalScrollBar().setValue(0)
                         QtWidgets.QApplication.processEvents()
                         self.frame2.show()
                         self.frame1.show()
@@ -10306,7 +10307,7 @@ watch/unwatch status")
                 ht=eval(p1)
                 
                 self.scrollArea1.verticalScrollBar().setValue(ht)
-                self.labelFrame2.setText(newTitle[:20]+'..')
+                self.labelFrame2.setText(newTitle)
                 
                 new_cnt = curR + self.list2.count()
                 p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
@@ -10349,7 +10350,7 @@ watch/unwatch status")
                         p1 = "self.label_epn_"+str(row)+".y()"
                         ht=eval(p1)
                         self.scrollArea1.verticalScrollBar().setValue(ht)
-                    self.labelFrame2.setText(newTitle[:20]+'..')
+                    self.labelFrame2.setText(newTitle)
                     
                     new_cnt = curR + self.list2.count()
                     p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
