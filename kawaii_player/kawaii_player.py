@@ -4015,11 +4015,13 @@ watch/unwatch status")
                     k = 0
                     
                 p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
+                p3="self.label_epn_"+str(ii)+".setMaximumWidth("+width+")"
                 p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
                 p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
-                exec (p2)
-                exec (p5)
-                exec (p6)
+                exec(p2)
+                exec(p3)
+                exec(p5)
+                exec(p6)
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
@@ -4036,11 +4038,11 @@ watch/unwatch status")
         self.scrollArea.hide()
         self.scrollArea1.show()
         if iconv_r == 1 and not self.tab_5.isHidden():
-            self.tab_6.setMaximumSize(self.width_allowed, 10000)
+            self.tab_6.setMaximumSize(self.width_allowed, 16777215)
         else:
-            self.tab_6.setMaximumSize(10000, 10000)
+            self.tab_6.setMaximumSize(16777215, 16777215)
         print("width="+str(self.tab_6.width()))
-        QtWidgets.QApplication.processEvents()
+        #QtWidgets.QApplication.processEvents()
         if iconv_r > 1:
             w = float((self.tab_6.width()-60)/iconv_r)
             #h = float((9*w)/16)
