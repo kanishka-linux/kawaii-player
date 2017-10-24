@@ -675,7 +675,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     p1 = "ui.label_epn_"+str(num)+".y()"
                     ht = eval(p1)
                     print(ht, '--ht--', ui.scrollArea1.height())
-                    ui.scrollArea1.verticalScrollBar().setValue(ht)
+                    ui.scrollArea1.verticalScrollBar().setValue(ht - 5)
                     ui.play_file_now(finalUrl)
                     if site == "Music":
                         logger.info(finalUrl)
