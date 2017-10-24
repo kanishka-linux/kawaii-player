@@ -455,6 +455,25 @@ height: 12px;
   box-shadow: 0 5px #666;
 }
 
+
+.btn_minmax_topbar{
+        position:fixed;top: 1px;right: 1px;height:48px; width:32px;
+        background-color:#333;
+        border: none;
+        color: white;
+        padding:8px;
+        text-align: center;
+        text-decoration: none;
+        padding: 2px 2px;
+        color: white;
+        border-radius:3px;
+    }
+
+.btn_minmax_topbar:hover{
+    background-color: green;
+    color: black; 
+}
+
 /*Top Menu Bar*/
 
 .top_menu_bar{
