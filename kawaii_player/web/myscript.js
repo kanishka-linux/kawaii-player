@@ -102,7 +102,7 @@ var _player = document.getElementById("player"),
     _current_working_m3u = "";
     _top_menu_bar = document.getElementById('top_menu_bar');
     _top_menu_bar_sub = document.getElementById('top_menu_bar_sub');
-    _hide_top_bar = false;
+    _hide_top_bar = true;
     _player_start_time = document.getElementById('player_start_time');
     _player_end_time = document.getElementById('player_end_time');
     _btn_minimize = document.getElementById("btn_minimize");
@@ -112,6 +112,7 @@ var _player = document.getElementById("player"),
     _remote_control_status = null;
     _can_play_sync = false;
     _remote_queue_value = 0;
+    _btn_minmax_topbar = document.getElementById('btn_minmax_topbar')
 // functions
 
 function hide_control_bar(){
@@ -145,40 +146,38 @@ function goto_last_position(event){
     window.scrollTo(_top_xy[0], _top_xy[1]);
 }
 
+function hide_show_topbar(){
+        w = window.innerWidth;
+        if (w < 450){
+            _top_menu_bar.style.display = 'block';
+            _top_menu_bar_sub.style.display = 'block';
+        }else{
+            _top_menu_bar.style.display = 'grid';
+            _top_menu_bar_sub.style.display = 'grid';
+        }
+        _hide_top_bar = false;
+        _btn_minmax_topbar.style.display = 'none';
+}
+
 function max_min_top_bar(){
     console.log(_hide_top_bar, _top_menu_bar_sub.style.display);
-    
-    if (!_hide_top_bar){
-        _hide_top_bar = true;
-        if (_top_menu_bar_sub.style.display == 'grid'){
-            _top_menu_bar_sub.style.visibility = 'hidden';
-        }else{
-            _top_menu_bar_sub.style.display = 'none';
-        }
-    }else{
-        _hide_top_bar = false;
-        if (_top_menu_bar_sub.style.display == 'grid'){
-            _top_menu_bar_sub.style.visibility = 'visible';
-        }else{
-            _top_menu_bar_sub.style.display = 'block';
-            _top_menu_bar_sub.style.visibility = "visible";
-        }
-    }
+    _hide_top_bar = true;
+    w = window.innerWidth;
+    _top_menu_bar.style.display = 'none';
+    _btn_minmax_topbar.style.display = 'block';
 }
 
 function top_bar_change_layout(){
     w = window.innerWidth;
     if (w < 450){
-        _top_menu_bar.style.display = 'block'
+        _top_menu_bar.style.display = 'block';
         _top_menu_bar_sub.style.display = 'block';
-        if (_top_menu_bar_sub.style.visibility == 'hidden'){
-            _top_menu_bar_sub.style.display = 'none';
-            _hide_top_bar = true;
-        }
     }else{
-        _top_menu_bar.style.display = 'grid'
-         _top_menu_bar_sub.style.display = 'grid';
-        _hide_top_bar = false;
+        _top_menu_bar.style.display = 'grid';
+        _top_menu_bar_sub.style.display = 'grid';
+    }
+    if (_hide_top_bar){
+        _top_menu_bar.style.display = 'none';
     }
 }
 
@@ -1836,7 +1835,8 @@ function onDocReady(){
 	while(_player.firstChild){_player.removeChild(_player.firstChild);}
     hide_alternate_menu_buttons();
     top_bar_change_layout();
-    max_min_top_bar();
+    _top_menu_bar.style.display = 'none';
+    //max_min_top_bar();
     
     
 }
@@ -2714,24 +2714,16 @@ window.onscroll = function () {
             document.getElementById("btn_to_top").style.visibility = "hidden";
         }
         if (_hide_top_bar){
-            if (_top_menu_bar_sub.style.display == 'grid'){
-                _top_menu_bar_sub.style.visibility = 'hidden';
-            }else{
-                _top_menu_bar_sub.style.display = 'none';
-            }
+            _top_menu_bar.style.display = 'none';
         }
     }else{
-        document.getElementById("btn_to_top").style.visibility = "hidden";
-        document.getElementById("btn_maximize").style.visibility = "hidden";
-        document.getElementById('player_control_progress').style.visibility = "hidden";
+        //document.getElementById("btn_to_top").style.visibility = "hidden";
+        //document.getElementById("btn_maximize").style.visibility = "hidden";
+        //document.getElementById('player_control_progress').style.visibility = "hidden";
         if (_hide_top_bar){
-            if (_top_menu_bar_sub.style.display == 'grid'){
-                _top_menu_bar_sub.style.visibility = 'hidden';
-            }else{
-                _top_menu_bar_sub.style.display = 'none';
+            _top_menu_bar.style.display = 'none';
             }
         }
-    }
 };
 
 function back_to_top(){
