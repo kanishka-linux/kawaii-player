@@ -842,7 +842,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.set_parameters_value(iconv=iconv_r)
             ui.tab_6.setMaximumSize(ui.width_allowed, 16777215) # (400, 1000) earlier
 
-            ui.thumbnail_label_update_epn()
+            ui.thumbnail_label_update()
             tab_6_player = "True"
             
             ui.set_parameters_value(t6_ply=tab_6_player)
