@@ -846,6 +846,13 @@ function searchFunction(e, mode){
 				console.log(response);
 				_title.innerHTML = response;
 			})
+			}else if (new_z != null && new_z.toLowerCase() == 'cache'){
+				var new_url = "clear_all_cache";
+				var client = new getRequest();
+				client.get(new_url, function(response) {
+				console.log(response);
+				_title.innerHTML = response;
+			})
 			}
 			z.value = '';
 		}
