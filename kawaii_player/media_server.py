@@ -2228,7 +2228,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.media_server_cache_music.clear()
             self.media_server_cache_video.clear()
             ui.navigate_playlist_history.clear()
-            msg = bytes('playlist navigation history cleared', 'utf-8')
+            msg = bytes('cache and playlist navigation history cleared', 'utf-8')
             self.final_message(msg)
         elif path.startswith('default.jpg'):
             default_jpg = os.path.join(home, 'default.jpg')
