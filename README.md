@@ -364,43 +364,43 @@ HTML5 compliant torrent video streams can be easily played within web browser. F
 
 Web Interface, contains a search text box which can be used to send text commands to media server. All these commands are listed below:
 
-		$ create_playlist:playlist_name (This will create custom empty playlist with name *playlist_name* on the server, if it has already not been created)
-		$ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
-		$ update:video (will update video section)
+        $ create_playlist:playlist_name (This will create custom empty playlist with name *playlist_name* on the server, if it has already not been created)
+        $ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
+        $ update:video (will update video section)
         $ update:music (will update music section)
         $ clear:playlist_history (clear playlist navigation history)
         $ clear:cahe (clear video/music/playlist cache along with playlist navigation history)
-		
-		$ sub:on (Turn on subtitle if ffmpeg is installed on server)
-		$ sub:off (Turn off subtitles)
-		$ sub:reload (Reload subtitles, if subtitles are not visible even after turning on. It is useful in torrent streaming.)
-		
-		$ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
-		$ torrent:stop (It will stop the torrent session)
-		$ torrent:remove (remove torrent from session)
-		$ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
-		$ torrent:status (will show status of current running torrent)
-		$ torrent:status_all (show status of all running torrents)
-		$ torrent:status_stop (will stop showing status)
-		$ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
-		$ torrent:pause
-		$ torrent:pause_all
-		$ torrent:resume
-		$ torrent:resume_all
-		
-		$ yt:youtube_link (send youtube link to server playlist)
-		$ yt:audio (play only audio)
-		$ yt:audiovideo (regular video)
-		$ quality:{sd,hd,best}
-		$ yt:d (download for offline viewing on server)
-		$ yt:d:youtube_link (add link to server playlist and download for offline viewing on server)
-		$ yt:getsub (get subtitle if available)
-		
-**About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session. The playlist, which is displayed on the web interface also provides contextmenu that provides variety of options. This contextmenu is shown on right clicking any playlist entry. On android firefox, users have to press playlist entry to see the contextmenu. On android chrome, users have to press the thumbnail image to see the contextmenu.
+    
+        $ sub:on (Turn on subtitle if ffmpeg is installed on server)
+        $ sub:off (Turn off subtitles)
+        $ sub:reload (Reload subtitles, if subtitles are not visible even after turning on. It is useful in torrent streaming.)
+    
+        $ torrent:torrent_magnet_or_http_link (for adding torrent to the server, Once torrent info is fetched, it will be available in *History* section of *Torrent*)
+        $ torrent:stop (It will stop the torrent session)
+        $ torrent:remove (remove torrent from session)
+        $ torrent:delete (delete torrent and all it's associated files kept in default torrent download location as specified in *'torrent_config.txt'*) 
+        $ torrent:status (will show status of current running torrent)
+        $ torrent:status_all (show status of all running torrents)
+        $ torrent:status_stop (will stop showing status)
+        $ torrent:d:download_speed_in_KB::u:upload_speed_in_KB (sets up upload and download speed locally for specific torrent. Eg, *torrent:d:90::u:80* will set download speed to 90KB and upload speed to 80KB)
+        $ torrent:pause
+        $ torrent:pause_all
+        $ torrent:resume
+        $ torrent:resume_all
+        
+        $ yt:youtube_link (send youtube link to server playlist)
+        $ yt:audio (play only audio)
+        $ yt:audiovideo (regular video)
+        $ quality:{sd,hd,best}
+        $ yt:d (download for offline viewing on server)
+        $ yt:d:youtube_link (add link to server playlist and download for offline viewing on server)
+        $ yt:getsub (get subtitle if available)
+    
+* **About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session. The playlist, which is displayed on the web interface also provides contextmenu that provides variety of options. This contextmenu is shown on right clicking any playlist entry. On android firefox, users have to press playlist entry to see the contextmenu. On android chrome, users have to press the thumbnail image to see the contextmenu.
 
-**Get M3U:** User can click on the *'Get M3U'* button to generate universal playlist in M3U format, which can be played on any device and on most of the popular clients that support http streaming. User can save the playlist or can directly open it with their favourite media player application. If Firefox is directly playing the playlist, then it might be due to some external web plugin. For example, during installation of vlc, it can also install web plugin for firefox. Users need to disable such plugin to get the playlist, or they can simply open the url **without '.htm' extension** from within the vlc itself, if 'https' and cookie are not enabled. vlc can easily deal with basic username and password based authentication.
+* **Get M3U:** User can click on the *'Get M3U'* button to generate universal playlist in M3U format, which can be played on any device and on most of the popular clients that support http streaming. User can save the playlist or can directly open it with their favourite media player application. If Firefox is directly playing the playlist, then it might be due to some external web plugin. For example, during installation of vlc, it can also install web plugin for firefox. Users need to disable such plugin to get the playlist, or they can simply open the url **without '.htm' extension** from within the vlc itself, if 'https' and cookie are not enabled. vlc can easily deal with basic username and password based authentication.
 
-**About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
+* **About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
 
 ## Casting
 
@@ -695,166 +695,162 @@ From version 2.4 onwards, the application can accept keyboard shortcuts as defin
 
 (When MPV_INPUT_CONF is set to False)
 
-q : quit
+* q : quit
 
-spacebar: play/pause
+* spacebar: play/pause
 
-f : fullscreen
+* f : fullscreen
 
-w : decrease size
+* w : decrease size
 
-e : increase size
+* e : increase size
 
-r : move subtitle up
+* r : move subtitle up
 
-t : move subtitle down
+* t : move subtitle down
 
-i : show file size
+* i : show file size
 
-j : toggle Subtitle
+* j : toggle Subtitle
 
-Shift+j: If available, Load external subtitles from folder '~/.config/kawaii-player/External-Subtitle'. (Staring name of external-subtitle file should match name in the playlist entry)
+* Shift+j: If available, Load external subtitles from folder '~/.config/kawaii-player/External-Subtitle'. (Staring name of external-subtitle file should match name in the playlist entry)
 
-k : toggle audio
+* k : toggle audio
 
-L : Show/Hide Player Controls
+* L : Show/Hide Player Controls
 
-m : show video file name
+* m : show video file name
 
-. (remember '>' key) : next file in the playlist or queue
+* . (remember '>' key) : next file in the playlist or queue
 
-, (remember '<' key) : previous file in the playlist
+* , (remember '<' key) : previous file in the playlist
 
-right : 10s+
+* right : 10s+
 
-left  : 10s-
+* left  : 10s-
 
-Up    : 60s+
+* Up    : 60s+
 
-Down  : 60s-
+* Down  : 60s-
 
-PgUp  : 300s+
+* PgUp  : 300s+
 
-PgDown : 300s-
+* PgDown : 300s-
 
-] : 90s+
+* ] : 90s+
 
-[ : 5s-
+* [ : 5s-
 
-0 : volume up
+* 0 : volume up
 
-9 : volume down 
+* 9 : volume down 
 
-a : change aspect ratio (works with mpv)
+* a : change aspect ratio (works with mpv)
 
 
 for mplayer set aspect in ~/.mplayer/config, all the properties of the mplayer global config file will be taken by the internal mplayer.
 
 Some important parameters that user should set in '~/.mplayer/config' are as follows:
 
-aspect="16:9"
+        aspect="16:9"
 
-ass=true
+        ass=true
 
-cache=100000
+        cache=100000
 
-cache-min=0.001
+        cache-min=0.001
 
-cache-seek-min=0.001 
+        cache-seek-min=0.001 
 
-prefer-ipv4=yes
+        prefer-ipv4=yes
 
-ao=pulse
+        ao=pulse
 
-vo=gl
+        vo=gl
 
 Users can change the parameters as per their choice.
 
 Similarly, most of the properties of mpv global config file '~/.config/mpv/config/' will work with this player. If possible you should add following line in mpv config file.
 
-ao=pulse 
+        ao=pulse 
 
-vo=opengl {or anything that works on your system}
+        vo=opengl {or anything that works on your system}
 
-cache-secs=120
+        cache-secs=120
 
 ### Some global Shortcuts:
 
-Shift + L : show/hide Player
+* Shift + L : show/hide Player
 
-shift + G : show/hide Settings column
+* shift + G : show/hide Settings column
 
-Shift + F: fullscreen Application not the player
+* Shift + F: fullscreen Application not the player
 
-Ctrl + X : show/hide Browser
+* Ctrl + X : show/hide Browser
 
-Ctrl + Z : show/hide Thumbnail mode for Title list (Thumbnail Mode is memory consuming, hence use it carefully if you have very big library collection)
+* Ctrl + Z : show/hide Thumbnail mode for Title list (Thumbnail Mode is memory consuming, hence use it carefully if you have very big library collection)
 
-Shift + Z : show/hide Thumbnail mode for playlist column.
+* Shift + Z : show/hide Thumbnail mode for playlist column.
 
-Escape : show/hide Everything
+* Escape : show/hide Everything
 
-Right,Left: set focus alternate between Option column, Title column and Playlist column (If Player is not Playing Anything)
+* Right,Left: set focus alternate between Option column, Title column and Playlist column (If Player is not Playing Anything)
 
-Ctrl+0 to Ctrl+9 : Change aspect ratio of background image
+* Ctrl+0 to Ctrl+9 : Change aspect ratio of background image
 
 ### Title Column:(if Title list is focussed)
 
-ctrl + h : show history (history of watched series)
+* ctrl + h : show history (history of watched series)
 
-Delete : delete particular item from database
+* Delete : delete particular item from database
 
-ctrl + r : randomize the list(if you want random series)
+* ctrl + r : randomize the list(if you want random series)
 
-ctrl + t : sort the Title List
+* ctrl + t : sort the Title List
 
-PgUp: Move Entry UP
+* ctrl+Right : Get Info from TVDB with duckduckgo as backend 
 
-PgDown: Move Entry Down
+* ctrl+Left : Get Info from TMDB with duckduckgo as backend 
 
-ctrl+Right : Get Info from TVDB with duckduckgo as backend 
+* ctrl+UP : Get Info from TVDB with google as backend
 
-ctrl+Left : Get Info from TMDB with duckduckgo as backend 
+* ctrl+Down: Get Info from TMDB with google as backend
 
-ctrl+UP : Get Info from TVDB with google as backend
+* Alt+1 : Get info from TVDB directly without using any search engine backend
 
-ctrl+Down: Get Info from TMDB with google as backend
+* Alt+2 : Get info from TMDB directly without using any search engine backend
 
-Alt+1 : Get info from TVDB directly without using any search engine backend
-
-Alt+2 : Get info from TMDB directly without using any search engine backend
-
-F2 : Rename Title of the entry in the database.
+* F2 : Rename Title of the entry in the database.
 
 ### Playlist Column:(If playlist column is focussed)
 
-Ctrl+ q : queue the item
+* Ctrl+ q : queue the item
 
-Delete : delete particular entry
+* Delete : delete particular entry
 
-1 – 9 : select mirror Number (up to 9, if available)
+* 1 – 9 : select mirror Number (up to 9, if available)
 
-w : toggle watch/unwatch
+* w : toggle watch/unwatch
 
-Ctrl+o : start offline mode (If offline mode is already activated then pressing 'o' will enqueue items for offline viewing)
+* Ctrl+o : start offline mode (If offline mode is already activated then pressing 'o' will enqueue items for offline viewing)
 
-Left: show title list if it's hidden
+* Left: show title list if it's hidden
 
-Return: play the item and hide title list but keep the playlist visible
+* Return: play the item and hide title list but keep the playlist visible
 
-BackSpace: Go To title list if title list is hidden
+* BackSpace: Go To title list if title list is hidden
 
-PgUp: Move Entry UP
+* PgUp: Move Entry UP
 
-PgDown: Move Entry Down
+* PgDown: Move Entry Down
 
-Ctrl+Up : Move to first entry
+* Ctrl+Up : Move to first entry
 
-Ctrl+Down: Move to last entry
+* Ctrl+Down: Move to last entry
 
-F2 : Rename entry
+* F2 : Rename entry
 
-F3 : Rename in Group 
+* F3 : Rename in Group 
 
 Group rename pattern is: New_common_name_{start_pt-end_pt}. 
 
@@ -862,19 +858,13 @@ Eg. If there are 26 episodes in the list and user want to rename all of them, th
 
 ### Thumbnail Mode:
 
-'=' (Remember '+' key) : increase size of Thumbnails
+* '=' (Remember '+' key) : increase size of Thumbnails
 
-'-' : decrease size of Thumbnails
+* '-' : decrease size of Thumbnails
 
 ### Summary Text Browser
 
-Ctrl+A : to select and save save edited summary.
-
-### Thumbnail mode occupies pretty good memory. If you want to get out of thumbnail mode and free up the memory then click 'close' button which is available in the mode.
-
-### Apart from shortcuts:
-
-Users can explore Right click menu of both Playlist Column and Title List Column for getting TVDB, Last.fm profiles for their collection either manually or automatically. If users are getting some problem while setting profiles from TVDB or Last.fm , or having problems accessing addons,then empty the cache directory '~/.config/kawaii-player/tmp', This option is available with right click menu of Title List and Playlist column.
+* Ctrl+A : to select and save save edited summary.
 
 ### Other Things for convenience:
 
@@ -897,9 +887,7 @@ Users can explore Right click menu of both Playlist Column and Title List Column
 
 4. Instead of pycurl, it's possible to use directly either curl or wget for fetching web pages. Users need to edit 'GET_LIBRARY' field in the '~/.config/kawaii-player/other_options.txt' and change it to either 'curl' or 'wget'. 
 
-5. If users want to remove temporary directory automatically once the programme quits, then they should edit 'TMP_REMOVE' field in the '~/.config/kawaii-player/other_options.txt' and change it to 'yes' from 'no'.
-
-6. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+0 to Ctrl+9 shortcuts, to experiment with various available background image modes.
+5. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+0 to Ctrl+9 shortcuts, to experiment with various available background image modes.
 
 ## Contacts
 
