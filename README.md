@@ -367,8 +367,9 @@ Web Interface, contains a search text box which can be used to send text command
 		$ create_playlist:playlist_name (This will create custom empty playlist with name *playlist_name* on the server, if it has already not been created)
 		$ save_playlist:playlist_name (This will save and sync current playing playlist and it's order in separate playlist with name *playlist_name* if it has not been created already. It's useful feature, if user want to save some random search result as playlist)
 		$ update:video (will update video section)
-		$ update:music (will update music section)
+        $ update:music (will update music section)
         $ clear:playlist_history (clear playlist navigation history)
+        $ clear:cahe (clear video/music/playlist cache along with playlist navigation history)
 		
 		$ sub:on (Turn on subtitle if ffmpeg is installed on server)
 		$ sub:off (Turn off subtitles)
@@ -428,7 +429,7 @@ Remote Control can be activated by selecting **'More->Turn On Remote Control'**,
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
-youtube-dl gets outdated quickly, hence there is an option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user need to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
+youtube-dl gets outdated quickly, hence there is an option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user needs to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
 
 **Using Web Interface:** youtube url's can be sent directly to the playlist from web interface with the help of following commands which needs to be entered in the text search box available in the web ui. 
 
@@ -663,21 +664,24 @@ Last Column to the extreme right, is the “Playlist column”, which will conta
 
 ### Library Management:
 
-It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
+* It tries to be a simple media manager for both audio and video, along with powerful playing capabilities of mpv and mplayer. 
 
-If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries. 
+* If your video collection has been placed in separate folders having names - Anime, TV Shows, Movies and Cartoons i.e. default categories, then it will categorize the collection automatically and rest will be placed in Others. If users need more categories then they have the option to create new one. Users can easily rename title entries and playlist entries. 
 
-If a TV Show has multiple seasons, then the application can recognize a folder as a separate season, if it's name starts with 'Season'. For example consider folder structure, *Anime->Mushishi->Season 1* and *Anime->Mushishi->Season 2*. If the folder structure is organized like this, then the application will show entries as **Mushishi-Season 1** and **Mushishi-Season 2**, in the video Anime Section.
+* If a TV Show has multiple seasons, then the application can recognize a folder as a separate season, if it's name starts with 'Season'. For example consider folder structure, *Anime->Mushishi->Season 1* and *Anime->Mushishi->Season 2*. If the folder structure is organized like this, then the application will show entries as **Mushishi-Season 1** and **Mushishi-Season 2**, in the video Anime Section.
 
-If users are not satisfied with default categorization, then they can create their own categories like Music Video, Anime Movies, Cartoon Movies, Hollywood movies etc.. from the title list contextmenu, and then can add desired titles to them.
+* If users are not satisfied with default categorization, then they can create their own categories like Music Video, Anime Movies, Cartoon Movies, Hollywood movies etc.. from the title list contextmenu, and then can add desired titles to them.
 
-The video section contains two update options i.e. Update and UpdateAll. The **Update** option will add new entries to the database without deleting older one, while **UpdateAll** option will remove all the unreachable links from the database. If users frequently attach and remove external hard drives to laptop/desktops, then it is advisable to use only **Update** option, as it will preserve non-reachable links.
+* The video section contains two update options i.e. Update and UpdateAll. The **Update** option will add new entries to the database without deleting older one, while **UpdateAll** option will remove all the unreachable links from the database. If users frequently attach and remove external hard drives to laptop/desktops, then it is advisable to use only **Update** option, as it will preserve non-reachable links.
 
-The Video section, also contains two options **Directory and Available**. The Directory option will list the entire video collection, while the Available option will list only reachable videos.
+* The Video section, also contains two options **Directory and Available**. The Directory option will list the entire video collection, while the Available option will list only reachable videos.
 
-Users can get fanart/posters/summary for the entire collection. If appropriate match is not found then users can directly go to sites such as TVDB/TMDB directly using internal browser and can grab the content. The browser's internal contextmenu has been tweaked to facilitate getting required information. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in *'~/.config/kawaii-player/other_options.txt'* file). Users will also get to select various background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9). 
+* Users can get fanart/posters/summary for the entire collection. If appropriate match is not found then users can directly go to sites such as TVDB/TMDB directly using internal browser and can grab the content. The browser's internal contextmenu has been tweaked to facilitate getting required information. Anime watchers can get access to popular Anime review sites directly within the application, from which they can grab some information for their collection (users can enable this feature by setting 'ANIME_REVIEW_SITE=True' in *'~/.config/kawaii-player/other_options.txt'* file). Users will also get to select various background image modes, that will change aspect ratio of the background image (i.e. fanart of any item) instantly (shortcuts ctrl+0 to ctrl+9). 
 
-The application can manage history/bookmarks and watch/unwatch status properly. It also supports playlist creation with mixed content. 
+* The application can manage history/bookmarks and watch/unwatch status properly. It also supports playlist creation with mixed content. 
+
+* In custom playlist containg videos, do not contain artist field. However, users can add artist to any playlist entry when renaming using F2. When renaming, use '**::**' to delimit title of video from artist name. Once artist name is set, the application can grab information from last.fm profile of the artist (if *GET_MUSIC_METADATA* field is set to *True* in other_options.txt file).
+
 
 ### KeyBoard Shortcuts:
 
