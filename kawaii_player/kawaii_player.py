@@ -5420,8 +5420,52 @@ watch/unwatch status")
         if os.path.exists(thumb):
             Image.open(thumb).show()
     
-    def getTvdbEpnInfo(self, url):
-        global site, finalUrlFound, hdr, home
+    def find_episode_key_val(self, lower_case, index=None, season=None):
+        name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+', lower_case)
+        name_srch_val = None
+        ep_name = ''
+        
+        if not name_srch:
+            name_srch = re.search('ep[0-9]+|episode[^"]*[0-9]+|ep[^"]+[0-9]+', lower_case)
+            if not name_srch:
+                if index:
+                    name_srch_val = 'e'+str(index+1)
+            else:
+                name_srch_val = name_srch.group()
+        else:
+            name_srch_val = name_srch.group()
+        sn = -1
+        en = -1
+        if name_srch_val:
+            epval = name_srch_val.lower()
+            s = re.search('s[0-9]+', epval)
+            e = re.search('e[0-9]+|ep[0-9]+', epval)
+            if not e:
+                e = re.search('episode[^"]*[0-9]+|ep[^"]+[0-9]+', epval)
+            
+            if s:
+                ss = re.search('[0-9][0-9]*', s.group())
+                if ss:
+                    sn = int(ss.group())
+            if e:
+                ee = re.search('[0-9][0-9]*', e.group())
+                if ee:
+                    en = int(ee.group())
+            if sn >= 0 and en >=0:
+                ep_name = 's'+str(sn)+'e'+str(en)
+            elif sn < 0 and en >=0:
+                ep_name = 'e'+str(en)
+            else:
+                ep_name = ''
+            logger.debug('{0}::{1}'.format(ep_name, sn))
+        if season:
+            return (ep_name, sn)
+        else:
+            return ep_name
+    
+    def getTvdbEpnInfo(self, url, epn_arr=None, name=None, site=None):
+        global home
+        epn_arr_list = epn_arr.copy()
         content = ccurl(url)
         soup = BeautifulSoup(content, 'lxml')
         m=[]
@@ -5430,7 +5474,11 @@ watch/unwatch status")
             return 0
         link = link1.findAll('td')
         n = []
-
+        ep_dict = {}
+        special_count = 0
+        ep_count = 0
+        image_dict = {}
+        index_count = 0
         for i in range(4, len(link), 4):
             j = link[i].find('a').text
             k = link[i+1].find('a').text
@@ -5443,76 +5491,116 @@ watch/unwatch status")
                 poster_id = lnk[3].split('=')[-1]
                 q = "http://thetvdb.com/banners/episodes/"+series_id+'/'+poster_id+'.jpg'
             else:
-                q = "http:No Image"
+                q = "NONE"
             j = j.replace(' ', '')
             k = k.replace('/', '-')
             k = k.replace(':', '-')
             t = j+' '+k+':'+q
-            if 'special' in j.lower():
-                n.append(t)
-            else:
-                m.append(t)
-        m = m+n
-        for i in m:
-            logger.info(i)
-        
-        for i in range(len(self.epn_arr_list)):
-            if '	' in self.epn_arr_list[i]:
-                j = self.epn_arr_list[i].split('	', 1)[1]
-                if i < len(m):
-                    k = m[i].split(':')[0]
+            if j:
+                j = j.lower().strip()
+                key = None
+                s = e = ''
+                if 'x' in j:
+                    s, e = j.split('x', 1)
+                    ep_count += 1
+                elif j == 'special':
+                    special_count += 1
+                    s = '0'
+                    e = str(special_count)
                 else:
-                    k = self.epn_arr_list[i].split('	', 1)[0]
-                self.epn_arr_list[i]=k+'	'+j
-            else:
-                j = self.epn_arr_list[i]
-                if i < len(m):
-                    k = m[i].split(':')[0]
+                    e = j
+                    ni = ''
+                    if index_count < len(epn_arr_list):
+                        if '\t' in epn_arr_list[index_count]:
+                            ni = epn_arr_list[index_count].split('\t')[0]
+                        else:
+                            ni = epn_arr_list[index_count]
+                        if ni.startswith('#'):
+                            ni = ni.replace('#', '', 1)
+                    if ni:
+                        epn_value, sn = self.find_episode_key_val(ni, index=index_count, season=True)
+                        if sn >= 0:
+                            s = str(sn)
+                            j = s + 'x' + j 
+                    ep_count += 1
+                if s and e:
+                    s = s.strip()
+                    e = e.strip()
+                    key = 's'+s+'e'+e
+                if key:
+                    ep_dict.update({key:[j, k, q]})
+                if j == 'special':
+                    n.append(t)
                 else:
-                    k = self.epn_arr_list[i]
-                if j.startswith('#'):
-                    j = j[1:]
-                    k = '#'+k
-                self.epn_arr_list[i]=k+'	'+j
-                
+                    m.append(t)
+                    key = 'e'+str(ep_count)
+                    ep_dict.update({key:[j, k, q]})
+                index_count += 1
+        for i in ep_dict:
+            logger.debug('\nkey:{0} value:{1}\n'.format(i, ep_dict[i]))
+        new_arr = []
+        for i, val in enumerate(epn_arr_list):
+            if '\t' in val:
+                name_val, extra = val.split('\t', 1)
+            else:
+                name_val = val
+                extra = ''
+            watched = False
+            if name_val.startswith('#'):
+                name_val = name_val.replace('#', '', 1)
+                watched = True
+            lower_case = name_val.lower()
+            key_found = False
+            ep_val = None
+            ep_patn = self.find_episode_key_val(lower_case, index=i)
+            if ep_patn:
+                ep_val = ep_dict.get(ep_patn)
+                if ep_val:
+                    key_found = True
+            if key_found:
+                new_name = ep_val[0]+ ' ' + ep_val[1]
+                image_dict.update({new_name:ep_val[2]})
+                if extra:
+                    new_val = new_name + '\t' + extra
+                else:
+                    new_val = new_name+ '\t' + name_val
+                if watched:
+                    new_val = '#' + new_val
+            else:
+                new_val = val
+            new_arr.append(new_val)
+        if new_arr:
+            epn_arr_list = new_arr.copy()
+            
         if site=="Video":
             video_db = os.path.join(home, 'VideoDB', 'Video.db')
             conn = sqlite3.connect(video_db)
             cur = conn.cursor()
-            for r in range(len(self.epn_arr_list)):
-                txt = self.epn_arr_list[r].split('	')[1]
-                ep_name = self.epn_arr_list[r].split('	')[0]
+            for r, val in enumerate(epn_arr_list):
+                txt = val.split('	')[1]
+                ep_name = val.split('	')[0]
                 qr = 'Update Video Set EP_NAME=? Where Path=?'
                 cur.execute(qr, (ep_name, txt))
             conn.commit()
             conn.close()
             try:
-                txt = self.original_path_name[self.list1.currentRow()].split('	')[1]
+                txt = self.original_path_name[name].split('	')[1]
                 if txt in ui.video_dict:
                     del self.video_dict[txt]
             except Exception as err:
                 print(err, '--4240---')
-        elif opt == "History" or site == "Local":
-            if siteName:
-                if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
-                    file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
-            elif site == "Local" and opt != "History":
-                r = self.list1.currentRow()
-                name1 = self.original_path_name[r]
-                if os.path.exists(os.path.join(home, 'Local', site, name1, 'Ep.txt')):
-                    file_path = os.path.join(home, 'Local', site, name1, 'Ep.txt')
-            elif site == "Local" and opt == "History":
-                r = self.list1.currentRow()
-                name1 = self.original_path_name[r]
-                if os.path.exists(os.path.join(home, 'History', site, name1, 'Ep.txt')):
-                    file_path = os.path.join(home, 'History', site, name1, 'Ep.txt')
+        elif site == 'Music' or site == 'PlayLists' or site == 'NONE':
+            pass
+        else: 
+            if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
+                file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
             else:
-                if os.path.exists(os.path.join(home, 'History', site, name, 'Ep.txt')):
-                    file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+                file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
                     
             if os.path.exists(file_path):
-                write_files(file_path, self.epn_arr_list, line_by_line=True)
-        self.update_list2()
+                write_files(file_path, epn_arr_list, line_by_line=True)
+                
+        self.update_list2(epn_arr=epn_arr_list)
         
         if not self.downloadWget:
             self.downloadWget[:] = []
@@ -5530,33 +5618,21 @@ watch/unwatch status")
             else:
                 print('--Thread Already Running--')
                 return 0
-        if (site != "Local" and site != "Video"):
-            for r, val in enumerate(self.epn_arr_list):
-                if finalUrlFound == True:
-                    if '	' in self.epn_arr_list[r]:
-                        newEpn = self.epn_arr_list[r].split('	')[0]
-                    else:
-                        newEpn = os.path.basename(self.epn_arr_list[r])
-                else:
-                    if '	' in self.epn_arr_list[r]:
-                        newEpn = self.epn_arr_list[r].split('	')[0]
-                    else:
-                        newEpn = name+'-'+(self.epn_arr_list[r])
-                newEpn = str(newEpn)
-                newEpn = newEpn.replace('#', '', 1)
-                if newEpn.startswith(self.check_symbol):
-                    newEpn = newEpn[1:]
-                dest = os.path.join(home, "thumbnails", name, newEpn+'.jpg')
-                if r < len(m):
-                    logger.info('{0}-{1}'.format(r, m[r]))
-                    img_url= m[r].split(':')[2]
-                    if img_url.startswith('//'):
-                        img_url = "http:"+img_url
-                        command = "wget --user-agent="+'"'+hdr+'" '+'"'+img_url+'"'+" -O "+'"'+dest+'"'
-                        self.downloadWget.append(DownloadThread(self, img_url+'#'+'-o'+'#'+dest))
-                        self.downloadWget[len(self.downloadWget)-1].finished.connect(
-                            partial(self.download_thread_finished, dest, r))
-                    
+        if (site != "Video" and site != 'Music' and site != 'PlayLists'
+                and site != 'NONE' and site != 'MyServer'):
+            r = 0
+            for img_key in image_dict:
+                dest_dir = os.path.join(home, "thumbnails", name)
+                if not os.path.exists(dest_dir):
+                    os.makedirs(dest_dir)
+                dest = os.path.join(dest_dir, img_key+'.jpg')
+                img_url= image_dict[img_key]
+                if img_url.startswith('//'):
+                    img_url = "http:"+img_url
+                self.downloadWget.append(DownloadThread(self, img_url+'#'+'-o'+'#'+dest))
+                self.downloadWget[len(self.downloadWget)-1].finished.connect(
+                    partial(self.download_thread_finished, dest, r))
+                r += 1
             if self.downloadWget:
                 length = len(self.downloadWget)
                 for i in range(5):
@@ -5959,8 +6035,8 @@ watch/unwatch status")
         if (opt == "History" or site == "Music" or site == "Video" 
                 or site == "PlayLists") and site != 'MyServer':
             self.listfound()
-        elif (site.lower() == 'myserver' and opt.lower() != 'login' 
-                and opt.lower() != 'discover'):
+        elif (site.lower() == 'myserver' and opt.lower() != 'history' 
+                and opt.lower() != 'login' and opt.lower() != 'discover'):
             name_now = ''
             if self.list1.currentItem() and self.myserver_threads_count <= 10:
                 cur_row = self.list1.currentRow()
@@ -6009,54 +6085,43 @@ watch/unwatch status")
             else:
                 self.rawlist_highlight()
     
-    def update_list2(self):
-        global site, refererNeeded, finalUrlFound, new_tray_widget
+    def update_list2(self, epn_arr=None):
+        global site
         update_pl_thumb = True
         
-        if not self.epn_arr_list:
+        if not self.epn_arr_list and epn_arr is None:
             pass
         else:
             if self.list2.isHidden():
                 update_pl_thumb = False
-                
+            if epn_arr:
+                new_epn_arr = epn_arr.copy()
+            else:
+                new_epn_arr = self.epn_arr_list
             print(update_pl_thumb, 'update_playlist_thumb')
             row = self.list2.currentRow()
             self.list2.clear()
             k = 0
-            for i in self.epn_arr_list:
+            for i in new_epn_arr:
                 i = i.strip()
                 if '	' in i:
                     i = i.split('	')[0]
                     i = i.replace('_', ' ')
                     if i.startswith('#'):
                         i = i.replace('#', self.check_symbol, 1)
-                        self.list2.addItem((i))
-                    else:
-                        self.list2.addItem((i))
+                    self.list2.addItem((i))
                 else:
-                    if site == "Local" or finalUrlFound == True:
-                        #j = i.split('/')[-1]
-                        j = os.path.basename(i)
-                        if i.startswith('#') and j:
-                            j = j.replace('#', self.check_symbol, 1)
-                    else:
-                        j = i
-                    j = j.replace('_', ' ')
+                    j = i.replace('_', ' ')
                     if j.startswith('#'):
                         j = j.replace('#', self.check_symbol, 1)
-                        self.list2.addItem((j))	
-                    else:
-                        self.list2.addItem((j))
+                    self.list2.addItem((j))
                 k = k+1
             self.list2.setCurrentRow(row)
-            #QtCore.QTimer.singleShot(10, partial(self.set_icon_list2, self.epn_arr_list, 
-            #                         self.list_with_thumbnail, update_pl_thumb))
-            #if not self.set_thumbnail_thread_list:
             if self.list1.currentItem():
                 title_list = self.list1.currentItem().text()
             else:
                 title_list = 'NONE'
-            new_thread = SetThumbnail(self, logger, self.epn_arr_list, update_pl_thumb, title_list)
+            new_thread = SetThumbnail(self, logger, new_epn_arr, update_pl_thumb, title_list)
             self.set_thumbnail_thread_list.append(new_thread)
             self.set_thumbnail_thread_list[len(self.set_thumbnail_thread_list) - 1].finished.connect(
                 partial(self.thumbnail_thread_finished, len(self.set_thumbnail_thread_list) - 1))
