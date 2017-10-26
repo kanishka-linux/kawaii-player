@@ -23,6 +23,8 @@ import sqlite3
 import shutil
 import subprocess
 import base64
+import urllib.parse
+from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files, open_files, ccurl, send_notification
 
@@ -203,6 +205,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         home, 'Playlists', ui.list1.currentItem().text())
                     ui.update_playlist_original(pls_n)
                     self.setCurrentRow(row)
+                listitem = self.item(row)
+                if listitem:
+                    listitem.setText(item)
             elif site == "Video":
                 video_db = os.path.join(home, 'VideoDB', 'Video.db')
                 conn = sqlite3.connect(video_db)
@@ -218,7 +223,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 dir_path, file_path = os.path.split(txt)
                 if dir_path in ui.video_dict:
                     del ui.video_dict[dir_path]
-            ui.update_list2()
+                listitem = self.item(row)
+                if listitem:
+                    listitem.setText(item)
             
     def get_default_name(self, row, mode=None):
         site = ui.get_parameters_value(s='site')['site']
@@ -239,6 +246,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
             dir_path, file_path = os.path.split(txt)
             if dir_path in ui.video_dict:
                 del ui.video_dict[dir_path]
+            listitem = self.item(row)
+            if listitem:
+                listitem.setText(item)
         elif site == "Video" and mode == 'default_all':
             video_db = os.path.join(home, 'VideoDB', 'Video.db')
             conn = sqlite3.connect(video_db)
@@ -257,7 +267,50 @@ class PlaylistWidget(QtWidgets.QListWidget):
             dir_path, file_path = os.path.split(txt)
             if dir_path in ui.video_dict:
                 del ui.video_dict[dir_path]
-        ui.update_list2()
+            ui.update_list2()
+        elif site == 'Music' or site == 'PlayLists' or site == 'NONE':
+            pass
+        else:
+            file_path = ''
+            param_dict = ui.get_parameters_value(s='siteName', n='name')
+            siteName = param_dict['siteName']
+            name = param_dict['name']
+            if site.lower() == "subbedanime" or site == "dubbedanime":
+                file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
+            else:
+                file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+            if os.path.isfile(file_path):
+                if mode == 'default':
+                    old_value = ui.epn_arr_list[row]
+                    if '\t' in old_value:
+                        new_name = old_name = old_value.split('\t')[1]
+                        if '::' in new_name:
+                            new_name = new_name.split('::')[0]
+                        if new_name.startswith('http'):
+                            new_name = new_name.rsplit('/')[-1]
+                            new_name = urllib.parse.unquote(new_name)
+                        new_value = new_name + '\t' + old_name
+                        ui.epn_arr_list[row] = new_value
+                        listitem = self.item(row)
+                        if listitem:
+                            listitem.setText(new_name)
+                        write_files(file_path, ui.epn_arr_list, line_by_line=True)
+                elif mode == 'default_all':
+                    for row, val in enumerate(ui.epn_arr_list):
+                        old_value = val
+                        if '\t' in old_value:
+                            new_name = old_name = old_value.split('\t')[1]
+                            if '::' in new_name:
+                                new_name = new_name.split('::')[0]
+                            if new_name.startswith('http'):
+                                new_name = new_name.rsplit('/')[-1]
+                                new_name = urllib.parse.unquote(new_name)
+                            new_value = new_name + '\t' + old_name
+                            ui.epn_arr_list[row] = new_value
+                            listitem = self.item(row)
+                            if listitem:
+                                listitem.setText(new_name)
+                    write_files(file_path, ui.epn_arr_list, line_by_line=True)
     
     def edit_name_in_group(self, row):
         site = ui.get_parameters_value(s='site')['site']
@@ -270,6 +323,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if item and ok:
             try:
                 nmval = re.search('[^\{]*', item).group()
+                nmval2 = re.search('\}[^"]*', item).group()
+                nmval2 = re.sub('\}', '', nmval2, 1)
                 range_val = re.search('\{[^}]*', item).group()
                 range_val = re.sub('\{', '', range_val)
                 range_start, range_end = range_val.split('-')
@@ -298,16 +353,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     path = old_value.split('	')[1]
                     if size == 2:
                         if new_row < 10:
-                            new_name = '{0}0{1}'.format(nmval, new_row)
+                            new_name = '{0}0{1}{2}'.format(nmval, new_row, nmval2)
                         else:
-                            new_name = nmval + str(new_row)
+                            new_name = nmval + str(new_row) + nmval2
                     elif size == 3:
                         if new_row < 10:
-                            new_name = '{0}00{1}'.format(nmval, new_row)
+                            new_name = '{0}00{1}{2}'.format(nmval, new_row, nmval2)
                         elif new_row >= 10 and new_row < 100:
-                            new_name = '{0}0{1}'.format(nmval, new_row)
+                            new_name = '{0}0{1}{2}'.format(nmval, new_row, nmval2)
                         else:
-                            new_name = nmval + str(new_row)
+                            new_name = nmval + str(new_row) + nmval2
                     qr = 'Update Video Set EP_NAME=? Where Path=?'
                     cur.execute(qr, (new_name, path))
                     tmp = re.sub('[^	]*', new_name, old_value, 1)
@@ -349,16 +404,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             path = old_value
                         if size == 2:
                             if new_row < 10:
-                                new_name = '{0}0{1}'.format(nmval, new_row)
+                                new_name = '{0}0{1}{2}'.format(nmval, new_row, nmval2)
                             else:
-                                new_name = nmval + str(new_row)
+                                new_name = nmval + str(new_row) + nmval2
                         elif size == 3:
                             if new_row < 10:
-                                new_name = '{0}00{1}'.format(nmval, new_row)
+                                new_name = '{0}00{1}{2}'.format(nmval, new_row, nmval2)
                             elif new_row >= 10 and new_row < 100:
-                                new_name = '{0}0{1}'.format(nmval, new_row)
+                                new_name = '{0}0{1}{2}'.format(nmval, new_row, nmval2)
                             else:
-                                new_name = nmval + str(new_row)
+                                new_name = nmval + str(new_row) + nmval2
                         if '\t' in old_value:
                             tmp = re.sub('[^	]*', new_name, old_value, 1)
                         else:
@@ -386,6 +441,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 print('F3 Pressed')
                 if self.currentItem():
                     self.edit_name_in_group(self.currentRow())
+        elif (event.key() == QtCore.Qt.Key_F4):
+            if ui.epn_arr_list:
+                print('Default Name')
+                if self.currentItem():
+                    self.get_default_name(self.currentRow(), mode='default')
+        elif (event.key() == QtCore.Qt.Key_F5):
+            if ui.epn_arr_list:
+                print('Batch Renaming in database')
+                if self.currentItem():
+                    self.get_default_name(self.currentRow(), mode='default_all')
+        elif (event.key() == QtCore.Qt.Key_F6):
+            if self.currentItem():
+                self.find_info(0)
+        elif (event.key() == QtCore.Qt.Key_F7):
+            if self.currentItem():
+                self.find_info(1)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Up):
             self.setCurrentRow(0)
@@ -857,8 +928,66 @@ class PlaylistWidget(QtWidgets.QListWidget):
             '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|', '', nam)
         nam = nam.strip()
         return nam
-
-    def find_info(self, var):
+        
+    def get_ddglinks(self, nam, src=None):
+        m = []
+        if src == 'tmdb' or src == 'tmdb+ddg':
+            new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
+        else:
+            new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
+        content = ccurl(new_url)
+        soup = BeautifulSoup(content, 'lxml')
+        div_val = soup.findAll('h2', {'class':'result__title'})
+        logger.info(div_val)
+        for div_l in div_val:
+            new_url = div_l.find('a')
+            if 'href' in str(new_url):
+                new_link = new_url['href']
+                final_link = re.search('http[^"]*', new_link).group()
+                if src == 'tmdb' or src == 'tmdb+ddg':
+                    if 'themoviedb.org' in final_link:
+                        m.append(final_link)
+                else:
+                    if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
+                            and 'tab=seasonall' not in final_link):
+                        m.append(final_link)
+                if m:
+                    break
+        return m
+        
+    def get_glinks(self, nam, src=None):
+        if src == 'tmdb+g':
+            url = "https://www.google.co.in/search?q="+nam+"+themoviedb"
+        else:
+            url = "https://www.google.co.in/search?q="+nam+"+tvdb"
+        content = ccurl(url)
+        soup = BeautifulSoup(content, 'lxml')
+        m = soup.findAll('a')
+        links = []
+        for i in m:
+            if 'href' in str(i):
+                x = urllib.parse.unquote(i['href'])
+                y = ''
+                src = 'tvdb'
+                if 'thetvdb.com' in x:
+                    y = re.search('thetvdb.com[^"]*tab=series[^"]*', x)
+                    src = 'tvdb'
+                elif 'themoviedb.org' in x:
+                    y = re.search('www.themoviedb.org[^"]*', x)
+                    src = 'tmdb'
+                if y:
+                    y = y.group()
+                    if src == 'tvdb':
+                        y = 'http://'+y
+                    else:
+                        y = 'https://'+y
+                    y = urllib.parse.unquote(y)
+                    y = y.replace(' ', '%20')
+                    y = re.sub('\&sa[^"]*', '', y)
+                    links.append(y)
+        return links
+        
+    def find_info(self, mode):
         param_dict = ui.get_parameters_value(n='name')
         name = param_dict['name']
         nam = self.name_adjust(name)
@@ -867,43 +996,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         index = ""
         final_link_found = False
         final_link_arr = []
-        if not self.downloadWget:
-            self.downloadWget[:] = []
-            self.downloadWget_cnt = 0
-        else:
-            running = False
-            len_down = len(self.downloadWget)
-            for i in range(len_down):
-                if self.downloadWget[i].isRunning():
-                    running = True
-                    break
-            if not running:
-                self.downloadWget[:] = []
-                self.downloadWget_cnt = 0
-            else:
-                print('--Thread Already Running--')
-                return 0
-        if var == 1 or var == 3:
-            scode = subprocess.check_output(
-                ["zenity", "--entry", "--text", "Enter Anime Name Manually"])
-            nam = re.sub("\n", "", scode)
-            nam = re.sub("[ ]", "+", nam)
-            nam1 = nam
-            if "g:" in nam:
-                arr = nam.split(':')
-                if len(arr) == 2:
-                    index = ""
-                    na = arr[1]
-                else:
-                    index = arr[1]
-                    na = arr[2]
-                link = "https://www.google.co.in/search?q="+na+"+site:thetvdb.com"
-                logger.info(link)
-            elif ':' in nam:
-                index = nam.split(':')[0]
-                nam = nam.split(':')[1]
-
-        if 'g:' not in nam1:
+        if mode == 0:
             link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
             logger.info(link)
             content = ccurl(link)
@@ -927,32 +1020,28 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 final_link_found = True
                 final_link_arr = m
-        else:
-            content = ccurl(link)
-            m = re.findall('http://thetvdb.com/[^"]tab=series[^"]*', content)
-            logger.info(m)
-            if m:
-                m[0] = m[0].replace('http://thetvdb.com', '')
+        elif mode == 1:
+            final_link_arr = self.get_ddglinks(nam)
+            if final_link_arr:
+                final_link_found = True
+        elif mode == 2:
+            final_link_arr = self.get_glinks(nam)
+            if final_link_arr:
+                final_link_found = True
+                
         logger.info(final_link_arr)
         if final_link_found and final_link_arr:
             n = re.sub('amp;', '', final_link_arr[0])
             elist = re.sub('tab=series', 'tab=seasonall', n)
-            url = "http://thetvdb.com" + n
-            elist_url = "http://thetvdb.com" + elist
-            ui.getTvdbEpnInfo(elist_url)
-
-    def download_thread_finished(self, dest):
-        logger.info("Download tvdb image: {0} :completed".format(dest))
-        ui.image_fit_option(dest, dest, fit_size=6, widget=ui.label)
-        logger.info("Image: {0} : aspect ratio changed".format(dest))
-        self.downloadWget_cnt = self.downloadWget_cnt+1
-        if self.downloadWget_cnt == 5:
-            self.downloadWget = self.downloadWget[5:]
-            length = len(self.downloadWget)
-            self.downloadWget_cnt = 0
-            for i in range(5):
-                if i < length:
-                    self.downloadWget[i].start()
+            if not n.startswith('http'):
+                url = "http://thetvdb.com" + n
+                elist_url = "http://thetvdb.com" + elist
+            else:
+                url = n
+                elist_url = elist
+            site = ui.get_parameters_value(s='site')['site']
+            ui.getTvdbEpnInfo(elist_url, epn_arr=ui.epn_arr_list,
+                              site=site, name=name)
 
     def triggerPlaylist(self, value):
         print('Menu Clicked')
@@ -1308,7 +1397,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             submenu.setTitle('TVDB options')
             eplist_info = False
             if (site.lower() == 'video' or site.lower() == 'local'):
-                eplist = submenu.addAction("Get Episode Title(TVDB)")
+                eplist = submenu.addAction("Get Episode Title(TVDB) (F6)")
                 eplist_info = True
             elif site.lower().startswith('playlist') or site.lower() == 'none':
                 eplist_info = False
@@ -1325,8 +1414,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             rm_menu.setTitle("Rename Options")
             editN = rm_menu.addAction("Rename Single Entry (F2)")
             group_rename = rm_menu.addAction("Rename in Group (F3)")
-            default_name = rm_menu.addAction("Default Name")
-            default_name_all = rm_menu.addAction("Default Name All")
+            default_name = rm_menu.addAction("Set Default Name (F4)")
+            default_name_all = rm_menu.addAction("Set Default Name For All (F5)")
             menu.addMenu(rm_menu)
             thumb_menu = QtWidgets.QMenu(menu)
             thumb_menu.setTitle("Remove Thumbnails")
