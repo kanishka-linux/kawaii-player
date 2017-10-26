@@ -5428,7 +5428,7 @@ watch/unwatch status")
         if not name_srch:
             name_srch = re.search('ep[0-9]+|episode[^"]*[0-9]+|ep[^"]+[0-9]+', lower_case)
             if not name_srch:
-                if index:
+                if isinstance(index, int):
                     name_srch_val = 'e'+str(index+1)
             else:
                 name_srch_val = name_srch.group()
