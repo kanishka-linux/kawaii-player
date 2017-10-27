@@ -75,6 +75,7 @@ from player_functions import get_home_dir, change_opt_file, create_ssl_cert
 from player_functions import set_user_password, get_lan_ip
 from yt import get_yt_url, get_yt_sub_
 from ds import CustomList
+from meta_engine import MetaEngine
 
 HOME_DIR = get_home_dir()
 HOME_OPT_FILE = os.path.join(HOME_DIR, 'other_options.txt')
@@ -1556,6 +1557,7 @@ watch/unwatch status")
         self.total_seek = 0
         self.new_tray_widget = None
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR)
+        self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = 'mpv'
         self.addons_option_arr = []
         self.mpvplayer_started = False
@@ -1880,6 +1882,35 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
+    
+    def download_thread_finished(self, dest, r, length):
+        logger.info("Download tvdb image: {0} :completed".format(dest))
+        self.image_fit_option(dest, dest, fit_size=6, widget=self.label)
+        logger.info("Image: {0} : aspect ratio changed".format(dest))
+        try:
+            if r < self.list2.count():
+                icon_new_pixel = self.create_new_image_pixel(dest, 128)
+                if os.path.exists(icon_new_pixel):
+                    self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
+        except Exception as e:
+            print(e)
+        self.downloadWget_cnt += 1
+        thr = self.downloadWget[length]
+        del thr
+        self.downloadWget[length] = None
+        if length+1 < len(self.downloadWget):
+            if self.downloadWget[length+1] is not None:
+                if self.downloadWget[length+1].isFinished():
+                    pass
+                elif not self.downloadWget[length+1].isRunning():
+                    self.downloadWget[length+1].start()
+        
+        if length+2 < len(self.downloadWget):
+            if self.downloadWget[length+2] is not None:
+                if self.downloadWget[length+2].isFinished():
+                    pass
+                elif not self.downloadWget[length+2].isRunning():
+                    self.downloadWget[length+2].start()
         
     def update_video_dict_criteria(self):
         video_dir_path = os.path.join(home, 'VideoDB')
@@ -5419,245 +5450,6 @@ watch/unwatch status")
         logger.info(thumb)
         if os.path.exists(thumb):
             Image.open(thumb).show()
-    
-    def find_episode_key_val(self, lower_case, index=None, season=None):
-        name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+', lower_case)
-        name_srch_val = None
-        ep_name = ''
-        
-        if not name_srch:
-            name_srch = re.search('ep[0-9]+|episode[^"]*[0-9]+|ep[^"]+[0-9]+', lower_case)
-            if not name_srch:
-                if isinstance(index, int):
-                    name_srch_val = 'e'+str(index+1)
-            else:
-                name_srch_val = name_srch.group()
-        else:
-            name_srch_val = name_srch.group()
-        sn = -1
-        en = -1
-        if name_srch_val:
-            epval = name_srch_val.lower()
-            s = re.search('s[0-9]+', epval)
-            e = re.search('e[0-9]+|ep[0-9]+', epval)
-            if not e:
-                e = re.search('episode[^"]*[0-9]+|ep[^"]+[0-9]+', epval)
-            
-            if s:
-                ss = re.search('[0-9][0-9]*', s.group())
-                if ss:
-                    sn = int(ss.group())
-            if e:
-                ee = re.search('[0-9][0-9]*', e.group())
-                if ee:
-                    en = int(ee.group())
-            if sn >= 0 and en >=0:
-                ep_name = 's'+str(sn)+'e'+str(en)
-            elif sn < 0 and en >=0:
-                ep_name = 'e'+str(en)
-            else:
-                ep_name = ''
-            logger.debug('{0}::{1}'.format(ep_name, sn))
-        if season:
-            return (ep_name, sn)
-        else:
-            return ep_name
-    
-    def getTvdbEpnInfo(self, url, epn_arr=None, name=None, site=None):
-        global home
-        epn_arr_list = epn_arr.copy()
-        content = ccurl(url)
-        soup = BeautifulSoup(content, 'lxml')
-        m=[]
-        link1 = soup.find('div', {'class':'section'})
-        if not link1:
-            return 0
-        link = link1.findAll('td')
-        n = []
-        ep_dict = {}
-        special_count = 0
-        ep_count = 0
-        image_dict = {}
-        index_count = 0
-        for i in range(4, len(link), 4):
-            j = link[i].find('a').text
-            k = link[i+1].find('a').text
-            l = link[i+2].text
-            p = link[i+3].find('img')
-            if p:
-                img_lnk = link[i].find('a')['href']
-                lnk = img_lnk.split('&')
-                series_id = lnk[1].split('=')[-1]
-                poster_id = lnk[3].split('=')[-1]
-                q = "http://thetvdb.com/banners/episodes/"+series_id+'/'+poster_id+'.jpg'
-            else:
-                q = "NONE"
-            j = j.replace(' ', '')
-            k = k.replace('/', '-')
-            k = k.replace(':', '-')
-            t = j+' '+k+':'+q
-            if j:
-                j = j.lower().strip()
-                key = None
-                s = e = ''
-                if 'x' in j:
-                    s, e = j.split('x', 1)
-                    ep_count += 1
-                elif j == 'special':
-                    special_count += 1
-                    s = '0'
-                    e = str(special_count)
-                else:
-                    e = j
-                    ni = ''
-                    if index_count < len(epn_arr_list):
-                        if '\t' in epn_arr_list[index_count]:
-                            ni = epn_arr_list[index_count].split('\t')[0]
-                        else:
-                            ni = epn_arr_list[index_count]
-                        if ni.startswith('#'):
-                            ni = ni.replace('#', '', 1)
-                    if ni:
-                        epn_value, sn = self.find_episode_key_val(ni, index=index_count, season=True)
-                        if sn >= 0:
-                            s = str(sn)
-                            j = s + 'x' + j 
-                    ep_count += 1
-                if s and e:
-                    s = s.strip()
-                    e = e.strip()
-                    key = 's'+s+'e'+e
-                if key:
-                    ep_dict.update({key:[j, k, q]})
-                if j == 'special':
-                    n.append(t)
-                else:
-                    m.append(t)
-                    key = 'e'+str(ep_count)
-                    ep_dict.update({key:[j, k, q]})
-                index_count += 1
-        for i in ep_dict:
-            logger.debug('\nkey:{0} value:{1}\n'.format(i, ep_dict[i]))
-        new_arr = []
-        for i, val in enumerate(epn_arr_list):
-            if '\t' in val:
-                name_val, extra = val.split('\t', 1)
-            else:
-                name_val = val
-                extra = ''
-            watched = False
-            if name_val.startswith('#'):
-                name_val = name_val.replace('#', '', 1)
-                watched = True
-            lower_case = name_val.lower()
-            key_found = False
-            ep_val = None
-            ep_patn = self.find_episode_key_val(lower_case, index=i)
-            if ep_patn:
-                ep_val = ep_dict.get(ep_patn)
-                if ep_val:
-                    key_found = True
-            if key_found:
-                new_name = ep_val[0]+ ' ' + ep_val[1]
-                image_dict.update({new_name:ep_val[2]})
-                if extra:
-                    new_val = new_name + '\t' + extra
-                else:
-                    new_val = new_name+ '\t' + name_val
-                if watched:
-                    new_val = '#' + new_val
-            else:
-                new_val = val
-            new_arr.append(new_val)
-        if new_arr:
-            epn_arr_list = new_arr.copy()
-            
-        if site=="Video":
-            video_db = os.path.join(home, 'VideoDB', 'Video.db')
-            conn = sqlite3.connect(video_db)
-            cur = conn.cursor()
-            for r, val in enumerate(epn_arr_list):
-                txt = val.split('	')[1]
-                ep_name = val.split('	')[0]
-                qr = 'Update Video Set EP_NAME=? Where Path=?'
-                cur.execute(qr, (ep_name, txt))
-            conn.commit()
-            conn.close()
-            try:
-                txt = self.original_path_name[name].split('	')[1]
-                if txt in ui.video_dict:
-                    del self.video_dict[txt]
-            except Exception as err:
-                print(err, '--4240---')
-        elif site == 'Music' or site == 'PlayLists' or site == 'NONE':
-            pass
-        else: 
-            if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
-                file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
-            else:
-                file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
-                    
-            if os.path.exists(file_path):
-                write_files(file_path, epn_arr_list, line_by_line=True)
-                
-        self.update_list2(epn_arr=epn_arr_list)
-        
-        if not self.downloadWget:
-            self.downloadWget[:] = []
-            self.downloadWget_cnt = 0
-        else:
-            running = False
-            len_down = len(self.downloadWget)
-            for i in range(len_down):
-                if self.downloadWget[i].isRunning():
-                    running = True
-                    break
-            if not running:
-                self.downloadWget[:] = []
-                self.downloadWget_cnt = 0
-            else:
-                print('--Thread Already Running--')
-                return 0
-        if (site != "Video" and site != 'Music' and site != 'PlayLists'
-                and site != 'NONE' and site != 'MyServer'):
-            r = 0
-            for img_key in image_dict:
-                dest_dir = os.path.join(home, "thumbnails", name)
-                if not os.path.exists(dest_dir):
-                    os.makedirs(dest_dir)
-                dest = os.path.join(dest_dir, img_key+'.jpg')
-                img_url= image_dict[img_key]
-                if img_url.startswith('//'):
-                    img_url = "http:"+img_url
-                self.downloadWget.append(DownloadThread(self, img_url+'#'+'-o'+'#'+dest))
-                self.downloadWget[len(self.downloadWget)-1].finished.connect(
-                    partial(self.download_thread_finished, dest, r))
-                r += 1
-            if self.downloadWget:
-                length = len(self.downloadWget)
-                for i in range(5):
-                    if i < length:
-                        self.downloadWget[i].start()
-                
-    def download_thread_finished(self, dest, r):
-        logger.info("Download tvdb image: {0} :completed".format(dest))
-        self.image_fit_option(dest, dest, fit_size=6, widget=self.label)
-        logger.info("Image: {0} : aspect ratio changed".format(dest))
-        try:
-            if r < self.list2.count():
-                icon_new_pixel = ui.create_new_image_pixel(dest, 128)
-                if os.path.exists(icon_new_pixel):
-                    self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
-        except Exception as e:
-            print(e)
-        self.downloadWget_cnt = self.downloadWget_cnt+1
-        if self.downloadWget_cnt == 5:
-            self.downloadWget = self.downloadWget[5:]
-            length = len(self.downloadWget)
-            self.downloadWget_cnt = 0
-            for i in range(5):
-                if i < length:
-                    self.downloadWget[i].start()
     
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
