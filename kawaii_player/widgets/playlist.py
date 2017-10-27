@@ -183,13 +183,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             logger.debug('{0}::{1}'.format(nm, artist))
             t = ui.epn_arr_list[row]
             logger.info("4282--{0}-{1}-{2}".format(nm, row, t))
-            if ('	' in t and '	' not in nm and site != "Video" 
-                    and site != "None" and site != 'PlayLists'
-                    and not ui.music_playlist):
-                r = t.split('	')[1]
-                ui.epn_arr_list[row] = nm + '	'+r
-                ui.mark_History()
-            elif site == 'PlayLists' or ui.music_playlist:
+            
+            if site == 'PlayLists' or ui.music_playlist:
                 if artist is None:
                     tmp = ui.epn_arr_list[row]
                     tmp = re.sub('[^	]*', nm, tmp, 1)
@@ -226,6 +221,33 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 listitem = self.item(row)
                 if listitem:
                     listitem.setText(item)
+            elif site == 'Music' or site == 'NONE':
+                pass
+            else:
+                file_path = ''
+                param_dict = ui.get_parameters_value(s='siteName', n='name')
+                siteName = param_dict['siteName']
+                name = param_dict['name']
+                if site.lower() == "subbedanime" or site == "dubbedanime":
+                    file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
+                else:
+                    file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+                if os.path.isfile(file_path):
+                    old_value = ui.epn_arr_list[row]
+                    if '\t' in old_value:
+                        path = old_value.split('\t')[1]
+                    else:
+                        path = old_value
+                    
+                    if '\t' in old_value:
+                        tmp = re.sub('[^	]*', nm, old_value, 1)
+                    else:
+                        tmp = nm + '\t' + old_value
+                    ui.epn_arr_list[row] = tmp
+                    listitem = ui.list2.item(row)
+                    if listitem:
+                        listitem.setText(nm)
+                write_files(file_path, ui.epn_arr_list, line_by_line=True)
             
     def get_default_name(self, row, mode=None):
         site = ui.get_parameters_value(s='site')['site']
@@ -452,11 +474,29 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if self.currentItem():
                     self.get_default_name(self.currentRow(), mode='default_all')
         elif (event.key() == QtCore.Qt.Key_F6):
+            if ui.list1.currentItem():
+                row = ui.list1.currentRow()
+            else:
+                row = 0
             if self.currentItem():
-                self.find_info(0)
+                mycopy = ui.epn_arr_list.copy()
+                ui.metaengine.find_info_thread(0, row, mycopy)
         elif (event.key() == QtCore.Qt.Key_F7):
+            if ui.list1.currentItem():
+                row = ui.list1.currentRow()
+            else:
+                row = 0
             if self.currentItem():
-                self.find_info(1)
+                mycopy = ui.epn_arr_list.copy()
+                ui.metaengine.find_info_thread(1, row, mycopy)
+        elif (event.key() == QtCore.Qt.Key_F8):
+            if ui.list1.currentItem():
+                row = ui.list1.currentRow()
+            else:
+                row = 0
+            if self.currentItem():
+                mycopy = ui.epn_arr_list.copy()
+                ui.metaengine.find_info_thread(2, row, mycopy)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Up):
             self.setCurrentRow(0)
@@ -919,129 +959,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         ui.float_window.showNormal()
         else:
             super(PlaylistWidget, self).keyPressEvent(event)
-    
-    def name_adjust(self, name):
-        nam = re.sub('-|_| ', '+', name)
-        nam = nam.lower()
-        nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
-        nam = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|', '', nam)
-        nam = nam.strip()
-        return nam
-        
-    def get_ddglinks(self, nam, src=None):
-        m = []
-        if src == 'tmdb' or src == 'tmdb+ddg':
-            new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
-        else:
-            new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
-        content = ccurl(new_url)
-        soup = BeautifulSoup(content, 'lxml')
-        div_val = soup.findAll('h2', {'class':'result__title'})
-        logger.info(div_val)
-        for div_l in div_val:
-            new_url = div_l.find('a')
-            if 'href' in str(new_url):
-                new_link = new_url['href']
-                final_link = re.search('http[^"]*', new_link).group()
-                if src == 'tmdb' or src == 'tmdb+ddg':
-                    if 'themoviedb.org' in final_link:
-                        m.append(final_link)
-                else:
-                    if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
-                            and 'tab=seasonall' not in final_link):
-                        m.append(final_link)
-                if m:
-                    break
-        return m
-        
-    def get_glinks(self, nam, src=None):
-        if src == 'tmdb+g':
-            url = "https://www.google.co.in/search?q="+nam+"+themoviedb"
-        else:
-            url = "https://www.google.co.in/search?q="+nam+"+tvdb"
-        content = ccurl(url)
-        soup = BeautifulSoup(content, 'lxml')
-        m = soup.findAll('a')
-        links = []
-        for i in m:
-            if 'href' in str(i):
-                x = urllib.parse.unquote(i['href'])
-                y = ''
-                src = 'tvdb'
-                if 'thetvdb.com' in x:
-                    y = re.search('thetvdb.com[^"]*tab=series[^"]*', x)
-                    src = 'tvdb'
-                elif 'themoviedb.org' in x:
-                    y = re.search('www.themoviedb.org[^"]*', x)
-                    src = 'tmdb'
-                if y:
-                    y = y.group()
-                    if src == 'tvdb':
-                        y = 'http://'+y
-                    else:
-                        y = 'https://'+y
-                    y = urllib.parse.unquote(y)
-                    y = y.replace(' ', '%20')
-                    y = re.sub('\&sa[^"]*', '', y)
-                    links.append(y)
-        return links
-        
-    def find_info(self, mode):
-        param_dict = ui.get_parameters_value(n='name')
-        name = param_dict['name']
-        nam = self.name_adjust(name)
-        nam1 = nam
-        logger.info(nam)
-        index = ""
-        final_link_found = False
-        final_link_arr = []
-        if mode == 0:
-            link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
-            logger.info(link)
-            content = ccurl(link)
-            m = re.findall('/index.php[^"]tab=[^"]*', content)
-            if not m:
-                link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=2&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
-                content = ccurl(link)
-                m = re.findall('/index.php[^"]tab=[^"]*', content)
-                if not m:
-                    link = "http://thetvdb.com/?string="+nam+"&searchseriesid=&tab=listseries&function=Search"
-                    content = ccurl(link)
-                    m = re.findall('/[^"]tab=series[^"]*lid=7', content)
-                    if not m:
-                        final_link_found = False
-                    else:
-                        final_link_found = True
-                        final_link_arr = m
-                else:
-                    final_link_found = True
-                    final_link_arr = m
-            else:
-                final_link_found = True
-                final_link_arr = m
-        elif mode == 1:
-            final_link_arr = self.get_ddglinks(nam)
-            if final_link_arr:
-                final_link_found = True
-        elif mode == 2:
-            final_link_arr = self.get_glinks(nam)
-            if final_link_arr:
-                final_link_found = True
-                
-        logger.info(final_link_arr)
-        if final_link_found and final_link_arr:
-            n = re.sub('amp;', '', final_link_arr[0])
-            elist = re.sub('tab=series', 'tab=seasonall', n)
-            if not n.startswith('http'):
-                url = "http://thetvdb.com" + n
-                elist_url = "http://thetvdb.com" + elist
-            else:
-                url = n
-                elist_url = elist
-            site = ui.get_parameters_value(s='site')['site']
-            ui.getTvdbEpnInfo(elist_url, epn_arr=ui.epn_arr_list,
-                              site=site, name=name)
 
     def triggerPlaylist(self, value):
         print('Menu Clicked')
@@ -1445,8 +1362,13 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         write_files(file_path, ui.epn_arr_list, True)
             if eplist_info:
                 if action == eplist:
+                    if ui.list1.currentItem():
+                        row = ui.list1.currentRow()
+                    else:
+                        row = 0
                     if self.currentItem():
-                        self.find_info(0)
+                        mycopy = ui.epn_arr_list.copy()
+                        ui.metaengine.find_info_thread(0, row, mycopy)
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(

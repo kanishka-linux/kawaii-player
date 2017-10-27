@@ -140,6 +140,30 @@ class TitleListWidget(QtWidgets.QListWidget):
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_C):
             ui.copyFanart()
+        elif (event.key() == QtCore.Qt.Key_F6):
+            if self.currentItem():
+                row = self.currentRow()
+            else:
+                row = 0
+            if self.currentItem():
+                mycopy = ui.epn_arr_list.copy()
+                ui.metaengine.find_info_thread(0, row, mycopy)
+        elif (event.key() == QtCore.Qt.Key_F7):
+            if self.currentItem():
+                row = self.currentRow()
+            else:
+                row = 0
+            if self.currentItem():
+                mycopy = ui.epn_arr_list.copy()
+                ui.metaengine.find_info_thread(1, row, mycopy)
+        elif (event.key() == QtCore.Qt.Key_F8):
+            if self.currentItem():
+                row = self.currentRow()
+            else:
+                row = 0
+            if self.currentItem():
+                mycopy = ui.epn_arr_list.copy()
+                ui.metaengine.find_info_thread(2, row, mycopy)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Delete):
             row = self.currentRow()
