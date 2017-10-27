@@ -55,104 +55,6 @@ class FindPosterThread(QtCore.QThread):
         
     def __del__(self):
         self.wait()                        
-
-    def name_adjust(self, name):
-        nam = re.sub('-|_| |\.', '+', name)
-        nam = nam.lower()
-        nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
-        nam = re.sub(
-            '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
-        nam = nam.strip()
-        return nam
-    
-    def ddg_search(self, nam, src, direct_search=None):
-        m = []
-        final_link = ''
-        if direct_search:
-            if src == 'tmdb':
-                new_url = 'https://www.themoviedb.org/search?query='+nam
-                content = ccurl(new_url)
-                soup = BeautifulSoup(content, 'lxml')
-                div_link = soup.find('div', {'class':'item poster card'})
-                if div_link:
-                    alink = div_link.find('a')
-                    if 'href' in str(alink):
-                        link = alink['href']
-                        if link.startswith('/'):
-                            final_link = 'https://www.themoviedb.org'+link
-                        elif link.startswith('http'):
-                            final_link = link
-                        else:
-                            final_link = 'https://www.themoviedb.org/'+link
-                        m.append(final_link)
-            elif src == 'tvdb+g' or src == 'tmdb+g':
-                m = self.get_glinks(nam, src)
-            elif src == 'tvdb+ddg' or src == 'tmdb+ddg':
-                m = self.get_ddglinks(nam, src)
-        else:
-            m = self.get_ddglinks(nam, src)
-        if m:
-            final_link = m[0]
-        logger.info('\n{0}---{1}\n'.format(final_link, m))
-        return (final_link, m)
-    
-    def get_ddglinks(self, nam, src=None):
-        m = []
-        if src == 'tvdb' or src == 'tvdb+ddg':
-            new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
-        elif src == 'tmdb' or src == 'tmdb+ddg':
-            new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
-        content = ccurl(new_url)
-        soup = BeautifulSoup(content, 'lxml')
-        div_val = soup.findAll('h2', {'class':'result__title'})
-        logger.info(div_val)
-        for div_l in div_val:
-            new_url = div_l.find('a')
-            if 'href' in str(new_url):
-                new_link = new_url['href']
-                final_link = re.search('http[^"]*', new_link).group()
-                if src == 'tvdb' or src == 'tvdb+ddg':
-                    if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
-                            and 'tab=seasonall' not in final_link):
-                        m.append(final_link)
-                elif src == 'tmdb' or src == 'tmdb+ddg':
-                    if 'themoviedb.org' in final_link:
-                        m.append(final_link)
-                if m:
-                    break
-        return m
-        
-    def get_glinks(self, nam, src=None):
-        if src == 'tmdb+g':
-            url = "https://www.google.co.in/search?q="+nam+"+themoviedb"
-        else:
-            url = "https://www.google.co.in/search?q="+nam+"+tvdb"
-        content = ccurl(url)
-        soup = BeautifulSoup(content, 'lxml')
-        m = soup.findAll('a')
-        links = []
-        for i in m:
-            if 'href' in str(i):
-                x = urllib.parse.unquote(i['href'])
-                y = ''
-                src = 'tvdb'
-                if 'thetvdb.com' in x:
-                    y = re.search('thetvdb.com[^"]*tab=series[^"]*', x)
-                    src = 'tvdb'
-                elif 'themoviedb.org' in x:
-                    y = re.search('www.themoviedb.org[^"]*', x)
-                    src = 'tmdb'
-                if y:
-                    y = y.group()
-                    if src == 'tvdb':
-                        y = 'http://'+y
-                    else:
-                        y = 'https://'+y
-                    y = urllib.parse.unquote(y)
-                    y = y.replace(' ', '%20')
-                    y = re.sub('\&sa[^"]*', '', y)
-                    links.append(y)
-        return links
     
     def run(self):
         name = self.name
@@ -172,7 +74,7 @@ class FindPosterThread(QtCore.QThread):
             final = ''
             if (self.copy_fanart and self.copy_poster and self.copy_summary):
                 if not direct_url and not url:
-                    nam = self.name_adjust(name)
+                    nam = ui.metaengine.name_adjust(name)
                     url = "http://www.last.fm/search?q="+nam
                     logger.info(url)
                 wiki = ""
@@ -257,17 +159,17 @@ class FindPosterThread(QtCore.QThread):
                 except Exception as e:
                     print(e)
         else:
-            nam = self.name_adjust(name)
+            nam = ui.metaengine.name_adjust(name)
             src_site = 'tvdb'
             if self.use_search:
                 if isinstance(self.use_search, bool):
-                    final_link, m = self.ddg_search(nam, 'tvdb') 
+                    final_link, m = ui.metaengine.ddg_search(nam, 'tvdb') 
                     if not m:
-                        final_link, m = self.ddg_search(nam, 'tmdb')
+                        final_link, m = ui.metaengine.ddg_search(nam, 'tmdb')
                         if m:
                             src_site = 'tmdb' 
                 else:
-                    final_link, m = self.ddg_search(nam, self.use_search, direct_search=True)
+                    final_link, m = ui.metaengine.ddg_search(nam, self.use_search, direct_search=True)
                     src_site = self.use_search
             else:
                 if direct_url and url:
@@ -588,7 +490,8 @@ class DownloadThread(QtCore.QThread):
         self.wait()                        
 
     def run(self):
-        ccurl(self.url)
+        if self.url.startswith('http'):
+            ccurl(self.url)
         try:
             self.picn = self.url.split('#')[2]
             ui.image_fit_option(self.picn, self.picn, fit_size=6, widget=ui.label)
