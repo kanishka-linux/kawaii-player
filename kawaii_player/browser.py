@@ -600,8 +600,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 my_copy = self.ui.epn_arr_list.copy()
                 r = self.ui.list1.currentRow()
                 nm = self.ui.get_title_name(r)
-                self.ui.getTvdbEpnInfo(url, site=self.site,
-                                       epn_arr=my_copy, name=nm)
+                self.ui.metaengine.getTvdbEpnInfo(url, site=self.site,
+                                       epn_arr=my_copy, name=nm, row=r)
         elif (option.lower() == 'artist link' or option.lower() == 'series link' 
                 or option.lower() == 'series/movie link'):
             r = self.ui.list1.currentRow()
