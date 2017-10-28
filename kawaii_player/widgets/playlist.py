@@ -1064,9 +1064,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if os.path.exists(file_path):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
     
-    def remove_thumbnails(self, row, row_item):
+    def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
-        if os.path.exists(dest):
+        if os.path.exists(dest) and remove_summary is None:
             os.remove(dest)
             small_nm_1, new_title = os.path.split(dest)
             small_nm_2 = '128px.'+new_title
@@ -1082,7 +1082,37 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 os.remove(small_thumb)
             if os.path.exists(small_label):
                 os.remove(small_label)
+        elif remove_summary:
+            path_thumb, new_title = os.path.split(dest)
+            txt_file = new_title.replace('.jpg', '.txt', 1)
+            txt_path = os.path.join(path_thumb, txt_file)
+            if os.path.isfile(txt_path):
+                os.remove(txt_path)
     
+    def edit_selected_summary(self, row, row_item):
+        dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
+        path_thumb, new_title = os.path.split(dest)
+        txt_file = new_title.replace('.jpg', '.txt', 1)
+        txt_path = os.path.join(path_thumb, txt_file)
+        txt = ''
+        if os.path.isfile(txt_path):
+            txt = open_files(txt_path, False)
+        else:
+            if row < len(ui.epn_arr_list):
+                ui.text.clear()
+                ep_name = ui.epn_arr_list[row]
+                if '\t' in ep_name:
+                    ep_name = ep_name.split('\t')[0]
+                if ep_name.startswith('#'):
+                    ep_name = ep_name.replace('#', '', 1)
+                txt = 'Air Date:\n\nEpisode Name:{0}\n\nOverview:'.format(ep_name)
+                txt = txt + "\nDo Not Remove - Air Date: - text from top corner,\
+otherwise edited summary will be saved as series summary. After Editing press ctrl+a to save changes"
+                txt = txt + '\n\n For fetching Episode Summary from TVDB, first focus either \
+TitleList or PlayList Column, and then press either F6 or F7 or F8'
+        ui.text.setText(txt)
+        ui.text.setFocus()
+        
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(s='site', n='name')
         site = param_dict['site']
@@ -1337,8 +1367,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
             thumb_menu = QtWidgets.QMenu(menu)
             thumb_menu.setTitle("Remove Thumbnails")
             menu.addMenu(thumb_menu)
-            remove_all = thumb_menu.addAction("Remove All")
             remove_selected = thumb_menu.addAction("Remove Selected")
+            remove_all = thumb_menu.addAction("Remove All")
+            
+            summary_menu = QtWidgets.QMenu(menu)
+            summary_menu.setTitle("Episode Summary")
+            menu.addMenu(summary_menu)
+            edit_summary = summary_menu.addAction("Edit Selected")
+            remove_summary_selected = summary_menu.addAction("Remove Selected")
+            remove_summary_all = summary_menu.addAction("Remove All")
+            
             upspeed = menu.addAction("Set Upload Speed (Ctrl+D)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
             
@@ -1425,6 +1463,13 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.remove_thumbnails(i ,j)
             elif action == remove_selected:
                 self.remove_thumbnails(r ,ui.epn_arr_list[r])
+            elif action == remove_summary_all:
+                for i, j in enumerate(ui.epn_arr_list):
+                    self.remove_thumbnails(i ,j, remove_summary=True)
+            elif action == edit_summary:
+                self.edit_selected_summary(r ,ui.epn_arr_list[r])
+            elif action == remove_summary_selected:
+                self.remove_thumbnails(r ,ui.epn_arr_list[r], remove_summary=True)
             elif action == editN and not ui.list1.isHidden():
                 if ui.epn_arr_list:
                     print('Editing Name')
