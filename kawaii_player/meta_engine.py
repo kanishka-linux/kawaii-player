@@ -412,9 +412,9 @@ class MetaEngine:
             start_pt = 0
             start_now = True
             length = 0
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
             for img_key in image_dict:
-                if not os.path.exists(dest_dir):
-                    os.makedirs(dest_dir)
                 dest = os.path.join(dest_dir, img_key+'.jpg')
                 img_url= image_dict[img_key]
                 if img_url.startswith('//'):
@@ -478,9 +478,9 @@ def update_image_list(image_dict, dest_dir, site):
         start_pt = 0
         start_now = True
         length = 0
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
         for img_key in image_dict:
-            if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir)
             dest = os.path.join(dest_dir, img_key+'.jpg')
             img_url= image_dict[img_key]
             if img_url.startswith('//'):
