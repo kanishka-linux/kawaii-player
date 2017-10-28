@@ -542,7 +542,7 @@ class Ui_MainWindow(object):
         self.VerticalLayoutLabel.insertWidget(0, self.label, 0)
         self.VerticalLayoutLabel.insertWidget(1, self.text, 0)
         #self.VerticalLayoutLabel.setStretch(1, 2)
-        self.VerticalLayoutLabel.addStretch(1)
+        ##self.VerticalLayoutLabel.addStretch(1)#after label + text
         #self.text.hide()
         self.label.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         self.text.setAlignment(QtCore.Qt.AlignCenter)
@@ -784,7 +784,7 @@ watch/unwatch status")
         self.list5.setMaximumWidth(self.width_allowed)
         self.list6.setMaximumWidth(self.width_allowed)
         self.goto_epn.setMaximumWidth(self.width_allowed)
-        self.text.setMaximumWidth(screen_width-2*self.width_allowed-280)
+        self.text.setMaximumWidth(screen_width-3*self.width_allowed-35)
         self.text.setMaximumHeight(self.height_allowed)
         self.text.setMinimumWidth(self.width_allowed)
         self.label.setMaximumHeight(self.height_allowed)
@@ -4459,15 +4459,8 @@ watch/unwatch status")
                     if picn.startswith(self.check_symbol):
                         picn = picn[1:]
                         
-                #new_obj = SetThumbnailGrid(self, logger, counter, picn, '',
-                #                           fit_size=6, widget_size=(int(width), int(height)),
-                #                           length=length, nameEpn=nameEpn)
-                #self.append_to_thread_list(self.thread_grid_thumbnail, new_obj,
-                #                           self.grid_thumbnail_process_finished,
-                #                           counter)
-                
+                picn_old = picn
                 if not start_already:
-                    picn_old = picn
                     picn = ui.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
                     img = QtGui.QPixmap(picn, "1")
                     q1="ui.label_epn_"+str(counter)+".setPixmap(img)"
@@ -4507,11 +4500,19 @@ watch/unwatch status")
                 nameEpn = nameEpn.replace('_', ' ')
                 sumry = "<html><h4>"+nameEpn+"</h4></html>"
                 sumry = sumry.replace('"', '')
+                
+                path_thumb, new_title = os.path.split(picn_old)
+                txt_file = new_title.replace('.jpg', '.txt', 1)
+                txt_path = os.path.join(path_thumb, txt_file)
+                if os.path.isfile(txt_path):
+                    sumry = open_files(txt_path, False)
+                    sumry = sumry.replace('\n', '<br>')
+                    sumry = "<html>"+sumry+"</html>"
                 q3="ui.label_epn_"+str(ii)+".setText((nameEpn))"
                 exec (q3)
                 q3="ui.label_epn_"+str(ii)+".setAlignment(QtCore.Qt.AlignCenter)"
                 exec(q3)
-                q3='ui.label_epn_{0}.setToolTip("{1}")'.format(ii, sumry)
+                q3='ui.label_epn_'+str(ii)+'.setToolTip(sumry)'
                 exec(q3)
                 QtWidgets.QApplication.processEvents()
                 ii += 1
