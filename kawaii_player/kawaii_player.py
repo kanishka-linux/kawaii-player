@@ -1543,6 +1543,7 @@ watch/unwatch status")
         self.set_thumbnail_thread_list = []
         self.thread_grid_thumbnail = []
         self.music_playlist = False
+        self.downloadWgetText = []
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -1911,7 +1912,26 @@ watch/unwatch status")
                     pass
                 elif not self.downloadWget[length+2].isRunning():
                     self.downloadWget[length+2].start()
+    
+    def download_thread_text_finished(self, dest, r, length):
+        logger.info("Download tvdb summary: {0} :completed".format(dest))
+        thr = self.downloadWgetText[length]
+        del thr
+        self.downloadWgetText[length] = None
+        if length+1 < len(self.downloadWgetText):
+            if self.downloadWgetText[length+1] is not None:
+                if self.downloadWgetText[length+1].isFinished():
+                    pass
+                elif not self.downloadWgetText[length+1].isRunning():
+                    self.downloadWgetText[length+1].start()
         
+        if length+2 < len(self.downloadWgetText):
+            if self.downloadWgetText[length+2] is not None:
+                if self.downloadWgetText[length+2].isFinished():
+                    pass
+                elif not self.downloadWgetText[length+2].isRunning():
+                    self.downloadWgetText[length+2].start()
+    
     def update_video_dict_criteria(self):
         video_dir_path = os.path.join(home, 'VideoDB')
         if not os.path.exists(video_dir_path):
@@ -2189,7 +2209,20 @@ watch/unwatch status")
     def save_text_edit(self):
         txt = self.text.toPlainText()
         self.text.clear()
-        self.copySummary(txt)
+        logger.debug(txt)
+        if txt.startswith('Air Date:'):
+            if self.list2.currentItem():
+                row = self.list2.currentRow()
+                row_txt = self.epn_arr_list[row]
+                picn = self.get_thumbnail_image_path(row, row_txt, only_name=True)
+                path, file_name = os.path.split(picn)
+                file_name = file_name.replace('.jpg', '.txt', 1)
+                file_path = os.path.join(path, file_name)
+                logger.debug(file_path)
+                write_files(file_path, txt, False)
+                self.text.setText(txt)
+        else:
+            self.copySummary(txt)
         
     def text_editor_changed(self):
         g = self.text.geometry()
@@ -6070,16 +6103,21 @@ watch/unwatch status")
         if self.list2.currentItem() and num < len(self.epn_arr_list) and move_ahead:
             epn_h = self.list2.currentItem().text()
             picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
-            if os.path.exists(picn) and not picn.endswith('default.jpg'):
-                label_name = 'label.'+os.path.basename(picn)
-                path_thumb, new_title = os.path.split(picn)
-                new_picn = os.path.join(path_thumb, label_name)
-                if not os.path.exists(new_picn):
-                    self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
-                if os.path.isfile(new_picn):
-                    self.label.setPixmap(QtGui.QPixmap(new_picn, "1"))
-            else:
-                pass
+            label_name = 'label.'+os.path.basename(picn)
+            path_thumb, new_title = os.path.split(picn)
+            new_picn = os.path.join(path_thumb, label_name)
+            if os.path.exists(picn):
+                if not picn.endswith('default.jpg'):
+                    if not os.path.exists(new_picn):
+                        self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
+                    if os.path.isfile(new_picn):
+                        self.label.setPixmap(QtGui.QPixmap(new_picn, "1"))
+            txt_file = new_title.replace('.jpg', '.txt', 1)
+            txt_path = os.path.join(path_thumb, txt_file)
+            if os.path.isfile(txt_path):
+                #logger.debug(txt_path)
+                summary = open_files(txt_path, False)
+                self.text.setText(summary)
                 
     def thumbnail_generated(self, row=None, picn=None):
         try:
