@@ -187,15 +187,33 @@ class MetaEngine:
                               site=site, name=name, row=row, thread=thread)
                               
     def find_episode_key_val(self, lower_case, index=None, season=None):
+        lower_case = re.sub('\[[^\]]*\]|\([^\)]*\)', '', lower_case)
         name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+', lower_case)
         name_srch_val = None
         ep_name = ''
         
         if not name_srch:
-            name_srch = re.search('ep[0-9]+|episode[^"]*[0-9]+|ep[^"]+[0-9]+', lower_case)
+            name_srch = re.search('ep[0-9]+|episode[^"]*[0-9]+|ep[^"]+[0-9]+|e[0-9]+', lower_case)
             if not name_srch:
-                if isinstance(index, int):
-                    name_srch_val = 'e'+str(index+1)
+                name_srch = re.search('-[^"]*[0-9][0-9]+', lower_case)
+                if not name_srch:
+                    name_srch = re.search('[0-9][0-9]+', lower_case)
+                    if not name_srch:
+                        if isinstance(index, int):
+                            name_srch_val = 'ep'+str(index+1)
+                    else:
+                        name_srch_val = 'ep' + name_srch.group()
+                else:
+                    ssn_final = ''
+                    ssn_val = re.search('s[0-9]+[^"]*\-', lower_case)
+                    if ssn_val:
+                        ssn_str_srch = re.search('s[0-9]+', ssn_val.group())
+                        if ssn_str_srch:
+                            ssn_final = ssn_str_srch.group()
+                    if ssn_final:
+                        name_srch_val = ssn_final + 'ep'+re.sub('-[^0-9]*', '', name_srch.group())
+                    else:
+                        name_srch_val = 'ep' + re.sub('-[^0-9]*', '', name_srch.group())
             else:
                 name_srch_val = name_srch.group()
         else:
@@ -385,6 +403,8 @@ class MetaEngine:
             thread.image_dict_list = image_dict.copy()
             thread.dest_dir = os.path.join(home, "thumbnails", name)
             thread.site = site
+        else:
+            dest_dir = os.path.join(home, "thumbnails", name)
         
         if (site != "Video" and site != 'Music' and site != 'PlayLists'
                 and site != 'NONE' and site != 'MyServer') and thread is None:
