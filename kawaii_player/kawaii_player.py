@@ -6070,7 +6070,7 @@ watch/unwatch status")
         if self.list2.currentItem() and num < len(self.epn_arr_list) and move_ahead:
             epn_h = self.list2.currentItem().text()
             picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
-            if os.path.exists(picn):
+            if os.path.exists(picn) and not picn.endswith('default.jpg'):
                 label_name = 'label.'+os.path.basename(picn)
                 path_thumb, new_title = os.path.split(picn)
                 new_picn = os.path.join(path_thumb, label_name)
