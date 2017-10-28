@@ -478,25 +478,84 @@ def start_player_directly(final_url, nm):
 
 class DownloadThread(QtCore.QThread):
 
-    def __init__(self, ui_widget, url):
+    def __init__(self, ui_widget, url, img_list=None, get_text=None):
         QtCore.QThread.__init__(self)
         global ui
         self.url = url
         self.interval = 1
         self.picn = 'picn'
         ui = ui_widget
+        if img_list:
+            """img_list=[img_url, date, ep_url, local_path, site, img_key, dest_dir]"""
+            self.img_list = img_list.copy()
+        else:
+            self.img_list = []
+        if get_text:
+            self.get_text = True
+        else:
+            self.get_text = False
 
     def __del__(self):
         self.wait()                        
-
+        
+    def remove_extra_thumbnails(self, dest):
+        if os.path.exists(dest):
+            small_nm_1, new_title = os.path.split(dest)
+            small_nm_2 = '128px.'+new_title
+            small_nm_3 = '480px.'+new_title
+            small_nm_4 = 'label.'+new_title
+            new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+            small_thumb = os.path.join(small_nm_1, small_nm_3)
+            small_label = os.path.join(small_nm_1, small_nm_4)
+            logger.info(new_small_thumb)
+            if os.path.exists(new_small_thumb):
+                os.remove(new_small_thumb)
+            if os.path.exists(small_thumb):
+                os.remove(small_thumb)
+            if os.path.exists(small_label):
+                os.remove(small_label)
+    
+    def create_extra_thumbnails(self, picn):
+        if os.path.exists(picn) and os.stat(picn).st_size:
+            ui.create_new_image_pixel(picn, 128)
+            ui.create_new_image_pixel(picn, 480)
+            label_name = 'label.'+os.path.basename(picn)
+            path_thumb, new_title = os.path.split(picn)
+            new_picn = os.path.join(path_thumb, label_name)
+            if not os.path.exists(new_picn):
+                ui.image_fit_option(picn, new_picn, fit_size=6, widget=ui.label)
+    
     def run(self):
-        if self.url.startswith('http'):
-            ccurl(self.url)
-        try:
-            self.picn = self.url.split('#')[2]
-            ui.image_fit_option(self.picn, self.picn, fit_size=6, widget=ui.label)
-        except Exception as e:
-            print(e)
+        dest = dest_txt = ep_url = dest_txt = ''
+        if self.img_list and len(self.img_list) == 7:
+            img_url, dt, ep_url, local_path, site, img_key, dest_txt = self.img_list
+            
+        if not self.get_text:
+            if self.url.startswith('http'):
+                ccurl(self.url)
+            try:
+                if self.url:
+                    self.picn = self.url.split('#')[2]
+                    ui.image_fit_option(self.picn, self.picn, fit_size=6, widget=ui.label)
+                    if site.lower() == 'video':
+                        self.remove_extra_thumbnails(self.picn)
+                        self.create_extra_thumbnails(self.picn)
+                        
+            except Exception as e:
+                print(e)
+        else:
+            txt = 'Air Date: '+ dt + '\n\nEpisode Name: ' + img_key + '\n\nOverview: '
+            if ep_url and dest_txt:
+                if ep_url.startswith('http'):
+                    content = ccurl(ep_url)
+                    soup = BeautifulSoup(content, 'lxml')
+                    txt_lnk = soup.find('textarea', {'name' : 'Overview_7'})
+                    if txt_lnk:
+                        txt_val = txt_lnk.text
+                        txt_val = txt_val.strip()
+                        txt = txt + txt_val
+            if dest_txt:
+                write_files(dest_txt, txt, False)
 
 
 class PlayerWaitThread(QtCore.QThread):
