@@ -2,6 +2,7 @@ import os
 import re
 import time
 import sqlite3
+import hashlib
 import urllib.parse
 from functools import partial
 from bs4 import BeautifulSoup
@@ -258,6 +259,7 @@ class MetaEngine:
             return 0
         link = link1.findAll('td')
         n = []
+        """ep_dict = {epn_key:[sr name img_url date ep_url]}"""
         ep_dict = {}
         special_count = 0
         ep_count = 0
@@ -265,10 +267,17 @@ class MetaEngine:
         index_count = 0
         length_link = len(link)
         for i in range(4, len(link), 4):
-            j = k = l = p = ''
+            j = k = l = p = epurl = ''
             jj = link[i].find('a')
             if jj:
                 j = jj.text
+                if 'href' in str(jj):
+                    epurl = jj['href']
+                    if not epurl.startswith('http'):
+                        if epurl.startswith('/'):
+                            epurl = 'https://thetvdb.com' + epurl
+                        else:
+                            epurl = 'https://thetvdb.com/' + epurl
             if i+1 < length_link:
                 kk = link[i+1].find('a')
                 if kk:
@@ -323,13 +332,13 @@ class MetaEngine:
                     e = e.strip()
                     key = 's'+s+'e'+e
                 if key:
-                    ep_dict.update({key:[j, k, q]})
+                    ep_dict.update({key:[j, k, q, l, epurl]})
                 if j == 'special':
                     n.append(t)
                 else:
                     m.append(t)
                     key = 'e'+str(ep_count)
-                    ep_dict.update({key:[j, k, q]})
+                    ep_dict.update({key:[j, k, q, l, epurl]})
                 index_count += 1
         for i in ep_dict:
             logger.debug('\nkey:{0} value:{1}\n'.format(i, ep_dict[i]))
@@ -354,7 +363,8 @@ class MetaEngine:
                     key_found = True
             if key_found:
                 new_name = ep_val[0]+ ' ' + ep_val[1]
-                image_dict.update({new_name:ep_val[2]})
+                """image_dict={sr:[img_url date ep_url local_path site]}"""
+                image_dict.update({new_name:[ep_val[2], ep_val[3], ep_val[4], extra, site]})
                 if extra:
                     new_val = new_name + '\t' + extra
                 else:
@@ -401,33 +411,19 @@ class MetaEngine:
         
         if thread:
             thread.image_dict_list = image_dict.copy()
-            thread.dest_dir = os.path.join(home, "thumbnails", name)
+            if site.lower() == 'video':
+                thread.dest_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
+            else:
+                thread.dest_dir = os.path.join(home, "thumbnails", name)
             thread.site = site
         else:
-            dest_dir = os.path.join(home, "thumbnails", name)
+            if site.lower() == 'video':
+                dest_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
+            else:
+                dest_dir = os.path.join(home, "thumbnails", name)
         
-        if (site != "Video" and site != 'Music' and site != 'PlayLists'
-                and site != 'NONE' and site != 'MyServer') and thread is None:
-            r = 0
-            start_pt = 0
-            start_now = True
-            length = 0
-            if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir)
-            for img_key in image_dict:
-                dest = os.path.join(dest_dir, img_key+'.jpg')
-                img_url= image_dict[img_key]
-                if img_url.startswith('//'):
-                    img_url = "http:"+img_url
-                if r == 0:
-                    start_pt = len(ui.downloadWget)
-                ui.downloadWget.append(DownloadThread(ui, img_url+'#'+'-o'+'#'+dest))
-                length = len(ui.downloadWget)
-                ui.downloadWget[length-1].finished.connect(
-                    partial(ui.download_thread_finished, dest, r, length-1))
-                if r == 0:
-                    ui.downloadWget[length-1].start()
-                r += 1
+        if thread is None:        
+            update_image_list_method(image_dict, dest_dir, site)
 
 
 class DownloadInfoThread(QtCore.QThread):
@@ -472,25 +468,61 @@ def information_update():
 
 @pyqtSlot(dict, str, str)
 def update_image_list(image_dict, dest_dir, site):
-    if (site != "Video" and site != 'Music' and site != 'PlayLists'
+    update_image_list_method(image_dict, dest_dir, site)
+
+def update_image_list_method(image_dict, dest_dir, site):
+    if (site != 'Music' and site != 'PlayLists'
             and site != 'NONE' and site != 'MyServer'):
         r = 0
         start_pt = 0
         start_now = True
         length = 0
+        txt_count = 0
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        for img_key in image_dict:
-            dest = os.path.join(dest_dir, img_key+'.jpg')
-            img_url= image_dict[img_key]
+        for img_key, img_val in image_dict.items():
+            img_url, dt, ep_url, local_path, site_record = img_val
+            if site.lower() == 'video':
+                if '\t' in local_path:
+                    path = local_path.split('\t')[0]
+                path = local_path.replace('"', '')
+                thumb_name_bytes = bytes(path, 'utf-8')
+                h = hashlib.sha256(thumb_name_bytes)
+                thumb_name = h.hexdigest()
+                dest_txt = os.path.join(dest_dir, thumb_name+'.txt')
+                dest_picn = os.path.join(dest_dir, thumb_name+'.jpg')
+            else:
+                dest_txt = os.path.join(dest_dir, img_key+'.txt')
+                dest_picn = os.path.join(dest_dir, img_key+'.jpg')
+                
             if img_url.startswith('//'):
                 img_url = "http:"+img_url
-            if r == 0:
-                start_pt = len(ui.downloadWget)
-            ui.downloadWget.append(DownloadThread(ui, img_url+'#'+'-o'+'#'+dest))
+            
+            picn_url = img_url+'#-o#'+dest_picn
+                
+            img_val_copy = img_val.copy()
+            img_val_copy.append(img_key)
+            img_val_copy.append(dest_txt)
+            
+            ui.downloadWget.append(
+                DownloadThread(ui, picn_url, img_list=img_val_copy)
+                )
             length = len(ui.downloadWget)
             ui.downloadWget[length-1].finished.connect(
-                partial(ui.download_thread_finished, dest, r, length-1))
+                partial(ui.download_thread_finished, dest_picn, r, length-1))
             if r == 0:
                 ui.downloadWget[length-1].start()
             r += 1
+            
+            ui.downloadWgetText.append(
+                DownloadThread(ui, picn_url, img_list=img_val_copy,
+                get_text=True)
+                )
+            length_text = len(ui.downloadWgetText)
+            ui.downloadWgetText[length_text-1].finished.connect(
+                partial(ui.download_thread_text_finished, dest_txt,
+                txt_count, length_text-1)
+                )
+            if txt_count == 0:
+                ui.downloadWgetText[length_text-1].start()
+            txt_count += 1
