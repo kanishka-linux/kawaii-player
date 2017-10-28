@@ -1314,7 +1314,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             submenu.setTitle('TVDB options')
             eplist_info = False
             if (site.lower() == 'video' or site.lower() == 'local'):
-                eplist = submenu.addAction("Get Episode Title(TVDB) (F6)")
+                eplist = submenu.addAction("Get Episode Name(TVDB) (F6)")
                 eplist_info = True
             elif site.lower().startswith('playlist') or site.lower() == 'none':
                 eplist_info = False
