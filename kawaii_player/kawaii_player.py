@@ -10673,8 +10673,11 @@ watch/unwatch status")
                         finalUrl = final_url.split('::')[-1]
                     else:
                         command = command.replace('ytdl=no', 'ytdl=yes')
-                elif 'youtube.com' in finalUrl and player == 'mplayer':
+                elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
+                elif finalUrl.startswith('ytdl:') and player == 'mpv':
+                    finalUrl = finalUrl.replace('ytdl:', '', 1)
+                    command = command.replace('ytdl=no', 'ytdl=yes')
             if finalUrl.startswith('http'):
                 command = command + ' ' + finalUrl
             else:
