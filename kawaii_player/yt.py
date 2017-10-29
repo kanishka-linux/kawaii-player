@@ -83,6 +83,8 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
             url = 'https://m.youtube.com/watch?v='+d['v']
         except:
             pass
+    elif url.startswith('ytdl:'):
+        url = url.replace('ytdl:', '', 1)
     try:
         if mode == 'TITLE':
             if os.name == 'posix':
