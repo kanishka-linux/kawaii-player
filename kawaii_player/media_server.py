@@ -1574,7 +1574,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 logger.info(nm)
                 num_row = None
                 old_nm = nm
-                if nm.startswith('http'):
+                if nm.startswith('http') or nm.startswith('ytdl:'):
                     http_val = 'http'
                     if ui.https_media_server:
                         http_val = "https" 
@@ -1595,6 +1595,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         nm = ui.epn_return(row)
                         if nm.startswith('"'):
                             nm = nm.replace('"', '')
+                    elif nm.startswith('ytdl:'):
+                        nm = get_yt_url(nm, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
+                        if '::' in nm:
+                            vid, aud = nm.split('::')
+                            if ui.client_yt_mode == 'music':
+                                nm = aud
                     elif ('youtube.com' in nm and not self.path.endswith('.subtitle') 
                             and not self.path.endswith('.getsub') and not self.path.endswith('.image')):
                         nm = get_yt_url(nm, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
@@ -2595,6 +2601,25 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         if ui.client_yt_mode == 'music':
                             nm = aud
                     self.process_offline_mode(nm, pls, title, msg=False, captions=sub_title, url=url)
+            else:
+                try:
+                    req = urllib.request.Request(
+                        url, data=None, headers={'User-Agent': 'Mozilla/5.0'}
+                        )
+                    f = urllib.request.urlopen(req)
+                    content = f.read().decode('utf-8')
+                except Exception as e:
+                    print(e, '---2279---')
+                    return op_success
+                soup = BeautifulSoup(content, 'lxml')
+                title = soup.title.text.strip()
+                logger.info(title)
+                url = 'ytdl:'+url
+                new_line = title + '\t' + url + '\t' + 'NONE'
+                pls_path = os.path.join(home, 'Playlists', pls)
+                if os.path.exists(pls_path):
+                    write_files(pls_path, new_line, line_by_line=True)
+                    op_success = True
         return op_success
 
     def final_message(self, txt, cookie=None, auth_failed=None):
