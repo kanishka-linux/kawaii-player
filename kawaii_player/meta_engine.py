@@ -259,7 +259,7 @@ class MetaEngine:
             return 0
         link = link1.findAll('td')
         n = []
-        """ep_dict = {epn_key:[sr name img_url date ep_url]}"""
+        """ep_dict = {epn_key:[sr, name, img_url, date, ep_url]}"""
         ep_dict = {}
         special_count = 0
         ep_count = 0
@@ -297,6 +297,8 @@ class MetaEngine:
             else:
                 q = "NONE"
             j = j.replace(' ', '')
+            if j == '1x0':
+                continue
             k = k.replace('/', '-')
             k = k.replace(':', '-')
             t = j+' '+k+':'+q
@@ -322,7 +324,9 @@ class MetaEngine:
                         if ni.startswith('#'):
                             ni = ni.replace('#', '', 1)
                     if ni:
-                        epn_value, sn = self.find_episode_key_val(ni, index=index_count, season=True)
+                        epn_value, sn = self.find_episode_key_val(
+                            ni, index=index_count, season=True
+                            )
                         if sn >= 0:
                             s = str(sn)
                             j = s + 'x' + j 
@@ -363,7 +367,7 @@ class MetaEngine:
                     key_found = True
             if key_found:
                 new_name = ep_val[0]+ ' ' + ep_val[1]
-                """image_dict={sr:[img_url date ep_url local_path site]}"""
+                """image_dict={sr:[img_url, date, ep_url, local_path, site]}"""
                 image_dict.update({new_name:[ep_val[2], ep_val[3], ep_val[4], extra, site]})
                 if extra:
                     new_val = new_name + '\t' + extra
