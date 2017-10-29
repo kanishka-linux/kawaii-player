@@ -8738,7 +8738,7 @@ watch/unwatch status")
                 self.epn_name_in_list = arr[0]
                 epn = self.epn_name_in_list
                 self.playlistUpdate()
-                if 'youtube.com' in finalUrl:
+                if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
                     #finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                     print(self.epn_wait_thread.isRunning())
                     if not self.epn_wait_thread.isRunning():
@@ -8774,7 +8774,7 @@ watch/unwatch status")
                     finalUrl = finalUrl.replace('"', '')
                     finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                     finalUrl = '"'+finalUrl+'"'
-            if 'youtube.com' in finalUrl.lower():
+            if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
                 finalUrl = finalUrl.replace('"', '')
                 finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                 finalUrl = '"'+finalUrl+'"'
@@ -10352,7 +10352,7 @@ watch/unwatch status")
                 epn = self.epn_name_in_list
                 self.playlistUpdate()
                 self.list2.setCurrentRow(row)
-                if 'youtube.com' in finalUrl:
+                if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
                     #finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
@@ -10382,7 +10382,7 @@ watch/unwatch status")
                 self.list2.item(row).setText(i)
             #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
             self.list2.setCurrentRow(row)
-            if 'youtube.com' in finalUrl.lower():
+            if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
                 finalUrl = finalUrl.replace('"', '')
                 finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
             self.external_url = self.get_external_url_status(finalUrl)
@@ -11611,13 +11611,19 @@ watch/unwatch status")
                     finalUrl = t
                     if 'youtube.com' in t:
                         finalUrl = get_yt_url(t, self.quality_val, self.ytdl_path, logger)
+                    else:
+                        finalUrl = get_yt_url('ytdl:'+t, self.quality_val, self.ytdl_path, logger)
                     self.epn_arr_list[:] = []
-                    self.epn_arr_list.append(t+'	'+finalUrl+'	'+'NONE')
+                    tname = t.rsplit('/')[-1]
+                    tpath = 'ytdl:'+t 
+                    self.epn_arr_list.append(tname+'	'+tpath+'	'+'NONE')
+                    file_entry = tname+'	'+tpath+'	'+'NONE'
                     self.watchDirectly(finalUrl, '', 'no')
                     if self.epn_arr_list:
                         file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
-                        f = open(file_name, 'w').close()
-                        write_files(file_name, self.epn_arr_list, True)
+                        if not os.path.exists(file_name):
+                            f = open(file_name, 'w').close()
+                        write_files(file_name, file_entry, True)
                         self.list1.clear()
                         self.list1.addItem('TMP_PLAYLIST')
             else:
