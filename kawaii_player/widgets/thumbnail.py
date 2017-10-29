@@ -679,6 +679,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.play_file_now(finalUrl)
                     if site == "Music":
                         logger.info(finalUrl)
+                        ui.text.show()
+                        ui.label.show()
                         try:
                             artist_name_mplayer = ui.epn_arr_list[num].split('	')[2]
                             if artist_name_mplayer == "None":
