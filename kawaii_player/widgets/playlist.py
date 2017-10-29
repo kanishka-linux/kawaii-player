@@ -1089,27 +1089,46 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if os.path.isfile(txt_path):
                 os.remove(txt_path)
     
-    def edit_selected_summary(self, row, row_item):
+    def edit_selected_summary(self, row, row_item, help_needed=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
         path_thumb, new_title = os.path.split(dest)
         txt_file = new_title.replace('.jpg', '.txt', 1)
         txt_path = os.path.join(path_thumb, txt_file)
         txt = ''
-        if os.path.isfile(txt_path):
-            txt = open_files(txt_path, False)
+        if not help_needed:
+            if os.path.isfile(txt_path):
+                txt = open_files(txt_path, False)
+            else:
+                if row < len(ui.epn_arr_list):
+                    ui.text.clear()
+                    ep_name = ui.epn_arr_list[row]
+                    if '\t' in ep_name:
+                        ep_name = ep_name.split('\t')[0]
+                    if ep_name.startswith('#'):
+                        ep_name = ep_name.replace('#', '', 1)
+                    txt = 'Air Date:\n\nEpisode Name:{0}\n\nOverview: Start Here'.format(ep_name)
+                    
         else:
-            if row < len(ui.epn_arr_list):
-                ui.text.clear()
-                ep_name = ui.epn_arr_list[row]
-                if '\t' in ep_name:
-                    ep_name = ep_name.split('\t')[0]
-                if ep_name.startswith('#'):
-                    ep_name = ep_name.replace('#', '', 1)
-                txt = 'Air Date:\n\nEpisode Name:{0}\n\nOverview:'.format(ep_name)
-                txt = txt + "\nDo Not Remove - Air Date: - text from top corner,\
-otherwise edited summary will be saved as series summary. After Editing press ctrl+a to save changes"
-                txt = txt + '\n\n For fetching Episode Summary from TVDB, first focus either \
-TitleList or PlayList Column, and then press either F6 or F7 or F8'
+            txt = ("Air Date:\n\nDo Not Remove - Air Date: - text from top corner,\
+                   while editing episode summary in this box\
+                   otherwise edited summary will be saved as series summary. \
+                   After Editing press ctrl+a to save changes"
+                   '\n\nFor fetching Episode Summary from TVDB, first focus either \
+                   TitleList or PlayList Column, and then press either F6 or F7 or F8. \
+                   \nF6: Get Episode Summary and Thumbnails from TVDB directly \
+                   \nF7: Get Episode Summary and Thumbnails from TVDB using duckduckgo as \
+                   search engine backend. F8 will search using google as search engine backend.\n\
+                   \n\nEpisode Naming patterns for better automatic fetching \
+                   \nEpisode Naming Patterns with seasons: S01EP02, S01E02 \
+                   \nEpisode Naming Patterns without seasons: EP01, Episode01, Episode-01, Ep-01 \
+                   \nFor Specials: S00EP01\
+                   \nEpisode can be renamed using F2(single entry) or F3(Batch Rename).\
+                   \nBatch renaming pattern is NameStart{start-end}NameEnd. \
+                   eg. S01EP{01-20}, Episode-{05-25} \
+                   \nOriginal names can be restored using F4(single entry) or F5(All).\
+                   When restoring original names using keys F2, F3, F4 and F5 playlist \
+                   needs to be focussed')
+            txt = re.sub('  +', ' ', txt)
         ui.text.setText(txt)
         ui.text.setFocus()
         
@@ -1343,13 +1362,13 @@ TitleList or PlayList Column, and then press either F6 or F7 or F8'
             submenu = QtWidgets.QMenu(menu)
             submenu.setTitle('TVDB options')
             eplist_info = False
-            if (site.lower() == 'video' or site.lower() == 'local'):
-                eplist = submenu.addAction("Get Episode Name(TVDB) (F6)")
-                eplist_info = True
-            elif site.lower().startswith('playlist') or site.lower() == 'none':
+           
+            if site.lower().startswith('playlist') or site.lower() == 'none':
                 eplist_info = False
             else:
-                eplist = submenu.addAction("Get Episode Thumbnails(TVDB)")
+                eplist = submenu.addAction("Thumbnails and Summary (F6)")
+                eplist_ddg = submenu.addAction("Thumbnails and Summary (ddg) (F7)")
+                eplist_g = submenu.addAction("Thumbnails and Summary (g) (F8)")
                 eplist_info = True
             
             eplistM = QtWidgets.QAction("Go To TVDB", self)
@@ -1376,6 +1395,7 @@ TitleList or PlayList Column, and then press either F6 or F7 or F8'
             edit_summary = summary_menu.addAction("Edit Selected")
             remove_summary_selected = summary_menu.addAction("Remove Selected")
             remove_summary_all = summary_menu.addAction("Remove All")
+            edit_summary_help = summary_menu.addAction("Help Editing Summary")
             
             upspeed = menu.addAction("Set Upload Speed (Ctrl+D)")
             action = menu.exec_(self.mapToGlobal(event.pos()))
@@ -1407,6 +1427,22 @@ TitleList or PlayList Column, and then press either F6 or F7 or F8'
                     if self.currentItem():
                         mycopy = ui.epn_arr_list.copy()
                         ui.metaengine.find_info_thread(0, row, mycopy)
+                elif action == eplist_ddg:
+                    if ui.list1.currentItem():
+                        row = ui.list1.currentRow()
+                    else:
+                        row = 0
+                    if self.currentItem():
+                        mycopy = ui.epn_arr_list.copy()
+                        ui.metaengine.find_info_thread(1, row, mycopy)
+                elif action == eplist_g:
+                    if ui.list1.currentItem():
+                        row = ui.list1.currentRow()
+                    else:
+                        row = 0
+                    if self.currentItem():
+                        mycopy = ui.epn_arr_list.copy()
+                        ui.metaengine.find_info_thread(2, row, mycopy)
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
@@ -1468,6 +1504,8 @@ TitleList or PlayList Column, and then press either F6 or F7 or F8'
                     self.remove_thumbnails(i ,j, remove_summary=True)
             elif action == edit_summary:
                 self.edit_selected_summary(r ,ui.epn_arr_list[r])
+            elif action == edit_summary_help:
+                self.edit_selected_summary(r ,ui.epn_arr_list[r], help_needed=True)
             elif action == remove_summary_selected:
                 self.remove_thumbnails(r ,ui.epn_arr_list[r], remove_summary=True)
             elif action == editN and not ui.list1.isHidden():
