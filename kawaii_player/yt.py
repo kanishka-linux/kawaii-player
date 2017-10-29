@@ -87,6 +87,8 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     elif url.startswith('ytdl:'):
         url = url.replace('ytdl:', '', 1)
         ytdl_extra = True
+        if url.startswith('youtube.com:'):
+            url = url.replace('youtube.com:', '', 1)
     try:
         if mode == 'TITLE':
             if os.name == 'posix':
