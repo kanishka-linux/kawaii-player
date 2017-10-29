@@ -373,6 +373,8 @@ class FindPosterThread(QtCore.QThread):
                     url = url.rsplit('/', 1)[0]
                 if '?' in url:
                     url = url.split('?')[0]
+                if url.endswith('/en'):
+                    url = url.rsplit('/', 1)[0]
                 content = ccurl(url)
                 soup = BeautifulSoup(content, 'lxml')
                 #logger.info(soup.prettify())
@@ -401,6 +403,8 @@ class FindPosterThread(QtCore.QThread):
                 new_summary = title.strip()+'\n\n'+cert.strip()+'\n'+genres.strip()+'\n\n'+summary.strip()
                 if self.copy_summary:
                     self.summary_signal.emit(name, new_summary, 'summary')
+                if url.endswith('/en'):
+                    url = url.rsplit('/', 1)[0]
                 url = url + '/images/posters'
                 content = ccurl(url)
                 posters_link = re.findall('https://image.tmdb.org/[^"]*original[^"]*.jpg', content)
