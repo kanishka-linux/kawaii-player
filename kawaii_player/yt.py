@@ -65,6 +65,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
         youtube_dl = 'youtube-dl'
         
     logger.info(youtube_dl)
+    ytdl_extra = False
     if '/watch?' in url:
         a = url.split('?')[-1]
         b = a.split('&')
@@ -85,6 +86,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
             pass
     elif url.startswith('ytdl:'):
         url = url.replace('ytdl:', '', 1)
+        ytdl_extra = True
     try:
         if mode == 'TITLE':
             if os.name == 'posix':
@@ -138,17 +140,12 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                                  'best', '-g', '--playlist-end', '1', url])
                             final_url = str(final_url, 'utf-8')
                         elif mode == 'music' or (mode == 'a+v' and ytdl_path != 'default'):
-                            final_url = subprocess.check_output(
-                                [youtube_dl, '-g', url])
-                            final_url = str(final_url, 'utf-8')
-                            final_url = final_url.strip()
-                            logger.info(final_url)
-                            if '\n' in final_url:
-                                vid, aud = final_url.split('\n')
-                                final_url = vid+'::'+aud
+                            final_url = get_best_link(url, youtube_dl, logger)
                         else:
                             if ytdl_path == 'default':
                                 final_url = url
+                                if ytdl_extra:
+                                    final_url = get_best_link(final_url, youtube_dl, logger)
                             else:
                                 final_url = subprocess.check_output(
                                     [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
@@ -157,6 +154,8 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                     else:
                         if ytdl_path == 'default':
                             final_url = url
+                            if ytdl_extra:
+                                final_url = get_best_link(final_url, youtube_dl, logger)
                         else:
                             final_url = subprocess.check_output(
                                 [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
@@ -278,6 +277,17 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     logger.debug('yt-link:>>{0}'.format(final_url))
     return final_url
 
+def get_best_link(url, youtube_dl, logger):
+    ytdl_list = [youtube_dl, '-g', url]
+    final_url = subprocess.check_output(ytdl_list)
+    final_url = str(final_url, 'utf-8')
+    final_url = final_url.strip()
+    logger.info(final_url)
+    if '\n' in final_url:
+        vid, aud = final_url.split('\n')
+        final_url = vid+'::'+aud
+    return final_url
+    
 def get_yt_sub(url, name, dest_dir, tmp_dir, ytdl_path, log):
     global name_epn, dest_dir_sub, tmp_dir_sub, TMPFILE, logger
     logger = log
