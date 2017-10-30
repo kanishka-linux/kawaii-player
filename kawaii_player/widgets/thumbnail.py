@@ -573,6 +573,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
 
     def mouseMoveEvent(self, event):
+        if ui.auto_hide_dock:
+            ui.dockWidget_3.hide()
         self.setFocus()
         pos = event.pos()
         if not ui.float_window.isHidden() and ui.new_tray_widget.remove_toolbar:
@@ -1527,6 +1529,8 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
                 ui.scrollArea1.setFocus()
 
     def mouseMoveEvent(self, event):
+        if ui.auto_hide_dock:
+            ui.dockWidget_3.hide()
         self.setFocus()
     """
     def contextMenuEvent(self, event):
