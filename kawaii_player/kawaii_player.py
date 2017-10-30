@@ -1881,6 +1881,7 @@ watch/unwatch status")
     
     def quick_url_play_method(self):
         self.watch_external_video(self.quick_url_play)
+        self.btn1.setCurrentIndex(0)
     
     def download_thread_finished(self, dest, r, length):
         logger.info("Download tvdb image: {0} :completed".format(dest))
@@ -6602,7 +6603,7 @@ watch/unwatch status")
             else:
                 cur_location = self.web.url().toString()
             logger.info('{0}--web--url--'.format(cur_location))
-            if 'yt' in review_site.lower() and 'youtube' not in cur_location and QT_WEB_ENGINE:
+            if 'youtube' in review_site.lower() and 'youtube' not in cur_location and QT_WEB_ENGINE:
                 self.web.close()
                 self.web.deleteLater()
                 self.web = Browser(self, home, screen_width, self.quality_val, site, self.epn_arr_list)
@@ -6674,8 +6675,6 @@ watch/unwatch status")
         self.webStyle(self.web)
         logger.info('--13527---{0}-{1}'.format(review_site, name1))
         self.review_site_code = review_site
-        if site.lower() == 'playlists' or site.lower() == 'none' or not name1:
-            name1 = ''
         if not name1:
             name1 = self.btnWebReviews_search.text()
             name1 = name1.replace(' ', '+')
