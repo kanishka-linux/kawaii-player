@@ -1274,14 +1274,16 @@ watch/unwatch status")
         self.horizontalLayout10.setObjectName(_fromUtf8("horizontalLayout"))
         self.scrollArea = QtGuiQWidgetScroll(self.tab_6, self)
         self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setMouseTracking(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.gridLayout1 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout1.setObjectName(_fromUtf8("gridLayout1"))
         self.scrollArea1 = QtGuiQWidgetScroll1(self.tab_6, self)
         self.scrollArea1.setWidgetResizable(True)
-        
+        self.scrollArea1.setMouseTracking(True)
         self.scrollArea1.setObjectName(_fromUtf8("scrollArea1"))
         
         self.scrollAreaWidgetContents1 = QtWidgets.QWidget()
@@ -1294,6 +1296,10 @@ watch/unwatch status")
         self.btn10.setObjectName(_fromUtf8("btn10"))
         self.btn10.hide()
         self.gridLayout1.addWidget(self.btn10, 0, 0, 1, 1)
+        
+        self.scrollAreaWidgetContents.setMouseTracking(True)
+        self.scrollAreaWidgetContents1.setMouseTracking(True)
+        
         
         """                        Thumbnail Mode                          """
         
@@ -1614,11 +1620,11 @@ watch/unwatch status")
         self.video_dict = {}
         self.browser_bookmark = {
             'Reviews': 'Reviews',
-            'MyAnimeList': 'http://myanimelist.net/anime.php?q=',
-            'AniDB': 'http://anidb.net/perl-bin/animedb.pl?show=animelist&do.search=search&adb.search=',
-            'Anime-Planet': 'http://www.anime-planet.com/anime/all?name=',
-            'Zerochan': 'http://www.zerochan.net/search?q=',
             'ANN': 'http://www.animenewsnetwork.com/encyclopedia/search/name?q=',
+            'AniDB': 'http://anidb.net/perl-bin/animedb.pl?show=animelist&do.search=search&adb.search=',
+            'Zerochan': 'http://www.zerochan.net/search?q=',
+            'MyAnimeList': 'http://myanimelist.net/anime.php?q=',
+            'Anime-Planet': 'http://www.anime-planet.com/anime/all?name=',
             'Anime-Source': 'http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info=',
             'TVDB': 'http://thetvdb.com/?searchseriesid=&tab=listseries&function=Search&string=',
             'TMDB': 'https://www.themoviedb.org/search?query=',
@@ -11574,6 +11580,7 @@ watch/unwatch status")
                         epn_title = get_yt_url('ytdl:'+t, self.quality_val, self.ytdl_path, logger, mode='TITLE')
                     if epn_title:
                         self.epn_name_in_list = epn_title.strip()
+                        file_entry = self.epn_name_in_list+'	'+tpath+'	'+'NONE'
                     else:
                         self.epn_name_in_list = 'No Title'
                     if self.epn_arr_list:
