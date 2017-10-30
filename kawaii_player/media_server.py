@@ -1595,13 +1595,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         nm = ui.epn_return(row)
                         if nm.startswith('"'):
                             nm = nm.replace('"', '')
-                    elif nm.startswith('ytdl:'):
-                        nm = get_yt_url(nm, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
-                        if '::' in nm:
-                            vid, aud = nm.split('::')
-                            if ui.client_yt_mode == 'music':
-                                nm = aud
-                    elif ('youtube.com' in nm and not self.path.endswith('.subtitle') 
+                    elif (('youtube.com' in nm or nm.startswith('ytdl:')) and not self.path.endswith('.subtitle') 
                             and not self.path.endswith('.getsub') and not self.path.endswith('.image')):
                         nm = get_yt_url(nm, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
                         if '::' in nm:
@@ -2036,7 +2030,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 file_path = os.path.join(home, 'Playlists', pls_name)
                 if os.path.isfile(file_path):
                     lines = open_files(file_path, lines_read=True)
-                    new_lines = [i.strip() for i in lines]
+                    new_lines = [i.strip() for i in lines if i.strip()]
                     if pls_number < len(new_lines):
                         del new_lines[pls_number]
                         write_files(file_path, new_lines, line_by_line=True)
@@ -2347,6 +2341,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         logger.debug(thumb_path)
         got_http_image = False
         if 'youtube.com' in path:
+            if path.startswith('ytdl:'):
+                path = path.replace('ytdl:', '', 1)
             img_url = ui.create_img_url(path)
             logger.debug(img_url)
             if not os.path.exists(thumb_path) and img_url:
