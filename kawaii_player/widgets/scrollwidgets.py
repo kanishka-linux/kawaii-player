@@ -6,7 +6,12 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         super(QtGuiQWidgetScroll, self).__init__(parent)
         global ui
         ui = uiwidget
-        
+    
+    def mouseMoveEvent(self, event):
+        if ui.auto_hide_dock:
+            ui.dockWidget_3.hide()
+        self.setFocus()
+    
     def sizeAdjust(self, nextR, direction):
         ui.list1.setCurrentRow(nextR)
         p1 = "ui.label_"+str(nextR)+".y()"
@@ -199,7 +204,12 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
         super(QtGuiQWidgetScroll1, self).__init__(parent)
         global ui
         ui = uiwidget
-        
+    
+    def mouseMoveEvent(self, event):
+        if ui.auto_hide_dock:
+            ui.dockWidget_3.hide()
+        self.setFocus()
+    
     def sizeAdjust(self, nextR, direction):
         ui.list2.setCurrentRow(nextR)
         try:
