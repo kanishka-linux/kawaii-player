@@ -921,7 +921,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_search = QtWidgets.QMenu(menu)
             menu_search.setTitle('Poster Options')
             menu.addMenu(menu_search)
-            
+            """
             if 'AnimeWatch' in home or ui.anime_review_site:
                 submenu_arr_dict = {
                     'mal':'MyAnimeList', 'ap':'Anime-Planet', 
@@ -936,9 +936,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                     'yt':'Youtube', 'ddg':'DuckDuckGo', 
                     'last.fm':'last.fm'
                     }
+            """
             reviews = []
-            for i in submenu_arr_dict:
-                reviews.append(submenuR.addAction(submenu_arr_dict[i]))
+            for i in ui.browser_bookmark:
+                if i.lower() != 'reviews':
+                    reviews.append(submenuR.addAction(i))
             addBookmark = submenu.addAction("Add Bookmark")
             bookmark_array = ['bookmark']
             book_dir = os.path.join(home, 'Bookmark')
@@ -994,12 +996,12 @@ class TitleListWidget(QtWidgets.QListWidget):
                 new_review = reviews[item_index].text()
                 if new_review.startswith('&'):
                     new_review = new_review[1:]
-                st = 'ddg'
-                for i in submenu_arr_dict:
-                    if submenu_arr_dict[i].lower() == new_review.lower():
-                        st = i
-                        break
-                ui.reviewsWeb(srch_txt=name, review_site=st, action='context_menu')
+                ui.btnWebReviews_search.setText(name)
+                index = ui.btnWebReviews.findText(new_review)
+                if index >= 0:
+                    ui.btnWebReviews.setCurrentIndex(0)
+                    ui.btnWebReviews.setCurrentIndex(index)
+                #ui.reviewsWeb(srch_txt=name, review_site=new_review, action='context_menu')
             elif action == new_pls:
                 print("creating new bookmark category")
                 item, ok = QtWidgets.QInputDialog.getText(
