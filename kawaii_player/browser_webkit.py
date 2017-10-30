@@ -411,7 +411,7 @@ class Browser(QtWebKitWidgets.QWebView):
                 arr = arr_extra_tmdb
             elif 'last.fm' in url.toString():
                 arr = arr + arr_last
-            elif 'youtube.com' in url.toString() or 'ytimg.com' in url.toString():
+            elif 'youtube.com' in url.toString() or 'ytimg.com' in url.toString() or url.toString().startswith('http'):
                 yt = True
                 arr[:] = []
                 arr.append('Play with Kawaii-Player')
@@ -488,8 +488,12 @@ class Browser(QtWebKitWidgets.QWebView):
             if self.ui.mpvplayer_val.processId() > 0:
                 self.ui.mpvplayer_val.kill()
                 self.ui.mpvplayer_started = False
+            if 'youtube.com' in url.toString() or 'ytimg.com' in url.toString():
+                final_url = url.toString()
+            else:
+                final_url = 'ytdl:'+url.toString()
             self.ui.get_final_link(
-                url.toString(), self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
+                final_url, self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
                 self.ui.epn_name_in_list, self.hdr)
         elif option.lower() == 'add as local playlist':
             self.get_playlist = True

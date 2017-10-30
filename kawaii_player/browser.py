@@ -66,7 +66,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 yt_url = True
         except:
             pass
-        if self.ui.btnWebReviews.currentText() == 'Youtube' or yt_url:
+        if self.ui.btnWebReviews.currentText().lower() == 'youtube' or yt_url:
             self.hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
         else:
             self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
@@ -402,7 +402,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                     arr = arr_extra_tmdb
                 elif 'last.fm' in url:
                     arr = arr + arr_last
-                elif 'youtube.com' in url or 'ytimg.com' in url:
+                elif 'youtube.com' in url or 'ytimg.com' in url or url.startswith('http'):
                     yt = True
                     arr[:] = []
                     arr.append('Play with Kawaii-Player')
@@ -469,7 +469,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                             f.close()
             #menu.exec_(event.globalPos())
         else:
-            if 'youtube.com/watch?v=' in self.url().url():
+            if 'youtube.com/watch?v=' in self.url().url() or self.url().url().startswith('http'):
                 self.title_page = self.title()
                 arr = ['Play with Kawaii-Player', 'Download', 
                        'Get Subtitle (If Available)']
@@ -547,6 +547,10 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             if self.ui.mpvplayer_val.processId() > 0:
                 self.ui.mpvplayer_val.kill()
                 self.ui.mpvplayer_started = False
+            if 'youtube.com' in url or 'ytimg.com' in url:
+                pass
+            else:
+                url = 'ytdl:'+url
             self.ui.get_final_link(
                 url, self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
                 self.ui.epn_name_in_list, self.hdr)
