@@ -2146,6 +2146,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print(e)
                 msg = bytes('Error in updating', 'utf-8')
             self.final_message(msg)
+        elif path.lower().startswith('youtube_quick='):
+            if ui.remote_control and ui.remote_control_field:
+                b = b'Youtube Quick Command Received by Server. Trying To Play Video Directly'
+                self.final_message(b)
+                logger.debug(path)
+                url = self.path.replace('/youtube_quick=', '', 1)
+                logger.debug(url)
+                if url.startswith('http'):
+                    ui.quick_url_play = url
+                    logger.debug(ui.quick_url_play)
+                    ui.quick_url_play_btn.clicked.emit()
+            else:
+                b = b'Remote Control Not Allowed'
+                self.final_message(b)
         elif path.startswith('quality='):
             try:
                 qual_arr = ['sd', 'hd', 'sd480p', 'best']
