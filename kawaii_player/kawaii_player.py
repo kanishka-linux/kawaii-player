@@ -832,7 +832,8 @@ watch/unwatch status")
         self.sd_hd = QtWidgets.QPushButton(self.player_opt)
         self.sd_hd.setObjectName(_fromUtf8("sd_hd"))
         self.horizontalLayout_player_opt.insertWidget(1, self.sd_hd, 0)
-        self.sd_hd.setText("SD")
+        self.sd_hd.setText("BEST")
+        self.sd_hd.setToolTip('Select Quality')
         
         self.audio_track = QtWidgets.QPushButton(self.player_opt)
         self.audio_track.setObjectName(_fromUtf8("audio_track"))
@@ -857,11 +858,13 @@ watch/unwatch status")
         self.player_stop.setObjectName(_fromUtf8("player_stop"))
         self.horizontalLayout_player_opt.insertWidget(5, self.player_stop, 0)
         self.player_stop.setText(self.player_buttons['stop'])
+        self.player_stop.setToolTip('Stop')
         
         self.player_play_pause = QtWidgets.QPushButton(self.player_opt)
         self.player_play_pause.setObjectName(_fromUtf8("player_play_pause"))
         self.horizontalLayout_player_opt.insertWidget(6, self.player_play_pause, 0)
         self.player_play_pause.setText(self.player_buttons['play'])
+        self.player_play_pause.setToolTip('Play/Pause')
         
         self.player_prev = QtWidgets.QPushButton(self.player_opt)
         self.player_prev.setObjectName(_fromUtf8("player_prev"))
@@ -1042,7 +1045,12 @@ watch/unwatch status")
         self.player_btn_update_list2.clicked.connect(self.update_list2)
         self.player_btn_update_list2.hide()
         
-        
+        self.quick_url_play_btn = QtWidgets.QPushButton(self.player_opt)
+        self.quick_url_play_btn.setObjectName(_fromUtf8("quick_url_play_btn"))
+        self.horizontalLayout_player_opt.insertWidget(30, self.quick_url_play_btn, 0)
+        self.quick_url_play_btn.setText('quick')
+        self.quick_url_play_btn.clicked.connect(self.quick_url_play_method)
+        self.quick_url_play_btn.hide()
         
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
@@ -1483,8 +1491,8 @@ watch/unwatch status")
         self.remote_control = False
         self.remote_control_field = False
         self.local_file_index = []
-        self.quality_val = 'sd'
-        self.client_quality_val = 'sd'
+        self.quality_val = 'best'
+        self.client_quality_val = 'best'
         self.client_yt_mode = 'offline'
         self.playlist_auth_dict_ui = {}
         self.media_server_key = None
@@ -1544,6 +1552,7 @@ watch/unwatch status")
         self.thread_grid_thumbnail = []
         self.music_playlist = False
         self.downloadWgetText = []
+        self.quick_url_play = ''
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -1603,6 +1612,22 @@ watch/unwatch status")
             'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv', 'webm'
             ]
         self.video_dict = {}
+        self.browser_bookmark = {
+            'Reviews': 'Reviews',
+            'MyAnimeList': 'http://myanimelist.net/anime.php?q=',
+            'AniDB': 'http://anidb.net/perl-bin/animedb.pl?show=animelist&do.search=search&adb.search=',
+            'Anime-Planet': 'http://www.anime-planet.com/anime/all?name=',
+            'Zerochan': 'http://www.zerochan.net/search?q=',
+            'ANN': 'http://www.animenewsnetwork.com/encyclopedia/search/name?q=',
+            'Anime-Source': 'http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info=',
+            'TVDB': 'http://thetvdb.com/?searchseriesid=&tab=listseries&function=Search&string=',
+            'TMDB': 'https://www.themoviedb.org/search?query=',
+            'Google': 'https://www.google.com/search?q=',
+            'YouTube': 'https://m.youtube.com/results?search_query=',
+            'DuckDuckGo': 'https://duckduckgo.com/?q=',
+            'last.fm': 'http://www.last.fm/search?q='
+            }
+        
         self.update_proc = QtCore.QProcess()
         self.btn30.addItem(_fromUtf8(""))
         self.btn30.addItem(_fromUtf8(""))
@@ -1621,20 +1646,7 @@ watch/unwatch status")
         self.btn2.addItem(_fromUtf8(""))
         self.btn2.addItem(_fromUtf8(""))
         self.btn2.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        self.btnWebReviews.addItem(_fromUtf8(""))
-        if 'AnimeWatch' in home:
-            self.btnWebReviews.addItem(_fromUtf8(""))
-            self.btnWebReviews.addItem(_fromUtf8(""))
-            self.btnWebReviews.addItem(_fromUtf8(""))
-            self.btnWebReviews.addItem(_fromUtf8(""))
-            self.btnWebReviews.addItem(_fromUtf8(""))
-            self.btnWebReviews.addItem(_fromUtf8(""))
+        
         self.chk.addItem(_fromUtf8(""))
         self.chk.addItem(_fromUtf8(""))
         self.chk.addItem(_fromUtf8(""))
@@ -1743,9 +1755,7 @@ watch/unwatch status")
         self.comboBox20.currentIndexChanged['int'].connect(self.browserView_view)
         self.comboView.currentIndexChanged['int'].connect(self.viewPreference)
         self.comboBoxMode.currentIndexChanged['int'].connect(self.set_video_mode)
-        self.btnWebReviews.currentIndexChanged['int'].connect(
-            lambda x: self.reviewsWeb(action='index_changed')
-            )
+        
         self.list1.itemDoubleClicked['QListWidgetItem*'].connect(self.list1_double_clicked)
         self.list1.currentRowChanged['int'].connect(self.history_highlight)
         self.list3.currentRowChanged['int'].connect(self.options_clicked)
@@ -1815,28 +1825,7 @@ watch/unwatch status")
         self.btn2.setItemText(6, _translate("MainWindow", "AniDB", None))
         self.btn2.setItemText(7, _translate("MainWindow", "Google", None))
         self.btn2.setItemText(8, _translate("MainWindow", "Youtube", None))
-        if 'AnimeWatch' in home:
-            self.btnWebReviews.setItemText(0, _translate("MainWindow", "Reviews", None))
-            self.btnWebReviews.setItemText(1, _translate("MainWindow", "MyAnimeList", None))
-            self.btnWebReviews.setItemText(2, _translate("MainWindow", "Anime-Planet", None))
-            self.btnWebReviews.setItemText(3, _translate("MainWindow", "Anime-Source", None))
-            self.btnWebReviews.setItemText(4, _translate("MainWindow", "TVDB", None))
-            self.btnWebReviews.setItemText(5, _translate("MainWindow", "ANN", None))
-            self.btnWebReviews.setItemText(6, _translate("MainWindow", "AniDB", None))
-            self.btnWebReviews.setItemText(7, _translate("MainWindow", "Google", None))
-            self.btnWebReviews.setItemText(8, _translate("MainWindow", "Youtube", None))
-            self.btnWebReviews.setItemText(9, _translate("MainWindow", "DuckDuckGo", None))
-            self.btnWebReviews.setItemText(10, _translate("MainWindow", "Zerochan", None))
-            self.btnWebReviews.setItemText(11, _translate("MainWindow", "last.fm", None))
-            self.btnWebReviews.setItemText(12, _translate("MainWindow", "TMDB", None))
-        else:
-            self.btnWebReviews.setItemText(0, _translate("MainWindow", "Reviews", None))
-            self.btnWebReviews.setItemText(1, _translate("MainWindow", "TVDB", None))
-            self.btnWebReviews.setItemText(2, _translate("MainWindow", "Google", None))
-            self.btnWebReviews.setItemText(3, _translate("MainWindow", "Youtube", None))
-            self.btnWebReviews.setItemText(4, _translate("MainWindow", "DuckDuckGo", None))
-            self.btnWebReviews.setItemText(5, _translate("MainWindow", "last.fm", None))
-            self.btnWebReviews.setItemText(6, _translate("MainWindow", "TMDB", None))
+        
         self.chk.setItemText(0, _translate("MainWindow", "mpv", None))
         self.chk.setItemText(1, _translate("MainWindow", "mplayer", None))
         self.chk.setItemText(2, _translate("MainWindow", "vlc", None))
@@ -1883,6 +1872,9 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
+    
+    def quick_url_play_method(self):
+        self.watch_external_video(self.quick_url_play)
     
     def download_thread_finished(self, dest, r, length):
         logger.info("Download tvdb image: {0} :completed".format(dest))
@@ -4806,9 +4798,9 @@ watch/unwatch status")
     def webClose(self):
         global view_layout, desktop_session
         
-        if not self.VerticalLayoutLabel.itemAt(2):
-            self.VerticalLayoutLabel.addStretch(2)
-            print('--stretch -- added--to --label and text widget--')
+        #if not self.VerticalLayoutLabel.itemAt(2):
+        #    self.VerticalLayoutLabel.addStretch(2)
+        #    print('--stretch -- added--to --label and text widget--')
         
         self.tmp_web_srch = ''
         if self.web:
@@ -6580,36 +6572,10 @@ watch/unwatch status")
         original_srch_txt = None
         new_url = ''
         if srch_txt:
-            srch_txt = srch_txt.replace('"', '')
-            original_srch_txt = srch_txt
-            srch_txt = srch_txt.lower()
-            srch_txt = re.sub('\[[^\]]*\]|\([^\)]*\)', '', srch_txt)
-            srch_txt = re.sub('-|_| |\.', '+', srch_txt)
-            srch_txt = re.sub(
-                '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', srch_txt)
-            srch_txt = srch_txt.strip()
-        if 'AnimeWatch' in home or self.anime_review_site:
-            web_arr_dict = {
-                'mal':'MyAnimeList', 'ap':'Anime-Planet', 
-                'ans':'Anime-Source', 'tvdb':'TVDB', 'tmdb':'TMDB', 'ann':'ANN', 
-                'anidb':'AniDB', 'g':'Google', 'yt':'Youtube', 
-                'ddg':'DuckDuckGo', 'reviews':'Reviews', 
-                'last.fm':'last.fm', 'zerochan':'Zerochan'
-                }
-        else:
-            web_arr_dict = {
-                'tvdb':'TVDB', 'tmdb':'TMDB', 
-                'g':'Google', 'yt':'Youtube', 
-                'ddg':'DuckDuckGo', 'reviews':'Reviews', 
-                'last.fm':'last.fm'
-                }
-        
+            srch_txt = self.metaengine.name_adjust(srch_txt)
+            
         if not review_site:
-            review_site_tmp = self.btnWebReviews.currentText()
-            for i in web_arr_dict:
-                if review_site_tmp == web_arr_dict[i]:
-                    review_site = i
-                    break
+            review_site = self.btnWebReviews.currentText()
             
         self.review_site_code = review_site
         print(self.web, '0')
@@ -6643,10 +6609,10 @@ watch/unwatch status")
         self.dockWidget_3.hide()
         self.label.hide()
         self.text.hide()
-        print(self.VerticalLayoutLabel.itemAt(2), '--itemAt--')
-        if self.VerticalLayoutLabel.itemAt(2):
-            self.VerticalLayoutLabel.takeAt(2)
-            print('--stretch--deleted--')
+        #print(self.VerticalLayoutLabel.itemAt(2), '--itemAt--')
+        #if self.VerticalLayoutLabel.itemAt(2):
+        #    self.VerticalLayoutLabel.takeAt(2)
+        #    print('--stretch--deleted--')
         self.frame.hide()
         #self.frame1.hide()
         self.tab_2.show()
@@ -6655,12 +6621,7 @@ watch/unwatch status")
             name = str(name)
         except:
             name = srch_txt
-        name1 = re.sub('-|_| |\.', '+', name)
-        name1 = name1.lower()
-        name1 = re.sub('\[[^\]]*\]|\([^\)]*\)', '', name1)
-        name1 = re.sub(
-                '\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4|\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', name1)
-        name1 = name1.strip()
+        name1 = self.metaengine.name_adjust(name)
         logger.info(name1)
         key = ''
         if action:
@@ -6668,8 +6629,8 @@ watch/unwatch status")
                 key = self.btnWebReviews_search.text()
                 self.btnWebReviews_search.clear()
                 self.tmp_web_srch = key
-                if review_site == 'reviews':
-                    review_site = 'g'
+                if review_site == 'Reviews':
+                    review_site = 'DuckDuckGo'
             elif action == 'context_menu' or action == 'search_by_name':
                 key = srch_txt
             elif action == 'index_changed' or action == 'btn_pushed':
@@ -6707,47 +6668,29 @@ watch/unwatch status")
         self.webStyle(self.web)
         logger.info('--13527---{0}-{1}'.format(review_site, name1))
         self.review_site_code = review_site
-        if review_site == "ap":
-            self.web.load(QUrl("http://www.anime-planet.com/anime/all?name="+name1))
-        elif review_site == "mal":
-            self.web.load(QUrl("http://myanimelist.net/anime.php?q="+name1))
-        elif review_site == "ans":
-            self.web.load(QUrl("http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info="+name1))
-        elif review_site == "tvdb":
-            self.web.load(QUrl("http://thetvdb.com/?string="+name1+"&searchseriesid=&tab=listseries&function=Search"))
-        elif review_site == "tmdb":
-            self.web.load(QUrl("https://www.themoviedb.org/search?query="+name1))
-        elif review_site == "anidb":
-            self.web.load(QUrl("http://anidb.net/perl-bin/animedb.pl?adb.search="+name1+"&show=animelist&do.search=search"))
-        elif review_site == "ann":
-            self.web.load(QUrl("http://www.animenewsnetwork.com/encyclopedia/search/name?q="+name1))
-        elif review_site == "g":
-            self.web.load(QUrl("https://www.google.com/search?q="+name1))
-        elif review_site == "ddg":
-            self.web.load(QUrl("https://duckduckgo.com/?q="+name1))
-        elif review_site == "yt":
+        if site.lower() == 'playlists' or site.lower() == 'none' or not name1:
+            name1 = ''
+        if not name1:
+            name1 = self.btnWebReviews_search.text()
+            name1 = name1.replace(' ', '+')
+        if review_site == "YouTube":
             if not name1:
-                name1 = 'GNU Linux FSF'
+                name1 = 'GNU Linux FSF Open Source'
             if pl_list and new_url and action != 'open':
                 self.web.load(QUrl(new_url))
             elif action=='open' and original_srch_txt:
                 self.web.load(QUrl(original_srch_txt))
             else:
-                self.web.load(QUrl("https://m.youtube.com/results?search_query="+name1))
+                if self.browser_bookmark.get(review_site):
+                    self.web.load(QUrl(self.browser_bookmark.get(review_site)+name1))
             logger.info('{0}--yt--open--'.format(srch_txt))
-        elif review_site == "last.fm":
-            self.web.load(QUrl("http://www.last.fm/search?q="+name1))
-        elif review_site == 'zerochan':
-            self.web.load(QUrl("http://www.zerochan.net/search?q="+name1))
-        elif review_site == "reviews":
+        elif review_site == "Reviews":
             self.web.setHtml('<html>Reviews:</html>')
-        
+        else:
+            if self.browser_bookmark.get(review_site):
+                self.web.load(QUrl(self.browser_bookmark.get(review_site)+name1))
         if review_site:
-            try:
-                if web_arr_dict[review_site] == self.btnWebReviews.currentText():
-                    self.btnWebReviews_search.setPlaceholderText('Search '+web_arr_dict[review_site])
-            except Exception as e:
-                print(e)
+            self.btnWebReviews_search.setPlaceholderText('Search ' + review_site)
         
     def rawlist_highlight(self):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
@@ -7025,9 +6968,12 @@ watch/unwatch status")
             name_t = self.line.text()
             if name_t:
                 name = name_t
-                cnt = self.btnWebReviews.findText('Youtube')
-                self.btnWebReviews.setCurrentIndex(cnt)
-                self.reviewsWeb(srch_txt=name, review_site='yt', action='line_return_pressed')
+                self.btnWebReviews_search.setText(name_t)
+                index = self.btnWebReviews.findText('YouTube')
+                if index >= 0:
+                    self.btnWebReviews.setCurrentIndex(0)
+                    self.btnWebReviews.setCurrentIndex(index)
+                #self.reviewsWeb(srch_txt=name, review_site='yt', action='line_return_pressed')
         elif siteName:
             video_local_stream = False
             self.mirror_change.show()
@@ -11622,6 +11568,14 @@ watch/unwatch status")
                     self.epn_arr_list.append(tname+'	'+tpath+'	'+'NONE')
                     file_entry = tname+'	'+tpath+'	'+'NONE'
                     self.watchDirectly(finalUrl, '', 'no')
+                    if 'youtube.com' in t:
+                        epn_title = get_yt_url(t, self.quality_val, self.ytdl_path, logger, mode='TITLE')
+                    else:
+                        epn_title = get_yt_url('ytdl:'+t, self.quality_val, self.ytdl_path, logger, mode='TITLE')
+                    if epn_title:
+                        self.epn_name_in_list = epn_title.strip()
+                    else:
+                        self.epn_name_in_list = 'No Title'
                     if self.epn_arr_list:
                         file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
                         if not os.path.exists(file_name):
@@ -11838,7 +11792,7 @@ def main():
     
     Player = "mpv"
     indexQueue = 0
-    quality = "sd"
+    quality = "best"
     list2_items = []
     posterManually = 0
     insidePreopt = 0
@@ -12490,10 +12444,16 @@ def main():
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
     anime_review_arr = ["MyAnimeList", "Anime-Planet", "Anime-Source", "AniDB", 
-                        "Zerochan"]
-    if ui.anime_review_site and 'AnimeWatch' not in home:
+                        "Zerochan", "ANN"]
+    if not ui.anime_review_site:
         for i in anime_review_arr:
-            ui.btnWebReviews.addItem(i)
+            if ui.browser_bookmark.get(i):
+                del ui.browser_bookmark[i]
+    for i in ui.browser_bookmark:
+        ui.btnWebReviews.addItem(i)
+    ui.btnWebReviews.currentIndexChanged['int'].connect(
+        lambda x: ui.reviewsWeb(action='index_changed')
+        )
     if not ui.logging_module:
         logger.disabled = True
         
