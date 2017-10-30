@@ -975,7 +975,21 @@ function searchFunction(e, mode){
 			}
 			z.value = '';
 		}
-		else{
+        else if(z.value.startsWith("ytq:")){
+            if (mode == 0){
+                _site_value_new = _site_value;
+            }else{
+                _site_value_new = _first_select;
+            }
+            var new_z = z.value.replace("ytq:","");
+            var new_url = 'youtube_quick='+new_z;
+            var client = new getRequest();
+            _title.innerHTML = 'Wait!';
+            client.get(new_url, function(response) {
+            console.log(response);
+            _title.innerHTML = response;
+            })
+        }else{
 			
             if (mode == 0){
                 site = document.getElementById("site");
@@ -1059,7 +1073,9 @@ function searchFunction(e, mode){
                 }
             }
         }
+        z.value = '';
 	}
+    
 }
 
 function _sync_pls(){
