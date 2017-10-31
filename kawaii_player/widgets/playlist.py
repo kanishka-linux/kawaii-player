@@ -1336,6 +1336,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 epn_arr = ui.epn_arr_list[r].split('	')
                 if len(epn_arr) > 2:
                     url_web = ui.epn_arr_list[r].split('	')[1]
+                    if url_web.startswith('abs_path='):
+                        url_web = ui.if_path_is_rel(url_web)
+                    if url_web.startswith('ytdl:'):
+                        url_web = url_web.replace('ytdl:', '', 1)
                 else:
                     url_web = 'none'
             else:
@@ -1409,7 +1413,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.init_offline_mode()
             if goto_web_mode:
                 if action == goto_web:
-                    ui.reviewsWeb(srch_txt=url_web, review_site='yt', action='open')
+                    ui.reviewsWeb(srch_txt=url_web, review_site='YouTube', action='open')
             if save_pls_entry:
                 if action == save_pls:
                     print("creating")
