@@ -644,12 +644,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def write_to_tmp_playlist(self, epnArrList, _new_epnArrList=None):
         global home
         if epnArrList:
-            file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
-            f = open(file_name, 'w').close()
-            if _new_epnArrList:
-                write_files(file_name, _new_epnArrList, True)
-            else:
-                write_files(file_name, epnArrList, True)
+            ##file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
+            ##f = open(file_name, 'w').close()
+            ##if _new_epnArrList:
+            ##    write_files(file_name, _new_epnArrList, True)
+            ##else:
+            ##    write_files(file_name, epnArrList, True)
+            pass
             #nav_signal = doGETSignal()
             #nav_signal.nav_remote.emit('TMP_PLAYLIST')
 
@@ -2156,10 +2157,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
         elif path.startswith('quality='):
             try:
-                qual_arr = ['sd', 'hd', 'sd480p', 'best']
                 qual = path.replace('quality=', '', 1)
-                if qual in qual_arr:
+                if qual in ui.quality_dict:
                     ui.client_quality_val = qual
+                    if ui.remote_control and ui.remote_control_field:
+                        ui.quality_val = qual
+                        ui.set_quality_server_btn.clicked.emit()
                     msg = 'quality set to: {0}'.format(ui.client_quality_val)
                 else:
                     msg = 'wrong parameters'
