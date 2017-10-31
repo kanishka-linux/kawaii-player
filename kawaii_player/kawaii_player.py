@@ -1052,6 +1052,14 @@ watch/unwatch status")
         self.quick_url_play_btn.clicked.connect(self.quick_url_play_method)
         self.quick_url_play_btn.hide()
         
+        
+        self.set_quality_server_btn = QtWidgets.QPushButton(self.player_opt)
+        self.set_quality_server_btn.setObjectName(_fromUtf8("set_quality_server_btn"))
+        self.horizontalLayout_player_opt.insertWidget(30, self.set_quality_server_btn, 0)
+        self.set_quality_server_btn.setText('quality')
+        self.set_quality_server_btn.clicked.connect(self.set_quality_server_btn_method)
+        self.set_quality_server_btn.hide()
+        
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
         
@@ -1500,6 +1508,7 @@ watch/unwatch status")
         self.quality_val = 'best'
         self.client_quality_val = 'best'
         self.client_yt_mode = 'offline'
+        self.quality_dict = {'sd':'SD', 'hd':'HD', 'best':'BEST', 'sd480p':'480'}
         self.playlist_auth_dict_ui = {}
         self.media_server_key = None
         self.my_public_ip = None
@@ -1559,6 +1568,7 @@ watch/unwatch status")
         self.music_playlist = False
         self.downloadWgetText = []
         self.quick_url_play = ''
+        self.yt_title_thread = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -1878,6 +1888,12 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
+    
+    def set_quality_server_btn_method(self):
+        global quality
+        quality = self.quality_val 
+        if self.quality_val in self.quality_dict:
+            self.sd_hd.setText(self.quality_dict[self.quality_val])
     
     def quick_url_play_method(self):
         self.watch_external_video(self.quick_url_play)
@@ -11245,7 +11261,9 @@ watch/unwatch status")
                         self.list2.clear()
                         self.list1.clear()
                         if item.startswith('http'):
-                            self.watch_external_video(item)
+                            self.progressEpn.setFormat('Wait! Trying to get final link.')
+                            QtWidgets.QApplication.processEvents()
+                            self.watch_external_video(item, mode='open url')
                 elif txt == 'open directory':
                     fname = QtWidgets.QFileDialog.getExistingDirectory(
                             MainWindow, 'Add Directory', self.last_dir)
@@ -11430,7 +11448,7 @@ watch/unwatch status")
                 | QtCore.Qt.WindowStaysOnTopHint)
         MainWindow.show()
         
-    def watch_external_video(self, var):
+    def watch_external_video(self, var, mode=None):
         global quitReally, video_local_stream, curR, site
         global home
         t = var
@@ -11564,31 +11582,33 @@ watch/unwatch status")
                     site == 'None'
                     finalUrl = t
                     if 'youtube.com' in t:
-                        finalUrl = get_yt_url(t, self.quality_val, self.ytdl_path, logger)
+                        title_url = t
                     else:
-                        finalUrl = get_yt_url('ytdl:'+t, self.quality_val, self.ytdl_path, logger)
-                    self.epn_arr_list[:] = []
-                    tname = t.rsplit('/')[-1]
-                    tpath = 'ytdl:'+t 
-                    self.epn_arr_list.append(tname+'	'+tpath+'	'+'NONE')
-                    file_entry = tname+'	'+tpath+'	'+'NONE'
-                    self.watchDirectly(finalUrl, '', 'no')
-                    if 'youtube.com' in t:
-                        epn_title = get_yt_url(t, self.quality_val, self.ytdl_path, logger, mode='TITLE')
+                        title_url = 'ytdl:' + t
+                    if not self.epn_wait_thread.isRunning():
+                        self.epn_wait_thread = PlayerGetEpn(
+                            self, logger, 'yt+title', title_url, self.quality_val,
+                            self.ytdl_path, 0)
+                        self.epn_wait_thread.start()
+                        self.yt_title_thread = True
                     else:
-                        epn_title = get_yt_url('ytdl:'+t, self.quality_val, self.ytdl_path, logger, mode='TITLE')
-                    if epn_title:
-                        self.epn_name_in_list = epn_title.strip()
-                        file_entry = self.epn_name_in_list+'	'+tpath+'	'+'NONE'
-                    else:
-                        self.epn_name_in_list = 'No Title'
-                    if self.epn_arr_list:
-                        file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
+                        if self.yt_title_thread:
+                            self.epn_wait_thread.terminate()
+                            self.epn_wait_thread.wait()
+                            self.yt_title_thread = False
+                            if not self.epn_wait_thread.isRunning():
+                                self.epn_wait_thread = PlayerGetEpn(
+                                    self, logger, 'yt+title', title_url, self.quality_val,
+                                    self.ytdl_path, 0)
+                                self.epn_wait_thread.start()
+                                self.yt_title_thread = True
+                    if mode == 'open url':
+                        file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
                         if not os.path.exists(file_name):
                             f = open(file_name, 'w').close()
-                        write_files(file_name, file_entry, True)
                         self.list1.clear()
                         self.list1.addItem('TMP_PLAYLIST')
+                        self.list1.hide()
             else:
                 if os.path.isfile(t):
                     new_epn = os.path.basename(t)
