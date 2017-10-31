@@ -2914,6 +2914,9 @@ watch/unwatch status")
                         self.list2.setFocus()
                     elif self.fullscreen_mode == 1:
                         self.tab_6.show()
+                    self.gridLayout.setContentsMargins(5, 5, 5, 5)
+                    self.gridLayout.setSpacing(5)
+                    self.frame1.show()
             else:
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
@@ -2921,7 +2924,6 @@ watch/unwatch status")
                     else:
                         pass
                 else:
-                    
                     if ((str(idw) != str(int(self.tab_5.winId()))) 
                             and (str(idw) != str(int(self.label.winId())))):
                         if iconv_r_indicator:
@@ -2951,8 +2953,11 @@ watch/unwatch status")
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
                 MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                        
-                        
+            QtCore.QTimer.singleShot(6000, partial(self.show_cursor_now))
+    
+    def show_cursor_now(self):
+        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+    
     def shufflePlaylist(self):
         global site
         if (site == "Local" or site =="Video" or site == "Music" 
