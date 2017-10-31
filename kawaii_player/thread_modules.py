@@ -596,6 +596,7 @@ class PlayerGetEpn(QtCore.QThread):
     get_epn_signal_list = pyqtSignal(list, str)
     get_offline_signal_list = pyqtSignal(list, int)
     get_listfound_signal = pyqtSignal(list)
+    get_title_signal = pyqtSignal(str, str)
     
     def __init__(self, ui_widget, logr, epn_type, *args):
         QtCore.QThread.__init__(self)
@@ -603,7 +604,7 @@ class PlayerGetEpn(QtCore.QThread):
         ui = ui_widget
         logger = logr
         self.epn_type = epn_type
-        if self.epn_type == 'yt':
+        if self.epn_type == 'yt' or self.epn_type == 'yt_title' or self.epn_type == 'yt+title':
             self.final = args[0]
             self.quality = args[1]
             self.yt_path = args[2]
@@ -639,16 +640,30 @@ class PlayerGetEpn(QtCore.QThread):
         self.get_epn_signal_list.connect(connect_to_epn_generator_list)
         self.get_offline_signal_list.connect(connect_to_offline_mode_list)
         self.get_listfound_signal.connect(connect_to_listfound_signal)
+        self.get_title_signal.connect(connect_post_title)
         
     def __del__(self):
         self.wait()                        
     
     def run(self):
         finalUrl = ""
+        nosignal = False
         try:
             if self.epn_type == 'yt':
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='a+v')
+            elif self.epn_type == 'yt_title':
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='TITLE')
+            elif self.epn_type == 'yt+title':
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='a+v')
+                
+                self.get_epn_signal.emit(finalUrl, '-1')
+                title = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='TITLE')
+                self.get_title_signal.emit(title, self.final)
+                nosignal = True
             elif self.epn_type == 'addons':
                 finalUrl = ui.site_var.getFinalUrl(self.name, self.epn,
                                                    self.mirrorNo, self.quality)
@@ -675,25 +690,33 @@ class PlayerGetEpn(QtCore.QThread):
                 mylist.append(self.row)
         except Exception as err:
             print(err, '--707--')
-        if self.epn_type != 'list':
-            ui.epnfound_final_link = finalUrl
-        if not isinstance(finalUrl, list):
-            if self.epn_type == 'offline':
-                self.get_offline_signal.emit(finalUrl, self.row)
-            elif self.epn_type == 'list':
-                self.get_listfound_signal.emit(mylist)
-            else:
-                self.get_epn_signal.emit(finalUrl, str(self.row))
+        if nosignal:
+            pass
         else:
-            if self.epn_type == 'offline':
-                self.get_offline_signal_list.emit(finalUrl, self.row)
+            if self.epn_type != 'list' and self.epn_type != 'yt_title':
+                ui.epnfound_final_link = finalUrl
+            if not isinstance(finalUrl, list):
+                if self.epn_type == 'offline':
+                    self.get_offline_signal.emit(finalUrl, self.row)
+                elif self.epn_type == 'list':
+                    self.get_listfound_signal.emit(mylist)
+                elif self.epn_type == 'yt_title':
+                    self.get_title_signal.emit(finalUrl, self.final)
+                else:
+                    self.get_epn_signal.emit(finalUrl, str(self.row))
             else:
-                self.get_epn_signal_list.emit(finalUrl, str(self.row))
+                if self.epn_type == 'offline':
+                    self.get_offline_signal_list.emit(finalUrl, self.row)
+                else:
+                    self.get_epn_signal_list.emit(finalUrl, str(self.row))
         
 @pyqtSlot(str, str)
 def connect_to_epn_generator(url, row):
     global ui
-    ui.epnfound_now_start_player(url, row)
+    if row == '-1':
+        ui.watchDirectly(url, '', 'no')
+    else:
+        ui.epnfound_now_start_player(url, row)
     
 @pyqtSlot(str, int)
 def connect_to_offline_mode(url, row):
@@ -715,6 +738,20 @@ def connect_to_offline_mode_list(url, row):
 def connect_to_listfound_signal(mylist):
     global ui
     ui.listfound(send_list=mylist)
+
+@pyqtSlot(str, str)
+def connect_post_title(epn_title, tpath):
+    global ui
+    if epn_title:
+        ui.epn_name_in_list = epn_title.strip()
+        file_entry = ui.epn_name_in_list+'	'+tpath+'	'+'NONE'
+    else:
+        ui.epn_name_in_list = 'No Title'
+        file_entry = tpath.split('/')[-1]+'	'+tpath+'	'+'NONE'
+    file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
+    if not os.path.exists(file_name):
+        f = open(file_name, 'w').close()
+    write_files(file_name, file_entry, True)
 
 class GetIpThread(QtCore.QThread):
     
