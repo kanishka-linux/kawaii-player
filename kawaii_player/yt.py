@@ -189,10 +189,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     logger.debug('yt-link:>>{0}'.format(final_url))
     if mode == 'TITLE' and not final_url:
         final_url = url.split('/')[-1]
-    if final_url:
-        return final_url
-    else:
-        return url
+    return final_url
 
 def get_480p_link(url, youtube_dl, logger):
     final_url = ''
