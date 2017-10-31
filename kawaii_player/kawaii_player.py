@@ -9288,7 +9288,10 @@ watch/unwatch status")
         finalUrl = str(finalUrl)
         path_final_Url = finalUrl
         current_playing_file_path = finalUrl
-        command = self.mplayermpv_command(idw, finalUrl, Player)
+        a_url = None
+        if '::' in finalUrl:
+            finalUrl, a_url = finalUrl.split('::')
+        command = self.mplayermpv_command(idw, finalUrl, Player, a_url=a_url)
         if os.path.exists(title_sub_path):
             if Player == 'mpv':
                 command = command+' --sub-file='+title_sub_path
