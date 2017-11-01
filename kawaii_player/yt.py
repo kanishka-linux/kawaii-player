@@ -193,9 +193,12 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
 
 def get_480p_link(url, youtube_dl, logger):
     final_url = ''
-    ytdl_list = [
-        youtube_dl, '-f', 'bestvideo[height<=480]+bestaudio', '-g', url
-        ]
+    if os.name == 'posix':
+        ytdl_list = [
+            youtube_dl, '-f', 'bestvideo[height<=480]+bestaudio', '-g', url
+            ]
+    else:
+        ytdl_list = [youtube_dl, '-f', '18', '-g', url]
     if os.name == 'posix':
         final_url = subprocess.check_output(ytdl_list)
     else:
@@ -255,13 +258,19 @@ def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
         ytdl_list = [youtube_dl, '--youtube-skip-dash-manifest', 
                      '-f', tag_val, '-g', '--playlist-end', '1', url]
         try:
-            final_url = subprocess.check_output(ytdl_list)
+            if os.name == 'posix':
+                final_url = subprocess.check_output(ytdl_list)
+            else:
+                final_url = subprocess.check_output(ytdl_list, shell=True)
             final_url = str(final_url, 'utf-8')
         except Exception as err:
             print(err)
             if mode == 'offline':
                 ytdl_list[3] = '18'
-                final_url = subprocess.check_output(ytdl_list)
+                if os.name == 'posix':
+                    final_url = subprocess.check_output(ytdl_list)
+                else:
+                    final_url = subprocess.check_output(ytdl_list, shell=True)
                 final_url = str(final_url, 'utf-8')
             else:
                 final_url = get_480p_link(url, youtube_dl, logger)
