@@ -88,8 +88,6 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     elif url.startswith('ytdl:'):
         url = url.replace('ytdl:', '', 1)
         ytdl_extra = True
-        if 'youtube.com:' in url:
-            ytdl_extra = False
     else:
         ytdl_extra = True
     try:
@@ -103,53 +101,25 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
         else:
             if mode == 'music':
                 quality = 'best'
-            if quality == 'sd480p' and not ytdl_extra:
-                if mode:
-                    if mode == 'offline':
-                        final_url = get_best_link(url, youtube_dl, logger, True)
-                    elif mode == 'music' or (mode == 'a+v' and ytdl_path != 'default'):
-                        final_url = get_480p_link(url, youtube_dl, logger)
-                    else:
-                        final_url = get_final_for_resolution(
-                            url, youtube_dl, logger, ytdl_extra, resolution=480,
-                            tag_val='18'
-                        )
-                else:
-                    final_url = get_final_for_resolution(
-                        url, youtube_dl, logger, ytdl_extra, resolution=480,
-                        tag_val='18'
-                        )
-            elif quality == 'sd' or (quality == 'sd480p' and ytdl_extra):
-                final_url = get_final_for_resolution(
-                    url, youtube_dl, logger, ytdl_extra, resolution=480,
-                    tag_val='18'
-                    )
-            elif quality == 'best':
-                if mode:
-                    if mode == 'offline':
-                        final_url = get_best_link(url, youtube_dl, logger, True)
-                    elif mode == 'music' or (mode == 'a+v' and ytdl_path != 'default'):
-                        final_url = get_best_link(url, youtube_dl, logger, ytdl_extra)
-                    else:
-                        if ytdl_path == 'default':
-                            if ytdl_extra:
-                                final_url = 'ytdl:'+url
-                            else:
-                                final_url = url
-                        else:
-                            final_url = get_best_link(url, youtube_dl, logger, True)
-                else:
-                    if ytdl_path == 'default':
-                        if ytdl_extra:
-                            final_url = 'ytdl:' + url
-                        else:
-                            final_url = url
-                    else:
-                        final_url = get_best_link(url, youtube_dl, logger, True)
+                
+            if quality == 'sd':
+                res = 360
             elif quality == 'hd':
+                res = 720
+            elif quality == 'sd480p':
+                res = 480
+            else:
+                res = 4000
+            
+            if quality == 'best' and ytdl_path == 'default':
+                if ytdl_extra:
+                    final_url = 'ytdl:'+url
+                else:
+                    final_url = url
+            else:
                 final_url = get_final_for_resolution(
-                    url, youtube_dl, logger, ytdl_extra, resolution=720,
-                    tag_val='22',mode=mode
+                    url, youtube_dl, logger, ytdl_extra, resolution=res,
+                    mode=mode
                     )
     except Exception as e:
         logger.info('--error in processing youtube url--{0}'.format(e))
@@ -191,14 +161,84 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
         final_url = url.split('/')[-1]
     return final_url
 
-def get_480p_link(url, youtube_dl, logger):
+def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
+                             resolution=None, mode=None):
     final_url = ''
-    if os.name == 'posix':
-        ytdl_list = [
-            youtube_dl, '-f', 'bestvideo[height<=480]+bestaudio', '-g', url
-            ]
+    if resolution:
+        val = int(resolution)
     else:
-        ytdl_list = [youtube_dl, '-f', '18', '-g', url]
+        val = 720
+    ytdl_list = [youtube_dl, '-F', url]
+    if os.name == 'posix':
+        content = subprocess.check_output(ytdl_list)
+    else:
+        content = subprocess.check_output(ytdl_list, shell=True)
+    content = str(content, 'utf-8')
+    lines = content.split('\n')
+    lines = [re.sub('  +', ' ', i.strip()) for i in lines if i.strip()]
+    arr = []
+    audio_arr = []
+    for i in lines:
+        s = i.split(' ')
+        res_val = s[2]
+        if 'x' in res_val:
+            res = res_val.split('x')[-1].strip()
+            if res.isnumeric():
+                res_int = int(res)
+                if res_int <= val:
+                    j = s[0]
+                    arr.append((res, j, i))
+        if 'audio only' in i:
+            audio_arr.append(i)
+    if arr:
+        arr = sorted(arr, key=lambda x: x[0])
+        logger.debug(arr)
+        req = arr[-1]
+        req_id = req[1]
+        if audio_arr:
+            audio_val = audio_arr[-1]
+            audio_val_id = audio_val.split(' ')[0]
+        arr.reverse()
+        aud_vid = ''
+        req_id_aud = req_id_vid = ''
+        for i in arr:
+            if 'video only' not in i[2]:
+                aud_vid = i
+                break
+        if aud_vid:
+            req_id_vid = aud_vid[1]
+        if 'video only' in  req[2] and mode != 'offline':
+            req_id_vid = req[1]
+            req_id_aud = audio_val_id
+        final_url_aud = final_url_vid = ''
+        if req_id_vid:
+            ytdl_list = [youtube_dl, '-f', req_id_vid, '-g', url]
+            if os.name == 'posix':
+                final_url = subprocess.check_output(ytdl_list)
+            else:
+                final_url = subprocess.check_output(ytdl_list, shell=True)
+            final_url_vid = str(final_url, 'utf-8')
+        if req_id_aud:
+            ytdl_list = [youtube_dl, '-f', req_id_aud, '-g', url]
+            if os.name == 'posix':
+                final_url = subprocess.check_output(ytdl_list)
+            else:
+                final_url = subprocess.check_output(ytdl_list, shell=True)
+            final_url_aud = str(final_url, 'utf-8')
+        if final_url_vid and final_url_aud:
+            final_url = final_url_vid + '::' + final_url_aud
+        elif final_url_vid:
+            final_url = final_url_vid
+        logger.debug(final_url)
+        logger.debug('mode={0}'.format(mode))
+    return final_url
+    
+def get_best_link(url, youtube_dl, logger, mode=None):
+    if mode == 'offline':
+        ytdl_list = [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
+                     'best', '-g', '--playlist-end', '1', url]
+    else:
+        ytdl_list = [youtube_dl, '-g', url]
     if os.name == 'posix':
         final_url = subprocess.check_output(ytdl_list)
     else:
@@ -209,94 +249,6 @@ def get_480p_link(url, youtube_dl, logger):
     if '\n' in final_url:
         vid, aud = final_url.split('\n')
         final_url = vid+'::'+aud
-    return final_url
-
-def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
-                             resolution=None, tag_val=None, mode=None):
-    final_url = ''
-    if ytdl_extra:
-        if resolution:
-            val = int(resolution)
-        else:
-            val = 720
-        ytdl_list = [youtube_dl, '-F', url]
-        if os.name == 'posix':
-            content = subprocess.check_output(ytdl_list)
-        else:
-            content = subprocess.check_output(ytdl_list, shell=True)
-        content = str(content, 'utf-8')
-        lines = content.split('\n')
-        lines = [re.sub('  +', ' ', i.strip()) for i in lines if i.strip()]
-        arr = []
-        for i in lines:
-            s = i.split(' ')
-            res_val = s[2]
-            if 'x' in res_val:
-                res = res_val.split('x')[-1].strip()
-                if res.isnumeric():
-                    res_int = int(res)
-                    if res_int <= val:
-                        if (s[1].lower() == 'mp4' and 'video only' not in i.lower()
-                                and 'audio only' not in i.lower()):
-                            j = s[0]
-                            arr.append((res, j, i))
-        if arr:
-            arr = sorted(arr, key=lambda x: x[0])
-            logger.debug(arr)
-            req = arr[-1]
-            req_id = req[1]
-            if req_id:
-                ytdl_list = [youtube_dl, '-f', req_id, '-g', url]
-                if os.name == 'posix':
-                    final_url = subprocess.check_output(ytdl_list)
-                else:
-                    final_url = subprocess.check_output(ytdl_list, shell=True)
-                final_url = str(final_url, 'utf-8')
-    else:
-        if not tag_val:
-            tag_val = '18'
-        ytdl_list = [youtube_dl, '--youtube-skip-dash-manifest', 
-                     '-f', tag_val, '-g', '--playlist-end', '1', url]
-        try:
-            if os.name == 'posix':
-                final_url = subprocess.check_output(ytdl_list)
-            else:
-                final_url = subprocess.check_output(ytdl_list, shell=True)
-            final_url = str(final_url, 'utf-8')
-        except Exception as err:
-            print(err)
-            if mode == 'offline':
-                ytdl_list[3] = '18'
-                if os.name == 'posix':
-                    final_url = subprocess.check_output(ytdl_list)
-                else:
-                    final_url = subprocess.check_output(ytdl_list, shell=True)
-                final_url = str(final_url, 'utf-8')
-            else:
-                final_url = get_480p_link(url, youtube_dl, logger)
-    return final_url
-    
-def get_best_link(url, youtube_dl, logger, ytdl_extra):
-    if ytdl_extra:
-        ytdl_list = [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                     'best', '-g', '--playlist-end', '1', url]
-        if os.name == 'posix':
-            final_url = subprocess.check_output(ytdl_list)
-        else:
-            final_url = subprocess.check_output(ytdl_list, shell=True)
-        final_url = str(final_url, 'utf-8')
-    else:
-        ytdl_list = [youtube_dl, '-g', url]
-        if os.name == 'posix':
-            final_url = subprocess.check_output(ytdl_list)
-        else:
-            final_url = subprocess.check_output(ytdl_list, shell=True)
-        final_url = str(final_url, 'utf-8')
-        final_url = final_url.strip()
-        logger.info(final_url)
-        if '\n' in final_url:
-            vid, aud = final_url.split('\n')
-            final_url = vid+'::'+aud
     return final_url
     
 def get_yt_sub(url, name, dest_dir, tmp_dir, ytdl_path, log):
