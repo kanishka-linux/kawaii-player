@@ -2066,38 +2066,46 @@ watch/unwatch status")
             MainWindow.show()
         if not MainWindow.isHidden():
             if not MainWindow.isFullScreen():
-                if not self.tab_6.isHidden():
-                    self.fullscreen_mode = 1
-                elif not self.float_window.isHidden():
-                    self.fullscreen_mode = 2
-                else: 
-                    self.fullscreen_mode = 0
-                self.gridLayout.setSpacing(0)
-                self.superGridLayout.setSpacing(0)
-                self.gridLayout.setContentsMargins(0, 0, 0, 0)
-                self.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                self.text.hide()
-                self.label.hide()
-                self.frame1.hide()
-                self.tab_6.hide()
-                self.goto_epn.hide()
-                #self.btn20.hide()
-                if wget.processId() > 0 or video_local_stream:
-                    self.progress.hide()
-                    if not self.torrent_frame.isHidden():
-                        self.torrent_frame.hide()
-                self.list2.hide()
-                self.list6.hide()
-                self.list1.hide()
-                self.frame.hide()
-                self.dockWidget_3.hide()
-                self.tab_5.show()
-                self.tab_5.setFocus()
-                if not self.tab_2.isHidden():
-                    self.tab_2.hide()
-                if (Player == "mplayer" or Player=="mpv"):
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                MainWindow.showFullScreen()
+                if os.name == 'nt' and self.web_review_browser_started:
+                    self.detach_fullscreen = True
+                    MainWindow.hide()
+                    self.tray_widget.right_menu._detach_video()
+                    if not self.float_window.isFullScreen():
+                        self.float_window.showFullScreen()
+                        self.tab_5.setFocus()
+                else:
+                    if not self.tab_6.isHidden():
+                        self.fullscreen_mode = 1
+                    elif not self.float_window.isHidden():
+                        self.fullscreen_mode = 2
+                    else: 
+                        self.fullscreen_mode = 0
+                    self.gridLayout.setSpacing(0)
+                    self.superGridLayout.setSpacing(0)
+                    self.gridLayout.setContentsMargins(0, 0, 0, 0)
+                    self.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                    self.text.hide()
+                    self.label.hide()
+                    self.frame1.hide()
+                    self.tab_6.hide()
+                    self.goto_epn.hide()
+                    #self.btn20.hide()
+                    if wget.processId() > 0 or video_local_stream:
+                        self.progress.hide()
+                        if not self.torrent_frame.isHidden():
+                            self.torrent_frame.hide()
+                    self.list2.hide()
+                    self.list6.hide()
+                    self.list1.hide()
+                    self.frame.hide()
+                    self.dockWidget_3.hide()
+                    self.tab_5.show()
+                    self.tab_5.setFocus()
+                    if not self.tab_2.isHidden():
+                        self.tab_2.hide()
+                    if (Player == "mplayer" or Player=="mpv"):
+                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                    MainWindow.showFullScreen()
             else:
                 self.gridLayout.setSpacing(5)
                 self.superGridLayout.setSpacing(0)
@@ -2122,11 +2130,16 @@ watch/unwatch status")
                     self.tab_2.show()
                 #QtW
         else:
-            if not self.float_window.isHidden():
-                if not self.float_window.isFullScreen():
-                    self.float_window.showFullScreen()
-                else:
-                    self.float_window.showNormal()
+            if self.detach_fullscreen:
+                self.detach_fullscreen = False
+                self.tray_widget.right_menu._detach_video()
+                self.tab_5.setFocus()
+            else:
+                if not self.float_window.isHidden():
+                    if not self.float_window.isFullScreen():
+                        self.float_window.showFullScreen()
+                    else:
+                        self.float_window.showNormal()
                     
     def seek_to_val_abs(self):
         global Player
