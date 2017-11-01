@@ -2149,6 +2149,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 url = self.path.replace('/youtube_quick=', '', 1)
                 logger.debug(url)
                 if url.startswith('http'):
+                    self.media_server_cache_playlist.clear()
+                    ui.navigate_playlist_history.clear()
                     ui.quick_url_play = url
                     logger.debug(ui.quick_url_play)
                     ui.quick_url_play_btn.clicked.emit()
