@@ -604,7 +604,8 @@ class PlayerGetEpn(QtCore.QThread):
         ui = ui_widget
         logger = logr
         self.epn_type = epn_type
-        if self.epn_type == 'yt' or self.epn_type == 'yt_title' or self.epn_type == 'yt+title':
+        if (self.epn_type == 'yt' or self.epn_type == 'yt_title' 
+                or self.epn_type == 'yt+title' or self.epn_type == 'yt_music'):
             self.final = args[0]
             self.quality = args[1]
             self.yt_path = args[2]
@@ -652,6 +653,9 @@ class PlayerGetEpn(QtCore.QThread):
             if self.epn_type == 'yt':
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='a+v')
+            elif self.epn_type == 'yt_music':
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='music')
             elif self.epn_type == 'yt_title':
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='TITLE')
