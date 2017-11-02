@@ -113,6 +113,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                     final_url = 'ytdl:' + url
                 else:
                     final_url = url
+                time.sleep(1)
             else:
                 final_url = get_final_for_resolution(
                     url, youtube_dl, logger, ytdl_extra, resolution=res,
@@ -248,26 +249,41 @@ def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
                     sub_path = os.path.join(sub_folder, i)
                     if i.startswith('ytsub'):
                         os.remove(sub_path)
-                fh, TMPFILE = mkstemp(suffix=None, prefix='youtube-sub')
-                dir_name, sub_name = os.path.split(TMPFILE)
-                command = [youtube_dl, "--all-sub", "--skip-download", "--output", TMPFILE, url]
-                logger.info(command)
-                if os.name == 'posix':
-                    subprocess.call(command)
+                sub_exists = False
+                if 'youtube.com' in url:
+                    url_id = url.split('=')[-1]
+                    m = os.listdir(sub_folder)
+                    for i in m:
+                        sub_path = os.path.join(sub_folder, i)
+                        if i.startswith(url_id):
+                            new_path = os.path.join(sub_folder, i)
+                            final_url = final_url + '::'+new_path
+                            sub_exists = True
                 else:
-                    subprocess.call(command, shell=True)
-                m = os.listdir(dir_name)
-                for i in m:
-                    sub_path = os.path.join(dir_name, i)
-                    if i.startswith(sub_name):
-                        j = i.replace(sub_name, 'ytsub')
-                        new_path = os.path.join(sub_folder, j)
-                        shutil.copy(sub_path, new_path)
-                        final_url = final_url + '::'+new_path
-                        try:
-                            os.remove(sub_path)
-                        except Exception as err:
-                            print(err, '--265--')
+                    url_id = 'ytsub'
+                
+                if not sub_exists:
+                    fh, TMPFILE = mkstemp(suffix=None, prefix='youtube-sub')
+                    dir_name, sub_name = os.path.split(TMPFILE)
+                    command = [youtube_dl, "--all-sub", "--skip-download", "--output", TMPFILE, url]
+                    logger.info(command)
+                    if os.name == 'posix':
+                        subprocess.call(command)
+                    else:
+                        subprocess.call(command, shell=True)
+                    m = os.listdir(dir_name)
+                    
+                    for i in m:
+                        sub_path = os.path.join(dir_name, i)
+                        if i.startswith(sub_name) and '.' in i:
+                            j = i.replace(sub_name, url_id)
+                            new_path = os.path.join(sub_folder, j)
+                            shutil.copy(sub_path, new_path)
+                            final_url = final_url + '::'+new_path
+                            try:
+                                os.remove(sub_path)
+                            except Exception as err:
+                                print(err, '--265--')
     return final_url
     
 def get_yt_sub(url, name, dest_dir, tmp_dir, ytdl_path, log):
