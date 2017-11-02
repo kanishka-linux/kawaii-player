@@ -8447,6 +8447,8 @@ watch/unwatch status")
                         nm = nm.replace('"', '')
                 elif 'youtube.com' in nm and not thumbnail:
                     nm = get_yt_url(nm, ui.quality_val, ui.ytdl_path, logger, mode='offline').strip()
+                    if '::' in nm:
+                        nm = nm.split('::')[0]
         elif path.startswith('relative_path='):
             path = path.split('relative_path=', 1)[1]
             nm = path
@@ -8495,13 +8497,15 @@ watch/unwatch status")
             row = row_val
         referer = ''
         aurl = None
+        surl = None
         self.external_audio_file = False
         if '::' in finalUrl:
-            aurl = finalUrl.split('::')[1]
-            if aurl.startswith('http'):
-                finalUrl = finalUrl.split('::')[0]
+            if finalUrl.count('::') == 1:
+                finalUrl, aurl = finalUrl.split('::')
+            else:
+                finalUrl, aurl, surl = finalUrl.split('::', 2)
+            if aurl or surl:
                 self.external_audio_file = True
-        
         if isinstance(finalUrl, list):
             rfr_exists = finalUrl[-1]
             rfr_needed = False
@@ -8519,12 +8523,14 @@ watch/unwatch status")
             finalUrl = str(finalUrl)
         except:
             finalUrl = finalUrl
+        if self.music_playlist and aurl:
+            finalUrl = aurl
         if self.mpvplayer_val.processId() > 0:
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
         if Player == "mpv":
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, Player, a_url=aurl)
+                command = self.mplayermpv_command(idw, finalUrl, Player, a_url=aurl, s_url=surl)
             else:
                 command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
             logger.info(command)
@@ -8535,7 +8541,7 @@ watch/unwatch status")
             if site != "Music":
                 self.tab_5.show()
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, Player)
+                command = self.mplayermpv_command(idw, finalUrl, Player, a_url=aurl, s_url=surl)
             else:
                 command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
             logger.info(command)
@@ -8724,7 +8730,6 @@ watch/unwatch status")
                 epn = self.epn_name_in_list
                 self.playlistUpdate()
                 if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
-                    #finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                     print(self.epn_wait_thread.isRunning())
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
@@ -8752,17 +8757,24 @@ watch/unwatch status")
                 self.list2.item(row).setText(i)
             #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
             self.list2.setCurrentRow(row)
-            
+            if self.music_playlist:
+                yt_mode = 'yt_music'
+            else:
+                yt_mode = 'yt'
             if site == 'None' and video_local_stream:
                     finalUrl = self.local_torrent_open(local_torrent_file_path)
             elif site == 'None' and self.btn1.currentText().lower() == 'youtube':
-                    finalUrl = finalUrl.replace('"', '')
-                    finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
-                    finalUrl = '"'+finalUrl+'"'
+                    if not self.epn_wait_thread.isRunning():
+                        self.epn_wait_thread = PlayerGetEpn(
+                            self, logger, yt_mode, finalUrl, quality,
+                            self.ytdl_path, row)
+                        self.epn_wait_thread.start()
             if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
-                finalUrl = finalUrl.replace('"', '')
-                finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
-                finalUrl = '"'+finalUrl+'"'
+                if not self.epn_wait_thread.isRunning():
+                    self.epn_wait_thread = PlayerGetEpn(
+                        self, logger, yt_mode, finalUrl, quality,
+                        self.ytdl_path, row)
+                    self.epn_wait_thread.start()
                 
         new_epn = self.epn_name_in_list
         
@@ -8793,6 +8805,7 @@ watch/unwatch status")
             if Player == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player)
                 logger.info(command)
+                logger.debug('**********************')
                 self.infoPlay(command)
             elif Player == "mplayer":
                 quitReally = "no"
@@ -9205,8 +9218,11 @@ watch/unwatch status")
                 if 'youtube.com' in finalUrl:
                     if mode == 'offline':
                         finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger, mode='offline').strip()
+                        if '::' in finalUrl:
+                            finalUrl = finalUrl.split('::')[0]
                     else:
                         finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                    
         
         if (site!="PlayLists" and site!= "None" and site != "Music" 
                 and site != "Video" and site !="Local"):
@@ -9246,6 +9262,8 @@ watch/unwatch status")
                     finalUrl = finalUrl.replace('"', '')
                     if mode == 'offline':
                         finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger, mode='offline').strip()
+                        if '::' in finalUrl:
+                            finalUrl = finalUrl.split('::')[0]
                     else:
                         finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                     finalUrl = '"'+finalUrl+'"'
@@ -9253,6 +9271,8 @@ watch/unwatch status")
                 finalUrl = finalUrl.replace('"', '')
                 if mode == 'offline':
                     finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger, mode='offline').strip()
+                    if '::' in finalUrl:
+                        finalUrl = finalUrl.split('::')[0]
                 else:
                     finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
         return finalUrl
@@ -9302,9 +9322,15 @@ watch/unwatch status")
         path_final_Url = finalUrl
         current_playing_file_path = finalUrl
         a_url = None
+        s_url = None
         if '::' in finalUrl:
-            finalUrl, a_url = finalUrl.split('::')
-        command = self.mplayermpv_command(idw, finalUrl, Player, a_url=a_url)
+            if finalUrl.count('::') == 1:
+                finalUrl, a_url = finalUrl.split('::')
+            else:
+                finalUrl, a_url, s_url = finalUrl.split('::', 2)
+            if a_url or s_url:
+                self.external_audio_file = True
+        command = self.mplayermpv_command(idw, finalUrl, Player, a_url=a_url, s_url=s_url)
         if os.path.exists(title_sub_path):
             if Player == 'mpv':
                 command = command+' --sub-file='+title_sub_path
@@ -9337,7 +9363,6 @@ watch/unwatch status")
     def start_offline_mode(self, row):
         global site, name, hdr
         if not self.if_file_path_exists_then_play(row, self.list2, False):
-            #finalUrl = self.epn_return(row, mode='offline')
             if not self.epn_wait_thread.isRunning():
                 self.epn_wait_thread = PlayerGetEpn(
                     self, logger, 'offline', row, 'offline')
@@ -10127,6 +10152,7 @@ watch/unwatch status")
         global Player, site, new_epn, mpv_indicator, cache_empty
         self.eof_reached = False
         self.eof_lock = False
+        logger.debug('Now Starting')
         if not command:
             t = "Loading Failed: No Url/File Found. Try Again"
             self.progressEpn.setFormat(t)
@@ -10161,7 +10187,7 @@ watch/unwatch status")
                 self.mpvplayer_val.started.connect(self.started)
                 self.mpvplayer_val.readyReadStandardOutput.connect(partial(self.dataReady, self.mpvplayer_val))
                 self.mpvplayer_val.finished.connect(self.finished)
-                QtCore.QTimer.singleShot(1000, partial(self.mpvplayer_val.start, command))
+                QtCore.QTimer.singleShot(100, partial(self.mpvplayer_val.start, command))
                 logger.info(command)
                 logger.info('infoplay--18165--')
                 self.mpvplayer_started = True
@@ -10341,7 +10367,6 @@ watch/unwatch status")
                 self.playlistUpdate()
                 self.list2.setCurrentRow(row)
                 if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
-                    #finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
                             self, logger, 'yt', finalUrl, quality,
@@ -10370,12 +10395,17 @@ watch/unwatch status")
                 self.list2.item(row).setText(i)
             #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
             self.list2.setCurrentRow(row)
+            if self.music_playlist:
+                yt_mode = 'yt_music'
+            else:
+                yt_mode = 'yt'
             if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
-                finalUrl = finalUrl.replace('"', '')
-                finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                if not self.epn_wait_thread.isRunning():
+                    self.epn_wait_thread = PlayerGetEpn(
+                        self, logger, yt_mode, finalUrl, quality,
+                        self.ytdl_path, row)
+                    self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(finalUrl)
-            #if not self.external_url:
-            #finalUrl = self.get_redirected_url_if_any(finalUrl, self.external_url)
         new_epn = self.epn_name_in_list
     
         finalUrl = finalUrl.replace('"', '')
@@ -10528,9 +10558,13 @@ watch/unwatch status")
             if 'youtube.com' in epnShow.lower():
                 finalUrl = epnShow.replace('"', '')
                 epnShow = finalUrl
+                if self.music_playlist:
+                    yt_mode = 'yt_music'
+                else:
+                    yt_mode = 'yt'
                 if not self.epn_wait_thread.isRunning():
                     self.epn_wait_thread = PlayerGetEpn(
-                        self, logger, 'yt', finalUrl, quality,
+                        self, logger, yt_mode, finalUrl, quality,
                         self.ytdl_path, self.epn_name_in_list)
                     self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(epnShow)
@@ -10571,9 +10605,9 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
-        else:
-            logger.info(command)
+        elif not self.epn_wait_thread.isRunning():
             self.infoPlay(command)
+            logger.info(command)
             self.list1.hide()
             self.frame.hide()
             self.text.hide()
@@ -10594,7 +10628,7 @@ watch/unwatch status")
             current_playing_file_path = '"'+epnShow+'"'
         
     def mplayermpv_command(self, idw, finalUrl, player, a_id=None, s_id=None,
-                           rfr=None, a_url=None):
+                           rfr=None, a_url=None, s_url=None):
         global site
         finalUrl = finalUrl.replace('"', '')
         aspect_value = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
@@ -10643,7 +10677,13 @@ watch/unwatch status")
                 command = command+" -audiofile {0}".format(a_url)
             elif player == 'mpv':
                 command = command+" --audio-file={0}".format(a_url)
-        
+        if s_url:
+            s_url_arr = s_url.split('::')
+            for i in s_url_arr:
+                if player == 'mpv':
+                    command = command + ' --sub-file=' + i
+                elif player == 'mplayer':
+                    command = command + ' -sub ' + i
         if site.lower() == 'music':
             if player == 'mpv':
                 command = command + ' --no-video'
@@ -10653,19 +10693,15 @@ watch/unwatch status")
             command = re.sub('--input-vo-keyboard=no|--input-terminal=no', '', command)
             command = command.replace('--osd-level=0', '--osd-level=1')
         print(command, '---10446---')
+        logger.debug(finalUrl)
         if finalUrl:
-            if self.quality_val == 'best':
-                if 'youtube.com' in finalUrl and player == 'mpv':
-                    if site.lower() == 'music':
-                        final_url = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="music").strip()
-                        finalUrl = final_url.split('::')[-1]
-                    else:
-                        command = command.replace('ytdl=no', 'ytdl=yes')
+            if self.quality_val == 'best' and self.ytdl_path == 'default':
+                if ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mpv':
+                    if finalUrl.startswith('ytdl:'):
+                        finalUrl = finalUrl.replace('ytdl:', '', 1)
+                    command = command.replace('ytdl=no', 'ytdl=yes')
                 elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
-                elif finalUrl.startswith('ytdl:') and player == 'mpv':
-                    finalUrl = finalUrl.replace('ytdl:', '', 1)
-                    command = command.replace('ytdl=no', 'ytdl=yes')
             if finalUrl.startswith('http'):
                 command = command + ' ' + finalUrl
             else:
