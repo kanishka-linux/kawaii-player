@@ -39,6 +39,7 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     m = []
     home_dir = get_home_dir()
     ytdl_stamp = os.path.join(home_dir, 'tmp', 'ytdl_update_stamp.txt')
+    yt_sub_folder = os.path.join(home_dir, 'External-Subtitle')
     if ytdl_path:
         if ytdl_path == 'default':
             youtube_dl = 'youtube-dl'
@@ -99,9 +100,6 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
             final_url = str(final_url, 'utf-8')
             final_url = final_url.replace(' - YouTube', '', 1)
         else:
-            if mode == 'music':
-                quality = 'best'
-                
             if quality == 'sd':
                 res = 360
             elif quality == 'hd':
@@ -110,16 +108,15 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                 res = 480
             else:
                 res = 4000
-            
             if quality == 'best' and ytdl_path == 'default':
                 if ytdl_extra:
-                    final_url = 'ytdl:'+url
+                    final_url = 'ytdl:' + url
                 else:
                     final_url = url
             else:
                 final_url = get_final_for_resolution(
                     url, youtube_dl, logger, ytdl_extra, resolution=res,
-                    mode=mode
+                    mode=mode, sub_folder=yt_sub_folder
                     )
     except Exception as e:
         logger.info('--error in processing youtube url--{0}'.format(e))
@@ -162,17 +159,17 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
     return final_url
 
 def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
-                             resolution=None, mode=None):
+                             resolution=None, mode=None, sub_folder=None):
     final_url = ''
     if resolution:
         val = int(resolution)
     else:
         val = 720
-    ytdl_list = [youtube_dl, '-F', url]
+    ytdl_list = [youtube_dl, '-F', '--all-sub', url]
     if os.name == 'posix':
-        content = subprocess.check_output(ytdl_list)
+        content = subprocess.check_output(ytdl_list, stderr= subprocess.STDOUT)
     else:
-        content = subprocess.check_output(ytdl_list, shell=True)
+        content = subprocess.check_output(ytdl_list, stderr= subprocess.STDOUT, shell=True)
     content = str(content, 'utf-8')
     lines = content.split('\n')
     lines = [re.sub('  +', ' ', i.strip()) for i in lines if i.strip()]
@@ -191,16 +188,20 @@ def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
         if 'audio only' in i:
             audio_arr.append(i)
     if arr:
-        arr = sorted(arr, key=lambda x: x[0])
+        arr = sorted(arr, key=lambda x: int(x[0]))
         logger.debug(arr)
         req = arr[-1]
         req_id = req[1]
+        final_url_aud = final_url_vid = ''
+        aud_vid = ''
+        req_id_aud = req_id_vid = ''
         if audio_arr:
             audio_val = audio_arr[-1]
             audio_val_id = audio_val.split(' ')[0]
+            if mode == 'music':
+                req_id_aud = audio_val_id
         arr.reverse()
-        aud_vid = ''
-        req_id_aud = req_id_vid = ''
+        logger.debug(arr)
         for i in arr:
             if 'video only' not in i[2]:
                 aud_vid = i
@@ -210,8 +211,8 @@ def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
         if 'video only' in  req[2] and mode != 'offline':
             req_id_vid = req[1]
             req_id_aud = audio_val_id
-        final_url_aud = final_url_vid = ''
-        if req_id_vid:
+        
+        if req_id_vid and mode != 'music':
             ytdl_list = [youtube_dl, '-f', req_id_vid, '-g', url]
             if os.name == 'posix':
                 final_url = subprocess.check_output(ytdl_list)
@@ -229,26 +230,44 @@ def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
             final_url = final_url_vid + '::' + final_url_aud
         elif final_url_vid:
             final_url = final_url_vid
+        if mode == 'music':
+            final_url = final_url_aud
+            logger.debug('\nonly audio required since music mode has been selected\n')
+        logger.debug('vid_id={0}::aud_id={1}::req_res={2}'.format(req_id_vid, req_id_aud, resolution))
         logger.debug(final_url)
         logger.debug('mode={0}'.format(mode))
-    return final_url
-    
-def get_best_link(url, youtube_dl, logger, mode=None):
-    if mode == 'offline':
-        ytdl_list = [youtube_dl, '--youtube-skip-dash-manifest', '-f', 
-                     'best', '-g', '--playlist-end', '1', url]
-    else:
-        ytdl_list = [youtube_dl, '-g', url]
-    if os.name == 'posix':
-        final_url = subprocess.check_output(ytdl_list)
-    else:
-        final_url = subprocess.check_output(ytdl_list, shell=True)
-    final_url = str(final_url, 'utf-8')
-    final_url = final_url.strip()
-    logger.info(final_url)
-    if '\n' in final_url:
-        vid, aud = final_url.split('\n')
-        final_url = vid+'::'+aud
+        if 'youtube.com' in url and mode != 'music':
+            if "video doesn't have subtitles" in content:
+                logger.debug('\n++++No Subtitles Available+++\n')
+            else:
+                if sub_folder is not None:
+                    if not os.path.exists(sub_folder):
+                        os.makedirs(sub_folder)
+                m = os.listdir(sub_folder)
+                for i in m:
+                    sub_path = os.path.join(sub_folder, i)
+                    if i.startswith('ytsub'):
+                        os.remove(sub_path)
+                fh, TMPFILE = mkstemp(suffix=None, prefix='youtube-sub')
+                dir_name, sub_name = os.path.split(TMPFILE)
+                command = [youtube_dl, "--all-sub", "--skip-download", "--output", TMPFILE, url]
+                logger.info(command)
+                if os.name == 'posix':
+                    subprocess.call(command)
+                else:
+                    subprocess.call(command, shell=True)
+                m = os.listdir(dir_name)
+                for i in m:
+                    sub_path = os.path.join(dir_name, i)
+                    if i.startswith(sub_name):
+                        j = i.replace(sub_name, 'ytsub')
+                        new_path = os.path.join(sub_folder, j)
+                        shutil.copy(sub_path, new_path)
+                        final_url = final_url + '::'+new_path
+                        try:
+                            os.remove(sub_path)
+                        except Exception as err:
+                            print(err, '--265--')
     return final_url
     
 def get_yt_sub(url, name, dest_dir, tmp_dir, ytdl_path, log):
