@@ -104,7 +104,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 tmp = ''
                 for i in range(info.num_pieces()):
                     tmp = tmp+':'+str(handle.piece_priority(i))
-                print(tmp)
+                #print(tmp)
                 print('starting', handle.name())
                 #handle.set_sequential_download(True)
                 cnt = pr.piece
