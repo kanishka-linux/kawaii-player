@@ -228,6 +228,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         global handle, ses, info, cnt, cnt_limit, file_name, torrent_download_path
         global tmp_dir_folder, httpd, media_server_key, client_auth_arr, local_ip_arr
+        global ui_player
         print('do_get')
         print(self.headers)
         try:
@@ -337,7 +338,7 @@ class ThreadServer(QtCore.QThread):
         self.wait()                        
 
     def run(self):
-        global httpd
+        global httpd, ui_player
         print('starting server...')
         server_address = (self.ip, self.port)
         server_start = False
