@@ -8784,7 +8784,7 @@ watch/unwatch status")
             self.tab_5.show()
             
         #logger.info(finalUrl)
-        print("***********")
+        print("***********", self.epn_wait_thread.isRunning())
         if (site == "Local" or site == "Video" or site == "Music" or site == "None" 
                 or site == "PlayLists" and (not type(finalUrl) is list 
                 or (type(finalUrl) is list and len(finalUrl) == 1)) 
@@ -8805,7 +8805,7 @@ watch/unwatch status")
             if Player == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player)
                 logger.info(command)
-                logger.debug('**********************')
+                logger.debug('**********************8808-----')
                 self.infoPlay(command)
             elif Player == "mplayer":
                 quitReally = "no"
