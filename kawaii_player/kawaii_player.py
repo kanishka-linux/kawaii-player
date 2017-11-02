@@ -1896,8 +1896,50 @@ watch/unwatch status")
             self.sd_hd.setText(self.quality_dict[self.quality_val])
     
     def quick_url_play_method(self):
-        self.watch_external_video(self.quick_url_play)
-        self.btn1.setCurrentIndex(0)
+        if self.quick_url_play.startswith('magnet'):
+            if self.thread_server.isRunning():
+                self.label_torrent_stop.clicked.emit()
+            time.sleep(0.5)
+            hist_folder = os.path.join(home, 'History', 'Torrent')
+            hist_name = self.getdb.record_torrent(self.quick_url_play, hist_folder)
+            self.btn1.setCurrentIndex(0)
+            index = self.btn1.findText('Addons')
+            self.btn1.setCurrentIndex(index)
+            time.sleep(1)
+            self.btnAddon.setCurrentIndex(0)
+            index = self.btnAddon.findText('Torrent')
+            self.btnAddon.setCurrentIndex(index)
+            time.sleep(1)
+            list_item = self.list3.findItems('History', QtCore.Qt.MatchExactly)
+            if len(list_item) > 0:
+                for i in list_item:
+                    row = self.list3.row(i)
+                    self.list3.setFocus()
+                    self.list3.setCurrentRow(row)
+                    item = self.list3.item(row)
+                    logger.debug(':::::row:::{0}::::::::'.format(row))
+                    if item:
+                        self.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            time.sleep(1)
+            list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchExactly)
+            if len(list_item) > 0:
+                for i in list_item:
+                    row = self.list1.row(i)
+                    self.list1.setFocus()
+                    self.list1.setCurrentRow(row)
+                    item = self.list1.item(row)
+                    logger.debug(':::::row:::{0}::::::::'.format(row))
+                    if item:
+                        self.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            time.sleep(1)
+            self.list2.setFocus()
+            item = self.list2.item(0)
+            self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            #self.torrent_frame.show()
+            self.progress.show()
+        else:
+            self.watch_external_video(self.quick_url_play, start_now=True)
+            self.btn1.setCurrentIndex(0)
     
     def download_thread_finished(self, dest, r, length):
         logger.info("Download tvdb image: {0} :completed".format(dest))
@@ -9031,7 +9073,7 @@ watch/unwatch status")
             if status.lower() =='first run' and not self.thread_server.isRunning():
                 thread_server = ThreadServer(
                     ip, port, self.media_server_key, self.client_auth_arr, 
-                    self.https_media_server, self.https_cert_file, ui)
+                    self.https_media_server, self.https_cert_file, self)
                 thread_server.start()
             print('--line--15415--', self.thread_server.isRunning(), '=thread_server')
             handle, ses, info, cnt, cnt_limit, file_name = get_torrent_info(
@@ -9085,7 +9127,7 @@ watch/unwatch status")
             self.text.hide()
             self.label.hide()
             
-    def local_torrent_open(self, tmp):
+    def local_torrent_open(self, tmp, start_now=None):
         global local_torrent_file_path, site
         if not self.local_ip:
             self.local_ip = get_lan_ip()
@@ -9115,6 +9157,7 @@ watch/unwatch status")
                 file_arr = []
                 self.list2.clear()
                 self.epn_arr_list[:]=[]
+                mycopy = []
                 for f in info.files():
                     file_path = f.path
                     #if '/' in f.path:
@@ -9123,9 +9166,12 @@ watch/unwatch status")
                     ##Needs Verification
                     self.epn_arr_list.append(file_path+'	'+path)
                     self.list2.addItem((file_path))
+                mycopy = self.epn_arr_list.copy()
                 self.torrent_handle.pause()
                 self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                 self.torrent_handle.set_download_limit(self.torrent_download_limit)
+                if start_now:
+                    pass
             else:
                 index = int(self.list2.currentRow())
                 
@@ -11505,7 +11551,7 @@ watch/unwatch status")
                 | QtCore.Qt.WindowStaysOnTopHint)
         MainWindow.show()
         
-    def watch_external_video(self, var, mode=None):
+    def watch_external_video(self, var, mode=None, start_now=None):
         global quitReally, video_local_stream, curR, site
         global home
         t = var
@@ -11752,7 +11798,7 @@ watch/unwatch status")
             site = 'None'
             self.torrent_type = 'magnet'
             video_local_stream = True
-            self.local_torrent_open(t)
+            self.local_torrent_open(t, start_now=start_now)
         else:
             quitReally="yes"
             new_epn = os.path.basename(t)
