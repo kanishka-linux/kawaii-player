@@ -1052,13 +1052,28 @@ watch/unwatch status")
         self.quick_url_play_btn.clicked.connect(self.quick_url_play_method)
         self.quick_url_play_btn.hide()
         
-        
         self.set_quality_server_btn = QtWidgets.QPushButton(self.player_opt)
         self.set_quality_server_btn.setObjectName(_fromUtf8("set_quality_server_btn"))
-        self.horizontalLayout_player_opt.insertWidget(30, self.set_quality_server_btn, 0)
+        self.horizontalLayout_player_opt.insertWidget(31, self.set_quality_server_btn, 0)
         self.set_quality_server_btn.setText('quality')
         self.set_quality_server_btn.clicked.connect(self.set_quality_server_btn_method)
         self.set_quality_server_btn.hide()
+        
+        self.set_queue_item_btn = QtWidgets.QPushButton(self.player_opt)
+        self.set_queue_item_btn.setObjectName(_fromUtf8("set_queue_item_btn"))
+        self.horizontalLayout_player_opt.insertWidget(32, self.set_queue_item_btn, 0)
+        self.set_queue_item_btn.setText('queue')
+        self.set_queue_item_btn.clicked.connect(self.set_queue_item_btn_method)
+        self.set_queue_item_btn.hide()
+        self.queue_item_external = -1
+        
+        self.remove_queue_item_btn = QtWidgets.QPushButton(self.player_opt)
+        self.remove_queue_item_btn.setObjectName(_fromUtf8("remove_queue_item_btn"))
+        self.horizontalLayout_player_opt.insertWidget(32, self.remove_queue_item_btn, 0)
+        self.remove_queue_item_btn.setText('remove queue')
+        self.remove_queue_item_btn.clicked.connect(self.remove_queue_item_btn_method)
+        self.remove_queue_item_btn.hide()
+        self.queue_item_external_remove = -1
         
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
@@ -1889,54 +1904,108 @@ watch/unwatch status")
         self.lock_process = False
         self.mpv_thumbnail_lock = False
     
+    def remove_queue_item_btn_method(self, row=None):
+        global video_local_stream
+        row = self.queue_item_external_remove
+        if row >= 0:
+            r = row
+            if self.list6.item(r):
+                item = self.list6.item(r)
+                self.list6.takeItem(r)
+                del item
+                if not video_local_stream and r < len(self.queue_url_list):
+                    del self.queue_url_list[r]
+            self.queue_item_external_remove = -1
+    
+    def set_queue_item_btn_method(self, row=None):
+        global site, video_local_stream
+        #if row is None:
+        row = self.queue_item_external
+        if row >= 0:
+            if (site == "Music" or site == "Video" or site == "Local" 
+                    or site == "PlayLists" or site == "None"):
+                file_path = os.path.join(home, 'Playlists', 'Queue')
+                if not os.path.exists(file_path):
+                    f = open(file_path, 'w')
+                    f.close()
+                if not self.queue_url_list:
+                    self.list6.clear()
+                r = row
+                item = self.list2.item(r)
+                if item:
+                    self.queue_url_list.append(self.epn_arr_list[r])
+                    self.list6.addItem(self.epn_arr_list[r].split('	')[0])
+                    logger.info(self.queue_url_list)
+                    write_files(file_path, self.epn_arr_list[r], line_by_line=True)
+            elif video_local_stream:
+                if ui.list6.count() > 0:
+                    txt = self.list6.item(0).text()
+                    if txt.startswith('Queue Empty:'):
+                        self.list6.clear()
+                item = self.list2.item(row)
+                if item:
+                    self.list6.addItem(item.text()+':'+str(row))
+            else:
+                if not self.queue_url_list:
+                    self.list6.clear()
+                r = row
+                item = self.list2.item(r)
+                if item:
+                    self.queue_url_list.append(self.epn_arr_list[r])
+                    self.list6.addItem(self.epn_arr_list[r].split('	')[0])
+            self.queue_item_external = -1
+    
     def set_quality_server_btn_method(self):
         global quality
         quality = self.quality_val 
         if self.quality_val in self.quality_dict:
             self.sd_hd.setText(self.quality_dict[self.quality_val])
-    
+            
+    def quick_torrent_play_method(self, url):
+        if self.thread_server.isRunning():
+            self.label_torrent_stop.clicked.emit()
+        time.sleep(0.5)
+        hist_folder = os.path.join(home, 'History', 'Torrent')
+        hist_name = self.getdb.record_torrent(url, hist_folder)
+        self.btn1.setCurrentIndex(0)
+        index = self.btn1.findText('Addons')
+        self.btn1.setCurrentIndex(index)
+        time.sleep(1)
+        self.btnAddon.setCurrentIndex(0)
+        index = self.btnAddon.findText('Torrent')
+        self.btnAddon.setCurrentIndex(index)
+        time.sleep(1)
+        list_item = self.list3.findItems('History', QtCore.Qt.MatchExactly)
+        if len(list_item) > 0:
+            for i in list_item:
+                row = self.list3.row(i)
+                self.list3.setFocus()
+                self.list3.setCurrentRow(row)
+                item = self.list3.item(row)
+                logger.debug(':::::row:::{0}::::::::'.format(row))
+                if item:
+                    self.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        time.sleep(1)
+        list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchExactly)
+        if len(list_item) > 0:
+            for i in list_item:
+                row = self.list1.row(i)
+                self.list1.setFocus()
+                self.list1.setCurrentRow(row)
+                item = self.list1.item(row)
+                logger.debug(':::::row:::{0}::::::::'.format(row))
+                if item:
+                    self.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        time.sleep(1)
+        self.list2.setFocus()
+        item = self.list2.item(0)
+        self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        #self.torrent_frame.show()
+        self.progress.show()
+            
     def quick_url_play_method(self):
         if self.quick_url_play.startswith('magnet'):
-            if self.thread_server.isRunning():
-                self.label_torrent_stop.clicked.emit()
-            time.sleep(0.5)
-            hist_folder = os.path.join(home, 'History', 'Torrent')
-            hist_name = self.getdb.record_torrent(self.quick_url_play, hist_folder)
-            self.btn1.setCurrentIndex(0)
-            index = self.btn1.findText('Addons')
-            self.btn1.setCurrentIndex(index)
-            time.sleep(1)
-            self.btnAddon.setCurrentIndex(0)
-            index = self.btnAddon.findText('Torrent')
-            self.btnAddon.setCurrentIndex(index)
-            time.sleep(1)
-            list_item = self.list3.findItems('History', QtCore.Qt.MatchExactly)
-            if len(list_item) > 0:
-                for i in list_item:
-                    row = self.list3.row(i)
-                    self.list3.setFocus()
-                    self.list3.setCurrentRow(row)
-                    item = self.list3.item(row)
-                    logger.debug(':::::row:::{0}::::::::'.format(row))
-                    if item:
-                        self.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
-            time.sleep(1)
-            list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchExactly)
-            if len(list_item) > 0:
-                for i in list_item:
-                    row = self.list1.row(i)
-                    self.list1.setFocus()
-                    self.list1.setCurrentRow(row)
-                    item = self.list1.item(row)
-                    logger.debug(':::::row:::{0}::::::::'.format(row))
-                    if item:
-                        self.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
-            time.sleep(1)
-            self.list2.setFocus()
-            item = self.list2.item(0)
-            self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-            #self.torrent_frame.show()
-            self.progress.show()
+            self.quick_torrent_play_method(url=self.quick_url_play)
         else:
             self.watch_external_video(self.quick_url_play, start_now=True)
             self.btn1.setCurrentIndex(0)
@@ -11646,13 +11715,16 @@ watch/unwatch status")
                         or '401 unauthorized' in content.lower()):
                     dlg = LoginAuth(parent=MainWindow, url=t, ui=self, tmp=TMPDIR)
                     return 0
-                    
-                if ('audio/mpegurl' in content) or ('text/html' in content):
+                torrent_file = False
+                m3u_file = False
+                if 'application/x-bittorrent' in content:
+                    torrent_file = True
+                elif ('audio/mpegurl' in content) or ('text/html' in content):
                     content = ccurl(t)
-                    txt_file = True
-                else:
-                    txt_file = False
-                if txt_file and '#EXTM3U' in content:
+                    if '#EXTM3U' in content:
+                        m3u_file = True
+                
+                if m3u_file:
                     lines = content.split('\n')
                     if lines:
                         self.epn_arr_list[:] = []
@@ -11681,6 +11753,8 @@ watch/unwatch status")
                             write_files(file_name, self.epn_arr_list, True)
                             self.list1.clear()
                             self.list1.addItem('TMP_PLAYLIST')
+                elif torrent_file:
+                    self.quick_torrent_play_method(url=t)
                 else:
                     site == 'None'
                     finalUrl = t
@@ -11775,24 +11849,27 @@ watch/unwatch status")
                     self.list1.clear()
                     self.list1.addItem('TMP_PLAYLIST')
         elif t.endswith('.torrent'):
-            self.torrent_type = 'file'
-            video_local_stream = True
-            site = 'None'
-            t = t.replace('file:///', '/')
-            t=urllib.parse.unquote(t)
-            logger.info(t)
-            local_torrent_file_path = t
-            info = lt.torrent_info(t)
-            file_arr = []
-            self.list2.clear()
-            self.epn_arr_list[:]=[]
-            QtWidgets.QApplication.processEvents()
-            for f in info.files():
-                file_path = f.path
-                logger.info(file_path)
-                file_path = os.path.basename(file_path)
-                self.epn_arr_list.append(file_path+'	'+t)
-                self.list2.addItem((file_path))
+            if t.startswith('http'):
+                self.quick_torrent_play_method(url=t)
+            else:
+                self.torrent_type = 'file'
+                video_local_stream = True
+                site = 'None'
+                t = t.replace('file:///', '/')
+                t=urllib.parse.unquote(t)
+                logger.info(t)
+                local_torrent_file_path = t
+                info = lt.torrent_info(t)
+                file_arr = []
+                self.list2.clear()
+                self.epn_arr_list[:]=[]
+                QtWidgets.QApplication.processEvents()
+                for f in info.files():
+                    file_path = f.path
+                    logger.info(file_path)
+                    file_path = os.path.basename(file_path)
+                    self.epn_arr_list.append(file_path+'	'+t)
+                    self.list2.addItem((file_path))
         elif 'magnet:' in t:
             t = re.search('magnet:[^"]*', t).group()
             site = 'None'
