@@ -2728,14 +2728,11 @@ def start_player_remotely(nm, mode):
         #print('---1523---')
     elif mode == 'queue':
         nm = nm - 1
-        if nm < len(ui.epn_arr_list):
-            ui.queue_url_list.append(ui.epn_arr_list[nm])
-            logger.debug(nm)
-            logger.debug(ui.queue_url_list)
+        ui.queue_item_external = nm
+        ui.set_queue_item_btn.clicked.emit()
     elif mode == 'queue_remove':
-        if nm < len(ui.queue_url_list):
-            del ui.queue_url_list[nm]
-            logger.debug(ui.queue_url_list)
+        ui.queue_item_external_remove = nm
+        ui.remove_queue_item_btn.clicked.emit()
     else:
         if mode == 'playpause':
             ui.player_play_pause.clicked.emit()
