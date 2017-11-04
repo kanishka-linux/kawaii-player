@@ -186,6 +186,13 @@ from serverlib import ServerLib
 
 def set_mainwindow_palette(fanart, first_time=None):
     logger.info('\n{0}:  mainwindow background\n'.format(fanart))
+    if fanart.endswith('default.jpg'):
+        default_dir, default_img = os.path.split(fanart)
+        default_fit = os.path.join(default_dir, 'default_fit.jpg')
+        if not os.path.exists(default_fit):
+            ui.image_fit_option(fanart, default_fit, fit_size=1)
+        fanart = default_fit
+            
     if not os.path.isfile(fanart) or ui.keep_background_constant:
         fanart = ui.default_background
     if os.path.isfile(fanart):
