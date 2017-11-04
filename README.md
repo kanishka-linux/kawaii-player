@@ -898,11 +898,11 @@ Eg. If there are 26 episodes in the list and user want to rename all of them, th
 	3. bash -c 'player=$(qdbus-qt4 org.mpris.* | grep MediaPlayer2 | head -n 1); qdbus-qt4 $player /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous'
 
 
-3. It is possible also to change default background image by simply replacing '~/.config/kawaii-player/default.jpg' with another wallpaper of your choice and rename it to 'default.jpg'. This default image is important only when appropriate Fanart is not found. Once a fanart is found for particular entry, the default background image will change to it.
+3. It is possible also to change default background image by simply replacing '~/.config/kawaii-player/default.jpg' with another wallpaper of your choice and rename it to 'default.jpg'. If there are more images in the configuration directory containing 'default' string, then it means they are derivative images of the default.jpg and users should remove those derivative images also. This default image is important only when appropriate Fanart is not found. Once a fanart is found for particular entry, the default background image will change to new one. 
 
 4. Instead of pycurl, it's possible to use directly either curl or wget for fetching web pages. Users need to edit 'GET_LIBRARY' field in the '~/.config/kawaii-player/other_options.txt' and change it to either 'curl' or 'wget'. 
 
-5. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+0 to Ctrl+9 shortcuts, to experiment with various available background image modes.
+5. By default, the background image follows fit to height mode by keeping the original aspect ratio of the image. If user wants to change it to fit to screen or fit to width then they should try Ctrl+1 or Ctrl+2 global key combination. Users can also try Ctrl+0 to Ctrl+9 shortcuts, to experiment with various available background image modes. Users can't change background mode of default wallpaper image. Default background image will always follow fit to screen mode.
 
 ## Contacts
 
