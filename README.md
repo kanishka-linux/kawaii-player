@@ -395,6 +395,9 @@ Web Interface, contains a search text box which can be used to send text command
         $ yt:d (download for offline viewing on server)
         $ yt:d:youtube_link (add link to server playlist and download for offline viewing on server)
         $ yt:getsub (get subtitle if available)
+        
+        Youtub-Quick-command
+        $ytq:{any link supported by ytdl or torrent http/magnet link}
     
 * **About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session. The playlist, which is displayed on the web interface also provides contextmenu that provides variety of options. This contextmenu is shown on right clicking any playlist entry. On android firefox, users have to press playlist entry to see the contextmenu. On android chrome, users have to press the thumbnail image to see the contextmenu.
 
@@ -402,11 +405,25 @@ Web Interface, contains a search text box which can be used to send text command
 
 * **About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
 
+* **About Youtube-Quick (ytq:) command:** (Available in version 2.8+) the ytq command will send any url or torrent link to the the application without asking anything and will start playing the video instantly using mpv/mplayer and youtube-dl. Torrent http/magnet links will be played using torrent streaming engine of the application. All the casted url's will be temporarily saved in 'TMP_PLAYLIST' - which users can save later on. Torrents will be saved in 'Torrent->History' section. Users can control quality using 'quality:' command.
+
+
+
 ## Casting
 
 ###### [Index](#index)
 
-The computer running kawaii-player can be used as youtube-casting or torrent-casting device. Users can directly send youtube video/playlist links using web interface to the application with the help of text commands mentioned in the [Using Web Interface](#using-web-interface) section, which will be then played using mpv/mplayer and youtube-dl. If the computer running the application is connected to TV then user can directly view the content on TV. Same is with torrent http/magnet links. Users can preserve everything which has been played into local playlist. Users need to enable remote-control mode to use these features, without which everything you click might start playing in the browser if it's html5 compatible. The playing instance can be easily controlled using web-based remote. The application has not been tested on raspberry-pi, but it's possible to install it on any gnu/linux based system, hence there should not be any problem installing it on raspberry-pi with lightweight Arch linux or ubuntu 16.04+ based systems. If kawaii-player is installed on raspberry-pi then users might turn their pi devices into some kind of chromecast for youtube and torrent streams.
+The computer running kawaii-player can be used as youtube-casting or torrent-casting device. Users can directly send youtube video/playlist links using web interface to the application with the help of text commands mentioned in the [Using Web Interface](#using-web-interface) section, which will be then played using mpv/mplayer and youtube-dl. If the computer running the application is connected to TV then user can directly view the content on TV. Same is with torrent http/magnet links. Users can preserve everything which has been played into local playlist. Users need to enable **remote-control** mode to use these features, without which everything you click might start playing in the browser if it's html5 compatible. The playing instance can be easily controlled using web-based remote.
+
+Explanation for some casting commands:
+
+* **yt:** command: First users have to select some playlist using web interface and then this command will send some url which will be then saved to that playlist. Users then have to click on the playlist entry manually to make it play on the server.
+
+* **torrent:** command: First select Torrent section from web interface, then this command will send torrent http/magnet link to the application. Users then have to go to Torrent->History section and click on the required item to make it start playing.
+
+* **ytq:** command: (Available in version 2.8+ onwards) Users can send any ytdl supported link/direct link or torrent magnet/http link to the application, which will be then played instantly without asking anything.
+
+For using remote control, see the following section.
 
 ## Remote Control
 
@@ -416,10 +433,13 @@ The computer running kawaii-player can be used as youtube-casting or torrent-cas
 
 (Web Based Remote Control for controlling the player)
 
-Remote Control can be activated by selecting **'More->Turn On Remote Control'**, (or user can directly add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**). Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, they can see new button labeled **'R:Off'**. Clicking the button, will enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling current playing instance of kawaii-player.
+* Remote Control can be activated by selecting **'More->Turn On Remote Control'**, (or user can directly add **'REMOTE_CONTROL=True'** field in the file **'~/.config/kawaii-player/other_options.txt'**). Then user needs to start the media server and access the web interface as per instructions written in [Media Server](#media-server) section. Once user will open the web interface, they can see new button labeled **'R:Off'**. Clicking the button, will enable remote control mode. After enabling remote control mode, the buttons in web interface will be utilized for remote controlling current playing instance of kawaii-player.
 
-(For best experience, use latest version of mpv. Some commands pertaining to volume control won't work on old version.)
+* For best experience, use latest version of mpv. Some commands pertaining to volume control won't work on old version.
 
+* There are two types of control buttons in the web interface. One set of buttons is directly below the playing video, which are used to control playback inside the web interface. While second group of buttons which is organised in grid pattern is used for controlling the application remotely. If remote control mode is not enabled, then all the buttons will be utilized for controlling various playback activities on the web interface. 
+
+* About First, Last, Next, Prev buttons: These buttons on the web interface will allow users to navigate various playlists which they have accessed during the session. In order to clear playlist navigation history, use 'clear:playlist_history' command.
 
 ## YouTube Support
 
@@ -427,16 +447,11 @@ Remote Control can be activated by selecting **'More->Turn On Remote Control'**,
 
 ![kawaii-player](/Images/YT.png)
 
-This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports downloading youtube subtitles/captions (If available). If subtitles are availble and downloaded by the player, then usesrs need to press 'Shift+J' (Focus the player by taking mouse pointer over the playing video, before using this shortcut key combination) to load the subtitles into the player. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
+This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
 youtube-dl gets outdated quickly, hence there is an option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user needs to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
 
-**Using Web Interface:** youtube url's can be sent directly to the playlist from web interface with the help of following commands which needs to be entered in the text search box available in the web ui. 
-
-		$ yt:youtube_url_link (for adding youtube link to the local playlist)
-		$ yt:audio (for playing only audio)
-		$ yt:audiovideo (regular video)
-		$ quality:{sd,hd or best}
+Even though, the wrapper has been written for YouTube site, the framework that has been created can be used with any youtube-dl supported site from version 2.8+ onwards. Using internal web browser, users can go to any youtube-dl supported website (using either duckduckgo or google), then right click the required link and play it with kawaii-player.
 
 ## Minimal Music Player
 
