@@ -234,6 +234,9 @@ Steps Inovolved in P2P mode for two computers:
 
 10. If client does not want to share its library and it just want to access library of the server, then there is no need for the client to switch on its media server functionality.
 
+What is the use case of p2p mode? 
+
+It allows users to decentralize their collection and at the same time it allows easy sharing of media (in streaming mode) between multiple computers running different operating systems. This peer to peer mode has been made only for personal use within network.
 
 ## Universal Playlist Generation
 
@@ -422,6 +425,10 @@ Explanation for some casting commands:
 * **torrent:** command: First select Torrent section from web interface, then this command will send torrent http/magnet link to the application. Users then have to go to Torrent->History section and click on the required item to make it start playing.
 
 * **ytq:** command: (Available in version 2.8+ onwards) Users can send any ytdl supported link/direct link or torrent magnet/http link to the application, which will be then played instantly without asking anything.
+
+About casting extensions:
+
+Experimental casting extension is available for both firefox and chromium [here](https://github.com/kanishka-linux/Extensions).  This extension will add icon and context menu for casting to kawaii-player. Users just have to setup server ip address initially by clicking on the extension icon. After that users are free to go anywhere on the web and then they can cast supported links (including torrent magnet links) directly to the kawaii-player using either context menu or top icon. Therefore, users don’t have to enter text commands manually for casting. Playback of the video can be controlled using web interface.  
 
 For using remote control, see the following section.
 
