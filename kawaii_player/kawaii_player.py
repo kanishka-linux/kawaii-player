@@ -9662,6 +9662,7 @@ watch/unwatch status")
         global sub_id, audio_id, current_playing_file_path, wget, desktop_session
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
+            #logger.debug('-->{0}<--'.format(a))
             if 'volume' in a:
                 logger.debug(a)
             elif 'Video' in a:
@@ -9904,7 +9905,7 @@ watch/unwatch status")
                                 self.frame_timer.start(100)
                         except Exception as err_val:
                             print(err_val, '--mpv--cache-error--')
-                elif "VO:" in a or "AO:" in a or 'Stream opened successfully' in a:
+                elif ("VO:" in a or "AO:" in a or 'Stream opened successfully' in a) and not self.mplayerLength:
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
                     self.eof_reached = False
