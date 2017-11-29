@@ -139,7 +139,7 @@ class Browser(QtWebKitWidgets.QWebView):
 
     def get_html(self, var):
         print('--got--html--', self.url().toString())
-        if 'youtube' in self.url().toString():
+        if 'youtube.com' in self.url().toString():
             self.playlist_dict = {}
             x = urllib.parse.unquote(var)
             x = x.replace('\\\\u0026', '&')
@@ -413,7 +413,7 @@ class Browser(QtWebKitWidgets.QWebView):
                 arr = arr + arr_last
             elif 'youtube.com' in url.toString() or 'ytimg.com' in url.toString() or url.toString().startswith('http'):
                 yt = True
-                arr[:] = []
+                #arr[:] = []
                 arr.append('Play with Kawaii-Player')
                 arr.append('Queue Item')
                 arr.append('Download')

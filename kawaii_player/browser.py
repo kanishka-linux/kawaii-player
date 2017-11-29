@@ -404,7 +404,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                     arr = arr + arr_last
                 elif 'youtube.com' in url or 'ytimg.com' in url or url.startswith('http'):
                     yt = True
-                    arr[:] = []
+                    #arr[:] = []
                     arr.append('Play with Kawaii-Player')
                     arr.append('Queue Item')
                     arr.append('Download')
