@@ -1581,6 +1581,7 @@ watch/unwatch status")
         self.acquire_subtitle_lock = False
         self.cache_mpv_indicator = False
         self.cache_mpv_counter = '00'
+        self.mpv_playback_duration = None
         self.broadcast_message = 'kawaii-player {0}'.format(self.version_number)
         self.broadcast_server = False
         self.broadcast_thread = None
@@ -9853,7 +9854,12 @@ watch/unwatch status")
                         else:
                             val = 0
                         if len(timearr) == 1:
-                            out = timearr[0] + ' / ' + '00:00:00'
+                            end_time = '00:00:00'
+                            if self.mplayerLength > 1:
+                                if self.mpv_playback_duration:
+                                    end_time = self.mpv_playback_duration
+                                    
+                            out = timearr[0] + ' / ' + end_time
                         else:
                             out = timearr[0] + ' / ' + timearr[1]
                         if percomp:
@@ -9927,6 +9933,7 @@ watch/unwatch status")
                                 print(self.mplayerLength, "--mpvlength", a)
                                 if self.mplayerLength == 0:
                                     self.mplayerLength = 1
+                                self.mpv_playback_duration = n
                                 self.progressEpn.setMaximum(int(self.mplayerLength))
                                 self.slider.setRange(0, int(self.mplayerLength))
                                 self.mpv_cnt = 0
@@ -9962,6 +9969,7 @@ watch/unwatch status")
                 elif ("VO:" in a or "AO:" in a or 'Stream opened successfully' in a) and not self.mplayerLength:
                     self.cache_mpv_indicator = False
                     self.cache_mpv_counter = '00'
+                    self.mpv_playback_duration = None
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
                     self.eof_reached = False
@@ -9983,6 +9991,7 @@ watch/unwatch status")
                         reason_end = 'length of file equals progress counter'
                     self.cache_mpv_indicator = False
                     self.cache_mpv_counter = '00'
+                    self.mpv_playback_duration = None
                     logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
                     logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
                     if self.player_setLoop_var:
@@ -10321,6 +10330,7 @@ watch/unwatch status")
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
+        self.mpv_playback_duration = None
         self.progressEpn.setMaximum(100)
         self.slider.setRange(0, 100)
         print("Process Ended")
@@ -10333,6 +10343,7 @@ watch/unwatch status")
         global Player, site, new_epn, mpv_indicator, cache_empty
         self.eof_reached = False
         self.eof_lock = False
+        self.mpv_playback_duration = None
         logger.debug('Now Starting')
         if not command:
             t = "Loading Failed: No Url/File Found. Try Again"
