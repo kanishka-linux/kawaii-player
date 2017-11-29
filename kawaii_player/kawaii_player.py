@@ -9859,7 +9859,7 @@ watch/unwatch status")
                                 per_comp = per_comp + ')'
                         else:
                             if self.mplayerLength > 1:
-                                per_comp = '('+str(int(100*timearr[0]/self.mplayerLength))+'%)'
+                                per_comp = '('+str(int(100*val/self.mplayerLength))+'%)'
                             else:
                                 per_comp = '(0%)'
                         out = out + ' ' + per_comp
@@ -9931,8 +9931,8 @@ watch/unwatch status")
                             self.mpv_cnt = self.mpv_cnt + 1
                         out1 = out+" ["+self.epn_name_in_list+"]"
                         self.progressEpn.setFormat((out1))
-                        logger.debug(out1)
-                        logger.debug('--9893--')
+                        #logger.debug(out1)
+                        #logger.debug('--9893--')
                         if self.mplayerLength == 1:
                             val = 0
                             self.slider.setValue(0)
