@@ -9862,15 +9862,19 @@ watch/unwatch status")
                             out = timearr[0] + ' / ' + end_time
                         else:
                             out = timearr[0] + ' / ' + timearr[1]
+                        per_comp = '(0%)'
                         if percomp:
                             per_comp = percomp.group()
                             if not per_comp.endswith(')'):
                                 per_comp = per_comp + ')'
                         else:
-                            if self.mplayerLength > 1:
+                            txt = self.progressEpn.text()
+                            percomp = re.search("[(]*[0-9]*\%[)]*", txt)
+                            if percomp:
+                                per_comp = percomp.group()
+                            elif self.mplayerLength > 1:
                                 per_comp = '('+str(int(100*val/self.mplayerLength))+'%)'
-                            else:
-                                per_comp = '(00%)'
+                                
                         out = out + ' ' + per_comp
                             
                         cache_exists = False
