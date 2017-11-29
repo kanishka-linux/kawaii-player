@@ -9856,9 +9856,12 @@ watch/unwatch status")
                         if len(timearr) == 1:
                             end_time = '00:00:00'
                             if self.mplayerLength > 1:
-                                if self.mpv_playback_duration:
+                                txt = self.progressEpn.text()
+                                timearr = re.findall("[0-9][0-9]+:[0-9][0-9]+:[0-9][0-9]+", txt)
+                                if timearr and len(timearr) == 2:
+                                    end_time = timearr[1]
+                                elif self.mpv_playback_duration:
                                     end_time = self.mpv_playback_duration
-                                    
                             out = timearr[0] + ' / ' + end_time
                         else:
                             out = timearr[0] + ' / ' + timearr[1]
