@@ -3053,19 +3053,22 @@ watch/unwatch status")
                 else:
                     self.tab_5.showNormal()
                     self.tab_5.hide()
-                    if self.fullscreen_mode == 0:
-                        if show_hide_titlelist == 1:
-                            self.list1.show()
-                            #self.frame.show()
-                        if show_hide_cover == 1:
-                            self.label.show()
-                            self.text.show()
-                        if show_hide_titlelist == 1:
-                            self.list2.show()
-                            #ui.goto_epn.show()
-                        self.list2.setFocus()
-                    elif self.fullscreen_mode == 1:
-                        self.tab_6.show()
+                    if self.tab_2.isHidden():
+                        if self.fullscreen_mode == 0:
+                            if show_hide_titlelist == 1:
+                                self.list1.show()
+                                #self.frame.show()
+                            if show_hide_cover == 1:
+                                self.label.show()
+                                self.text.show()
+                            if show_hide_titlelist == 1:
+                                self.list2.show()
+                                #ui.goto_epn.show()
+                            self.list2.setFocus()
+                        elif self.fullscreen_mode == 1:
+                            self.tab_6.show()
+                    else:
+                        pass
                     self.gridLayout.setContentsMargins(5, 5, 5, 5)
                     self.gridLayout.setSpacing(5)
                     self.frame1.show()
