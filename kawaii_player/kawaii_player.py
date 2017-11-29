@@ -57,7 +57,7 @@ import ssl
 import hashlib
 import uuid
 import platform
-
+import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 import pycurl
@@ -134,7 +134,25 @@ if TMPDIR and not os.path.exists(TMPDIR):
     except OSError as e:
         print(e)
         TMPDIR = mkdtemp(suffix=None, prefix='kawaii-player_')
-        
+
+
+def set_logger(file_name, TMPDIR):
+    file_name_log = os.path.join(TMPDIR, file_name)
+    #log_file = open(file_name_log, "w", encoding="utf-8")
+    logging.basicConfig(level=logging.DEBUG)
+    formatter_fh = logging.Formatter('%(asctime)-15s::%(module)s:%(funcName)s: %(levelname)-7s - %(message)s')
+    formatter_ch = logging.Formatter('%(levelname)s::%(module)s::%(funcName)s: %(message)s')
+    fh = logging.FileHandler(file_name_log)
+    fh.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter_ch)
+    fh.setFormatter(formatter_fh)
+    log = logging.getLogger(__name__)
+    log.addHandler(ch)
+    log.addHandler(fh)
+    return log
+
 logger = set_logger('kawaii-player.log', TMPDIR)
 
 
@@ -1560,6 +1578,9 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.options_mode = 'legacy'
+        self.acquire_subtitle_lock = False
+        self.cache_mpv_indicator = False
+        self.cache_mpv_counter = '00'
         self.broadcast_message = 'kawaii-player {0}'.format(self.version_number)
         self.broadcast_server = False
         self.broadcast_thread = None
@@ -4767,6 +4788,8 @@ watch/unwatch status")
     def mpvNextEpnList(self, play_row=None, mode=None):
         global epn, curR, Player, site, current_playing_file_path
         print(play_row, '--play_row--', mode)
+        self.cache_mpv_counter = '00'
+        self.cache_mpv_indicator = False
         if self.mpvplayer_val.processId() > 0:
             print("-----------inside-------")
             if play_row != None and mode == 'play_now':
@@ -4836,7 +4859,8 @@ watch/unwatch status")
     def mpvPrevEpnList(self):
         global epn, curR, Player, site
         global current_playing_file_path
-        
+        self.cache_mpv_counter = '00'
+        self.cache_mpv_indicator = False
         if self.mpvplayer_val.processId() > 0:
             print("inside")
             if curR == 0:
@@ -9660,6 +9684,7 @@ watch/unwatch status")
         global new_tray_widget, video_local_stream, pause_indicator
         global epn_name_in_list, mpv_indicator, mpv_start, idw, cur_label_num
         global sub_id, audio_id, current_playing_file_path, wget, desktop_session
+        
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
             #logger.debug('-->{0}<--'.format(a))
@@ -9686,6 +9711,10 @@ watch/unwatch status")
                         self.player_play_pause_status('pause')
                 elif 'Exiting... (Quit)' in a:
                     self.playerStop(msg='already quit')
+                elif 'load_sub: load_external_subtitle' in a.lower():
+                    if not self.acquire_subtitle_lock:
+                        self.acquire_subtitle_lock = True
+                        self.tab_5.load_external_sub()
                 elif 'set property: video-aspect=' in a.lower():
                     logger.debug(a)
                     aspect_val = a.split('video-aspect=')[1].split(' ')[0]
@@ -9812,100 +9841,124 @@ watch/unwatch status")
                         if MainWindow.isFullScreen() and layout_mode != "Music":
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
-                    t = re.findall("AV:[^)]*[)]|A:[^)]*[)]", a)
-                    if not t:
-                        t = re.findall("AV: [^ ]*|A: [^ ]*", a)
-                        if not t:
-                            t = ['AV: 00:00:00 / 00:00:00 (0%)']
-                    if "Cache:" in a:
-                        cache_int = 0
-                        n = re.findall("Cache:[^+]*", a)
-                        cache_val = re.search("[0-9][^s]*", n[0]).group()
-                        
-                        try:
-                            cache_int = int(cache_val)
-                        except Exception as err_val:
-                            print(err_val)
-                            cache_int = 0
-                        if cache_int >= 119:
-                            cache_int = 119
-                        elif cache_int >=9 and cache_int < 12:
-                            cache_int = 10
-                        if cache_int < 10:
-                            cache_val = '0'+str(cache_int)
+                    timearr = re.findall("[0-9][0-9]+:[0-9][0-9]+:[0-9][0-9]+", a)
+                    percomp = re.search("[(]*[0-9]*\%[)]*", a)
+                    if timearr:
+                        val1 = timearr[0].split(':')
+                        if val1:
+                            val = int(val1[0])*3600+int(val1[1])*60+int(val1[2])
                         else:
-                            cache_val = str(cache_int)
-                        out = t[0] +"  Cache:"+str(cache_val)+'s'
-                    else:
-                        cache_val = '0'
-                        cache_int = 0
-                        out = t[0]
-                    try:
-                        new_cache_val = cache_int
-                    except Exception as e:
-                        print(e, '--cache-val-error--')
-                        new_cache_val = 0
-                    if "Paused" in a and not mpv_indicator:
-                        out = "(Paused) "+out
-                        #print(out)
-                        if self.custom_mpv_input_conf:
-                            self.mpv_custom_pause = True
-                    elif "Paused" in a and mpv_indicator:
-                        out = "(Paused Caching..) "+out
-                        #print(out)
-                        if self.custom_mpv_input_conf:
-                            self.mpv_custom_pause = True
-                    out = re.sub('AV:[^0-9]*|A:[^0-9]*', '', out)
-                    #print(out)
-                    l = re.findall("[0-9][^ ]*", out)
-                    val1 = l[0].split(':')
-                    val = int(val1[0])*3600+int(val1[1])*60+int(val1[2])
-                    #print(val)
-                    if not self.mplayerLength:
-                        if self.mpv_cnt > 4:
-                            m = re.findall('[/][^(]*', out)
+                            val = 0
+                        if len(timearr) == 1:
+                            out = timearr[0] + ' / ' + '00:00:00'
+                        else:
+                            out = timearr[0] + ' / ' + timearr[1]
+                        if percomp:
+                            per_comp = percomp.group()
+                            if not per_comp.endswith(')'):
+                                per_comp = per_comp + ')'
+                        else:
+                            if self.mplayerLength > 1:
+                                per_comp = '('+str(int(100*timearr[0]/self.mplayerLength))+'%)'
+                            else:
+                                per_comp = '(0%)'
+                        out = out + ' ' + per_comp
+                            
+                        cache_exists = False
+                        if "Cache:" in a:
+                            self.cache_mpv_indicator = True
+                            cache_int = 0
+                            n = re.findall("Cache:[^+]*", a)
+                            if 's' in n[0]:
+                                cache_val = re.search("[0-9][^s]*", n[0]).group()
+                            else:
+                                cache_val = self.cache_mpv_counter
+                            
                             try:
-                                n = re.sub(' |[/]', '', m[0])
-                            except Exception as err_msg:
-                                print(err_msg)
-                                n = '00:00:00'
-                            print(n)
-                            o = n.split(':')
-                            self.mplayerLength = int(o[0])*3600+int(o[1])*60+int(o[2])
-                            print(self.mplayerLength, "--mpvlength", a)
-                            if self.mplayerLength == 0:
-                                self.mplayerLength = 1
-                            self.progressEpn.setMaximum(int(self.mplayerLength))
-                            self.slider.setRange(0, int(self.mplayerLength))
-                            self.mpv_cnt = 0
-                        print(self.mplayerLength)
-                        self.mpv_cnt = self.mpv_cnt + 1
-                    out1 = out+" ["+self.epn_name_in_list+"]"
-                    self.progressEpn.setFormat((out1))
-                    if self.mplayerLength == 1:
-                        val = 0
-                        self.slider.setValue(0)
-                    else:
-                        self.slider.setValue(val)
-                    self.progress_counter = val
-                    if not new_tray_widget.isHidden():
-                        new_tray_widget.update_signal.emit(out, val)
-                    if cache_empty == 'yes':
+                                cache_int = int(cache_val)
+                            except Exception as err_val:
+                                print(err_val)
+                                cache_int = 0
+                            
+                            if cache_int >= 119:
+                                cache_int = 119
+                            elif cache_int >=9 and cache_int < 12:
+                                cache_int = 10
+                            if cache_int < 10:
+                                cache_val = '0'+str(cache_int)
+                            else:
+                                cache_val = str(cache_int)
+                            cache_exists = True
+                            self.cache_mpv_counter = cache_val
+                        else:
+                            cache_val = '00'
+                            cache_int = 0
                         try:
-                            if new_cache_val > 4:
-                                cache_empty = 'no'
-                                self.mpvplayer_val.write(b'\n set pause no \n')
-                                self.player_play_pause.setText(self.player_buttons['pause'])
-                                if mpv_indicator:
-                                    mpv_indicator.pop()
-                                if pause_indicator:
-                                    pause_indicator.pop()
-                                if self.frame_timer.isActive():
-                                    self.frame_timer.stop()
-                                self.frame_timer.start(100)
-                        except Exception as err_val:
-                            print(err_val, '--mpv--cache-error--')
+                            new_cache_val = cache_int
+                        except Exception as e:
+                            print(e, '--cache-val-error--')
+                            new_cache_val = 0
+                        if self.cache_mpv_indicator:
+                            out = out +"  Cache:"+str(self.cache_mpv_counter)+'s'
+                        if "Paused" in a and not mpv_indicator:
+                            out = "(Paused) "+out
+                            if self.custom_mpv_input_conf:
+                                self.mpv_custom_pause = True
+                        elif "Paused" in a and mpv_indicator:
+                            out = "(Paused Caching..) "+out
+                            if self.custom_mpv_input_conf:
+                                self.mpv_custom_pause = True
+                        
+                        
+                        if not self.mplayerLength:
+                            if self.mpv_cnt > 4:
+                                m = re.findall('[/][^(]*', out)
+                                try:
+                                    n = re.sub(' |[/]', '', m[0])
+                                except Exception as err_msg:
+                                    print(err_msg)
+                                    n = '00:00:00'
+                                print(n)
+                                o = n.split(':')
+                                self.mplayerLength = int(o[0])*3600+int(o[1])*60+int(o[2])
+                                print(self.mplayerLength, "--mpvlength", a)
+                                if self.mplayerLength == 0:
+                                    self.mplayerLength = 1
+                                self.progressEpn.setMaximum(int(self.mplayerLength))
+                                self.slider.setRange(0, int(self.mplayerLength))
+                                self.mpv_cnt = 0
+                            print(self.mplayerLength)
+                            self.mpv_cnt = self.mpv_cnt + 1
+                        out1 = out+" ["+self.epn_name_in_list+"]"
+                        self.progressEpn.setFormat((out1))
+                        logger.debug(out1)
+                        logger.debug('--9893--')
+                        if self.mplayerLength == 1:
+                            val = 0
+                            self.slider.setValue(0)
+                        else:
+                            self.slider.setValue(val)
+                        self.progress_counter = val
+                        if not new_tray_widget.isHidden():
+                            new_tray_widget.update_signal.emit(out, val)
+                        if cache_empty == 'yes':
+                            try:
+                                if new_cache_val > 4:
+                                    cache_empty = 'no'
+                                    self.mpvplayer_val.write(b'\n set pause no \n')
+                                    self.player_play_pause.setText(self.player_buttons['pause'])
+                                    if mpv_indicator:
+                                        mpv_indicator.pop()
+                                    if pause_indicator:
+                                        pause_indicator.pop()
+                                    if self.frame_timer.isActive():
+                                        self.frame_timer.stop()
+                                    self.frame_timer.start(100)
+                            except Exception as err_val:
+                                print(err_val, '--mpv--cache-error--')
                 elif ("VO:" in a or "AO:" in a or 'Stream opened successfully' in a) and not self.mplayerLength:
+                    self.cache_mpv_indicator = False
+                    self.cache_mpv_counter = '00'
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
                     self.eof_reached = False
@@ -9925,6 +9978,8 @@ watch/unwatch status")
                         reason_end = 'EOF code: 1'
                     else:
                         reason_end = 'length of file equals progress counter'
+                    self.cache_mpv_indicator = False
+                    self.cache_mpv_counter = '00'
                     logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
                     logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
                     if self.player_setLoop_var:
