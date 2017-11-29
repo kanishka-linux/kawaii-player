@@ -9870,7 +9870,7 @@ watch/unwatch status")
                             if self.mplayerLength > 1:
                                 per_comp = '('+str(int(100*val/self.mplayerLength))+'%)'
                             else:
-                                per_comp = '(0%)'
+                                per_comp = '(00%)'
                         out = out + ' ' + per_comp
                             
                         cache_exists = False
