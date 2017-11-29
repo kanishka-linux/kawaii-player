@@ -271,7 +271,7 @@ class Browser(QtWebKitWidgets.QWebView):
                 self.ui.mpvplayer_started = False
             self.ui.get_final_link(
                 url, self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
-                self.epn_name_in_list, self.hdr)
+                '', self.hdr)
 
     def custom_links(self, q_url):
         url = q_url
