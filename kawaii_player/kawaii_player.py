@@ -9747,6 +9747,10 @@ watch/unwatch status")
                 if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
                     self.eof_lock = True
+                logger.debug('<<<<<<<<<<<< start <<<<>>>>>>>>>>>>>>>>>')
+                logger.debug(a)
+                logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
+                logger.debug('<<<<<<<<<<<<<<< end <<<<>>>>>>>>>>>>>>>')
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
                 if 'icy info:' in a.lower():
                     song_title = re.search("'[^']*", a)
