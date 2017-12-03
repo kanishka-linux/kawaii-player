@@ -10059,6 +10059,7 @@ watch/unwatch status")
                             else:
                                 self.getNextInList()
                     elif quitReally == "yes": 
+                        self.player_stop.clicked.emit()
                         self.list2.setFocus()
             elif Player == "mplayer":
                 if "PAUSE" in a:
@@ -10306,7 +10307,8 @@ watch/unwatch status")
                             q3="self.label_epn_"+str(length_1+cur_label_num)+".setAlignment(QtCore.Qt.AlignCenter)"
                             exec(q3)
                             QtWidgets.QApplication.processEvents()
-                    elif quitReally == "yes": 
+                    elif quitReally == "yes":
+                        self.player_stop.clicked.emit() 
                         self.list2.setFocus()
         except Exception as e:
             print(e, '--dataready--exception--')

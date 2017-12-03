@@ -876,7 +876,10 @@ class PlayerWidget(QtWidgets.QWidget):
             self.ui.mpvNextEpnList()
         elif event.key() == QtCore.Qt.Key_Comma:
             self.ui.mpvPrevEpnList()
+        elif (event.modifiers() == QtCore.Qt.ControlModifier
+                and event.key() == QtCore.Qt.Key_Q):
+            quitReally = "yes"
+            self.ui.set_parameters_value(quit_r=quitReally)
         elif event.key() == QtCore.Qt.Key_Q:
             self.player_quit()
-
         #super(PlayerWidget, self).keyPressEvent(event)
