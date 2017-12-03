@@ -472,7 +472,8 @@ def information_update():
 
 @pyqtSlot(dict, str, str)
 def update_image_list(image_dict, dest_dir, site):
-    update_image_list_method(image_dict, dest_dir, site)
+    if dest_dir:
+        update_image_list_method(image_dict, dest_dir, site)
 
 def update_image_list_method(image_dict, dest_dir, site):
     if (site != 'Music' and site != 'PlayLists'
