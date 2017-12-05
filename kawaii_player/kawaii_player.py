@@ -9744,7 +9744,7 @@ watch/unwatch status")
             if (Player == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a 
                     or "HTTP error 403 Forbidden" in a 
-                    or self.mplayerLength == self.progress_counter
+                    or self.progress_counter > self.mplayerLength + 1
                     or 'finished playback, success (reason 0)' in a)):
                 if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
@@ -9961,7 +9961,11 @@ watch/unwatch status")
                             self.slider.setValue(0)
                         else:
                             self.slider.setValue(val)
-                        self.progress_counter = val
+                        if self.progress_counter == self.mplayerLength:
+                            self.progress_counter += 1
+                            logger.debug(self.progress_counter)
+                        else:
+                            self.progress_counter = val
                         if not new_tray_widget.isHidden():
                             new_tray_widget.update_signal.emit(out, val)
                         if cache_empty == 'yes':
