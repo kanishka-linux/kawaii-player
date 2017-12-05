@@ -4760,6 +4760,8 @@ watch/unwatch status")
         curR = self.list2.currentRow()
         queueNo = queueNo + 1
         mpvAlive = 0
+        self.progressEpn.setValue(0)
+        self.progressEpn.setFormat(('Wait...'))
         if self.float_window.isHidden():
             if self.mpvplayer_val.processId() > 0:
                 if idw != str(int(self.tab_5.winId())):
@@ -10519,6 +10521,8 @@ watch/unwatch status")
         print(self.player_setLoop_var)
         row = self.list2.currentRow()
         print('--line--15677--')
+        self.progressEpn.setValue(0)
+        self.progressEpn.setFormat(('Wait...'))
         logger.debug('external-audio-file={0}'.format(self.external_audio_file))
         if row > len(self.epn_arr_list) or row < 0:
             row = len(self.epn_arr_list)-1
@@ -10931,6 +10935,8 @@ watch/unwatch status")
         self.mplayerLength = 0
         buffering_mplayer = "no"
         finalUrl = ''
+        self.progressEpn.setValue(0)
+        self.progressEpn.setFormat(('Wait...'))
         try:
             server._emitMeta("Next", site, self.epn_arr_list)
         except:
