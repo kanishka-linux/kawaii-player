@@ -9558,6 +9558,7 @@ watch/unwatch status")
         else:
             fetch_library = self.get_fetch_library
         if finalUrl.startswith('http'):
+            finalUrl = finalUrl.strip()
             if not referer:
                 command = wget_string(finalUrl, npn, fetch_library)
             else:
