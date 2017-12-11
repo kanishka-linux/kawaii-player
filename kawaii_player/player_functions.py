@@ -208,11 +208,12 @@ def get_home_dir(mode=None):
 def change_opt_file(config_file, old, new):
     if os.path.exists(config_file):
         lines = open_files(config_file, True)
-        for i in range(len(lines)):
-            lines[i] = lines[i].strip()
-            if lines[i].startswith(old):
-                lines[i] = new
-        write_files(config_file, lines, line_by_line=True)
+        if isinstance(lines, list):
+            for i, j in enumerate(lines):
+                lines[i] = lines[i].strip()
+                if lines[i].startswith(old):
+                    lines[i] = new
+            write_files(config_file, lines, line_by_line=True)
 
 def set_logger(file_name, TMPDIR):
     file_name_log = os.path.join(TMPDIR, file_name)
