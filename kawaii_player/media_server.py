@@ -513,7 +513,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Location', nm)
             self.send_header('Connection', 'close')
             self.end_headers()
-            logger.debug('\nRedirecting...\n')
+            logger.debug('\nRedirecting...{0}\n'.format(nm))
         else:
             if '.' in nm:
                 nm_ext = nm.rsplit('.', 1)[1]
@@ -1665,8 +1665,27 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 path = path.split('relative_path=', 1)[1]
                 nm = path
                 nm = str(base64.b64decode(nm).decode('utf-8'))
-                logger.info('------------------{0}'.format(nm))
-                if nm.split('&')[4] == 'True':
+                logger.info('\n<------------------>{0}\n'.format(nm))
+                
+                tmp_arr = nm.split('&')
+                torrent_stream = False
+                if len(tmp_arr) == 7:
+                    if tmp_arr[4] == 'False':
+                        torrent_stream = False
+                    else:
+                        torrent_stream = True
+                elif len(tmp_arr) > 7:
+                    new_tmp_arr = tmp_arr[3:]
+                    row_index = -1
+                    local_stream_index = -1
+                    for i, j in enumerate(new_tmp_arr):
+                        if j.lower() == 'true' or j.lower() == 'false':
+                            if j.lower() == 'false':
+                                torrent_stream = False
+                            else:
+                                torrent_stream = True
+                
+                if torrent_stream:
                     old_nm = nm
                     new_torrent_signal = doGETSignal()
                     if ui.https_media_server:
@@ -1696,9 +1715,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             self.final_message(b)
                     else:
                         pl_id_c = None
+                        
                         if '&pl_id=' in self.path:
                             pl_id_c = re.search('&pl_id=[^/]*', self.path).group()
                             nm = nm + pl_id_c
+                            logger.debug('\nplaylist--id--{0}\n'.format(nm))
                         if self.path.endswith('.subtitle'):
                             loc = get_torrent_download_location(old_nm, home, ui.torrent_download_folder)
                             new_path = self.path.rsplit('.', 1)[0]
