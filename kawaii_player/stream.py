@@ -455,9 +455,7 @@ class TorrentThread(QtCore.QThread):
         s = self.handle.status()
 
         while (not self.session.is_paused()):
-            #print(self.session.is_paused())
             s = self.handle.status()
-            #print('hello', s)
             state_str = ['queued', 'checking', 'downloading metadata', 
                          'DOWNLOADING', 'finished', 'seeding', 'allocating', 
                          'checking fastresume']
@@ -470,45 +468,30 @@ class TorrentThread(QtCore.QThread):
             else:
                 out = 'SEEDING'
             out_percent = int(s.progress*100)
-
-            #print(out)
             TD = str(int(s.total_download/(1024*1024)))+'M'
             TU = str(int(s.total_upload/(1024*1024)))+'M'
             TDR = u'\u2193'+str(int(s.download_rate/1024)) + 'K' + '('+TD+')'
             TUR = u'\u2191'+str(int(s.upload_rate/1024)) + 'K'+'('+TU+')'
-            #TD_ALL = str(int(s.all_time_download/(1024*1024)))+'M'
             out1 = str(out)+' '+total_size_content+' '+TDR +' '+TUR+' '+'P:'+str(s.num_peers)
             if s.state == 1:
                 out1 = 'Checking Please Wait: '+str(out)
             self.progress_signal.emit(out1, out_percent)
-            #if self.from_client:
-            #print(out1, out_percent, 'from_client=', self.from_client, 'start_next=', self.start_next)
-
-            #print(h.have_piece(cnt))
             if cnt1+3 < cnt_limit:
                 if self.handle.have_piece(cnt1) and self.handle.have_piece(cnt1+1):
-                    #print(cnt1, cnt1+1, 7, '--cnt--downloaded--')
                     self.handle.piece_priority(cnt1+2, 7)
                     self.handle.piece_priority(cnt1+3, 7)
                     cnt1 = cnt1+4
 
             if (s.progress * 100) >= 99 and (s.state != 1):
                 if self.from_client:
-                    #print(self.start_next)
                     if not self.start_next:
                         self.start_next = True
                         self.process_next()
-                    #print(self.start_next)
                 else:
                     self.session_signal.emit('..Starting Next Download..')
                     time.sleep(5)
 
-            #if self.handle.is_seed():
-            #print('Download Complete, Entered into seeding mode')
-            #break
             time.sleep(1)
-
-        #print (self.handle.name(), 'complete')
         self.progress_signal_end.emit('complete')
 
 def change_config_file(ip, port):
