@@ -3108,7 +3108,24 @@ class ThreadServerLocal(QtCore.QThread):
 
     def get_httpd(self):
         return self.httpd
-
+    
+    def set_local_ip_val(self):
+        try:
+            self.ip = get_lan_ip()
+        except Exception as err:
+            self.ip = ''
+        if self.ip:
+            if ui.local_ip_stream != self.ip:
+                try:
+                    change_config_file(self.ip, ui.local_port_stream)
+                    print('ip changed: updated config files')
+                except Exception as err:
+                    print(err)
+            ui.local_ip_stream = self.ip
+            ui.local_ip = self.ip
+        else:
+            ui.local_ip_stream = '127.0.0.1'
+    
     def run(self):
         logger.info('starting server...')
         try:
@@ -3117,13 +3134,15 @@ class ThreadServerLocal(QtCore.QThread):
                 if not os.path.exists(cert):
                     self.cert_signal.emit(cert)
             if not ui.https_media_server:
-                server_address = (self.ip, self.port)
+                server_address = ('', self.port)
                 self.httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
+                self.set_local_ip_val()
                 self.media_server_start.emit('http')
             elif ui.https_media_server and os.path.exists(cert):
-                server_address = (self.ip, self.port)
+                server_address = ('', self.port)
                 self.httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
                 self.httpd.socket = ssl.wrap_socket(self.httpd.socket, certfile=cert, ssl_version=ssl.PROTOCOL_TLSv1_2)
+                self.set_local_ip_val()
                 self.media_server_start.emit('https')
             #httpd = MyTCPServer(server_address, HTTPServer_RequestHandler)
         except OSError as e:
