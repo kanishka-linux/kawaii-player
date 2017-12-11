@@ -340,7 +340,7 @@ class ThreadServer(QtCore.QThread):
     def run(self):
         global httpd, ui_player
         print('starting server...')
-        server_address = (self.ip, self.port)
+        server_address = ('', self.port)
         server_start = False
         try:
             httpd = ThreadedHTTPServer(server_address, testHTTPServer_RequestHandler)
