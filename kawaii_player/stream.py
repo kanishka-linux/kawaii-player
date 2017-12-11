@@ -262,7 +262,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print('--timeout--')
 
         if ui_player.media_server_cookie:
-            print('--cookie-stream--enabled--')
+            print('--cookie-stream--enabled--', cookie_verified, local_ip_arr)
             if cookie_verified or client_addr in local_ip_arr:
                 self.get_the_content(get_bytes)
                 print('--cookie-stream-verified--')
@@ -352,11 +352,9 @@ class ThreadServer(QtCore.QThread):
             server_start = True
         except:
             txt = 'Your local IP changed..or port is blocked\n..Trying to find new IP'
-            #subprocess.Popen(['notify-send', txt])
             send_notification(txt)
             self.ip = get_ip()
             txt = 'Your New Address is '+self.ip + '\n Please restart the player'
-            #subprocess.Popen(['notify-send', txt])
             send_notification(txt)
             change_config_file(self.ip, self.port)
             server_address = (self.ip, self.port)
