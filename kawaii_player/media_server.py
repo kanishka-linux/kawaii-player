@@ -3144,8 +3144,6 @@ class ThreadServerLocal(QtCore.QThread):
                     print(err)
             ui.local_ip_stream = self.ip
             ui.local_ip = self.ip
-        else:
-            ui.local_ip_stream = '127.0.0.1'
     
     def run(self):
         logger.info('starting server...')
