@@ -207,9 +207,7 @@ def get_home_dir(mode=None):
 
 def change_opt_file(config_file, old, new):
     if os.path.exists(config_file):
-        f = open(config_file, 'r')
-        lines = f.readlines()
-        f.close()
+        lines = open_files(config_file, True)
         for i in range(len(lines)):
             lines[i] = lines[i].strip()
             if lines[i].startswith(old):
