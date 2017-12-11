@@ -1605,7 +1605,7 @@ watch/unwatch status")
         self.tray_widget = None
         self.web_review_browser_started = False
         self.external_audio_file = False
-        self.show_client_thumbnails = False
+        self.show_client_thumbnails = True
         self.navigate_playlist_history = CustomList()
         self.set_thumbnail_thread_list = []
         self.thread_grid_thumbnail = []
@@ -13055,6 +13055,7 @@ def main():
         show_hide_playlist = 0
     else:
         show_hide_playlist = 1
+    
     if os.path.exists(os.path.join(home, "config.txt")):
                 
         print(Player)
