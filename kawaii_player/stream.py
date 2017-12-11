@@ -239,7 +239,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         print(client_auth_arr, '--250--')
         cookie_verified = False
         client_addr = str(self.client_address[0])
-        print(client_addr, '--client--248--')
+        print(client_addr, '--client--248--', self.path)
         if '&pl_id=' in self.path:
             path, pl_id = self.path.rsplit('&pl_id=', 1)
             del_uid = False
@@ -264,8 +264,8 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if ui_player.media_server_cookie:
             print('--cookie-stream--enabled--', cookie_verified, local_ip_arr)
             if cookie_verified or client_addr in local_ip_arr:
-                self.get_the_content(get_bytes)
                 print('--cookie-stream-verified--')
+                self.get_the_content(get_bytes)
             else:
                 txt = b'You are not authorized to access the content'
                 self.final_message(txt)
@@ -504,17 +504,40 @@ def change_config_file(ip, port):
 
 def get_torrent_download_location(url, home_dir, download_loc):
     tmp_arr = url.split('&')
+    
     site = tmp_arr[0]
     opt = tmp_arr[1]
     site_Name = tmp_arr[2]
-    name = tmp_arr[3]
+    row = -1
+    ep_n = ''
+    if len(tmp_arr) == 7:
+        name = tmp_arr[3]
+        if tmp_arr[4] == 'False':
+            vi_deo_local_stream = False
+        else:
+            vi_deo_local_stream = True
+        row = int(tmp_arr[5])
+        ep_n = tmp_arr[6]
+    elif len(tmp_arr) > 7:
+        new_tmp_arr = tmp_arr[3:]
+        row_index = -1
+        local_stream_index = -1
+        for i, j in enumerate(new_tmp_arr):
+            if j.isnumeric():
+                row = int(j)
+                row_index = i
+            if j.lower() == 'true' or j.lower() == 'false':
+                if j.lower() == 'false':
+                    vi_deo_local_stream = False
+                else:
+                    vi_deo_local_stream = True
+                local_stream_index = i
+        if local_stream_index >= 0:
+            name = '&'.join(new_tmp_arr[:-(len(new_tmp_arr)-local_stream_index)])
+        if row_index >= 0:
+            ep_n = '&'.join(new_tmp_arr[(row_index+1):])
+    
     torrent_loc = os.path.join(home_dir, 'History', site, name+'.torrent')
-    if tmp_arr[4] == 'False':
-        vi_deo_local_stream = False
-    else:
-        vi_deo_local_stream = True
-    row = int(tmp_arr[5])
-    ep_n = tmp_arr[6]
     
     info = lt.torrent_info(torrent_loc)
     i = 0
