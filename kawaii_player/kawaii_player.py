@@ -1613,6 +1613,7 @@ watch/unwatch status")
         self.downloadWgetText = []
         self.quick_url_play = ''
         self.yt_title_thread = False
+        self.media_server_autostart = False
         self.category_dict = {
             'anime':'Anime', 'movies':'Movies', 'tv shows':'TV Shows',
             'cartoons':'Cartoons', 'others':'Others'
@@ -3351,24 +3352,9 @@ watch/unwatch status")
         elif val =="Start Media Server":
             v= str(self.action_player_menu[7].text())
             if v == 'Start Media Server':
-                self.start_streaming = True
-                self.action_player_menu[7].setText("Stop Media Server")
-                if not self.local_http_server.isRunning():
-                    if not self.local_ip_stream:
-                        self.local_ip_stream = '127.0.0.1'
-                        self.local_port_stream = 9001
-                    self.local_http_server = ThreadServerLocal(
-                        self.local_ip_stream, self.local_port_stream, ui_widget=ui, 
-                        logr=logger, hm=home, window=MainWindow)
-                    self.local_http_server.start()
+                self.start_stop_media_server(True)
             elif v == 'Stop Media Server':
-                self.start_streaming = False
-                self.action_player_menu[7].setText("Start Media Server")
-                if self.local_http_server.isRunning():
-                    self.local_http_server.httpd.shutdown()
-                    self.local_http_server.quit()
-                    msg = 'Stopping Media Server\n '+self.local_ip_stream+':'+str(self.local_port_stream)
-                    send_notification(msg)
+                self.start_stop_media_server(False)
         elif val =="Broadcast Server":
             v= str(self.action_player_menu[8].text())
             if v == 'Broadcast Server' and self.local_http_server.isRunning():
@@ -3478,7 +3464,28 @@ watch/unwatch status")
             quality = "sd"
             self.sd_hd.setText("SD")
         self.quality_val = quality
-        
+    
+    def start_stop_media_server(self, start_now):
+        if start_now:
+            self.start_streaming = True
+            self.action_player_menu[7].setText("Stop Media Server")
+            if not self.local_http_server.isRunning():
+                if not self.local_ip_stream:
+                    self.local_ip_stream = '127.0.0.1'
+                    self.local_port_stream = 9001
+                self.local_http_server = ThreadServerLocal(
+                    self.local_ip_stream, self.local_port_stream, ui_widget=ui, 
+                    logr=logger, hm=home, window=MainWindow)
+                self.local_http_server.start()
+        else:
+            self.start_streaming = False
+            self.action_player_menu[7].setText("Start Media Server")
+            if self.local_http_server.isRunning():
+                self.local_http_server.httpd.shutdown()
+                self.local_http_server.quit()
+                msg = 'Stopping Media Server\n '+self.local_ip_stream+':'+str(self.local_port_stream)
+                send_notification(msg)
+    
     def filter_btn_options(self):
         if not self.frame.isHidden() and self.tab_6.isHidden():
             if self.go_page.isHidden():
@@ -12619,6 +12626,17 @@ def main():
                 except Exception as e:
                     print(e)
                     ui.https_media_server = False
+            elif i.startswith('MEDIA_SERVER_AUTOSTART='):
+                try:
+                    k = j.lower()
+                    if k:
+                        if k == 'yes' or k == 'true' or k == '1':
+                            ui.media_server_autostart = True
+                        else:
+                            ui.media_server_autostart = False
+                except Exception as e:
+                    print(e)
+                    ui.media_server_autostart = False
             elif i.startswith('MEDIA_SERVER_COOKIE='):
                 try:
                     k = j.lower()
@@ -12744,6 +12762,7 @@ def main():
         f.write("\nREMOTE_CONTROL=False")
         f.write("\nMPV_INPUT_CONF=False")
         f.write("\nBROADCAST_MESSAGE=False")
+        f.write("\nMEDIA_SERVER_AUTOSTART=False")
         f.close()
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
@@ -13016,7 +13035,10 @@ def main():
     if old_version <= (2, 0, 0, 0) and old_version > (0, 0, 0, 0):
         logger.info('old version: need to change videodb schema')
         ui.media_data.alter_table_and_update(old_version)
-        
+    
+    if ui.media_server_autostart:
+        ui.start_stop_media_server(True)
+    
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
