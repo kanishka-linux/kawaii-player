@@ -214,6 +214,12 @@ class Browser(QtWebKitWidgets.QWebView):
             print(self.url().toString(), self.title(), '--load--progress--')
             frame = self.page().mainFrame().toHtml()
             self.get_html(frame)
+            try:
+                if 'youtube.com/watch?v=' in self.url().toString():
+                    self.ui.progressEpn.setValue(0)
+                    self.ui.progressEpn.setFormat(('Wait...'))
+            except Exception as err:
+                print(err, '--222--')
 
     def title_changed(self, title):
         a = 0

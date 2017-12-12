@@ -192,8 +192,13 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
 
     def load_progress(self, var):
         if var == 100 and 'youtube.com' in self.url().url():
-            #print(self.url(), self.title(), '--load--progress--')
             self.page().toHtml(self.get_html)
+            try:
+                if 'youtube.com/watch?v=' in self.url().toString():
+                    self.ui.progressEpn.setValue(0)
+                    self.ui.progressEpn.setFormat(('Wait...'))
+            except Exception as err:
+                print(err, '--222--')
 
     def title_changed(self, title):
         pass
