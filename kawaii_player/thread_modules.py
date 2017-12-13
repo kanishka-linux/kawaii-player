@@ -479,6 +479,36 @@ def start_player_directly(final_url, nm):
         ui.epn_name_in_list = nm
         #ui.watchDirectly(final_url, nm, 'no')
         ui.epnfound_now_start_player(final_url, nm)
+        
+class UpdateMusicThread(QtCore.QThread):
+    
+    music_db_update = pyqtSignal(str)
+    
+    def __init__(self, ui_widget, music_db, music_file, music_file_bak):
+        QtCore.QThread.__init__(self)
+        global ui
+        ui = ui_widget
+        self.music_db = music_db
+        self.music_file = music_file
+        self.music_file_bak = music_file_bak
+        self.music_db_update.connect(update_music_db_onstart)
+
+    def __del__(self):
+        self.wait()                        
+
+    def run(self):
+        self.music_db_update.emit('start')
+        ui.media_data.update_on_start_music_db(self.music_db, self.music_file,
+                                               self.music_file_bak)
+        self.music_db_update.emit('end')
+
+@pyqtSlot(str)
+def update_music_db_onstart(val):
+    global ui
+    if val == 'start':
+        ui.text.setText('Wait..Checking New Files')
+    else:
+        ui.text.setText('Finished Checking')
 
 class DownloadThread(QtCore.QThread):
 
