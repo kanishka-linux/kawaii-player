@@ -2203,7 +2203,7 @@ watch/unwatch status")
         return arg_dict
         
     def remote_fullscreen(self):
-        global MainWindow, wget
+        global MainWindow, wget, site
         if MainWindow.isHidden():
             MainWindow.show()
         if not MainWindow.isHidden():
@@ -2222,23 +2222,36 @@ watch/unwatch status")
                         self.fullscreen_mode = 2
                     else: 
                         self.fullscreen_mode = 0
-                    self.gridLayout.setSpacing(0)
-                    self.superGridLayout.setSpacing(0)
-                    self.gridLayout.setContentsMargins(0, 0, 0, 0)
-                    self.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                    self.text.hide()
-                    self.label.hide()
-                    self.frame1.hide()
-                    self.tab_6.hide()
-                    self.goto_epn.hide()
+                    
                     #self.btn20.hide()
                     if wget.processId() > 0 or video_local_stream:
                         self.progress.hide()
                         if not self.torrent_frame.isHidden():
                             self.torrent_frame.hide()
-                    self.list2.hide()
-                    self.list6.hide()
+                    if site == 'Music':
+                        if self.frame1.isHidden():
+                            self.frame1.show()
+                        if self.text.isHidden():
+                            self.text.show()
+                        if self.label.isHidden():
+                            self.label.show()
+                        if self.list2.isHidden():
+                            self.list2.show()
+                    else:
+                        self.gridLayout.setSpacing(0)
+                        self.superGridLayout.setSpacing(0)
+                        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+                        self.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                        self.text.hide()
+                        self.label.hide()
+                        self.frame1.hide()
+                        self.list2.hide()
+                        
                     self.list1.hide()
+                    self.tab_6.hide()
+                    self.goto_epn.hide()
+                    self.list6.hide()
+                    
                     self.frame.hide()
                     self.dockWidget_3.hide()
                     self.tab_5.show()
@@ -11423,7 +11436,7 @@ watch/unwatch status")
             elif music_opt == "Playlist":
                 self.music_playlist = True
                 for i in artist:
-                    self.original_path_name.append(os.path.join(home, 'Playlist', i))
+                    self.original_path_name.append(os.path.join(home, 'Playlists', i))
                     self.list1.addItem((i))
             else:
                 artist[:]=[]
