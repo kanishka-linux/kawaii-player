@@ -622,7 +622,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         k = ''
         for i in original_path_name:
             dir_hash = None
-            logger.debug(i)
             i = i.strip()
             old_i = i
             if '	' in i:
@@ -630,6 +629,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if site.lower() == 'music': 
                 if site_option.lower() == 'directory':
                     dir_m, i = os.path.split(i)
+                elif site_option.lower().startswith('playlist'):
+                    old_i = old_i.split('\t')[1]
                 else:
                     i = old_i
                 dir_byte = bytes(old_i, 'utf-8')
@@ -814,7 +815,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     category_list = category_list+'Video:'+arr_cat+';'
                 extra_fields = extra_fields+'Video:Available;Video:History;'+category_list
             elif i.lower() == 'music':
-                extra_fields = extra_fields+'Music:Artist;Music:Album;Music:Directory;'
+                extra_fields = extra_fields+'Music:Artist;Music:Album;Music:Directory;Music:Playlist;'
             elif i.lower().startswith('playlist'):
                 home_n = os.path.join(home, 'Playlists')
                 criteria = os.listdir(os.path.join(home, 'Playlists'))
@@ -2816,16 +2817,21 @@ def find_and_set_index(st, st_o, srch):
     index = None
     mode = -1
     if srch.endswith('.hash'):
-        srch = srch.rsplit('.')[0]
+        srch = srch.rsplit('.', 1)[0]
     if st.lower() == 'video':
         mode = 0
     elif st.lower() == 'music':
-        mode = 1
+        if st_o.lower().startswith('playlist'):
+            mode = 2
+        else:
+            mode = 1
         
     for i, val in enumerate(ui.original_path_name):
         val = val.strip()
         if mode == 0:
             new_val = val.split('\t')[1]
+        elif mode == 2:
+            new_val = val
         else:
             new_val = val
         hash_val = bytes(new_val, 'utf-8')
@@ -2882,7 +2888,8 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                 ui.btn1.setCurrentIndex(index)
             time.sleep(0.5)
             list3_index = 0
-            if st_o.lower() == 'artist' or st_o.lower() == 'album' or st_o.lower() == 'directory':
+            if (st_o.lower() == 'artist' or st_o.lower() == 'album'
+                    or st_o.lower() == 'directory' or st_o.lower() == 'playlist'):
                 for i in range(0, ui.list3.count()):
                     item = ui.list3.item(i)
                     txt = item.text()
