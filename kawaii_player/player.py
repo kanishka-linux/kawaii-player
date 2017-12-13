@@ -154,7 +154,7 @@ class PlayerWidget(QtWidgets.QWidget):
         t = t+val
         self.ui.slider.setValue(t)
     
-    def player_fs(self):
+    def player_fs(self, mode=None):
         param_dict_val = self.ui.get_parameters_value(idw='idw', sw='screen_width',
                                                       sh='screen_height')
         idw = param_dict_val['idw']
@@ -167,7 +167,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 wget = param_dict['wget']
                 video_local_stream = param_dict['video_local_stream']
                 
-                if not MainWindow.isFullScreen():
+                if not MainWindow.isFullScreen() or mode == 'fs':
                     if os.name == 'nt' and self.ui.web_review_browser_started:
                         self.ui.detach_fullscreen = True
                         MainWindow.hide()
