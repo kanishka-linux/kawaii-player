@@ -466,7 +466,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.do_init_function(type_request='head')
 
     def do_GET(self):
-        self.do_init_function(type_request='get')
+        if ui.remote_control and ui.remote_control_field and self.path.startswith('/youtube_quick='):
+            logger.debug('using youtube_quick mode')
+            path = self.path.replace('/', '', 1)
+            self.get_the_content(path, 0)
+        else:
+            self.do_init_function(type_request='get')
 
     def do_POST(self):
         self.do_init_function(type_request='post')
