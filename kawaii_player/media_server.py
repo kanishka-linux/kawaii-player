@@ -681,7 +681,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 self.playlist_shuffle_list = epnArrList.copy()
         site_pls = False
-        if site.lower().startswith('playlist'):
+        if (site.lower().startswith('playlist') or (site.lower().startswith('music')
+                and site_option.lower().startswith('playlist'))):
             site_pls = True
         for  i in range(len(epnArrList)):
             try:
@@ -1274,7 +1275,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if st.startswith('video'):
                     pls_txt = self.media_server_cache_video.get(myvar)
                 elif st.startswith('music'):
-                    pls_txt = self.media_server_cache_music.get(myvar)
+                    if not st_o.startswith('playlist'):
+                        pls_txt = self.media_server_cache_music.get(myvar)
                 else:
                     pls_txt = self.media_server_cache_playlist.get(myvar)
                 if pls_txt and path != 'stream_continue.htm' and not shuffle_list:
