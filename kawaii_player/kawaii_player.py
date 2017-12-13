@@ -9843,7 +9843,7 @@ watch/unwatch status")
                         except:
                             pass
                         if MainWindow.isFullScreen() and site != "Music":
-                            #self.gridLayout.setSpacing(0)
+                            self.gridLayout.setSpacing(0)
                             #if not self.frame1.isHidden():
                             #    self.frame1.hide()
                             if self.frame_timer.isActive():
