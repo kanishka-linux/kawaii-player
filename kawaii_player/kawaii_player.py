@@ -195,7 +195,7 @@ from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
 from widgets.optionwidgets import *
 from widgets.scrollwidgets import *
 from thread_modules import FindPosterThread, ThreadingThumbnail
-from thread_modules import ThreadingExample, DownloadThread
+from thread_modules import ThreadingExample, DownloadThread, UpdateMusicThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
 from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
 from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
@@ -11394,13 +11394,17 @@ watch/unwatch status")
                 self.media_data.create_update_music_db(music_db, music_file, music_file_bak)
                 update_start = 1
             elif not update_start:
-                self.text.setText('Wait..Checking New Files')
-                QtWidgets.QApplication.processEvents()
-                QtCore.QTimer.singleShot(
-                    1000, partial(self.media_data.update_on_start_music_db, 
-                    music_db, music_file, music_file_bak))
+                #self.text.setText('Wait..Checking New Files')
+                #QtWidgets.QApplication.processEvents()
+                #QtCore.QTimer.singleShot(
+                #    1000, partial(self.media_data.update_on_start_music_db, 
+                #    music_db, music_file, music_file_bak))
+                
                 update_start = 1
-                self.text.clear()
+                #self.text.clear()
+                self.update_thread = UpdateMusicThread(self, music_db, music_file, music_file_bak)
+                if not self.update_thread.isRunning():
+                    self.update_thread.start()
             if self.list3.currentItem():
                 music_opt = str(self.list3.currentItem().text())
             else:
