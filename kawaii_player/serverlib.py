@@ -647,8 +647,11 @@ class ServerLib:
                 else:
                     search_field = value.lower()
                     if hash_srch:
-                        hash_dir = bytes(value.split('\t')[0], 'utf-8')
-                logger.debug(value)
+                        if music_opt.lower().startswith('playlist'):
+                            hash_dir = bytes(value.split('\t')[1], 'utf-8')
+                        else:
+                            hash_dir = bytes(value.split('\t')[0], 'utf-8')
+                #logger.debug(value)
                 if hash_srch and hash_dir:
                     h = hashlib.sha256(hash_dir)
                     hash_val = h.hexdigest()
