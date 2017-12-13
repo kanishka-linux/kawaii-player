@@ -268,14 +268,15 @@ class MainWindowWidget(QtWidgets.QWidget):
                 elif not ui.list2.isHidden():
                     ui.list2.setFocus()
 
-        if self.isFullScreen() and not ui.tab_5.isHidden():
+        if self.isFullScreen() and (not ui.tab_5.isHidden() or ui.mpvplayer_val.processId() > 0):
             logger.info('FullScreen Window but not video')
             ht = self.height()
             if pos.y() <= ht and pos.y() > ht - 5 and ui.frame1.isHidden():
                 ui.frame1.show()
                 ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
             elif pos.y() <= ht-32 and not ui.frame1.isHidden():
-                ui.frame1.hide()
+                if site != 'Music':
+                    ui.frame1.hide()
 
 
 class MyEventFilter(QtCore.QObject):
@@ -4763,7 +4764,7 @@ watch/unwatch status")
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, mpvAlive, curR, idw, Player, ui
+        global queueNo, mpvAlive, curR, idw, Player, MainWindow
         curR = self.list2.currentRow()
         queueNo = queueNo + 1
         mpvAlive = 0
@@ -4797,6 +4798,8 @@ watch/unwatch status")
                     server._emitMeta("Play", site, self.epn_arr_list)
                 except Exception as e:
                     print(e)
+        if MainWindow.isFullScreen() and site.lower() != 'music':
+            self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None):
         global epn, curR, Player, site, current_playing_file_path
@@ -9839,10 +9842,10 @@ watch/unwatch status")
                             self.mpvplayer_val.write(npn1)
                         except:
                             pass
-                        if MainWindow.isFullScreen() and layout_mode != "Music":
-                            self.gridLayout.setSpacing(0)
-                            if not self.frame1.isHidden():
-                                self.frame1.hide()
+                        if MainWindow.isFullScreen() and site != "Music":
+                            #self.gridLayout.setSpacing(0)
+                            #if not self.frame1.isHidden():
+                            #    self.frame1.hide()
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
                             self.frame_timer.start(5000)
@@ -9960,6 +9963,12 @@ watch/unwatch status")
                                 self.mpv_cnt = 0
                             print(self.mplayerLength)
                             self.mpv_cnt = self.mpv_cnt + 1
+                            if MainWindow.isFullScreen() and site != 'Music':
+                                self.gridLayout.setSpacing(0)
+                                self.frame1.show()
+                                if self.frame_timer.isActive():
+                                    self.frame_timer.stop()
+                                self.frame_timer.start(5000)
                         out1 = out+" ["+self.epn_name_in_list+"]"
                         self.progressEpn.setFormat((out1))
                         #logger.debug(out1)
@@ -9999,14 +10008,14 @@ watch/unwatch status")
                     self.progressEpn.setFormat((t))
                     self.eof_reached = False
                     self.eof_lock = False
-                    if MainWindow.isFullScreen() and layout_mode != "Music":
-                        if ((desktop_session == 'lxde' or desktop_session == 'lxqt'
-                                or desktop_session == 'xfce') and 'VO: Description:' not in a):
-                            self.gridLayout.setSpacing(0)
-                            self.frame1.show()
-                            if self.frame_timer.isActive():
-                                self.frame_timer.stop()
-                            self.frame_timer.start(1000)
+                    #if MainWindow.isFullScreen() and layout_mode != "Music":
+                    #    if ((desktop_session == 'lxde' or desktop_session == 'lxqt'
+                    #            or desktop_session == 'xfce') and 'VO: Description:' not in a):
+                    #        self.gridLayout.setSpacing(0)
+                    #        self.frame1.show()
+                    #        if self.frame_timer.isActive():
+                    #            self.frame_timer.stop()
+                    #        self.frame_timer.start(1000)
                 elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
                     self.eof_lock = False
