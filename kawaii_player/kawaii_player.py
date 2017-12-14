@@ -10394,6 +10394,14 @@ watch/unwatch status")
         self.slider.setValue(0)
         self.progressEpn.setFormat("")
         print(self.mpvplayer_val.processId(), '--finished--id--')
+        logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
+        if (quitReally == 'no' and self.mpvplayer_val.processId() == 0
+                and OSNAME == 'posix' and self.mpvplayer_started):
+            print(quitReally, '--restarting--')
+            self.list2.setCurrentRow(curR)
+            item = self.list2.item(curR)
+            if item:
+                self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
 
     def infoPlay(self, command):
         global Player, site, new_epn, mpv_indicator, cache_empty
