@@ -605,13 +605,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
         if MainWindow.isFullScreen():
             ht = self.height()
-            if pos.y() <= ht and pos.y()> ht - 5 and ui.frame1.isHidden():
-                ui.gridLayout.setSpacing(0)
-                ui.frame1.show()
-                ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            elif pos.y() <= ht-32 and not ui.frame1.isHidden() :
-                ui.frame1.hide()
-                ui.gridLayout.setSpacing(5)
+            if not ui.tab_6.isHidden() or not ui.list2.isHidden() or not ui.list1.isHidden():
+                if ui.frame1.isHidden():
+                    ui.frame1.show()
+            else:
+                if pos.y() <= ht and pos.y()> ht - 5 and ui.frame1.isHidden():
+                    ui.gridLayout.setSpacing(0)
+                    ui.frame1.show()
+                    ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+                elif pos.y() <= ht-32 and not ui.frame1.isHidden() :
+                    ui.frame1.hide()
+                    ui.gridLayout.setSpacing(5)
 
 
     def change_video_mode(self, var_mode, c_row):
