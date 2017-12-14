@@ -268,15 +268,19 @@ class MainWindowWidget(QtWidgets.QWidget):
                 elif not ui.list2.isHidden():
                     ui.list2.setFocus()
 
-        if self.isFullScreen() and (not ui.tab_5.isHidden() or ui.mpvplayer_val.processId() > 0):
+        if self.isFullScreen() and ui.mpvplayer_val.processId() > 0:
             logger.info('FullScreen Window but not video')
-            ht = self.height()
-            if pos.y() <= ht and pos.y() > ht - 5 and ui.frame1.isHidden():
-                ui.frame1.show()
-                ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            elif pos.y() <= ht-32 and not ui.frame1.isHidden():
-                if site != 'Music':
-                    ui.frame1.hide()
+            if not ui.tab_6.isHidden() or not ui.list2.isHidden() or not ui.list1.isHidden():
+                if ui.frame1.isHidden():
+                    ui.frame1.show()
+            else:
+                ht = self.height()
+                if pos.y() <= ht and pos.y() > ht - 5 and ui.frame1.isHidden():
+                    ui.frame1.show()
+                    ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+                elif pos.y() <= ht-32 and not ui.frame1.isHidden():
+                    if site != 'Music':
+                        ui.frame1.hide()
 
 
 class MyEventFilter(QtCore.QObject):
@@ -3025,8 +3029,9 @@ watch/unwatch status")
                     self.goto_epn.hide()
                     self.progress.show()
             self.frame2.show()
-            MainWindow.showNormal()
-            MainWindow.showMaximized()
+            if self.tab_6.isHidden():
+                MainWindow.showNormal()
+                MainWindow.showMaximized()
             self.frame1.show()
             self.gridLayout.setContentsMargins(5, 5, 5, 5)
             self.superGridLayout.setContentsMargins(5, 5, 5, 5)
@@ -3120,11 +3125,11 @@ watch/unwatch status")
                         self.thumbnail_label_update_epn()
                         QtWidgets.QApplication.processEvents()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
-            if MainWindow.isFullScreen():
+            if MainWindow.isFullScreen() and self.tab_6.isHidden():
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
                 MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-            QtCore.QTimer.singleShot(6000, partial(self.show_cursor_now))
+            QtCore.QTimer.singleShot(5000, partial(self.show_cursor_now))
     
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -9861,7 +9866,8 @@ watch/unwatch status")
                             #    self.frame1.hide()
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
-                            self.frame_timer.start(5000)
+                            if self.tab_6.isHidden():
+                                self.frame_timer.start(5000)
                     if ("Buffering" in a and not mpv_indicator 
                             and (site != "Local" or site != "Music" 
                             or site != "Video")):
@@ -9981,7 +9987,8 @@ watch/unwatch status")
                                 self.frame1.show()
                                 if self.frame_timer.isActive():
                                     self.frame_timer.stop()
-                                self.frame_timer.start(5000)
+                                if self.tab_6.isHidden():
+                                    self.frame_timer.start(5000)
                         out1 = out+" ["+self.epn_name_in_list+"]"
                         self.progressEpn.setFormat((out1))
                         #logger.debug(out1)
