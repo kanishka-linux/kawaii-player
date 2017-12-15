@@ -1464,6 +1464,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 try:
                     seek_val_float = float(val)
                     seek_val = int(ui.mplayerLength*(seek_val_float/100))
+                    if ui.player_val == 'mplayer':
+                        seek_val = seek_val/1000
                 except Exception as err:
                     print(err, '--1358--seek-abs--')
                 seek_str = 'seek {0}/{1}'.format(seek_val, ui.mplayerLength)
@@ -1566,7 +1568,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif path.lower() == 'get_remote_control_status':
             try:
                 if ui.remote_control and ui.remote_control_field:
-                    msg = str(ui.mplayerLength)+'::'+str(ui.progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))
+                    media_length = ui.mplayerLength
+                    progress_counter = ui.progress_counter
+                    if ui.player_val == 'mplayer':
+                        media_length = media_length/1000
+                        progress_counter = progress_counter/1000
+                    msg = str(media_length)+'::'+str(progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))
                     self.final_message(bytes(msg, 'utf-8'))
                 else:
                     b = b'Remote Control Not Allowed'
