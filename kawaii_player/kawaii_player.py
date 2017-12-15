@@ -10419,7 +10419,7 @@ watch/unwatch status")
         logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
         if (quitReally == 'no' and self.mpvplayer_val.processId() == 0
                 and OSNAME == 'posix' and self.mpvplayer_started and self.mplayer_finished_counter == 1):
-            print(quitReally, '--restarting--')
+            logger.warning('quit={0} , hence --restarting--'.format(quitReally))
             self.list2.setCurrentRow(curR)
             item = self.list2.item(curR)
             if item:
