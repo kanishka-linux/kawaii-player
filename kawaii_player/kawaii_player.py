@@ -1582,6 +1582,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.mplayer_finished_counter = 0
         self.options_mode = 'legacy'
         self.acquire_subtitle_lock = False
         self.cache_mpv_indicator = False
@@ -9860,6 +9861,7 @@ watch/unwatch status")
                             self.mpvplayer_val.write(npn1)
                         except:
                             pass
+                        self.mplayer_finished_counter = 0
                         if MainWindow.isFullScreen() and site != "Music":
                             self.gridLayout.setSpacing(0)
                             #if not self.frame1.isHidden():
@@ -10160,9 +10162,22 @@ watch/unwatch status")
                     if not mpv_start:
                         mpv_start.append("Start")
                         try:
-                            npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
-                            npn1 = bytes('\n'+'osd_show_text '+str(npn)+' 4000'+'\n', 'utf-8')
-                            self.mpvplayer_val.write(npn1)
+                            if self.tab_5.mplayer_aspect_msg:
+                                aspect_val = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
+                                if aspect_val == '-1':
+                                    show_text_val = 'Original Aspect'
+                                elif aspect_val == '0':
+                                    show_text_val = 'Aspect Ratio Disabled'
+                                else:
+                                    show_text_val = aspect_val
+                                txt_osd = '\n osd_show_text "{0}" 2000\n'.format(show_text_val)
+                                self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                                self.tab_5.mplayer_aspect_msg = False
+                            else:
+                                npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
+                                npn1 = bytes('\n'+'osd_show_text '+str(npn)+' 4000'+'\n', 'utf-8')
+                                self.mpvplayer_val.write(npn1)
+                            self.mplayer_finished_counter = 0
                         except:
                             pass
                         if MainWindow.isFullScreen() and layout_mode != "Music":
@@ -10399,10 +10414,11 @@ watch/unwatch status")
         self.progressEpn.setValue(0)
         self.slider.setValue(0)
         self.progressEpn.setFormat("")
+        self.mplayer_finished_counter += 1
         print(self.mpvplayer_val.processId(), '--finished--id--')
         logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
         if (quitReally == 'no' and self.mpvplayer_val.processId() == 0
-                and OSNAME == 'posix' and self.mpvplayer_started):
+                and OSNAME == 'posix' and self.mpvplayer_started and self.mplayer_finished_counter == 1):
             print(quitReally, '--restarting--')
             self.list2.setCurrentRow(curR)
             item = self.list2.item(curR)
@@ -10901,6 +10917,12 @@ watch/unwatch status")
                 command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid {0}'.format(idw)
             else:
                 command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 0 -slave -wid {0}'.format(idw)
+            if aspect_value == '0':
+                command = command + ' -nokeepaspect'
+            elif aspect_value == '-1':
+                pass
+            else:
+                command = command + ' -aspect {0}'.format(aspect_value)
         elif player == "mpv":
             self.mpv_custom_pause = False
             command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
