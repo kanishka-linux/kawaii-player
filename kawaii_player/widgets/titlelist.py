@@ -349,7 +349,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                     item_r  = self.item(index)
                     if item_r:
                         item = str(self.currentItem().text())
-                        if item != "Default":
+                        if item and item != "Default":
                             file_pls = os.path.join(home, 'Playlists', item)
                             if os.path.exists(file_pls):
                                 os.remove(file_pls)
