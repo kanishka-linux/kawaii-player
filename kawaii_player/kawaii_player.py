@@ -6263,7 +6263,7 @@ watch/unwatch status")
                     icon_dir_path, thumb_name = os.path.split(icon_name)
                     thumb_path = os.path.join(home, 'thumbnails')
                     logger.info('{0}--thumbnail--path--'.format(icon_dir_path))
-                    if icon_dir_path.startswith(thumb_path):
+                    if icon_dir_path.startswith(thumb_path) and icon_dir_path != thumb_path:
                         if os.path.exists(icon_dir_path):
                             shutil.rmtree(icon_dir_path)
                             logger.info('{0}--thumbnail--directory--deleted--'.format(icon_dir_path))
