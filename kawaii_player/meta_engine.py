@@ -189,7 +189,7 @@ class MetaEngine:
                               
     def find_episode_key_val(self, lower_case, index=None, season=None):
         lower_case = re.sub('\[[^\]]*\]|\([^\)]*\)', '', lower_case)
-        name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+', lower_case)
+        name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+|[0-9]+x[0-9]+ ', lower_case)
         name_srch_val = None
         ep_name = ''
         
@@ -223,8 +223,8 @@ class MetaEngine:
         en = -1
         if name_srch_val:
             epval = name_srch_val.lower()
-            s = re.search('s[0-9]+', epval)
-            e = re.search('e[0-9]+|ep[0-9]+', epval)
+            s = re.search('s[0-9]+|[0-9]+x', epval)
+            e = re.search('e[0-9]+|ep[0-9]+|x[0-9]+ ', epval)
             if not e:
                 e = re.search('episode[^"]*[0-9]+|ep[^"]+[0-9]+', epval)
             
