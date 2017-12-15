@@ -6256,7 +6256,7 @@ watch/unwatch status")
             row = self.list1.currentRow()
             item = self.list1.item(row)
             nam = str(item.text())
-            if item:
+            if item and nam:
                 if self.epn_arr_list:
                     icon_name = self.get_thumbnail_image_path(0, self.epn_arr_list[0])
                     icon_dir_path, thumb_name = os.path.split(icon_name)
@@ -6278,8 +6278,8 @@ watch/unwatch status")
                         torrent_file = dir_name+'.torrent'
                         if os.path.exists(torrent_file):
                             os.remove(torrent_file)
+            if item:
                 self.list1.takeItem(row)
-                
                 del item
                 del self.original_path_name[row]
                 length = self.list1.count() - 1
