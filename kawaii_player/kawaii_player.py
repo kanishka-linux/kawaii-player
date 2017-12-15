@@ -2305,7 +2305,7 @@ watch/unwatch status")
         val = self.client_seek_val
         if Player == "mplayer":
             txt1 = '\n osd 1 \n'
-            txt = '\n seek {0}\n'.format(val)
+            txt = '\n seek {0} 2\n'.format(val)
         else:
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} absolute \n'.format(val)
@@ -10246,7 +10246,13 @@ watch/unwatch status")
                             l = 0
                             self.slider.setValue(0)
                         else:
-                            self.slider.setValue(int(l))
+                            self.slider.setValue(l)
+                        
+                        if self.progress_counter == self.mplayerLength:
+                            self.progress_counter += 1
+                            logger.debug(self.progress_counter)
+                        else:
+                            self.progress_counter = l
                         
                         if site == "Music":
                             out_time = str(datetime.timedelta(milliseconds=int(l))) + " / " + str(datetime.timedelta(milliseconds=int(self.mplayerLength)))
