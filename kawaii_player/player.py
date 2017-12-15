@@ -28,7 +28,8 @@ class PlayerWidget(QtWidgets.QWidget):
         self.seek_timer = QtCore.QTimer()
         self.seek_timer.timeout.connect(self.seek_mplayer)
         self.seek_timer.setSingleShot(True)
-        
+        self.mplayer_aspect_msg = False
+    
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
             self.mpvplayer = mpvplayer
@@ -621,20 +622,24 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume -5 \n')
         elif event.key() == QtCore.Qt.Key_A:
+            self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
+            aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
+            logger.info('aspect:{0}::value:{1}'.format(self.ui.mpvplayer_aspect_cycle, aspect_val))
+            if aspect_val == '-1':
+                show_text_val = 'Original Aspect'
+            elif aspect_val == '0':
+                show_text_val = 'Aspect Ratio Disabled'
+            else:
+                show_text_val = aspect_val
             if self.player_val == 'mpv':
-                self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
-                aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
-                logger.info('aspect:{0}::value:{1}'.format(self.ui.mpvplayer_aspect_cycle, aspect_val))
                 msg = '\n set video-aspect "{0}" \n'.format(aspect_val)
                 self.mpvplayer.write(bytes(msg, 'utf-8'))
-                if aspect_val == '-1':
-                    show_text_val = 'Original Aspect'
-                elif aspect_val == '0':
-                    show_text_val = 'Aspect Ratio Disabled'
-                else:
-                    show_text_val = aspect_val
                 txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
                 self.mpvplayer.write(bytes(txt_osd, 'utf-8'))
+            elif self.player_val == 'mplayer':
+                self.mplayer_aspect_msg = True
+                if self.mpvplayer.processId() > 0:
+                    self.mpvplayer.kill()
         elif event.key() == QtCore.Qt.Key_N:
             self.mpvplayer.write(b'\n playlist_next \n')
         elif event.key() == QtCore.Qt.Key_L:
