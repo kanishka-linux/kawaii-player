@@ -9990,7 +9990,7 @@ watch/unwatch status")
                                 if self.frame_timer.isActive():
                                     self.frame_timer.stop()
                                 if self.tab_6.isHidden():
-                                    self.frame_timer.start(5000)
+                                    self.frame_timer.start(4000)
                         out1 = out+" ["+self.epn_name_in_list+"]"
                         self.progressEpn.setFormat((out1))
                         #logger.debug(out1)
