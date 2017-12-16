@@ -118,22 +118,28 @@ class TitleListWidget(QtWidgets.QListWidget):
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Left):
-            self.set_search_backend(use_search='tmdb+ddg')
+            self.set_search_backend(use_search='tmdb+ddg', get_thumb=False)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Right):
-            self.set_search_backend(use_search='tvdb+ddg')
+            self.set_search_backend(use_search='tvdb+ddg', get_thumb=False)
+        elif (event.modifiers() == QtCore.Qt.AltModifier 
+                and event.key() == QtCore.Qt.Key_Right):
+            self.set_search_backend(use_search='tvdb+ddg', get_thumb=True)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Down):
-            self.set_search_backend(use_search='tmdb+g')
+            self.set_search_backend(use_search='tmdb+g', get_thumb=False)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Up):
-            self.set_search_backend(use_search='tvdb+g')
+            self.set_search_backend(use_search='tvdb+g', get_thumb=False)
+        elif (event.modifiers() == QtCore.Qt.AltModifier 
+                and event.key() == QtCore.Qt.Key_Up):
+            self.set_search_backend(use_search='tvdb+g', get_thumb=True)
         elif (event.modifiers() == QtCore.Qt.AltModifier 
                 and event.key() == QtCore.Qt.Key_1):
-            self.set_search_backend(use_search=False)
+            self.set_search_backend(use_search=False, get_thumb=False)
         elif (event.modifiers() == QtCore.Qt.AltModifier 
                 and event.key() == QtCore.Qt.Key_2):
-            self.set_search_backend(use_search='tmdb')
+            self.set_search_backend(use_search='tmdb', get_thumb=False)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_A):
             self.get_all_information()
@@ -457,7 +463,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         else:
             super(TitleListWidget, self).keyPressEvent(event)
             
-    def set_search_backend(self, use_search=None):
+    def set_search_backend(self, use_search=None, get_thumb=None):
         if use_search is None:
             use_search = False
         try:
@@ -466,9 +472,16 @@ class TitleListWidget(QtWidgets.QListWidget):
             video_dir = None
             if site.lower() == 'video':
                 video_dir = ui.original_path_name[self.currentRow()].split('\t')[-1]
+            elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
+                pass
+            else:
+                video_dir = ui.original_path_name[self.currentRow()]
+            if get_thumb is False:
+                video_dir = None
             ui.posterfound_new(
                 name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                copy_summary=True, direct_url=False, use_search=use_search, video_dir=video_dir)
+                copy_summary=True, direct_url=False, use_search=use_search,
+                video_dir=video_dir)
         except Exception as e:
             print(e)
             
@@ -479,7 +492,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             'google+tvdb':'tvdb+g', 'google+tmdb':'tmdb+g'
             }
         item, ok = QtWidgets.QInputDialog.getItem(
-            MainWindow, 'Input Dialog', '         Select Search Backend         ',
+            MainWindow, 'Select Search Backend', 'This option will also fetch Episode Thumbnails and Summary for TV Shows\npresent in the TitleList along with relevant posters and fanart. For TV Shows\nselect TVDB based backend and for movies select backend based on TMDB',
             backend, 0, False)
         if item and ok:
             logger.info(item)
@@ -495,6 +508,10 @@ class TitleListWidget(QtWidgets.QListWidget):
                 video_dir = None
                 if site.lower() == 'video':
                     video_dir = ui.original_path_name[0].split('\t')[-1]
+                elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
+                    pass
+                else:
+                    video_dir = ui.original_path_name[0]
                 ui.posterfound_new(
                     name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
                     copy_summary=True, direct_url=False, use_search=use_search,
@@ -913,7 +930,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         else:
             menu = QtWidgets.QMenu(self)
             submenuR = QtWidgets.QMenu(menu)
-            submenuR.setTitle("Find Information")
+            submenuR.setTitle("Reviews")
             menu.addMenu(submenuR)
             
             menu_cat = QtWidgets.QMenu(menu)
@@ -928,22 +945,6 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_search = QtWidgets.QMenu(menu)
             menu_search.setTitle('Poster Options')
             menu.addMenu(menu_search)
-            """
-            if 'AnimeWatch' in home or ui.anime_review_site:
-                submenu_arr_dict = {
-                    'mal':'MyAnimeList', 'ap':'Anime-Planet', 
-                    'ans':'Anime-Source', 'tvdb':'TVDB', 'tmdb':'TMDB',
-                    'ann':'ANN', 'anidb':'AniDB', 'g':'Google', 
-                    'yt':'Youtube', 'ddg':'DuckDuckGo', 
-                    'last.fm':'last.fm', 'zerochan':'Zerochan'
-                    }
-            elif 'kawaii-player' in home:
-                submenu_arr_dict = {
-                    'tvdb':'TVDB', 'tmdb':'TMDB', 'g':'Google', 
-                    'yt':'Youtube', 'ddg':'DuckDuckGo', 
-                    'last.fm':'last.fm'
-                    }
-            """
             reviews = []
             for i in ui.browser_bookmark:
                 if i.lower() != 'reviews':
