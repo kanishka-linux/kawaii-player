@@ -36,13 +36,15 @@ from yt import get_yt_url
 class FindPosterThread(QtCore.QThread):
 
     summary_signal = pyqtSignal(str, str, str)
+    thumb_signal = pyqtSignal(list)
+    imagesignal = pyqtSignal(dict, str, str)
     
     def __init__(
             self, ui_widget, logr, tmp, name, url=None, direct_url=None,
             copy_fanart=None, copy_poster=None, copy_summary=None,
             use_search=None, video_dir=None):
         QtCore.QThread.__init__(self)
-        global ui, logger, TMPDIR, site
+        global ui, logger, TMPDIR, site, siteName
         ui = ui_widget
         logger = logr
         TMPDIR = tmp
@@ -57,7 +59,10 @@ class FindPosterThread(QtCore.QThread):
         self.image_dict_list = {}
         self.dest_dir = ''
         self.summary_signal.connect(copy_information)
+        self.thumb_signal.connect(update_playlist_widget)
+        self.imagesignal.connect(update_image_list)
         site = ui.get_parameters_value(s='site')['site']
+        siteName = ui.get_parameters_value(s='siteName')['siteName']
         self.site = site
         
     def __del__(self):
@@ -271,7 +276,31 @@ class FindPosterThread(QtCore.QThread):
                         epn_name = i[0]+'	'+i[1]
                         logger.debug(epn_name)
                         epn_arr.append(epn_name)
-                        
+            elif self.video_dir:
+                new_name_with_info = self.video_dir.strip()
+                extra_info = ''
+                if '	' in new_name_with_info:
+                    name_title = new_name_with_info.split('	')[0]
+                    extra_info = new_name_with_info.split('	')[1]
+                else:
+                    name_title = new_name_with_info
+                
+                if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime' and siteName:
+                    hist_site = os.path.join(ui.home_folder, 'History', site, siteName, name_title)
+                else:
+                    hist_site = os.path.join(ui.home_folder, 'History', site, name_title)
+                    
+                hist_epn = os.path.join(hist_site, 'Ep.txt')
+                logger.info(hist_epn)
+                if os.path.exists(hist_epn):
+                    lines = open_files(hist_epn, True)
+                    for i in lines:
+                        i = i.strip()
+                        j = i.split('	')
+                        if len(j) == 1:
+                            epn_arr.append(i+'	'+i+'	'+name)
+                        elif len(j) >= 2:
+                            epn_arr.append(i+'	'+name)
                      
             if self.use_search:
                 if isinstance(self.use_search, bool):
@@ -486,7 +515,9 @@ class FindPosterThread(QtCore.QThread):
                                                  video_dir=self.video_dir)
                     image_dict = self.image_dict_list.copy()
                     dest_dir = self.dest_dir
-                    self.update_image_list_method(image_dict, dest_dir, site)
+                    #self.update_image_list_method(image_dict, dest_dir, site)
+                    #self.thumb_signal.emit(epn_arr)
+                    self.imagesignal.emit(image_dict, dest_dir, site)
                 
             elif m and (src_site == 'tmdb' or src_site == 'tmdb+g' or src_site == 'tmdb+ddg'):
                 url = final_link
@@ -555,16 +586,75 @@ def copy_information(nm, txt, val):
 
 @pyqtSlot(list)
 def update_playlist_widget(epn_arr):
-    #ui.update_list2(epn_arr)
-    pass
+    ui.update_list2(epn_arr)
 
 @pyqtSlot(dict, str, str)
 def update_image_list(image_dict, dest_dir, site):
     global ui
     if dest_dir:
-        #update_image_list_method(image_dict, dest_dir, site, ui_widget=ui)
-        pass
+        update_image_list_method(image_dict, dest_dir, site)
         
+
+def update_image_list_method(image_dict, dest_dir, site):
+    global ui
+    if (site != 'Music' and site != 'PlayLists'
+            and site != 'NONE' and site != 'MyServer'):
+        r = 0
+        start_pt = 0
+        start_now = True
+        length = 0
+        txt_count = 0
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        
+        for img_key, img_val in image_dict.items():
+            img_url, dt, ep_url, local_path, site_record = img_val
+            if site.lower() == 'video':
+                if '\t' in local_path:
+                    path = local_path.split('\t')[0]
+                path = local_path.replace('"', '')
+                thumb_name_bytes = bytes(path, 'utf-8')
+                h = hashlib.sha256(thumb_name_bytes)
+                thumb_name = h.hexdigest()
+                dest_txt = os.path.join(dest_dir, thumb_name+'.txt')
+                dest_picn = os.path.join(dest_dir, thumb_name+'.jpg')
+            else:
+                dest_txt = os.path.join(dest_dir, img_key+'.txt')
+                dest_picn = os.path.join(dest_dir, img_key+'.jpg')
+                
+            if img_url.startswith('//'):
+                img_url = "http:"+img_url
+            
+            picn_url = img_url+'#-o#'+dest_picn
+                
+            img_val_copy = img_val.copy()
+            img_val_copy.append(img_key)
+            img_val_copy.append(dest_txt)
+            
+            ui.downloadWget.append(
+                DownloadThread(ui, picn_url, img_list=img_val_copy)
+                )
+            length = len(ui.downloadWget)
+            ui.downloadWget[length-1].finished.connect(
+                partial(ui.download_thread_finished, dest_picn, r, length-1))
+            if not ui.wget_counter_list:
+                ui.wget_counter_list = [1 for i in range(len(image_dict))]
+                ui.downloadWget[length-1].start()
+            r += 1
+            
+            ui.downloadWgetText.append(
+                DownloadThread(ui, picn_url, img_list=img_val_copy,
+                get_text=True)
+                )
+            length_text = len(ui.downloadWgetText)
+            ui.downloadWgetText[length_text-1].finished.connect(
+                partial(ui.download_thread_text_finished, dest_txt,
+                txt_count, length_text-1)
+                )
+            if not ui.wget_counter_list_text:
+                ui.wget_counter_list_text = [1 for i in range(len(image_dict))]
+                ui.downloadWgetText[length_text-1].start()
+            txt_count += 1
 
 
 class YTdlThread(QtCore.QThread):
