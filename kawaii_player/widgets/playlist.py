@@ -411,7 +411,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 param_dict = ui.get_parameters_value(s='siteName', n='name')
                 siteName = param_dict['siteName']
                 name = param_dict['name']
-                if site.lower() == "subbedanime" or site == "dubbedanime":
+                if site.lower() == "subbedanime" or site.lower() == "dubbedanime":
                     file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
                 else:
                     file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
