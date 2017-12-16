@@ -2051,7 +2051,7 @@ watch/unwatch status")
         self.image_fit_option(dest, dest, fit_size=6, widget=self.label)
         logger.info("Image: {0} : aspect ratio changed".format(dest))
         try:
-            if r < self.list2.count():
+            if r < self.list2.count() and self.list_with_thumbnail:
                 icon_new_pixel = self.create_new_image_pixel(dest, 128)
                 if os.path.exists(icon_new_pixel):
                     self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
@@ -2074,7 +2074,7 @@ watch/unwatch status")
                     pass
                 elif not self.downloadWget[length+2].isRunning():
                     self.downloadWget[length+2].start()
-    
+        
     def download_thread_text_finished(self, dest, r, length):
         logger.info("Download tvdb summary: {0} :completed".format(dest))
         thr = self.downloadWgetText[length]
@@ -2093,7 +2093,7 @@ watch/unwatch status")
                     pass
                 elif not self.downloadWgetText[length+2].isRunning():
                     self.downloadWgetText[length+2].start()
-    
+
     def update_video_dict_criteria(self):
         video_dir_path = os.path.join(home, 'VideoDB')
         if not os.path.exists(video_dir_path):
@@ -5697,13 +5697,15 @@ watch/unwatch status")
     
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
-            copy_summary=None, direct_url=None, use_search=None, get_all=None):
+            copy_summary=None, direct_url=None, use_search=None, get_all=None,
+            video_dir=None):
         
         logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
-        
+        if not get_all:
+            video_dir = None
         self.posterfound_arr.append(FindPosterThread(
-            self, logger, TMPDIR, name, url, direct_url,
-            copy_fanart, copy_poster, copy_summary, use_search))
+            self, logger, TMPDIR, name, url, direct_url, copy_fanart,
+            copy_poster, copy_summary, use_search, video_dir))
         if get_all:
             self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
                 lambda x=0: self.posterfound_thread_all_finished(name, url,
@@ -5742,20 +5744,25 @@ watch/unwatch status")
             self.copyFanart(new_name=name)
         if copy_summary:
             self.text.setText(copy_sum)
-        if (self.posterfind_batch == 1) or (self.posterfind_batch % 3 == 0):
+        range_val = 3
+        if (self.posterfind_batch == 1) or (self.posterfind_batch % range_val == 0):
             index = self.posterfind_batch
-            for i in range(0, 3):
+            for i in range(0, range_val):
                 if index == 1:
                     row = i+1
-                    if row == 3:
+                    if row == range_val:
                         break
                 else:
                     row = index + i
                 if row < len(self.original_path_name):
                     nm = self.get_title_name(row)
+                    video_dir = None
+                    if site.lower() == 'video':
+                        video_dir = ui.original_path_name[row].split('\t')[-1]
                     self.posterfound_new(
                         name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                        copy_summary=True, direct_url=False, use_search=use_search, get_all=True)
+                        copy_summary=True, direct_url=False, use_search=use_search, get_all=True,
+                        video_dir=video_dir)
     
     def get_final_link(self, url, quality, ytdl_path, loger, nm, hdr):
         logger.info('{0}-{1}-{2}--{3}--get-final--link--'.format(url, quality, ytdl_path, nm))
