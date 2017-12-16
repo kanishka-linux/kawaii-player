@@ -411,10 +411,10 @@ class MetaEngine:
                 file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
             else:
                 file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
-                    
+            
             if os.path.exists(file_path):
                 write_files(file_path, epn_arr_list, line_by_line=True)
-        
+            logger.debug('<<<<<<<{0}>>>>>>>>'.format(file_path))
         if thread is None:
             ui.update_list2(epn_arr=epn_arr_list)
         
@@ -490,6 +490,7 @@ def update_image_list_method(image_dict, dest_dir, site):
         txt_count = 0
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
+        
         for img_key, img_val in image_dict.items():
             img_url, dt, ep_url, local_path, site_record = img_val
             if site.lower() == 'video':
@@ -520,7 +521,8 @@ def update_image_list_method(image_dict, dest_dir, site):
             length = len(ui.downloadWget)
             ui.downloadWget[length-1].finished.connect(
                 partial(ui.download_thread_finished, dest_picn, r, length-1))
-            if r == 0:
+            if not ui.wget_counter_list:
+                ui.wget_counter_list = [1 for i in range(len(image_dict))]
                 ui.downloadWget[length-1].start()
             r += 1
             
@@ -533,6 +535,7 @@ def update_image_list_method(image_dict, dest_dir, site):
                 partial(ui.download_thread_text_finished, dest_txt,
                 txt_count, length_text-1)
                 )
-            if txt_count == 0:
+            if not ui.wget_counter_list_text:
+                ui.wget_counter_list_text = [1 for i in range(len(image_dict))]
                 ui.downloadWgetText[length_text-1].start()
             txt_count += 1
