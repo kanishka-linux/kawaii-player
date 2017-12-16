@@ -249,7 +249,7 @@ class MetaEngine:
             return ep_name
             
     def getTvdbEpnInfo(self, url, epn_arr=None, name=None,
-                       site=None, row=None, thread=None):
+                       site=None, row=None, thread=None, video_dir=None):
         epn_arr_list = epn_arr.copy()
         content = ccurl(url)
         soup = BeautifulSoup(content, 'lxml')
@@ -393,7 +393,12 @@ class MetaEngine:
             conn.commit()
             conn.close()
             try:
-                txt = ui.original_path_name[row].split('	')[1]
+                txt = None
+                if row is None:
+                    if video_dir:
+                        txt = video_dir
+                else:
+                    txt = ui.original_path_name[row].split('	')[1]
                 if txt in ui.video_dict:
                     del ui.video_dict[txt]
             except Exception as err:
