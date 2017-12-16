@@ -25,6 +25,8 @@ import random
 import socket
 import shutil
 import urllib.request
+import hashlib
+from functools import partial
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -34,10 +36,11 @@ from yt import get_yt_url
 class FindPosterThread(QtCore.QThread):
 
     summary_signal = pyqtSignal(str, str, str)
-
+    
     def __init__(
             self, ui_widget, logr, tmp, name, url=None, direct_url=None,
-            copy_fanart=None, copy_poster=None, copy_summary=None, use_search=None):
+            copy_fanart=None, copy_poster=None, copy_summary=None,
+            use_search=None, video_dir=None):
         QtCore.QThread.__init__(self)
         global ui, logger, TMPDIR, site
         ui = ui_widget
@@ -50,11 +53,108 @@ class FindPosterThread(QtCore.QThread):
         self.copy_poster = copy_poster
         self.copy_summary = copy_summary
         self.use_search = use_search
+        self.video_dir = video_dir
+        self.image_dict_list = {}
+        self.dest_dir = ''
         self.summary_signal.connect(copy_information)
         site = ui.get_parameters_value(s='site')['site']
+        self.site = site
         
     def __del__(self):
-        self.wait()                        
+        self.wait()
+        
+    def remove_extra_thumbnails(self, dest):
+        if os.path.exists(dest):
+            small_nm_1, new_title = os.path.split(dest)
+            small_nm_2 = '128px.'+new_title
+            small_nm_3 = '480px.'+new_title
+            small_nm_4 = 'label.'+new_title
+            new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+            small_thumb = os.path.join(small_nm_1, small_nm_3)
+            small_label = os.path.join(small_nm_1, small_nm_4)
+            logger.info(new_small_thumb)
+            if os.path.exists(new_small_thumb):
+                os.remove(new_small_thumb)
+            if os.path.exists(small_thumb):
+                os.remove(small_thumb)
+            if os.path.exists(small_label):
+                os.remove(small_label)
+    
+    def create_extra_thumbnails(self, picn):
+        if os.path.exists(picn) and os.stat(picn).st_size:
+            ui.create_new_image_pixel(picn, 128)
+            ui.create_new_image_pixel(picn, 480)
+            label_name = 'label.'+os.path.basename(picn)
+            path_thumb, new_title = os.path.split(picn)
+            new_picn = os.path.join(path_thumb, label_name)
+            if not os.path.exists(new_picn):
+                ui.image_fit_option(picn, new_picn, fit_size=6, widget=ui.label)
+    
+    def run_curl(self, url=None, get_text=None, img_list=None):
+        dest = dest_txt = ep_url = dest_txt = ''
+        if img_list and len(img_list) == 7:
+            img_url, dt, ep_url, local_path, site, img_key, dest_txt = img_list
+            
+        if not get_text:
+            if url.startswith('http'):
+                ccurl(url)
+            try:
+                if url:
+                    picn = url.split('#')[2]
+                    ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
+                    if site.lower() == 'video':
+                        self.remove_extra_thumbnails(picn)
+                        self.create_extra_thumbnails(picn)
+                        
+            except Exception as e:
+                print(e)
+        else:
+            txt = 'Air Date: '+ dt + '\n\nEpisode Name: ' + img_key + '\n\nOverview: '
+            if ep_url and dest_txt:
+                if ep_url.startswith('http'):
+                    content = ccurl(ep_url)
+                    soup = BeautifulSoup(content, 'lxml')
+                    txt_lnk = soup.find('textarea', {'name' : 'Overview_7'})
+                    if txt_lnk:
+                        txt_val = txt_lnk.text
+                        txt_val = txt_val.strip()
+                        txt = txt + txt_val
+            if dest_txt:
+                write_files(dest_txt, txt, False)
+    
+    
+    def update_image_list_method(self, image_dict, dest_dir, site):
+        if (site != 'Music' and site != 'PlayLists'
+                and site != 'NONE' and site != 'MyServer'):
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+            for img_key, img_val in image_dict.items():
+                img_url, dt, ep_url, local_path, site_record = img_val
+                if site.lower() == 'video':
+                    if '\t' in local_path:
+                        path = local_path.split('\t')[0]
+                    path = local_path.replace('"', '')
+                    print(path)
+                    thumb_name_bytes = bytes(path, 'utf-8')
+                    h = hashlib.sha256(thumb_name_bytes)
+                    thumb_name = h.hexdigest()
+                    dest_txt = os.path.join(dest_dir, thumb_name+'.txt')
+                    dest_picn = os.path.join(dest_dir, thumb_name+'.jpg')
+                else:
+                    dest_txt = os.path.join(dest_dir, img_key+'.txt')
+                    dest_picn = os.path.join(dest_dir, img_key+'.jpg')
+                    
+                if img_url.startswith('//'):
+                    img_url = "http:"+img_url
+                
+                picn_url = img_url+'#-o#'+dest_picn
+                    
+                img_val_copy = img_val.copy()
+                img_val_copy.append(img_key)
+                img_val_copy.append(dest_txt)
+                
+                self.run_curl(url=picn_url, get_text=False, img_list=img_val_copy)
+                self.run_curl(url=picn_url, get_text=True, img_list=img_val_copy)
     
     def run(self):
         name = self.name
@@ -161,6 +261,18 @@ class FindPosterThread(QtCore.QThread):
         else:
             nam = ui.metaengine.name_adjust(name)
             src_site = 'tvdb'
+            epn_arr = []
+            logger.debug('\nvideo_dir={0}\n'.format(self.video_dir))
+            if site.lower() == 'video' and self.video_dir:
+                 video_db = os.path.join(ui.home_folder, 'VideoDB', 'Video.db')
+                 if os.path.exists(video_db):
+                    epn_arr_tmp = ui.media_data.get_video_db(video_db, "Directory", self.video_dir)
+                    for i in epn_arr_tmp:
+                        epn_name = i[0]+'	'+i[1]
+                        logger.debug(epn_name)
+                        epn_arr.append(epn_name)
+                        
+                     
             if self.use_search:
                 if isinstance(self.use_search, bool):
                     final_link, m = ui.metaengine.ddg_search(nam, 'tvdb') 
@@ -365,6 +477,17 @@ class FindPosterThread(QtCore.QThread):
                     os.remove(fanart_text)
                 if os.path.exists(poster_text):
                     os.remove(poster_text)
+                
+                
+                elist_url = re.sub('tab=series', 'tab=seasonall', final_link)
+                if epn_arr:
+                    ui.metaengine.getTvdbEpnInfo(elist_url, epn_arr=epn_arr.copy(),
+                                                 site=site, name=name, thread=self,
+                                                 video_dir=self.video_dir)
+                    image_dict = self.image_dict_list.copy()
+                    dest_dir = self.dest_dir
+                    self.update_image_list_method(image_dict, dest_dir, site)
+                
             elif m and (src_site == 'tmdb' or src_site == 'tmdb+g' or src_site == 'tmdb+ddg'):
                 url = final_link
                 url_ext = ['discuss', 'reviews', 'posters', 'changes', 'videos', '#']
@@ -429,6 +552,19 @@ def copy_information(nm, txt, val):
         ui.copyImg(new_name=nm)
     elif val == 'fanart':
         ui.copyFanart(new_name=nm)
+
+@pyqtSlot(list)
+def update_playlist_widget(epn_arr):
+    #ui.update_list2(epn_arr)
+    pass
+
+@pyqtSlot(dict, str, str)
+def update_image_list(image_dict, dest_dir, site):
+    global ui
+    if dest_dir:
+        #update_image_list_method(image_dict, dest_dir, site, ui_widget=ui)
+        pass
+        
 
 
 class YTdlThread(QtCore.QThread):
