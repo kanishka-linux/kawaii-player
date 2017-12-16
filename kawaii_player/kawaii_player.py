@@ -1583,6 +1583,8 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.mplayer_finished_counter = 0
+        self.wget_counter_list = []
+        self.wget_counter_list_text = []
         self.options_mode = 'legacy'
         self.acquire_subtitle_lock = False
         self.cache_mpv_indicator = False
@@ -2047,6 +2049,7 @@ watch/unwatch status")
             self.btn1.setCurrentIndex(0)
     
     def download_thread_finished(self, dest, r, length):
+        
         logger.info("Download tvdb image: {0} :completed".format(dest))
         self.image_fit_option(dest, dest, fit_size=6, widget=self.label)
         logger.info("Image: {0} : aspect ratio changed".format(dest))
@@ -2061,6 +2064,16 @@ watch/unwatch status")
         thr = self.downloadWget[length]
         del thr
         self.downloadWget[length] = None
+        
+        if not self.wget_counter_list:
+            for i in self.downloadWget:
+                if i is not None:
+                    self.wget_counter_list.append(1)
+            if not self.wget_counter_list:
+                self.downloadWget[:] = []
+        else:
+            self.wget_counter_list.pop()
+        
         if length+1 < len(self.downloadWget):
             if self.downloadWget[length+1] is not None:
                 if self.downloadWget[length+1].isFinished():
@@ -2080,6 +2093,16 @@ watch/unwatch status")
         thr = self.downloadWgetText[length]
         del thr
         self.downloadWgetText[length] = None
+        
+        if not self.wget_counter_list_text:
+            for i in self.downloadWgetText:
+                if i is not None:
+                    self.wget_counter_list_text.append(1)
+            if not self.wget_counter_list_text:
+                self.downloadWgetText[:] = []
+        else:
+            self.wget_counter_list_text.pop()
+        
         if length+1 < len(self.downloadWgetText):
             if self.downloadWgetText[length+1] is not None:
                 if self.downloadWgetText[length+1].isFinished():
@@ -5701,8 +5724,6 @@ watch/unwatch status")
             video_dir=None):
         
         logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
-        if not get_all:
-            video_dir = None
         self.posterfound_arr.append(FindPosterThread(
             self, logger, TMPDIR, name, url, direct_url, copy_fanart,
             copy_poster, copy_summary, use_search, video_dir))
@@ -5759,6 +5780,10 @@ watch/unwatch status")
                     video_dir = None
                     if site.lower() == 'video':
                         video_dir = ui.original_path_name[row].split('\t')[-1]
+                    elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
+                        pass
+                    else:
+                        video_dir = ui.original_path_name[row]
                     self.posterfound_new(
                         name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
                         copy_summary=True, direct_url=False, use_search=use_search, get_all=True,
