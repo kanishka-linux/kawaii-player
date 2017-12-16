@@ -463,9 +463,12 @@ class TitleListWidget(QtWidgets.QListWidget):
         try:
             site = ui.get_parameters_value(s='site')['site']
             nm = ui.get_title_name(self.currentRow())
+            video_dir = None
+            if site.lower() == 'video':
+                video_dir = ui.original_path_name[self.currentRow()].split('\t')[-1]
             ui.posterfound_new(
                 name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                copy_summary=True, direct_url=False, use_search=use_search)
+                copy_summary=True, direct_url=False, use_search=use_search, video_dir=video_dir)
         except Exception as e:
             print(e)
             
@@ -489,9 +492,13 @@ class TitleListWidget(QtWidgets.QListWidget):
                 nm = ui.get_title_name(0)
                 use_search = backend_dict[item]
                 logger.info('\nsite={0}::opt={1}::search={2}\n'.format(site, opt, use_search))
+                video_dir = None
+                if site.lower() == 'video':
+                    video_dir = ui.original_path_name[0].split('\t')[-1]
                 ui.posterfound_new(
                     name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=use_search, get_all=True)
+                    copy_summary=True, direct_url=False, use_search=use_search,
+                    get_all=True, video_dir=video_dir)
             except Exception as e:
                 print(e)
                 
