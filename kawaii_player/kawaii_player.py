@@ -5402,9 +5402,6 @@ watch/unwatch status")
         if '/' in name:
             name = name.replace('/', '-')
         path = ""
-        if site == "Local":
-            r = self.list1.currentRow()
-            name = self.original_path_name[r]
         
         if (opt == "History" and (site.lower()!= 'video' 
                 and site.lower()!= 'music' and site.lower()!= 'local')):
@@ -5426,286 +5423,140 @@ watch/unwatch status")
             logger.info("current directory is {0} and name is {1}".format(path, nm))
         logger.info("current directory is {0} and name is {1}".format(path, name))
         return path
+    
+    def metadata_copy(self, dir_path, picn, thumbnail=None, mode=None,
+                      img_opt=None, site=None):
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        if mode == 'img' and os.path.isfile(picn) and thumbnail:
+            self.image_fit_option(picn, thumbnail, fit_size=450)
+            shutil.copy(picn, os.path.join(dir_path, 'poster.jpg'))
+            if os.path.exists(thumbnail):
+                self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
+                shutil.copy(thumbnail, os.path.join(dir_path, 'thumbnail.jpg'))
+            self.videoImage(
+                picn, os.path.join(dir_path, 'thumbnail.jpg'),
+                os.path.join(dir_path, 'fanart.jpg'), '')
+        elif mode == 'fanart' and os.path.isfile(picn) and img_opt:
+            self.image_fit_option(picn, picn, fit_size=img_opt)
+            shutil.copy(picn, os.path.join(dir_path, 'original-fanart.jpg'))
+            shutil.copy(picn, os.path.join(dir_path, 'fanart.jpg'))
+            self.videoImage(
+                picn, os.path.join(dir_path, 'thumbnail.jpg'),
+                os.path.join(dir_path, 'fanart.jpg'), '')
+        elif mode == 'summary' and os.path.isfile(picn):
+            if site == 'Music':
+                file_path = os.path.join(dir_path, 'bio.txt')
+            else:
+                file_path = os.path.join(dir_path, 'summary.txt')
+            sumry = picn
+            shutil.copy(sumry, file_path)
+    
+    
+    def get_metadata_location(self, site, opt, siteName, new_name, mode=None,
+                              copy_sum=None):
+        picn = ''
+        img_opt = ''
+        thumbnail = ''
+        sumry = ''
+        dir_path = None
+        if not new_name:
+            new_name = name
+        if '/' in new_name:
+            new_name = new_name.replace('/', '-')
+        if site == 'Music':
+            try:
+                if not new_name:
+                    if str(self.list3.currentItem().text()) == "Artist":
+                        new_name = self.list1.currentItem().text()
+                    else:
+                        r = self.list2.currentRow()
+                        new_name = self.epn_arr_list[r].split('	')[2]
+                        new_name = new_name.replace('"', '')
+            except Exception as err:
+                print(err, '--5474--')
+        
+        if new_name and mode == 'img':
+            picn = os.path.join(TMPDIR, new_name+'.jpg')
+        elif new_name and mode == 'fanart':
+            picn = os.path.join(TMPDIR, new_name+'-fanart.jpg')
+            if (not os.path.exists(picn) or ((os.path.exists(picn) 
+                    and not os.stat(picn).st_size))):
+                picn = os.path.join(TMPDIR, new_name+'.jpg')
+            if self.image_fit_option_val in range(1, 11):
+                if self.image_fit_option_val != 6:
+                    img_opt = self.image_fit_option_val
+                else:
+                    img_opt = 1
+            else:
+                img_opt = 1
+        elif new_name and mode == 'summary':
+            if site == 'Music':
+                sumry = os.path.join(TMPDIR, new_name+'-bio.txt')
+            else:
+                sumry = os.path.join(TMPDIR, new_name+'-summary.txt')
+            picn = sumry
+            if copy_sum and sumry:
+                write_files(sumry, copy_sum, False)
+                
+        logger.info('{0}--copyimg--'.format(picn))
+        
+        if not os.path.isfile(picn) and mode != 'summary':
+            picn = os.path.join(home, 'default.jpg')
+        
+        if (os.path.isfile(picn) and opt == "History" 
+                and (site.lower()!= 'video' and site.lower()!= 'music' 
+                and site.lower()!= 'local') and new_name):
+            if siteName and new_name:
+                dir_path = os.path.join(home, 'History', site, siteName, new_name)
+            else:
+                dir_path = os.path.join(home, 'History', site, new_name)
+        elif os.path.isfile(picn) and (site == "Local" or site == "Video") and new_name:
+            dir_path = os.path.join(home, 'Local', new_name)
+        elif site == "Music" and new_name:
+            logger.info('nm={0}'.format(new_name))
+            dir_path = os.path.join(home, 'Music', 'Artist', new_name)
+            if mode == 'fanart':
+                picn = os.path.join(TMPDIR, new_name+'.jpg')
+        
+        if dir_path and new_name and mode == 'img' :
+            thumbnail = os.path.join(TMPDIR, new_name+'-thumbnail.jpg')
+            logger.info('picn={0}-thumbnail={1}'.format(picn, thumbnail))
+        
+        return (dir_path, thumbnail, picn, img_opt)
         
     def copyImg(self, new_name=None):
         global name, site, opt, pre_opt, home, siteName
-        print(site)
-        print(opt)
-        print(pre_opt)
-        if not new_name:
-            new_name = name
-        if '/' in new_name:
-            new_name = new_name.replace('/', '-')
-        picn = os.path.join(TMPDIR, new_name+'.jpg')
-        if not new_name and site.lower() == 'music':
-            try:
-                nm = ''
-                if new_name:
-                    nm = new_name
-                else:
-                    if str(self.list3.currentItem().text()) == "Artist":
-                        nm = self.list1.currentItem().text()
-                    else:
-                        r = self.list2.currentRow()
-                        nm = self.epn_arr_list[r].split('	')[2]
-                        nm = nm.replace('"', '')
-            except:
-                nm = ''
-            picn = os.path.join(TMPDIR, nm+'.jpg')
-        logger.info('{0}--copyimg--'.format(picn))
-        if site == "Local":
-            r = self.list1.currentRow()
-            new_name = self.original_path_name[r]
-        if not os.path.isfile(picn):
-            picn = os.path.join(home, 'default.jpg')
-        if (os.path.isfile(picn) and opt == "History" 
-                and (site.lower()!= 'video' and site.lower()!= 'music' 
-                and site.lower()!= 'local')):
-            thumbnail = os.path.join(TMPDIR, new_name+'-thumbnail.jpg')
-            try:
-                self.image_fit_option(picn, thumbnail, fit_size=450)
-                if siteName:
-                    shutil.copy(picn, 
-                                os.path.join(home, 'History', site, siteName, new_name, 
-                                'poster.jpg'))
-                    if os.path.exists(thumbnail):
-                        self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
-                        shutil.copy(thumbnail, 
-                                    os.path.join(home, 'History', site, siteName, 
-                                    new_name, 'thumbnail.jpg'))
-                    self.videoImage(
-                        picn, os.path.join(home, 'History', site, siteName, 
-                        new_name, 'thumbnail.jpg'), os.path.join(home, 'History', 
-                        site, siteName, new_name, 'fanart.jpg'), '')
-                else:
-                    shutil.copy(picn, 
-                                os.path.join(home, 'History', site, new_name, 
-                                'poster.jpg'))
-                    if os.path.exists(thumbnail):
-                        self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
-                        shutil.copy(thumbnail, 
-                                    os.path.join(home, 'History', site, new_name, 
-                                    'thumbnail.jpg'))
-                    self.videoImage(
-                        picn, os.path.join(home, 'History', site, new_name, 
-                        'thumbnail.jpg'), os.path.join(home, 'History', site, 
-                        new_name, 'fanart.jpg'), '')
-            except Exception as e:
-                print(e, '--line 10933--')
-        elif os.path.isfile(picn) and (site == "Local" or site == "Video"):
-            thumbnail = os.path.join(TMPDIR, new_name+'-thumbnail.jpg')
-            try:
-                self.image_fit_option(picn, thumbnail, fit_size=450)
-                shutil.copy(picn, os.path.join(home, 'Local', new_name, 'poster.jpg'))
-                if os.path.exists(thumbnail):
-                    self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
-                    shutil.copy(thumbnail, 
-                                os.path.join(home, 'Local', new_name, 'thumbnail.jpg'))
-                self.videoImage(
-                    picn, os.path.join(home, 'Local', new_name, 'thumbnail.jpg'), 
-                    os.path.join(home, 'Local', new_name, 'fanart.jpg'), '')
-            except Exception as e:
-                print(e, '--line 10948--')
-        elif os.path.isfile(picn) and (site == "Music"):
-            try:
-                nm = ''
-                if new_name:
-                    nm = new_name
-                else:
-                    if str(self.list3.currentItem().text()) == "Artist":
-                        nm = self.list1.currentItem().text()
-                    else:
-                        r = self.list2.currentRow()
-                        nm = self.epn_arr_list[r].split('	')[2]
-                        nm = nm.replace('"', '')
-            except Exception as e:
-                    print(e)
-                    nm = ""
-            logger.info('nm={0}'.format(nm))
-            if nm and os.path.exists(os.path.join(home, 'Music', 'Artist', nm)):
-                picn = os.path.join(TMPDIR, nm+'.jpg')
-                thumbnail = os.path.join(TMPDIR, nm+'-thumbnail.jpg')
-                logger.info('picn={0}-thumbnail={1}'.format(picn, thumbnail))
-                try:
-                    if os.path.exists(picn):
-                        self.image_fit_option(picn, thumbnail, fit_size=450)
-                        shutil.copy(picn, 
-                                    os.path.join(home, 'Music', 'Artist', nm, 
-                                    'poster.jpg'))
-                        if os.path.exists(thumbnail):
-                            self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
-                            shutil.copy(thumbnail, 
-                                        os.path.join(home, 'Music', 'Artist', nm, 
-                                        'thumbnail.jpg'))
-                        self.videoImage(
-                            picn, os.path.join(home, 'Music', 'Artist', nm, 
-                            'thumbnail.jpg'), os.path.join(home, 'Music', 
-                            'Artist', nm, 'fanart.jpg'), '')
-                except Exception as e:
-                    print(e, ': line 10783')
-    
+        
+        dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
+            site, opt, siteName, new_name, mode='img'
+            )
+        
+        if dir_path and os.path.exists(picn):
+             self.metadata_copy(dir_path, picn, thumbnail, mode='img')
+             
     def copyFanart(self, new_name=None):
         global name, site, opt, pre_opt, home, siteName
-        global screen_height, screen_width
-        print(site)
-        print(opt)
-        print(pre_opt)
-        if not new_name:
-            new_name = name
-        if '/' in new_name:
-            new_name = new_name.replace('/', '-')
-        picn = os.path.join(TMPDIR, new_name+'-fanart.jpg')
-        if (not os.path.exists(picn) or ((os.path.exists(picn) 
-                and not os.stat(picn).st_size))):
-            picn = os.path.join(TMPDIR, new_name+'.jpg')
-        if site == "Local":
-            r = self.list1.currentRow()
-            new_name = self.original_path_name[r]
-        if self.image_fit_option_val in range(1, 11):
-            if self.image_fit_option_val != 6:
-                img_opt = self.image_fit_option_val
-            else:
-                img_opt = 1
-        else:
-            img_opt = 1
-        if (os.path.isfile(picn) and opt == "History" 
-                and (site.lower()!= 'video' and site.lower()!= 'music' 
-                and site.lower()!= 'local')):
-            try:
-                if siteName:
-                    shutil.copy(picn, 
-                                os.path.join(home, 'History', site, siteName, new_name, 
-                                'original-fanart.jpg'))
-                    self.image_fit_option(picn, picn, fit_size=img_opt)
-                    shutil.copy(picn, 
-                                os.path.join(home, 'History', site, siteName, new_name, 
-                                'fanart.jpg'))
-                    self.videoImage(
-                        picn, os.path.join(home, 'History', site, siteName, 
-                        new_name, 'thumbnail.jpg'), os.path.join(home, 'History', 
-                        site, siteName, new_name, 'fanart.jpg'), '')
-                else:
-                    shutil.copy(picn, 
-                                os.path.join(home, 'History', site, new_name, 
-                                'original-fanart.jpg'))
-                    self.image_fit_option(picn, picn, fit_size=img_opt)
-                    shutil.copy(picn, 
-                                os.path.join(home, 'History', site, new_name, 
-                                'fanart.jpg'))
-                    self.videoImage(
-                        picn, os.path.join(home, 'History', site, new_name, 
-                        'thumbnail.jpg'), os.path.join(home, 'History', site, new_name, 
-                        'fanart.jpg'), '')
-            except Exception as e:
-                print(e, '--line--11010--')
-        elif os.path.isfile(picn) and (site == "Local" or site == "Video"):
-            try:
-                shutil.copy(
-                    picn, os.path.join(home, 'Local', new_name, 
-                    'original-fanart.jpg'))
-                self.image_fit_option(picn, picn, fit_size=img_opt)
-                shutil.copy(
-                    picn, os.path.join(home, 'Local', new_name, 'fanart.jpg'))
-                self.videoImage(
-                    picn, os.path.join(home, 'Local', new_name, 'thumbnail.jpg'), 
-                    os.path.join(home, 'Local', new_name, 'fanart.jpg'), '')
-            except Exception as e:
-                print(e, '--line--11023--')
-            #ui.listfound()
-        elif (site == "Music"):
-            try:
-                if new_name:
-                    nm = new_name
-                else:
-                    if str(self.list3.currentItem().text()) == "Artist":
-                        nm = self.list1.currentItem().text()
-                    else:
-                        r = self.list2.currentRow()
-                        nm = self.epn_arr_list[r].split('	')[2]
-                        nm = nm.replace('"', '')
-            except Exception as e:
-                    print(e)
-                    nm = ""
-            logger.info('nm={0}'.format(nm))
-            if nm and os.path.exists(os.path.join(home, 'Music', 'Artist', nm)):
-                picn = os.path.join(TMPDIR, nm+'.jpg')
-                if os.path.exists(picn):
-                    shutil.copy(
-                        picn, os.path.join(home, 'Music', 'Artist', nm, 
-                        'original-fanart.jpg'))
-                    self.image_fit_option(picn, picn, fit_size=img_opt)
-                    shutil.copy(
-                        picn, os.path.join(home, 'Music', 'Artist', nm, 'fanart.jpg'))
-                    #print(picn, os.path.join(home, 'Music', 'Artist', nm, 'fanart.jpg'))
-                    self.videoImage(
-                        picn, os.path.join(home, 'Music', 'Artist', nm, 
-                        'thumbnail.jpg'), os.path.join(home, 'Music', 'Artist', nm, 
-                        'fanart.jpg'), '')
+        
+        dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
+            site, opt, siteName, new_name, mode='fanart'
+            )
+        
+        if dir_path and os.path.exists(picn):
+            self.metadata_copy(dir_path, picn, mode='fanart', img_opt=img_opt)
+                    
                 
     def copySummary(self, copy_sum=None, new_name=None):
         global name, site, opt, pre_opt, home, siteName
-        print(site)
-        print(opt)
-        print(pre_opt)
-        sumry = ''
-        if not new_name:
-            new_name = name
-        if '/' in new_name:
-            new_name = new_name.replace('/', '-')
-        if site == "Local":
-            r = self.list1.currentRow()
-            new_name = str(self.list1.currentItem().text())
-        elif site == "Music":
-            try:
-                nm = ''
-                if new_name:
-                    nm = new_name
-                else:
-                    if str(self.list3.currentItem().text()) == "Artist":
-                        nm = self.list1.currentItem().text()
-                    else:
-                        r = self.list2.currentRow()
-                        nm = self.epn_arr_list[r].split('	')[2]
-                        nm = nm.replace('"', '')
-            except Exception as e:
-                print(e)
-                nm = ""
-            sumry = os.path.join(TMPDIR, nm+'-bio.txt')
-        else:
-            sumry = os.path.join(TMPDIR, new_name+'-summary.txt')
-        if site == "Local":
-            r = self.list1.currentRow()
-            new_name = self.original_path_name[r]
-            logger.info('sumry={0}- new_name={1} -- copysummary--'.format(sumry, new_name))
-        if copy_sum:
-            write_files(sumry, copy_sum, False)
-        if (os.path.isfile(sumry) and opt == "History" 
-                and (site != "Local" and site != "Video" and site != 'Music')):
-            if siteName:
-                shutil.copy(sumry, os.path.join(home, 'History', site, siteName, new_name, 'summary.txt'))
-            else:
-                shutil.copy(sumry, os.path.join(home, 'History', site, new_name, 'summary.txt'))
-        elif os.path.isfile(sumry) and (site == "Local" or site == "Video"):
-                shutil.copy(sumry, os.path.join(home, 'Local', new_name, 'summary.txt'))
-        elif (site == "Music"):
-            try:
-                nm = ''
-                if new_name:
-                    nm = new_name
-                else:
-                    if str(self.list3.currentItem().text()) == "Artist":
-                        nm = self.list1.currentItem().text()
-                    else:
-                        r = self.list2.currentRow()
-                        nm = self.epn_arr_list[r].split('	')[2]
-                        nm = nm.replace('"', '')
-            except Exception as e:
-                print(e)
-                nm = ""
-            if nm and os.path.exists(os.path.join(home, 'Music', 'Artist', nm)):
-                sumry = os.path.join(TMPDIR, nm+'-bio.txt')
-                if os.path.exists(sumry):
-                    shutil.copy(sumry, os.path.join(home, 'Music', 'Artist', nm, 'bio.txt'))
+        
+        dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
+            site, opt, siteName, new_name, mode='summary',
+            copy_sum=copy_sum
+            )
+        sumry = picn
+        if dir_path and os.path.exists(sumry):
+            self.metadata_copy(dir_path, sumry, mode='summary', site=site)
+        
         if os.path.exists(sumry):
             txt = open_files(sumry, False)
             logger.info('{0}--copy-summary--'.format(txt))
