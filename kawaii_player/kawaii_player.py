@@ -3691,7 +3691,7 @@ watch/unwatch status")
             self.scrollArea1.hide()
             self.scrollArea.show()
         else:
-            self.next_page('deleted')
+            self.next_page('not_deleted')
             row = self.list1.currentRow()
             p1 = "self.label_"+str(row)+".y()"
             yy=eval(p1)
@@ -3986,29 +3986,8 @@ watch/unwatch status")
         label_arr.append(name)
         label_arr.append(name)
         
-        if (site == "Local") and opt !="History":
-            m = []
-            name=self.original_path_name[browse_cnt]
-            if os.path.exists(os.path.join(home, 'Local', name)):
-                if os.path.exists(os.path.join(home, 'Local', name, 'Ep.txt')):
-                    lines = open_files(
-                            os.path.join(home, 'Local', name, 'Ep.txt'), True)
-                    for i in lines:
-                        j = i.strip()
-                        k = os.path.basename(j)
-                        m.append(k)
-                picn = os.path.join(home, 'Local', name, 'thumbnail.jpg')
-                m.append(picn)
-                if os.path.exists(
-                        os.path.join(home, 'Local', name, 'summary.txt')):
-                    summary = open_files(
-                            os.path.join(home, 'Local', name, 'summary.txt'), 
-                            False)
-                    m.append(summary)
-                else:
-                    m.append("Summary Not Available")
-        elif site == "Video":
-            picn = os.path.join(home, 'Local', name, 'thumbnail.jpg')
+        if site == "Video":
+            picn = os.path.join(home, 'Local', name, 'poster.jpg')
             m.append(picn)
             if os.path.exists(os.path.join(home, 'Local', name, 'summary.txt')):
                 summary = open_files(
@@ -4018,7 +3997,7 @@ watch/unwatch status")
             else:
                 m.append("Summary Not Available")
         elif site == "Music":
-            picn = os.path.join(home, 'Music', 'Artist', name, 'thumbnail.jpg')
+            picn = os.path.join(home, 'Music', 'Artist', name, 'poster.jpg')
             m.append(picn)
             logger.info(picn)
             if os.path.exists(os.path.join(home, 'Music', 'Artist', name, 'bio.txt')):
@@ -4030,11 +4009,7 @@ watch/unwatch status")
                 m.append("Summary Not Available")
         elif opt == "History":
             if siteName:
-                dir_name =os.path.join(home, 'History', site, siteName, name)	
-            elif site == "Local":
-                if not bookmark:
-                    name = self.original_path_name[browse_cnt]
-                dir_name =os.path.join(home, 'History', site, name)
+                dir_name =os.path.join(home, 'History', site, siteName, name)
             else:
                 dir_name =os.path.join(home, 'History', site, name)
             if os.path.exists(dir_name):
@@ -4067,10 +4042,8 @@ watch/unwatch status")
                 img = QtGui.QPixmap(picn, "1")
                 q1="self.label_"+str(browse_cnt)+".setPixmap(img)"
                 exec (q1)
-            if site == "Local":
-                name1 = name.split('@')[-1]
-            else:
-                name1 = name
+            
+            name1 = name
             q3="self.label_"+str(length+browse_cnt)+".setText((name1))"
             exec (q3)
             try:
@@ -4150,7 +4123,7 @@ watch/unwatch status")
         self.icon_size_arr.append(height)
         print(length)
         print(browse_cnt)
-        dim_tuple = (width, height)
+        dim_tuple = (height, width)
         if total_till==0 or value_str=="not_deleted":
             i = 0
             j = iconv_r+1
@@ -4176,8 +4149,8 @@ watch/unwatch status")
                     exec(p1)
                     exec(p4)
                     exec(p7)
-                p2="self.label_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-                p3="self.label_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
+                p2="self.label_"+str(i)+".setMaximumSize(QtCore.QSize("+height+", "+width+"))"
+                p3="self.label_"+str(i)+".setMinimumSize(QtCore.QSize("+height+", "+width+"))"
                 #p4="self.label_"+str(i)+".setScaledContents(True)"
                 p5="self.label_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_"+str(i)+'"'+"))"
                 p6="self.gridLayout1.addWidget(self.label_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
@@ -4190,7 +4163,7 @@ watch/unwatch status")
                 exec(p6)
                 exec(p8)
                 exec(p9)
-                QtWidgets.QApplication.processEvents()
+                #QtWidgets.QApplication.processEvents()
                 
                 if value_str == "deleted":
                     p1="self.label_"+str(length+i)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)"
@@ -4216,8 +4189,8 @@ watch/unwatch status")
                 exec(p9)
                 exec(p12)
                 exec(p13)
-                if value_str == "deleted":
-                    self.display_image(i, "image", dimn=dim_tuple)
+                #if value_str == "deleted":
+                self.display_image(i, "image", dimn=dim_tuple)
                     
                 i=i+1
                 k = k+1
