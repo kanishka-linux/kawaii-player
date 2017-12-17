@@ -11483,8 +11483,7 @@ watch/unwatch status")
                 hist_arr.append(i)
         
         if ((viewMode == "Thumbnail" or not self.tab_6.isHidden()) 
-                and (opt == "History" or site == "Local" or bookmark 
-                or site == "PlayLists")):
+                and (opt == "History" or site=='Video' or bookmark or site == "PlayLists")):
             if site == "NotMentioned":
                 print("PlayLists")
             else:
@@ -11501,7 +11500,7 @@ watch/unwatch status")
                 self.scrollArea1.hide()
                 self.scrollArea.show()
                 
-                if (opt == "History" or (site == "Local" or site == 'PlayLists') 
+                if (opt == "History" or (site == "Video" or site == 'PlayLists') 
                         or bookmark):
                     i = 0
                     print(total_till, 2*self.list1.count()-1, '--count--')
