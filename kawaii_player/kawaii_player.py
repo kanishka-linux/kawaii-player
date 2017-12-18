@@ -830,6 +830,7 @@ watch/unwatch status")
         self.list1.setTextElideMode(QtCore.Qt.ElideRight)
         self.list2.setWordWrap(True)
         self.list2.setTextElideMode(QtCore.Qt.ElideRight)
+        self.list2.setBatchSize(10)
         self.list4.setWordWrap(True)
         self.list4.setTextElideMode(QtCore.Qt.ElideRight)
         self.list5.setWordWrap(True)
@@ -1338,6 +1339,7 @@ watch/unwatch status")
         self.scrollArea1.setWidgetResizable(True)
         self.scrollArea1.setMouseTracking(True)
         self.scrollArea1.setObjectName(_fromUtf8("scrollArea1"))
+        #self.scrollAreaWidgetContents.setBaseSize(QtCore.QSize(screen_width, 200000))
         
         self.scrollAreaWidgetContents1 = QtWidgets.QWidget()
         self.scrollAreaWidgetContents1.setObjectName(_fromUtf8("scrollAreaWidgetContents1"))
@@ -1747,6 +1749,8 @@ watch/unwatch status")
                             self.IconView)
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
                             partial(self.IconViewEpn, 1))
+        #QtWidgets.QShortcut(QtGui.QKeySequence("Shift+A"), MainWindow, 
+        #                    partial(self.experiment_list, 1))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), MainWindow, 
                             self.webHide)
         QtWidgets.QShortcut(QtGui.QKeySequence("ESC"), MainWindow, 
@@ -1943,6 +1947,17 @@ watch/unwatch status")
         self.lock_process = False
         self.mpv_thumbnail_lock = False
     
+    def experiment_list(self, mode):
+        global screen_width
+        self.HideEveryThing()
+        self.list2.setMaximumWidth(screen_width)
+        self.list2.setFlow(QtWidgets.QListWidget.LeftToRight)
+        self.list2.setWrapping(True)
+        self.list2.setGridSize(QtCore.QSize(256, 192))
+        self.list2.setViewMode(QtWidgets.QListView.IconMode)
+        self.list2.setBatchSize(100)
+        self.list2.show()
+        
     def remove_queue_item_btn_method(self, row=None):
         global video_local_stream
         row = self.queue_item_external_remove
@@ -4058,8 +4073,9 @@ watch/unwatch status")
             if value_str == 'deleted':
                 total_till = total_till+2
             if total_till%(2*iconv_r_poster) == 0:
-                QtWidgets.QApplication.processEvents()
-        
+                #QtWidgets.QApplication.processEvents()
+                pass
+                
     def next_page(self, value_str):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo
         global list1_items
@@ -4126,6 +4142,7 @@ watch/unwatch status")
         print(length)
         print(browse_cnt)
         dim_tuple = (height, width)
+        self.labelFrame2.setText('Wait...')
         if total_till==0 or value_str == "not_deleted" or value_str == 'zoom':
             i = 0
             j = iconv_r_poster+1
@@ -4195,12 +4212,13 @@ watch/unwatch status")
                     
                 i=i+1
                 k = k+1
-                QtWidgets.QApplication.processEvents()
                 if k == iconv_r_poster:
                     j = j + 2*iconv_r_poster
                     j1 = j1+2*iconv_r_poster
                     k = 0
-                    
+                    self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i/2), int(length/2)))
+                    QtWidgets.QApplication.processEvents()
+            self.labelFrame2.setText('Finished!')
         self.lock_process = False
             
     def thumbnail_label_update(self):
@@ -4348,6 +4366,8 @@ watch/unwatch status")
             else:
                 jj = 2*iconv_r
             kk = 0
+            label_txt = self.labelFrame2.text()
+            self.labelFrame2.setText('Wait...')
             while(i<length):
                 p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
                 p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
@@ -4426,7 +4446,9 @@ watch/unwatch status")
                 if kk == iconv_r:
                     jj = jj + 2*iconv_r
                     kk = 0
-                QtWidgets.QApplication.processEvents()
+                    self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i), int(length)))
+                    QtWidgets.QApplication.processEvents()
+            self.labelFrame2.setText(label_txt)
             total_till_epn = length1
     
     def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None,
@@ -4589,7 +4611,8 @@ watch/unwatch status")
                 jj = 2*iconv_r
             kk = 0
             hei_ght= str(int((int(height)/3)))
-            
+            label_txt = self.labelFrame2.text()
+            self.labelFrame2.setText('Wait...')
             while(i<length):
                 p1="self.label_epn_"+str(i)+" = ThumbnailWidget(self.scrollAreaWidgetContents1)"
                 p4 = "self.label_epn_{0}.setup_globals(MainWindow, ui, home, TMPDIR, logger, screen_width, screen_height)".format(i)
@@ -4669,7 +4692,6 @@ watch/unwatch status")
                     q1="ui.label_epn_"+str(counter)+".setPixmap(img)"
                     exec (q1)
                 
-                QtWidgets.QApplication.processEvents()
                 i=i+1
                 k = k+1
                 if k == iconv_r:
@@ -4717,14 +4739,16 @@ watch/unwatch status")
                 exec(q3)
                 q3='ui.label_epn_'+str(ii)+'.setToolTip(sumry)'
                 exec(q3)
-                QtWidgets.QApplication.processEvents()
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
                     jj = jj+2*iconv_r
                     kk = 0
+                    self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i), int(length)))
+                QtWidgets.QApplication.processEvents()
+            self.labelFrame2.setText(label_txt)
             total_till_epn = length1
-            QtWidgets.QApplication.processEvents()
+            
     
     def grid_thumbnail_process_finished(self, k):
         #if (k%10) == 0 or k == 0:
@@ -5145,6 +5169,7 @@ watch/unwatch status")
             if ui.auto_hide_dock:
                 self.dockWidget_3.hide()
             self.tab_6.show()
+            
             self.next_page('deleted')
             self.tab_2.hide()
         else:
@@ -11536,7 +11561,7 @@ watch/unwatch status")
                 if (opt == "History" or (site == "Video" or site == 'PlayLists') 
                         or bookmark):
                     print(total_till, 2*self.list1.count()-1, '--count--')
-                    if total_till > 0 and not self.lock_process:
+                    if not self.lock_process and val == 'clicked':
                         if not self.scrollArea.isHidden():
                             self.next_page('deleted')
                         elif not self.scrollArea1.isHidden():
@@ -11544,6 +11569,7 @@ watch/unwatch status")
                             self.scrollArea.show()
                             if thumbnail_indicator:
                                 thumbnail_indicator.pop()
+                            i = 0
                             while(i<total_till_epn):
                                 t = "self.label_epn_"+str(i)+".deleteLater()"
                                 exec (t)
