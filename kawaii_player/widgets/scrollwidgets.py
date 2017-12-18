@@ -180,10 +180,11 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     self.sizeAdjust(nextR-1, "forward")
         elif event.key() == QtCore.Qt.Key_Return:
             ui.listfound()
-            ui.thumbnailHide('ExtendedQLabel')
-            ui.IconViewEpn()
-            ui.scrollArea1.show()
-            ui.scrollArea1.setFocus()
+            #ui.thumbnailHide('ExtendedQLabel')
+            if not ui.lock_process:
+                ui.IconViewEpn()
+                ui.scrollArea1.show()
+                ui.scrollArea1.setFocus()
         #super(ExtendedQLabel, self).keyPressEvent(event)
         #super(QtGuiQWidgetScroll, self).keyPressEvent(event)
         
