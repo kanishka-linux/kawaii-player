@@ -387,12 +387,12 @@ class tab6(QtWidgets.QWidget):
                 #    tab_6_size_indicator.pop()
                 tab_6_size_indicator.append(ui.tab_6.width())
                 if not ui.scrollArea.isHidden():
-                        print('--------resizing----')
-                        ui.next_page('not_deleted')
-                        QtWidgets.QApplication.processEvents()
+                    print('--------resizing----')
+                    #ui.next_page('not_deleted')
+                    #QtWidgets.QApplication.processEvents()
                 elif not ui.scrollArea1.isHidden():
-                        ui.thumbnail_label_update()
-                        logger.debug('updating thumbnail window')
+                    #ui.thumbnail_label_update()
+                    logger.debug('updating thumbnail window')
                         
     def mouseMoveEvent(self, event):
         print('Tab_6')
@@ -956,7 +956,7 @@ watch/unwatch status")
         self.player_menu = QtWidgets.QMenu()
         self.player_menu_option = [
                 'Show/Hide Video', 'Show/Hide Cover And Summary', 
-                'Lock Playlist', 'Shuffle', 'Stop After Current File', 
+                'Lock Playlist', 'Shuffle', 'Stop After Current File (Ctrl+Q)', 
                 'Continue(default Mode)', 'Set Media Server User/PassWord', 
                 'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control', 
                 'Set Current Background As Default', 'Settings'
@@ -1582,6 +1582,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.icon_poster_indicator = [5]
         self.mplayer_finished_counter = 0
         self.wget_counter_list = []
         self.wget_counter_list_text = []
@@ -1745,7 +1746,7 @@ watch/unwatch status")
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Z"), MainWindow, 
                             self.IconView)
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
-                            self.IconViewEpn)
+                            partial(self.IconViewEpn, 1))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), MainWindow, 
                             self.webHide)
         QtWidgets.QShortcut(QtGui.QKeySequence("ESC"), MainWindow, 
@@ -3290,7 +3291,7 @@ watch/unwatch status")
         
         self.player_menu_option = [
             'Show/Hide Video', 'Show/Hide Cover And Summary', 
-            'Lock Playlist', 'Shuffle', 'Stop After Current File', 
+            'Lock Playlist', 'Shuffle', 'Stop After Current File (Ctrl+Q)', 
             'Continue(default Mode)', 'Set Media Server User/PassWord', 
             'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control',
             'Set Current Background As Default', 'Settings'
@@ -3374,7 +3375,7 @@ watch/unwatch status")
             elif v == "UnLock Playlist":
                     self.playerPlaylist_setLoop_var = 0
                     self.action_player_menu[2].setText("Lock Playlist")
-        elif val == "Stop After Current File":
+        elif val == "Stop After Current File (Ctrl+Q)":
             quitReally = "yes"
         elif val == "Continue(default Mode)":
             quitReally = "no"
@@ -3676,7 +3677,7 @@ watch/unwatch status")
         print(total_till, 2*self.list1.count()-1, '--prev-thumbnail--')
         if self.mpvplayer_val.processId() > 0:
             print(self.mpvplayer_val.processId(), '--prev-thumb--')
-            iconv_r = 1
+            self.icon_poster_indicator.append(1)
             self.next_page('not_deleted')
             QtWidgets.QApplication.processEvents()
             row = self.list1.currentRow()
@@ -3926,7 +3927,7 @@ watch/unwatch status")
         else:
             self.next_page()
             
-    def display_image(self, br_cnt, br_cnt_opt, dimn=None):
+    def display_image(self, br_cnt, br_cnt_opt, iconv_r_poster, value_str, dimn=None):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, iconv_r
         global tab_6_size_indicator
@@ -4054,8 +4055,9 @@ watch/unwatch status")
             exec (q4)
             p8="self.label_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
             exec(p8)
-            total_till = total_till+2
-            if total_till%(2*iconv_r) == 0:
+            if value_str == 'deleted':
+                total_till = total_till+2
+            if total_till%(2*iconv_r_poster) == 0:
                 QtWidgets.QApplication.processEvents()
         
     def next_page(self, value_str):
@@ -4073,9 +4075,9 @@ watch/unwatch status")
         if value_str == "deleted":
             for i in range(total_till):
                 t = "self.label_"+str(i)+".clear()"
-                exec (t)
+                exec(t)
                 t = "self.label_"+str(i)+".deleteLater()"
-                exec (t)
+                exec(t)
             total_till = 0
         if total_till==0 or value_str=="not_deleted":
             tmp_name[:] = []
@@ -4089,27 +4091,27 @@ watch/unwatch status")
                     or site=="Video" or site=="Music" or opt == "History"
                     or site == 'MyServer'):
                 length = self.list1.count()
-            
-        if iconv_r == 1 and not self.tab_5.isHidden():
-            self.tab_6.setMaximumSize(self.width_allowed, 10000)
+        iconv_r_poster = ui.icon_poster_indicator[-1]
+        if iconv_r_poster == 1 and not self.tab_5.isHidden():
+            self.tab_6.setMaximumSize(self.width_allowed, 16777215)
         else:
-            self.tab_6.setMaximumSize(10000, 10000)
+            self.tab_6.setMaximumSize(16777215, 16777215)
         print("width="+str(self.tab_6.width()))
         
-        if iconv_r > 1:
-            w = float((self.tab_6.width()-60)/iconv_r)
+        if iconv_r_poster > 1:
+            w = float((self.tab_6.width()-60)/iconv_r_poster)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
                     if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[-1]-60)/iconv_r
+                        l= (tab_6_size_indicator[-1]-60)/iconv_r_poster
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
                     #h = float((9*w)/16)
                     h = int(w/self.image_aspect_allowed)
-        elif iconv_r == 1:
+        elif iconv_r_poster == 1:
             w = float(self.tab_6.width()-60)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
@@ -4124,9 +4126,9 @@ watch/unwatch status")
         print(length)
         print(browse_cnt)
         dim_tuple = (height, width)
-        if total_till==0 or value_str=="not_deleted":
+        if total_till==0 or value_str == "not_deleted" or value_str == 'zoom':
             i = 0
-            j = iconv_r+1
+            j = iconv_r_poster+1
             k = 0
             if opt != "History":
                 if (site == "Local" or site == "Video" or site == "Music" 
@@ -4134,10 +4136,10 @@ watch/unwatch status")
                     length = len(tmp_name)
                 else:
                     length = 100
-            if iconv_r == 1:
+            if iconv_r_poster == 1:
                 j1 = 3
             else:
-                j1 = 2*iconv_r
+                j1 = 2*iconv_r_poster
             if total_till == 0:
                 value_str = "deleted"
             while(i<length):
@@ -4163,7 +4165,6 @@ watch/unwatch status")
                 exec(p6)
                 exec(p8)
                 exec(p9)
-                #QtWidgets.QApplication.processEvents()
                 
                 if value_str == "deleted":
                     p1="self.label_"+str(length+i)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)"
@@ -4189,15 +4190,15 @@ watch/unwatch status")
                 exec(p9)
                 exec(p12)
                 exec(p13)
-                #if value_str == "deleted":
-                self.display_image(i, "image", dimn=dim_tuple)
+                if value_str == "deleted" or value_str == 'zoom':
+                    self.display_image(i, "image", iconv_r_poster, value_str, dimn=dim_tuple)
                     
                 i=i+1
                 k = k+1
                 QtWidgets.QApplication.processEvents()
-                if k == iconv_r:
-                    j = j + 2*iconv_r
-                    j1 = j1+2*iconv_r
+                if k == iconv_r_poster:
+                    j = j + 2*iconv_r_poster
+                    j1 = j1+2*iconv_r_poster
                     k = 0
                     
         self.lock_process = False
@@ -4325,6 +4326,7 @@ watch/unwatch status")
             h = int(w/self.image_aspect_allowed)
         width = str(int(w))
         height = str(int(h))
+        hei_ght= str(int((int(height)/3)))
         print("self.width="+width)
         print("self.height="+height)
         if self.icon_size_arr:
@@ -4411,10 +4413,12 @@ watch/unwatch status")
         
                 p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
                 p3="self.label_epn_"+str(ii)+".setMaximumWidth("+width+")"
+                p4="self.label_epn_"+str(ii)+".setMaximumHeight("+hei_ght+")"
                 p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
                 p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
                 exec(p2)
                 exec(p3)
+                exec(p4)
                 exec(p5)
                 exec(p6)
                 ii += 1
@@ -4969,7 +4973,7 @@ watch/unwatch status")
         
     def thumbnailHide(self, context):
         global view_layout, total_till, browse_cnt, iconv_r
-        global memory_num_arr, idw
+        global memory_num_arr, idw, viewMode
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
         idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
@@ -5001,14 +5005,20 @@ watch/unwatch status")
         self.label.show()
         self.frame1.show()
         self.text.show()
-        view_layout = "List"
+        if context == "ExtendedQLabel":
+            pass
+        else:
+            view_layout = "List"
+            viewMode = "List"
         if self.mpvplayer_val.processId() > 0:
             self.text.hide()
             self.label.hide()
             self.list1.hide()
             self.frame.hide()
             self.tab_5.show()
-                
+        #self.change_list2_style()
+        self.update_list2()
+        
     def webClose(self):
         global view_layout, desktop_session
         
@@ -5096,11 +5106,11 @@ watch/unwatch status")
         
     def IconView(self):
         global fullscrT, idwMain, idw, total_till, label_arr, browse_cnt, tmp_name
-        global view_layout, thumbnail_indicator, total_till_epn
+        global view_layout, thumbnail_indicator, total_till_epn, viewMode
         
         if self.list1.count() == 0:
             return 0
-        
+        viewMode = 'Thumbnail'
         thumbnail_indicator[:]=[]
         self.scrollArea1.hide()
         self.scrollArea.show()
@@ -5115,7 +5125,7 @@ watch/unwatch status")
                 exec (t)
                 i = i+1
             total_till = 0
-        
+        i = 0
         if total_till_epn > 0:
             while(i<total_till_epn):
                 t = "self.label_epn_"+str(i)+".deleteLater()"
@@ -5132,7 +5142,8 @@ watch/unwatch status")
             self.frame.hide()
             self.frame1.hide()
             self.goto_epn.hide()
-            self.dockWidget_3.hide()
+            if ui.auto_hide_dock:
+                self.dockWidget_3.hide()
             self.tab_6.show()
             self.next_page('deleted')
             self.tab_2.hide()
@@ -5145,11 +5156,12 @@ watch/unwatch status")
             self.text.show()
             self.frame1.show()
             
-    def IconViewEpn(self):
+    def IconViewEpn(self, start=None):
         global fullscrT, idwMain, idw, total_till, label_arr, browse_cnt, tmp_name
         global view_layout, iconv_r, curR, viewMode, thumbnail_indicator
         global site, total_till_epn
-        
+        if isinstance(start, int):
+            viewMode = 'Thumbnail'
         if self.list2.count() == 0:
             return 0
         
@@ -5162,8 +5174,7 @@ watch/unwatch status")
             num = 0
         i = 0
         print(viewMode, site, '--viewmode--')
-        if (self.tab_6.isHidden() or (viewMode == "Thumbnail" 
-                and site == "PlayLists")):
+        if self.tab_6.isHidden() or viewMode == "Thumbnail" or start:
             self.list1.hide()
             self.list2.hide()
             self.tab_5.hide()
@@ -5172,7 +5183,8 @@ watch/unwatch status")
             self.frame.hide()
             #self.frame1.hide()
             self.goto_epn.hide()
-            self.dockWidget_3.hide()
+            if ui.auto_hide_dock:
+                self.dockWidget_3.hide()
             if self.mpvplayer_val.processId()>0:
                 self.tab_5.show()
                 self.frame1.show()
@@ -5216,7 +5228,31 @@ watch/unwatch status")
             self.list1.setFocus()
             self.text.show()
             self.frame1.show()
-                
+        if start is True:
+            time.sleep(0.01)
+            self.thumbnail_label_update_epn()
+            try:
+                if self.list2.currentItem():
+                    r = self.list2.currentRow()
+                    p1 = "self.label_epn_"+str(r)+".y()"
+                    yy = eval(p1)
+                    self.scrollArea1.verticalScrollBar().setValue(yy -10)
+                    p1 = "self.label_epn_"+str(r)+".setFocus()"
+                    exec(p1)
+                    new_cnt = r+self.list2.count()
+                    p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
+                    exec(p1)
+                    p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
+                    txt = eval(p1)
+                    p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
+                    exec(p1)
+                    p1 = "self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
+                    exec(p1)
+                    self.labelFrame2.setText(txt)
+            except Exception as err:
+                print(err)
+            QtWidgets.QApplication.processEvents()
+            
     def textShowHide(self):
         global fullscrT, idwMain, idw
         if fullscrT == 1:
@@ -5281,10 +5317,7 @@ watch/unwatch status")
             self.list2.clear()
             self.text.clear()
             for i in m:
-                if site == "Local":
-                    k = i.split('@')[-1]
-                    i = k
-                elif site.lower() == 'video' or site.lower() == 'music':
+                if site.lower() == 'video' or site.lower() == 'music':
                     pass
                 else:
                     if '	' in i:
@@ -11502,18 +11535,23 @@ watch/unwatch status")
                 
                 if (opt == "History" or (site == "Video" or site == 'PlayLists') 
                         or bookmark):
-                    i = 0
                     print(total_till, 2*self.list1.count()-1, '--count--')
                     if total_till > 0 and not self.lock_process:
                         if not self.scrollArea.isHidden():
                             self.next_page('deleted')
                         elif not self.scrollArea1.isHidden():
-                            self.thumbnail_label_update_epn()
-                    elif total_till == 0:
-                        if not self.scrollArea.isHidden():
+                            self.scrollArea1.hide()
+                            self.scrollArea.show()
+                            if thumbnail_indicator:
+                                thumbnail_indicator.pop()
+                            while(i<total_till_epn):
+                                t = "self.label_epn_"+str(i)+".deleteLater()"
+                                exec (t)
+                                i = i+1
+                            total_till_epn=0
                             self.next_page('deleted')
-                        elif not self.scrollArea1.isHidden():
-                            self.thumbnail_label_update_epn()
+                            #self.thumbnail_label_update_epn()
+                    
                     
         list1_items[:] = []	
         for i in range(self.list1.count()):
@@ -11651,7 +11689,31 @@ watch/unwatch status")
                 QtCore.Qt.Window | QtCore.Qt.WindowTitleHint 
                 | QtCore.Qt.WindowStaysOnTopHint)
         MainWindow.show()
-        
+    
+    def change_list2_style(self, mode=None):
+        if isinstance(mode, bool):
+            self.list_with_thumbnail = mode
+        if self.list_with_thumbnail:
+            ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
+            color:white;background:rgba(0, 0, 0, 30%);
+            border:rgba(0, 0, 0, 30%);border-radius: 3px;}
+            QListWidget:item {height: 128px;}
+            QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
+            color: violet;}
+            QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
+            QMenu{font: bold 12px;color:black;
+            background-image:url('1.png');}""")
+        else:
+            ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
+            color:white;background:rgba(0, 0, 0, 30%);
+            border:rgba(0, 0, 0, 30%);border-radius: 3px;}
+            QListWidget:item {height: 30px;}
+            QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
+            color: violet;}
+            QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
+            QMenu{font: bold 12px;color:black;
+            background-image:url('1.png');}""")
+    
     def watch_external_video(self, var, mode=None, start_now=None):
         global quitReally, video_local_stream, curR, site
         global home
@@ -12229,26 +12291,9 @@ def main():
                     tmp_mode = re.sub('\n', '', j)
                     if tmp_mode.lower() == 'true':
                         ui.list_with_thumbnail = True
-                        ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                        color:white;background:rgba(0, 0, 0, 30%);
-                        border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-                        QListWidget:item {height: 128px;}
-                        QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                        color: violet;}
-                        QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                        QMenu{font: bold 12px;color:black;
-                        background-image:url('1.png');}""")
                     else:
-                        ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                        color:white;background:rgba(0, 0, 0, 30%);
-                        border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-                        QListWidget:item {height: 30px;}
-                        QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                        color: violet;}
-                        QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                        QMenu{font: bold 12px;color:black;
-                        background-image:url('1.png');}""")
                         ui.list_with_thumbnail = False
+                    ui.change_list2_style()
                 elif "Site_Index" in i:
                     site_i = re.sub('\n', '', j)
                     if site_i.isdigit():
@@ -12344,10 +12389,16 @@ def main():
                     if j:
                         iconv_r = int(j)
                         iconv_r_indicator.append(iconv_r)
+                elif "Thumbnail_Poster" in i:
+                    j = j.replace('\n', '')
+                    if j:
+                        icon_poster = int(j)
+                        ui.icon_poster_indicator.append(icon_poster)
                 elif "View" in i:
                     viewMode = j.replace('\n', '')
                     if viewMode=="Thumbnail":
-                        ui.comboView.setCurrentIndex(2)
+                        #ui.comboView.setCurrentIndex(2)
+                        pass
                     elif viewMode=="List":
                         ui.comboView.setCurrentIndex(1)
                 elif "Layout" in i:
@@ -12962,7 +13013,10 @@ def main():
     
     if ui.media_server_autostart:
         ui.start_stop_media_server(True)
-    
+    if viewMode == 'Thumbnail':
+        time.sleep(0.01)
+        ui.IconViewEpn(start=True)
+        
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
@@ -13001,7 +13055,7 @@ def main():
         show_hide_playlist = 0
     else:
         show_hide_playlist = 1
-    
+    icon_poster = iconv_r
     if os.path.exists(os.path.join(home, "config.txt")):
                 
         print(Player)
@@ -13014,7 +13068,10 @@ def main():
         f.write("\nMusicWindowDim="+str(ui.music_mode_dim))
         f.write("\nMusicModeDimShow="+str(ui.music_mode_dim_show))
         if iconv_r_indicator:
-            iconv_r = iconv_r_indicator[0]
+            iconv_r = icon_poster = iconv_r_indicator[0]
+        if ui.icon_poster_indicator:
+            icon_poster = ui.icon_poster_indicator[-1]
+        f.write("\nThumbnail_Poster="+str(icon_poster))
         f.write("\nThumbnail_Size="+str(iconv_r))
         f.write("\nView="+str(viewMode))
         f.write("\nQuality="+str(quality))
