@@ -21,6 +21,7 @@ import os
 import shutil
 import re
 import subprocess
+import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files
 
@@ -1525,9 +1526,10 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
         ui.list2.setCurrentRow(0)
         curR = 0
         ui.set_parameters_value(curRow=curR)
+        time.sleep(0.01)
         if not ui.lock_process:
             ui.gridLayout.addWidget(ui.tab_6, 0, 1, 1, 1)
-            ui.thumbnailHide('ExtendedQLabel')
+            #ui.thumbnailHide('ExtendedQLabel')
             ui.IconViewEpn()
             if not ui.scrollArea1.isHidden():
                 ui.scrollArea1.setFocus()
