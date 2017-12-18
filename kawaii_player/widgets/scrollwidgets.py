@@ -41,7 +41,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         except:
             return 0
         if ui.icon_size_arr:
-            iconv_r = ui.get_parameters_value(i='iconv_r')['iconv_r']
+            iconv_r = ui.icon_poster_indicator[-1]
             hi = ui.icon_size_arr[1]
             wi = ui.icon_size_arr[0]
             if direction == "down":		
@@ -107,48 +107,38 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Equal:
-            param_dict = ui.get_parameters_value(i='iconv_r', ir='iconv_r_indicator')
-            iconv_r = param_dict['iconv_r']
-            iconv_r_indicator = param_dict['iconv_r_indicator']
-            if iconv_r > 1:
-                iconv_r = iconv_r-1
-                if iconv_r_indicator:
-                    iconv_r_indicator.pop()
-                iconv_r_indicator.append(iconv_r)
-                ui.set_parameters_value(iconv=iconv_r, iconvr=iconv_r_indicator)
+            iconv_r_poster = ui.icon_poster_indicator[-1]
+            if iconv_r_poster > 1:
+                iconv_r_poster = iconv_r_poster - 1
+                ui.icon_poster_indicator.append(iconv_r_poster)
             if not ui.scrollArea.isHidden():
-                ui.next_page('not_deleted')
+                ui.next_page('zoom')
             elif not ui.scrollArea1.isHidden():
                 ui.thumbnail_label_update()
-            if iconv_r > 1:
-                w = float((ui.tab_6.width()-60)/iconv_r)
+            if iconv_r_poster > 1:
+                w = float((ui.tab_6.width()-60)/iconv_r_poster)
                 #h = float((9*w)/16)
                 h = int(w/ui.image_aspect_allowed)
                 width=str(int(w))
                 height=str(int(h))
                 curR = ui.get_parameters_value(c='curR')['curR']
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
+                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r_poster)-1)*h+((curR+1)/iconv_r_poster)*10)
         elif event.key() == QtCore.Qt.Key_Minus:
-            param_dict = ui.get_parameters_value(i='iconv_r', ir='iconv_r_indicator')
-            iconv_r = param_dict['iconv_r']
-            iconv_r_indicator = param_dict['iconv_r_indicator']
-            iconv_r = iconv_r+1
-            if iconv_r_indicator:
-                iconv_r_indicator.pop()
-            iconv_r_indicator.append(iconv_r)
-            ui.set_parameters_value(iconv=iconv_r, iconvr=iconv_r_indicator)
+            iconv_r_poster = ui.icon_poster_indicator[-1]
+            iconv_r_poster += 1
+            ui.icon_poster_indicator.append(iconv_r_poster)
             if not ui.scrollArea.isHidden():
-                ui.next_page('not_deleted')
+                ui.next_page('zoom')
             elif not ui.scrollArea1.isHidden():
                 ui.thumbnail_label_update()
-            if iconv_r > 1:
-                w = float((ui.tab_6.width()-60)/iconv_r)
+            if iconv_r_poster > 1:
+                w = float((ui.tab_6.width()-60)/iconv_r_poster)
                 #h = float((9*w)/16)
                 h = int(w/ui.image_aspect_allowed)
                 width=str(int(w))
                 height=str(int(h))
                 curR = ui.get_parameters_value(c='curR')['curR']
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
+                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r_poster)-1)*h+((curR+1)/iconv_r_poster)*10)
         elif event.key() == QtCore.Qt.Key_Left:
                 nextR = ui.list1.currentRow()-1
                 if nextR >=0:
@@ -157,7 +147,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     ui.btn1.setFocus()
                     ui.dockWidget_3.show()
         elif event.key() == QtCore.Qt.Key_Down:
-            iconv_r = ui.get_parameters_value(i='iconv_r')['iconv_r']
+            iconv_r = ui.icon_poster_indicator[-1]
             nextR = ui.list1.currentRow()
             if nextR < 0:
                 self.sizeAdjust(0, "down")
@@ -168,7 +158,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 else:
                     self.sizeAdjust(nextR-iconv_r, "down")
         elif event.key() == QtCore.Qt.Key_Up:
-            iconv_r = ui.get_parameters_value(i='iconv_r')['iconv_r']
+            iconv_r = ui.icon_poster_indicator[-1]
             nextR = ui.list1.currentRow()
             if nextR < 0:
                 self.sizeAdjust(0, "up")
