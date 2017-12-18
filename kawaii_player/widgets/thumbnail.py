@@ -346,26 +346,27 @@ class ThumbnailWidget(QtWidgets.QLabel):
             elif event.key() == QtCore.Qt.Key_I:
                 ui.mpvplayer_val.write(b'\n show_text ${file-size} \n')
             elif event.key() == QtCore.Qt.Key_E:
-                if ui.player_val == "mplayer":
+                if ui.mpvplayer_val.processId() > 0:
+                    #if ui.player_val == "mplayer":
                     w=self.width()
                     w = w + (0.05*w)
                     h = self.height()
                     h = h + (0.05*h)
                     self.setMaximumSize(w, h)
                     self.setMinimumSize(w, h)
-                else:
-                    ui.mpvplayer_val.write(b'\n add video-zoom +0.01 \n')
+                    #else:
+                    #ui.mpvplayer_val.write(b'\n add video-zoom +0.01 \n')
             elif event.key() == QtCore.Qt.Key_W:
                 if ui.mpvplayer_val.processId() > 0:
-                    if ui.player_val == "mplayer":
-                        w=self.width()
-                        w = w - (0.05*w)
-                        h = self.height()
-                        h = h - (0.05*h)
-                        self.setMaximumSize(w, h)
-                        self.setMinimumSize(w, h)
-                    else:
-                        ui.mpvplayer_val.write(b'\n add video-zoom -0.01 \n')
+                    #if ui.player_val == "mplayer":
+                    w=self.width()
+                    w = w - (0.05*w)
+                    h = self.height()
+                    h = h - (0.05*h)
+                    self.setMaximumSize(w, h)
+                    self.setMinimumSize(w, h)
+                    #else:
+                    #ui.mpvplayer_val.write(b'\n add video-zoom -0.01 \n')
             elif event.key() == QtCore.Qt.Key_R:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n sub_pos -1 \n')
