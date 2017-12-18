@@ -1227,7 +1227,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 ui.update_list2()
             elif action == thumb:
                 if self.currentItem() and ui.float_window.isHidden():
-                    ui.IconViewEpn()
+                    ui.IconViewEpn(start=1)
                     ui.scrollArea1.setFocus()
             elif action == file_manager:
                 if ui.epn_arr_list:
@@ -1543,7 +1543,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         srch_txt=name1, review_site='tvdb', action='search_by_name')
             elif action == thumb:
                 if self.currentItem() and ui.float_window.isHidden():
-                    ui.IconViewEpn()
+                    ui.IconViewEpn(start=1)
                     ui.scrollArea1.setFocus()
             elif action == fix_ord:
                 if self.currentItem():
