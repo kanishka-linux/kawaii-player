@@ -4079,7 +4079,7 @@ watch/unwatch status")
                 t = "self.label_"+str(i)+".deleteLater()"
                 exec(t)
             total_till = 0
-        if total_till==0 or value_str=="not_deleted":
+        if total_till==0 or value_str=="not_deleted" or value_str == 'zoom':
             tmp_name[:] = []
             for i in range(self.list1.count()):
                     txt = str(self.list1.item(i).text())
