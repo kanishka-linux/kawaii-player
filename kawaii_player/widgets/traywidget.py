@@ -198,9 +198,9 @@ class FloatWindowWidget(QtWidgets.QWidget):
             ui.float_timer.stop()
 
     def cover_frame(self):
-        param_dict = ui.get_parameters_value(i='idw', c='cur_label_num')
+        param_dict = ui.get_parameters_value(i='idw')
         idw = param_dict['idw']
-        cur_label_num = param_dict['cur_label_num']
+        cur_label_num = ui.thumbnail_label_number[0]
         if not ui.list_with_thumbnail:
             ui.list2.setMaximumHeight(30)
         else:
@@ -361,10 +361,9 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         screen_height = height
 
     def _detach_video(self):
-        param_dict = ui.get_parameters_value(
-            i='idw', c='cur_label_num', cr='curR')
+        param_dict = ui.get_parameters_value(i='idw', cr='curR')
         idw = param_dict['idw']
-        cur_label_num = param_dict['cur_label_num']
+        cur_label_num = ui.thumbnail_label_number[0]
         curR = param_dict['curR']
 
         txt = self.d_vid.text()
