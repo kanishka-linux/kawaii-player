@@ -137,8 +137,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
         if ui.mpvplayer_val.processId() > 0:
             param_dict = ui.get_parameters_value(t='tab_6_size_indicator')
             tab_6_size_indicator = param_dict['tab_6_size_indicator']
-            #if tab_6_size_indicator:
-            #    tab_6_size_indicator.pop()
+            if tab_6_size_indicator:
+                tab_6_size_indicator.pop()
             tab_6_size_indicator.append(ui.tab_6.width())
             ui.set_parameters_value(tab_6=tab_6_size_indicator)
             if event.key() == QtCore.Qt.Key_Equal:
@@ -601,8 +601,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.label_search.clear()
             ui.labelFrame2.hide()
             tab_6_player = "False"
-            #if tab_6_size_indicator:
-            #    tab_6_size_indicator.pop()
+            if tab_6_size_indicator:
+                tab_6_size_indicator.pop()
             if ui.tab_6.width()>500:
                 tab_6_size_indicator.append(ui.tab_6.width())
             ui.set_parameters_value(tab_6=tab_6_size_indicator)
