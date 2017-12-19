@@ -77,9 +77,22 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.fs_timer = QtCore.QTimer()
         self.fs_timer.timeout.connect(self.thumbnail_fs)
         self.fs_timer.setSingleShot(True)
+        
+        self.fs_timer_focus = QtCore.QTimer()
+        self.fs_timer_focus.timeout.connect(self.thumbnail_fs_focus)
+        self.fs_timer_focus.setSingleShot(True)
     
     def thumbnail_fs(self):
-        self.player_thumbnail_fs()
+        self.player_thumbnail_fs(mode='fs_now')
+        self.fs_timer_focus.start(2000)
+        
+    def thumbnail_fs_focus(self):
+        #for i in range(0, 4):
+        #p = "ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setFocus()"
+        #exec(p)
+        self.setFocus()
+        self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+        ui.frame1.hide()
         
     def seek_mplayer(self):
         if ui.player_val == "mplayer":
@@ -412,6 +425,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     self.mplayer_OsdTimer.start(5000)
                 else:
                     ui.mpvplayer_val.write(b'\n cycle audio \n')
+                    ui.mpvplayer_val.write(b'\n print-text "Audio_ID=${aid}" \n')
+                    ui.mpvplayer_val.write(b'\n show-text "${aid}" \n')
             elif event.key() == QtCore.Qt.Key_Period:
                 ui.mpvNextEpnList()
             elif event.key() == QtCore.Qt.Key_Comma:
@@ -420,6 +435,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 and event.key() == QtCore.Qt.Key_Q):
                 quitReally = "yes"
                 ui.set_parameters_value(quit_r=quitReally)
+                msg = '"Stop After current file"'
+                msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
+                ui.mpvplayer_val.write(msg_byt)
             elif event.key() == QtCore.Qt.Key_Q:
                 ui.player_stop.clicked.emit()
             elif event.key() == QtCore.Qt.Key_F:
@@ -450,24 +468,25 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 row = 2*int(ui.thumbnail_label_number[0]/iconv_r)
                 new_pos = (row, col)
                 print(new_pos)
-                if not MainWindow.isFullScreen() or mode == 'fs':
-                    p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(ui.thumbnail_label_number[0])
-                    index = eval(p1)
-                    print(index, '--index--')
-                    ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
-                    ui.tab_6.hide()
-                    p1 = "ui.gridLayout.addWidget({0}, 0, 1, 1, 1)".format(widget)
-                    exec(p1)
-                    p2="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setMaximumSize(QtCore.QSize("+str(screen_width)+", "+str(screen_height)+"))"
-                    exec(p2)
-                    ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                    ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                    ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
-                    ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
-                    ui.gridLayout.setSpacing(0)
-                    ui.gridLayout1.setSpacing(0)
-                    ui.gridLayout2.setSpacing(0)
-                    ui.superGridLayout.setSpacing(0)
+                if not MainWindow.isFullScreen() or mode == 'fs' or mode == 'fs_now':
+                    if mode != 'fs':
+                        p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(ui.thumbnail_label_number[0])
+                        index = eval(p1)
+                        print(index, '--index--')
+                        ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
+                        ui.tab_6.hide()
+                        p1 = "ui.gridLayout.addWidget({0}, 0, 1, 1, 1)".format(widget)
+                        exec(p1)
+                        p2="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setMaximumSize(QtCore.QSize("+str(screen_width)+", "+str(screen_height)+"))"
+                        exec(p2)
+                        ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                        ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                        ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
+                        ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
+                        ui.gridLayout.setSpacing(0)
+                        ui.gridLayout1.setSpacing(0)
+                        ui.gridLayout2.setSpacing(0)
+                        ui.superGridLayout.setSpacing(0)
                     MainWindow.showFullScreen()
                 else:
                     w = float((ui.tab_6.width()-60)/iconv_r)
@@ -557,7 +576,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.gridLayout.setSpacing(5)
 
 
-    def change_video_mode(self, var_mode, c_row):
+    def change_video_mode(self, var_mode, c_row, restart=None):
         """
         Mode 1: Show video within thumbnail and fullscreen by default
         Mode 2: Default mode
@@ -999,7 +1018,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
     
     def mouseDoubleClickEvent(self, event):
         if ui.video_mode_index == 1 or ui.video_mode_index == 1:
-            self.thumbnail_fs()
+            #self.thumbnail_fs()
+            pass
         else:
             msg = 'Fullscreen not allowed in this mode. Use keys W or E to decrease/increase size'
             ui.labelFrame2.setText(msg)
