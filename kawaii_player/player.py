@@ -885,6 +885,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 and event.key() == QtCore.Qt.Key_Q):
             quitReally = "yes"
             self.ui.set_parameters_value(quit_r=quitReally)
+            msg = '"Stop After current file"'
+            msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
+            self.mpvplayer.write(msg_byt)
         elif event.key() == QtCore.Qt.Key_Q:
             self.player_quit()
         #super(PlayerWidget, self).keyPressEvent(event)
