@@ -1593,6 +1593,7 @@ watch/unwatch status")
         self.cache_mpv_indicator = False
         self.cache_mpv_counter = '00'
         self.mpv_playback_duration = None
+        self.thumbnail_label_number = [0, 'None']
         self.broadcast_message = 'kawaii-player {0}'.format(self.version_number)
         self.broadcast_server = False
         self.broadcast_thread = None
@@ -1732,6 +1733,7 @@ watch/unwatch status")
         self.comboView.addItem(_fromUtf8(""))
         self.comboView.addItem(_fromUtf8(""))
         self.comboView.addItem(_fromUtf8(""))
+        self.comboBoxMode.addItem(_fromUtf8(""))
         self.comboBoxMode.addItem(_fromUtf8(""))
         self.comboBoxMode.addItem(_fromUtf8(""))
         self.comboBoxMode.addItem(_fromUtf8(""))
@@ -1919,6 +1921,7 @@ watch/unwatch status")
         self.comboBoxMode.setItemText(1, 'Mode 2')
         self.comboBoxMode.setItemText(2, 'Mode 3')
         self.comboBoxMode.setItemText(3, 'Mode 4')
+        self.comboBoxMode.setItemText(4, 'Mode 5')
         
         self.thumb_timer = QtCore.QTimer()
         self.mplayer_OsdTimer = QtCore.QTimer()
@@ -2393,6 +2396,8 @@ watch/unwatch status")
             self.video_mode_index = 3
         elif txt == 'mode 4':
             self.video_mode_index = 4
+        elif txt == 'mode 5':
+            self.video_mode_index = 5
     
     def change_fanart_aspect(self, var):
         dir_name = self.get_current_directory()
@@ -2974,42 +2979,47 @@ watch/unwatch status")
                 self.mpvplayer_val.write(b'\n show-text "${sid}" \n')
         self.subtitle_track.setText('Sub:'+str(sub_id))
     
-    def mark_epn_thumbnail_label(self, num):
+    def mark_epn_thumbnail_label_new(self, txt, index):
+        if txt.startswith('#'):
+            txt = txt.replace('#', self.check_symbol, 1)
+        p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(index)
+        exec (p1)
+        
+        try:
+            p1 = "self.label_epn_{0}.setText('{1}')".format(index, txt)
+            exec(p1)
+        except Exception as e:
+            logger.debug('{0}::first try'.format(e))
+            try:
+                p1 = 'self.label_epn_{0}.setText("{1}")'.format(index, txt)
+                exec(p1)
+            except Exception as e:
+                logger.debug('{0}::Second try'.format(e))
+        p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(index)
+        exec(p1)
+    
+    def mark_epn_thumbnail_label(self, num, old_num=None):
         global idw
         if idw and idw != str(int(self.tab_5.winId())) and idw != str(int(self.label.winId())):
             try:
-                new_cnt = num + self.list2.count()
-                p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-                exec (p1)
-                #p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
-                #txt = eval(p1)
+                index = num + self.list2.count()
                 txt = self.list2.item(num).text()
-                if txt.startswith('#'):
-                    txt = txt.replace('#', self.check_symbol, 1)
-                try:
-                    p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                    exec(p1)
-                except Exception as e:
-                    print(e, '--line--4597--')
-                    try:
-                        p1 = 'self.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
-                        exec(p1)
-                    except Exception as e:
-                        print(e)
-                p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                exec(p1)
+                self.mark_epn_thumbnail_label_new(txt, index)
+                if old_num:
+                    txt = ui.thumbnail_label_number[1]
+                    index = ui.thumbnail_label_number[0] + self.list2.count()
+                    self.mark_epn_thumbnail_label_new(txt, index)
             except Exception as e:
-                print(e)
+                logger.error(e)
     
     def update_thumbnail_position(self, context=None):
-        global cur_label_num
+        global quitReally
         r = self.list2.currentRow()
         if r < 0:
             r = 0
-        print(r, '--thumbnail_number--', cur_label_num)
         QtWidgets.QApplication.processEvents()
         try:
-            p1="self.label_epn_"+str(cur_label_num)+".y()"
+            p1="self.label_epn_"+str(r)+".y()"
             yy=eval(p1)
         except Exception as err:
             print(err)
@@ -3035,17 +3045,18 @@ watch/unwatch status")
         except Exception as err:
             print(err)
         if not context:
-            self.mark_epn_thumbnail_label(cur_label_num)
+            logger.debug('quit::{0}::'.format(quitReally))
+            if quitReally == 'no':
+                self.mark_epn_thumbnail_label(r)
+            else:
+                self.mark_epn_thumbnail_label(r, old_num=True)
         
     def thumbnail_window_present_mode(self):
-        global iconv_r, MainWindow, ui, wget, iconv_r_indicator
+        global iconv_r, MainWindow, wget, iconv_r_indicator
         
         if MainWindow.isFullScreen():
             if self.list2.count() == 0:
                 return 0
-            cur_label = self.list2.currentRow()
-            if cur_label<0:
-                cur_label = 0
             w = float((self.tab_6.width()-60)/iconv_r)
             h = int(w/self.image_aspect_allowed)
             width=str(int(w))
@@ -3053,11 +3064,12 @@ watch/unwatch status")
             r = self.current_thumbnail_position[0]
             c = self.current_thumbnail_position[1]
             print(r, c, '--thumbnail--7323--')
-            p6="self.gridLayout2.addWidget(self.label_epn_"+str(cur_label)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
+            thumbnail_index = self.thumbnail_label_number[0]
+            p6 = "self.gridLayout2.addWidget(self.label_epn_"+str(thumbnail_index)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
             exec(p6)
-            QtWidgets.QApplication.processEvents()
-            p2="self.label_epn_"+str(cur_label)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-            p3="self.label_epn_"+str(cur_label)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
+            #QtWidgets.QApplication.processEvents()
+            p2 = "self.label_epn_"+str(thumbnail_index)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
+            p3 = "self.label_epn_"+str(thumbnail_index)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
             exec(p2)
             exec(p3)
 
@@ -3244,7 +3256,7 @@ watch/unwatch status")
                     elif idw == str(int(self.label.winId())):
                         pass
                     else:
-                        p1 = "self.label_epn_{0}.winId()".format(str(cur_label_num))
+                        p1 = "self.label_epn_{0}.winId()".format(str(self.thumbnail_label_number[0]))
                         id_w = eval(p1)
                         idw = str(int(id_w))
                         finalUrl = self.epn_return(curR)
@@ -3300,7 +3312,7 @@ watch/unwatch status")
                         self.frame1.show()
         
     def playerPlaylist(self, val):
-        global quitReally, playlist_show, site
+        global quitReally, playlist_show, site, viewMode, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
         global show_hide_player, Player, httpd, idw, cur_label_num
         
@@ -3354,16 +3366,19 @@ watch/unwatch status")
             #else:
             #	self.tab_6.hide()
         elif val == "Show/Hide Title List":
-            if not self.list1.isHidden():
-                self.list1.hide()
-                self.frame.hide()
-                show_hide_titlelist = 0
+            if viewMode == 'Thumbnail' and thumbnail_indicator:
+                pass
             else:
-                self.list1.show()
-                #self.frame.show()
-                show_hide_titlelist = 1
-                if MainWindow.isFullScreen():
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                if not self.list1.isHidden():
+                    self.list1.hide()
+                    self.frame.hide()
+                    show_hide_titlelist = 0
+                else:
+                    self.list1.show()
+                    #self.frame.show()
+                    show_hide_titlelist = 1
+                    if MainWindow.isFullScreen():
+                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         elif val == "Lock File":
             v = str(self.action_player_menu[5].text())
             if v == "Lock File":
@@ -4807,24 +4822,34 @@ watch/unwatch status")
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, mpvAlive, curR, idw, Player, MainWindow
+        global queueNo, mpvAlive, curR, idw, Player, MainWindow, viewMode
         curR = self.list2.currentRow()
         queueNo = queueNo + 1
         mpvAlive = 0
+        thumb_mode = False
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
         if self.float_window.isHidden():
-            if self.mpvplayer_val.processId() > 0:
-                if idw != str(int(self.tab_5.winId())):
-                    self.mpvplayer_val.kill()
-                    self.mpvplayer_started = False
-                    idw = str(int(self.tab_5.winId()))
-                if self.mpvplayer_started:
-                    self.mpvNextEpnList(play_row=curR, mode='play_now')
+            if (viewMode == 'Thumbnail' and idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
+                num = self.list2.currentRow()
+                if self.mpvplayer_val.processId() > 0:
+                    self.mpvNextEpnList(play_row=num, mode= 'play_now')
+                else:
+                    exec_str = 'self.label_epn_{0}.change_video_mode({1}, {2})'.format(num, self.video_mode_index, num)
+                    exec(exec_str)
+                thumb_mode = True
+            else:
+                if self.mpvplayer_val.processId() > 0:
+                    if idw != str(int(self.tab_5.winId())):
+                        self.mpvplayer_val.kill()
+                        self.mpvplayer_started = False
+                        idw = str(int(self.tab_5.winId()))
+                    if self.mpvplayer_started:
+                        self.mpvNextEpnList(play_row=curR, mode='play_now')
+                    else:
+                        self.epnfound()
                 else:
                     self.epnfound()
-            else:
-                self.epnfound()
             if dock_check:
                 if self.auto_hide_dock:
                     self.dockWidget_3.hide()
@@ -4842,7 +4867,11 @@ watch/unwatch status")
                 except Exception as e:
                     print(e)
         if MainWindow.isFullScreen() and site.lower() != 'music':
-            self.tab_5.player_fs(mode='fs')
+            if thumb_mode:
+                exec_str = 'self.label_epn_{0}.player_thumbnail_fs(mode={1})'.format(num, 'fs')
+                exec(exec_str)
+            else:
+                self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None):
         global epn, curR, Player, site, current_playing_file_path
@@ -8287,9 +8316,9 @@ watch/unwatch status")
             elif OSNAME == 'nt':
                 if win_id:
                     idw = str(win_id)
-                elif thumbnail_indicator and self.video_mode_index != 1:
+                elif thumbnail_indicator and self.video_mode_index != 2:
                     try:
-                        p1 = 'self.label_epn_{0}.winId()'.format(str(cur_label_num))
+                        p1 = 'self.label_epn_{0}.winId()'.format(str(self.thumbnail_label_number[0]))
                         idw = str(int(eval(p1)))
                     except Exception as e:
                         print(e)
@@ -9995,9 +10024,9 @@ watch/unwatch status")
                     if quitReally == "no" and not self.epn_wait_thread.isRunning():
                         if self.tab_5.isHidden() and thumbnail_indicator:
                             length_1 = self.list2.count()
-                            q3="self.label_epn_"+str(length_1+cur_label_num)+".setText(self.epn_name_in_list)"
+                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText(self.epn_name_in_list)"
                             exec (q3)
-                            q3="self.label_epn_"+str(length_1+cur_label_num)+".setAlignment(QtCore.Qt.AlignCenter)"
+                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
                             exec(q3)
                         if (site == "Local" or site == "Video" or site == "Music" 
                                 or site == "PlayLists" or site == "None" or
@@ -10280,9 +10309,9 @@ watch/unwatch status")
                                 self.getNextInList()
                         if self.tab_5.isHidden() and thumbnail_indicator:
                             length_1 = self.list2.count()
-                            q3="self.label_epn_"+str(length_1+cur_label_num)+".setText((self.epn_name_in_list))"
+                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
                             exec (q3)
-                            q3="self.label_epn_"+str(length_1+cur_label_num)+".setAlignment(QtCore.Qt.AlignCenter)"
+                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
                             exec(q3)
                             QtWidgets.QApplication.processEvents()
                     elif quitReally == "yes":
@@ -10296,9 +10325,9 @@ watch/unwatch status")
         global Player, cur_label_num, epn_name_in_list, site
         if self.tab_5.isHidden() and thumbnail_indicator:
             length_1 = self.list2.count()
-            q3="self.label_epn_"+str(length_1+cur_label_num)+".setText((self.epn_name_in_list))"
+            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
             exec(q3)
-            q3="self.label_epn_"+str(length_1+cur_label_num)+".setAlignment(QtCore.Qt.AlignCenter)"
+            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
             exec(q3)
             QtWidgets.QApplication.processEvents()
         print("Process Started")
@@ -10387,7 +10416,7 @@ watch/unwatch status")
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
                 
     def adjust_thumbnail_window(self, row):
-        global thumbnail_indicator, idw, ui, cur_label_num
+        global thumbnail_indicator, idw, quitReally
         if self.epn_name_in_list.startswith('#'):
             self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
         if (thumbnail_indicator and idw == str(int(self.tab_5.winId()))):
@@ -10450,7 +10479,7 @@ watch/unwatch status")
                     exec(q3)
                     QtWidgets.QApplication.processEvents()
                     
-                    if self.video_mode_index == 1:
+                    if self.video_mode_index == 2:
                         p1 = "self.label_epn_"+str(row)+".y()"
                         ht=eval(p1)
                         self.scrollArea1.verticalScrollBar().setValue(ht)
@@ -10474,7 +10503,9 @@ watch/unwatch status")
                     p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
                     exec(p1)
                     
-                    init_cnt = cur_label_num + self.list2.count()
+                    init_cnt = self.thumbnail_label_number[0] + self.list2.count()
+                    if quitReally == 'yes':
+                        txt = self.thumbnail_label_number[1]
                     p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(init_cnt)
                     exec (p1)
                     try:
