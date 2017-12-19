@@ -378,14 +378,20 @@ class tab6(QtWidgets.QWidget):
         
     def resizeEvent(self, event):
         global tab_6_size_indicator, total_till, browse_cnt, thumbnail_indicator
-        global tab_6_player
+        global tab_6_player, screen_width
         
         if (ui.tab_6.width() > 500 and tab_6_player == "False" 
                     and iconv_r != 1 and not ui.lock_process):
                 #browse_cnt = 0
                 #if tab_6_size_indicator:
                 #    tab_6_size_indicator.pop()
-                tab_6_size_indicator.append(ui.tab_6.width())
+                new_width = ui.tab_6.width()
+                if tab_6_size_indicator:
+                    old_width = tab_6_size_indicator[-1]
+                else:
+                    old_width = screen_width
+                if new_width != old_width:
+                    tab_6_size_indicator.append(new_width)
                 if not ui.scrollArea.isHidden():
                     print('--------resizing----')
                     #ui.next_page('not_deleted')
@@ -1584,6 +1590,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.force_fs = False
         self.icon_poster_indicator = [5]
         self.mplayer_finished_counter = 0
         self.wget_counter_list = []
@@ -2398,6 +2405,8 @@ watch/unwatch status")
             self.video_mode_index = 4
         elif txt == 'mode 5':
             self.video_mode_index = 5
+        if self.mpvplayer_val.processId() > 0:
+            self.mpvplayer_val.kill()
     
     def change_fanart_aspect(self, var):
         dir_name = self.get_current_directory()
@@ -3017,7 +3026,7 @@ watch/unwatch status")
         r = self.list2.currentRow()
         if r < 0:
             r = 0
-        QtWidgets.QApplication.processEvents()
+        #QtWidgets.QApplication.processEvents()
         try:
             p1="self.label_epn_"+str(r)+".y()"
             yy=eval(p1)
@@ -3025,7 +3034,7 @@ watch/unwatch status")
             print(err)
             yy = 0
         self.scrollArea1.verticalScrollBar().setValue(yy-10)
-        QtWidgets.QApplication.processEvents()
+        #QtWidgets.QApplication.processEvents()
         self.frame1.show()
         self.gridLayout.setContentsMargins(5, 5, 5, 5)
         self.superGridLayout.setContentsMargins(5, 5, 5, 5)
@@ -3081,7 +3090,7 @@ watch/unwatch status")
                     self.goto_epn.hide()
                     self.progress.show()
             self.frame2.show()
-            if self.tab_6.isHidden():
+            if self.tab_6.isHidden() and not self.force_fs:
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
             self.frame1.show()
@@ -3177,11 +3186,11 @@ watch/unwatch status")
                         self.thumbnail_label_update_epn()
                         QtWidgets.QApplication.processEvents()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
-            if MainWindow.isFullScreen() and self.tab_6.isHidden():
+            if MainWindow.isFullScreen() and self.tab_6.isHidden() and not self.force_fs:
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
                 MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-            QtCore.QTimer.singleShot(5000, partial(self.show_cursor_now))
+            QtCore.QTimer.singleShot(3000, partial(self.show_cursor_now))
     
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -4837,6 +4846,8 @@ watch/unwatch status")
                 else:
                     exec_str = 'self.label_epn_{0}.change_video_mode({1}, {2})'.format(num, self.video_mode_index, num)
                     exec(exec_str)
+                #self.mpvplayer_val.kill()
+                #self.player_restart()
                 thumb_mode = True
             else:
                 if self.mpvplayer_val.processId() > 0:
@@ -4868,7 +4879,7 @@ watch/unwatch status")
                     print(e)
         if MainWindow.isFullScreen() and site.lower() != 'music':
             if thumb_mode:
-                exec_str = 'self.label_epn_{0}.player_thumbnail_fs(mode={1})'.format(num, 'fs')
+                exec_str = 'self.label_epn_{0}.player_thumbnail_fs(mode="{1}")'.format(num, 'fs')
                 exec(exec_str)
             else:
                 self.tab_5.player_fs(mode='fs')
@@ -5316,15 +5327,16 @@ watch/unwatch status")
             
     def fullscreenToggle(self):
         global fullscrT, idwMain, idw
-        fullscrT = 1 - fullscrT
         if not MainWindow.isFullScreen():
-            self.dockWidget_4.close()
+            #self.dockWidget_4.close()
             self.dockWidget_3.hide()
             MainWindow.showFullScreen()
+            self.force_fs = True
         else:
             self.dockWidget_3.show()
             MainWindow.showNormal()
             MainWindow.showMaximized()
+            self.force_fs = False
     
     
     def shuffleList(self):
@@ -6416,7 +6428,7 @@ watch/unwatch status")
             length1 = self.list2.count()
         
         print(length, '--length-filter-epn--')
-        if item_index:
+        if item_index and not self.lock_process:
             i = 0
             if not self.scrollArea.isHidden():
                 while(i < length):
@@ -9933,7 +9945,7 @@ watch/unwatch status")
                                 if self.frame_timer.isActive():
                                     self.frame_timer.stop()
                                 if self.tab_6.isHidden():
-                                    self.frame_timer.start(4000)
+                                    self.frame_timer.start(2000)
                         out1 = out+" ["+self.epn_name_in_list+"]"
                         self.progressEpn.setFormat((out1))
                         #logger.debug(out1)
@@ -10346,7 +10358,7 @@ watch/unwatch status")
                 self.frame_timer.stop()
         
     def finished(self):
-        global quitReally, mpv_start
+        global quitReally, mpv_start, viewMode, idw, thumbnail_indicator
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
@@ -10362,12 +10374,34 @@ watch/unwatch status")
         logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
         if (quitReally == 'no' and self.mpvplayer_val.processId() == 0
                 and OSNAME == 'posix' and self.mpvplayer_started and self.mplayer_finished_counter == 1):
-            logger.warning('quit={0} , hence --restarting--'.format(quitReally))
-            self.list2.setCurrentRow(curR)
-            item = self.list2.item(curR)
-            if item:
+            self.player_restart()
+            
+    def player_restart(self):
+        global quitReally, mpv_start, viewMode, idw, thumbnail_indicator
+        logger.warning('quit={0} , hence --restarting--'.format(quitReally))
+        num = curR
+        self.list2.setCurrentRow(num)
+        item = self.list2.item(num)
+        if item:
+            if (viewMode == 'Thumbnail' and idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
+                finalUrl = self.epn_return(num)
+                if finalUrl.startswith('"'):
+                    finalUrl = finalUrl.replace('"', '')
+                elif finalUrl.startswith("'"):
+                    finalUrl = finalUrl.replace("'", '')
+                if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
+                    finalUrl = self.if_path_is_rel(finalUrl)
+                if self.player_val == "mplayer":
+                    command = self.mplayermpv_command(idw, finalUrl, 'mplayer')
+                    logger.info(command)
+                    self.infoPlay(command)
+                elif self.player_val == "mpv":
+                    command = self.mplayermpv_command(idw, finalUrl, 'mpv')
+                    logger.info(command)
+                    self.infoPlay(command)
+            else:
                 self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-
+                
     def infoPlay(self, command):
         global Player, site, new_epn, mpv_indicator, cache_empty
         self.eof_reached = False
