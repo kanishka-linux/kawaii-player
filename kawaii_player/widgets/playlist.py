@@ -1023,6 +1023,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         item = self.item(row)
         if item:
             if site == "Video":
+                txt = None
                 if not bookmark:
                     video_db = os.path.join(home, 'VideoDB', 'Video.db')
                     conn = sqlite3.connect(video_db)
@@ -1033,6 +1034,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         cur.execute(qr, (num, txt))
                     conn.commit()
                     conn.close()
+                    if txt:
+                        dir_path, file_path = os.path.split(txt)
+                        if dir_path in ui.video_dict:
+                            del ui.video_dict[dir_path]
             elif site == "Music" and ui.list3.currentItem():
                 go_next = True
                 if ui.list3.currentItem().text() == "Playlist":
