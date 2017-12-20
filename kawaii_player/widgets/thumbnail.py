@@ -1172,10 +1172,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         submenuR.setTitle("Add To Playlist")
         menu.addMenu(submenuR)
         queue_item = menu.addAction("Queue Item")
-        watch = menu.addAction("Watch in Thumbnail")
-        watch1 = menu.addAction("Watch in List Form")
         thumb = menu.addAction("Show other Thumbnails")
-        stop = menu.addAction("Stop Watching in Thumbnail")
         removeThumb = menu.addAction("Remove Thumbnail")
         list_mode = menu.addAction("Go To List Mode")
         group = QtWidgets.QActionGroup(submenuR)
@@ -1205,29 +1202,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
                     logger.info(ui.queue_url_list)
                     write_files(file_path, ui.epn_arr_list[r], line_by_line=True)
-        elif action == watch:
-            if not thumbnail_grid:
-                if ui.list2.currentItem() and ui.float_window.isHidden():
-                    ui.IconViewEpn()
-                    ui.scrollArea1.setFocus()
-            ui.comboBoxMode.setCurrentIndex(2)
-            ui.video_mode_index = 3
-            self.change_video_mode(3, num)
-            QtCore.QTimer.singleShot(1000, ui.update_thumbnail_position)
-        elif action == watch1:
-            #if site=="Local":
-            if not thumbnail_grid:
-                if ui.list2.currentItem() and ui.float_window.isHidden():
-                    ui.IconViewEpn()
-                    ui.scrollArea1.setFocus()
-            ui.comboBoxMode.setCurrentIndex(4)
-            ui.video_mode_index = 5
-            self.change_video_mode(5, num)
-        elif action == stop:
-            quitReally = "yes"
-            ui.set_parameters_value(quit_r=quitReally)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(b'\n quit \n')
         elif action == new_pls:
             print("creating")
             item, ok = QtWidgets.QInputDialog.getText(
