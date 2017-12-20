@@ -3487,49 +3487,40 @@ watch/unwatch status")
                 self.tab_2.hide()
         elif (site == "Music" or site == "Local" or site == "Video" 
                 or site == "PlayLists"):
+            convert_str = (lambda txt: int(txt) if txt.isdigit() else txt.lower())
+            create_key = (lambda txt: [convert_str(i) for i in re.split('([0-9]+)', txt)])
             if val == "Order by Name(Descending)":
                 try:
                     self.epn_arr_list = sorted(
-                        self.epn_arr_list, key = lambda x : str(x).split('	')[0], 
-                        reverse=True)
-                    #self.epn_arr_list = naturallysorted(self.epn_arr_list)
-                except:
-                    self.epn_arr_list = sorted(self.epn_arr_list, 
-                                        key = lambda x : x.split('	')[0], 
-                                        reverse=True)
-                self.update_list2()
+                        self.epn_arr_list,
+                        key = lambda x : create_key(str(x).split('	')[0].replace('#', '', 1)), 
+                        reverse=True
+                        )
+                except Exception as err:
+                    logger.error(err)
             elif val == "Order by Name(Ascending)":
                 try:
-                    self.epn_arr_list = naturallysorted(self.epn_arr_list)
-                    #self.epn_arr_list = sorted(self.epn_arr_list, 
-                    #					key = lambda x : str(x).split('	')[0])
-                except:
                     self.epn_arr_list = sorted(
-                        self.epn_arr_list, key = lambda x : x.split('	')[0])
-                self.update_list2()
+                        self.epn_arr_list,
+                        key = lambda x : create_key(str(x).split('	')[0].replace('#', '', 1)),
+                        )
+                except Exception as err:
+                    logger.error(err)
             elif val == "Order by Date(Descending)":
                 try:
                     self.epn_arr_list = sorted(
                         self.epn_arr_list, key = lambda x : os.path.getmtime((
                         str(x).split('	')[1]).replace('"', '')), reverse=True)
                 except Exception as e:
-                    print(e, '--playlist--contains--online--and --offline--content--')
-                    """self.epn_arr_list = sorted(self.epn_arr_list, 
-                                        key = lambda x : os.path.getmtime((
-                                        x.split('	')[1]).replace('"', '')), 
-                                        reverse=True)"""
-                self.update_list2()
+                    logger.error(e)
             elif val == "Order by Date(Ascending)":
                 try:
                     self.epn_arr_list = sorted(
                         self.epn_arr_list, key = lambda x : os.path.getmtime((
                         str(x).split('	')[1]).replace('"', '')))
                 except Exception as e:
-                    print(e, '--playlist--contains--online--and --offline--content--')
-                    """self.epn_arr_list = sorted(self.epn_arr_list, 
-                                        key = lambda x : os.path.getmtime((
-                                        x.split('	')[1]).replace('"', '')))"""
-                self.update_list2()
+                    logger.error(e)
+            self.update_list2()
         
     def selectQuality(self):
         global quality
