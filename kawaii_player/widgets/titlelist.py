@@ -821,16 +821,16 @@ class TitleListWidget(QtWidgets.QListWidget):
                     self.triggerPlaylist(pls[i].replace('.txt', ''))
 
             if action == fav:
-                r = self.currentRow()
-                item = self.item(r)
-                if (item and music_opt!="Playlist" 
-                        and music_opt!= "Fav-Artist" 
-                        and music_opt!= "Fav-Album" 
-                        and music_opt!= "Fav-Directory"):
-                    txt = str(item.text())
-                    ui.media_data.update_music_count('fav', txt)
-                else:
-                    print("Not Permitted")
+                for item in self.selectedItems():
+                    r = self.row(item)
+                    if (music_opt!="Playlist" 
+                            and music_opt!= "Fav-Artist" 
+                            and music_opt!= "Fav-Album" 
+                            and music_opt!= "Fav-Directory"):
+                        txt = item.text()
+                        ui.media_data.update_music_count('fav', txt)
+                    else:
+                        print("Not Permitted")
             elif action == cache:
                     m = os.listdir(TMPDIR)
                     for i in m:
