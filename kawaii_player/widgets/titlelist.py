@@ -32,6 +32,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         MainWindow = parent
         ui = uiwidget
@@ -614,19 +615,28 @@ class TitleListWidget(QtWidgets.QListWidget):
                 write_files(file_path, t, line_by_line=True)
     
     def update_video_category(self, site, txt):
-        if site.lower() == 'video' and self.currentItem():
+        notify_title = ''
+        if site.lower() == 'video' and self.selectedItems():
             category = ui.category_dict.get(txt.lower())
             if category:
-                rows = [i.split('\t')[1] for i in ui.epn_arr_list]
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
                 cur = conn.cursor()
-                for i in rows:
-                    qr = 'Update Video Set Category=? Where Path=?'
-                    cur.execute(qr, (category, i))
-                    logger.info('{0}::{1}'.format(category, i))
+                for item in self.selectedItems():
+                    row = self.row(item)
+                    title, path = ui.original_path_name[row].split('\t')
+                    video_list = ui.video_dict.get(path)
+                    for i in video_list:
+                        video_path = i[1]
+                        qr = 'Update Video Set Category=? Where Path=?'
+                        cur.execute(qr, (category, video_path))
+                    logger.info('{0}::{1}'.format(category, title))
+                    if notify_title:
+                        notify_title = notify_title + ', ' + title
+                    else:
+                        notify_title = title
                 conn.commit()
                 conn.close()
-                msg = '{0} Successfully Added to category: {1}'.format(self.currentItem().text(), txt)
+                msg = '{0} Successfully Added to category: {1}'.format(notify_title, txt)
             else:
                 msg = 'Invalid Category'
         else:
