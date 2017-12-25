@@ -601,18 +601,25 @@ class TitleListWidget(QtWidgets.QListWidget):
         print('Menu Clicked')
         print(value)
         file_path = os.path.join(home, 'Playlists', str(value))
-        for i in range(len(ui.epn_arr_list)):
-            if os.path.exists(file_path):
-                sumr=str(ui.epn_arr_list[i].split('	')[0])
-                try:
-                    rfr_url=str(ui.epn_arr_list[i].split('	')[2])
-                except:
-                    rfr_url = "NONE"
-                sumry = str(ui.epn_arr_list[i].split('	')[1])
-                sumry = sumry.replace('"', '')
-                sumry = '"'+sumry+'"'
-                t = sumr+'	'+sumry+'	'+rfr_url
-                write_files(file_path, t, line_by_line=True)
+        if ui.list3.currentItem():
+            music_opt = ui.list3.currentItem().text()
+        else:
+            music_opt = ''
+        if music_opt and os.path.exists(file_path):
+            for item in self.selectedItems():
+                i = self.row(item)
+                music_opt_key = music_opt.lower() + '::' + ui.original_path_name[i]
+                epn_list = ui.music_dict.get(music_opt_key)
+                pls_entry = ''
+                if epn_list:
+                    for i in epn_list:
+                        pls_val = i[1]+'	'+i[2]+'	'+i[0]
+                        if pls_entry:
+                            pls_entry = pls_entry + '\n' + pls_val
+                        else:
+                            pls_entry = pls_val
+                    if pls_entry:
+                        write_files(file_path, pls_entry, line_by_line=True)
     
     def update_video_category(self, site, txt):
         notify_title = ''
