@@ -1692,6 +1692,7 @@ watch/unwatch status")
             'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv', 'webm'
             ]
         self.video_dict = {}
+        self.music_dict = {}
         self.browser_bookmark = {
             'Reviews': 'Reviews',
             'ANN': 'http://www.animenewsnetwork.com/encyclopedia/search/name?q=',
@@ -2463,7 +2464,7 @@ watch/unwatch status")
                 write_files(file_path, txt, False)
                 self.text.setText(txt)
         else:
-            self.copySummary(txt)
+            self.copySummary(copy_sum=txt, find_name=True)
         
     def text_editor_changed(self):
         g = self.text.geometry()
@@ -5517,7 +5518,7 @@ watch/unwatch status")
     
     
     def get_metadata_location(self, site, opt, siteName, new_name, mode=None,
-                              copy_sum=None):
+                              copy_sum=None, find_name=None):
         picn = ''
         img_opt = ''
         thumbnail = ''
@@ -5529,7 +5530,7 @@ watch/unwatch status")
             new_name = new_name.replace('/', '-')
         if site == 'Music':
             try:
-                if not new_name:
+                if not new_name or find_name:
                     if str(self.list3.currentItem().text()) == "Artist":
                         new_name = self.list1.currentItem().text()
                     else:
@@ -5609,12 +5610,12 @@ watch/unwatch status")
             self.metadata_copy(dir_path, picn, mode='fanart', img_opt=img_opt)
                     
                 
-    def copySummary(self, copy_sum=None, new_name=None):
+    def copySummary(self, copy_sum=None, new_name=None, find_name=None):
         global name, site, opt, pre_opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
             site, opt, siteName, new_name, mode='summary',
-            copy_sum=copy_sum
+            copy_sum=copy_sum, find_name=find_name
             )
         sumry = picn
         if dir_path and os.path.exists(sumry):
@@ -7598,7 +7599,13 @@ watch/unwatch status")
                                 i3 = "None"
                             artist.append(i1+'	'+i2+'	'+i3)
             else:
-                m = self.media_data.get_music_db(music_db, music_opt, art_n)
+                if art_n in self.music_dict:
+                    m = self.music_dict.get(music_opt.lower()+'::'+art_n)
+                    logger.debug('Getting Music from Cache')
+                else:
+                    m = self.media_data.get_music_db(music_db, music_opt, art_n)
+                    mlist = [list(i) for i in m]
+                    self.music_dict.update({music_opt.lower()+'::'+art_n:mlist})
                 for i in m:
                     if len(i) > 2:
                         artist.append(i[1]+'	'+i[2]+'	'+i[0])
