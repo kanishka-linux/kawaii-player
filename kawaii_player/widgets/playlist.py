@@ -38,6 +38,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.downloadWget = []
         self.downloadWget_cnt = 0
         MainWindow = parent
@@ -969,17 +970,24 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if (site == "Music" or site == "Video" or site == "Local" 
                 or site == "None" or site == 'PlayLists' or site == 'MyServer'):
             if os.path.exists(file_path):
-                i = self.currentRow()
-                sumr = ui.epn_arr_list[i].split('	')[0]
-                try:
-                    rfr_url = ui.epn_arr_list[i].split('	')[2]
-                except:
-                    rfr_url = "NONE"
-                sumry = ui.epn_arr_list[i].split('	')[1]
-                sumry = sumry.replace('"', '')
-                sumry = '"'+sumry+'"'
-                t = sumr+'	'+sumry+'	'+rfr_url
-                write_files(file_path, t, line_by_line=True)
+                new_name = ''
+                for item in self.selectedItems():
+                    i = self.row(item)
+                    sumr = ui.epn_arr_list[i].split('	')[0]
+                    try:
+                        rfr_url = ui.epn_arr_list[i].split('	')[2]
+                    except:
+                        rfr_url = "NONE"
+                    sumry = ui.epn_arr_list[i].split('	')[1]
+                    sumry = sumry.replace('"', '')
+                    sumry = '"'+sumry+'"'
+                    t = sumr+'	'+sumry+'	'+rfr_url
+                    if new_name:
+                        new_name = new_name + '\n' + t
+                    else:
+                        new_name = t
+                if new_name:
+                    write_files(file_path, new_name, line_by_line=True)
         else:
             param_dict = ui.get_parameters_value(f='finalUrlFound', r='refererNeeded')
             finalUrlFound = param_dict['finalUrlFound']
