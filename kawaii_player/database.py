@@ -583,7 +583,7 @@ class MediaDatabase():
                 #qVal = '"'+qVal+'"'
                 cur.execute(qr, (q1, incr))
         elif qType == "fav":
-            tmp = str(self.list3.currentItem().text())
+            tmp = str(self.ui.list3.currentItem().text())
             if tmp == "Artist":
                 qr = 'Update Music Set Favourite="yes" Where Artist=?'
                 cur.execute(qr, (qVal, ))
