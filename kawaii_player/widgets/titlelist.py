@@ -520,52 +520,10 @@ class TitleListWidget(QtWidgets.QListWidget):
             except Exception as e:
                 print(e)
                 
-    def addBookmarkList(self):
-        try:
-            new_path = ui.original_path_name[self.currentRow()].split('	')[-1]
-        except Exception as e:
-            print(e)
-            new_path = 'NONE'
-        param_dict = ui.get_parameters_value(b='bookmark', o='opt')
-        bookmark = param_dict['bookmark']
-        opt = param_dict['opt']
-        if not bookmark:
-            if opt != "History":
-                ui.listfound()
-            param_dict = ui.get_parameters_value(
-                s='site', sn='siteName', bu='base_url', e='embed', v='video_local_stream',
-                n='name', r='refererNeeded', f='finalUrlFound')
-            site = param_dict['site']
-            siteName = param_dict['siteName']
-            base_url = param_dict['base_url']
-            embed = param_dict['embed']
-            name = param_dict['name']
-            refererNeeded = param_dict['refererNeeded']
-            finalUrlFound = param_dict['finalUrlFound']
-            video_local_stream = param_dict['video_local_stream']
-            if site == "Music" or site == "Video":
-                if ui.list3.currentItem():
-                    music_opt = str(ui.list3.currentItem().text())
-                    tmp = site+':'+(music_opt)+':'+siteName+':'+str(base_url)+':'+str(embed)+':'+name+':'+str(finalUrlFound)+':'+str(refererNeeded)+':'+str(video_local_stream)+':'+str(new_path)
-                else:
-                    return 0
-            else:
-                tmp = site+':'+"History"+':'+siteName+':'+str(base_url)+':'+str(embed)+':'+name+':'+str(finalUrlFound)+':'+str(refererNeeded)+':'+str(video_local_stream)+':'+str(new_path)
-            file_path = os.path.join(home, 'Bookmark', 'bookmark.txt')
-            write_files(file_path, tmp, line_by_line=True)
-            note = name + " is Bookmarked"
-
     def triggerBookmark(self, val):
-        try:
-            new_path = ui.original_path_name[self.currentRow()].split('	')[-1]
-        except Exception as e:
-            print(e)
-            new_path = 'NONE'
         param_dict = ui.get_parameters_value(b='bookmark', o='opt')
         bookmark = param_dict['bookmark']
         opt = param_dict['opt']
-        if not bookmark:
-            self.addBookmarkList()
         param_dict = ui.get_parameters_value(
             s='site', sn='siteName', bu='base_url', e='embed', v='video_local_stream',
             n='name', r='refererNeeded', f='finalUrlFound')
@@ -577,25 +535,44 @@ class TitleListWidget(QtWidgets.QListWidget):
         refererNeeded = param_dict['refererNeeded']
         finalUrlFound = param_dict['finalUrlFound']
         video_local_stream = param_dict['video_local_stream']
-        if site == "Music" or site == "Video":
-            if ui.list3.currentItem():
-                music_opt = str(ui.list3.currentItem().text())
-                tmp = site+':'+(music_opt)+':'+siteName+':'+str(base_url)+':'+str(embed)+':'+name+':'+str(finalUrlFound)+':'+str(refererNeeded)+':'+str(video_local_stream)+':'+str(new_path)
+        bookmark_entry = []
+        item_name = ''
+        for item in self.selectedItems():
+            row = self.row(item)
+            try:
+                new_path = ui.original_path_name[row].split('	')[-1]
+            except Exception as err:
+                logger.error(err)
+                new_path = 'NONE'
+            name = item.text()
+            tmp = ''
+            if site == "Music" or site == "Video":
+                if ui.list3.currentItem():
+                    music_opt = str(ui.list3.currentItem().text())
+                    tmp = site+':'+(music_opt)+':'+siteName+':'+str(base_url)+':'+str(embed)+':'+name+':'+str(finalUrlFound)+':'+str(refererNeeded)+':'+str(video_local_stream)+':'+str(new_path)
             else:
-                return 0
-        else:
-            if ui.list1.currentItem():
                 tmp = site+':'+"History"+':'+siteName+':'+str(base_url)+':'+str(embed)+':'+name+':'+str(finalUrlFound)+':'+str(refererNeeded)+':'+str(video_local_stream)+':'+str(new_path)
-            else:
-                return 0
+            if tmp:
+                bookmark_entry.append(tmp)
+                if item_name:
+                    item_name = item_name + ' ,' + name
+                else:
+                    item_name = name
+                
         file_path = os.path.join(home, 'Bookmark', val+'.txt')
-        if os.path.isfile(file_path):
+        file_path_book = os.path.join(home, 'Bookmark', 'bookmark.txt')
+        if os.path.isfile(file_path) and bookmark_entry:
             lines = open_files(file_path, True)
             lines = [i.strip() for i in lines if i.strip()]
-            lines.append(tmp)
+            lines = lines + bookmark_entry
             write_files(file_path, lines, line_by_line=True)
-            note = name + " is Added to "+val+" Category"
+            note = item_name + " is Added to "+val
             send_notification(note, code=0)
+        if os.path.isfile(file_path_book) and bookmark_entry:
+            lines = open_files(file_path_book, True)
+            lines = [i.strip() for i in lines if i.strip()]
+            lines = lines + bookmark_entry
+            write_files(file_path_book, lines, line_by_line=True)
 
     def triggerPlaylist(self, value):
         print('Menu Clicked')
