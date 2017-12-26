@@ -521,6 +521,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 print(e)
                 
     def triggerBookmark(self, val):
+        logger.debug(val)
         param_dict = ui.get_parameters_value(b='bookmark', o='opt')
         bookmark = param_dict['bookmark']
         opt = param_dict['opt']
@@ -537,6 +538,19 @@ class TitleListWidget(QtWidgets.QListWidget):
         video_local_stream = param_dict['video_local_stream']
         bookmark_entry = []
         item_name = ''
+        file_path = os.path.join(home, 'Bookmark', val+'.txt')
+        file_path_book = os.path.join(home, 'Bookmark', 'bookmark.txt')
+        bookmark_lines = []
+        if bookmark:
+            if ui.list3.currentItem():
+                file_name = ui.list3.currentItem().text() + '.txt'
+            else:
+                file_name = 'bookmark.txt'
+            file_from = os.path.join(home, 'Bookmark', file_name)
+            logger.debug(file_from)
+            if os.path.isfile(file_from):
+                bookmark_lines = open_files(file_from, True)
+                bookmark_lines = [i.strip() for i in bookmark_lines if i.strip()]
         for item in self.selectedItems():
             row = self.row(item)
             try:
@@ -546,7 +560,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                 new_path = 'NONE'
             name = item.text()
             tmp = ''
-            if site == "Music" or site == "Video":
+            if bookmark:
+                if row < len(bookmark_lines):
+                    tmp = bookmark_lines[row]
+                    logger.debug(tmp)
+            elif site == "Music" or site == "Video":
                 if ui.list3.currentItem():
                     music_opt = str(ui.list3.currentItem().text())
                     tmp = site+':'+(music_opt)+':'+siteName+':'+str(base_url)+':'+str(embed)+':'+name+':'+str(finalUrlFound)+':'+str(refererNeeded)+':'+str(video_local_stream)+':'+str(new_path)
@@ -559,16 +577,17 @@ class TitleListWidget(QtWidgets.QListWidget):
                 else:
                     item_name = name
                 
-        file_path = os.path.join(home, 'Bookmark', val+'.txt')
-        file_path_book = os.path.join(home, 'Bookmark', 'bookmark.txt')
+        
         if os.path.isfile(file_path) and bookmark_entry:
             lines = open_files(file_path, True)
             lines = [i.strip() for i in lines if i.strip()]
             lines = lines + bookmark_entry
             write_files(file_path, lines, line_by_line=True)
+            if val == 'bookmark':
+                val = 'All'
             note = item_name + " is Added to "+val
             send_notification(note, code=0)
-        if os.path.isfile(file_path_book) and bookmark_entry:
+        if os.path.isfile(file_path_book) and bookmark_entry and val != 'bookmark':
             lines = open_files(file_path_book, True)
             lines = [i.strip() for i in lines if i.strip()]
             lines = lines + bookmark_entry
@@ -600,7 +619,9 @@ class TitleListWidget(QtWidgets.QListWidget):
     
     def update_video_category(self, site, txt):
         notify_title = ''
-        if site.lower() == 'video' and self.selectedItems():
+        param_dict = ui.get_parameters_value(b='bookmark')
+        bookmark = param_dict['bookmark']
+        if site.lower() == 'video' and self.selectedItems() and not bookmark:
             category = ui.category_dict.get(txt.lower())
             if category:
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
@@ -943,7 +964,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             for i in ui.browser_bookmark:
                 if i.lower() != 'reviews':
                     reviews.append(submenuR.addAction(i))
-            addBookmark = submenu.addAction("Add Bookmark")
+            #addBookmark = submenu.addAction("Add Bookmark")
             bookmark_array = ['bookmark']
             book_dir = os.path.join(home, 'Bookmark')
             pls = os.listdir(book_dir)
@@ -1045,8 +1066,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                         cat_list, 0, False)
                     if item and ok:
                         self.delete_category_video(site, item)
-            elif action == addBookmark:
-                self.addBookmarkList()
+                #elif action == addBookmark:
+                #self.triggerBookmark('bookmark')
             elif action == thumbnail:
                 param_dict = ui.get_parameters_value(b='bookmark', o='opt',
                                                      s='site')
