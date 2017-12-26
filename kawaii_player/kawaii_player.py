@@ -6191,6 +6191,10 @@ watch/unwatch status")
                     write_files(file_path, lines, line_by_line=True)
                     self.list1.takeItem(row)
                     del item
+                    if row < self.list1.count():
+                        self.list1.setCurrentRow(row)
+                    else:
+                        self.list1.setCurrentRow(self.list1.count()-1)
         elif opt == "History" and not bookmark:
             file_path = ''
             if siteName:
