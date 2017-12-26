@@ -3166,7 +3166,7 @@ watch/unwatch status")
                             and (str(idw) != str(int(self.label.winId())))):
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
-                        self.scrollArea1.verticalScrollBar().setValue(0)
+                        #self.scrollArea1.verticalScrollBar().setValue(0)
                         self.thumbnail_window_present_mode()
                     elif (str(idw) == str(int(self.tab_5.winId()))):
                         self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
