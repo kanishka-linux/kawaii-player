@@ -1590,6 +1590,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.mpv_length_find_attempt = 0
         self.force_fs = False
         self.icon_poster_indicator = [5]
         self.mplayer_finished_counter = 0
@@ -9833,7 +9834,7 @@ watch/unwatch status")
                         except:
                             pass
                         self.mplayer_finished_counter = 0
-                        if MainWindow.isFullScreen() and site != "Music" and self.list2.isHidden():
+                        if MainWindow.isFullScreen() and site != "Music" and self.list2.isHidden() and self.tab_6.isHidden():
                             self.gridLayout.setSpacing(0)
                             #if not self.frame1.isHidden():
                             #    self.frame1.hide()
@@ -9948,14 +9949,22 @@ watch/unwatch status")
                                 self.mplayerLength = int(o[0])*3600+int(o[1])*60+int(o[2])
                                 print(self.mplayerLength, "--mpvlength", a)
                                 if self.mplayerLength == 0:
-                                    self.mplayerLength = 1
+                                    if self.mpv_length_find_attempt >= 4:
+                                        self.mplayerLength = 1
+                                        self.mpv_length_find_attempt = 0
+                                        logger.warn('No Suitable length detected')
+                                    else:
+                                        self.mpv_cnt = 0
+                                        self.mpv_length_find_attempt += 1
+                                        logger.warn(self.mpv_length_find_attempt)
                                 self.mpv_playback_duration = n
                                 self.progressEpn.setMaximum(int(self.mplayerLength))
                                 self.slider.setRange(0, int(self.mplayerLength))
                                 self.mpv_cnt = 0
                             print(self.mplayerLength)
                             self.mpv_cnt = self.mpv_cnt + 1
-                            if MainWindow.isFullScreen() and site != 'Music' and self.list2.isHidden():
+                            if (MainWindow.isFullScreen() and site != 'Music'
+                                    and self.list2.isHidden() and self.tab_6.isHidden()):
                                 self.gridLayout.setSpacing(0)
                                 self.frame1.show()
                                 if self.frame_timer.isActive():
