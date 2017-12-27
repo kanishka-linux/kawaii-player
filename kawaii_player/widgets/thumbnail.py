@@ -650,9 +650,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.tab_5.show()
                     ui.tab_5.setFocus()
                     ui.frame1.show()
-                    if iconv_r_indicator:
+                    if iconv_r_indicator and iconv_r != 1:
                         iconv_r_indicator.pop()
-                    iconv_r_indicator.append(iconv_r)
+                    if iconv_r != 1:
+                        iconv_r_indicator.append(iconv_r)
                     iconv_r = 1
                     ui.set_parameters_value(iconv=iconv_r)
                     ui.thumbnail_label_update_epn()
