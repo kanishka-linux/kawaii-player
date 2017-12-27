@@ -279,7 +279,7 @@ class MainWindowWidget(QtWidgets.QWidget):
                     ui.frame1.show()
                     ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden():
-                    if site != 'Music':
+                    if site != 'Music' and self.list2.isHidden():
                         ui.frame1.hide()
 
 
@@ -3061,10 +3061,10 @@ watch/unwatch status")
             else:
                 self.mark_epn_thumbnail_label(r, old_num=True)
         
-    def thumbnail_window_present_mode(self):
+    def thumbnail_window_present_mode(self, mode=None):
         global iconv_r, MainWindow, wget, iconv_r_indicator
         
-        if MainWindow.isFullScreen():
+        if MainWindow.isFullScreen() and mode != 5:
             if self.list2.count() == 0:
                 return 0
             w = float((self.tab_6.width()-60)/iconv_r)
@@ -3150,6 +3150,20 @@ watch/unwatch status")
                             self.list2.setFocus()
                         elif self.fullscreen_mode == 1:
                             self.tab_6.show()
+                            self.gridLayout.setSpacing(5)
+                            self.tab_6.setMaximumSize(16777215, 16777215)
+                            tab_6_size_indicator.append(screen_width-20)
+                            thumbnail_indicator[:]=[]
+                            if iconv_r_indicator:
+                                iconv_r = iconv_r_indicator[0]
+                            else:
+                                iconv_r = 5
+                            logger.debug(iconv_r_indicator)
+                            self.frame2.show()
+                            self.frame1.show()
+                            self.labelFrame2.show()
+                            self.thumbnail_label_update_epn()
+                            QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
                     else:
                         pass
                     self.gridLayout.setContentsMargins(5, 5, 5, 5)
@@ -3167,11 +3181,14 @@ watch/unwatch status")
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
                         #self.scrollArea1.verticalScrollBar().setValue(0)
-                        self.thumbnail_window_present_mode()
+                        if self.video_mode_index == 5:
+                            self.thumbnail_window_present_mode(mode=5)
+                        else:
+                            self.thumbnail_window_present_mode()
                     elif (str(idw) == str(int(self.tab_5.winId()))):
                         self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
                         self.gridLayout.setSpacing(5)
-                        self.tab_6.setMaximumSize(10000, 10000)
+                        self.tab_6.setMaximumSize(16777215, 16777215)
                         self.tab_5.hide()
                         tab_6_size_indicator.append(screen_width-20)
                         thumbnail_indicator[:]=[]
@@ -3179,13 +3196,11 @@ watch/unwatch status")
                             iconv_r = iconv_r_indicator[0]
                         else:
                             iconv_r = 5
-                        self.scrollArea1.verticalScrollBar().setValue(0)
-                        QtWidgets.QApplication.processEvents()
+                        logger.debug(iconv_r_indicator)
                         self.frame2.show()
                         self.frame1.show()
                         self.labelFrame2.show()
                         self.thumbnail_label_update_epn()
-                        QtWidgets.QApplication.processEvents()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             if MainWindow.isFullScreen() and self.tab_6.isHidden() and not self.force_fs:
                 MainWindow.showNormal()
@@ -4869,7 +4884,7 @@ watch/unwatch status")
                     server._emitMeta("Play", site, self.epn_arr_list)
                 except Exception as e:
                     print(e)
-        if MainWindow.isFullScreen() and site.lower() != 'music':
+        if MainWindow.isFullScreen() and site.lower() != 'music' and self.list2.isHidden():
             if thumb_mode:
                 exec_str = 'self.label_epn_{0}.player_thumbnail_fs(mode="{1}")'.format(num, 'fs')
                 exec(exec_str)
@@ -8175,9 +8190,8 @@ watch/unwatch status")
                     shutil.copy(picn, new_jpg)
                 self.label.setPixmap(QtGui.QPixmap(new_jpg, "1"))
 
-        self.text.clear()
-
         if summary:
+            self.text.clear()
             self.text.insertPlainText((summary))
         else:
             self.text.insertPlainText("No Summary Available")
@@ -9819,7 +9833,7 @@ watch/unwatch status")
                         except:
                             pass
                         self.mplayer_finished_counter = 0
-                        if MainWindow.isFullScreen() and site != "Music":
+                        if MainWindow.isFullScreen() and site != "Music" and self.list2.isHidden():
                             self.gridLayout.setSpacing(0)
                             #if not self.frame1.isHidden():
                             #    self.frame1.hide()
@@ -9941,7 +9955,7 @@ watch/unwatch status")
                                 self.mpv_cnt = 0
                             print(self.mplayerLength)
                             self.mpv_cnt = self.mpv_cnt + 1
-                            if MainWindow.isFullScreen() and site != 'Music':
+                            if MainWindow.isFullScreen() and site != 'Music' and self.list2.isHidden():
                                 self.gridLayout.setSpacing(0)
                                 self.frame1.show()
                                 if self.frame_timer.isActive():
@@ -10137,7 +10151,7 @@ watch/unwatch status")
                             self.mplayer_finished_counter = 0
                         except:
                             pass
-                        if MainWindow.isFullScreen() and layout_mode != "Music":
+                        if MainWindow.isFullScreen() and layout_mode != "Music" and self.list2.isHidden():
                             self.gridLayout.setSpacing(0)
                             if not self.frame1.isHidden():
                                 self.frame1.hide()
@@ -10352,7 +10366,7 @@ watch/unwatch status")
         #print t
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((t))
-        if MainWindow.isFullScreen() and site!="Music":
+        if MainWindow.isFullScreen() and site!="Music" and self.list2.isHidden():
             self.superGridLayout.setSpacing(0)
             self.gridLayout.setSpacing(0)
             self.frame1.show()
@@ -12477,6 +12491,16 @@ def main():
                         show_hide_player = int(j)
                     except:
                         show_hide_player = 0
+                elif "Force_FS" in i:
+                    try:
+                        if j.lower() == 'true':
+                            ui.force_fs = True
+                        else:
+                            ui.force_fs = False
+                    except Exception as err:
+                        logger.error(err)
+                        ui.force_fs = False
+                    logger.debug('fs={0}'.format(ui.force_fs))
                 elif "Thumbnail_Size" in i:
                     j = j.replace('\n', '')
                     if j:
@@ -13109,7 +13133,10 @@ def main():
     if viewMode == 'Thumbnail':
         time.sleep(0.01)
         ui.IconViewEpn(start=True)
-        
+    
+    if ui.force_fs:
+        MainWindow.showFullScreen()
+    
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
@@ -13191,6 +13218,7 @@ def main():
         f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
         f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
         f.write("\nUpload_Speed="+str(ui.setuploadspeed))
+        f.write("\nForce_FS={0}".format(ui.force_fs))
         f.close()
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
