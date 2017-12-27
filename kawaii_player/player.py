@@ -64,7 +64,7 @@ class PlayerWidget(QtWidgets.QWidget):
         print("arrow hide")
 
     def frameShowHide(self):
-        if MainWindow.isFullScreen():
+        if MainWindow.isFullScreen() and self.ui.tab_6.isHidden():
             if self.ui.frame1.isHidden():
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
