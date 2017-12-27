@@ -441,11 +441,26 @@ class ThumbnailWidget(QtWidgets.QLabel):
             elif event.key() == QtCore.Qt.Key_Q:
                 ui.player_stop.clicked.emit()
             elif event.key() == QtCore.Qt.Key_F:
-                if ui.video_mode_index == 5 or ui.video_mode_index == 1:
+                mode = None
+                if ui.video_mode_index == 1:
                     self.player_thumbnail_fs()
-                else:
-                    msg = 'Fullscreen not allowed in this mode. Use keys W or E to decrease/increase size'
-                    ui.labelFrame2.setText(msg)
+                elif ui.video_mode_index in range(3, 6):
+                    num = ui.thumbnail_label_number[0]
+                    p1 = "ui.label_epn_{0}.width()".format(num)
+                    p2 = "ui.label_epn_{0}.height()".format(num)
+                    wd = eval(p1)
+                    ht = eval(p2)
+                    fs = False
+                    logger.debug('{0}, {1}::original {2}, {3}'.format(wd, ht, screen_width, screen_height))
+                    if wd == screen_width and ht == screen_height:
+                        fs = True
+                    if not fs:
+                        self.player_thumbnail_fs(mode='fs_now')
+                    else:
+                        self.player_thumbnail_fs()
+                    if self.fs_timer_focus.isActive():
+                        self.fs_timer_focus.stop()
+                    self.fs_timer_focus.start(1000)
         super(ThumbnailWidget, self).keyPressEvent(event)
 
     def player_thumbnail_fs(self, mode=None):
@@ -477,8 +492,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.tab_6.hide()
                         p1 = "ui.gridLayout.addWidget({0}, 0, 1, 1, 1)".format(widget)
                         exec(p1)
-                        p2="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setMaximumSize(QtCore.QSize("+str(screen_width)+", "+str(screen_height)+"))"
-                        exec(p2)
+                        p2= "ui.label_epn_{0}.setMaximumSize(QtCore.QSize({1}, {2}))".format(ui.thumbnail_label_number[0], screen_width, screen_height)
+                        exec (p2)
                         ui.gridLayout.setContentsMargins(0, 0, 0, 0)
                         ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
                         ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
@@ -498,8 +513,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     p6="ui.gridLayout2.addWidget(ui.label_epn_"+str(ui.thumbnail_label_number[0])+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
                     exec(p6)
                     QtWidgets.QApplication.processEvents()
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
+                    if not ui.force_fs:
+                        MainWindow.showNormal()
+                        MainWindow.showMaximized()
 
                     p1="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".y()"
                     yy=eval(p1)
@@ -589,11 +605,14 @@ class ThumbnailWidget(QtWidgets.QLabel):
         """
         param_dict = ui.get_parameters_value(
             s='site', tab6='tab_6_size_indicator',
-            serv='server', tab_pl='tab_6_player')
+            serv='server', tab_pl='tab_6_player',
+            iconv_r='iconv_r', iconv_r_indicator='iconv_r_indicator')
         site = param_dict['site']
         tab_6_size_indicator = param_dict['tab_6_size_indicator']
         server = param_dict['server']
         tab_6_player = param_dict['tab_6_player']
+        iconv_r = param_dict['iconv_r']
+        iconv_r_indicator = param_dict['iconv_r_indicator']
         finalUrl = ''
         curR = c_row
         ui.set_parameters_value(curRow=curR)
@@ -631,7 +650,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.tab_5.show()
                     ui.tab_5.setFocus()
                     ui.frame1.show()
-                    i = 0
+                    if iconv_r_indicator:
+                        iconv_r_indicator.pop()
+                    iconv_r_indicator.append(iconv_r)
                     iconv_r = 1
                     ui.set_parameters_value(iconv=iconv_r)
                     ui.thumbnail_label_update_epn()
@@ -803,6 +824,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.mpvplayer_started = False
                 ui.tab_5.hide()
                 ui.tab_6.setMaximumSize(16777215, 16777215)
+            if iconv_r_indicator and iconv_r != 1:
+                iconv_r_indicator.pop()
+            if iconv_r != 1:
+                iconv_r_indicator.append(iconv_r)
             iconv_r = 1
             ui.set_parameters_value(iconv=iconv_r)
             ui.tab_6.setMaximumSize(ui.width_allowed, 16777215) # (400, 1000) earlier
@@ -1017,11 +1042,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
             print(e)
     
     def mouseDoubleClickEvent(self, event):
-        if ui.video_mode_index == 1 or ui.video_mode_index == 1:
-            #self.thumbnail_fs()
+        if ui.video_mode_index == 1:
             pass
         else:
-            msg = 'Fullscreen not allowed in this mode. Use keys W or E to decrease/increase size'
+            msg = 'In this mode Fullscreen allowed using Key F. Use keys W or E to decrease/increase size'
             ui.labelFrame2.setText(msg)
     
     def mouseReleaseEvent(self, ev):
