@@ -109,7 +109,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         print("arrow hide")
 
     def frameShowHide(self):
-        if MainWindow.isFullScreen():
+        if MainWindow.isFullScreen() and ui.tab_6.isHidden():
             if ui.frame1.isHidden():
                 ui.gridLayout.setSpacing(0)
                 ui.frame1.show()
