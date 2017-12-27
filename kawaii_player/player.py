@@ -127,7 +127,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 site = param_dict['site']
                 if site != "Music" and self.ui.tab_6.isHidden() and self.ui.list2.isHidden():
                     self.ui.frame1.hide()
-                self.ui.gridLayout.setSpacing(5)
+                    self.ui.gridLayout.setSpacing(5)
 
     def ccurl_head(self, url, rfr_url):
         print("------------ccurlHead------------")
