@@ -7,7 +7,7 @@ class PlayerWidget(QtWidgets.QWidget):
 
     def __init__(self, parent, ui=None, logr=None, tmp=None):
         super(PlayerWidget, self).__init__(parent)
-        global MainWindow, logger, TMPDIR
+        global MainWindow, logger, TMPDIR, screen_width, screen_height
         self.cycle_pause = 0
         self.ui = ui
         MainWindow = parent
@@ -29,6 +29,11 @@ class PlayerWidget(QtWidgets.QWidget):
         self.seek_timer.timeout.connect(self.seek_mplayer)
         self.seek_timer.setSingleShot(True)
         self.mplayer_aspect_msg = False
+        
+        param_dict_val = self.ui.get_parameters_value(sw='screen_width',
+                                                      sh='screen_height')
+        screen_width = param_dict_val['screen_width']
+        screen_height = param_dict_val['screen_height']
     
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
@@ -81,10 +86,15 @@ class PlayerWidget(QtWidgets.QWidget):
         """
         
     def mouseDoubleClickEvent(self, event):
-        self.dblclk = True
-        logger.debug('{0}:{1}'.format(event.type(), 'dblclk'))
-        self.player_fs()
-        self.dblclk = False
+        if not self.ui.force_fs:
+            self.player_fs()
+        else:
+            wd = self.width()
+            ht = self.height()
+            if wd == screen_width and ht == screen_height:
+                self.player_fs()
+            else:
+                self.player_fs(mode='fs')
         
     def mouseMoveEvent(self, event):
         self.setFocus()
@@ -115,7 +125,7 @@ class PlayerWidget(QtWidgets.QWidget):
             elif pos.y() <= ht-32 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
-                if site != "Music":
+                if site != "Music" and self.ui.tab_6.isHidden() and self.ui.list2.isHidden():
                     self.ui.frame1.hide()
                 self.ui.gridLayout.setSpacing(5)
 
@@ -222,8 +232,9 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.frame1.show()
                     if self.player_val == "mplayer" or self.player_val == "mpv":
                         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
+                    if not self.ui.force_fs:
+                        MainWindow.showNormal()
+                        MainWindow.showMaximized()
                     param_dict = self.ui.get_parameters_value(tl='total_till')
                     total_till = param_dict['total_till']
                     if total_till != 0 or self.ui.fullscreen_mode == 1:
@@ -876,7 +887,15 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(b'\n print-text "Audio_ID=${aid}" \n')
                 self.mpvplayer.write(b'\n show-text "${aid}" \n')
         elif event.key() == QtCore.Qt.Key_F:
-            self.player_fs()
+            if not self.ui.force_fs:
+                self.player_fs()
+            else:
+                wd = self.width()
+                ht = self.height()
+                if wd == screen_width and ht == screen_height:
+                    self.player_fs()
+                else:
+                    self.player_fs(mode='fs')
         elif event.key() == QtCore.Qt.Key_Period:
             self.ui.mpvNextEpnList()
         elif event.key() == QtCore.Qt.Key_Comma:
