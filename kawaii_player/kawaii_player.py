@@ -9704,7 +9704,12 @@ watch/unwatch status")
                 logger.info(a)
             if self.custom_mpv_input_conf and Player == 'mpv':
                 if 'set property: fullscreen' in a.lower():
-                    self.tab_5.player_fs()
+                    logger.debug(a)
+                    if (self.tab_5.width() >= screen_width
+                            and self.tab_5.height() >= screen_height):
+                        self.tab_5.player_fs()
+                    else:
+                        self.tab_5.player_fs(mode='fs')
                     a = 'FULLSCREEN_TOGGLE'
                 elif 'playlist-next' in a.lower():
                     self.mpvNextEpnList()
