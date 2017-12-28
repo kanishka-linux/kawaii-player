@@ -9723,6 +9723,11 @@ watch/unwatch status")
                     if not self.acquire_subtitle_lock:
                         self.acquire_subtitle_lock = True
                         self.tab_5.load_external_sub()
+                elif 'stop_cmd: stop_after_current_file' in a.lower():
+                    quitReally = 'yes'
+                    txt_osd = '\n show-text "Stop After Current File" \n'
+                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                    logger.debug(a)
                 elif 'set property: video-aspect=' in a.lower():
                     logger.debug(a)
                     aspect_val = a.split('video-aspect=')[1].split(' ')[0]
