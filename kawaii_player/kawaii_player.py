@@ -279,7 +279,7 @@ class MainWindowWidget(QtWidgets.QWidget):
                     ui.frame1.show()
                     ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden():
-                    if site != 'Music' and self.list2.isHidden():
+                    if site != 'Music' and ui.list2.isHidden():
                         ui.frame1.hide()
 
 
