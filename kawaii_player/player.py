@@ -125,7 +125,7 @@ class PlayerWidget(QtWidgets.QWidget):
             elif pos.y() <= ht-32 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
-                if site != "Music" and self.ui.tab_6.isHidden() and self.ui.list2.isHidden():
+                if site != "Music" and self.ui.tab_6.isHidden() and self.ui.list2.isHidden() and self.ui.tab_2.isHidden():
                     self.ui.frame1.hide()
                     self.ui.gridLayout.setSpacing(5)
 
@@ -684,13 +684,17 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.ui.mplayer_timer.stop()
             if self.player_val == "mplayer":
                 if MainWindow.isFullScreen():
-                    self.ui.frame1.hide()
+                    site = self.ui.get_parameters_value(s='site')['site']
+                    if (site != "Music" and self.ui.tab_6.isHidden()
+                            and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                        self.ui.frame1.hide()
                 self.mpvplayer.write(b'\n pausing_toggle osd_show_progression \n')
             else:
                 param_dict = self.ui.get_parameters_value(
-                    ps='pause_indicator', mpv='mpv_indicator')
+                    ps='pause_indicator', mpv='mpv_indicator', s='site')
                 pause_indicator = param_dict['pause_indicator']
                 mpv_indicator = param_dict['mpv_indicator']
+                site = param_dict['site']
                 if not pause_indicator:
                     self.mpvplayer.write(b'\n set pause yes \n')
                     if MainWindow.isFullScreen():
@@ -700,7 +704,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 else:
                     self.mpvplayer.write(b'\n set pause no \n')
                     if MainWindow.isFullScreen():
-                        self.ui.frame1.hide()
+                        if (site != "Music" and self.ui.tab_6.isHidden()
+                                and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                            self.ui.frame1.hide()
                     pause_indicator.pop()
                     if mpv_indicator:
                         mpv_indicator.pop()

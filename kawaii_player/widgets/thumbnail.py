@@ -274,13 +274,16 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.mplayer_timer.stop()
                 if ui.player_val == "mplayer":
                     if MainWindow.isFullScreen():
-                        ui.frame1.hide()
+                        site = ui.get_parameters_value(s='site')['site']
+                        if site != "Music" and ui.tab_6.isHidden() and ui.list2.isHidden():
+                            ui.frame1.hide()
                     ui.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
                 else:
                     param_dict = ui.get_parameters_value(
-                        s='pause_indicator', m='mpv_indicator')
+                        s='pause_indicator', m='mpv_indicator', st='site')
                     pause_indicator = param_dict['pause_indicator']
                     mpv_indicator = param_dict['mpv_indicator']
+                    site = param_dict['site']
                     if not pause_indicator:
                         ui.mpvplayer_val.write(b'\n set pause yes \n')
                         if MainWindow.isFullScreen():
@@ -291,8 +294,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     else:
                         ui.mpvplayer_val.write(b'\n set pause no \n')
                         if MainWindow.isFullScreen():
-                            ui.gridLayout.setSpacing(0)
-                            ui.frame1.hide()
+                            if site != "Music" and ui.tab_6.isHidden() and ui.list2.isHidden():
+                                ui.gridLayout.setSpacing(0)
+                                ui.frame1.hide()
                         pause_indicator.pop()
                         if mpv_indicator:
                             mpv_indicator.pop()
@@ -579,7 +583,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
         if MainWindow.isFullScreen():
             ht = self.height()
-            if not ui.tab_6.isHidden() or not ui.list2.isHidden() or not ui.list1.isHidden():
+            if not ui.tab_6.isHidden() or not ui.list2.isHidden() or not ui.list1.isHidden() or not ui.tab_2.isHidden():
                 if ui.frame1.isHidden():
                     ui.frame1.show()
             else:

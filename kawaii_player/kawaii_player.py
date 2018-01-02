@@ -270,7 +270,8 @@ class MainWindowWidget(QtWidgets.QWidget):
 
         if self.isFullScreen() and ui.mpvplayer_val.processId() > 0:
             logger.info('FullScreen Window but not video')
-            if not ui.tab_6.isHidden() or not ui.list2.isHidden() or not ui.list1.isHidden():
+            if (not ui.tab_6.isHidden() or not ui.list2.isHidden()
+                    or not ui.list1.isHidden() or not ui.tab_2.isHidden()):
                 if ui.frame1.isHidden():
                     ui.frame1.show()
             else:
@@ -279,7 +280,7 @@ class MainWindowWidget(QtWidgets.QWidget):
                     ui.frame1.show()
                     ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden():
-                    if site != 'Music' and ui.list2.isHidden():
+                    if site != 'Music' and ui.list2.isHidden() and ui.tab_6.isHidden() and ui.tab_2.isHidden():
                         ui.frame1.hide()
 
 
@@ -3771,10 +3772,9 @@ watch/unwatch status")
                 self.frame1.hide()
                 
     def frame_options(self):
-        global Player, wget
-        global fullscr, idwMain, idw, quitReally, new_epn, toggleCache
         print("Frame Hiding" )
-        if MainWindow.isFullScreen():
+        if (MainWindow.isFullScreen() and site != "Music" and self.tab_6.isHidden() 
+                and self.list2.isHidden() and self.tab_2.isHidden()):
             self.frame1.hide()
             self.gridLayout.setSpacing(5)
             
@@ -9844,7 +9844,9 @@ watch/unwatch status")
                         except:
                             pass
                         self.mplayer_finished_counter = 0
-                        if MainWindow.isFullScreen() and site != "Music" and self.list2.isHidden() and self.tab_6.isHidden():
+                        if (MainWindow.isFullScreen() and site != "Music"
+                                and self.list2.isHidden() and self.tab_6.isHidden()
+                                and self.tab_2.isHidden()):
                             self.gridLayout.setSpacing(0)
                             #if not self.frame1.isHidden():
                             #    self.frame1.hide()
@@ -9974,7 +9976,8 @@ watch/unwatch status")
                             print(self.mplayerLength)
                             self.mpv_cnt = self.mpv_cnt + 1
                             if (MainWindow.isFullScreen() and site != 'Music'
-                                    and self.list2.isHidden() and self.tab_6.isHidden()):
+                                    and self.list2.isHidden() and self.tab_6.isHidden()
+                                    and self.tab_2.isHidden()):
                                 self.gridLayout.setSpacing(0)
                                 self.frame1.show()
                                 if self.frame_timer.isActive():
@@ -10170,7 +10173,9 @@ watch/unwatch status")
                             self.mplayer_finished_counter = 0
                         except:
                             pass
-                        if MainWindow.isFullScreen() and layout_mode != "Music" and self.list2.isHidden():
+                        if (MainWindow.isFullScreen() and layout_mode != "Music"
+                                and self.list2.isHidden() and self.tab_2.isHidden()
+                                and self.tab_6.isHidden()):
                             self.gridLayout.setSpacing(0)
                             if not self.frame1.isHidden():
                                 self.frame1.hide()
@@ -10385,7 +10390,8 @@ watch/unwatch status")
         #print t
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((t))
-        if MainWindow.isFullScreen() and site!="Music" and self.list2.isHidden():
+        if (MainWindow.isFullScreen() and site!="Music" and self.list2.isHidden()
+                and self.tab_2.isHidden() and self.tab_6.isHidden()):
             self.superGridLayout.setSpacing(0)
             self.gridLayout.setSpacing(0)
             self.frame1.show()
