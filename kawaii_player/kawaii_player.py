@@ -3329,13 +3329,15 @@ watch/unwatch status")
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
                     self.player_play_pause.setText(self.player_buttons['pause'])
-                    if MainWindow.isFullScreen():
+                    if (MainWindow.isFullScreen() and site != "Music" and self.ui.tab_6.isHidden()
+                            and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                         self.frame1.hide()
         elif txt == self.player_buttons['pause'] and status == 'pause':
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
                     self.player_play_pause.setText(self.player_buttons['play'])
-                    if MainWindow.isFullScreen():
+                    if (MainWindow.isFullScreen() and site != "Music" and self.ui.tab_6.isHidden()
+                            and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                         self.frame1.show()
         
     def playerPlaylist(self, val):
