@@ -1593,6 +1593,9 @@ watch/unwatch status")
         self.mpvplayer_val = QtCore.QProcess()
         self.mpv_length_find_attempt = 0
         self.force_fs = False
+        self.media_server_cache_music = {}
+        self.media_server_cache_video = {}
+        self.media_server_cache_playlist = {}
         self.icon_poster_indicator = [5]
         self.mplayer_finished_counter = 0
         self.wget_counter_list = []
@@ -3560,6 +3563,10 @@ watch/unwatch status")
         self.quality_val = quality
     
     def start_stop_media_server(self, start_now):
+        self.media_server_cache_music.clear()
+        self.media_server_cache_playlist.clear()
+        self.media_server_cache_video.clear()
+        self.navigate_playlist_history.clear()
         if start_now:
             self.start_streaming = True
             self.action_player_menu[7].setText("Stop Media Server")
