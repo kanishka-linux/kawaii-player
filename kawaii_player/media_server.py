@@ -771,9 +771,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if self.path.endswith('.pls'):
                     pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i), out, n_art, n_out)
                 elif self.path.endswith('.htm') or self.path.endswith('.html'):
-                    pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}"><img src="{4}" width="128">{0} - {1}</li>'.format(n_art, n_out, out, str(i+1), out+'.image')
+                    if site.lower() == 'video':
+                        pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}"><img src="{4}" width="128">{1}</li>'.format(n_art, n_out, out, str(i+1), out+'.image')
+                    else:
+                        pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}"><img src="{4}" width="128">{0} - {1}</li>'.format(n_art, n_out, out, str(i+1), out+'.image')
                 else:
-                    pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
+                    if site.lower() == 'video':
+                        pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(n_out, out)
+                    else:
+                        pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
                 _new_epnArrList.append(n_out+'	'+j+'	'+n_art)
             except Exception as e:
                 print(e)
@@ -1054,9 +1060,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if path.endswith('.pls'):
                         pls_txt = pls_txt+'\nFile{0}={1}\nTitle{0}={2}-{3}\n'.format(str(i), out, n_art, n_out)
                     elif path.endswith('.htm') or path.endswith('.html'):
-                        pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)" ondrop="on_drop(event)" title="{0} - {1}">{0} - {1}</li>'.format(n_art, n_out, out, str(i+1))
+                        if site.lower() == 'video':
+                            pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)" ondrop="on_drop(event)" title="{1}">{1}</li>'.format(n_art, n_out, out, str(i+1))
+                        else:
+                            pls_txt = pls_txt+'<li data-mp3="{2}" data-num="{3}" draggable="true" ondragstart="drag_start(event)" ondragend="drag_end(event)" ondragover="drag_over(event)" ondragleave="drag_leave(event)" ondragenter="drag_enter(event)" ondrop="on_drop(event)" title="{0} - {1}">{0} - {1}</li>'.format(n_art, n_out, out, str(i+1))
                     else:
-                        pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
+                        if site.lower() == 'video':
+                            pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(n_out, out)
+                        else:
+                            pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
                     if k == len(epnArrList) - 1:
                         if path.startswith('channel'):
                             n_art = 'Server'
