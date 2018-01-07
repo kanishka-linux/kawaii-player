@@ -226,15 +226,10 @@ class MediaDatabase():
                     w = [ti, di, na, na, pa, epn_cnt, category]
                     try:
                         cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
-                        #print("inserted:")
                         self.logger.info('inserted: {0}<-->{1}'.format(w, j))
-                        #print(j)
-
                         j = j+1
-                        #print("Inserting")
                     except Exception as e:
-                        self.logger.info('Escaping: {0} <---> {1}'.format(e, w))
-                        #print("Escaping")
+                        self.logger.error('Escaping: {0} <---> {1}'.format(e, w))
         conn.commit()
         conn.close()
         if (update_progress_show is None or update_progress_show) and self.ui:
@@ -350,7 +345,7 @@ class MediaDatabase():
             conn.close()
             self.logger.debug('--fetch complete--')
         except Exception as e:
-            print(e, '--database-corrupted--21010--')
+            self.logger.error('{0}::{1}'.format(e, '--database-corrupted--21010--'))
             return 0
         m_files_old = []
         for i in rows:
@@ -403,16 +398,22 @@ class MediaDatabase():
                         cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
+                        epn_cnt += 1
+                        dict_epn.update({di:epn_cnt})
                     elif not os.path.exists(i) and rows:
                         cur.execute('Delete FROM Video Where Path=?', (i,))
                         self.logger.info('Deleting File From Database : '+i)
                         self.logger.info(w)
+                        epn_cnt -= 1
+                        dict_epn.update({di:epn_cnt})
                 elif video_opt == "Update":
                     if os.path.exists(i) and not rows:
                         self.logger.info(i)
                         cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
+                        epn_cnt += 1
+                        dict_epn.update({di:epn_cnt})
 
         conn.commit()
         conn.close()
