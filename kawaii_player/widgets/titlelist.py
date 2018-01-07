@@ -414,6 +414,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                     print("Nothing to delete")
                 else:
                     ui.deleteHistory()
+            if r < self.count():
+                self.setCurrentRow(r)
         elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_H:
             ui.setPreOpt('fromtitlelist')
         elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_R:
