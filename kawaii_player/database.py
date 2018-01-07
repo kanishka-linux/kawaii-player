@@ -341,12 +341,14 @@ class MediaDatabase():
             QtWidgets.QApplication.processEvents()
         m_files = self.import_video(video_file, video_file_bak)
         try:
+            self.logger.debug('--fetching--')
             conn = sqlite3.connect(video_db)
             cur = conn.cursor()
             cur.execute('SELECT Path FROM Video')
             rows = cur.fetchall()
             conn.commit()
             conn.close()
+            self.logger.debug('--fetch complete--')
         except Exception as e:
             print(e, '--database-corrupted--21010--')
             return 0
@@ -363,13 +365,14 @@ class MediaDatabase():
         m_files_old.sort()
         print(l1)
         print(l2)
+        print(len(m))
         w = []
+        dict_epn = {}
         conn = sqlite3.connect(video_db)
         cur = conn.cursor()
         for i in m:
             i = i.strip()
             if i:
-
                 w[:] = []
                 i = os.path.normpath(i)
                 di, na = os.path.split(i)
@@ -387,9 +390,13 @@ class MediaDatabase():
                     category = self.ui.category_dict['others']
                 cur.execute('SELECT Path FROM Video Where Path=?', (i,))
                 rows = cur.fetchall()
-                cur.execute('SELECT Path FROM Video Where Directory=?', (di,))
-                rows1 = cur.fetchall()
-                epn_cnt = len(rows1)
+                if di in dict_epn:
+                    epn_cnt = dict_epn.get(di)
+                else:
+                    cur.execute('SELECT Path FROM Video Where Directory=?', (di,))
+                    rows1 = cur.fetchall()
+                    epn_cnt = len(rows1)
+                    dict_epn.update({di:epn_cnt})
                 w = [ti, di, na, na, pa, epn_cnt, category]
                 if video_opt == "UpdateAll":
                     if os.path.exists(i) and not rows:
@@ -428,32 +435,34 @@ class MediaDatabase():
                     lines_d = lines_d.strip()
                     lines_d = os.path.normpath(lines_d)
                     dirn = lines_d
+                    self.logger.debug('checking::dirn={0}'.format(dirn))
+                    if os.path.exists(dirn):
+                        self.logger.debug('exists::dirn={0}'.format(dirn))
+                        music.append(dirn)
+                        for r, d, f in os.walk(dirn):
+                            for z in d:
+                                if not z.startswith('.'):
+                                    music.append(os.path.join(r, z))
+                                else:
+                                    o.append(os.path.join(r, z))
 
-                    music.append(dirn)
-                    for r, d, f in os.walk(dirn):
-                        for z in d:
-                            if not z.startswith('.'):
-                                music.append(os.path.join(r, z))
-                            else:
-                                o.append(os.path.join(r, z))
-
-                    print(len(m))
-                    j = 0
-                    lines = []
-                    for i in music:
-                        if os.path.exists(i):
-                            n = os.listdir(i)
-                            p[:] = []
-                            for k in n:
-                                file_ext = k.rsplit('.', 1)[-1]
-                                if file_ext.lower() in self.video_ext:
-                                    p.append(os.path.join(i, k))
-                                    path = os.path.join(i, k)
-                                    m_files.append(path)
-                            if p:
-                                r = i
-                                lines.append(r)
-                                j = j+1
+                        print(len(m))
+                        j = 0
+                        lines = []
+                        for i in music:
+                            if os.path.exists(i):
+                                n = os.listdir(i)
+                                p[:] = []
+                                for k in n:
+                                    file_ext = k.rsplit('.', 1)[-1]
+                                    if file_ext.lower() in self.video_ext:
+                                        p.append(os.path.join(i, k))
+                                        path = os.path.join(i, k)
+                                        m_files.append(path)
+                                if p:
+                                    r = i
+                                    lines.append(r)
+                                    j = j+1
         return list(set(m_files))
 
     def get_music_db(self, music_db, queryType, queryVal):
