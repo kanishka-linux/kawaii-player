@@ -556,6 +556,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             site = param_dict['site']
             bookmark = param_dict['bookmark']
             opt = param_dict['opt']
+            row_val = self.currentRow()
             if site == 'None':
                 print("Nothing To Delete")
             elif site == "Video":
@@ -570,6 +571,13 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         cur.execute('Delete FROM Video Where Path=?', (txt, ))
                         logger.info('Deleting Directory From Database : '+txt)
                         del ui.epn_arr_list[r]
+                        
+                        if r < len(ui.epn_arr_list):
+                            for index in range(r, len(ui.epn_arr_list)):
+                                path_update = ui.epn_arr_list[index].split('	')[1]
+                                qr = 'Update Video Set EPN=? Where Path=?'
+                                cur.execute(qr, (index, path_update))
+                        
                         conn.commit()
                         conn.close()
                         self.takeItem(r)
@@ -624,6 +632,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             del item
                             del ui.epn_arr_list[row]
                             write_files(file_path, ui.epn_arr_list, line_by_line=True)
+            if row_val < self.count():
+                self.setCurrentRow(row_val)
         elif event.key() == QtCore.Qt.Key_PageUp:
             row = self.currentRow()
             nRow = self.currentRow()-1
