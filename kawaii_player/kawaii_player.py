@@ -9549,10 +9549,15 @@ watch/unwatch status")
             new_epn = new_epn[1:] 
         new_epn = new_epn.replace('/', '-')
         new_epn = re.sub('"|.mkv|.mp4', '', new_epn)
+                
         if new_epn.startswith('.'):
             new_epn = new_epn[1:]
-        if finalUrl.endswith('.mkv'):
-            new_epn = new_epn+'.mkv'
+        if '.' in finalUrl:
+            _, file_ext = finalUrl.rsplit('.', 1)
+            if file_ext in self.video_type_arr or file_ext in self.music_type_arr:
+                new_epn = new_epn + '.' + file_ext
+            else:
+                new_epn = new_epn+'.mp4'
         else:
             new_epn = new_epn+'.mp4'
         if self.list1.currentItem():
