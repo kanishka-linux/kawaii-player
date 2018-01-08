@@ -11547,9 +11547,11 @@ watch/unwatch status")
             elif video_opt == "UpdateAll":
                 self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
+                self.video_dict.clear()
             elif video_opt == "Update":
                 self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
+                self.video_dict.clear()
             print(video_opt)
             if video_opt.lower() != 'update' and video_opt.lower() != 'updateall':
                 opt = video_opt
@@ -11581,9 +11583,11 @@ watch/unwatch status")
                     logger.info('{0} -- 10993--'.format(i))
                     if os.path.exists(di) or show_all:
                         #self.original_path_name.append(i)
-                        if ti.lower().startswith('season') or ti.lower().startswith('special'):
+                        eptitle = ti.lower()
+                        if (eptitle.startswith('season') or eptitle.startswith('special')
+                                or eptitle.startswith('extra')):
                             new_di, new_ti = os.path.split(di)
-                            logger.info('new_di={0}-{1}'.format(new_di, new_ti))
+                            #logger.info('new_di={0}-{1}'.format(new_di, new_ti))
                             new_di = os.path.basename(new_di)
                             ti = new_di+'-'+ti
                             self.original_path_name.append(ti+'	'+di)
