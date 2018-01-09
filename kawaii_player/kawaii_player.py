@@ -11563,14 +11563,10 @@ watch/unwatch status")
                 m = self.media_data.get_video_db(video_db, "History", "")
             else:
                 m = self.media_data.get_video_db(video_db, video_opt, "")
-            #print m
             for i in m:
                 artist.append(i[0]+'	'+i[1])
-            #artist = list(set(artist))
             self.list1.clear()
-            #print artist
             self.original_path_name[:] = []
-            #artist = naturallysorted(artist)
             logger.info('\n{0}::\n'.format(video_opt))
             if video_opt.lower() != "update" or video_opt.lower() != "updateall":
                 if video_opt.lower() == 'available':
@@ -11580,21 +11576,18 @@ watch/unwatch status")
                 for i in artist:
                     ti = i.split('	')[0]
                     di = i.split('	')[1]
-                    logger.info('{0} -- 10993--'.format(i))
                     if os.path.exists(di) or show_all:
-                        #self.original_path_name.append(i)
                         eptitle = ti.lower()
                         if (eptitle.startswith('season') or eptitle.startswith('special')
                                 or eptitle.startswith('extra')):
                             new_di, new_ti = os.path.split(di)
-                            #logger.info('new_di={0}-{1}'.format(new_di, new_ti))
                             new_di = os.path.basename(new_di)
                             ti = new_di+'-'+ti
                             self.original_path_name.append(ti+'	'+di)
                         else:
                             self.original_path_name.append(i)
                         self.list1.addItem((ti))
-                if video_opt.lower() != 'directory':
+                if video_opt.lower() != 'directory' and video_opt.lower() != 'history':
                     self.sortList()
         elif site == "PlayLists" and val == 'clicked':
             if self.list3.currentItem():
