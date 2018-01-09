@@ -130,8 +130,36 @@ class MediaDatabase():
                     rows = [('none','none')]
         if not error_occured:
             rows = cur.fetchall()
-            for i in rows:
-                self.logger.info(i[0])
+            if q.lower() == 'history':
+                rows_access = []
+                rows_not_access = []
+                new_arr = []
+                for i in rows:
+                    if os.path.exists(i[1]):
+                        m = os.listdir(i[1])
+                        for ii in m:
+                            if '.' in ii:
+                                _, ext = ii.rsplit('.', 1)
+                                file_path = os.path.join(i[1], ii)
+                                if ext in self.ui.video_type_arr:
+                                    tp = [file_path, os.path.getatime(file_path)]
+                                    new_arr.append(tp)
+                        if new_arr:
+                            new_arr = sorted(new_arr, key=lambda x: x[1], reverse=True)
+                            ntp = [i, new_arr[0][1]]
+                            self.logger.debug(ntp)
+                        else:
+                            ntp = [i, 0]
+                            self.logger.error(ntp)
+                        rows_access.append(ntp)
+                    else:
+                        rows_not_access.append(i)
+                    new_arr[:] = []
+                if rows_access:
+                    rows_access = sorted(rows_access, key=lambda x: x[1], reverse=True)
+                    rows_access = [i[0] for i in rows_access]
+                rows[:] = []
+                rows = rows_access + rows_not_access
         conn.commit()
         conn.close()
         return rows
