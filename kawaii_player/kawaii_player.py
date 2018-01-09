@@ -7122,7 +7122,7 @@ watch/unwatch status")
         elif site == "Video":
             self.mirror_change.hide()
             criteria = [
-                'Directory', 'Available', 'History', 'Update', 'UpdateAll'
+                'Directory', 'Available', 'History', 'Recent', 'Update', 'UpdateAll'
                 ]
             insert_index = criteria.index('Update')
             for i in self.category_array:
@@ -11587,7 +11587,7 @@ watch/unwatch status")
                         else:
                             self.original_path_name.append(i)
                         self.list1.addItem((ti))
-                if video_opt.lower() != 'directory' and video_opt.lower() != 'history':
+                if video_opt.lower() not in ['directory', 'history', 'recent']:
                     self.sortList()
         elif site == "PlayLists" and val == 'clicked':
             if self.list3.currentItem():
