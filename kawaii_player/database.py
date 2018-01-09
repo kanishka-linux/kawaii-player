@@ -116,6 +116,8 @@ class MediaDatabase():
             qr = 'SELECT EP_NAME, Path From Video Where EP_NAME like ? or Directory like ? order by Directory'
             self.logger.info('qr={0};qVal={1}'.format(qr, qVal))
             cur.execute(qr, (qVal, qVal, ))
+        elif q.lower() == 'recent':
+            cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
         else:
             cat_type = self.ui.category_dict.get(q.lower())
             if not cat_type:
@@ -130,7 +132,7 @@ class MediaDatabase():
                     rows = [('none','none')]
         if not error_occured:
             rows = cur.fetchall()
-            if q.lower() == 'history':
+            if q.lower() in ['history', 'recent']:
                 rows_access = []
                 rows_not_access = []
                 new_arr = []
@@ -142,12 +144,16 @@ class MediaDatabase():
                                 _, ext = ii.rsplit('.', 1)
                                 file_path = os.path.join(i[1], ii)
                                 if ext in self.ui.video_type_arr:
-                                    tp = [file_path, os.path.getatime(file_path)]
+                                    if q.lower() == 'history':
+                                        tp = [file_path, os.path.getatime(file_path)]
+                                    else:
+                                        tp = [file_path, os.path.getctime(file_path)]
                                     new_arr.append(tp)
                         if new_arr:
                             new_arr = sorted(new_arr, key=lambda x: x[1], reverse=True)
                             ntp = [i, new_arr[0][1]]
                             self.logger.debug(ntp)
+                            #self.logger.debug(new_arr)
                         else:
                             ntp = [i, 0]
                             self.logger.error(ntp)
