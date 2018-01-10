@@ -58,6 +58,7 @@ import hashlib
 import uuid
 import platform
 import logging
+import pickle
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 import pycurl
@@ -1587,10 +1588,12 @@ watch/unwatch status")
         self.default_background = os.path.join(home, 'default.jpg')
         self.yt_sub_folder = os.path.join(home, 'External-Subtitle')
         self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
+        self.playing_history_file = os.path.join(home, 'src', 'historydata')
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.history_dict_obj = {}
         self.mpv_length_find_attempt = 0
         self.force_fs = False
         self.media_server_cache_music = {}
@@ -3119,9 +3122,14 @@ watch/unwatch status")
         global quitReally, thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, curR, wget, Player, show_hide_cover
         global show_hide_playlist, show_hide_titlelist, video_local_stream
-        global idw, new_tray_widget
+        global idw, new_tray_widget, sub_id, audio_id
         
         if self.mpvplayer_val.processId() > 0 or msg:
+            logger.warn(self.progress_counter)
+            if self.player_val == 'mpv':
+                self.history_dict_obj.update({self.final_playing_url:[self.progress_counter, time.time(), sub_id, audio_id]})
+            else:
+                self.history_dict_obj.update({self.final_playing_url:[self.progress_counter/1000, time.time(), sub_id, audio_id]})
             quitReally = "yes"
             #self.mpvplayer_val.write(b'\n quit \n')
             if msg:
@@ -3332,15 +3340,15 @@ watch/unwatch status")
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
                     self.player_play_pause.setText(self.player_buttons['pause'])
-                    if (MainWindow.isFullScreen() and site != "Music" and self.ui.tab_6.isHidden()
-                            and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                    if (MainWindow.isFullScreen() and site != "Music" and self.tab_6.isHidden()
+                            and self.list2.isHidden() and self.tab_2.isHidden()):
                         self.frame1.hide()
         elif txt == self.player_buttons['pause'] and status == 'pause':
             if self.mpvplayer_val.processId() > 0:
                 if Player == "mpv":
                     self.player_play_pause.setText(self.player_buttons['play'])
-                    if (MainWindow.isFullScreen() and site != "Music" and self.ui.tab_6.isHidden()
-                            and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                    if (MainWindow.isFullScreen() and site != "Music" and self.tab_6.isHidden()
+                            and self.list2.isHidden() and self.tab_2.isHidden()):
                         self.frame1.show()
         
     def playerPlaylist(self, val):
@@ -8308,7 +8316,7 @@ watch/unwatch status")
 
     def play_file_now(self, file_name, win_id=None):
         global Player, epn_name_in_list, idw, quitReally
-        global current_playing_file_path, cur_label_num
+        global current_playing_file_path, cur_label_num, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
             file_name = self.if_path_is_rel(file_name)
@@ -8366,9 +8374,17 @@ watch/unwatch status")
             command = self.mplayermpv_command(idw, finalUrl, Player)
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
+        if finalUrl.startswith('"'):
+            finalUrl = finalUrl.replace('"', '')
+        self.final_playing_url = finalUrl
+        if self.final_playing_url in self.history_dict_obj:
+            seek_time = self.history_dict_obj.get(self.final_playing_url)[0]
+        else:
+            seek_time = 0
+        self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), sub_id, audio_id]})
         if not self.external_SubTimer.isActive():
             self.external_SubTimer.start(3000)
-
+            
     def is_artist_exists(self, row):
         try:
             arr = self.epn_arr_list[row].split('	')
@@ -9868,6 +9884,17 @@ watch/unwatch status")
                                 self.frame_timer.stop()
                             if self.tab_6.isHidden():
                                 self.frame_timer.start(5000)
+                        if site.lower() == 'video' and opt.lower() == 'history':
+                            if self.final_playing_url in self.history_dict_obj:
+                                seek_time, _, sub_id, audio_id = self.history_dict_obj.get(self.final_playing_url)
+                                txt_str = '\n set aid {0}\n'.format(audio_id)
+                                self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+                                txt_str = '\n set sid {0}\n'.format(sub_id)
+                                self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+                                if seek_time > 0:
+                                    txt_str = '\n osd-msg-bar seek {0} relative+exact \n'.format(seek_time)
+                                    self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+                                
                     if ("Buffering" in a and not mpv_indicator 
                             and (site != "Local" or site != "Music" 
                             or site != "Video")):
@@ -10000,8 +10027,6 @@ watch/unwatch status")
                                     self.frame_timer.start(2000)
                         out1 = out+" ["+self.epn_name_in_list+"]"
                         self.progressEpn.setFormat((out1))
-                        #logger.debug(out1)
-                        #logger.debug('--9893--')
                         if self.mplayerLength == 1:
                             val = 0
                             self.slider.setValue(0)
@@ -10052,6 +10077,8 @@ watch/unwatch status")
                         reason_end = 'EOF code: 1'
                     else:
                         reason_end = 'length of file equals progress counter'
+                    if self.final_playing_url in self.history_dict_obj:
+                        self.history_dict_obj.update({self.final_playing_url:[0, time.time(), sub_id, audio_id]})
                     self.cache_mpv_indicator = False
                     self.cache_mpv_counter = '00'
                     self.mpv_playback_duration = None
@@ -10196,6 +10223,12 @@ watch/unwatch status")
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
                             self.frame_timer.start(1000)
+                        if site.lower() == 'video' and opt.lower() == 'history':
+                            if self.final_playing_url in self.history_dict_obj:
+                                seek_time = self.history_dict_obj.get(self.final_playing_url)[0]
+                                if seek_time > 0:
+                                    txt_str = '\n seek {0} \n'.format(seek_time-5)
+                                    self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
                     #print(a)
                     if "PAUSE" in a:
                         print(a, 'Pause A')
@@ -10326,6 +10359,8 @@ watch/unwatch status")
                     self.mplayerLength = 0
                     self.total_file_size = 0
                     mpv_start.pop()
+                    if self.final_playing_url in self.history_dict_obj:
+                        self.history_dict_obj.update({self.final_playing_url:[0, time.time(), sub_id, audio_id]})
                     if self.player_setLoop_var:
                         t2 = bytes('\n'+"loadfile "+(current_playing_file_path)+" replace"+'\n', 'utf-8')
                         self.mpvplayer_val.write(t2)
@@ -12329,9 +12364,10 @@ def main():
             shutil.copy(picn_1, picn)
             
     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, picn, first_time=True))
-    
     ui.widget_style.apply_stylesheet()
-    
+    if os.path.isfile(ui.playing_history_file):
+        with open(ui.playing_history_file, 'rb') as pls_file_read:
+            ui.history_dict_obj = pickle.load(pls_file_read)
     if not os.path.exists(os.path.join(home, 'src', 'Plugins')):
         os.makedirs(os.path.join(home, 'src', 'Plugins'))
         sys.path.append(os.path.join(home, 'src', 'Plugins'))
@@ -13213,7 +13249,6 @@ def main():
         show_hide_playlist = 1
     icon_poster = iconv_r
     if os.path.exists(os.path.join(home, "config.txt")):
-                
         print(Player)
         f = open(os.path.join(home, "config.txt"), "w")
         f.write("VERSION_NUMBER="+str(ui.version_number))
@@ -13256,6 +13291,8 @@ def main():
         f.write("\nUpload_Speed="+str(ui.setuploadspeed))
         f.write("\nForce_FS={0}".format(ui.force_fs))
         f.close()
+    with open(ui.playing_history_file, 'wb') as pls_file:
+        pickle.dump(ui.history_dict_obj, pls_file)
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
     print(ret, '--Return--')
