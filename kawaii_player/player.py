@@ -650,6 +650,10 @@ class PlayerWidget(QtWidgets.QWidget):
             elif self.player_val == 'mplayer':
                 self.mplayer_aspect_msg = True
                 if self.mpvplayer.processId() > 0:
+                    if self.ui.final_playing_url in self.ui.history_dict_obj:
+                        seek_time, acc_time, sub_id, audio_id, rem_quit = self.ui.history_dict_obj.get(self.ui.final_playing_url)
+                        rem_quit = 1
+                        self.ui.history_dict_obj.update({self.ui.final_playing_url:[seek_time, acc_time, sub_id, audio_id, rem_quit]})
                     self.mpvplayer.kill()
         elif event.key() == QtCore.Qt.Key_N:
             self.mpvplayer.write(b'\n playlist_next \n')
@@ -913,6 +917,11 @@ class PlayerWidget(QtWidgets.QWidget):
             msg = '"Stop After current file"'
             msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
             self.mpvplayer.write(msg_byt)
+        elif (event.modifiers() == QtCore.Qt.ShiftModifier
+                and event.key() == QtCore.Qt.Key_Q):
+            quitReally = "yes"
+            self.ui.set_parameters_value(quit_r=quitReally)
+            self.ui.playerStop(msg='remember quit')
         elif event.key() == QtCore.Qt.Key_Q:
             self.player_quit()
         #super(PlayerWidget, self).keyPressEvent(event)

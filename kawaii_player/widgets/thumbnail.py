@@ -442,6 +442,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 msg = '"Stop After current file"'
                 msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
                 ui.mpvplayer_val.write(msg_byt)
+            elif (event.modifiers() == QtCore.Qt.ShiftModifier
+                and event.key() == QtCore.Qt.Key_Q):
+                quitReally = "yes"
+                ui.set_parameters_value(quit_r=quitReally)
+                ui.playerStop(msg='remember quit')
             elif event.key() == QtCore.Qt.Key_Q:
                 ui.player_stop.clicked.emit()
             elif event.key() == QtCore.Qt.Key_F:
