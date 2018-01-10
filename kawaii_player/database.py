@@ -145,7 +145,11 @@ class MediaDatabase():
                                 file_path = os.path.join(i[1], ii)
                                 if ext in self.ui.video_type_arr:
                                     if q.lower() == 'history':
-                                        tp = [file_path, os.path.getatime(file_path)]
+                                        access_time = self.ui.history_dict_obj.get(file_path)
+                                        if access_time:
+                                            tp = [file_path, access_time[1]]
+                                        else:
+                                            tp = [file_path, os.path.getatime(file_path)]
                                     else:
                                         tp = [file_path, os.path.getctime(file_path)]
                                     new_arr.append(tp)
