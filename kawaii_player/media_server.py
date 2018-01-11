@@ -587,10 +587,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     content = f.read(1024*upspeed)
                     content_count += 1024*upspeed
                     time.sleep(uptime)
-                    if allow_chunks:
-                        if content_count > content_limit:
-                            logger.info('10MB sent')
-                            break
+                    #if allow_chunks:
+                    #    if content_count > content_limit:
+                    #        logger.info('10MB sent')
+                    #        break
             #new_time = time.time()
             #elapsed = new_time-old_time
             #print(datetime.timedelta(seconds=elapsed), '--elapsed-time--')
