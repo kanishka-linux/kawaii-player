@@ -6295,11 +6295,15 @@ watch/unwatch status")
                     icon_name = self.get_thumbnail_image_path(0, self.epn_arr_list[0])
                     icon_dir_path, thumb_name = os.path.split(icon_name)
                     thumb_path = os.path.join(home, 'thumbnails')
+                    thumbnail_server_path = os.path.join(home, 'thumbnails', 'thumbnail_server')
                     logger.info('{0}--thumbnail--path--'.format(icon_dir_path))
-                    if icon_dir_path.startswith(thumb_path) and icon_dir_path != thumb_path:
+                    icon_dir_list = [thumb_path, thumbnail_server_path]
+                    if icon_dir_path.startswith(thumb_path) and icon_dir_path not in icon_dir_list:
                         if os.path.exists(icon_dir_path):
                             shutil.rmtree(icon_dir_path)
                             logger.info('{0}--thumbnail--directory--deleted--'.format(icon_dir_path))
+                    elif icon_dir_path in icon_dir_list:
+                        logger.error('no thumbnails available')
                 if siteName:
                     dir_name =os.path.join(home, 'History', site, siteName, nam)
                     logger.info(dir_name)
