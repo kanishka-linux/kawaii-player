@@ -8431,10 +8431,11 @@ watch/unwatch status")
             self.infoPlay(command)
         if self.final_playing_url in self.history_dict_obj:
             seek_time, _, sub_id, audio_id, rem_quit = self.history_dict_obj.get(self.final_playing_url)
+            self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), sub_id, audio_id, rem_quit]})
         else:
             seek_time = 0
             rem_quit = 0
-        self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), sub_id, audio_id, rem_quit]})
+            self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), 'auto', 'auto', rem_quit]})
         if not self.external_SubTimer.isActive():
             self.external_SubTimer.start(3000)
             
