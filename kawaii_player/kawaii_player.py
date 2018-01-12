@@ -874,17 +874,17 @@ watch/unwatch status")
         self.sd_hd.setText("BEST")
         self.sd_hd.setToolTip('Select Quality')
         
-        self.audio_track = QtWidgets.QPushButton(self.player_opt)
-        self.audio_track.setObjectName(_fromUtf8("audio_track"))
-        self.horizontalLayout_player_opt.insertWidget(2, self.audio_track, 0)
-        self.audio_track.setText("A/V")
-        self.audio_track.setToolTip('Toggle Audio (K)')
-        
         self.subtitle_track = QtWidgets.QPushButton(self.player_opt)
         self.subtitle_track.setObjectName(_fromUtf8("subtitle_track"))
-        self.horizontalLayout_player_opt.insertWidget(3, self.subtitle_track, 0)
+        self.horizontalLayout_player_opt.insertWidget(2, self.subtitle_track, 0)
         self.subtitle_track.setText("SUB")
         self.subtitle_track.setToolTip('Toggle Subtitle (J)')
+        
+        self.audio_track = QtWidgets.QPushButton(self.player_opt)
+        self.audio_track.setObjectName(_fromUtf8("audio_track"))
+        self.horizontalLayout_player_opt.insertWidget(3, self.audio_track, 0)
+        self.audio_track.setText("A/V")
+        self.audio_track.setToolTip('Toggle Audio (K)')
         
         self.player_loop_file = QtWidgets.QPushButton(self.player_opt)
         self.player_loop_file.setObjectName(_fromUtf8("player_loop_file"))
@@ -2860,42 +2860,80 @@ watch/unwatch status")
         else:
             self.list1.hide()
             self.hide_btn_list1.setText("Show")
+    
+    def set_sub_audio(self, aid, sid, seek_time=None, rem_quit=None):
+        global site
+        if seek_time is None:
+            seek_time = 0
+        if rem_quit is None:
+            rem_quit = 0
+        if not aid:
+            aid = 'auto'
+        if not sid:
+            sid = 'auto'
+        if self.player_val == 'mpv':
+            txt_str = '\n set aid {0}\n'.format(aid)
+            self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+            txt_str = '\n set sid {0}\n'.format(sid)
+            self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+            if (site.lower() == 'video' and opt.lower() == 'history') or rem_quit:
+                if seek_time > 0:
+                    txt_str = '\n osd-msg-bar seek {0} relative+exact \n'.format(seek_time-2)
+                    self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+        else:
+            if aid == 'auto':
+                aid = '0'
+            if sid == 'auto':
+                sid = '0'
+            txt_str = '\n set_property switch_audio {0}\n'.format(aid)
+            self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+            txt_str = '\n set_property sub {0}\n'.format(sid)
+            self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+            if (site.lower() == 'video' and opt.lower() == 'history') or rem_quit:
+                if seek_time > 0:
+                    txt_str = '\n seek {0} \n'.format(seek_time-10)
+                    self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
+                    
+    def set_sub_audio_text(self, val):
+        if val == 'aid':
+            self.mpvplayer_val.write(b'\n print-text "AUDIO_ID=${aid}" \n')
+        elif val == 'sid':
+            self.mpvplayer_val.write(b'\n print-text "SUB_ID=${sid}" \n')
             
     def subMplayer(self):
         global audio_id, sub_id, Player, site
+        atxt = self.audio_track.text()
+        subtxt = self.subtitle_track.text()
         if self.final_playing_url in self.history_dict_obj:
             seek_time, _, sub_id, audio_id, rem_quit = self.history_dict_obj.get(self.final_playing_url)
-            if self.player_val == 'mpv':
-                txt_str = '\n set aid {0}\n'.format(audio_id)
-                self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
-                txt_str = '\n set sid {0}\n'.format(sub_id)
-                self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
-                if (site.lower() == 'video' and opt.lower() == 'history') or rem_quit:
-                    if seek_time > 0:
-                        txt_str = '\n osd-msg-bar seek {0} relative+exact \n'.format(seek_time)
-                        self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
-            else:
-                if audio_id == 'auto':
-                    aaid = '0'
-                else:
-                    aaid = audio_id
-                if sub_id == 'auto':
-                    ssid = '0'
-                else:
-                    ssid = sub_id
-                txt_str = '\n set_property switch_audio {0}\n'.format(aaid)
-                self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
-                txt_str = '\n set_property sub {0}\n'.format(ssid)
-                self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
-                if (site.lower() == 'video' and opt.lower() == 'history') or rem_quit:
-                    if seek_time > 0:
-                        txt_str = '\n seek {0} \n'.format(seek_time-10)
-                        self.mpvplayer_val.write(bytes(txt_str, 'utf-8'))
-        elif self.player_val == 'mplayer':
-            t = bytes('\n'+"switch_audio "+str(audio_id)+'\n', 'utf-8')
-            self.mpvplayer_val.write(t)
-            t1 = bytes('\n'+"sub_select "+str(sub_id)+'\n', 'utf-8')
-            self.mpvplayer_val.write(t1)
+            aid = audio_id
+            sid = sub_id
+        else:
+            rem_quit = 0
+            seek_time = 0
+            aid = 'auto'
+            sid = 'auto'
+        
+        if atxt != 'A/V' and aid == 'auto':
+            aidr = re.search('[0-9]+', atxt)
+            if aidr:
+                aid = aidr.group()
+        if subtxt != 'SUB' and sid == 'auto':
+            sidr = re.search('[0-9]+', subtxt)
+            if sidr:
+                sid = sidr.group()
+            elif 'no' in subtxt:
+                sid = 'no'
+                sub_id = 'no'
+            elif 'auto' in subtxt:
+                sid = 'auto'
+                sub_id = 'auto'
+        logger.debug('\nsid={}::aid={}\n'.format(sid, aid))
+        if site != 'Music' or rem_quit:
+            self.set_sub_audio(aid, sid, seek_time, rem_quit)
+            QtCore.QTimer.singleShot(1000, partial(self.set_sub_audio_text, 'aid'))
+            QtCore.QTimer.singleShot(1500, partial(self.set_sub_audio_text, 'sid'))
+            
             
     def osd_hide(self):
         global Player
@@ -2933,7 +2971,7 @@ watch/unwatch status")
                 self.mplayer_OsdTimer.start(5000)
             else:
                 self.mpvplayer_val.write(b'\n cycle audio \n')
-                self.mpvplayer_val.write(b'\n print-text "Audio_ID=${aid}" \n')
+                self.mpvplayer_val.write(b'\n print-text "AUDIO_KEY_ID=${aid}" \n')
                 self.mpvplayer_val.write(b'\n show-text "${aid}" \n')
         self.audio_track.setText("A:"+str(audio_id))
             
@@ -3021,7 +3059,7 @@ watch/unwatch status")
                 self.mplayer_OsdTimer.start(5000)
             else:
                 self.mpvplayer_val.write(b'\n cycle sub \n')
-                self.mpvplayer_val.write(b'\n print-text "SUB_ID=${sid}" \n')
+                self.mpvplayer_val.write(b'\n print-text "SUB_KEY_ID=${sid}" \n')
                 self.mpvplayer_val.write(b'\n show-text "${sid}" \n')
         self.subtitle_track.setText('Sub:'+str(sub_id))
     
@@ -3162,7 +3200,8 @@ watch/unwatch status")
                 rem_quit = 1
             else:
                 rem_quit = 0
-            self.history_dict_obj.update({self.final_playing_url:[counter, time.time(), sub_id, audio_id, rem_quit]})
+            if site != 'Music' or rem_quit:
+                self.history_dict_obj.update({self.final_playing_url:[counter, time.time(), sub_id, audio_id, rem_quit]})
             quitReally = "yes"
             #self.mpvplayer_val.write(b'\n quit \n')
             if msg:
@@ -6659,6 +6698,8 @@ watch/unwatch status")
         genre_num = 0
         audio_id = 'auto'
         sub_id = 'auto'
+        self.audio_track.setText('A/V')
+        self.subtitle_track.setText('SUB')
         #total_till = 0
         if self.site_var:
             del self.site_var
@@ -8392,6 +8433,7 @@ watch/unwatch status")
             finalUrl = finalUrl.replace('"', '')
         else:
             current_playing_file_path = finalUrl
+        setinfo = False
         if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' and self.mpvplayer_started
                 and not finalUrl.startswith('http') and not self.external_audio_file):
             epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
@@ -8404,10 +8446,8 @@ watch/unwatch status")
             logger.info('{0}---hello-----'.format(t2))
             self.mpvplayer_val.write(t1)
             self.mpvplayer_val.write(t2)
-            if self.mplayer_SubTimer.isActive():
-                self.mplayer_SubTimer.stop()
-            self.mplayer_SubTimer.start(1000)
             logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
+            setinfo = True
         else:
             if self.mpvplayer_val.processId()>0:
                 self.mpvplayer_val.kill()
@@ -8436,10 +8476,14 @@ watch/unwatch status")
         if self.final_playing_url in self.history_dict_obj:
             seek_time, _, sub_id, audio_id, rem_quit = self.history_dict_obj.get(self.final_playing_url)
             self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), sub_id, audio_id, rem_quit]})
-        else:
+        elif site != 'Music':
             seek_time = 0
             rem_quit = 0
             self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), 'auto', 'auto', rem_quit]})
+        if setinfo and (site!= 'Music' or rem_quit):
+            if self.mplayer_SubTimer.isActive():
+                self.mplayer_SubTimer.stop()
+            self.mplayer_SubTimer.start(1000)
         if not self.external_SubTimer.isActive():
             self.external_SubTimer.start(3000)
             
@@ -9772,6 +9816,30 @@ watch/unwatch status")
         wget.readyReadStandardOutput.connect(partial(self.dataReadyW, wget, get_library))
         wget.finished.connect(lambda x=src : self.finishedW(src))
         QtCore.QTimer.singleShot(1000, partial(wget.start, command))
+    
+    def change_sid_aid_video(self, sid=None, aid=None):
+        if self.final_playing_url in self.history_dict_obj:
+            seek_time, _, ssid, aaid, rem_quit = self.history_dict_obj.get(self.final_playing_url)
+            if sid:
+                ssid = sid
+            if aid:
+                aaid = aid
+            self.history_dict_obj.update(
+                {self.final_playing_url:[seek_time, time.time(), ssid, aaid, rem_quit]}
+                )
+        elif site != 'Music':
+            seek_time = 0
+            rem_quit = 0
+            ssid = 'auto'
+            aaid = 'auto'
+            if sid:
+                ssid = sid
+            if aid:
+                aaid = aid
+            self.history_dict_obj.update(
+                {self.final_playing_url:[seek_time, time.time(), ssid, aaid, rem_quit]}
+                )
+        logger.debug('sid={}::aid={}::updating file info'.format(sid, aid))
         
     def dataReady(self, p):
         global new_epn, quitReally, curR, epn, opt, base_url, Player, site
@@ -9871,48 +9939,48 @@ watch/unwatch status")
         #print(el)
         try:
             if Player == "mpv":
-                if "Audio_ID" in a:
-                    print('--', a, '--')
+                if "AUDIO_ID" in a or "AUDIO_KEY_ID" in a:
                     new_arr = a.split('\n')
                     for i in new_arr:
-                        if i.startswith('Audio_ID'):
+                        if i.startswith('AUDIO_ID') or i.startswith('AUDIO_KEY_ID'):
                             a_id = i.split('=')[-1]
                             break
-                    #a_id = re.sub('[^"]*Audio_ID=', '', a)
-                    print('--', a_id, '--')
                     audio_s = (re.search('[(][^)]*', a_id))
                     if audio_s:
                         audio_id = (audio_s.group()).replace('(', '')
                     else:
                         audio_id="no"
-                    print("audio_id="+audio_id)
                     self.audio_track.setText("A:"+str(a_id[:8]))
-                elif "SUB_ID" in a:
-                    print('--', a, '--')
+                    if 'AUDIO_KEY_ID' in a:
+                        self.change_sid_aid_video(aid=audio_id)
+                elif "SUB_ID" in a or "SUB_KEY_ID" in a:
+                    tsid = sub_id
                     new_arr = a.split('\n')
-                    print(new_arr)
                     for i in new_arr:
-                        if i.startswith('SUB_ID'):
-                            print('--', i, '--')
+                        if i.startswith('SUB_ID') or i.startswith('SUB_KEY_ID'):
                             s_id = i.split('=')[-1]
                             break
-                    #s_id = re.sub('[^"]*SUB_ID=', '', a)
                     sub_s = (re.search('[(][^)]*', s_id))
                     if sub_s:
                         sub_id = (sub_s.group()).replace('(', '')
                     else:
                         sub_id = "no"
-                    print("sub_id="+sub_id)
-                    self.subtitle_track.setText("Sub:"+str(s_id[:8]))
+                    if tsid == 'auto' and sub_id == 'no':
+                        val_id = 'auto'
+                        sub_id = 'auto'
+                        self.mpvplayer_val.write(b'\n cycle sub \n')
+                    else:
+                        val_id = str(s_id[:8])
+                    self.subtitle_track.setText("Sub:"+val_id)
+                    if 'SUB_KEY_ID' in a:
+                        self.change_sid_aid_video(sid=sub_id)
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
-                    print(a)
                     if a.startswith(r"b'"):
                         mpl = re.sub('[^"]*Length_Seconds=', '', a)
                         mpl = mpl.replace(r"\n'", '')
                     else:
                         mpl = re.sub('[^"]*Length_Seconds=', '', a)
-                    print(mpl, '--mpl--')
                     o = mpl.split(':')
                     if o and len(o) == 3:
                         if o[0].isdigit() and (o[1]).isdigit() and (o[2]).isdigit():
@@ -10110,6 +10178,8 @@ watch/unwatch status")
                     self.progressEpn.setFormat((t))
                     self.eof_reached = False
                     self.eof_lock = False
+                    QtCore.QTimer.singleShot(1000, partial(self.set_sub_audio_text, 'aid'))
+                    QtCore.QTimer.singleShot(1500, partial(self.set_sub_audio_text, 'sid'))
                 elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
                     self.eof_lock = False
@@ -13340,8 +13410,8 @@ def main():
         f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
         f.write("\nUpload_Speed="+str(ui.setuploadspeed))
         f.write("\nForce_FS={0}".format(ui.force_fs))
-        f.write("\nSUB_ID={0}".format(sub_id))
-        f.write("\nAUDIO_ID={0}".format(audio_id))
+        #f.write("\nSUB_ID={0}".format(sub_id))
+        #f.write("\nAUDIO_ID={0}".format(audio_id))
         f.close()
     with open(ui.playing_history_file, 'wb') as pls_file:
         if ui.list1.currentItem():
