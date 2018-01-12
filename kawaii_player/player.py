@@ -881,7 +881,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mplayer_OsdTimer.start(5000)
             else:
                 self.mpvplayer.write(b'\n cycle sub \n')
-                self.mpvplayer.write(b'\n print-text "SUB_ID=${sid}" \n')
+                self.mpvplayer.write(b'\n print-text "SUB_KEY_ID=${sid}" \n')
                 self.mpvplayer.write(b'\n show-text "${sid}" \n')
         elif event.key() == QtCore.Qt.Key_K:
             if self.player_val == "mplayer":
@@ -894,7 +894,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mplayer_OsdTimer.start(5000)
             else:
                 self.mpvplayer.write(b'\n cycle audio \n')
-                self.mpvplayer.write(b'\n print-text "Audio_ID=${aid}" \n')
+                self.mpvplayer.write(b'\n print-text "AUDIO_KEY_ID=${aid}" \n')
                 self.mpvplayer.write(b'\n show-text "${aid}" \n')
         elif event.key() == QtCore.Qt.Key_F:
             if not self.ui.force_fs:
