@@ -19,6 +19,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import re
+import imp
 import time
 import ipaddress
 import random
@@ -853,6 +854,8 @@ class PlayerGetEpn(QtCore.QThread):
     get_offline_signal_list = pyqtSignal(list, int)
     get_listfound_signal = pyqtSignal(list)
     get_title_signal = pyqtSignal(str, str)
+    get_offline_signal_type_three = pyqtSignal(str, int, str, str)
+    get_offline_signal_list_type_three = pyqtSignal(list, int, str, str)
     
     def __init__(self, ui_widget, logr, epn_type, *args):
         QtCore.QThread.__init__(self)
@@ -860,23 +863,35 @@ class PlayerGetEpn(QtCore.QThread):
         ui = ui_widget
         logger = logr
         self.epn_type = epn_type
+        self.site_var = None
+        param_dict = ui.get_parameters_value(s='site')
+        self.site_name = param_dict['site']
         if (self.epn_type == 'yt' or self.epn_type == 'yt_title' 
                 or self.epn_type == 'yt+title' or self.epn_type == 'yt_music'):
             self.final = args[0]
             self.quality = args[1]
             self.yt_path = args[2]
             self.row = args[3]
-        elif (self.epn_type == 'addons' or self.epn_type == 'type_one' 
-                or self.epn_type == 'type_two'):
+        elif self.epn_type in ['addons', 'type_one', 'type_two', 'type_three']:
             self.name = args[0]
             self.epn = args[1]
             self.mirrorNo = args[2]
             self.quality = args[3]
             self.row = args[4]
-            if self.epn_type == 'type_two' or self.epn_type == 'type_one':
-                self.siteName = args[5]
-                if self.epn_type == 'type_one':
-                    self.category = args[6]
+            if self.epn_type in ['type_two', 'type_one', 'type_three']:
+                if self.epn_type == 'type_three':
+                    self.site = args[5]
+                    self.siteName = args[6]
+                    self.epnname = args[7]
+                    if self.site_name != self.site:
+                        plugin_path = os.path.join(ui.home_folder, 'src', 'Plugins', self.site+'.py')
+                        if os.path.exists(plugin_path):
+                            module = imp.load_source(self.site, plugin_path)
+                            self.site_var = getattr(module, self.site)(ui.tmp_download_folder)
+                else:
+                    self.siteName = args[5]
+                    if self.epn_type == 'type_one':
+                        self.category = args[6]
         elif self.epn_type == 'offline':
             self.row = args[0]
             self.mode = args[1]
@@ -893,9 +908,14 @@ class PlayerGetEpn(QtCore.QThread):
         #self.command = command
         logger.info(args)
         self.get_epn_signal.connect(connect_to_epn_generator)
-        self.get_offline_signal.connect(connect_to_offline_mode)
         self.get_epn_signal_list.connect(connect_to_epn_generator_list)
+        
+        self.get_offline_signal.connect(connect_to_offline_mode)
         self.get_offline_signal_list.connect(connect_to_offline_mode_list)
+        
+        self.get_offline_signal_type_three.connect(connect_to_offline_mode_type_three)
+        self.get_offline_signal_list_type_three.connect(connect_to_offline_mode_list_type_three)
+        
         self.get_listfound_signal.connect(connect_to_listfound_signal)
         self.get_title_signal.connect(connect_post_title)
         
@@ -927,6 +947,27 @@ class PlayerGetEpn(QtCore.QThread):
             elif self.epn_type == 'addons':
                 finalUrl = ui.site_var.getFinalUrl(self.name, self.epn,
                                                    self.mirrorNo, self.quality)
+            elif self.epn_type == 'type_three':
+                if self.site_var:
+                    if self.siteName:
+                        finalUrl = self.site_var.getFinalUrl(
+                            self.name, self.epn, self.mirrorNo,
+                            self.quality, sn=self.siteName
+                            )
+                    else:
+                        finalUrl = self.site_var.getFinalUrl(
+                            self.name, self.epn, self.mirrorNo, self.quality
+                            )
+                else:
+                    if self.siteName:
+                        finalUrl = ui.site_var.getFinalUrl(
+                            self.name, self.epn, self.mirrorNo,
+                            self.quality, sn=self.siteName
+                            )
+                    else:
+                        finalUrl = ui.site_var.getFinalUrl(
+                            self.name, self.epn, self.mirrorNo, self.quality
+                            )
             elif self.epn_type == 'type_one':
                 finalUrl = ui.site_var.getFinalUrl(self.siteName, self.name, self.epn,
                                                    self.mirrorNo, self.category,
@@ -949,7 +990,7 @@ class PlayerGetEpn(QtCore.QThread):
                 mylist.append(self.opt)
                 mylist.append(self.row)
         except Exception as err:
-            print(err, '--707--')
+            logger.error('{0}::--984--'.format(err))
         if nosignal:
             pass
         else:
@@ -958,6 +999,10 @@ class PlayerGetEpn(QtCore.QThread):
             if not isinstance(finalUrl, list):
                 if self.epn_type == 'offline':
                     self.get_offline_signal.emit(finalUrl, self.row)
+                elif self.epn_type == 'type_three':
+                    self.get_offline_signal_type_three.emit(
+                        finalUrl, self.row, self.name, self.epnname
+                        )
                 elif self.epn_type == 'list':
                     self.get_listfound_signal.emit(mylist)
                 elif self.epn_type == 'yt_title':
@@ -967,6 +1012,10 @@ class PlayerGetEpn(QtCore.QThread):
             else:
                 if self.epn_type == 'offline':
                     self.get_offline_signal_list.emit(finalUrl, self.row)
+                elif self.epn_type == 'type_three':
+                    self.get_offline_signal_list_type_three.emit(
+                        finalUrl, self.row, self.name, self.epnname
+                        )
                 else:
                     self.get_epn_signal_list.emit(finalUrl, str(self.row))
         
@@ -983,16 +1032,30 @@ def connect_to_offline_mode(url, row):
     global ui
     ui.start_offline_mode_post(url, row)
     
+@pyqtSlot(list, int)
+def connect_to_offline_mode_list(url, row):
+    global ui
+    ui.start_offline_mode_post(url, row)
+
+@pyqtSlot(str, int, str, str)
+def connect_to_offline_mode_type_three(url, row, name, epn):
+    global ui
+    ui.start_offline_mode_post(url, row, name, epn)
+
+@pyqtSlot(list, int, str, str)
+def connect_to_offline_mode_list_type_three(url, row, name, epn):
+    global ui
+    ui.start_offline_mode_post(url, row, name, epn)
+
+
+
 @pyqtSlot(list, str)
 def connect_to_epn_generator_list(url, row):
     global ui
     print('<<<<<<<<<<<<<\n\n{0}\n\n>>>>>>>>>'.format(url))
     ui.epnfound_now_start_player(url, row)
     
-@pyqtSlot(list, int)
-def connect_to_offline_mode_list(url, row):
-    global ui
-    ui.start_offline_mode_post(url, row)
+
     
 @pyqtSlot(list)
 def connect_to_listfound_signal(mylist):
