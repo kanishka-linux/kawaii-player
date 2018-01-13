@@ -59,28 +59,44 @@ class PlaylistWidget(QtWidgets.QListWidget):
 
     def init_offline_mode(self):
         print(self.currentRow(), '--init--offline--')
-        param_dict = ui.get_parameters_value(s='site', w='wget')
+        param_dict = ui.get_parameters_value(s='site', w='wget', n='name',
+                                             sn='siteName', m='mirrorNo')
         site = param_dict['site']
         wget = param_dict['wget']
-        if (site.lower() != "Local" and site.lower() != 'video' 
-                and site.lower() != 'music'):
+        name = param_dict['name']
+        siteName = param_dict['siteName']
+        mirrorNo = param_dict['mirrorNo']
+        if (site.lower() != 'video' and site.lower() != 'music'):
             if wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
                 ui.download_video = 1
                 r = self.currentRow()
                 item = self.item(r)
                 if item:
-                    ui.start_offline_mode(r)
+                    if '\t' in ui.epn_arr_list[r]:
+                        eptxt = ui.epn_arr_list[r].split('	')[0].replace('_', ' ')
+                        epfinal = ui.epn_arr_list[r].split('	')[1]
+                    else:
+                        eptxt = epfinal = ui.epn_arr_list[r]
+                    if eptxt.startswith('#'):
+                        eptxt = eptxt.replace('#', '', 1)
+                    aitem = (name, epfinal, mirrorNo, ui.quality_val, r, site, siteName, eptxt)
+                    ui.start_offline_mode(r, aitem)
             else:
                 if not ui.queue_url_list:
                     ui.list6.clear()
                 r = self.currentRow()
                 item = self.item(r)
                 if item:
-                    ui.queue_url_list.append(r)
-                    txt = ui.epn_arr_list[r].split('	')[0].replace('_', ' ')
-                    if txt.startswith('#'):
-                        txt = txt.replace('#', '', 1)
-                    ui.list6.addItem(txt)
+                    if '\t' in ui.epn_arr_list[r]:
+                        eptxt = ui.epn_arr_list[r].split('	')[0].replace('_', ' ')
+                        epfinal = ui.epn_arr_list[r].split('	')[1]
+                    else:
+                        eptxt = epfinal = ui.epn_arr_list[r]
+                    if eptxt.startswith('#'):
+                        eptxt = eptxt.replace('#', '', 1)
+                    aitem = (name, epfinal, mirrorNo, ui.quality_val, r, site, siteName, eptxt)
+                    ui.queue_url_list.append(aitem)
+                    ui.list6.addItem(eptxt)
     
     def open_in_file_manager(self, row):
         param_dict = ui.get_parameters_value(s='site', sn='siteName', o='opt')
