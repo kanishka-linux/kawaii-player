@@ -5048,7 +5048,7 @@ watch/unwatch status")
                         self.mpvplayer_val.kill()
                         self.mpvplayer_started = False
                 if len(self.queue_url_list)>0:
-                    if isinstance(self.queue_url_list[0], int):
+                    if isinstance(self.queue_url_list[0], tuple):
                         self.localGetInList()
                     else:
                         self.getQueueInList()
@@ -8349,10 +8349,21 @@ watch/unwatch status")
             new_epn = new_epn[1:]
         new_epn = new_epn.replace('/', '-')
         new_epn = new_epn.replace('"', '')
-        new_epn = re.sub('"|.mkv|.mp4', '', new_epn)
+        new_epn = re.sub('"|.mkv|.mp4|.avi', '', new_epn)
         if new_epn.startswith('.'):
             new_epn = new_epn[1:]
         opt_val = self.btn1.currentText().lower()
+        
+        if '.' in final_val:
+            _, file_ext = final_val.rsplit('.', 1)
+            if file_ext in self.video_type_arr or file_ext in self.music_type_arr:
+                new_epn = new_epn + '.' + file_ext
+            else:
+                new_epn = new_epn+'.mp4'
+        else:
+            new_epn = new_epn+'.mp4'
+        
+        
         if OSNAME == 'nt':
             if '?' in new_epn:
                 new_epn = new_epn.replace('?', '_')
@@ -8401,14 +8412,18 @@ watch/unwatch status")
                 print(row)
                 file_name_mkv = file_name_mp4 = final_val
             else:
+                queue_item = self.queue_url_list[0]
                 queue_split = []
-                if row < len(self.queue_url_list):
+                if isinstance(queue_item, tuple):
+                    file_name_mkv = file_name_mp4 = final_val
+                elif row < len(self.queue_url_list):
                     queue_split = self.queue_url_list[row].split('	')
-                if len(queue_split) > 1:
-                    st = queue_split[1]
-                    if st.startswith('abs_path=') or st.startswith('relative_path='):
-                        st = self.if_path_is_rel(st)
-                    file_name_mkv = file_name_mp4 = st
+                    if len(queue_split) > 1:
+                        st = queue_split[1]
+                        if st.startswith('abs_path=') or st.startswith('relative_path='):
+                            st = self.if_path_is_rel(st)
+                        file_name_mkv = file_name_mp4 = st
+                        
                 
         logger.info('function---15025--{0}-{1}'.format(file_name_mkv, file_name_mp4))
         return file_name_mp4, file_name_mkv
@@ -10207,27 +10222,29 @@ watch/unwatch status")
                     self.mpv_playback_duration = None
                     logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
                     logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
+                    queue_item = None
+                    if self.queue_url_list:
+                        queue_item = self.queue_url_list[0]
                     if self.player_setLoop_var:
                         pass
-                    else:
-                        if not self.queue_url_list:
-                            if self.list2.count() == 0:
-                                return 0
-                            if curR == self.list2.count() - 1:
-                                curR = 0
-                                if site == "Music" and not self.playerPlaylist_setLoop_var:
-                                    r1 = self.list1.currentRow()
-                                    it1 = self.list1.item(r1)
-                                    if it1:
-                                        if r1 < self.list1.count():
-                                            r2 = r1+1
-                                        else:
-                                            r2 = 0
-                                        self.list1.setCurrentRow(r2)
-                                        self.listfound()
-                            else:
-                                curR = curR + 1
-                            self.list2.setCurrentRow(curR)
+                    elif queue_item is None or isinstance(queue_item, tuple):
+                        if self.list2.count() == 0:
+                            return 0
+                        if curR == self.list2.count() - 1:
+                            curR = 0
+                            if site == "Music" and not self.playerPlaylist_setLoop_var:
+                                r1 = self.list1.currentRow()
+                                it1 = self.list1.item(r1)
+                                if it1:
+                                    if r1 < self.list1.count():
+                                        r2 = r1+1
+                                    else:
+                                        r2 = 0
+                                    self.list1.setCurrentRow(r2)
+                                    self.listfound()
+                        else:
+                            curR = curR + 1
+                        self.list2.setCurrentRow(curR)
                     self.mplayerLength = 0
                     self.total_file_size = 0
                     if mpv_start:
@@ -10239,27 +10256,19 @@ watch/unwatch status")
                         if self.tab_5.isHidden() and thumbnail_indicator:
                             length_1 = self.list2.count()
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText(self.epn_name_in_list)"
-                            exec (q3)
+                            exec(q3)
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
                             exec(q3)
-                        if (site == "Local" or site == "Video" or site == "Music" 
-                                or site == "PlayLists" or site == "None" or
-                                site == 'MyServer'):
-                            if self.queue_url_list:
-                                if isinstance(self.queue_url_list[0], int):
-                                    self.localGetInList()
-                                else:
-                                    self.getQueueInList()
-                            else:
+                        if site in ["Video", "Music", "PlayLists", "None", "MyServer"]:
+                            if queue_item is None or isinstance(queue_item, tuple):
                                 self.localGetInList()
-                        else:
-                            if self.queue_url_list:
-                                if isinstance(self.queue_url_list[0], int):
-                                    self.getNextInList()
-                                else:
-                                    self.getQueueInList()
                             else:
+                                self.getQueueInList()
+                        else:
+                            if queue_item is None or isinstance(queue_item, tuple):
                                 self.getNextInList()
+                            else:
+                                self.getQueueInList()
                     elif quitReally == "yes": 
                         self.player_stop.clicked.emit()
                         self.list2.setFocus()
@@ -10511,7 +10520,7 @@ watch/unwatch status")
                                 or site == "Music" or site == "PlayLists" 
                                 or site == "None" or site == 'MyServer'):
                             if self.queue_url_list:
-                                if isinstance(self.queue_url_list[0], int):
+                                if isinstance(self.queue_url_list[0], tuple):
                                     self.localGetInList()
                                 else:
                                     self.getQueueInList()
@@ -10519,7 +10528,7 @@ watch/unwatch status")
                                 self.localGetInList()
                         else:
                             if self.queue_url_list:
-                                if isinstance(self.queue_url_list[0], int):
+                                if isinstance(self.queue_url_list[0], tuple):
                                     self.getNextInList()
                                 else:
                                     self.getQueueInList()
