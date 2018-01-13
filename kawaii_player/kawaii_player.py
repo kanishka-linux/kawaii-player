@@ -1760,7 +1760,8 @@ watch/unwatch status")
                             MainWindow, self.setPlayerFocus)
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+G"), 
                             MainWindow, self.dockShowHide)
-        
+        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+H"), 
+                            MainWindow, self.show_hide_progressbar)
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+F"), MainWindow, 
                             self.show_hide_filter_toolbar)
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Z"), MainWindow, 
@@ -2033,6 +2034,12 @@ watch/unwatch status")
         quality = self.quality_val 
         if self.quality_val in self.quality_dict:
             self.sd_hd.setText(self.quality_dict[self.quality_val])
+            
+    def show_hide_progressbar(self):
+        if self.progress.isHidden():
+            self.progress.show()
+        else:
+            self.progress.hide()
             
     def quick_torrent_play_method(self, url):
         if self.thread_server.isRunning():
@@ -2741,29 +2748,31 @@ watch/unwatch status")
             if stop_now:
                 if video_local_stream or new_video_local_stream:
                     if self.do_get_thread.isRunning():
-                        print('----------stream-----pausing-----')
+                        logger.debug('----------stream-----pausing-----')
                         t_list = self.stream_session.get_torrents()
                         for i in t_list:
                             logger.info('--removing--{0}'.format(i.name()))
                             self.stream_session.remove_torrent(i)
                         self.stream_session.pause()
-                        #self.stream_session = None
                     elif self.stream_session:
                         if not self.stream_session.is_paused():
                             self.stream_session.pause()
-                            #self.stream_session = None
                     txt = 'Torrent Stopped'
                     send_notification(txt)
                     self.torrent_frame.hide()
-                else:
-                    if wget.processId() > 0:
-                        wget.kill()
+                    self.progress.hide()
+                elif wget.processId() > 0:
+                    wget.kill()
                     txt = 'Stopping download'
                     send_notification(txt)
                     self.torrent_frame.hide()
-                self.progress.hide()
+                    self.progress.hide()
+                elif self.queue_url_list:
+                    queue_item = self.queue_url_list[0]
+                    if isinstance(queue_item, tuple):
+                        self.start_offline_mode(0, queue_item)
         except Exception as e:
-            print(e, '--9349--')
+            logger.error(e)
     
     def stop_torrent_forcefully(self, from_client=None):
         global video_local_stream, site
