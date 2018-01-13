@@ -66,35 +66,23 @@ class PlaylistWidget(QtWidgets.QListWidget):
         name = param_dict['name']
         siteName = param_dict['siteName']
         mirrorNo = param_dict['mirrorNo']
-        if (site.lower() != 'video' and site.lower() != 'music'):
-            if wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
-                ui.download_video = 1
-                r = self.currentRow()
-                item = self.item(r)
-                if item:
-                    if '\t' in ui.epn_arr_list[r]:
-                        eptxt = ui.epn_arr_list[r].split('	')[0].replace('_', ' ')
-                        epfinal = ui.epn_arr_list[r].split('	')[1]
-                    else:
-                        eptxt = epfinal = ui.epn_arr_list[r]
-                    if eptxt.startswith('#'):
-                        eptxt = eptxt.replace('#', '', 1)
-                    aitem = (name, epfinal, mirrorNo, ui.quality_val, r, site, siteName, eptxt)
-                    ui.start_offline_mode(r, aitem)
+        for item in self.selectedItems():
+            r = self.row(item)
+            if '\t' in ui.epn_arr_list[r]:
+                eptxt = ui.epn_arr_list[r].split('	')[0].replace('_', ' ')
+                epfinal = ui.epn_arr_list[r].split('	')[1]
             else:
-                if not ui.queue_url_list:
-                    ui.list6.clear()
-                r = self.currentRow()
-                item = self.item(r)
-                if item:
-                    if '\t' in ui.epn_arr_list[r]:
-                        eptxt = ui.epn_arr_list[r].split('	')[0].replace('_', ' ')
-                        epfinal = ui.epn_arr_list[r].split('	')[1]
-                    else:
-                        eptxt = epfinal = ui.epn_arr_list[r]
-                    if eptxt.startswith('#'):
-                        eptxt = eptxt.replace('#', '', 1)
-                    aitem = (name, epfinal, mirrorNo, ui.quality_val, r, site, siteName, eptxt)
+                eptxt = epfinal = ui.epn_arr_list[r]
+            if eptxt.startswith('#'):
+                eptxt = eptxt.replace('#', '', 1)
+            aitem = (name, epfinal, mirrorNo, ui.quality_val, r, site, siteName, eptxt)
+            if site not in ['Music', 'Video']:
+                if wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
+                    ui.download_video = 1
+                    ui.start_offline_mode(r, aitem)
+                else:
+                    if not ui.queue_url_list:
+                        ui.list6.clear()
                     ui.queue_url_list.append(aitem)
                     ui.list6.addItem(eptxt)
     
@@ -145,34 +133,28 @@ class PlaylistWidget(QtWidgets.QListWidget):
         param_dict = ui.get_parameters_value(s='site', v='video_local_stream')
         site = param_dict['site']
         video_local_stream = param_dict['video_local_stream']
-        if (site == "Music" or site == "Video" or site == "Local" 
-                or site == "PlayLists" or site == "None"):
-            file_path = os.path.join(home, 'Playlists', 'Queue')
-            if not os.path.exists(file_path):
-                f = open(file_path, 'w')
-                f.close()
-            if not ui.queue_url_list:
-                ui.list6.clear()
-            r = self.currentRow()
-            item = self.item(r)
-            if item:
+        for item in self.selectedItems():
+            r = self.row(item)
+            if site in ["Music", "Video", "PlayLists", "None"]:
+                file_path = os.path.join(home, 'Playlists', 'Queue')
+                if not os.path.exists(file_path):
+                    f = open(file_path, 'w')
+                    f.close()
+                if not ui.queue_url_list:
+                    ui.list6.clear()
                 ui.queue_url_list.append(ui.epn_arr_list[r])
                 ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
                 logger.info(ui.queue_url_list)
                 write_files(file_path, ui.epn_arr_list[r], line_by_line=True)
-        elif video_local_stream:
-            if ui.list6.count() > 0:
-                txt = ui.list6.item(0).text()
-                if txt.startswith('Queue Empty:'):
+            elif video_local_stream:
+                if ui.list6.count() > 0:
+                    txt = ui.list6.item(0).text()
+                    if txt.startswith('Queue Empty:'):
+                        ui.list6.clear()
+                ui.list6.addItem(item.text()+':'+str(r))
+            else:
+                if not ui.queue_url_list:
                     ui.list6.clear()
-            if self.currentItem():
-                ui.list6.addItem(self.currentItem().text()+':'+str(self.currentRow()))
-        else:
-            if not ui.queue_url_list:
-                ui.list6.clear()
-            r = self.currentRow()
-            item = self.item(r)
-            if item:
                 ui.queue_url_list.append(ui.epn_arr_list[r])
                 ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
                 
