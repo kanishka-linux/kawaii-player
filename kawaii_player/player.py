@@ -351,14 +351,30 @@ class PlayerWidget(QtWidgets.QWidget):
     def player_quit(self, msg=None):
         self.ui.player_stop.clicked.emit()
         
-    def load_external_sub(self):
-        fname = QtWidgets.QFileDialog.getOpenFileNames(
-                MainWindow, 'Select Subtitle file', self.ui.last_dir)
-        if fname:
-            logger.info(fname)
-            if fname[0]:
-                self.ui.last_dir, file_choose = os.path.split(fname[0][0])
-                title_sub = fname[0][0]
+    def load_external_sub(self, mode=None):
+        if mode is None:
+            fname = QtWidgets.QFileDialog.getOpenFileNames(
+                    MainWindow, 'Select Subtitle file', self.ui.last_dir)
+            if fname:
+                logger.info(fname)
+                if fname[0]:
+                    self.ui.last_dir, file_choose = os.path.split(fname[0][0])
+                    title_sub = fname[0][0]
+                    if self.player_val == "mplayer":
+                        txt = '\nsub_load '+'"'+title_sub+'"\n'
+                        txt_b = bytes(txt, 'utf-8')
+                        logger.info("{0} - {1}".format(txt_b, txt))
+                        self.mpvplayer.write(txt_b)
+                    else:
+                        txt = '\nsub_add '+'"'+title_sub+'" select\n'
+                        txt_b = bytes(txt, 'utf-8')
+                        logger.info("{0} - {1}".format(txt_b, txt))
+                        self.mpvplayer.write(txt_b)
+            self.ui.acquire_subtitle_lock = False
+        elif mode == 'network':
+            site = self.ui.get_parameters_value(st='site')['site']
+            if site.lower() == 'myserver':
+                title_sub = self.ui.final_playing_url + '.subtitle'
                 if self.player_val == "mplayer":
                     txt = '\nsub_load '+'"'+title_sub+'"\n'
                     txt_b = bytes(txt, 'utf-8')
@@ -369,7 +385,8 @@ class PlayerWidget(QtWidgets.QWidget):
                     txt_b = bytes(txt, 'utf-8')
                     logger.info("{0} - {1}".format(txt_b, txt))
                     self.mpvplayer.write(txt_b)
-        self.ui.acquire_subtitle_lock = False
+            else:
+                logger.warn('Not Allowed')
                 
     def player_quit_old(self, msg=None):
         quitReally = "yes"
@@ -870,6 +887,10 @@ class PlayerWidget(QtWidgets.QWidget):
                 and event.key() == QtCore.Qt.Key_J):
             #self.ui.load_external_sub()
             self.load_external_sub()
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_J):
+            #self.ui.load_external_sub()
+            self.load_external_sub(mode='network')
         elif event.key() == QtCore.Qt.Key_J:
             if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
