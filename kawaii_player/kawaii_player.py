@@ -9805,12 +9805,11 @@ watch/unwatch status")
             pass
         type_int = False
         if self.queue_url_list:
-            j = 0
-            for i in self.queue_url_list:
+            type_tuple = False
+            for j, i in enumerate(self.queue_url_list):
                 if isinstance(i, tuple):
                     type_tuple = True
                     break
-                j = j+1
             
             if type_tuple:
                 n, e, m, q, r, s, sn, ep = self.queue_url_list[j]
@@ -9818,7 +9817,7 @@ watch/unwatch status")
                 nepn = ep
                 nepn = re.sub('#|"', '', nepn)
                 nepn = nepn.replace('/', '-')
-                nepn = re.sub('"|.mkv|.mp4', '', nepn)
+                nepn = re.sub('"|.mkv|.mp4|.avi', '', nepn)
                 nepn = nepn.replace('_', ' ')
                 self.list6.takeItem(j)
                 del itm
