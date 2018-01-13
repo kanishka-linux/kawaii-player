@@ -9640,15 +9640,21 @@ watch/unwatch status")
                 self.label.show()
                 self.text.show()
     
-    def start_offline_mode(self, row):
+    def start_offline_mode(self, row, extra=None):
         global site, name, hdr
-        if not self.if_file_path_exists_then_play(row, self.list2, False):
-            if not self.epn_wait_thread.isRunning():
+        #if not self.if_file_path_exists_then_play(row, self.list2, False):
+        if not self.epn_wait_thread.isRunning():
+            if site not in ['Video', 'Music', 'PlayLists', 'None'] and extra:
+                n, e, m, q, r, s, sn, ep = extra
+                self.epn_wait_thread = PlayerGetEpn(
+                    self, logger, 'type_three', n, e, m, q, r, s, sn, ep)
+                self.epn_wait_thread.start()
+            else:
                 self.epn_wait_thread = PlayerGetEpn(
                     self, logger, 'offline', row, 'offline')
                 self.epn_wait_thread.start()
                 
-    def start_offline_mode_post(self, finalUrl, row):
+    def start_offline_mode_post(self, finalUrl, row, title=None, new_epn=None):
         global site, name, hdr
         referer = False
         if not isinstance(finalUrl, list):
@@ -9659,10 +9665,11 @@ watch/unwatch status")
             finalUrl = re.sub('#|"', '', finalUrl[0])
             logger.info(finalUrl)
             referer = True
-        self.list2.setFocus()
-        r = self.list2.currentRow()
-        print(r)
-        new_epn = self.list2.item(row).text()
+        if not new_epn:
+            self.list2.setFocus()
+            r = self.list2.currentRow()
+            print(r)
+            new_epn = self.list2.item(row).text()
         if new_epn.startswith(self.check_symbol):
             new_epn = new_epn[1:] 
         new_epn = new_epn.replace('/', '-')
@@ -9678,10 +9685,11 @@ watch/unwatch status")
                 new_epn = new_epn+'.mp4'
         else:
             new_epn = new_epn+'.mp4'
-        if self.list1.currentItem():
-            title = self.list1.currentItem().text()
-        else:
-            title = name
+        if not title:
+            if self.list1.currentItem():
+                title = self.list1.currentItem().text()
+            else:
+                title = name
         folder_name = os.path.join(self.default_download_location, title)
         if not os.path.exists(folder_name):
             os.makedirs(folder_name)
@@ -9784,27 +9792,32 @@ watch/unwatch status")
         if self.queue_url_list:
             j = 0
             for i in self.queue_url_list:
-                if type(i) is int:
-                    type_int = True
+                if isinstance(i, tuple):
+                    type_tuple = True
                     break
                 j = j+1
             
-            if type_int:
-                t = self.queue_url_list[j]
-                t1 = self.list6.item(j)
-                nepn = t1.text()
+            if type_tuple:
+                n, e, m, q, r, s, sn, ep = self.queue_url_list[j]
+                itm = self.list6.item(j)
+                nepn = ep
                 nepn = re.sub('#|"', '', nepn)
                 nepn = nepn.replace('/', '-')
                 nepn = re.sub('"|.mkv|.mp4', '', nepn)
                 nepn = nepn.replace('_', ' ')
                 self.list6.takeItem(j)
-                del t1
+                del itm
                 del self.queue_url_list[j]
-                print(t, '**************row------num-----------')
+                site_tmp = s
                 if not self.epn_wait_thread.isRunning():
-                    self.epn_wait_thread = PlayerGetEpn(
-                        self, logger, 'offline', t, 'offline')
-                    self.epn_wait_thread.start()
+                    if site_tmp not in ['Video', 'Music', 'PlayLists', 'None']:
+                        self.epn_wait_thread = PlayerGetEpn(
+                            self, logger, 'type_three', n, e, m, q, r, s, sn, ep)
+                        self.epn_wait_thread.start()
+                    else:
+                        self.epn_wait_thread = PlayerGetEpn(
+                            self, logger, 'offline', r, 'offline')
+                        self.epn_wait_thread.start()
         
     def infoWget(self, command, src, get_library=None):
         global wget
