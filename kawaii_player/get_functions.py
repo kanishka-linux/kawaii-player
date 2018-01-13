@@ -98,6 +98,7 @@ def ccurl_string_get(url, opt, extra, download_manager=None):
             if '-k' not in command:
                 command.append('-k')
     command.append('-g')
+    command.append('-C -')
     #print(command)
     return command
 
@@ -160,6 +161,7 @@ def wget_string_get(url, dest, opt, extra, tmp_log, download_manager=None):
         command = ["wget", "--read-timeout=60", "--user-agent="+hdr, post, url, "-O", dest]
     if os.name == 'nt':
         command.append('--no-check-certificate')
+    command.append('-c')
     ver_peer = url.split('/')
     if len(ver_peer) > 3:
         ver_peer_get = ver_peer[3]
