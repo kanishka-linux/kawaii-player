@@ -62,7 +62,10 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 ht = str(ht1)
                 wd = str(wd1)
                 new_cnt = str(prevR+ui.list1.count())
-                p1 = "ui.label_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
+                if ui.player_theme == 'default':
+                    p1 = "ui.label_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
+                else:
+                    p1 = "ui.label_{0}.setTextColor(QtCore.Qt.black)".format(new_cnt)
                 exec (p1)
                 p1 = "ui.label_{0}.toPlainText()".format(new_cnt)
                 txt = eval(p1)
@@ -254,7 +257,10 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                     ht = str(ht1)
                     wd = str(wd1)
                     new_cnt = str(prevR+ui.list2.count())
-                    p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
+                    if ui.player_theme == 'default':
+                        p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
+                    else:
+                        p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.black)".format(new_cnt)
                     exec (p1)
                     p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
                     txt = eval(p1)
