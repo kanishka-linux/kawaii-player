@@ -3309,7 +3309,8 @@ watch/unwatch status")
                         pass
                 else:
                     if ((str(idw) != str(int(self.tab_5.winId()))) 
-                            and (str(idw) != str(int(self.label.winId())))):
+                            and (str(idw) != str(int(self.label.winId())))
+                            and (str(idw) != str(int(self.label_new.winId())))):
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
                         #self.scrollArea1.verticalScrollBar().setValue(0)
@@ -4674,7 +4675,7 @@ watch/unwatch status")
                             if os.stat(pic).st_size:
                                 shutil.copy(pic, picn)
                                 picn = pic
-            logger.debug('\npicn_thumb={0}::pic_music={1}\n'.format(picn, pic))
+            #logger.debug('\npicn_thumb={0}::pic_music={1}\n'.format(picn, pic))
         else:
             if '	' in title:
                 nameEpn = title.split('	')[0]
@@ -4997,8 +4998,6 @@ watch/unwatch status")
                 else:
                     exec_str = 'self.label_epn_{0}.change_video_mode({1}, {2})'.format(num, self.video_mode_index, num)
                     exec(exec_str)
-                #self.mpvplayer_val.kill()
-                #self.player_restart()
                 thumb_mode = True
             else:
                 if self.mpvplayer_val.processId() > 0:
@@ -5018,7 +5017,7 @@ watch/unwatch status")
         else:
             if not idw or idw == str(int(self.tab_5.winId())):
                 self.epnfound()
-            elif idw == str(int(self.label.winId())):
+            elif idw == str(int(self.label.winId())) or idw == str(int(self.label_new.winId())):
                 self.epnfound()
             else:
                 final = self.epn_return(curR)
@@ -8374,12 +8373,20 @@ watch/unwatch status")
 
         if summary:
             self.text.clear()
-            self.text.insertPlainText((summary))
-        elif mode is None:
-            txt = self.text.toPlainText()
-            if 'No Summary Available' not in txt:
-                self.text.clear()
-                self.text.insertPlainText("No Summary Available")
+            self.text.setText(summary)
+        elif mode is None or mode == 'no summary':
+            txt_old = self.text.toPlainText()
+            if self.list2.item(curR):
+                txt = self.list2.item(curR).text()
+                if txt.startswith(self.check_symbol):
+                    txt = txt.replace(self.check_symbol, '', 1)
+            else:
+                txt = 'No Summary Available'
+            if txt_old.startswith('Air Date:'):
+                pass
+            else:
+                self.text.setText(txt)
+            logger.debug(txt)
 
     def playlistUpdate(self):
         global home
@@ -10620,7 +10627,7 @@ watch/unwatch status")
     def started(self):
         global epn, new_epn, epn_name_in_list, fullscr, mpv_start
         global Player, cur_label_num, epn_name_in_list, site
-        if self.tab_5.isHidden() and thumbnail_indicator:
+        if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
             length_1 = self.list2.count()
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
             exec(q3)
@@ -10783,7 +10790,9 @@ watch/unwatch status")
             except Exception as e:
                 print(e)
         else:
-            if idw and idw != str(int(self.tab_5.winId())) and idw != str(int(self.label.winId())):
+            if (idw and idw != str(int(self.tab_5.winId()))
+                    and idw != str(int(self.label.winId())) 
+                    and idw != str(int(self.label_new.winId()))):
                 try:
                     title_num = row + self.list2.count()
                     if self.epn_name_in_list.startswith(self.check_symbol):
