@@ -917,7 +917,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     logger.info(command)
                     ui.infoPlay(command)	
             ui.labelFrame2.setText(ui.epn_name_in_list)
-        elif var_mode == 6:
+        elif var_mode == 6 or var_mode == 7:
             tab_6_player = "True"
 
             num = curR
@@ -943,7 +943,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 finalUrl = finalUrl.replace("'", '')
             if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
                 finalUrl = ui.if_path_is_rel(finalUrl)
-            tmp_idw = str(int(ui.label.winId()))
+            if var_mode == 6:
+                tmp_idw = str(int(ui.label.winId()))
+            else:
+                tmp_idw = str(int(ui.label_new.winId()))
             idw = ui.get_parameters_value(i='idw')['idw']
             if tmp_idw != idw:
                 if ui.mpvplayer_val.processId() > 0:
@@ -957,7 +960,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
             else:
                 if num < ui.list2.count():
                     ui.list2.setCurrentRow(num)
-                    p1 = "ui.label.winId()"
+                    if var_mode == '6':
+                        p1 = "ui.label.winId()"
+                    else:
+                        p1 = "ui.label_new.winId()"
                     mn = int(eval(p1))
                     idw = str(mn)
                     ui.set_parameters_value(idw_val=idw)
@@ -1064,14 +1070,20 @@ class ThumbnailWidget(QtWidgets.QLabel):
             quitReally = "no"
             ui.set_parameters_value(quit_r=quitReally)
             label_name = str(self.objectName())
-            if label_name == 'label':
+            label_watch = False
+            if label_name in ['label', 'label_new']:
                 num = ui.list2.currentRow()
                 curR = num
                 ui.set_parameters_value(curRow=curR)
-                ui.video_mode_index = 6
-                p1 = "ui.label.winId()"
+                if label_name == 'label':
+                    ui.video_mode_index = 6
+                    p1 = "ui.label.winId()"
+                else:
+                    ui.video_mode_index = 7
+                    p1 = "ui.label_new.winId()"
                 mn = int(eval(p1))
                 tmp_idw = str(mn)
+                label_watch = True
             else:
                 label_num = re.sub('label_epn_', '', label_name)
                 num = int(label_num)
@@ -1088,10 +1100,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if ui.mpvplayer_val.processId() > 0:
                     ui.playerPlayPause()
                 else:
-                    self.remember_thumbnail_position(num)
+                    if not label_watch:
+                        self.remember_thumbnail_position(num)
                     self.change_video_mode(ui.video_mode_index, num)
             else:
-                if label_name != 'label':
+                if label_name not in ['label', 'label_new']:
                     self.remember_thumbnail_position(num)
                 self.change_video_mode(ui.video_mode_index, num)
     
