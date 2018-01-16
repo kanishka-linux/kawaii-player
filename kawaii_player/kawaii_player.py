@@ -226,12 +226,17 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
         if os.path.isfile(fanart):
             if '.' in fanart:
                 fanart_name, ext = fanart.rsplit('.', 1)
-                fanart_new = fanart_name + '-new.' + ext
-                picn = ui.image_fit_option(
-                        fanart, fanart_new, fit_size=6, widget=ui.label_new
-                        )
-                if os.path.exists(fanart_new):
-                    ui.label_new.setPixmap(QtGui.QPixmap(fanart_new, "1"))
+                if not fanart_name.endswith('default'):
+                    fanart_new = fanart_name + '-new.' + ext
+                    picn = ui.image_fit_option(
+                            fanart, fanart_new, fit_size=6, widget=ui.label_new
+                            )
+                    if os.path.exists(fanart_new):
+                        ui.label_new.setPixmap(QtGui.QPixmap(fanart_new, "1"))
+                else:
+                    ui.label_new.clear()
+        else:
+            ui.label_new.clear()
 
 
 class DoGetSignalNew(QtCore.QObject):
