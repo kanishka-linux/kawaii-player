@@ -203,24 +203,25 @@ from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 
-def set_mainwindow_palette(fanart, first_time=None):
-    logger.info('\n{0}:  mainwindow background\n'.format(fanart))
-    if fanart.endswith('default.jpg'):
-        default_dir, default_img = os.path.split(fanart)
-        default_fit = os.path.join(default_dir, 'default_fit.jpg')
-        if not os.path.exists(default_fit):
-            ui.image_fit_option(fanart, default_fit, fit_size=1)
-        fanart = default_fit
-            
-    if not os.path.isfile(fanart) or ui.keep_background_constant:
-        fanart = ui.default_background
-    if os.path.isfile(fanart):
-        if not ui.keep_background_constant or first_time:
-            palette	= QtGui.QPalette()
-            palette.setBrush(QtGui.QPalette.Background, 
-                            QtGui.QBrush(QtGui.QPixmap(fanart)))
-            MainWindow.setPalette(palette)
-            ui.current_background = fanart
+def set_mainwindow_palette(fanart, first_time=None, theme=None):
+    if theme is None or theme == 'default':
+        logger.info('\n{0}:  mainwindow background\n'.format(fanart))
+        if fanart.endswith('default.jpg'):
+            default_dir, default_img = os.path.split(fanart)
+            default_fit = os.path.join(default_dir, 'default_fit.jpg')
+            if not os.path.exists(default_fit):
+                ui.image_fit_option(fanart, default_fit, fit_size=1)
+            fanart = default_fit
+                
+        if not os.path.isfile(fanart) or ui.keep_background_constant:
+            fanart = ui.default_background
+        if os.path.isfile(fanart):
+            if not ui.keep_background_constant or first_time:
+                palette	= QtGui.QPalette()
+                palette.setBrush(QtGui.QPalette.Background, 
+                                QtGui.QBrush(QtGui.QPixmap(fanart)))
+                MainWindow.setPalette(palette)
+                ui.current_background = fanart
 
 
 class DoGetSignalNew(QtCore.QObject):
@@ -1594,6 +1595,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.history_dict_obj = {}
+        self.player_theme = 'default'
         self.mpv_length_find_attempt = 0
         self.force_fs = False
         self.media_server_cache_music = {}
@@ -2442,7 +2444,7 @@ watch/unwatch status")
                 "\npicn={0}, fanart={1}, image_fit_option={2}\n".format(
                 picn, fanart, self.image_fit_option_val))
             self.image_fit_option(picn, fanart, fit_size=self.image_fit_option_val)
-            set_mainwindow_palette(fanart)
+            set_mainwindow_palette(fanart, theme=self.player_theme)
         
     def webResize(self):
         global screen_width
@@ -5200,7 +5202,6 @@ watch/unwatch status")
             self.list1.hide()
             self.frame.hide()
             self.tab_5.show()
-        #self.change_list2_style()
         self.update_list2()
         
     def webClose(self):
@@ -8280,7 +8281,7 @@ watch/unwatch status")
                 if (picn == thumbnail == fanart):
                     pass
                 else:
-                    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart))
+                    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=self.player_theme))
                 try:
                     if 'poster.jpg' in poster:
                         picn = self.change_aspect_only(poster)
@@ -8305,7 +8306,7 @@ watch/unwatch status")
         except Exception as e:
             print(e, '--error--in processing image--VideoImage 13432')
             if os.path.exists(self.default_background):
-                QtCore.QTimer.singleShot(10, partial(set_mainwindow_palette, self.default_background))
+                QtCore.QTimer.singleShot(10, partial(set_mainwindow_palette, self.default_background, theme=self.player_theme))
                 dir_n, p = os.path.split(self.default_background)
                 new_jpg =  os.path.join(dir_n, 'default_poster.jpg')
                 if not os.path.exists(new_jpg):
@@ -11936,7 +11937,7 @@ watch/unwatch status")
             #ui.goto_epn.show()
             show_hide_playlist = 1
             self.list2.setFocus()
-        self.widget_style.apply_stylesheet(self.list2)
+        self.widget_style.apply_stylesheet(widget=self.list2, theme=self.player_theme)
         
     def video_mode_layout(self):
         global layout_mode, default_arr_setting, opt, new_tray_widget, tray
@@ -11984,7 +11985,7 @@ watch/unwatch status")
             self.list2.setFocus()
             
         MainWindow.showMaximized()
-        self.widget_style.apply_stylesheet(self.list2)
+        self.widget_style.apply_stylesheet(widget=self.list2, theme=self.player_theme)
         
     def _set_window_frame(self):
         global new_tray_widget
@@ -12002,30 +12003,6 @@ watch/unwatch status")
                 QtCore.Qt.Window | QtCore.Qt.WindowTitleHint 
                 | QtCore.Qt.WindowStaysOnTopHint)
         MainWindow.show()
-    
-    def change_list2_style(self, mode=None):
-        if isinstance(mode, bool):
-            self.list_with_thumbnail = mode
-        if self.list_with_thumbnail:
-            ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-            color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-            QListWidget:item {height: 128px;}
-            QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-            color: violet;}
-            QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-            QMenu{font: bold 12px;color:black;
-            background-image:url('1.png');}""")
-        else:
-            ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-            color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-            QListWidget:item {height: 30px;}
-            QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-            color: violet;}
-            QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-            QMenu{font: bold 12px;color:black;
-            background-image:url('1.png');}""")
     
     def watch_external_video(self, var, mode=None, start_now=None):
         global quitReally, video_local_stream, curR, site
@@ -12497,9 +12474,7 @@ def main():
         picn_1 = os.path.join(RESOURCE_DIR, 'default.jpg')
         if os.path.exists(picn_1):
             shutil.copy(picn_1, picn)
-            
-    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, picn, first_time=True))
-    ui.widget_style.apply_stylesheet()
+    
     if os.path.isfile(ui.playing_history_file):
         with open(ui.playing_history_file, 'rb') as pls_file_read:
             ui.history_dict_obj = pickle.load(pls_file_read)
@@ -12607,7 +12582,7 @@ def main():
                         ui.list_with_thumbnail = True
                     else:
                         ui.list_with_thumbnail = False
-                    ui.change_list2_style()
+                    #ui.widget_style.apply_stylesheet(widget=ui.list2, theme=ui.player_theme)
                 elif "Site_Index" in i:
                     site_i = re.sub('\n', '', j)
                     if site_i.isdigit():
@@ -13018,6 +12993,17 @@ def main():
                 except Exception as e:
                     print(e)
                     ui.anime_review_site = False
+            elif i.startswith('THEME='):
+                try:
+                    k = j.lower()
+                    if k:
+                        if k == 'system':
+                            ui.player_theme = 'system'
+                        else:
+                            ui.player_theme = 'default'
+                except Exception as e:
+                    print(e)
+                    ui.player_theme = 'default'
             elif i.startswith('YTDL_PATH='):
                 try:
                     k = j.lower()
@@ -13066,10 +13052,13 @@ def main():
         f.write("\nMPV_INPUT_CONF=False")
         f.write("\nBROADCAST_MESSAGE=False")
         f.write("\nMEDIA_SERVER_AUTOSTART=False")
+        f.write("\nTHEME=DEFAULT")
         f.close()
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
         
+    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, picn, first_time=True, theme=ui.player_theme))
+    ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
     anime_review_arr = ["MyAnimeList", "Anime-Planet", "Anime-Source", "AniDB", 
@@ -13358,7 +13347,6 @@ def main():
     
     if ui.force_fs:
         MainWindow.showFullScreen()
-    
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
