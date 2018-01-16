@@ -629,22 +629,20 @@ class WidgetStyleSheet:
                     }
                     """)
             else:
+                for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
+                    widget.setAlternatingRowColors(True)
+                    widget.setStyleSheet("""QListWidget{
+                    border-radius:3px;
+                    }
+                    QListWidget:item {
+                    height: 30px;
+                    }
+                    QListWidget:item:selected:active {
+                    background:rgba(0, 0, 0, 20%);
+                    color: green;
+                    }
+                    """)
                 gui.list2.setAlternatingRowColors(True)
-                gui.list1.setAlternatingRowColors(True)
-                gui.list1.setStyleSheet("""QListWidget{
-                border-radius:3px;
-                }
-                
-                QListWidget:item {
-                height: 30px;
-                }
-                QListWidget:item:selected:active {
-                background:rgba(0, 0, 0, 20%);
-                color: green;
-                }
-                
-                
-                """)
                 if gui.list_with_thumbnail:
                     gui.list2.setStyleSheet("""QListWidget{
                     border-radius:3px;
