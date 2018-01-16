@@ -224,10 +224,14 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
                 ui.current_background = fanart
     elif theme == 'system':
         if os.path.isfile(fanart):
-            picn = ui.image_fit_option(
-                        fanart, fanart, fit_size=6, widget=ui.label_new
+            if '.' in fanart:
+                fanart_name, ext = fanart.rsplit('.', 1)
+                fanart_new = fanart_name + '-new.' + ext
+                picn = ui.image_fit_option(
+                        fanart, fanart_new, fit_size=6, widget=ui.label_new
                         )
-            ui.label_new.setPixmap(QtGui.QPixmap(fanart, "1"))
+                if os.path.exists(fanart_new):
+                    ui.label_new.setPixmap(QtGui.QPixmap(fanart_new, "1"))
 
 
 class DoGetSignalNew(QtCore.QObject):
@@ -572,7 +576,7 @@ class Ui_MainWindow(object):
                                  logger, screen_width, screen_height)
         self.label_new.setText(_fromUtf8(""))
         self.label_new.setObjectName(_fromUtf8("label_new"))
-        
+        self.label_new.setMouseTracking(True)
         #self.text = QtWidgets.QTextBrowser(MainWindow)
         self.text = QtWidgets.QTextEdit(MainWindow)
         self.text.setAcceptRichText(False)
@@ -8204,7 +8208,7 @@ watch/unwatch status")
                             picn = os.path.join(home, 'default.jpg')
                             img = Image.open(str(picn))
                     except Exception as e:
-                        print(e, 'Error in opening image, videoImage, ---13321')
+                        logger.error('{0}::Error in opening image, videoImage ---13321'.format(e))
                         picn = os.path.join(home, 'default.jpg')
                         img = Image.open(str(picn))
                     wpercent = (basewidth / float(img.size[0]))
@@ -8225,7 +8229,7 @@ watch/unwatch status")
                             try:
                                 img.save(str(fanart), 'JPEG', quality=100)
                             except Exception as err:
-                                print(err)
+                                logger.error(err)
                                 self.handle_png_to_jpg(fanart, img)
                         elif widget == self.float_window:
                             tmp_img = (os.path.join(TMPDIR, 'tmp.jpg'))
