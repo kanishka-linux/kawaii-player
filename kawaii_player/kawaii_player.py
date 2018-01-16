@@ -222,6 +222,12 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
                                 QtGui.QBrush(QtGui.QPixmap(fanart)))
                 MainWindow.setPalette(palette)
                 ui.current_background = fanart
+    elif theme == 'system':
+        if os.path.isfile(fanart):
+            picn = ui.image_fit_option(
+                        fanart, fanart, fit_size=6, widget=ui.label_new
+                        )
+            ui.label_new.setPixmap(QtGui.QPixmap(fanart, "1"))
 
 
 class DoGetSignalNew(QtCore.QObject):
@@ -537,10 +543,14 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
         self.gridLayout.addLayout(self.horizontalLayout_7, 1, 0, 1, 1)
         
+        self.vertical_layout_new = QtWidgets.QVBoxLayout()
+        self.vertical_layout_new.setObjectName(_fromUtf8('vertical_layout_new'))
+        self.gridLayout.addLayout(self.vertical_layout_new, 0, 1, 1, 1)
+        
         self.VerticalLayoutLabel = QtWidgets.QHBoxLayout()
         self.VerticalLayoutLabel.setObjectName(_fromUtf8("VerticalLayoutLabel"))
-        self.gridLayout.addLayout(self.VerticalLayoutLabel, 0, 1, 1, 1)
-        
+        #self.gridLayout.addLayout(self.VerticalLayoutLabel, 0, 1, 1, 1)
+        self.vertical_layout_new.insertLayout(1, self.VerticalLayoutLabel)
         
         self.verticalLayout_40 = QtWidgets.QVBoxLayout()
         self.verticalLayout_40.setObjectName(_fromUtf8("verticalLayout_40"))
@@ -554,12 +564,15 @@ class Ui_MainWindow(object):
         self.label = ThumbnailWidget(MainWindow)
         self.label.setup_globals(MainWindow, self, home, TMPDIR,
                                  logger, screen_width, screen_height)
-        #self.label.setSizePolicy(sizePolicy)
-        
-        #self.label.setMinimumSize(QtCore.QSize(300, 250))
         self.label.setText(_fromUtf8(""))
-        #self.label.setScaledContents(True)
         self.label.setObjectName(_fromUtf8("label"))
+        
+        self.label_new = ThumbnailWidget(MainWindow)
+        self.label_new.setup_globals(MainWindow, self, home, TMPDIR,
+                                 logger, screen_width, screen_height)
+        self.label_new.setText(_fromUtf8(""))
+        self.label_new.setObjectName(_fromUtf8("label_new"))
+        
         #self.text = QtWidgets.QTextBrowser(MainWindow)
         self.text = QtWidgets.QTextEdit(MainWindow)
         self.text.setAcceptRichText(False)
@@ -578,16 +591,22 @@ class Ui_MainWindow(object):
         
         self.text.lineWrapMode()
         #self.VerticalLayoutLabel.setStretch(2, 1)
+        self.vertical_layout_new.insertWidget(0, self.label_new)
         self.VerticalLayoutLabel.insertWidget(0, self.label, 0)
         self.VerticalLayoutLabel.insertWidget(1, self.text, 0)
         #self.VerticalLayoutLabel.setStretch(1, 2)
         ##self.VerticalLayoutLabel.addStretch(1)#after label + text
         #self.text.hide()
         self.label.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+        self.label_new.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         self.text.setAlignment(QtCore.Qt.AlignCenter)
         self.VerticalLayoutLabel.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignBottom)
         self.VerticalLayoutLabel.setSpacing(5)
         self.VerticalLayoutLabel.setContentsMargins(0, 0, 0, 0)
+        
+        self.vertical_layout_new.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignBottom)
+        self.vertical_layout_new.setSpacing(5)
+        self.vertical_layout_new.setContentsMargins(0, 0, 0, 0)
         
         self.list1 = TitleListWidget(MainWindow, self, home, TMPDIR, logger)
         self.list1.setObjectName(_fromUtf8("list1"))
@@ -831,6 +850,9 @@ watch/unwatch status")
         self.label.setMinimumHeight(self.height_allowed)
         self.label.setMaximumWidth(self.width_allowed)
         self.label.setMinimumWidth(self.width_allowed)
+        self.label_new.setMaximumWidth(screen_width-2*self.width_allowed-35)
+        self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
+        #self.label_new.setScaledContents(True)
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
         self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
@@ -2309,6 +2331,7 @@ watch/unwatch status")
                             self.text.show()
                         if self.label.isHidden():
                             self.label.show()
+                            self.label_new.show()
                         if self.list2.isHidden():
                             self.list2.show()
                     else:
@@ -2318,6 +2341,7 @@ watch/unwatch status")
                         self.superGridLayout.setContentsMargins(0, 0, 0, 0)
                         self.text.hide()
                         self.label.hide()
+                        self.label_new.hide()
                         self.frame1.hide()
                         self.list2.hide()
                         
@@ -3241,6 +3265,7 @@ watch/unwatch status")
                                 #self.frame.show()
                             if show_hide_cover == 1:
                                 self.label.show()
+                                self.label_new.show()
                                 self.text.show()
                             if show_hide_titlelist == 1:
                                 self.list2.show()
@@ -3455,24 +3480,28 @@ watch/unwatch status")
             if self.text.isHidden() and self.label.isHidden():
                 self.text.show()
                 self.label.show()
+                self.label_new.show()
                 show_hide_cover = 1
                 self.tab_5.hide()
                 show_hide_player = 0
             elif self.text.isHidden() and not self.label.isHidden():
                 self.text.show()
                 self.label.show()
+                self.label_new.show()
                 show_hide_cover = 1
                 self.tab_5.hide()
                 show_hide_player = 0
             elif not self.text.isHidden() and self.label.isHidden():
                 self.text.show()
                 self.label.show()
+                self.label_new.show()
                 show_hide_cover = 1
                 self.tab_5.hide()
                 show_hide_player = 0
             else:
                 self.text.hide()
                 self.label.hide()
+                self.label_new.hide()
                 show_hide_cover = 0
                 self.tab_5.show()
                 show_hide_player = 1
@@ -3543,6 +3572,7 @@ watch/unwatch status")
                 show_hide_player = 1
                 if not self.label.isHidden():
                     self.label.hide()
+                    self.label_new.hide()
                     self.text.hide()
                     show_hide_cover = 0
             else:
@@ -3902,6 +3932,7 @@ watch/unwatch status")
             self.tab_5.setFocus()
             self.list1.hide()
             self.label.hide()
+            self.label_new.hide()
             self.text.hide()
             self.frame.hide()
             if not self.tab_6.isHidden():
@@ -3913,6 +3944,7 @@ watch/unwatch status")
             self.list2.show()
             self.text.show()
             self.label.show()
+            self.label_new.show()
             self.list1.setFocus()
             
     def PlayEpn(self):
@@ -5113,6 +5145,7 @@ watch/unwatch status")
                 self.list2.hide()
                 self.tab_5.hide()
                 self.label.hide()
+                self.label_new.hide()
                 self.text.hide()
                 self.frame.hide()
                 self.dockWidget_3.hide()
@@ -5125,6 +5158,7 @@ watch/unwatch status")
                 self.list1.show()
                 self.list2.show()
                 self.label.show()
+                self.label_new.show()
                 self.text.show()
                 self.frame.show()
                 self.dockWidget_3.show()
@@ -5140,6 +5174,7 @@ watch/unwatch status")
                 self.list2.hide()
                 self.tab_5.hide()
                 self.label.hide()
+                self.label_new.hide()
                 self.text.hide()
                 self.frame.hide()
                 self.dockWidget_3.hide()
@@ -5152,6 +5187,7 @@ watch/unwatch status")
                 self.list1.show()
                 self.list2.show()
                 self.label.show()
+                self.label_new.show()
                 self.text.show()
                 self.frame.show()
                 self.dockWidget_3.show()
@@ -5191,6 +5227,7 @@ watch/unwatch status")
         self.list1.show()
         self.list2.show()
         self.label.show()
+        self.label_new.show()
         self.frame1.show()
         self.text.show()
         if context == "ExtendedQLabel":
@@ -5201,6 +5238,7 @@ watch/unwatch status")
         if self.mpvplayer_val.processId() > 0:
             self.text.hide()
             self.label.hide()
+            self.label_new.hide()
             self.list1.hide()
             self.frame.hide()
             self.tab_5.show()
@@ -5229,6 +5267,7 @@ watch/unwatch status")
         self.list1.show()
         self.list2.show()
         self.label.show()
+        self.label_new.show()
         self.text.show()
         self.frame1.show()
         
@@ -5245,12 +5284,14 @@ watch/unwatch status")
                 self.list1.hide()
                 self.list2.hide()
                 self.label.hide()
+                self.label_new.hide()
                 self.text.hide()
             else:
                 self.tab_2.hide()
                 if site == 'Music':
                     self.list2.show()
                     self.label.show()
+                    self.label_new.show()
                     self.text.show()
         else:
             self.showHideBrowser()
@@ -5288,6 +5329,7 @@ watch/unwatch status")
             self.list1.show()
             self.list2.show()
             self.label.show()
+            self.label_new.show()
             self.text.show()
             self.frame1.show()
         
@@ -5325,6 +5367,7 @@ watch/unwatch status")
             self.list2.hide()
             self.tab_5.hide()
             self.label.hide()
+            self.label_new.hide()
             self.text.hide()
             self.frame.hide()
             self.frame1.hide()
@@ -5340,6 +5383,7 @@ watch/unwatch status")
             self.list1.show()
             self.list2.show()
             self.label.show()
+            self.label_new.show()
             self.list1.setFocus()
             self.text.show()
             self.frame1.show()
@@ -5367,6 +5411,7 @@ watch/unwatch status")
             self.list2.hide()
             self.tab_5.hide()
             self.label.hide()
+            self.label_new.hide()
             self.text.hide()
             self.frame.hide()
             #self.frame1.hide()
@@ -5413,6 +5458,7 @@ watch/unwatch status")
             self.list1.show()
             self.list2.show()
             self.label.show()
+            self.label_new.show()
             self.list1.setFocus()
             self.text.show()
             self.frame1.show()
@@ -6918,6 +6964,7 @@ watch/unwatch status")
         self.list2.hide()
         self.dockWidget_3.hide()
         self.label.hide()
+        self.label_new.hide()
         self.text.hide()
         #print(self.VerticalLayoutLabel.itemAt(2), '--itemAt--')
         #if self.VerticalLayoutLabel.itemAt(2):
@@ -8131,7 +8178,7 @@ watch/unwatch status")
                             self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 6 or fit_size == 4:
                     if widget and fit_size == 6:
-                        if widget == self.label:
+                        if widget in [self.label, self.label_new]:
                             basewidth = widget.maximumWidth()
                             baseheight = widget.maximumHeight()
                         else:
@@ -8174,7 +8221,7 @@ watch/unwatch status")
                     bg.paste(img, offset)
                     
                     if widget and fit_size == 6:
-                        if widget == self.label:
+                        if widget in [self.label, self.label_new]:
                             try:
                                 img.save(str(fanart), 'JPEG', quality=100)
                             except Exception as err:
@@ -8500,12 +8547,12 @@ watch/unwatch status")
             command = self.mplayermpv_command(idw, finalUrl, Player)
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
+        seek_time = 0
+        rem_quit = 0
         if self.final_playing_url in self.history_dict_obj:
             seek_time, _, sub_id, audio_id, rem_quit = self.history_dict_obj.get(self.final_playing_url)
             self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), sub_id, audio_id, rem_quit]})
         elif site != 'Music':
-            seek_time = 0
-            rem_quit = 0
             self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), 'auto', 'auto', rem_quit]})
         if setinfo and (site!= 'Music' or rem_quit):
             if self.mplayer_SubTimer.isActive():
@@ -8577,7 +8624,7 @@ watch/unwatch status")
                 and (os.path.exists(file_path_name_mp4) 
                 or os.path.exists(file_path_name_mkv)) and not video_local_stream):
             if self.list3.currentItem().text().lower() == 'playlist':
-                logger.info('now--playing: {0}-{1}'.format(file_path_name_mp4, file_path_name_mkv))
+                logger.info('now--playing: {0}-{1}--8626'.format(file_path_name_mp4, file_path_name_mkv))
                 if play_now:
                     self.epn_name_in_list = list_widget.item(row).text().replace('#', '', 1)
                     if self.epn_name_in_list.startswith(self.check_symbol):
@@ -9387,6 +9434,7 @@ watch/unwatch status")
             self.frame.hide()
             self.text.hide()
             self.label.hide()
+            self.label_new.hide()
             
     def local_torrent_open(self, tmp, start_now=None):
         global local_torrent_file_path, site
@@ -9620,6 +9668,7 @@ watch/unwatch status")
         self.list1.hide()
         self.text.hide()
         self.label.hide()
+        self.label_new.hide()
         self.frame.hide()
         idw = str(int(self.tab_5.winId()))
         self.tab_5.show()
@@ -9665,6 +9714,7 @@ watch/unwatch status")
                     sumr = "Summary Not Available"
                 self.videoImage(m_path, t_path, f_path, sumr)
                 self.label.show()
+                self.label_new.show()
                 self.text.show()
     
     def start_offline_mode(self, row, extra=None):
@@ -11098,6 +11148,7 @@ watch/unwatch status")
             self.frame.hide()
             self.text.hide()
             self.label.hide()
+            self.label_new.hide()
             self.tab_5.show()
         
         epnShow = epnShow.replace('"', '')
@@ -11839,6 +11890,7 @@ watch/unwatch status")
                 self.list2.hide()
                 self.tab_5.hide()
                 self.label.hide()
+                self.label_new.hide()
                 self.text.hide()
                 self.frame.hide()
                 self.frame1.hide()
@@ -11917,6 +11969,7 @@ watch/unwatch status")
         MainWindow.show()
         self.text.show()
         self.label.show()
+        self.label_new.show()
         show_hide_cover = 1
         self.tab_5.hide()
         show_hide_player = 0
