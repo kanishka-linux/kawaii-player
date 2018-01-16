@@ -105,10 +105,6 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
             gui.text.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%)""")
-            """
-            gui.label.setStyleSheet("font: bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%)")
-            """
             gui.text_save_btn.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px""")
             gui.goto_epn.setStyleSheet("""font: bold 12px;color:white;
@@ -627,6 +623,8 @@ class WidgetStyleSheet:
                     }
                     """)
             else:
+                gui.VerticalLayoutLabel_Dock3.setSpacing(0)
+                gui.VerticalLayoutLabel_Dock3.setContentsMargins(0, 0, 0, 0)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
                     widget.setAlternatingRowColors(True)
                     widget.setStyleSheet("""QListWidget{
