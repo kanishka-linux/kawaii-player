@@ -20,7 +20,7 @@ class WidgetStyleSheet:
     def change_list2_style(self, mode=None):
         if isinstance(mode, bool):
             gui.list_with_thumbnail = mode
-        if gui.player_theme == 'default':
+        if gui.player_theme in ['default', 'transparent', 'mix']:
             if gui.list_with_thumbnail:
                 gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
                 color:white;background:rgba(0, 0, 0, 30%);
@@ -71,7 +71,7 @@ class WidgetStyleSheet:
                 """)
             
     def apply_stylesheet(self, widget=None, theme=None):
-        if not widget and (theme is None or theme == 'default'):
+        if not widget and (theme is None or theme in ['default', 'transparent', 'mix']):
             gui.dockWidget_3.setStyleSheet("""
                 font:bold 12px;color:white;background:rgba(0, 0, 0, 30%);
                 border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
@@ -572,7 +572,7 @@ class WidgetStyleSheet:
             color: white;
             background:rgba(157, 131, 131, 80%)
             }""")
-        elif widget == gui.list2 and (theme is None or theme == 'default'):
+        elif widget == gui.list2 and (theme is None or theme in ['default', 'transparent', 'mix']):
             if gui.list_with_thumbnail:
                 gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
                 color:white;background:rgba(0, 0, 0, 30%);

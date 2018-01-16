@@ -222,8 +222,9 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
                                 QtGui.QBrush(QtGui.QPixmap(fanart)))
                 MainWindow.setPalette(palette)
                 ui.current_background = fanart
-    elif theme == 'system':
+    elif theme in ['system', 'transparent', 'mix']:
         if os.path.isfile(fanart):
+            ui.current_background = fanart
             if '.' in fanart:
                 fanart_name, ext = fanart.rsplit('.', 1)
                 if not fanart_name.endswith('default'):
@@ -3633,6 +3634,19 @@ watch/unwatch status")
             if (os.path.exists(self.current_background) 
                         and self.current_background != self.default_background):
                     shutil.copy(self.current_background, self.default_background)
+                    arr_chk = [
+                        os.path.join(self.home_folder, 'default_poster.jpg'),
+                        os.path.join(self.home_folder, 'default_fit.jpg')
+                        ]
+                    for i in arr_chk:
+                        if os.path.isfile(i):
+                            os.remove(i)
+                    QtCore.QTimer.singleShot(
+                        100, partial(
+                            set_mainwindow_palette, self.default_background,
+                            first_time=True, theme='default'
+                            )
+                        )
         elif val == "Show/Hide Web Browser":
             if self.tab_2.isHidden():
                 if self.mpvplayer_val.processId() > 0:
@@ -13070,8 +13084,8 @@ def main():
                 try:
                     k = j.lower()
                     if k:
-                        if k == 'system':
-                            ui.player_theme = 'system'
+                        if k in ['system', 'transparent', 'mix']:
+                            ui.player_theme = k
                         else:
                             ui.player_theme = 'default'
                 except Exception as e:
@@ -13129,8 +13143,20 @@ def main():
         f.close()
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
-        
-    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, picn, first_time=True, theme=ui.player_theme))
+    if ui.player_theme == 'mix':
+        QtCore.QTimer.singleShot(
+            100, partial(
+                set_mainwindow_palette, ui.default_background,
+                first_time=True, theme='default'
+                )
+            )
+    else:
+        QtCore.QTimer.singleShot(
+            100, partial(
+                set_mainwindow_palette, picn, first_time=True,
+                theme=ui.player_theme
+                )
+            )
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
