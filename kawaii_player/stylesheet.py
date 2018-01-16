@@ -20,8 +20,6 @@ class WidgetStyleSheet:
     def change_list2_style(self, mode=None):
         if isinstance(mode, bool):
             gui.list_with_thumbnail = mode
-        print(gui.player_theme, '=Theme')
-        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         if gui.player_theme == 'default':
             if gui.list_with_thumbnail:
                 gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
@@ -638,7 +636,7 @@ class WidgetStyleSheet:
                     height: 30px;
                     }
                     QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 20%);
+                    background:rgba(0, 0, 0, 10%);
                     color: green;
                     }
                     """)
