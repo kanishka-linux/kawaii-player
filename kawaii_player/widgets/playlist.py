@@ -1216,16 +1216,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             elif action == qitem:
                 self.queue_item()
             elif action == view_list:
-                ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-                QListWidget:item {height: 30px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: bold 12px;color:black;
-                background-image:url('1.png');}""")
-                ui.list_with_thumbnail = False
+                ui.widget_style.change_list2_style(mode=False)
                 if not ui.float_window.isHidden():
                     if ui.new_tray_widget.cover_mode.text() == ui.player_buttons['down']: 
                         self.setMaximumHeight(30)
@@ -1233,16 +1224,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         self.setMaximumHeight(16777215)
                 ui.update_list2()
             elif action == view_list_thumbnail:
-                ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-                QListWidget:item {height: 128px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: bold 12px;color:black;
-                background-image:url('1.png');}""")
-                ui.list_with_thumbnail = True
+                ui.widget_style.change_list2_style(mode=True)
                 if not ui.float_window.isHidden():
                     self.setMaximumHeight(16777215)
                 ui.update_list2()
@@ -1489,16 +1471,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     else:
                         send_notification('wrong values')
             elif action == view_list:
-                ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius: 3px;}
-                QListWidget:item {height: 30px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: bold 12px;color:black;
-                background-image:url('1.png');}""")
-                ui.list_with_thumbnail = False
+                ui.widget_style.change_list2_style(mode=False)
                 if not ui.float_window.isHidden():
                     if ui.new_tray_widget.cover_mode.text() == ui.player_buttons['down']: 
                         self.setMaximumHeight(30)
@@ -1506,16 +1479,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         self.setMaximumHeight(16777215)
                 ui.update_list2()
             elif action == view_list_thumbnail:
-                ui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-                border-radius: 3px;}
-                QListWidget:item {height: 128px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: bold 12px;color:black;
-                background-image:url('1.png');}""")
-                ui.list_with_thumbnail = True
+                ui.widget_style.change_list2_style(mode=True)
                 if not ui.float_window.isHidden():
                     self.setMaximumHeight(16777215)
                 ui.update_list2()
