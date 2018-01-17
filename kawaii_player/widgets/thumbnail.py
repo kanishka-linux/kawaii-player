@@ -960,10 +960,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
             else:
                 if num < ui.list2.count():
                     ui.list2.setCurrentRow(num)
-                    if var_mode == '6':
+                    if var_mode == 6:
                         p1 = "ui.label.winId()"
                     else:
                         p1 = "ui.label_new.winId()"
+                    logger.error(p1)
                     mn = int(eval(p1))
                     idw = str(mn)
                     ui.set_parameters_value(idw_val=idw)
@@ -1083,6 +1084,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     p1 = "ui.label_new.winId()"
                 if ui.player_theme == 'default':
                     ui.label_new.setMinimumHeight(2.5*ui.height_allowed)
+                    ui.video_mode_index = 7
+                    p1 = "ui.label_new.winId()"
                 mn = int(eval(p1))
                 tmp_idw = str(mn)
                 label_watch = True
@@ -1109,7 +1112,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if label_name not in ['label', 'label_new']:
                     self.remember_thumbnail_position(num)
                 self.change_video_mode(ui.video_mode_index, num)
-    
+                
     def remember_thumbnail_position(self, num):
         p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(num)
         index = eval(p1)
