@@ -581,7 +581,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     if ui.mpvplayer_val.processId() > 0:
                         self.arrow_timer.start(2000)
             except Exception as e:
-                print(e)
+                logger.error(e)
                 self.arrow_timer = QtCore.QTimer()
                 self.arrow_timer.timeout.connect(self.arrow_hide)
                 self.arrow_timer.setSingleShot(True)
@@ -1081,6 +1081,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 else:
                     ui.video_mode_index = 7
                     p1 = "ui.label_new.winId()"
+                if ui.player_theme == 'default':
+                    ui.label_new.setMinimumHeight(2.5*ui.height_allowed)
                 mn = int(eval(p1))
                 tmp_idw = str(mn)
                 label_watch = True
