@@ -665,10 +665,10 @@ class Ui_MainWindow(object):
         self.list6.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(2, self.list6, 0)
         self.list6.hide()
-        self.list6.addItem("Queue Empty:\
-Select Item and Press 'ctrl+Q' to EnQueue it.\
+        self.list6.addItem("Queue Empty: \
+Select Item and Press 'ctrl+Q' to EnQueue it. \
 If Queue List is Empty then Items Will be\
-Played Sequentially as per Playlist.\
+Played Sequentially as per Playlist. \
 (Queue Feature Works Only With\n Local/Offline Content)\
 Select Item and Press 'W' to toggle\
 watch/unwatch status")
@@ -861,7 +861,8 @@ watch/unwatch status")
         self.label.setMaximumWidth(self.width_allowed)
         self.label.setMinimumWidth(self.width_allowed)
         self.label_new.setMaximumWidth(screen_width-2*self.width_allowed-35)
-        self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
+        #self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
+        ui.label_new.setMaximumHeight(2.5*ui.height_allowed)
         #self.label_new.setScaledContents(True)
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
