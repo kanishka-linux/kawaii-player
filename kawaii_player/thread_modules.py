@@ -500,6 +500,9 @@ class FindPosterThread(QtCore.QThread):
                 if os.path.isfile(fanart_text) and os.stat(fanart_text).st_size:
                     lines = open_files(fanart_text, True)
                     logger.info(lines)
+                    if ui.player_theme != 'default':
+                        lines = [i for i in lines if 'vignette' not in i]
+                        logger.debug(lines)
                     url1 = re.sub('\n|#', '', lines[0])
                     url = "http://thetvdb.com/" + url1
                     ccurl(url+'#'+'-o'+'#'+fanart)
