@@ -3329,6 +3329,10 @@ watch/unwatch status")
                         self.labelFrame2.show()
                         self.thumbnail_label_update_epn()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
+                    elif str(idw) in [str(int(self.label.winId())), str(int(self.label_new.winId()))]:
+                        if self.player_theme == 'default':
+                            self.label_new.setMinimumHeight(0)
+                        
             if MainWindow.isFullScreen() and self.tab_6.isHidden() and not self.force_fs:
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
