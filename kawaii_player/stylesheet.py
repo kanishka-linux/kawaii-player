@@ -74,7 +74,7 @@ class WidgetStyleSheet:
         if not widget and (theme is None or theme in ['default', 'transparent', 'mix']):
             gui.dockWidget_3.setStyleSheet("""
                 font:bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
+                border:rgba(0, 0, 0, 30%);""")
             gui.tab_6.setStyleSheet("""font:bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);""")
             try:
@@ -346,7 +346,7 @@ class WidgetStyleSheet:
             border:rgba(0, 0, 0, 30%);border-radius: 3px;
             }
             QListWidget:item {
-            height: 20px;
+            height: 30px;
             }
             QListWidget:item:selected:active {
             background:rgba(0, 0, 0, 20%);
@@ -624,7 +624,7 @@ class WidgetStyleSheet:
                     """)
             else:
                 gui.VerticalLayoutLabel_Dock3.setSpacing(0)
-                gui.VerticalLayoutLabel_Dock3.setContentsMargins(0, 0, 0, 0)
+                gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
                     widget.setAlternatingRowColors(True)
                     widget.setStyleSheet("""QListWidget{
