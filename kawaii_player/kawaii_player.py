@@ -1481,7 +1481,7 @@ watch/unwatch status")
         self.btn10.setMaximumSize(QtCore.QSize(350, 16777215))
         self.comboBox20.setMaximumSize(QtCore.QSize(100, 16777215))
         
-        self.chk = QtWidgets.QComboBox(self.dockWidget_3) 
+        self.chk = QtWidgets.QPushButton(self.dockWidget_3) 
         self.chk.setObjectName(_fromUtf8("chk"))
         self.comboView = QtWidgets.QComboBox(self.dockWidget_3) 
         self.comboView.setObjectName(_fromUtf8("comboView"))
@@ -1656,6 +1656,7 @@ watch/unwatch status")
         self.newlistfound_thread_box = []
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
+        self.playback_engine = ["mpv", 'mplayer']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -1773,11 +1774,7 @@ watch/unwatch status")
         self.btn2.addItem(_fromUtf8(""))
         self.btn2.addItem(_fromUtf8(""))
         
-        self.chk.addItem(_fromUtf8(""))
-        self.chk.addItem(_fromUtf8(""))
-        self.chk.addItem(_fromUtf8(""))
-        self.chk.addItem(_fromUtf8(""))
-        self.chk.addItem(_fromUtf8(""))
+        
         self.comboBox20.addItem(_fromUtf8(""))
         self.comboBox20.addItem(_fromUtf8(""))
         self.comboBox20.addItem(_fromUtf8(""))
@@ -1904,7 +1901,7 @@ watch/unwatch status")
         self.goto_epn_filter_txt.textChanged['QString'].connect(self.filter_epn_list_txt)
         self.btn3.clicked.connect(self.addToLibrary)
         self.btnHistory.clicked.connect(self.setPreOpt)
-        self.chk.currentIndexChanged['int'].connect(self.preview)
+        self.chk.clicked.connect(self.preview)
         
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -1956,11 +1953,6 @@ watch/unwatch status")
         self.btn2.setItemText(7, _translate("MainWindow", "Google", None))
         self.btn2.setItemText(8, _translate("MainWindow", "Youtube", None))
         
-        self.chk.setItemText(0, _translate("MainWindow", "mpv", None))
-        self.chk.setItemText(1, _translate("MainWindow", "mplayer", None))
-        self.chk.setItemText(2, _translate("MainWindow", "vlc", None))
-        self.chk.setItemText(3, _translate("MainWindow", "kodi", None))
-        self.chk.setItemText(4, _translate("MainWindow", "smplayer", None))
         self.comboBox20.setItemText(0, _translate("MainWindow", "Options", None))
         self.comboBox20.setItemText(1, _translate("MainWindow", "Clear", None))
         self.comboBox20.setItemText(2, _translate("MainWindow", "MostPopular", None))
@@ -6518,9 +6510,14 @@ watch/unwatch status")
     
     def preview(self):
         global embed, playMpv, Player
-        Player = str(self.chk.currentText())
-        self.player_val = Player
-        if self.mpvplayer_val.processId()>0 and self.tab_2.isHidden():
+        txt = str(self.chk.text())
+        index = self.playback_engine.index(txt)
+        index = (index + 1) % (len(self.playback_engine))
+        txt = self.playback_engine[index]
+        self.chk.setText(txt)
+        Player = txt
+        self.player_val = txt
+        if self.mpvplayer_val.processId()>0 and self.tab_2.isHidden() and self.player_val in ['mpv', 'mplayer']:
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
             self.epnfound()
@@ -12628,12 +12625,14 @@ def main():
                     except:
                         ui.music_mode_dim = [0, 0, 900, 350]
                 elif "DefaultPlayer" in i:
-                    
-                    Player = re.sub('\n', '', j)
-                    cnt = ui.chk.findText(Player)
+                    player_txt_val = j.strip().lower()
+                    if player_txt_val in ui.playback_engine:
+                        player_txt = player_txt_val
+                    else:
+                        player_txt = 'mpv'
+                    Player = player_txt
                     ui.player_val = Player
-                    if cnt >=0 and cnt < ui.chk.count():
-                        ui.chk.setCurrentIndex(cnt)
+                    ui.chk.setText(ui.player_val)
                 elif "WindowFrame" in i:
                     try:
                         j = j.replace('\n', '')
@@ -13092,6 +13091,13 @@ def main():
                 except Exception as e:
                     print(e)
                     ui.player_theme = 'default'
+            elif i.startswith('EXTRA_PLAYERS='):
+                try:
+                    extra_players = j.split(',')
+                    for extra_player in extra_players:
+                        ui.playback_engine.append(extra_player)
+                except Exception as e:
+                    logger.error(e)
             elif i.startswith('YTDL_PATH='):
                 try:
                     k = j.lower()
