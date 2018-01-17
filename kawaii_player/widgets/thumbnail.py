@@ -964,7 +964,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         p1 = "ui.label.winId()"
                     else:
                         p1 = "ui.label_new.winId()"
-                    logger.error(p1)
                     mn = int(eval(p1))
                     idw = str(mn)
                     ui.set_parameters_value(idw_val=idw)
