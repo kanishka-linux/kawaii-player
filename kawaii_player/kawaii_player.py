@@ -7892,14 +7892,14 @@ watch/unwatch status")
                             m = self.media_data.get_video_db(video_db, "Bookmark", new_art_n)
                     else:
                         m = self.media_data.get_video_db(video_db, "Bookmark", new_art_n)
-                    
-                for i in m:
-                    artist.append(i[0]+'	'+i[1])
-                    
-                self.epn_arr_list[:] = []
+                
+                if video_opt.lower() == 'recent':
+                    m = sorted(m, key=lambda x: os.path.getctime(x[1]), reverse=True)
+                
+                self.epn_arr_list.clear()
                 self.list2.clear()
-                for i in artist:
-                    self.epn_arr_list.append((i))
+                self.epn_arr_list = [i[0]+'\t'+i[1] for i in m]
+                
                 #self.epn_arr_list = naturallysorted(self.epn_arr_list)
                 art_n = str(self.list1.currentItem().text())
                 dir_path = os.path.join(home, 'Local', art_n)
