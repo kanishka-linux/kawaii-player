@@ -2230,6 +2230,7 @@ watch/unwatch status")
             site = siteval
         if curRow:
             curR = curRow
+            logger.debug('set current row={0}'.format(curR))
         if quit_r:
             quitReally = quit_r
         if catg:
@@ -2299,7 +2300,7 @@ watch/unwatch status")
         arg_dict = {}
         for key, val in kargs.items():
             arg_dict.update({'{0}'.format(val):eval(str(val))})
-        logger.info(arg_dict)
+        #logger.info(arg_dict)
         return arg_dict
         
     def remote_fullscreen(self):
@@ -7895,7 +7896,8 @@ watch/unwatch status")
                         m = self.media_data.get_video_db(video_db, "Bookmark", new_art_n)
                 
                 if video_opt.lower() == 'recent':
-                    m = sorted(m, key=lambda x: os.path.getctime(x[1]), reverse=True)
+                    check_path = (lambda x: os.path.getctime(x) if os.path.exists(x) else 0)
+                    m = sorted(m, key=lambda x: check_path(x[1]), reverse=True)
                 
                 self.epn_arr_list.clear()
                 self.list2.clear()
@@ -8064,7 +8066,7 @@ watch/unwatch status")
         fit_size = 8. Fit to Screen Height (Left Side) with black border
         """
         #print(color,'--color--')
-        logger.info('{0}:{1}:{2}:{3}:{4}:{5}'.format(picn,fanart,fit_size,widget,widget_size,color))
+        #logger.info('{0}:{1}:{2}:{3}:{4}:{5}'.format(picn,fanart,fit_size,widget,widget_size,color))
         global screen_height, screen_width
         if not color:
             color = 'RGB'
@@ -10339,6 +10341,7 @@ watch/unwatch status")
                         else:
                             curR = curR + 1
                         self.list2.setCurrentRow(curR)
+                        logger.debug('\ncurR={0}\n'.format(curR))
                     self.mplayerLength = 0
                     self.total_file_size = 0
                     if mpv_start:
