@@ -285,7 +285,6 @@ class MainWindowWidget(QtWidgets.QWidget):
                     ui.list1.setFocus()
                 elif not ui.list2.isHidden():
                     ui.list2.setFocus()
-
         if self.isFullScreen() and ui.mpvplayer_val.processId() > 0:
             logger.info('FullScreen Window but not video')
             if (not ui.tab_6.isHidden() or not ui.list2.isHidden()
@@ -583,6 +582,7 @@ class Ui_MainWindow(object):
         self.label_new.setText(_fromUtf8(""))
         self.label_new.setObjectName(_fromUtf8("label_new"))
         self.label_new.setMouseTracking(True)
+        #self.label_new.setFrameStyle(QtWidgets.QFrame.StyledPanel)
         #self.text = QtWidgets.QTextBrowser(MainWindow)
         self.text = QtWidgets.QTextEdit(MainWindow)
         self.text.setAcceptRichText(False)
@@ -1235,9 +1235,9 @@ watch/unwatch status")
         self.dockWidget_3 = QtWidgets.QFrame(MainWindow)
         self.dock_vert = QtWidgets.QVBoxLayout(self.dockWidget_3)
         self.dock_vert.setContentsMargins(0, 0, 0, 0)
-        self.dockWidget_3.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.dockWidget_3.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.dockWidget_3.setFrameShadow(QtWidgets.QFrame.Raised)
-        
+        #self.dockWidget_3.setStyleSheet("""QFrame{background-color:gray;border: 1px solid rgba(0, 0, 0, 40%)};""")
         self.dockWidget_3.setMouseTracking(True)
         self.dockWidget_3.setObjectName(_fromUtf8("dockWidget_3"))
         self.dockWidget_3.setMaximumWidth(self.width_allowed-100)
@@ -1630,6 +1630,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.history_dict_obj = {}
+        self.status_dict = {'label_dock':0}
         self.player_theme = 'default'
         self.mpv_length_find_attempt = 0
         self.force_fs = False
