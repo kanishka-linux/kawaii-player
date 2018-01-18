@@ -751,7 +751,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
-                self.frameShowHide()
+                    self.frameShowHide()
             else:
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -773,7 +773,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
-                self.frameShowHide()
+                    self.frameShowHide()
             else:
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -795,7 +795,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
-                self.frameShowHide()
+                    self.frameShowHide()
             else:
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -817,7 +817,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.seek_timer.isActive():
                         self.seek_timer.stop()
                     self.seek_timer.start(500)
-                self.frameShowHide()
+                    self.frameShowHide()
             else:
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
