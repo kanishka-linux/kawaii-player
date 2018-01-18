@@ -117,7 +117,12 @@ class ThumbnailWidget(QtWidgets.QLabel):
             else:
                 ui.frame_timer.stop()
                 ui.frame_timer.start(2000)
-
+                
+    def set_slider_val(self, val):
+        t = ui.slider.value()
+        t = t+val
+        ui.slider.setValue(t)
+        
     def keyPressEvent(self, event):
         if ui.player_val == 'mplayer':
             site = ui.get_parameters_value(s='site')['site']
@@ -186,8 +191,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
             elif event.key() == QtCore.Qt.Key_Right:
                 if ui.player_val == "mplayer":
+                    txt = '\n osd 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
+                    self.set_slider_val(10)
                     site = ui.get_parameters_value(s='site')['site']
-                    if site == "Local" or site == "None" or site == "PlayLists":
+                    if site in ["Video", "Music", "None", "PlayLists"]:
                         ui.mpvplayer_val.write(b'\n seek +10 \n')
                     else:
                         ui.total_seek = ui.total_seek + 10
@@ -197,7 +205,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if self.seek_timer.isActive():
                             self.seek_timer.stop()
                         self.seek_timer.start(500)
-                    self.frameShowHide()
+                        self.frameShowHide()
                 else:
                     txt = '\n set osd-level 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -212,8 +220,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.mpvplayer_val.write(b'\n cycle ass-vsfilter-aspect-compat \n')
             elif event.key() == QtCore.Qt.Key_Left:
                 if ui.player_val == "mplayer":
+                    txt = '\n osd 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
+                    self.set_slider_val(-10)
                     site = ui.get_parameters_value(s='site')['site']
-                    if site == "Local" or site == "None" or site == "PlayLists":
+                    if site in ["Video", "Music", "None", "PlayLists"]:
                         ui.mpvplayer_val.write(b'\n seek -10 \n')
                     else:
                         ui.total_seek = ui.total_seek - 10
@@ -222,7 +233,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if self.seek_timer.isActive():
                             self.seek_timer.stop()
                         self.seek_timer.start(500)
-                    self.frameShowHide()
+                        self.frameShowHide()
                 else:
                     txt = '\n set osd-level 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -305,8 +316,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                                 cache_val=cache_empty, mpv_i=mpv_indicator)
             elif event.key() == QtCore.Qt.Key_Up:
                 if ui.player_val == "mplayer":
+                    txt = '\n osd 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
+                    self.set_slider_val(60)
                     site = ui.get_parameters_value(s='site')['site']
-                    if site == "Local" or site == "None" or site == "PlayLists":
+                    if site in ["Video", "Music", "None", "PlayLists"]:
                         ui.mpvplayer_val.write(b'\n seek +60 \n')
                     else:
                         ui.total_seek = ui.total_seek + 60
@@ -315,13 +329,18 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if self.seek_timer.isActive():
                             self.seek_timer.stop()
                         self.seek_timer.start(500)
+                        self.frameShowHide()
                 else:
+                    txt = '\n set osd-level 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
                     ui.mpvplayer_val.write(b'\n osd-msg-bar seek +60 \n')
-                self.frameShowHide()
             elif event.key() == QtCore.Qt.Key_Down:
                 if ui.player_val == "mplayer":
+                    txt = '\n osd 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
+                    self.set_slider_val(-60)
                     site = ui.get_parameters_value(s='site')['site']
-                    if site == "Local" or site == "None" or site == "PlayLists": 
+                    if site in ["Video", "Music", "None", "PlayLists"]:
                         ui.mpvplayer_val.write(b'\n seek -60 \n')
                     else:
                         ui.total_seek = ui.total_seek - 60
@@ -330,13 +349,18 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if self.seek_timer.isActive():
                             self.seek_timer.stop()
                         self.seek_timer.start(500)
+                        self.frameShowHide()
                 else:
+                    txt = '\n set osd-level 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
                     ui.mpvplayer_val.write(b'\n osd-msg-bar seek -60 \n')
-                self.frameShowHide()
             elif event.key() == QtCore.Qt.Key_PageUp:
                 if ui.player_val == "mplayer":
+                    txt = '\n osd 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
+                    self.set_slider_val(300)
                     site = ui.get_parameters_value(s='site')['site']
-                    if site == "Local" or site == "None" or site == "PlayLists":
+                    if site in ["Video", "Music", "None", "PlayLists"]:
                         ui.mpvplayer_val.write(b'\n seek +300 \n')
                     else:
                         ui.total_seek = ui.total_seek + 300
@@ -345,13 +369,18 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if self.seek_timer.isActive():
                             self.seek_timer.stop()
                         self.seek_timer.start(500)
+                        self.frameShowHide()
                 else:
+                    txt = '\n set osd-level 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
                     ui.mpvplayer_val.write(b'\n osd-msg-bar seek +300 \n')
-                self.frameShowHide()
             elif event.key() == QtCore.Qt.Key_PageDown:
                 if ui.player_val == "mplayer":
+                    txt = '\n osd 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
+                    self.set_slider_val(-300)
                     site = ui.get_parameters_value(s='site')['site']
-                    if site == "Local" or site == "None" or site == "PlayLists":
+                    if site in ["Video", "Music", "None", "PlayLists"]:
                         ui.mpvplayer_val.write(b'\n seek -300 \n')
                     else:
                         ui.total_seek = ui.total_seek - 300
@@ -360,9 +389,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if self.seek_timer.isActive():
                             self.seek_timer.stop()
                         self.seek_timer.start(500)
+                        self.frameShowHide()
                 else:
+                    txt = '\n set osd-level 1 \n'
+                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
                     ui.mpvplayer_val.write(b'\n osd-msg-bar seek -300 \n')
-                self.frameShowHide()
             elif event.key() == QtCore.Qt.Key_O:
                 if ui.player_val == 'mplayer':
                     ui.mpvplayer_val.write(b'\n osd \n')
@@ -1071,6 +1102,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.set_parameters_value(quit_r=quitReally)
             label_name = str(self.objectName())
             label_watch = False
+            logger.debug(label_name)
             if label_name in ['label', 'label_new']:
                 num = ui.list2.currentRow()
                 curR = num
@@ -1092,7 +1124,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 label_num = re.sub('label_epn_', '', label_name)
                 num = int(label_num)
                 curR = num
+                logger.debug('trying to set curR {}'.format(curR))
                 ui.set_parameters_value(curRow=curR)
+                ui.list2.setCurrentRow(curR)
                 p1 = "ui.label_epn_"+str(num)+".winId()"
                 mn = int(eval(p1))
                 tmp_idw = str(mn)
