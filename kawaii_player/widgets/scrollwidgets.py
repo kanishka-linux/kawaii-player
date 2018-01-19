@@ -117,6 +117,8 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             ui.labelFrame2.setText('{0}. {1}'.format(self.cur_row+1, item.text()))
         
     def keyPressEvent(self, event):
+        if self.cur_row >= ui.list1.count():
+            self.cur_row = 0
         if event.key() == QtCore.Qt.Key_Equal:
             iconv_r_poster = ui.icon_poster_indicator[-1]
             if iconv_r_poster > 1:
