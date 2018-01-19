@@ -183,13 +183,20 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     self.sizeAdjust(nextR-1, "forward")
         elif event.key() == QtCore.Qt.Key_Return:
             ui.listfound()
-            #ui.thumbnailHide('ExtendedQLabel')
             if not ui.lock_process:
                 ui.IconViewEpn()
                 ui.scrollArea1.show()
                 ui.scrollArea1.setFocus()
-        #super(ExtendedQLabel, self).keyPressEvent(event)
-        #super(QtGuiQWidgetScroll, self).keyPressEvent(event)
+        elif event.text().isalnum():
+            if not ui.label_search.hasFocus():
+                ui.label_search.setFocus()
+                txt = ui.label_search.text()
+                if txt:
+                    ui.label_search.setText(txt+event.text())
+                else:
+                    ui.label_search.setText(event.text())
+            #super(ExtendedQLabel, self).keyPressEvent(event)
+            #super(QtGuiQWidgetScroll, self).keyPressEvent(event)
         
         
 class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
