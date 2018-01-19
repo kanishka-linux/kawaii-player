@@ -6,6 +6,11 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         super(QtGuiQWidgetScroll, self).__init__(parent)
         global ui
         ui = uiwidget
+        self.position = {}
+        if ui.list1.currentItem():
+            self.cur_row = ui.list1.currentRow()
+        else:
+            self.cur_row = 0
     
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
@@ -13,7 +18,8 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         self.setFocus()
     
     def sizeAdjust(self, nextR, direction):
-        ui.list1.setCurrentRow(nextR)
+        #ui.list1.setCurrentRow(nextR)
+        self.cur_row = nextR
         p1 = "ui.label_"+str(nextR)+".y()"
         try:
             yy=eval(p1)
@@ -106,7 +112,9 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         ui.scrollArea.horizontalScrollBar().setValue(xy-wd1)
         p1 = "ui.label_"+str(nextR)+".setMinimumSize("+wd+", "+ht+")"
         p1 = "ui.label_"+str(nextR)+".setMaximumSize("+wd+", "+ht+")"
-        ui.labelFrame2.setText(ui.list1.currentItem().text())
+        item = ui.list1.item(self.cur_row)
+        if item:
+            ui.labelFrame2.setText('{0}. {1}'.format(self.cur_row+1, item.text()))
         
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Equal:
@@ -143,7 +151,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 curR = ui.get_parameters_value(c='curR')['curR']
                 ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r_poster)-1)*h+((curR+1)/iconv_r_poster)*10)
         elif event.key() == QtCore.Qt.Key_Left:
-                nextR = ui.list1.currentRow()-1
+                nextR = self.cur_row - 1
                 if nextR >=0:
                     self.sizeAdjust(nextR, "backward")
                 else:
@@ -151,38 +159,39 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     ui.dockWidget_3.show()
         elif event.key() == QtCore.Qt.Key_Down:
             iconv_r = ui.icon_poster_indicator[-1]
-            nextR = ui.list1.currentRow()
+            nextR = self.cur_row
             if nextR < 0:
                 self.sizeAdjust(0, "down")
             else:
-                nextR = ui.list1.currentRow()+iconv_r
+                nextR = self.cur_row + iconv_r
                 if nextR < ui.list1.count():
                     self.sizeAdjust(nextR, "down")
                 else:
                     self.sizeAdjust(nextR-iconv_r, "down")
         elif event.key() == QtCore.Qt.Key_Up:
             iconv_r = ui.icon_poster_indicator[-1]
-            nextR = ui.list1.currentRow()
+            nextR = self.cur_row
             if nextR < 0:
                 self.sizeAdjust(0, "up")
             else:
-                nextR = ui.list1.currentRow()-iconv_r
+                nextR = self.cur_row - iconv_r
                 if nextR >= 0:
                     self.sizeAdjust(nextR, "up")
                 else:
                     self.sizeAdjust(nextR+iconv_r, "up")
         elif event.key() == QtCore.Qt.Key_Right:
-            nextR = ui.list1.currentRow()
+            nextR = self.cur_row
             if nextR < 0:
                 self.sizeAdjust(0, "forward")
             else:
-                nextR = ui.list1.currentRow()+1
+                nextR = self.cur_row + 1
                 if nextR < ui.list1.count():
                     self.sizeAdjust(nextR, "forward")
                 else:
                     self.sizeAdjust(nextR-1, "forward")
         elif event.key() == QtCore.Qt.Key_Return:
-            ui.listfound()
+            ui.list1.setCurrentRow(self.cur_row)
+            #ui.listfound()
             if not ui.lock_process:
                 ui.IconViewEpn()
                 ui.scrollArea1.show()
@@ -402,10 +411,11 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                     else:
                         self.sizeAdjust(nextR+iconv_r, "up")
             elif event.key() == QtCore.Qt.Key_Backspace:
-                if ui.list1.currentItem():
-                    ui.labelFrame2.setText(ui.list1.currentItem().text())
+                item = ui.list1.currentItem()
+                if item:
                     ui.prev_thumbnails()
                     ui.scrollArea.setFocus()
+                    ui.labelFrame2.setText('{0}. {1}'.format(ui.list1.row(item)+1, item.text()))
             elif event.key() == QtCore.Qt.Key_Return:
                 num = ui.list2.currentRow()
                 txt_count = num + ui.list2.count()
