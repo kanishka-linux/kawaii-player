@@ -6284,21 +6284,14 @@ watch/unwatch status")
             print(update_pl_thumb, 'update_playlist_thumb')
             row = self.list2.currentRow()
             self.list2.clear()
-            k = 0
             for i in new_epn_arr:
                 i = i.strip()
                 if '	' in i:
                     i = i.split('	')[0]
-                    i = i.replace('_', ' ')
-                    if i.startswith('#'):
-                        i = i.replace('#', self.check_symbol, 1)
-                    self.list2.addItem((i))
-                else:
-                    j = i.replace('_', ' ')
-                    if j.startswith('#'):
-                        j = j.replace('#', self.check_symbol, 1)
-                    self.list2.addItem((j))
-                k = k+1
+                i = i.replace('_', ' ')
+                if i.startswith('#'):
+                    i = i.replace('#', self.check_symbol, 1)
+                self.list2.addItem(i)
             self.list2.setCurrentRow(row)
             if self.list1.currentItem():
                 title_list = self.list1.currentItem().text()
