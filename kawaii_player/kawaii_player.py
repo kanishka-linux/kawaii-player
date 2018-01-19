@@ -8352,8 +8352,13 @@ watch/unwatch status")
                 else:
                     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=self.player_theme))
                 try:
+                    poster_dir, _ = os.path.split(poster)
+                    poster_picn = os.path.join(poster_dir, 'thumbnail.jpg')
                     if 'poster.jpg' in poster:
-                        picn = self.change_aspect_only(poster)
+                        #picn = self.change_aspect_only(poster)
+                        if not os.path.exists(poster_picn):
+                            self.image_fit_option(poster, poster_picn, fit_size=6, widget=self.label)
+                        picn = poster_picn
                 except Exception as e:
                     print(e, '--10147--')
                     
