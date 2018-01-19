@@ -1528,6 +1528,7 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
             name = ui.original_path_name[num]
         logger.info(name)
         ui.list1.setCurrentRow(num)
+        ui.scrollArea.cur_row = num
         ui.labelFrame2.setText(ui.list1.currentItem().text())
         ui.btn10.clear()
         ui.btn10.addItem(_fromUtf8(""))
