@@ -1124,9 +1124,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 label_num = re.sub('label_epn_', '', label_name)
                 num = int(label_num)
                 curR = num
+                ui.list2.setCurrentRow(curR)
                 logger.debug('trying to set curR {}'.format(curR))
                 ui.set_parameters_value(curRow=curR)
-                ui.list2.setCurrentRow(curR)
                 p1 = "ui.label_epn_"+str(num)+".winId()"
                 mn = int(eval(p1))
                 tmp_idw = str(mn)
