@@ -162,6 +162,186 @@ class FindPosterThread(QtCore.QThread):
                 self.run_curl(url=picn_url, get_text=False, img_list=img_val_copy)
                 self.run_curl(url=picn_url, get_text=True, img_list=img_val_copy)
     
+    def parse_tvdb(self, name, url):
+        content = ccurl(url)
+        soup = BeautifulSoup(content, 'lxml')
+        sumry = soup.find('div', {'id':'content'})
+        linkLabels = soup.findAll('div', {'id':'content'})
+        logger.info(sumry)
+        t_sum = re.sub('</h1>', '</h1><p>', str(sumry))
+        t_sum = re.sub('</div>', '</p></div>', str(t_sum))
+        soup = BeautifulSoup(t_sum, 'lxml')
+        try:
+            title = (soup.find('h1')).text
+        except Exception as err_val:
+            print(err_val)
+            title = 'Title Not Available'
+        title = re.sub('&amp;', '&', title)
+        try:
+            sumr = (soup.find('p')).text
+        except Exception as e:
+            print(e, '--233--')
+            sumr = "Not Available"
+        try:
+            link1 = linkLabels[1].findAll('td', {'id':'labels'})
+            logger.info(link1)
+            labelId = ""
+            for i in link1:
+                j = i.text 
+                if "Genre" in j:
+                    k = str(i.findNext('td'))
+                    l = re.findall('>[^<]*', k)
+                    q = ""
+                    for p in l:
+                        q = q + " "+p.replace('>', '')
+                    k = q 
+                else:
+                    k = i.findNext('td').text
+                    k = re.sub('\n|\t', '', k)
+                labelId = labelId + j +" "+k + '\n'
+        except:
+            labelId = ""
+
+        summary = title+'\n\n'+labelId+ sumr
+        summary = re.sub('\t', '', summary)
+        fan_all = post_all = []
+        if self.copy_summary:
+            self.summary_signal.emit(name, summary, 'summary')
+        fan_all = re.findall('/[^"]tab=seriesfanart[^"]*', content)
+        logger.info(fan_all)
+        content1 = ""
+        content2 = ""
+        post_all = re.findall('/[^"]tab=seriesposters[^"]*', content)
+        logger.info(post_all)
+        direct_jpg = False
+        fan_arr = []
+        post_arr = []
+        if not fan_all and not post_all:
+            fan_all = re.findall('banners/seasons/[^"]*.jpg', content)
+            post_all = fan_all
+            direct_jpg = True
+        if fan_all:
+            url_fan_all = "http://thetvdb.com" + fan_all[0]
+            logger.info(url_fan_all)
+            if not direct_jpg:
+                content1 = ccurl(url_fan_all)
+                fan_arr = re.findall('banners/fanart/[^"]*jpg', content1)
+            else:
+                fan_arr = fan_all
+        else:
+            fan_arr = re.findall('banners/fanart/[^"]*.jpg', content)
+            
+        fan_arr = list(set(fan_arr))
+        fan_arr = random.sample(fan_arr, len(fan_arr))
+        
+        if post_all:
+            url_post_all = "http://thetvdb.com" + post_all[0]
+            logger.info(url_post_all)
+            if not direct_jpg:
+                content2 = ccurl(url_post_all)
+                post_arr = re.findall('banners/posters/[^"]*jpg', content2)
+            else:
+                post_arr = post_all
+        else:
+            post_arr = re.findall('banners/posters/[^"]*.jpg', content)
+            
+        post_arr = list(set(post_arr))
+        post_arr = random.sample(post_arr, len(post_arr))
+        return (post_arr, fan_arr)
+    
+    def parse_tmdb(self, name, final_link, thumb, fanart):
+        url = final_link
+        url_ext = ['discuss', 'reviews', 'posters', 'changes', 'videos', '#']
+        url_end = url.rsplit('/', 1)[1]
+        if url_end in url_ext:
+            url = url.rsplit('/', 1)[0]
+        if '?' in url:
+            url = url.split('?')[0]
+        if url.endswith('/en'):
+            url = url.rsplit('/', 1)[0]
+        content = ccurl(url)
+        soup = BeautifulSoup(content, 'lxml')
+        #logger.info(soup.prettify())
+        title_div = soup.find('div', {'class':'title'})
+        if title_div:
+            title = title_div.text
+        else:
+            title = name
+        summ = soup.find('div', {'class':'overview'})
+        if summ:
+            summary = summ.text.strip()
+        else:
+            summary = 'Not Available'
+        cer_t = soup.find('div', {'class':'certification'})
+        if cer_t:
+            cert = cer_t.text
+        else:
+            cert = 'None'
+        genre = soup.find("section", {"class":"genres right_column"})
+        if genre:
+            genres = genre.text.strip()
+            genres = genres.replace('\n', ' ')
+            genres = genres.replace('Genres', 'Genres:')
+        else:
+            genres = 'No Genres'
+        new_summary = title.strip()+'\n\n'+cert.strip()+'\n'+genres.strip()+'\n\n'+summary.strip()
+        if self.copy_summary:
+            self.summary_signal.emit(name, new_summary, 'summary')
+        if url.endswith('/en'):
+            url = url.rsplit('/', 1)[0]
+        url = url + '/images/posters'
+        content = ccurl(url)
+        posters_link = re.findall('https://image.tmdb.org/[^"]*original[^"]*.jpg', content)
+        if posters_link:
+            posters_link = random.sample(posters_link, len(posters_link))
+            if len(posters_link) == 1:
+                url = posters_link[0]
+                ccurl(url+'#'+'-o'+'#'+thumb)
+            elif len(posters_link) >= 2:
+                ccurl(posters_link[0]+'#'+'-o'+'#'+thumb)
+                ccurl(posters_link[1]+'#'+'-o'+'#'+fanart)
+    
+    def init_search(self, nam, url, direct_url, thumb, fanart, src_site):
+        final_link = ""
+        m = []
+        if self.use_search:
+            if isinstance(self.use_search, bool):
+                final_link, m = ui.metaengine.ddg_search(nam, 'tvdb') 
+                if not m:
+                    final_link, m = ui.metaengine.ddg_search(nam, 'tmdb')
+                    if m:
+                        src_site = 'tmdb' 
+            else:
+                final_link, m = ui.metaengine.ddg_search(nam, self.use_search, direct_search=True)
+                src_site = self.use_search
+        else:
+            if direct_url and url:
+                if (".jpg" in url or ".png" in url or url.endswith('.webp')) and "http" in url:
+                    if self.copy_poster:
+                        ccurl(url+'#'+'-o'+'#'+thumb)
+                    elif self.copy_fanart:
+                        ccurl(url+'#'+'-o'+'#'+fanart)
+                elif 'tvdb' in url or 'themoviedb' in url:
+                    final_link = url
+                    logger.info(final_link)
+                    m.append(final_link)
+                    if 'themoviedb' in url:
+                        src_site = 'tmdb'
+            else:
+                link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
+                logger.info(link)
+                content = ccurl(link)
+                m = re.findall('/index.php[^"]tab=[^"]*', content)
+                if not m:
+                    link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=2&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
+                    content = ccurl(link)
+                    m = re.findall('/index.php[^"]tab=[^"]*', content)
+                    if not m:
+                        link = "http://thetvdb.com/?string="+nam+"&searchseriesid=&tab=listseries&function=Search"
+                        content = ccurl(link)
+                        m = re.findall('/[^"]tab=series[^"]*lid=7', content)
+        return (m, final_link, src_site)
+        
     def run(self):
         name = self.name
         url = self.url
@@ -268,6 +448,8 @@ class FindPosterThread(QtCore.QThread):
             nam = ui.metaengine.name_adjust(name)
             src_site = 'tvdb'
             epn_arr = []
+            post_val = ''
+            fan_val = ''
             logger.debug('\nvideo_dir={0}\n'.format(self.video_dir))
             if site.lower() == 'video' and self.video_dir:
                  video_db = os.path.join(ui.home_folder, 'VideoDB', 'Video.db')
@@ -302,279 +484,82 @@ class FindPosterThread(QtCore.QThread):
                             epn_arr.append(i+'	'+i+'	'+name)
                         elif len(j) >= 2:
                             epn_arr.append(i+'	'+name)
-                     
-            if self.use_search:
+                            
+            if ui.series_info_dict.get(name) and not epn_arr:
+                logger.debug('getting values from cache')
+                dict_val = ui.series_info_dict.get(name)
+                post_arr = dict_val.get('poster')
+                fan_arr = dict_val.get('fanart')
+                fan_index = dict_val.get('f')
+                post_index = dict_val.get('p')
+                if fan_index < len(fan_arr):
+                    fan_val = fan_arr[fan_index]
+                    fan_index = (fan_index + 1) % len(fan_arr)
+                    dict_val.update({'f':fan_index})
+                if post_index < len(post_arr):
+                    post_val = post_arr[post_index]
+                    post_index = (post_index + 1) % len(post_arr)
+                    dict_val.update({'p':post_index})
+                ui.series_info_dict.update({name:dict_val})
                 if isinstance(self.use_search, bool):
-                    final_link, m = ui.metaengine.ddg_search(nam, 'tvdb') 
-                    if not m:
-                        final_link, m = ui.metaengine.ddg_search(nam, 'tmdb')
-                        if m:
-                            src_site = 'tmdb' 
+                    src_site = 'tvdb'
                 else:
-                    final_link, m = ui.metaengine.ddg_search(nam, self.use_search, direct_search=True)
                     src_site = self.use_search
             else:
-                if direct_url and url:
-                    if (".jpg" in url or ".png" in url or url.endswith('.webp')) and "http" in url:
-                        if self.copy_poster:
-                            ccurl(url+'#'+'-o'+'#'+thumb)
-                        elif self.copy_fanart:
-                            ccurl(url+'#'+'-o'+'#'+fanart)
-                    elif 'tvdb' in url or 'themoviedb' in url:
-                        final_link = url
-                        logger.info(final_link)
-                        m.append(final_link)
-                        if 'themoviedb' in url:
-                            src_site = 'tmdb'
-                else:
-                    link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=1&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
-                    logger.info(link)
-                    content = ccurl(link)
-                    m = re.findall('/index.php[^"]tab=[^"]*', content)
-                    if not m:
-                        link = "http://thetvdb.com/index.php?seriesname="+nam+"&fieldlocation=2&language=7&genre=Animation&year=&network=&zap2it_id=&tvcom_id=&imdb_id=&order=translation&addedBy=&searching=Search&tab=advancedsearch"
-                        content = ccurl(link)
-                        m = re.findall('/index.php[^"]tab=[^"]*', content)
-                        if not m:
-                            link = "http://thetvdb.com/?string="+nam+"&searchseriesid=&tab=listseries&function=Search"
-                            content = ccurl(link)
-                            m = re.findall('/[^"]tab=series[^"]*lid=7', content)
-
-            if m and (src_site == 'tvdb' or src_site == 'tvdb+g' or src_site == 'tvdb+ddg'):
-                if not final_link:
-                    n = re.sub('amp;', '', m[0])
-                    elist = re.sub('tab=series', 'tab=seasonall', n)
-                    url = "http://thetvdb.com" + n
-                    logger.info(url)
-                    elist_url = "http://thetvdb.com" + elist
-                else:
-                    url = final_link
-                content = ccurl(url)
-                soup = BeautifulSoup(content, 'lxml')
-                sumry = soup.find('div', {'id':'content'})
-                linkLabels = soup.findAll('div', {'id':'content'})
-                logger.info(sumry)
-                t_sum = re.sub('</h1>', '</h1><p>', str(sumry))
-                t_sum = re.sub('</div>', '</p></div>', str(t_sum))
-                soup = BeautifulSoup(t_sum, 'lxml')
-                try:
-                    title = (soup.find('h1')).text
-                except Exception as err_val:
-                    print(err_val)
-                    title = 'Title Not Available'
-                title = re.sub('&amp;', '&', title)
-                try:
-                    sumr = (soup.find('p')).text
-                except Exception as e:
-                    print(e, '--233--')
-                    sumr = "Not Available"
-                
-                try:
-                    link1 = linkLabels[1].findAll('td', {'id':'labels'})
-                    logger.info(link1)
-                    labelId = ""
-                    for i in link1:
-                        j = i.text 
-                        if "Genre" in j:
-                            k = str(i.findNext('td'))
-                            l = re.findall('>[^<]*', k)
-                            q = ""
-                            for p in l:
-                                q = q + " "+p.replace('>', '')
-                            k = q 
-                        else:
-                            k = i.findNext('td').text
-                            k = re.sub('\n|\t', '', k)
-                        labelId = labelId + j +" "+k + '\n'
-                except:
-                    labelId = ""
-
-                summary = title+'\n\n'+labelId+ sumr
-                summary = re.sub('\t', '', summary)
-                fan_all = post_all = []
-                if self.copy_summary:
-                    self.summary_signal.emit(name, summary, 'summary')
-                fan_all = re.findall('/[^"]tab=seriesfanart[^"]*', content)
-                logger.info(fan_all)
-                content1 = ""
-                content2 = ""
-                post_all = re.findall('/[^"]tab=seriesposters[^"]*', content)
-                logger.info(post_all)
-                direct_jpg = False
-                
-                if not fan_all and not post_all:
-                    fan_all = re.findall('banners/seasons/[^"]*.jpg', content)
-                    post_all = fan_all
-                    direct_jpg = True
-                if fan_all:
-                    url_fan_all = "http://thetvdb.com" + fan_all[0]
-                    logger.info(url_fan_all)
-                    if not direct_jpg:
-                        content1 = ccurl(url_fan_all)
-                        m = re.findall('banners/fanart/[^"]*jpg', content1)
-                    else:
-                        m = fan_all
-                    m = list(set(m))
-                    #m.sort()
-                    m = random.sample(m, len(m))
-                    length = len(m) - 1
-                    logger.info(m)
-                    fanart_text = os.path.join(TMPDIR, name+'-fanart.txt')
-                    if not os.path.isfile(fanart_text):
-                        f = open(fanart_text, 'w')
-                        f.write(m[0])
-                        i = 1
-                        while(i <= length):
-                            if not "vignette" in m[i]:
-                                f.write('\n'+m[i])
-                            i = i + 1
-                        f.close()
-                else:
-                    m = re.findall('banners/fanart/[^"]*.jpg', content)
-                    m = list(set(m))
-                    #m.sort()
-                    m = random.sample(m, len(m))
-                    length = len(m) - 1
-                    logger.info(m)
-                    fanart_text = os.path.join(TMPDIR, name+'-fanart.txt')
-                    if not os.path.isfile(fanart_text) and m:
-                        f = open(fanart_text, 'w')
-                        f.write(m[0])
-                        i = 1
-                        while(i <= length):
-                            if not "vignette" in m[i]:
-                                f.write('\n'+m[i])
-                            i = i + 1
-                        f.close()
-
-                if post_all:
-                    url_post_all = "http://thetvdb.com" + post_all[0]
-                    logger.info(url_post_all)
-                    if not direct_jpg:
-                        content2 = ccurl(url_post_all)
-                        r = re.findall('banners/posters/[^"]*jpg', content2)
-                    else:
-                        r = post_all
-                    r = list(set(r))
-                    #r.sort()
-                    r = random.sample(r, len(r))
-                    logger.info(r)
-                    length = len(r) - 1
-                    
-                    poster_text = os.path.join(TMPDIR, name+'-poster.txt')
-                    
-                    if not os.path.isfile(poster_text):
-                        f = open(poster_text, 'w')
-                        f.write(r[0])
-                        i = 1
-                        while(i <= length):
-                            f.write('\n'+r[i])
-                            i = i + 1
-                        f.close()
-                else:
-                    r = re.findall('banners/posters/[^"]*.jpg', content)
-                    r = list(set(r))
-                    #r.sort()
-                    r = random.sample(r, len(r))
-                    logger.info(r)
-                    length = len(r) - 1
-                    poster_text = os.path.join(TMPDIR, name+'-poster.txt')
-                    if (r) and (not os.path.isfile(poster_text)):
-                        f = open(poster_text, 'w')
-                        f.write(r[0])
-                        i = 1
-                        while(i <= length):
-                            f.write('\n'+r[i])
-                            i = i + 1
-                        f.close()
-
-                poster_text = os.path.join(TMPDIR, name+'-poster.txt')
-                fanart_text = os.path.join(TMPDIR, name+'-fanart.txt')
-
-                if os.path.isfile(poster_text) and os.stat(poster_text).st_size:
-                    lines = open_files(poster_text, True)
-                    logger.info(lines)
-                    url1 = re.sub('\n|#', '', lines[0])
-                    url = "http://thetvdb.com/" + url1
-                    ccurl(url+'#'+'-o'+'#'+thumb)
-                if os.path.isfile(fanart_text) and os.stat(fanart_text).st_size:
-                    lines = open_files(fanart_text, True)
-                    logger.info(lines)
-                    if ui.player_theme != 'default':
-                        lines = [i for i in lines if 'vignette' not in i]
-                        logger.debug(lines)
-                    url1 = re.sub('\n|#', '', lines[0])
-                    url = "http://thetvdb.com/" + url1
-                    ccurl(url+'#'+'-o'+'#'+fanart)
-                if os.path.exists(fanart_text):
-                    os.remove(fanart_text)
-                if os.path.exists(poster_text):
-                    os.remove(poster_text)
-                
-                
-                elist_url = re.sub('tab=series', 'tab=seasonall', final_link)
-                if epn_arr:
-                    ui.metaengine.getTvdbEpnInfo(elist_url, epn_arr=epn_arr.copy(),
-                                                 site=site, name=name, thread=self,
-                                                 video_dir=self.video_dir)
-                    image_dict = self.image_dict_list.copy()
-                    dest_dir = self.dest_dir
-                    #self.update_image_list_method(image_dict, dest_dir, site)
-                    #self.thumb_signal.emit(epn_arr)
-                    self.imagesignal.emit(image_dict, dest_dir, site)
-                
-            elif m and (src_site == 'tmdb' or src_site == 'tmdb+g' or src_site == 'tmdb+ddg'):
-                url = final_link
-                url_ext = ['discuss', 'reviews', 'posters', 'changes', 'videos', '#']
-                url_end = url.rsplit('/', 1)[1]
-                if url_end in url_ext:
-                    url = url.rsplit('/', 1)[0]
-                if '?' in url:
-                    url = url.split('?')[0]
-                if url.endswith('/en'):
-                    url = url.rsplit('/', 1)[0]
-                content = ccurl(url)
-                soup = BeautifulSoup(content, 'lxml')
-                #logger.info(soup.prettify())
-                title_div = soup.find('div', {'class':'title'})
-                if title_div:
-                    title = title_div.text
-                else:
-                    title = name
-                summ = soup.find('div', {'class':'overview'})
-                if summ:
-                    summary = summ.text.strip()
-                else:
-                    summary = 'Not Available'
-                cer_t = soup.find('div', {'class':'certification'})
-                if cer_t:
-                    cert = cer_t.text
-                else:
-                    cert = 'None'
-                genre = soup.find("section", {"class":"genres right_column"})
-                if genre:
-                    genres = genre.text.strip()
-                    genres = genres.replace('\n', ' ')
-                    genres = genres.replace('Genres', 'Genres:')
-                else:
-                    genres = 'No Genres'
-                new_summary = title.strip()+'\n\n'+cert.strip()+'\n'+genres.strip()+'\n\n'+summary.strip()
-                if self.copy_summary:
-                    self.summary_signal.emit(name, new_summary, 'summary')
-                if url.endswith('/en'):
-                    url = url.rsplit('/', 1)[0]
-                url = url + '/images/posters'
-                content = ccurl(url)
-                posters_link = re.findall('https://image.tmdb.org/[^"]*original[^"]*.jpg', content)
-                if posters_link:
-                    posters_link = random.sample(posters_link, len(posters_link))
-                    if len(posters_link) == 1:
-                        url = posters_link[0]
+                m, final_link, src_site = self.init_search(
+                    nam, url, direct_url, thumb, fanart, src_site
+                    )
+            if (m and src_site in ['tvdb', 'tvdb+g', 'tvdb+ddg']) or post_val or fan_val:
+                if post_val or fan_val:
+                    if post_val:
+                        url = "http://thetvdb.com/" + post_val
                         ccurl(url+'#'+'-o'+'#'+thumb)
-                    elif len(posters_link) >= 2:
-                        ccurl(posters_link[0]+'#'+'-o'+'#'+thumb)
-                        ccurl(posters_link[1]+'#'+'-o'+'#'+fanart)
-                
+                    if fan_val:
+                        url = "http://thetvdb.com/" + fan_val
+                        ccurl(url+'#'+'-o'+'#'+fanart)
+                else:
+                    if not final_link:
+                        n = re.sub('amp;', '', m[0])
+                        elist = re.sub('tab=series', 'tab=seasonall', n)
+                        url = "http://thetvdb.com" + n
+                        logger.info(url)
+                        elist_url = "http://thetvdb.com" + elist
+                    else:
+                        url = final_link
+                    post_arr, fan_arr = self.parse_tvdb(name, url)
+                    if post_arr:
+                        url = "http://thetvdb.com/" + post_arr[0]
+                        ccurl(url+'#'+'-o'+'#'+thumb)
+                        logger.info(post_arr)
+                    if fan_arr:
+                        if ui.player_theme != 'default':
+                            fan_arr = [i for i in fan_arr if 'vignette' not in i]
+                        if fan_arr:
+                            url = "http://thetvdb.com/" + fan_arr[0]
+                            ccurl(url+'#'+'-o'+'#'+fanart)
+                        logger.debug(fan_arr)
+                    fan_arr.sort()
+                    post_arr.sort()
+                    ui.series_info_dict.update(
+                            {
+                            name:{
+                                'fanart':fan_arr.copy(), 'poster':post_arr.copy(),
+                                'f':0, 'p':0
+                                }
+                            }
+                        )
+                    elist_url = re.sub('tab=series', 'tab=seasonall', final_link)
+                    if epn_arr:
+                        ui.metaengine.getTvdbEpnInfo(
+                            elist_url, epn_arr=epn_arr.copy(), site=site,
+                            name=name, thread=self, video_dir=self.video_dir
+                            )
+                        image_dict = self.image_dict_list.copy()
+                        dest_dir = self.dest_dir
+                        self.imagesignal.emit(image_dict, dest_dir, site)
+            elif m and src_site in ['tmdb', 'tmdb+g', 'tmdb+ddg']:
+                self.parse_tmdb(name, final_link, thumb, fanart)
+
 
 @pyqtSlot(str, str, str)
 def copy_information(nm, txt, val):
