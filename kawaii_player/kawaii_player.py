@@ -1630,6 +1630,8 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.history_dict_obj = {}
+        self.series_info_dict = {}
+        self.poster_count_start = 0
         self.status_dict = {'label_dock':0}
         self.player_theme = 'default'
         self.mpv_length_find_attempt = 0
@@ -5879,7 +5881,7 @@ watch/unwatch status")
         if copy_summary:
             self.text.setText(copy_sum)
         range_val = 3
-        if (self.posterfind_batch == 1) or (self.posterfind_batch % range_val == 0):
+        if (self.posterfind_batch == self.poster_count_start) or (self.posterfind_batch % range_val == 0):
             index = self.posterfind_batch
             for i in range(0, range_val):
                 if index == 1:
@@ -6244,6 +6246,8 @@ watch/unwatch status")
                 self.myserver_threads_count += 1
         else:
             self.rawlist_highlight()
+        if self.series_info_dict.get(name):
+            del self.series_info_dict[name]
             
     def finished_newlistfound(self, length):
         if self.myserver_threads_count:
