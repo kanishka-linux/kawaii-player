@@ -501,6 +501,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             logger.info(item)
             try:
                 ui.posterfind_batch = 0
+                ui.poster_count_start = 1
                 site = ui.get_parameters_value(s='site')['site']
                 opt = ''
                 if ui.list3.currentItem():
@@ -515,6 +516,12 @@ class TitleListWidget(QtWidgets.QListWidget):
                     pass
                 else:
                     video_dir = ui.original_path_name[0]
+                if video_dir and self.currentRow() > 0:
+                    if self.currentRow() < len(ui.original_path_name):
+                        video_dir = ui.original_path_name[self.currentRow()].split('\t')[-1]
+                        nm = ui.get_title_name(self.currentRow())
+                        ui.posterfind_batch = self.currentRow()
+                        ui.poster_count_start = ui.posterfind_batch + 1
                 ui.posterfound_new(
                     name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
                     copy_summary=True, direct_url=False, use_search=use_search,
