@@ -10709,7 +10709,8 @@ watch/unwatch status")
         self.list2.setCurrentRow(num)
         item = self.list2.item(num)
         if item:
-            if (viewMode == 'Thumbnail' and idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
+            if ((viewMode == 'Thumbnail' and idw != str(int(self.tab_5.winId()))
+                    and thumbnail_indicator) or self.fullscreen_mode == 1):
                 finalUrl = self.epn_return(num)
                 if finalUrl.startswith('"'):
                     finalUrl = finalUrl.replace('"', '')
