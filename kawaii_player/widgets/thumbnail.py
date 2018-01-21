@@ -666,8 +666,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 tab_6_size_indicator.append(ui.tab_6.width())
             ui.set_parameters_value(tab_6=tab_6_size_indicator)
             ui.gridLayout.setSpacing(0)
-            if (site == "Local" or site == "PlayLists" or site == "Music" or 
-                site == "Video" or site == "None"):
+            if site in ["Video", "Music", "PlayLists", "None"]:
                 num = curR
                 ui.gridLayout.addWidget(ui.tab_6, 0, 2, 1, 1)
                 if '	' in ui.epn_arr_list[num]:
@@ -683,6 +682,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 elif finalUrl.startswith("'"):
                     finalUrl = finalUrl.replace("'", '')
                 if num < ui.list2.count():
+                    ui.play_file_now(finalUrl)
                     ui.list2.setCurrentRow(num)
                     idw = str(int(ui.tab_5.winId()))
                     ui.set_parameters_value(idw_val=idw)
@@ -702,7 +702,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ht = eval(p1)
                     print(ht, '--ht--', ui.scrollArea1.height())
                     ui.scrollArea1.verticalScrollBar().setValue(ht - 5)
-                    ui.play_file_now(finalUrl)
+                    #ui.play_file_now(finalUrl)
                     if site == "Music":
                         logger.info(finalUrl)
                         ui.text.show()
@@ -719,6 +719,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     elif site == "Video":
                         ui.media_data.update_video_count('mark', finalUrl)
                     current_playing_file_path = finalUrl
+                    ui.final_playing_url = finalUrl
                     ui.set_parameters_value(cur_ply=current_playing_file_path)
             else:
                     num = curR
@@ -1012,6 +1013,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             #Mode 2 Ends Here#
 
         current_playing_file_path = finalUrl
+        ui.final_playing_url = finalUrl
         ui.set_parameters_value(cur_ply=current_playing_file_path)
         try:
             server._emitMeta("Play", site, ui.epn_arr_list)
