@@ -5253,7 +5253,7 @@ watch/unwatch status")
             iconv_r = iconv_r_indicator[0]
         else:
             iconv_r = 5
-        self.tab_6.setMaximumSize(10000, 10000)
+        self.tab_6.setMaximumSize(16777215, 16777215)
         browse_cnt = 0
         self.tab_6.hide()
         self.list1.show()
