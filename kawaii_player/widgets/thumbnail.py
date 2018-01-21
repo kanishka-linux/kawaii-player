@@ -1051,7 +1051,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         if os.path.exists(thumb_path):
                             ui.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
-                    logger.info('Error in getting Thumbnail--1620-- - localvideogetinlist: {0}'.format(e))
+                    logger.error('Error in getting Thumbnail--1620-- - localvideogetinlist: {0}'.format(e))
         except Exception as e:
             print(e, '--1622--')
         
@@ -1065,7 +1065,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 p1 = "ui.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
                 exec(p1)
             except Exception as e:
-                print(e, '--line--4597--')
+                logger.error(e)
                 try:
                     p1 = 'ui.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
                     exec(p1)
@@ -1074,7 +1074,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             p1="ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
             exec(p1)
         except Exception as e:
-            print(e)
+            logger.error(e)
         try:
             if var_mode == 1 or var_mode == 2 or var_mode == 3 or var_mode == 4 or var_mode == 5:
                 if site.lower() == 'music' or site.lower() == 'none' or site.lower() == 'local':
@@ -1086,7 +1086,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 else:
                     ui.mark_addons_history_list('mark', curR)
         except Exception as e:
-            print(e)
+            logger.error(e)
     
     def mouseDoubleClickEvent(self, event):
         if ui.video_mode_index == 1:
