@@ -9643,7 +9643,7 @@ watch/unwatch status")
                     else:
                         finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
                 except:
-                    return 0
+                    return ''
         elif site=="None" or site == "Music" or site == "Video" or site == "Local":
             if '	' in self.epn_arr_list[row]:
                 finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
