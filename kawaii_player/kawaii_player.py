@@ -9585,7 +9585,7 @@ watch/unwatch status")
             epn = item.text()
             epn = epn.replace('#', '', 1)
         else:
-            return 0
+            return ''
         if '	' in self.epn_arr_list[row]:
             epn = (self.epn_arr_list[row]).split('	')[1]
         else:
