@@ -1057,22 +1057,21 @@ class ThumbnailWidget(QtWidgets.QLabel):
         
         try:
             new_cnt = curR + ui.list2.count()
-            p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-            exec (p1)
-            p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
-            txt = eval(p1)
+            p1 = "ui.label_epn_{0}".format(new_cnt)
+            label_number = eval(p1)
+            text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
+            text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
+            label_number.setTextColor(text_color_focus)
+            txt = label_number.toPlainText()
             try:
-                p1 = "ui.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                exec(p1)
+                label_number.setText(txt)
             except Exception as e:
                 logger.error(e)
                 try:
-                    p1 = 'ui.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
-                    exec(p1)
+                    label_number.setText(txt)
                 except Exception as e:
                     print(e)
-            p1="ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-            exec(p1)
+            label_number.setAlignment(QtCore.Qt.AlignCenter)
         except Exception as e:
             logger.error(e)
         try:
