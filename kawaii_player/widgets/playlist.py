@@ -465,8 +465,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
         elif (event.key() == QtCore.Qt.Key_F4):
             if ui.epn_arr_list:
                 print('Default Name')
-                if self.currentItem():
-                    self.get_default_name(self.currentRow(), mode='default')
+                for item in self.selectedItems():
+                    r = self.row(item)
+                    self.get_default_name(r, mode='default')
         elif (event.key() == QtCore.Qt.Key_F5):
             if ui.epn_arr_list:
                 print('Batch Renaming in database')
@@ -1487,7 +1488,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 for i, j in enumerate(ui.epn_arr_list):
                     self.remove_thumbnails(i ,j)
             elif action == remove_selected:
-                self.remove_thumbnails(r ,ui.epn_arr_list[r])
+                for item in self.selectedItems():
+                    r = self.row(item)
+                    self.remove_thumbnails(r ,ui.epn_arr_list[r])
             elif action == remove_summary_all:
                 for i, j in enumerate(ui.epn_arr_list):
                     self.remove_thumbnails(i ,j, remove_summary=True)
@@ -1496,7 +1499,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
             elif action == edit_summary_help:
                 self.edit_selected_summary(r ,ui.epn_arr_list[r], help_needed=True)
             elif action == remove_summary_selected:
-                self.remove_thumbnails(r ,ui.epn_arr_list[r], remove_summary=True)
+                for item in self.selectedItems():
+                    r = self.row(item)
+                    self.remove_thumbnails(r ,ui.epn_arr_list[r], remove_summary=True)
             elif action == editN and not ui.list1.isHidden():
                 if ui.epn_arr_list:
                     print('Editing Name')
@@ -1510,8 +1515,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
             elif action == default_name and not ui.list1.isHidden():
                 if ui.epn_arr_list:
                     print('Default Name')
-                    if self.currentItem():
-                        self.get_default_name(self.currentRow(), mode='default')
+                    for item in self.selectedItems():
+                        r = self.row(item)
+                        self.get_default_name(r, mode='default')
             elif action == default_name_all and not ui.list1.isHidden():
                 if ui.epn_arr_list:
                     print('Batch Renaming in database')
