@@ -1368,6 +1368,15 @@ watch/unwatch status")
         self.btn3.setObjectName(_fromUtf8("btn3"))
         self.btn3.setMinimumHeight(30)
         
+        self.thumbnail_text_color_dict = {
+            'green':QtCore.Qt.green, 'white':QtCore.Qt.white,
+            'yellow':QtCore.Qt.yellow, 'black':QtCore.Qt.black,
+            'red':QtCore.Qt.red, 'blue':QtCore.Qt.blue,
+            'gray':QtCore.Qt.gray
+            }
+        self.thumbnail_text_color = 'white'
+        self.thumbnail_text_color_focus = 'green'
+        
         self.horizontalLayout10 = QtWidgets.QVBoxLayout(self.tab_6)
         self.horizontalLayout10.setObjectName(_fromUtf8("horizontalLayout"))
         self.scrollArea = QtGuiQWidgetScroll(self.tab_6, self)
@@ -3110,9 +3119,9 @@ watch/unwatch status")
     def mark_epn_thumbnail_label_new(self, txt, index):
         if txt.startswith('#'):
             txt = txt.replace('#', self.check_symbol, 1)
-        p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(index)
-        exec (p1)
-        
+        p1 = "self.label_epn_{0}".format(index)
+        label_number = eval(p1)
+        label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
         try:
             p1 = "self.label_epn_{0}.setText('{1}')".format(index, txt)
             exec(p1)
@@ -5465,8 +5474,9 @@ watch/unwatch status")
                     p1 = "self.label_epn_"+str(r)+".setFocus()"
                     exec(p1)
                     new_cnt = r+self.list2.count()
-                    p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-                    exec(p1)
+                    p1 = "self.label_epn_{0}".format(new_cnt)
+                    label_number = eval(p1)
+                    label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
                     p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
                     txt = eval(p1)
                     p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
@@ -5497,8 +5507,9 @@ watch/unwatch status")
                     p1 = "self.label_epn_"+str(r)+".setFocus()"
                     exec(p1)
                     new_cnt = r+self.list2.count()
-                    p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-                    exec(p1)
+                    p1 = "self.label_epn_{0}".format(new_cnt)
+                    label_number = eval(p1)
+                    label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
                     p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
                     txt = eval(p1)
                     p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
@@ -10792,8 +10803,9 @@ watch/unwatch status")
                 self.labelFrame2.setText(newTitle)
                 
                 new_cnt = curR + self.list2.count()
-                p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-                exec (p1)
+                p1 = "self.label_epn_{0}".format(new_cnt)
+                label_number = eval(p1)
+                label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
                 p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
                 txt = eval(p1)
                 try:
@@ -10837,8 +10849,9 @@ watch/unwatch status")
                     self.labelFrame2.setText(newTitle)
                     
                     new_cnt = curR + self.list2.count()
-                    p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-                    exec (p1)
+                    p1 = "self.label_epn_{0}".format(new_cnt)
+                    label_number = eval(p1)
+                    label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
                     p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
                     txt = eval(p1)
                     try:
@@ -10857,8 +10870,9 @@ watch/unwatch status")
                     init_cnt = self.thumbnail_label_number[0] + self.list2.count()
                     if quitReally == 'yes':
                         txt = self.thumbnail_label_number[1]
-                    p1 = "self.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(init_cnt)
-                    exec (p1)
+                    p1 = "self.label_epn_{0}".format(init_cnt)
+                    label_number = eval(p1)
+                    label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
                     try:
                         p1 = "self.label_epn_{0}.setText('{1}')".format(init_cnt, txt)
                         exec(p1)
@@ -13108,6 +13122,20 @@ def main():
                         ui.playback_engine.append(extra_player)
                 except Exception as e:
                     logger.error(e)
+            elif i.startswith('THUMBNAIL_TEXT_COLOR='):
+                try:
+                    thumb_color = j.lower()
+                    if thumb_color in ui.thumbnail_text_color_dict:
+                        ui.thumbnail_text_color = thumb_color
+                except Exception as e:
+                    logger.error(e)
+            elif i.startswith('THUMBNAIL_TEXT_COLOR_FOCUS='):
+                try:
+                    thumb_color = j.lower()
+                    if thumb_color in ui.thumbnail_text_color_dict:
+                        ui.thumbnail_text_color_focus = thumb_color
+                except Exception as e:
+                    logger.error(e)
             elif i.startswith('YTDL_PATH='):
                 try:
                     k = j.lower()
@@ -13157,6 +13185,8 @@ def main():
         f.write("\nBROADCAST_MESSAGE=False")
         f.write("\nMEDIA_SERVER_AUTOSTART=False")
         f.write("\nTHEME=DEFAULT")
+        f.write("\nTHUMBNAIL_TEXT_COLOR=white")
+        f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
         f.close()
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
