@@ -656,7 +656,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         finalUrl = ''
         curR = c_row
         ui.set_parameters_value(curRow=curR)
-        if var_mode == 2:
+        if var_mode == 2 or var_mode == 1:
             ui.label_search.clear()
             ui.labelFrame2.hide()
             tab_6_player = "False"
@@ -682,27 +682,30 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 elif finalUrl.startswith("'"):
                     finalUrl = finalUrl.replace("'", '')
                 if num < ui.list2.count():
-                    ui.play_file_now(finalUrl)
                     ui.list2.setCurrentRow(num)
                     idw = str(int(ui.tab_5.winId()))
                     ui.set_parameters_value(idw_val=idw)
-                    ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
-                    ui.tab_5.show()
-                    ui.tab_5.setFocus()
-                    ui.frame1.show()
-                    if iconv_r_indicator and iconv_r != 1:
-                        iconv_r_indicator.pop()
-                    if iconv_r != 1:
-                        iconv_r_indicator.append(iconv_r)
-                    iconv_r = 1
-                    ui.set_parameters_value(iconv=iconv_r)
-                    ui.thumbnail_label_update_epn()
-                    QtWidgets.QApplication.processEvents()
-                    p1 = "ui.label_epn_"+str(num)+".y()"
-                    ht = eval(p1)
-                    print(ht, '--ht--', ui.scrollArea1.height())
-                    ui.scrollArea1.verticalScrollBar().setValue(ht - 5)
-                    #ui.play_file_now(finalUrl)
+                    ui.play_file_now(finalUrl)
+                    if var_mode == 1:
+                        ui.tab_5.player_fs(mode='fs')
+                    else:
+                        ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
+                        ui.tab_5.show()
+                        ui.tab_5.setFocus()
+                        ui.frame1.show()
+                        if iconv_r_indicator and iconv_r != 1:
+                            iconv_r_indicator.pop()
+                        if iconv_r != 1:
+                            iconv_r_indicator.append(iconv_r)
+                        iconv_r = 1
+                        ui.set_parameters_value(iconv=iconv_r)
+                        ui.thumbnail_label_update_epn()
+                        QtWidgets.QApplication.processEvents()
+                        p1 = "ui.label_epn_"+str(num)+".y()"
+                        ht = eval(p1)
+                        print(ht, '--ht--', ui.scrollArea1.height())
+                        ui.scrollArea1.verticalScrollBar().setValue(ht - 5)
+                        #ui.play_file_now(finalUrl)
                     if site == "Music":
                         logger.info(finalUrl)
                         ui.text.show()
@@ -777,7 +780,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             except Exception as e:
                 print(e, '--681--thumbnail.py')
             # Default Mode Ends Here#
-        elif var_mode == 1 or var_mode == 3 or var_mode == 4:
+        elif var_mode == 3 or var_mode == 4:
             if ui.mpvplayer_val.processId()>0:
                 ui.mpvplayer_val.kill()
                 ui.mpvplayer_started = False
