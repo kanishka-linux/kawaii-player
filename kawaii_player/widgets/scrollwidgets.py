@@ -11,7 +11,9 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             self.cur_row = ui.list1.currentRow()
         else:
             self.cur_row = 0
-    
+        self.text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
+        self.text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
+        
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
@@ -28,22 +30,21 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             p1 = "ui.label_"+str(nextR)+".setFocus()"
             exec (p1)
             new_cnt = str(nextR+ui.list1.count())
-            p1 = "ui.label_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-            exec (p1)
-            p1 = "ui.label_{0}.toPlainText()".format(new_cnt)
-            txt = eval(p1)
+            p1 = "ui.label_{0}".format(new_cnt)
+            label_number = eval(p1)
+            self.text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
+            self.text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
+            label_number.setTextColor(self.text_color_focus)
+            txt = label_number.toPlainText()
             try:
-                p1 = "ui.label_{0}.setText('{1}')".format(new_cnt, txt)
-                exec(p1)
+                label_number.setText(txt)
             except Exception as e:
                 print(e, '--line--4597--')
                 try:
-                    p1 = 'ui.label_{0}.setText("{1}")'.format(new_cnt, txt)
-                    exec(p1)
+                    label_number.setText(txt)
                 except Exception as e:
                     print(e)
-            p1="ui.label_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-            exec(p1)
+            label_number.setAlignment(QtCore.Qt.AlignCenter)
         except:
             return 0
         if ui.icon_size_arr:
@@ -68,25 +69,19 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 ht = str(ht1)
                 wd = str(wd1)
                 new_cnt = str(prevR+ui.list1.count())
-                if ui.player_theme in ['default', 'transparent', 'mix']:
-                    p1 = "ui.label_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
-                else:
-                    p1 = "ui.label_{0}.setTextColor(QtCore.Qt.black)".format(new_cnt)
-                exec (p1)
-                p1 = "ui.label_{0}.toPlainText()".format(new_cnt)
-                txt = eval(p1)
+                p1 = "ui.label_{0}".format(new_cnt)
+                label_number = eval(p1)
+                label_number.setTextColor(self.text_color)
+                txt = label_number.toPlainText()
                 try:
-                    p1 = "ui.label_{0}.setText('{1}')".format(new_cnt, txt)
-                    exec(p1)
+                    label_number.setText(txt)
                 except Exception as e:
                     print(e, '--line--4597--')
                     try:
-                        p1 = 'ui.label_{0}.setText("{1}")'.format(new_cnt, txt)
-                        exec(p1)
+                        label_number.setText(txt)
                     except Exception as e:
                         print(e)
-                p1="ui.label_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                exec(p1)
+                label_number.setAlignment(QtCore.Qt.AlignCenter)
             elif prevR < 0:
                 p1 = "ui.label_"+str(nextR)+".width()"
                 wd1=eval(p1)
@@ -216,7 +211,9 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
         super(QtGuiQWidgetScroll1, self).__init__(parent)
         global ui
         ui = uiwidget
-    
+        self.text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
+        self.text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
+        
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
@@ -233,22 +230,21 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             p1 = "ui.label_epn_"+str(nextR)+".setFocus()"
             exec (p1)
             new_cnt = str(nextR+ui.list2.count())
-            p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
-            exec (p1)
-            p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
-            txt = eval(p1)
+            self.text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
+            self.text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
+            p1 = "ui.label_epn_{0}".format(new_cnt)
+            label_number = eval(p1)
+            label_number.setTextColor(self.text_color_focus)
+            txt = label_number.toPlainText()
             try:
-                p1 = "ui.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                exec(p1)
+                label_number.setText(txt)
             except Exception as e:
                 print(e, '--line--4597--')
                 try:
-                    p1 = 'ui.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
-                    exec(p1)
+                    label_number.setText(txt)
                 except Exception as e:
                     print(e)
-            p1="ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-            exec(p1)
+            label_number.setAlignment(QtCore.Qt.AlignCenter)
         except Exception as e:
             print(e, '--line--4596--')
             return 0
@@ -266,34 +262,26 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 elif direction == "backward":
                     prevR = nextR + 1
                 if prevR >= 0 and prevR < ui.list2.count():
-                    p1 = "ui.label_epn_"+str(prevR)+".setMinimumSize("+wi+", "+hi+")"
-                    #exec (p1)
-                    p1 = "ui.label_epn_"+str(prevR)+".setMaximumSize("+wi+", "+hi+")"
-                    #exec (p1)
+                    #p1 = "ui.label_epn_"+str(prevR)+".setMinimumSize("+wi+", "+hi+")"
+                    #p1 = "ui.label_epn_"+str(prevR)+".setMaximumSize("+wi+", "+hi+")"
                     ht1 = (0.6*int(hi))
                     wd1 = (0.6*int(wi))
                     ht = str(ht1)
                     wd = str(wd1)
                     new_cnt = str(prevR+ui.list2.count())
-                    if ui.player_theme in ['default', 'transparent', 'mix']:
-                        p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.white)".format(new_cnt)
-                    else:
-                        p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.black)".format(new_cnt)
-                    exec (p1)
-                    p1 = "ui.label_epn_{0}.toPlainText()".format(new_cnt)
-                    txt = eval(p1)
+                    p1 = "ui.label_epn_{0}".format(new_cnt)
+                    label_number = eval(p1)
+                    label_number.setTextColor(self.text_color)
+                    txt = label_number.toPlainText()
                     try:
-                        p1 = "ui.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                        exec(p1)
+                        label_number.setText(txt)
                     except Exception as e:
                         print(e, '--line--4597--')
                         try:
-                            p1 = 'ui.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
-                            exec(p1)
+                            label_number.setText(txt)
                         except Exception as e:
                             print(e, '--line--4643--')
-                    p1="ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                    exec(p1)
+                    label_number.setAlignment(QtCore.Qt.AlignCenter)
                 elif prevR < 0:
                     p1 = "ui.label_epn_"+str(nextR)+".width()"
                     wd1=eval(p1)
