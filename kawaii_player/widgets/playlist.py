@@ -79,6 +79,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if site not in ['Music', 'Video']:
                 if wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
                     ui.download_video = 1
+                    ui.queue_item = aitem
                     ui.start_offline_mode(r, aitem)
                 else:
                     if not ui.queue_url_list:
@@ -142,10 +143,17 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     f.close()
                 if not ui.queue_url_list:
                     ui.list6.clear()
-                ui.queue_url_list.append(ui.epn_arr_list[r])
-                ui.list6.addItem(ui.epn_arr_list[r].split('	')[0])
+                txt_queue = ui.epn_arr_list[r]
+                ui.queue_url_list.append(txt_queue)
+                if '\t' in txt_queue:
+                    txt_load = txt_queue.split('\t')[0]
+                else:
+                    txt_load = txt_queue
+                if txt_load.startswith('#'):
+                    txt_load = txt_load.replace('#', '', 1)
+                ui.list6.addItem(txt_load)
                 logger.info(ui.queue_url_list)
-                write_files(file_path, ui.epn_arr_list[r], line_by_line=True)
+                write_files(file_path, txt_queue, line_by_line=True)
             elif video_local_stream:
                 if ui.list6.count() > 0:
                     txt = ui.list6.item(0).text()
