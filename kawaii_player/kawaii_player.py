@@ -599,6 +599,9 @@ class Ui_MainWindow(object):
         self.text_save_btn_timer.timeout.connect(self.text_save_btn_hide)
         self.text_save_btn_timer.setSingleShot(True)
         
+        self.search_on_type_btn = QtWidgets.QLineEdit(MainWindow)
+        self.search_on_type_btn.hide()
+        
         self.text.lineWrapMode()
         #self.VerticalLayoutLabel.setStretch(2, 1)
         self.vertical_layout_new.insertWidget(0, self.label_new)
@@ -1641,6 +1644,7 @@ watch/unwatch status")
         self.history_dict_obj = {}
         self.series_info_dict = {}
         self.poster_count_start = 0
+        self.focus_widget = None
         self.status_dict = {'label_dock':0}
         self.player_theme = 'default'
         self.mpv_length_find_attempt = 0
@@ -1909,6 +1913,7 @@ watch/unwatch status")
         self.filter_btn.clicked.connect(self.filter_btn_options)
         self.hide_btn_list1.clicked.connect(self.hide_btn_list1_pressed)
         self.go_page.textChanged['QString'].connect(self.filter_list)
+        self.search_on_type_btn.textChanged['QString'].connect(self.search_on_type)
         self.label_search.textChanged['QString'].connect(self.filter_label_list)
         self.goto_epn_filter_txt.textChanged['QString'].connect(self.filter_epn_list_txt)
         self.btn3.clicked.connect(self.addToLibrary)
@@ -2018,7 +2023,52 @@ watch/unwatch status")
         self.list2.setViewMode(QtWidgets.QListView.IconMode)
         self.list2.setBatchSize(100)
         self.list2.show()
-        
+    
+    def give_search_index(self, txt, mode=None, widget=None):
+        index_found = False
+        widget_list = None
+        if widget == self.list1:
+            widget_list = self.original_path_name
+        else:
+            widget_list = self.epn_arr_list
+        if widget_list:
+            for i, j in enumerate(widget_list):
+                if '\t' in j:
+                    title_name = j.split('\t')[0]
+                else:
+                    title_name = j
+                title_name = title_name.lower()
+                if title_name.startswith('#'):
+                    title_name = title_name.replace('#', '', 1)
+                if mode == 0:
+                    if title_name.startswith(txt):
+                        index_found = True
+                        break
+                elif mode == 1:
+                    if txt in title_name:
+                        index_found = True
+                        break
+        if index_found:
+            return i
+        else:
+            return -1
+            
+    def search_on_type(self):
+        txt = self.search_on_type_btn.text()
+        index = self.give_search_index(txt, mode=0, widget=self.focus_widget)
+        if index >=0:
+            if self.focus_widget == self.list1:
+                self.list1.setCurrentRow(index)
+            elif self.focus_widget == self.list2:
+                self.list2.setCurrentRow(index)
+        else:
+            index = self.give_search_index(txt, mode=1, widget=self.focus_widget)
+            if index >=0:
+                if self.focus_widget == self.list1:
+                    self.list1.setCurrentRow(index)
+                elif self.focus_widget == self.list2:
+                    self.list2.setCurrentRow(index)
+            
     def remove_queue_item_btn_method(self, row=None):
         global video_local_stream
         row = self.queue_item_external_remove
@@ -5168,64 +5218,67 @@ watch/unwatch status")
     
     def HideEveryThing(self, hide_var=None):
         global fullscrT, idwMain, idw, view_layout
-        fullscrT = 1 - fullscrT
-        if hide_var:
-            if hide_var == 'hide':
-                self.tab_2.hide()
-                self.tab_6.hide()
-                self.list1.hide()
-                self.list2.hide()
-                self.tab_5.hide()
-                self.label.hide()
-                self.label_new.hide()
-                self.text.hide()
-                self.frame.hide()
-                self.dockWidget_3.hide()
-                self.tab_6.hide()
-                self.tab_2.hide()
-                self.goto_epn.hide()
-                self.list1.setFocus()
-                self.frame1.hide()
-            elif hide_var == 'unhide':
-                self.list1.show()
-                self.list2.show()
-                self.label.show()
-                self.label_new.show()
-                self.text.show()
-                self.frame.show()
-                self.dockWidget_3.show()
-                self.goto_epn.show()
-                self.list1.setFocus()
-                self.frame1.show()
+        if not self.search_on_type_btn.isHidden():
+            self.search_on_type_btn.hide()
         else:
-            if fullscrT == 1:
-                
-                self.tab_2.hide()
-                self.tab_6.hide()
-                self.list1.hide()
-                self.list2.hide()
-                self.tab_5.hide()
-                self.label.hide()
-                self.label_new.hide()
-                self.text.hide()
-                self.frame.hide()
-                self.dockWidget_3.hide()
-                self.tab_6.hide()
-                self.tab_2.hide()
-                self.goto_epn.hide()
-                self.list1.setFocus()
-                self.frame1.hide()
+            fullscrT = 1 - fullscrT
+            if hide_var:
+                if hide_var == 'hide':
+                    self.tab_2.hide()
+                    self.tab_6.hide()
+                    self.list1.hide()
+                    self.list2.hide()
+                    self.tab_5.hide()
+                    self.label.hide()
+                    self.label_new.hide()
+                    self.text.hide()
+                    self.frame.hide()
+                    self.dockWidget_3.hide()
+                    self.tab_6.hide()
+                    self.tab_2.hide()
+                    self.goto_epn.hide()
+                    self.list1.setFocus()
+                    self.frame1.hide()
+                elif hide_var == 'unhide':
+                    self.list1.show()
+                    self.list2.show()
+                    self.label.show()
+                    self.label_new.show()
+                    self.text.show()
+                    self.frame.show()
+                    self.dockWidget_3.show()
+                    self.goto_epn.show()
+                    self.list1.setFocus()
+                    self.frame1.show()
             else:
-                self.list1.show()
-                self.list2.show()
-                self.label.show()
-                self.label_new.show()
-                self.text.show()
-                self.frame.show()
-                self.dockWidget_3.show()
-                self.goto_epn.show()
-                self.list1.setFocus()
-                self.frame1.show()
+                if fullscrT == 1:
+                    
+                    self.tab_2.hide()
+                    self.tab_6.hide()
+                    self.list1.hide()
+                    self.list2.hide()
+                    self.tab_5.hide()
+                    self.label.hide()
+                    self.label_new.hide()
+                    self.text.hide()
+                    self.frame.hide()
+                    self.dockWidget_3.hide()
+                    self.tab_6.hide()
+                    self.tab_2.hide()
+                    self.goto_epn.hide()
+                    self.list1.setFocus()
+                    self.frame1.hide()
+                else:
+                    self.list1.show()
+                    self.list2.show()
+                    self.label.show()
+                    self.label_new.show()
+                    self.text.show()
+                    self.frame.show()
+                    self.dockWidget_3.show()
+                    self.goto_epn.show()
+                    self.list1.setFocus()
+                    self.frame1.show()
         
     def thumbnailHide(self, context):
         global view_layout, total_till, browse_cnt, iconv_r
