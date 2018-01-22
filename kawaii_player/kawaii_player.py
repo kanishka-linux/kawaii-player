@@ -5339,7 +5339,7 @@ watch/unwatch status")
         self.label_new.show()
         self.frame1.show()
         self.text.show()
-        self.fullscreen_mode == 0
+        self.fullscreen_mode = 0
         if context == "ExtendedQLabel":
             pass
         else:
