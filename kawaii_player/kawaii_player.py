@@ -1637,10 +1637,13 @@ watch/unwatch status")
         self.yt_sub_folder = os.path.join(home, 'External-Subtitle')
         self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
         self.playing_history_file = os.path.join(home, 'src', 'historydata')
+        self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.queue_stop = False
+        self.queue_item = None
         self.history_dict_obj = {}
         self.series_info_dict = {}
         self.poster_count_start = 0
@@ -2856,15 +2859,32 @@ watch/unwatch status")
                     self.torrent_frame.hide()
                     self.progress.hide()
                 elif wget.processId() > 0:
+                    ui.queue_stop = True
                     wget.kill()
-                    txt = 'Stopping download'
-                    send_notification(txt)
+                    msg = 'Stopping download'
+                    send_notification(msg)
                     self.torrent_frame.hide()
                     self.progress.hide()
+                    if self.queue_item:
+                        self.queue_url_list.insert(0, self.queue_item)
+                        if isinstance(self.queue_item, tuple):
+                            txt = self.queue_item[-1]
+                        else:
+                            txt = self.queue_item
+                        if txt.startswith('#'):
+                            txt = txt.replace('#', '', 1)
+                        self.list6.insertItem(0, txt)
                 elif self.queue_url_list:
                     queue_item = self.queue_url_list[0]
                     if isinstance(queue_item, tuple):
-                        self.start_offline_mode(0, queue_item)
+                        self.queue_item = queue_item
+                        item = self.list6.item(0)
+                        if item:
+                            del self.queue_url_list[0]
+                            self.list6.takeItem(0)
+                            del item
+                            self.start_offline_mode(0, self.queue_item)
+                        logger.debug('queue:{0}::list6:{1}'.format(len(self.queue_url_list, self.list6.count())))
         except Exception as e:
             logger.error(e)
     
@@ -2920,16 +2940,20 @@ watch/unwatch status")
         app.quit()
         
     def queueList_return_pressed(self, r):
-        t = self.queue_url_list[r]
+        queue_item = self.queue_url_list[r]
         del self.queue_url_list[r]
-        
         item = self.list6.item(r)
-        i = item.text()
+        queue_txt = item.text()
         self.list6.takeItem(r)
         del item
-        self.list6.insertItem(0, i)
-        self.queue_url_list.insert(0, t)
-        self.getQueueInList()
+        if isinstance(queue_item, tuple):
+            self.queue_item = queue_item
+            self.start_offline_mode(0, self.queue_item)
+        else:
+            self.list6.insertItem(0, queue_txt)
+            self.queue_url_list.insert(0, queue_item)
+            self.getQueueInList()
+        logger.debug('queue:{0}::list6:{1}'.format(len(self.queue_url_list), self.list6.count()))
         
     def queue_manage_list(self):
         if self.list6.isHidden():
@@ -8523,7 +8547,7 @@ watch/unwatch status")
         else:
             new_epn = new_epn+'.mp4'
         
-        
+        logger.debug(new_epn)
         if OSNAME == 'nt':
             if '?' in new_epn:
                 new_epn = new_epn.replace('?', '_')
@@ -8544,8 +8568,8 @@ watch/unwatch status")
         if (site.lower() != 'video' and site.lower() != 'music' 
                 and site.lower() != 'local' and site.lower() != 'playlists' 
                 and site.lower() != 'none'):
-            new_epn_mkv = new_epn+'.mkv'
-            new_epn_mp4 = new_epn+'.mp4'
+            new_epn_mkv = new_epn
+            new_epn_mp4 = new_epn
             file_name_mkv = os.path.join(self.default_download_location, title, new_epn_mkv)
             file_name_mp4 = os.path.join(self.default_download_location, title, new_epn_mp4)
         elif (site.lower() == 'playlists' or opt_val == 'youtube' or self.music_playlist):
@@ -8557,8 +8581,8 @@ watch/unwatch status")
                     st = self.if_path_is_rel(st)
             st = st.replace('"', '')
             if st.startswith('http'):
-                new_epn_mkv = new_epn+'.mp4'
-                new_epn_mp4 = new_epn+'.mp4'
+                new_epn_mkv = new_epn
+                new_epn_mp4 = new_epn
                 file_name_mkv = os.path.join(self.default_download_location, title, new_epn_mkv)
                 file_name_mp4 = os.path.join(self.default_download_location, title, new_epn_mp4)
             else:
@@ -9821,6 +9845,7 @@ watch/unwatch status")
     def start_offline_mode(self, row, extra=None):
         global site, name, hdr
         #if not self.if_file_path_exists_then_play(row, self.list2, False):
+        self.queue_stop = False
         if not self.epn_wait_thread.isRunning():
             if site not in ['Video', 'Music', 'PlayLists', 'None'] and extra:
                 n, e, m, q, r, s, sn, ep = extra
@@ -9967,7 +9992,7 @@ watch/unwatch status")
         if self.tab_2.isHidden():
             pass
         type_int = False
-        if self.queue_url_list:
+        if self.queue_url_list and not self.queue_stop:
             type_tuple = False
             for j, i in enumerate(self.queue_url_list):
                 if isinstance(i, tuple):
@@ -9976,6 +10001,7 @@ watch/unwatch status")
             
             if type_tuple:
                 n, e, m, q, r, s, sn, ep = self.queue_url_list[j]
+                self.queue_item = self.queue_url_list[j]
                 itm = self.list6.item(j)
                 nepn = ep
                 nepn = re.sub('#|"', '', nepn)
@@ -12641,6 +12667,23 @@ def main():
     if os.path.isfile(ui.playing_history_file):
         with open(ui.playing_history_file, 'rb') as pls_file_read:
             ui.history_dict_obj = pickle.load(pls_file_read)
+    if os.path.isfile(ui.playing_queue_file):
+        with open(ui.playing_queue_file, 'rb') as queue_file_read:
+            ui.queue_url_list = pickle.load(queue_file_read)
+        ui.list6.clear()
+        for i in ui.queue_url_list:
+            if isinstance(i, tuple):
+                txt_load = i[-1]
+            else:
+                if '\t' in i:
+                    txt_load = i.split('\t')[0]
+                else:
+                    txt_load = i
+                if txt_load.startswith('#'):
+                    txt_load = txt_load.replace('#', '', 1)
+            ui.list6.addItem(txt_load)
+        os.remove(ui.playing_queue_file)
+        
     if not os.path.exists(os.path.join(home, 'src', 'Plugins')):
         os.makedirs(os.path.join(home, 'src', 'Plugins'))
         sys.path.append(os.path.join(home, 'src', 'Plugins'))
@@ -13631,6 +13674,12 @@ def main():
         #f.write("\nSUB_ID={0}".format(sub_id))
         #f.write("\nAUDIO_ID={0}".format(audio_id))
         f.close()
+    if wget.processId() > 0 and ui.queue_item:
+        if isinstance(ui.queue_item, tuple):
+            ui.queue_url_list.insert(0, ui.queue_item)
+    if ui.queue_url_list:
+        with open(ui.playing_queue_file, 'wb') as pls_file_queue:
+            pickle.dump(ui.queue_url_list, pls_file_queue)
     with open(ui.playing_history_file, 'wb') as pls_file:
         if ui.list1.currentItem():
             ui.history_dict_obj.update({'#LAST@TITLE':[curR, curR, ui.list1.currentItem().text(), '', 1]})
