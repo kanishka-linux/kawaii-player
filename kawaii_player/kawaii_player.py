@@ -3420,7 +3420,7 @@ watch/unwatch status")
                         if self.player_theme == 'default':
                             self.label_new.setMinimumHeight(0)
                         
-            if MainWindow.isFullScreen() and self.tab_6.isHidden() and not self.force_fs:
+            if ((MainWindow.isFullScreen() and self.tab_6.isHidden()) or self.fullscreen_mode == 1) and not self.force_fs:
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
                 MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
