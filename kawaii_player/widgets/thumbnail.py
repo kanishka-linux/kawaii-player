@@ -1138,17 +1138,18 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.video_mode_index = 1
                     ui.comboBoxMode.setCurrentIndex(0)
             idw = ui.get_parameters_value(i='idw')['idw']
-            if tmp_idw == idw:
-                if ui.mpvplayer_val.processId() > 0:
-                    ui.playerPlayPause()
+            if num >= 0:
+                if tmp_idw == idw:
+                    if ui.mpvplayer_val.processId() > 0:
+                        ui.playerPlayPause()
+                    else:
+                        if not label_watch:
+                            self.remember_thumbnail_position(num)
+                        self.change_video_mode(ui.video_mode_index, num)
                 else:
-                    if not label_watch:
+                    if label_name not in ['label', 'label_new']:
                         self.remember_thumbnail_position(num)
                     self.change_video_mode(ui.video_mode_index, num)
-            else:
-                if label_name not in ['label', 'label_new']:
-                    self.remember_thumbnail_position(num)
-                self.change_video_mode(ui.video_mode_index, num)
                 
     def remember_thumbnail_position(self, num):
         p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(num)
