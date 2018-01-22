@@ -913,6 +913,7 @@ class PlayerGetEpn(QtCore.QThread):
     def run(self):
         finalUrl = ""
         nosignal = False
+        mylist = []
         try:
             if self.epn_type == 'yt':
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
@@ -969,7 +970,6 @@ class PlayerGetEpn(QtCore.QThread):
                 mytuple = ui.site_var.getEpnList(self.name, self.opt,
                                                  self.depth_list, self.extra_info,
                                                  self.siteName, self.category)
-                mylist = []
                 for i in mytuple:
                     mylist.append(i)
                 mylist.append(self.name)
