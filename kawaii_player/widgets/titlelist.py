@@ -463,6 +463,20 @@ class TitleListWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(self.count()-1)
             else:
                 self.setCurrentRow(prev_r)
+        elif event.text().isalnum():
+            ui.focus_widget = self
+            if ui.search_on_type_btn.isHidden():
+                g = self.geometry()
+                txt = event.text()
+                ui.search_on_type_btn.setGeometry(g.x(), g.y(), self.width(), 32)
+                ui.search_on_type_btn.show()
+                ui.search_on_type_btn.clear()
+                ui.search_on_type_btn.setText(txt)
+            else:
+                ui.search_on_type_btn.setFocus()
+                txt = ui.search_on_type_btn.text()
+                new_txt = txt+event.text()
+                ui.search_on_type_btn.setText(new_txt)
         else:
             super(TitleListWidget, self).keyPressEvent(event)
             
