@@ -7700,7 +7700,7 @@ watch/unwatch status")
             self.list2.clear()
             if self.list1.currentItem():
                 m = []
-                if not send_list:
+                if send_list is None:
                     cur_row = self.list1.currentRow()
                     self.depth_list = cur_row
                     new_name_with_info = self.original_path_name[cur_row].strip()
@@ -7710,21 +7710,24 @@ watch/unwatch status")
                         extra_info = new_name_with_info.split('	')[1]
                     else:
                         name = new_name_with_info
-                else:
-                    m, summary, picn = send_list[0], send_list[1], send_list[2]
-                    self.record_history, self.depth_list = send_list[3], send_list[4]
-                    name, extra_info = send_list[5], send_list[6]
-                    siteName, opt = send_list[7], send_list[8]
-                    cur_row = send_list[9]
-                    new_name_with_info = self.original_path_name[cur_row].strip()
-                    self.text.setText('Load..Complete')
-                    logger.info(m)
-                    logger.info(summary)
-                    logger.info(picn)
-                    logger.info('site={0};opt={1};name={2};extra_info={3}'.format(
-                        site, opt, name, extra_info))
-                if opt != "History" or site.lower() == 'myserver':
+                elif isinstance(send_list, list):
                     if not send_list:
+                        logger.error('No List Sent')
+                    else:
+                        m, summary, picn = send_list[0], send_list[1], send_list[2]
+                        self.record_history, self.depth_list = send_list[3], send_list[4]
+                        name, extra_info = send_list[5], send_list[6]
+                        siteName, opt = send_list[7], send_list[8]
+                        cur_row = send_list[9]
+                        new_name_with_info = self.original_path_name[cur_row].strip()
+                        self.text.setText('Load..Complete')
+                        logger.info(m)
+                        logger.info(summary)
+                        logger.info(picn)
+                        logger.info('site={0};opt={1};name={2};extra_info={3}'.format(
+                            site, opt, name, extra_info))
+                if opt != "History" or site.lower() == 'myserver':
+                    if send_list is None:
                         self.text.setText('Wait...Loading')
                         QtWidgets.QApplication.processEvents()
                         try:
@@ -7754,6 +7757,7 @@ watch/unwatch status")
                             self.text.setText('Load..Failed')
                             return 0
                     if not m:
+                        logger.error('Nothing found')
                         return 0
                     else:
                         level_mark = m[-1]
