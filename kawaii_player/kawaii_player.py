@@ -599,7 +599,7 @@ class Ui_MainWindow(object):
         self.text_save_btn_timer.timeout.connect(self.text_save_btn_hide)
         self.text_save_btn_timer.setSingleShot(True)
         
-        self.search_on_type_btn = QtWidgets.QLineEdit(MainWindow)
+        self.search_on_type_btn = QLineCustomSearch(MainWindow, self)
         self.search_on_type_btn.hide()
         
         self.text.lineWrapMode()
@@ -715,7 +715,7 @@ watch/unwatch status")
         self.page_number.setMaximumWidth(48)
         self.page_number.setMinimumHeight(30)
         
-        self.go_page = QLineCustom(self.frame)
+        self.go_page = QLineCustom(self.frame, self)
         self.go_page.setObjectName(_fromUtf8("go_page"))
         self.go_page.setMinimumHeight(30)
         self.go_page.setPlaceholderText('Filter')
@@ -1168,7 +1168,7 @@ watch/unwatch status")
         self.goto_epn_filter.setText("Filter")
         self.goto_epn_filter.hide()
         
-        self.goto_epn_filter_txt = QLineCustomEpn(self.goto_epn)
+        self.goto_epn_filter_txt = QLineCustomEpn(self.goto_epn, self)
         self.goto_epn_filter_txt.setObjectName(_fromUtf8("Filter Text"))
         self.horizontalLayout_goto_epn.insertWidget(3, self.goto_epn_filter_txt, 0)
         self.goto_epn_filter_txt.setPlaceholderText("Filter")
