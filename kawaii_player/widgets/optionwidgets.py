@@ -352,9 +352,11 @@ class QProgressBarCustom(QtWidgets.QProgressBar):
 
 class QLineCustom(QtWidgets.QLineEdit):
     
-    def __init__(self, parent):
+    def __init__(self, parent, ui_widget):
         super(QLineCustom, self).__init__(parent)
-
+        global ui
+        ui = ui_widget
+        
     def keyPressEvent(self, event):
         print("down")
         if (event.key() == QtCore.Qt.Key_Down):
@@ -366,15 +368,38 @@ class QLineCustom(QtWidgets.QLineEdit):
             ui.list4.show()
             ui.list4.setFocus()
             self.show()
-            
-        super(QLineCustom, self).keyPressEvent(event)
+        else:
+            super(QLineCustom, self).keyPressEvent(event)
 
+
+class QLineCustomSearch(QtWidgets.QLineEdit):
+    
+    def __init__(self, parent, ui_widget):
+        super(QLineCustomSearch, self).__init__(parent)
+        global ui
+        ui = ui_widget
+        
+    def keyPressEvent(self, event):
+        print("down")
+        if (event.key() == QtCore.Qt.Key_Down):
+            print("Down")
+            if ui.focus_widget == ui.list1:
+                ui.list1.setFocus()
+            elif ui.focus_widget == ui.list2:
+                ui.list2.setFocus()
+            self.hide()
+        elif event.key() == QtCore.Qt.Key_Up:
+            self.hide()
+        else:
+            super(QLineCustomSearch, self).keyPressEvent(event)
 
 class QLineCustomEpn(QtWidgets.QLineEdit):
     
-    def __init__(self, parent):
+    def __init__(self, parent, ui_widget):
         super(QLineCustomEpn, self).__init__(parent)
-
+        global ui
+        ui = ui_widget
+        
     def keyPressEvent(self, event):
         
         if (event.type()==QtCore.QEvent.KeyPress) and (event.key() == QtCore.Qt.Key_Down):
