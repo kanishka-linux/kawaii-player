@@ -393,11 +393,14 @@ class QLineCustomSearch(QtWidgets.QLineEdit):
         
     def keyPressEvent(self, event):
         print("down")
-        if (event.key() == QtCore.Qt.Key_Down):
-            print("Down")
+        if event.key() == QtCore.Qt.Key_Down:
             self.go_to_target()
             self.hide()
         elif event.key() == QtCore.Qt.Key_Up:
+            self.hide()
+        elif event.key() == QtCore.Qt.Key_Right:
+            self.hide()
+        elif event.key() == QtCore.Qt.Key_Left:
             self.hide()
         elif event.key() == QtCore.Qt.Key_Return:
             self.go_to_target()
