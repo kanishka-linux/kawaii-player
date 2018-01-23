@@ -378,17 +378,29 @@ class QLineCustomSearch(QtWidgets.QLineEdit):
         super(QLineCustomSearch, self).__init__(parent)
         global ui
         ui = ui_widget
+    
+    def go_to_target(self):
+        if ui.focus_widget == ui.list1:
+            ui.list1.setFocus()
+            if not ui.tab_6.isHidden():
+                ui.tab_6.setFocus()
+                ui.take_to_thumbnail(mode='title', focus=True)
+        elif ui.focus_widget == ui.list2:
+            ui.list2.setFocus()
+            if not ui.tab_6.isHidden():
+                ui.tab_6.setFocus()
+                ui.take_to_thumbnail(mode='epn', focus=True)
         
     def keyPressEvent(self, event):
         print("down")
         if (event.key() == QtCore.Qt.Key_Down):
             print("Down")
-            if ui.focus_widget == ui.list1:
-                ui.list1.setFocus()
-            elif ui.focus_widget == ui.list2:
-                ui.list2.setFocus()
+            self.go_to_target()
             self.hide()
         elif event.key() == QtCore.Qt.Key_Up:
+            self.hide()
+        elif event.key() == QtCore.Qt.Key_Return:
+            self.go_to_target()
             self.hide()
         else:
             super(QLineCustomSearch, self).keyPressEvent(event)
