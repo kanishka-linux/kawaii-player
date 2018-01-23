@@ -5257,6 +5257,8 @@ watch/unwatch status")
         global fullscrT, idwMain, idw, view_layout
         if not self.search_on_type_btn.isHidden():
             self.search_on_type_btn.hide()
+        elif self.mpvplayer_val.processId() > 0:
+            pass
         else:
             fullscrT = 1 - fullscrT
             if hide_var:
