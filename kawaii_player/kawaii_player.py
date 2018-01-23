@@ -13050,260 +13050,266 @@ def main():
         lines = open_files(os.path.join(home, 'other_options.txt'), True)
         for i in lines:
             i = i.strip()
-            j = i.split('=')[-1]
-            if "LOCAL_STREAM_IP" in i:
-                j1 = j.split(':')
-                if len(j1) == 2:
-                    if j1[0].lower()=='localhost' or not j1[0]:
-                        ui.local_ip_stream = '127.0.0.1'
-                    else:
-                        ui.local_ip_stream = j1[0]
-                    try:
-                        ui.local_port_stream = int(j1[1])
-                    except Exception as e:
-                        print(e)
-                        ui.local_port_stream = 9001
-                else:
-                    ui.local_ip_stream = '127.0.0.1'
-                    ui.local_port_stream = 9001
-                if ui.local_ip_stream not in ui.client_auth_arr:
-                    ui.client_auth_arr.append(ui.local_ip_stream)
-            elif 'DEFAULT_DOWNLOAD_LOCATION' in i:
-                ui.default_download_location = j
-            elif 'GET_LIBRARY' in i:
-                ui.get_fetch_library = j
-            elif 'TMP_REMOVE' in i:
-                if j == 'yes' or j == 'no':
-                    ui.tmp_folder_remove = j
-                else:
-                    ui.tmp_folder_remove = 'no'
-            elif 'IMAGE_FIT_OPTION' in i:
-                try:
-                    k = int(j)
-                except Exception as e:
-                    print(e)
-                    k = 3
-                ui.image_fit_option_val = k
-            elif i.startswith('AUTH='):
-                try:
-                    if (j.lower() != 'none'):
-                        ui.media_server_key = j
-                    else:
-                        ui.media_server_key = None
-                except Exception as e:
-                    print(e)
-                    ui.media_server_key = None
-            elif i.startswith('ACCESS_FROM_OUTSIDE_NETWORK='):
-                try:
-                    if (':' in j) and (j.lower() != 'none'):
-                        tmp = j.split(':')
-                        if tmp[0].lower() == 'true':
-                            ui.access_from_outside_network = True
+            if not i.startswith('#'):
+                j = i.split('=')[-1]
+                if "LOCAL_STREAM_IP" in i:
+                    j1 = j.split(':')
+                    if len(j1) == 2:
+                        if j1[0].lower()=='localhost' or not j1[0]:
+                            ui.local_ip_stream = '127.0.0.1'
                         else:
-                            ui.access_from_outside_network = False
+                            ui.local_ip_stream = j1[0]
                         try:
-                            ui.get_ip_interval = float(tmp[1])
+                            ui.local_port_stream = int(j1[1])
                         except Exception as e:
                             print(e)
-                            ui.get_ip_interval = 1
+                            ui.local_port_stream = 9001
                     else:
-                        if j.lower() == 'true':
-                            ui.access_from_outside_network = True
-                        else:
-                            ui.access_from_outside_network = False
-                            
-                except Exception as e:
-                    print(e)
-                    ui.access_from_outside_network = False
-            elif i.startswith('CLOUD_IP_FILE='):
-                try:
-                    if j.lower() == 'none' or j.lower() == 'false' or not j:
-                        ui.cloud_ip_file = None
+                        ui.local_ip_stream = '127.0.0.1'
+                        ui.local_port_stream = 9001
+                    if ui.local_ip_stream not in ui.client_auth_arr:
+                        ui.client_auth_arr.append(ui.local_ip_stream)
+                elif 'DEFAULT_DOWNLOAD_LOCATION' in i:
+                    ui.default_download_location = j
+                elif 'GET_LIBRARY' in i:
+                    ui.get_fetch_library = j
+                elif 'TMP_REMOVE' in i:
+                    if j == 'yes' or j == 'no':
+                        ui.tmp_folder_remove = j
                     else:
-                        if os.path.isfile(j):
-                            ui.cloud_ip_file = j
+                        ui.tmp_folder_remove = 'no'
+                elif 'IMAGE_FIT_OPTION' in i:
+                    try:
+                        k = int(j)
+                    except Exception as e:
+                        print(e)
+                        k = 3
+                    ui.image_fit_option_val = k
+                elif i.startswith('AUTH='):
+                    try:
+                        if (j.lower() != 'none'):
+                            ui.media_server_key = j
                         else:
+                            ui.media_server_key = None
+                    except Exception as e:
+                        print(e)
+                        ui.media_server_key = None
+                elif i.startswith('ACCESS_FROM_OUTSIDE_NETWORK='):
+                    try:
+                        if (':' in j) and (j.lower() != 'none'):
+                            tmp = j.split(':')
+                            if tmp[0].lower() == 'true':
+                                ui.access_from_outside_network = True
+                            else:
+                                ui.access_from_outside_network = False
+                            try:
+                                ui.get_ip_interval = float(tmp[1])
+                            except Exception as e:
+                                print(e)
+                                ui.get_ip_interval = 1
+                        else:
+                            if j.lower() == 'true':
+                                ui.access_from_outside_network = True
+                            else:
+                                ui.access_from_outside_network = False
+                                
+                    except Exception as e:
+                        print(e)
+                        ui.access_from_outside_network = False
+                elif i.startswith('CLOUD_IP_FILE='):
+                    try:
+                        if j.lower() == 'none' or j.lower() == 'false' or not j:
                             ui.cloud_ip_file = None
-                except Exception as e:
-                    print(e)
-                    ui.cloud_ip_file = None
-            elif i.startswith('KEEP_BACKGROUND_CONSTANT='):
-                try:
-                    k = j.lower()
-                    if k:
-                        if k == 'yes' or k == 'true' or k == '1':
-                            ui.keep_background_constant = True
                         else:
-                            ui.keep_background_constant = False
-                except Exception as e:
-                    print(e)
-                    ui.keep_background_constant = False
-            elif i.startswith('HTTPS_ON='):
-                try:
-                    k = j.lower()
-                    if k:
-                        if k == 'yes' or k == 'true' or k == '1':
-                            ui.https_media_server = True
+                            if os.path.isfile(j):
+                                ui.cloud_ip_file = j
+                            else:
+                                ui.cloud_ip_file = None
+                    except Exception as e:
+                        print(e)
+                        ui.cloud_ip_file = None
+                elif i.startswith('KEEP_BACKGROUND_CONSTANT='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.keep_background_constant = True
+                            else:
+                                ui.keep_background_constant = False
+                    except Exception as e:
+                        print(e)
+                        ui.keep_background_constant = False
+                elif i.startswith('HTTPS_ON='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.https_media_server = True
+                            else:
+                                ui.https_media_server = False
+                    except Exception as e:
+                        print(e)
+                        ui.https_media_server = False
+                elif i.startswith('MEDIA_SERVER_AUTOSTART='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.media_server_autostart = True
+                            else:
+                                ui.media_server_autostart = False
+                    except Exception as e:
+                        print(e)
+                        ui.media_server_autostart = False
+                elif i.startswith('MEDIA_SERVER_COOKIE='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.media_server_cookie = True
+                            else:
+                                ui.media_server_cookie = False
+                    except Exception as e:
+                        print(e)
+                        ui.media_server_cookie = False
+                elif i.startswith('COOKIE_EXPIRY_LIMIT='):
+                    try:
+                        k = float(j)
+                        ui.cookie_expiry_limit = k
+                    except Exception as e:
+                        print(e)
+                        ui.cookie_expiry_limit = 24
+                elif i.startswith('COOKIE_PLAYLIST_EXPIRY_LIMIT='):
+                    try:
+                        k = float(j)
+                        ui.cookie_playlist_expiry_limit = k
+                    except Exception as e:
+                        print(e)
+                        ui.cookie_playlist_expiry_limit = 24
+                elif i.startswith('LOGGING='):
+                    try:
+                        k = j.lower()
+                        if k == 'off' or k == 'false':
+                            ui.logging_module = False
+                        elif k == 'on' or k == 'true':
+                            ui.logging_module = True
                         else:
-                            ui.https_media_server = False
-                except Exception as e:
-                    print(e)
-                    ui.https_media_server = False
-            elif i.startswith('MEDIA_SERVER_AUTOSTART='):
-                try:
-                    k = j.lower()
-                    if k:
-                        if k == 'yes' or k == 'true' or k == '1':
-                            ui.media_server_autostart = True
-                        else:
-                            ui.media_server_autostart = False
-                except Exception as e:
-                    print(e)
-                    ui.media_server_autostart = False
-            elif i.startswith('MEDIA_SERVER_COOKIE='):
-                try:
-                    k = j.lower()
-                    if k:
-                        if k == 'yes' or k == 'true' or k == '1':
-                            ui.media_server_cookie = True
-                        else:
-                            ui.media_server_cookie = False
-                except Exception as e:
-                    print(e)
-                    ui.media_server_cookie = False
-            elif i.startswith('COOKIE_EXPIRY_LIMIT='):
-                try:
-                    k = float(j)
-                    ui.cookie_expiry_limit = k
-                except Exception as e:
-                    print(e)
-                    ui.cookie_expiry_limit = 24
-            elif i.startswith('COOKIE_PLAYLIST_EXPIRY_LIMIT='):
-                try:
-                    k = float(j)
-                    ui.cookie_playlist_expiry_limit = k
-                except Exception as e:
-                    print(e)
-                    ui.cookie_playlist_expiry_limit = 24
-            elif i.startswith('LOGGING='):
-                try:
-                    k = j.lower()
-                    if k == 'off' or k == 'false':
+                            ui.logging_module = False
+                    except Exception as e:
+                        print(e)
                         ui.logging_module = False
-                    elif k == 'on' or k == 'true':
-                        ui.logging_module = True
-                    else:
-                        ui.logging_module = False
-                except Exception as e:
-                    print(e)
-                    ui.logging_module = False
-            elif i.startswith('GET_MUSIC_METADATA='):
-                try:
-                    k = j.lower()
-                    if k == 'on' or k == 'true' or k == 'yes':
-                        ui.get_artist_metadata = True
-                except Exception as e:
-                    print(e)
-            elif i.startswith('REMOTE_CONTROL='):
-                try:
-                    k = j.lower()
-                    if k == 'on' or k == 'true' or k == 'yes':
-                        ui.remote_control_field = True
-                        ui.action_player_menu[9].setText("Turn Off Remote Control")
-                except Exception as e:
-                    print(e)
-            elif i.startswith('BROADCAST_MESSAGE='):
-                try:
-                    j = j.replace('"', '')
-                    j = j.replace("'", '')
-                    if j and j.lower() != 'false':
-                        ui.broadcast_message = j
-                except Exception as e:
-                    print(e)
-            elif i.startswith('MPV_INPUT_CONF='):
-                try:
-                    if j and j.lower() == 'true':
-                        ui.custom_mpv_input_conf = True
-                    logger.info('mpv_conf: {0}'.format(ui.custom_mpv_input_conf))
-                except Exception as e:
-                    print(e)
-            elif i.startswith('ANIME_REVIEW_SITE='):
-                try:
-                    k = j.lower()
-                    if k:
-                        if k == 'yes' or k == 'true' or k == '1':
-                            ui.anime_review_site = True
-                        else:
-                            ui.anime_review_site = False
-                except Exception as e:
-                    print(e)
-                    ui.anime_review_site = False
-            elif i.startswith('THEME='):
-                try:
-                    k = j.lower()
-                    if k:
-                        if k in ['system', 'transparent', 'mix']:
-                            ui.player_theme = k
-                        else:
-                            ui.player_theme = 'default'
-                except Exception as e:
-                    print(e)
-                    ui.player_theme = 'default'
-            elif i.startswith('EXTRA_PLAYERS='):
-                try:
-                    extra_players = j.split(',')
-                    for extra_player in extra_players:
-                        if (extra_player not in ui.playback_engine
-                                and extra_player.lower() != 'none'):
-                            ui.playback_engine.append(extra_player)
-                except Exception as e:
-                    logger.error(e)
-            elif i.startswith('THUMBNAIL_TEXT_COLOR='):
-                try:
-                    thumb_color = j.lower()
-                    if thumb_color in ui.thumbnail_text_color_dict:
-                        ui.thumbnail_text_color = thumb_color
-                except Exception as e:
-                    logger.error(e)
-            elif i.startswith('THUMBNAIL_TEXT_COLOR_FOCUS='):
-                try:
-                    thumb_color = j.lower()
-                    if thumb_color in ui.thumbnail_text_color_dict:
-                        ui.thumbnail_text_color_focus = thumb_color
-                except Exception as e:
-                    logger.error(e)
-            elif i.startswith('YTDL_PATH='):
-                try:
-                    k = j.lower()
-                    if k == 'default':
-                        ui.ytdl_path = 'default'
-                    elif k == 'automatic':
-                        if OSNAME == 'posix':
-                            ui.ytdl_path = os.path.join(home, 'src', 'ytdl')
-                        elif OSNAME == 'nt':
-                            ui.ytdl_path = os.path.join(home, 'src', 'ytdl.exe') 
-                    else:
-                        if os.path.exists(j):
-                            ui.ytdl_path = j
-                        else:
+                elif i.startswith('GET_MUSIC_METADATA='):
+                    try:
+                        k = j.lower()
+                        if k == 'on' or k == 'true' or k == 'yes':
+                            ui.get_artist_metadata = True
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('REMOTE_CONTROL='):
+                    try:
+                        k = j.lower()
+                        if k == 'on' or k == 'true' or k == 'yes':
+                            ui.remote_control_field = True
+                            ui.action_player_menu[9].setText("Turn Off Remote Control")
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('BROADCAST_MESSAGE='):
+                    try:
+                        j = j.replace('"', '')
+                        j = j.replace("'", '')
+                        if j and j.lower() != 'false':
+                            ui.broadcast_message = j
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('MPV_INPUT_CONF='):
+                    try:
+                        if j and j.lower() == 'true':
+                            ui.custom_mpv_input_conf = True
+                        logger.info('mpv_conf: {0}'.format(ui.custom_mpv_input_conf))
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('ANIME_REVIEW_SITE='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.anime_review_site = True
+                            else:
+                                ui.anime_review_site = False
+                    except Exception as e:
+                        print(e)
+                        ui.anime_review_site = False
+                elif i.startswith('THEME='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k in ['system', 'transparent', 'mix']:
+                                ui.player_theme = k
+                            else:
+                                ui.player_theme = 'default'
+                    except Exception as e:
+                        print(e)
+                        ui.player_theme = 'default'
+                elif i.startswith('EXTRA_PLAYERS='):
+                    try:
+                        extra_players = j.split(',')
+                        for extra_player in extra_players:
+                            if (extra_player not in ui.playback_engine
+                                    and extra_player.lower() != 'none'):
+                                ui.playback_engine.append(extra_player)
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('THUMBNAIL_TEXT_COLOR='):
+                    try:
+                        thumb_color = j.lower()
+                        if thumb_color in ui.thumbnail_text_color_dict:
+                            ui.thumbnail_text_color = thumb_color
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('THUMBNAIL_TEXT_COLOR_FOCUS='):
+                    try:
+                        thumb_color = j.lower()
+                        if thumb_color in ui.thumbnail_text_color_dict:
+                            ui.thumbnail_text_color_focus = thumb_color
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('YTDL_PATH='):
+                    try:
+                        k = j.lower()
+                        if k == 'default':
                             ui.ytdl_path = 'default'
-                except Exception as e:
-                    print(e)
-                    ui.ytdl_path = 'default'
+                        elif k == 'automatic':
+                            if OSNAME == 'posix':
+                                ui.ytdl_path = os.path.join(home, 'src', 'ytdl')
+                            elif OSNAME == 'nt':
+                                ui.ytdl_path = os.path.join(home, 'src', 'ytdl.exe') 
+                        else:
+                            if os.path.exists(j):
+                                ui.ytdl_path = j
+                            else:
+                                ui.ytdl_path = 'default'
+                    except Exception as e:
+                        print(e)
+                        ui.ytdl_path = 'default'
+            else:
+                logger.debug(i)
     else:
         f = open(os.path.join(home, 'other_options.txt'), 'w')
+        f.write("#BROWSER_BACKEND=QTWEBENGINE,QTWEBKIT")
         if BROWSER_BACKEND == 'QTWEBENGINE':
-            f.write("BROWSER_BACKEND=QTWEBENGINE")
+            f.write("\nBROWSER_BACKEND=QTWEBENGINE")
         elif BROWSER_BACKEND == 'QTWEBKIT':
             f.write("BROWSER_BACKEND=QTWEBKIT")
         f.write("\nLOCAL_STREAM_IP=127.0.0.1:9001")
         f.write("\nDEFAULT_DOWNLOAD_LOCATION="+TMPDIR)
         f.write("\nKEEP_BACKGROUND_CONSTANT=no")
         f.write("\nTMP_REMOVE=no")
+        f.write("\n#GET_LIBRARY=pycurl,curl,wget")
         if OSNAME == 'nt':
             f.write("\nGET_LIBRARY=curl")
         else:
             f.write("\nGET_LIBRARY=pycurl")
+        f.write("\n#IMAGE_FIT_OPTION=0-9")
         f.write("\nIMAGE_FIT_OPTION=3")
         f.write("\nAUTH=NONE")
         f.write("\nACCESS_FROM_OUTSIDE_NETWORK=False")
@@ -13313,6 +13319,7 @@ def main():
         f.write("\nCOOKIE_EXPIRY_LIMIT=24")
         f.write("\nCOOKIE_PLAYLIST_EXPIRY_LIMIT=24")
         f.write("\nLOGGING=Off")
+        f.write("\n#YTDL_PATH=default,automatic")
         f.write("\nYTDL_PATH=DEFAULT")
         f.write("\nANIME_REVIEW_SITE=False")
         f.write("\nGET_MUSIC_METADATA=False")
@@ -13320,8 +13327,11 @@ def main():
         f.write("\nMPV_INPUT_CONF=False")
         f.write("\nBROADCAST_MESSAGE=False")
         f.write("\nMEDIA_SERVER_AUTOSTART=False")
+        f.write("\n#THEME=default,system,transparent,mix")
         f.write("\nTHEME=DEFAULT")
+        f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
         f.write("\nEXTRA_PLAYERS=NONE")
+        f.write("\n#THUMBNAIL_TEXT_COLOR=red,green,blue,yellow,gray,white,black")
         f.write("\nTHUMBNAIL_TEXT_COLOR=white")
         f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
         f.close()
