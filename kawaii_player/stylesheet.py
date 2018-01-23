@@ -107,6 +107,8 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%)""")
             gui.text_save_btn.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px""")
+            gui.search_on_type_btn.setStyleSheet("""font: bold 12px;color:white;
+                background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px""")
             gui.goto_epn.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 25%);border:rgba(0, 0, 0, 30%);border-radius:3px;""")
             gui.line.setStyleSheet("""font: bold 12px;color:white;
