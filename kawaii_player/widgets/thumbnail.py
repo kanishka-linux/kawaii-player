@@ -501,7 +501,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     if self.fs_timer_focus.isActive():
                         self.fs_timer_focus.stop()
                     self.fs_timer_focus.start(1000)
-        super(ThumbnailWidget, self).keyPressEvent(event)
+        else:
+            super(ThumbnailWidget, self).keyPressEvent(event)
 
     def player_thumbnail_fs(self, mode=None):
         param_dict = ui.get_parameters_value(
