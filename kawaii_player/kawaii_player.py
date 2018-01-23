@@ -1563,6 +1563,7 @@ watch/unwatch status")
         self.btn3.setMinimumHeight(30)
         self.line.setMinimumHeight(30)
         self.btn1.setMinimumHeight(30)
+        self.btnAddon.setMinimumHeight(30)
         self.chk.setMinimumHeight(30)
         self.comboView.setMinimumHeight(30)
         self.btnHistory.setMinimumHeight(30)
@@ -8656,10 +8657,10 @@ watch/unwatch status")
         if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' and self.mpvplayer_started
                 and not finalUrl.startswith('http') and not self.external_audio_file):
             epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
-            if Player == "mplayer":
+            if Player.lower() == "mplayer":
                 t1 = bytes('\n '+'show_text '+epnShow+' \n', 'utf-8')
                 t2 = bytes('\n '+"loadfile "+finalUrl+" replace "+'\n', 'utf-8')
-            elif Player == 'mpv':
+            elif Player.lower() == 'mpv':
                 t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                 t2 = bytes('\n '+"loadfile "+finalUrl+' replace \n', 'utf-8')
             logger.info('{0}---hello-----'.format(t2))
@@ -9043,7 +9044,10 @@ watch/unwatch status")
             self.infoPlay(command)
         else:
             finalUrl = finalUrl.replace('"', '')
-            subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            if Player.lower() in ['mpv', 'mplayer']:
+                subprocess.Popen([Player.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            else:
+                subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             
         if not isinstance(finalUrl, list):
             self.final_playing_url = finalUrl.replace('"', '')
@@ -9313,7 +9317,10 @@ watch/unwatch status")
                 self.infoPlay(command)
             else:
                 finalUrl = finalUrl.replace('"', '')
-                subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                if Player.lower() in ['mpv', 'mplayer']:
+                    subprocess.Popen([Player.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                else:
+                    subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         elif not self.epn_wait_thread.isRunning():
             if self.download_video == 0 and Player == "mpv":
                 if self.mpvplayer_val.processId() > 0:
@@ -9375,7 +9382,10 @@ watch/unwatch status")
                                 logger.info(command)
                                 self.infoPlay(command)
                             else:
-                                subprocess.Popen([Player, "-referrer", rfr_url, finalUrl[0]])
+                                if Player.lower() in ['mpv', 'mplayer']:
+                                    subprocess.Popen([Player.lower(), "-referrer", rfr_url, finalUrl[0]])
+                                else:
+                                    subprocess.Popen([Player, "-referrer", rfr_url, finalUrl[0]])
                         else:
                             if Player == "mplayer":
                                 quitReally = "no"
@@ -9387,7 +9397,10 @@ watch/unwatch status")
                                 self.infoPlay(command)
                             else:
                                 final_url = str(finalUrl[0])
-                                subprocess.Popen([Player, final_url])
+                                if Player.lower() in ['mpv', 'mplayer']:
+                                    subprocess.Popen([Player.lower(), final_url])
+                                else:
+                                    subprocess.Popen([Player, final_url])
                     else:
                         epnShow = finalUrl[0]
                         for i in range(len(finalUrl)-1):
@@ -9411,7 +9424,10 @@ watch/unwatch status")
                         self.infoPlay(command)
                     else:
                         finalUrl = re.sub('"', "", finalUrl)
-                        subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                        if Player.lower() in ['mpv', 'mplayer']:
+                            subprocess.Popen([Player.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                        else:
+                            subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             elif self.download_video == 1 and refererNeeded == False:
                 if type(finalUrl) is list:
                     j = 0
@@ -9574,12 +9590,13 @@ watch/unwatch status")
             if self.float_window.isHidden():
                 self.tab_5.hide()
         else:
-            self.tab_5.show()
-            self.list1.hide()
-            self.frame.hide()
-            self.text.hide()
-            self.label.hide()
-            self.label_new.hide()
+            if Player in ['mpv', 'mplayer']:
+                self.tab_5.show()
+                self.list1.hide()
+                self.frame.hide()
+                self.text.hide()
+                self.label.hide()
+                self.label_new.hide()
             
     def local_torrent_open(self, tmp, start_now=None):
         global local_torrent_file_path, site
@@ -9796,15 +9813,6 @@ watch/unwatch status")
             if (self.mpvplayer_val.processId()>0):
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
-                #time.sleep(1)
-                if self.mpvplayer_val.processId() > 0:
-                    print(self.mpvplayer_val.processId(), '=self.mpvplayer_val.processId()')
-                    try:
-                        #subprocess.Popen(['killall', 'mplayer'])
-                        print('hello')
-                    except:
-                        pass
-        print(self.mpvplayer_val.processId(), '=self.mpvplayer_val.processId()')
         if self.mpvplayer_val.processId() > 0:
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
@@ -10094,7 +10102,7 @@ watch/unwatch status")
                 logger.debug(a)
             elif 'Audio' in a:
                 logger.info(a)
-            if self.custom_mpv_input_conf and Player == 'mpv':
+            if self.custom_mpv_input_conf and Player.lower() == 'mpv':
                 if 'set property: fullscreen' in a.lower():
                     logger.debug(a)
                     if (self.tab_5.width() >= screen_width
@@ -10145,7 +10153,7 @@ watch/unwatch status")
                 if a and 'AV:' not in a and 'A:' not in a:
                     #logger.debug('-->{0}<--'.format(a))
                     pass
-            if (Player == 'mpv' and self.mplayerLength
+            if (Player.lower() == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a 
                     or "HTTP error 403 Forbidden" in a 
                     or self.progress_counter > self.mplayerLength + 1
@@ -10174,7 +10182,7 @@ watch/unwatch status")
         #el = time.process_time() - tt
         #print(el)
         try:
-            if Player == "mpv":
+            if Player.lower() == "mpv":
                 if "AUDIO_ID" in a or "AUDIO_KEY_ID" in a:
                     new_arr = a.split('\n')
                     for i in new_arr:
@@ -10481,7 +10489,7 @@ watch/unwatch status")
                     elif quitReally == "yes": 
                         self.player_stop.clicked.emit()
                         self.list2.setFocus()
-            elif Player == "mplayer":
+            elif Player.lower() == "mplayer":
                 if "PAUSE" in a:
                     if buffering_mplayer != 'yes':
                         self.player_play_pause.setText(self.player_buttons['play'])
@@ -11106,7 +11114,7 @@ watch/unwatch status")
             finalUrl = finalUrl
             
         if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
-            if Player == "mplayer":
+            if Player.lower() == "mplayer":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if (not self.external_url and self.mpvplayer_started 
                         and not self.external_audio_file and OSNAME == 'posix'):
@@ -11127,7 +11135,7 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
-            elif Player == "mpv":
+            elif Player.lower() == "mpv":
                 command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
                 if (not self.external_url and self.mpvplayer_started 
                         and not self.external_audio_file and OSNAME == 'posix'):
@@ -11271,7 +11279,7 @@ watch/unwatch status")
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
             
-            if Player == 'mpv':
+            if Player.lower() == 'mpv':
                 if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
                     logger.info(t2)
@@ -11281,7 +11289,7 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
-            elif Player == "mplayer":
+            elif Player.lower() == "mplayer":
                 if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
                     logger.info(t2)
@@ -11323,7 +11331,7 @@ watch/unwatch status")
         global site
         finalUrl = finalUrl.replace('"', '')
         aspect_value = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
-        if player == 'mplayer':
+        if player.lower() == 'mplayer':
             if finalUrl.startswith('http'):
                 command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid {0}'.format(idw)
             else:
@@ -11334,7 +11342,7 @@ watch/unwatch status")
                 pass
             else:
                 command = command + ' -aspect {0}'.format(aspect_value)
-        elif player == "mpv":
+        elif player.lower() == "mpv":
             self.mpv_custom_pause = False
             command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
  --cache-initial=0 --cache-seek-min=100 --cache-pause\
@@ -11389,6 +11397,11 @@ watch/unwatch status")
         if self.custom_mpv_input_conf:
             command = re.sub('--input-vo-keyboard=no|--input-terminal=no', '', command)
             command = command.replace('--osd-level=0', '--osd-level=1')
+        if player == 'MPV':
+            command = re.sub('-wid [0-9]+|--input-vo-keyboard=no|--input-terminal=no', '', command)
+            command = re.sub('--cursor-autohide=no|--no-input-cursor|--no-osc|--no-osd-bar|--ytdl=no', '', command)
+        elif player == 'MPLAYER':
+            command = re.sub('-wid [0-9]+', '', command)
         print(command, '---10446---')
         logger.debug(finalUrl)
         if finalUrl:
@@ -12774,6 +12787,10 @@ def main():
                     Player = player_txt
                     ui.player_val = Player
                     ui.chk.setText(ui.player_val)
+                    if j.strip() in ['MPV', 'MPLAYER']:
+                        Player = j.strip()
+                        ui.player_val = Player
+                        ui.chk.setText(ui.player_val)
                 elif "WindowFrame" in i:
                     try:
                         j = j.replace('\n', '')
@@ -13236,7 +13253,9 @@ def main():
                 try:
                     extra_players = j.split(',')
                     for extra_player in extra_players:
-                        ui.playback_engine.append(extra_player)
+                        if (extra_player not in ui.playback_engine
+                                and extra_player.lower() != 'none'):
+                            ui.playback_engine.append(extra_player)
                 except Exception as e:
                     logger.error(e)
             elif i.startswith('THUMBNAIL_TEXT_COLOR='):
@@ -13302,6 +13321,7 @@ def main():
         f.write("\nBROADCAST_MESSAGE=False")
         f.write("\nMEDIA_SERVER_AUTOSTART=False")
         f.write("\nTHEME=DEFAULT")
+        f.write("\nEXTRA_PLAYERS=NONE")
         f.write("\nTHUMBNAIL_TEXT_COLOR=white")
         f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
         f.close()
