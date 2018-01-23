@@ -17,7 +17,8 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
-        self.setFocus()
+        if ui.search_on_type_btn.isHidden():
+            self.setFocus()
     
     def sizeAdjust(self, nextR, direction):
         #ui.list1.setCurrentRow(nextR)
