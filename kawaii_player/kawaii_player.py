@@ -2059,30 +2059,22 @@ watch/unwatch status")
     def search_on_type(self):
         txt = self.search_on_type_btn.text()
         index = self.give_search_index(txt, mode=0, widget=self.focus_widget)
+        if index < 0:
+            index = self.give_search_index(txt, mode=1, widget=self.focus_widget)
         if index >=0:
             if self.focus_widget == self.list1:
                 self.list1.setCurrentRow(index)
-                if not self.tab_6.isHidden():
+                if not self.tab_6.isHidden() and not self.lock_process:
                     self.take_to_thumbnail(row=index, mode='title')
                     self.scrollArea.cur_row = index
             elif self.focus_widget == self.list2:
                 self.list2.setCurrentRow(index)
                 if not self.tab_6.isHidden():
-                    self.take_to_thumbnail(row=index, mode='epn')
-                    self.scrollArea1.cur_row = index
-        else:
-            index = self.give_search_index(txt, mode=1, widget=self.focus_widget)
-            if index >=0:
-                if self.focus_widget == self.list1:
-                    self.list1.setCurrentRow(index)
-                    if not self.tab_6.isHidden():
-                        self.take_to_thumbnail(row=index, mode='title')
-                        self.scrollArea.cur_row = index
-                elif self.focus_widget == self.list2:
-                    self.list2.setCurrentRow(index)
-                    if not self.tab_6.isHidden():
+                    try:
                         self.take_to_thumbnail(row=index, mode='epn')
                         self.scrollArea1.cur_row = index
+                    except Exception as err:
+                        logger.error(err)
             
     def remove_queue_item_btn_method(self, row=None):
         global video_local_stream
