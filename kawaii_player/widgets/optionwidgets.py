@@ -398,10 +398,6 @@ class QLineCustomSearch(QtWidgets.QLineEdit):
             self.hide()
         elif event.key() == QtCore.Qt.Key_Up:
             self.hide()
-        elif event.key() == QtCore.Qt.Key_Right:
-            self.hide()
-        elif event.key() == QtCore.Qt.Key_Left:
-            self.hide()
         elif event.key() == QtCore.Qt.Key_Return:
             self.go_to_target()
             self.hide()
