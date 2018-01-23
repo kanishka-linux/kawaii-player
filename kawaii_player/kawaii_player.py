@@ -2062,15 +2062,27 @@ watch/unwatch status")
         if index >=0:
             if self.focus_widget == self.list1:
                 self.list1.setCurrentRow(index)
+                if not self.tab_6.isHidden():
+                    self.take_to_thumbnail(row=index, mode='title')
+                    self.scrollArea.cur_row = index
             elif self.focus_widget == self.list2:
                 self.list2.setCurrentRow(index)
+                if not self.tab_6.isHidden():
+                    self.take_to_thumbnail(row=index, mode='epn')
+                    self.scrollArea1.cur_row = index
         else:
             index = self.give_search_index(txt, mode=1, widget=self.focus_widget)
             if index >=0:
                 if self.focus_widget == self.list1:
                     self.list1.setCurrentRow(index)
+                    if not self.tab_6.isHidden():
+                        self.take_to_thumbnail(row=index, mode='title')
+                        self.scrollArea.cur_row = index
                 elif self.focus_widget == self.list2:
                     self.list2.setCurrentRow(index)
+                    if not self.tab_6.isHidden():
+                        self.take_to_thumbnail(row=index, mode='epn')
+                        self.scrollArea1.cur_row = index
             
     def remove_queue_item_btn_method(self, row=None):
         global video_local_stream
@@ -2761,7 +2773,7 @@ watch/unwatch status")
         art_url_name = str(pixel)+'px.'+os.path.basename(art_url)
         path_thumb, new_title = os.path.split(art_url)
         abs_path_thumb = os.path.join(path_thumb, art_url_name)
-        logger.debug(abs_path_thumb)
+        #logger.debug(abs_path_thumb)
         try:
             if not os.path.exists(abs_path_thumb) and os.path.exists(art_url):
                 basewidth = pixel
@@ -3363,19 +3375,20 @@ watch/unwatch status")
                             self.list2.setFocus()
                         elif self.fullscreen_mode == 1:
                             self.tab_6.show()
-                            self.gridLayout.setSpacing(5)
-                            self.tab_6.setMaximumSize(16777215, 16777215)
-                            tab_6_size_indicator.append(screen_width-20)
-                            thumbnail_indicator[:]=[]
-                            if iconv_r_indicator:
-                                iconv_r = iconv_r_indicator[0]
-                            else:
-                                iconv_r = 5
-                            logger.debug(iconv_r_indicator)
                             self.frame2.show()
                             self.frame1.show()
                             self.labelFrame2.show()
-                            self.thumbnail_label_update_epn()
+                            if self.video_mode_index != 1:
+                                self.gridLayout.setSpacing(5)
+                                self.tab_6.setMaximumSize(16777215, 16777215)
+                                tab_6_size_indicator.append(screen_width-20)
+                                thumbnail_indicator[:]=[]
+                                if iconv_r_indicator:
+                                    iconv_r = iconv_r_indicator[0]
+                                else:
+                                    iconv_r = 5
+                                logger.debug(iconv_r_indicator)
+                                self.thumbnail_label_update_epn()
                             QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
                     else:
                         pass
@@ -5497,7 +5510,49 @@ watch/unwatch status")
             self.list1.setFocus()
             self.text.show()
             self.frame1.show()
-            
+    
+    def take_to_thumbnail(self, row=None, mode=None, focus=None):
+        if not row:
+            if mode == 'epn' and self.list2.currentItem():
+                row = self.list2.currentRow()
+            elif mode == 'title' and self.list1.currentItem():
+                row = self.list1.currentRow()
+            else:
+                row = -1
+        if row >= 0:
+            if mode == 'title':
+                p1 = "self.label_"+str(row)+".y()"
+                yy = eval(p1)
+                self.scrollArea.verticalScrollBar().setValue(yy -10)
+                if focus:
+                    p1 = "self.label_"+str(row)+".setFocus()"
+                    exec(p1)
+                new_cnt = row+self.list1.count()
+                p1 = "self.label_{0}".format(new_cnt)
+                label_number = eval(p1)
+                label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
+                txt = label_number.toPlainText()
+                label_number.setText(txt)
+                label_number.setAlignment(QtCore.Qt.AlignCenter)
+                self.labelFrame2.setText(txt)
+                self.list1.setCurrentRow(row)
+            elif mode == 'epn':
+                p1 = "self.label_epn_"+str(row)+".y()"
+                yy = eval(p1)
+                self.scrollArea1.verticalScrollBar().setValue(yy -10)
+                if focus:
+                    p1 = "self.label_epn_"+str(row)+".setFocus()"
+                    exec(p1)
+                new_cnt = row+self.list2.count()
+                p1 = "self.label_epn_{0}".format(new_cnt)
+                label_number = eval(p1)
+                label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
+                txt = label_number.toPlainText()
+                label_number.setText(txt)
+                label_number.setAlignment(QtCore.Qt.AlignCenter)
+                self.labelFrame2.setText(txt)
+            QtWidgets.QApplication.processEvents()
+    
     def IconViewEpn(self, start=None):
         global fullscrT, idwMain, idw, total_till, label_arr, browse_cnt, tmp_name
         global view_layout, iconv_r, curR, viewMode, thumbnail_indicator
@@ -5538,30 +5593,11 @@ watch/unwatch status")
             self.tab_6.show()
             self.thumbnailEpn()
             self.tab_2.hide()
-            #if self.mpvplayer_val.processId()>0:
-            #    self.scrollArea1.verticalScrollBar().setValue((curR+1)*200+(curR+1)*10)
-            #else:
-            #    self.scrollArea1.verticalScrollBar().setValue(((num+1)/4)*200+((num+1)/4)*10)
             QtWidgets.QApplication.processEvents()
             try:
                 if self.list2.currentItem():
                     r = self.list2.currentRow()
-                    p1 = "self.label_epn_"+str(r)+".y()"
-                    yy = eval(p1)
-                    self.scrollArea1.verticalScrollBar().setValue(yy -10)
-                    p1 = "self.label_epn_"+str(r)+".setFocus()"
-                    exec(p1)
-                    new_cnt = r+self.list2.count()
-                    p1 = "self.label_epn_{0}".format(new_cnt)
-                    label_number = eval(p1)
-                    label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
-                    p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
-                    txt = eval(p1)
-                    p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                    exec(p1)
-                    p1 = "self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                    exec(p1)
-                    self.labelFrame2.setText(txt)
+                    self.take_to_thumbnail(row=r, mode='epn', focus=True)
             except Exception as err:
                 print(err)
         else:
@@ -5579,22 +5615,7 @@ watch/unwatch status")
             try:
                 if self.list2.currentItem():
                     r = self.list2.currentRow()
-                    p1 = "self.label_epn_"+str(r)+".y()"
-                    yy = eval(p1)
-                    self.scrollArea1.verticalScrollBar().setValue(yy -10)
-                    p1 = "self.label_epn_"+str(r)+".setFocus()"
-                    exec(p1)
-                    new_cnt = r+self.list2.count()
-                    p1 = "self.label_epn_{0}".format(new_cnt)
-                    label_number = eval(p1)
-                    label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
-                    p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
-                    txt = eval(p1)
-                    p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
-                    exec(p1)
-                    p1 = "self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
-                    exec(p1)
-                    self.labelFrame2.setText(txt)
+                    self.take_to_thumbnail(row=r, mode='epn', focus=True)
             except Exception as err:
                 print(err)
             QtWidgets.QApplication.processEvents()
@@ -8311,7 +8332,7 @@ watch/unwatch status")
                         else:
                             basewidth = self.float_window.width()
                             baseheight = self.float_window.height()
-                    logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
+                    #logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
                     bg = Image.new(color, (basewidth, baseheight))
                     #logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
                     try:
