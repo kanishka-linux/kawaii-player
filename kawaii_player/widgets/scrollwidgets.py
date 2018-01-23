@@ -194,15 +194,22 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 ui.scrollArea1.show()
                 ui.scrollArea1.setFocus()
         elif event.text().isalnum():
-            if not ui.label_search.hasFocus():
-                ui.label_search.setFocus()
-                txt = ui.label_search.text()
-                if txt:
-                    ui.label_search.setText(txt+event.text())
-                else:
-                    ui.label_search.setText(event.text())
-            #super(ExtendedQLabel, self).keyPressEvent(event)
-            #super(QtGuiQWidgetScroll, self).keyPressEvent(event)
+            ui.focus_widget = ui.list1
+            if ui.search_on_type_btn.isHidden():
+                g = self.geometry()
+                txt = event.text()
+                ui.search_on_type_btn.setGeometry(g.x()+self.width()-ui.width_allowed, g.y(), ui.width_allowed, 32)
+                ui.search_on_type_btn.show()
+                ui.search_on_type_btn.clear()
+                ui.search_on_type_btn.setText(txt)
+            else:
+                ui.search_on_type_btn.setFocus()
+                txt = ui.search_on_type_btn.text()
+                new_txt = txt+event.text()
+                ui.search_on_type_btn.setText(new_txt)
+        else:
+            ui.logger.debug('key not recognized')
+            super(QtGuiQWidgetScroll, self).keyPressEvent(event)
         
         
 class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
@@ -311,10 +318,6 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             ui.text.hide()
             
     def keyPressEvent(self, event):
-        if ui.mpvplayer_val.processId() > 0:
-            mpvRunning = True
-        else:
-            mpvRunning = False
         if event.key() == QtCore.Qt.Key_Equal:
             param_dict = ui.get_parameters_value(i='iconv_r', ir='iconv_r_indicator')
             iconv_r = param_dict['iconv_r']
@@ -348,9 +351,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             ui.set_parameters_value(iconv=iconv_r, iconvr=iconv_r_indicator)
             if not ui.scrollArea.isHidden():
                 ui.next_page('not_deleted')
-                #ui.thumbnail_label_update()
             elif not ui.scrollArea1.isHidden():
-                #ui.thumbnailEpn()
                 ui.thumbnail_label_update_epn()
             if iconv_r > 1:
                 w = float((ui.tab_6.width()-60)/iconv_r)
@@ -360,7 +361,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 height=str(int(h))
                 curR = ui.get_parameters_value(c='curR')['curR']
                 ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
-        if not mpvRunning:
+        if ui.mpvplayer_val.processId() == 0:
             if event.key() == QtCore.Qt.Key_Right:
                 nextR = ui.list2.currentRow()
                 if nextR < 0:
@@ -419,5 +420,19 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
                 exec_str = 'ui.label_epn_{0}.change_video_mode({1}, {2})'.format(num, ui.video_mode_index, num)
                 exec(exec_str)
-                
-            super(QtGuiQWidgetScroll1, self).keyPressEvent(event)
+            elif event.text().isalnum():
+                ui.focus_widget = ui.list2
+                if ui.search_on_type_btn.isHidden():
+                    g = self.geometry()
+                    txt = event.text()
+                    ui.search_on_type_btn.setGeometry(g.x()+self.width()-ui.width_allowed, g.y(), ui.width_allowed, 32)
+                    ui.search_on_type_btn.show()
+                    ui.search_on_type_btn.clear()
+                    ui.search_on_type_btn.setText(txt)
+                else:
+                    ui.search_on_type_btn.setFocus()
+                    txt = ui.search_on_type_btn.text()
+                    new_txt = txt+event.text()
+                    ui.search_on_type_btn.setText(new_txt)
+            else:
+                super(QtGuiQWidgetScroll1, self).keyPressEvent(event)
