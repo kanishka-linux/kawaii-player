@@ -21,6 +21,7 @@ import os
 import re
 import sqlite3
 import shutil
+import hashlib
 import subprocess
 import base64
 import urllib.parse
@@ -297,6 +298,39 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if dir_path in ui.video_dict:
                 del ui.video_dict[dir_path]
             ui.update_list2()
+        elif site == "Video" and mode == 'from_summary':
+            video_db = os.path.join(home, 'VideoDB', 'Video.db')
+            conn = sqlite3.connect(video_db)
+            cur = conn.cursor()
+            path = None
+            thumbnail_dir = os.path.join(ui.home_folder, 'thumbnails', 'thumbnail_server')
+            for row, row_item in enumerate(ui.epn_arr_list):
+                path = row_item.split('	')[1]
+                path_bytes = bytes(path, 'utf-8')
+                h = hashlib.sha256(path_bytes)
+                thumb_name = h.hexdigest()
+                txt_path = os.path.join(thumbnail_dir, thumb_name+'.txt')
+                if os.path.isfile(txt_path):
+                    sumry = open_files(txt_path, False)
+                    epname = re.search('Episode Name: [^\n]*', sumry)
+                    if epname:
+                        epname = epname.group()
+                        epname = re.sub('Episode Name: ', '', epname)
+                        epname = epname.strip()
+                        if epname:
+                            qr = 'Update Video Set EP_NAME=? Where Path=?'
+                            cur.execute(qr, (epname, path))
+                            tmp = row_item
+                            tmp = re.sub('[^	]*', epname, tmp, 1)
+                            ui.epn_arr_list[row] = tmp
+            conn.commit()
+            conn.close()
+            if path is not None:
+                if os.path.exists(path):
+                    dir_path, file_path = os.path.split(path)
+                    if dir_path in ui.video_dict:
+                        del ui.video_dict[dir_path]
+                        ui.update_list2()
         elif site == 'Music' or site == 'PlayLists' or site == 'NONE':
             pass
         else:
@@ -505,6 +539,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
                 ui.metaengine.find_info_thread(2, row, mycopy)
+        elif event.key() == QtCore.Qt.Key_F9:
+            self.get_default_name(0, mode='from_summary')
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Up):
             self.setCurrentRow(0)
