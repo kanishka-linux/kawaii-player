@@ -8681,7 +8681,7 @@ watch/unwatch status")
             elif OSNAME == 'nt':
                 if win_id:
                     idw = str(win_id)
-                elif thumbnail_indicator and self.video_mode_index != 2:
+                elif thumbnail_indicator and self.video_mode_index not in [1, 2]:
                     try:
                         p1 = 'self.label_epn_{0}.winId()'.format(str(self.thumbnail_label_number[0]))
                         idw = str(int(eval(p1)))
