@@ -10185,41 +10185,47 @@ watch/unwatch status")
             if Player.lower() == "mpv":
                 if "AUDIO_ID" in a or "AUDIO_KEY_ID" in a:
                     new_arr = a.split('\n')
-                    a_id = '(1)'
+                    a_id = None
                     for i in new_arr:
                         if i.startswith('AUDIO_ID') or i.startswith('AUDIO_KEY_ID'):
                             a_id = i.split('=')[-1]
                             break
-                    audio_s = (re.search('[(][^)]*', a_id))
-                    if audio_s:
-                        audio_id = (audio_s.group()).replace('(', '')
+                    if a_id is not None:
+                        audio_s = (re.search('[(][^)]*', a_id))
+                        if audio_s:
+                            audio_id = (audio_s.group()).replace('(', '')
+                        else:
+                            audio_id="no"
+                        self.audio_track.setText("A:"+str(a_id[:8]))
+                        if 'AUDIO_KEY_ID' in a:
+                            self.change_sid_aid_video(aid=audio_id)
                     else:
-                        audio_id="no"
-                    self.audio_track.setText("A:"+str(a_id[:8]))
-                    if 'AUDIO_KEY_ID' in a:
-                        self.change_sid_aid_video(aid=audio_id)
+                        logger.error('error getting proper a_id')
                 elif "SUB_ID" in a or "SUB_KEY_ID" in a:
                     tsid = sub_id
                     new_arr = a.split('\n')
-                    s_id = '(1)'
+                    s_id = None
                     for i in new_arr:
                         if i.startswith('SUB_ID') or i.startswith('SUB_KEY_ID'):
                             s_id = i.split('=')[-1]
                             break
-                    sub_s = (re.search('[(][^)]*', s_id))
-                    if sub_s:
-                        sub_id = (sub_s.group()).replace('(', '')
+                    if s_id is not None:
+                        sub_s = (re.search('[(][^)]*', s_id))
+                        if sub_s:
+                            sub_id = (sub_s.group()).replace('(', '')
+                        else:
+                            sub_id = "no"
+                        if tsid == 'auto' and sub_id == 'no':
+                            val_id = 'auto'
+                            sub_id = 'auto'
+                            self.mpvplayer_val.write(b'\n cycle sub \n')
+                        else:
+                            val_id = str(s_id[:8])
+                        self.subtitle_track.setText("Sub:"+val_id)
+                        if 'SUB_KEY_ID' in a:
+                            self.change_sid_aid_video(sid=sub_id)
                     else:
-                        sub_id = "no"
-                    if tsid == 'auto' and sub_id == 'no':
-                        val_id = 'auto'
-                        sub_id = 'auto'
-                        self.mpvplayer_val.write(b'\n cycle sub \n')
-                    else:
-                        val_id = str(s_id[:8])
-                    self.subtitle_track.setText("Sub:"+val_id)
-                    if 'SUB_KEY_ID' in a:
-                        self.change_sid_aid_video(sid=sub_id)
+                        logger.error('error getting proper sub id')
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
                     if a.startswith(r"b'"):
