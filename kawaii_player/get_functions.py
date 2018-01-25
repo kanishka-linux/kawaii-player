@@ -98,7 +98,7 @@ def ccurl_string_get(url, opt, extra, download_manager=None):
             if '-k' not in command:
                 command.append('-k')
     command.append('-g')
-    command.append('-C -')
+    #command.append('-C -')
     #print(command)
     return command
 
