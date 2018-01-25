@@ -532,8 +532,8 @@ class FindPosterThread(QtCore.QThread):
                         ccurl(url+'#'+'-o'+'#'+thumb)
                         logger.info(post_arr)
                     if fan_arr:
-                        if ui.player_theme != 'default':
-                            fan_arr = [i for i in fan_arr if 'vignette' not in i]
+                        #if ui.player_theme != 'default':
+                        fan_arr = [i for i in fan_arr if 'vignette' not in i]
                         if fan_arr:
                             url = "http://thetvdb.com/" + fan_arr[0]
                             ccurl(url+'#'+'-o'+'#'+fanart)
