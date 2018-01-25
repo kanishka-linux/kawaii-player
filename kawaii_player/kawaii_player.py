@@ -10185,7 +10185,7 @@ watch/unwatch status")
             if Player.lower() == "mpv":
                 if "AUDIO_ID" in a or "AUDIO_KEY_ID" in a:
                     new_arr = a.split('\n')
-                    a_id = 'auto'
+                    a_id = '(1)'
                     for i in new_arr:
                         if i.startswith('AUDIO_ID') or i.startswith('AUDIO_KEY_ID'):
                             a_id = i.split('=')[-1]
@@ -10201,7 +10201,7 @@ watch/unwatch status")
                 elif "SUB_ID" in a or "SUB_KEY_ID" in a:
                     tsid = sub_id
                     new_arr = a.split('\n')
-                    s_id = 'auto'
+                    s_id = '(1)'
                     for i in new_arr:
                         if i.startswith('SUB_ID') or i.startswith('SUB_KEY_ID'):
                             s_id = i.split('=')[-1]
