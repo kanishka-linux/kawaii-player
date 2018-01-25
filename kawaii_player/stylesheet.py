@@ -625,6 +625,10 @@ class WidgetStyleSheet:
                     }
                     """)
             else:
+                gui.progressEpn.setStyleSheet("""QProgressBar{
+                text-align: center;
+                }
+                """)
                 gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
