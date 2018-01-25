@@ -478,6 +478,15 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 self.title_page = self.title()
                 arr = ['Play with Kawaii-Player', 'Download', 
                        'Get Subtitle (If Available)']
+                if 'tvdb' in self.url().url():
+                    arr = arr + arr_extra_tvdb
+                elif 'themoviedb' in self.url().url():
+                    arr = arr_extra_tmdb
+                elif 'last.fm' in self.url().url():
+                    arr = arr + arr_last
+                elif self.selected_text:
+                    arr[:] = []
+                    arr.append('Copy Summary')
                 action = []
                 menu.addSeparator()
 
@@ -543,7 +552,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                                       copy_summary=self.selected_text)
             else:
                 super(Browser, self).contextMenuEvent(event)
-
+                
     def download(self, url, option, copy_summary=None):
         if option.lower() == 'play with kawaii-player':
             final_url = ''
