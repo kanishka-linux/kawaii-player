@@ -833,7 +833,8 @@ class TitleListWidget(QtWidgets.QListWidget):
             delFanart = menu.addAction("Delete Fanart")
             delThumb = menu.addAction("Delete Playlist Thumbnails")
             delInfo = menu.addAction("Delete Info")
-            thumbnail = menu.addAction("Show Thumbnail View (Ctrl+Z)")
+            thumbnail = menu.addAction("Show Thumbnail Grid View (Ctrl+Z)")
+            thumbnail_light = menu.addAction("Show Thumbnail Light View(F1)")
             cache = menu.addAction("Clear Cache")
             action = menu.exec_(self.mapToGlobal(event.pos()))
 
@@ -887,6 +888,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                             ui.lock_process = True
                             ui.IconView()
                             ui.lock_process = False
+            elif action == thumbnail_light:
+                ui.experiment_list(1)
             elif (action == delInfo or action == delPosters 
                     or action == default or action == delThumb 
                     or action == delFanart):
@@ -1004,7 +1007,8 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenu.addSeparator()
             new_pls = submenu.addAction("Create New Bookmark Category")
             history = menu.addAction("History (Ctrl+H)")
-            thumbnail = menu.addAction("Thumbnail View (Ctrl+Z)")
+            thumbnail = menu.addAction("Thumbnail Grid View (Ctrl+Z)")
+            thumbnail_light = menu.addAction("Thumbnail Light View (F1)")
             cat_arr = []
             for i in ui.category_array:
                 cat_arr.append(menu_cat.addAction(i))
@@ -1089,8 +1093,6 @@ class TitleListWidget(QtWidgets.QListWidget):
                         cat_list, 0, False)
                     if item and ok:
                         self.delete_category_video(site, item)
-                #elif action == addBookmark:
-                #self.triggerBookmark('bookmark')
             elif action == thumbnail:
                 param_dict = ui.get_parameters_value(b='bookmark', o='opt',
                                                      s='site')
@@ -1104,6 +1106,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.lock_process = True
                     ui.IconView()
                     ui.lock_process = False
+            elif action == thumbnail_light:
+                ui.experiment_list(1)
             elif action == cache:
                 m = os.listdir(TMPDIR)
                 for i in m:
