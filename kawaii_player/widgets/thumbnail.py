@@ -1635,6 +1635,8 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         self.setMaximumWidth(screen_width)
         self.setFlow(QtWidgets.QListWidget.LeftToRight)
         self.setWrapping(True)
+        self.setWordWrap(True)
+        self.setTextElideMode(QtCore.Qt.ElideRight)
         self.setViewMode(QtWidgets.QListView.IconMode)
         self.setBatchSize(10)
         num = int(screen_width/128)
@@ -1699,15 +1701,16 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             
     def show_list(self, mode=None):
         if self.isHidden() or mode == 'next':
-            self.status_dict_poster = {
-                'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
-                'frame1':ui.frame1.isHidden(), 'label':ui.label.isHidden(),
-                'label_new':ui.label_new.isHidden(), 'text':ui.text.isHidden(),
-                'player':ui.tab_5.isHidden(), 'scrollArea':ui.scrollArea.isHidden(),
-                'scrollArea1':ui.scrollArea1.isHidden(), 'frame':ui.frame.isHidden(),
-                'dock_3':ui.dockWidget_3.isHidden(), 'tab_2':ui.tab_2.isHidden(),
-                'tab_6':ui.tab_6.isHidden()
-                }
+            if mode != 'next':
+                self.status_dict_poster = {
+                    'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
+                    'frame1':ui.frame1.isHidden(), 'label':ui.label.isHidden(),
+                    'label_new':ui.label_new.isHidden(), 'text':ui.text.isHidden(),
+                    'player':ui.tab_5.isHidden(), 'scrollArea':ui.scrollArea.isHidden(),
+                    'scrollArea1':ui.scrollArea1.isHidden(), 'frame':ui.frame.isHidden(),
+                    'dock_3':ui.dockWidget_3.isHidden(), 'tab_2':ui.tab_2.isHidden(),
+                    'tab_6':ui.tab_6.isHidden()
+                    }
             for i in self.status_dict_poster:
                 status = self.status_dict_poster[i]
                 if not status:
