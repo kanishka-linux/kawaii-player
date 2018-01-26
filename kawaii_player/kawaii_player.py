@@ -5340,6 +5340,8 @@ watch/unwatch status")
         idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
         memory_num_arr[:]=[]
+        if self.list_poster is not None:
+            self.list_poster.title_clicked = False
         i = 0
         if context == "ExtendedQLabel":
             pass
