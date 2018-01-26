@@ -1822,8 +1822,8 @@ watch/unwatch status")
                             self.IconView)
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
                             partial(self.IconViewEpn, 1))
-        #QtWidgets.QShortcut(QtGui.QKeySequence("Shift+A"), MainWindow, 
-        #                    partial(self.experiment_list, 1))
+        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+A"), MainWindow, 
+                            partial(self.experiment_list, 1))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), MainWindow, 
                             self.webHide)
         QtWidgets.QShortcut(QtGui.QKeySequence("ESC"), MainWindow, 
@@ -2015,18 +2015,105 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-    
+        self.list_poster = None
+        self.widget_dict = {
+            'list1':self.list1, 'list2':self.list2, 'frame1':self.frame1,
+            'label':self.label, 'label_new':self.label_new, 'text':self.text,
+            'player':self.tab_5, 'scrollArea':self.scrollArea,
+            'scrollArea1':self.scrollArea1, 'frame':self.frame,
+            'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
+            'tab_6':self.tab_6
+            }
+            
     def experiment_list(self, mode):
-        global screen_width
-        self.HideEveryThing()
-        self.list2.setMaximumWidth(screen_width)
-        self.list2.setFlow(QtWidgets.QListWidget.LeftToRight)
-        self.list2.setWrapping(True)
-        self.list2.setGridSize(QtCore.QSize(256, 192))
-        self.list2.setViewMode(QtWidgets.QListView.IconMode)
-        self.list2.setBatchSize(100)
-        self.list2.show()
-    
+        global screen_width, tmp_name
+        if self.list_poster is None:
+            self.list_poster = QtWidgets.QListWidget(MainWindow)
+            self.list_poster.setObjectName(_fromUtf8("list_poster"))
+            #self.list1.setMaximumSize(QtCore.QSize(400, 16777215))
+            self.list_poster.setMouseTracking(True)
+            self.verticalLayout_40.addWidget(self.list_poster)
+            self.list_poster.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            self.list_poster.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            self.list_poster.hide()
+        if self.list_poster.isHidden():
+            self.status_dict_poster = {
+                'list1':self.list1.isHidden(), 'list2':self.list2.isHidden(),
+                'frame1':self.frame1.isHidden(), 'label':self.label.isHidden(),
+                'label_new':self.label_new.isHidden(), 'text':self.text.isHidden(),
+                'player':self.tab_5.isHidden(), 'scrollArea':self.scrollArea.isHidden(),
+                'scrollArea1':self.scrollArea1.isHidden(), 'frame':self.frame.isHidden(),
+                'dock_3':self.dockWidget_3.isHidden(), 'tab_2':self.tab_2.isHidden(),
+                'tab_6':self.tab_6.isHidden()
+                }
+            for i in self.status_dict_poster:
+                status = self.status_dict_poster[i]
+                if not status:
+                    self.widget_dict[i].hide()
+            self.list_poster.setMaximumWidth(screen_width)
+            self.list_poster.setFlow(QtWidgets.QListWidget.LeftToRight)
+            self.list_poster.setWrapping(True)
+            #width = int(screen_width/self.icon_poster_indicator[-1])
+            if self.player_theme == 'default':
+                width = int((screen_width-20)/7)
+                self.list_poster.setStyleSheet("""
+                            QListWidget{
+                            font: Bold 12px;color:white;
+                            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius:3px;
+                            }
+                            
+                            QListWidget:item {
+                            height: 256px;
+                            }
+                            QListWidget:item:selected:active {
+                            background:rgba(0, 0, 0, 20%);
+                            color: yellow;
+                            }
+                            QListWidget:item:selected:inactive {
+                            border:rgba(0, 0, 0, 30%);
+                            }
+                            QMenu{
+                                font: bold 12px;color:black;background-image:url('1.png');
+                            }
+                            
+                            """)
+            else:
+                width = int((screen_width-40)/10)
+                self.list_poster.setStyleSheet("""
+                            QListWidget:item {
+                            height: 256px;
+                            }
+                            """)
+            
+            self.list_poster.setGridSize(QtCore.QSize(width, 256))
+            self.list_poster.setIconSize(QtCore.QSize(width, 256))
+            self.list_poster.setViewMode(QtWidgets.QListView.IconMode)
+            self.list_poster.setBatchSize(10)
+            
+            tmp_name.clear()
+            self.list_poster.clear()
+            self.list_poster.show()
+            self.list_poster.setFocus()
+            for i in range(self.list1.count()):
+                txt = self.list1.item(i).text()
+                tmp_name.append(txt)
+                picn = self.display_image(i, "image_list")
+                #icon_new_pixel = self.create_new_image_pixel(picn, 128)
+                if os.path.isfile(picn):
+                    self.list_poster.addItem(txt)
+                    self.list_poster.item(i).setIcon(QtGui.QIcon(picn))
+                    #os.remove(icon_new_pixel)
+                else:
+                    self.list_poster.addItem(txt)
+        else:
+            self.list_poster.hide()
+            for i in self.widget_dict:
+                status = self.status_dict_poster[i]
+                if not status:
+                    self.widget_dict[i].show()
+                else:
+                    self.widget_dict[i].hide()
+            
     def give_search_index(self, txt, mode=None, widget=None):
         index_found = False
         widget_list = None
@@ -3947,7 +4034,7 @@ watch/unwatch status")
         
     def prev_thumbnails(self):
         global thumbnail_indicator, total_till, browse_cnt, tmp_name
-        global label_arr, total_till_epn, iconv_r, iconv_r_indicator
+        global total_till_epn, iconv_r, iconv_r_indicator
         
         self.scrollArea1.hide()
         self.scrollArea.show()
@@ -4076,7 +4163,6 @@ watch/unwatch status")
     def go_opt_options_btn20(self):
         global site, home, opt, browse_cnt
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        global label_arr
         j=0
         opt = str(self.comboBox30.currentText())
         print(opt)
@@ -4100,7 +4186,6 @@ watch/unwatch status")
             i = i+1
     
         total_till=0	
-        label_arr[:]=[]
         browse_cnt=0
         if opt == "History":
             self.setPreOpt()
@@ -4151,7 +4236,7 @@ watch/unwatch status")
     def browserView_view(self):
         global site, home, opt, browse_cnt
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        global label_arr, list1_items, siteName
+        global list1_items, siteName
         pict_arr[:]=[]
         name_arr[:]=[]
         summary_arr[:]=[]
@@ -4173,8 +4258,7 @@ watch/unwatch status")
             exec (t)
             #print str(i)+" cleared"
             i = i+1
-        total_till=0	
-        label_arr[:]=[]
+        total_till=0
         browse_cnt=0
         tmp_name[:]=[]
         if opt1 == "History":
@@ -4186,7 +4270,7 @@ watch/unwatch status")
     def browserView(self):
         global site, home, opt, browse_cnt
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt
-        global tmp_name, label_arr, list1_items, thumbnail_indicator, siteName
+        global tmp_name, list1_items, thumbnail_indicator, siteName
         
         pict_arr[:]=[]
         name_arr[:]=[]
@@ -4211,8 +4295,7 @@ watch/unwatch status")
             t = "self.label_"+str(i)+".deleteLater()"
             exec (t)
             i = i+1
-        total_till=0	
-        label_arr[:]=[]
+        total_till=0
         browse_cnt=0
         tmp_name[:]=[]
         if opt == "History":
@@ -4221,17 +4304,17 @@ watch/unwatch status")
         else:
             self.next_page()
             
-    def display_image(self, br_cnt, br_cnt_opt, iconv_r_poster, value_str, dimn=None):
+    def display_image(self, br_cnt, br_cnt_opt, iconv_r_poster=None, value_str=None, dimn=None):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, iconv_r
         global tab_6_size_indicator
         global labelGeometry, video_local_stream
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        global label_arr, hist_arr, bookmark, status, thumbnail_indicator
+        global hist_arr, bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
         browse_cnt = br_cnt
-        name=tmp_name[browse_cnt]
+        name_tmp = tmp_name[browse_cnt]
         length = len(tmp_name)
         m =[]
         if (bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
@@ -4253,8 +4336,8 @@ watch/unwatch status")
             siteName = tmp1[2]
             base_url = int(tmp1[3])
             embed = int(tmp1[4])
-            name = tmp1[5]
-            logger.info(name)
+            name_tmp = tmp1[5]
+            logger.info(name_tmp)
             if len(tmp1) > 6:
                 if tmp1[6] == "True":
                     finalUrlFound = True
@@ -4278,39 +4361,36 @@ watch/unwatch status")
                 video_local_stream = False
             logger.info(site + ":"+opt)
         
-        label_arr.append(name)
-        label_arr.append(name)
-        
         if site == "Video":
-            picn = os.path.join(home, 'Local', name, 'poster.jpg')
+            picn = os.path.join(home, 'Local', name_tmp, 'poster.jpg')
             m.append(picn)
-            if os.path.exists(os.path.join(home, 'Local', name, 'summary.txt')):
+            if os.path.exists(os.path.join(home, 'Local', name_tmp, 'summary.txt')):
                 summary = open_files(
-                        os.path.join(home, 'Local', name, 'summary.txt'), 
+                        os.path.join(home, 'Local', name_tmp, 'summary.txt'), 
                         False)
                 m.append(summary)
             else:
                 m.append("Summary Not Available")
         elif site == "Music":
-            picn = os.path.join(home, 'Music', 'Artist', name, 'poster.jpg')
+            picn = os.path.join(home, 'Music', 'Artist', name_tmp, 'poster.jpg')
             m.append(picn)
             logger.info(picn)
-            if os.path.exists(os.path.join(home, 'Music', 'Artist', name, 'bio.txt')):
+            if os.path.exists(os.path.join(home, 'Music', 'Artist', name_tmp, 'bio.txt')):
                 summary = open_files(
-                        os.path.join(home, 'Music', 'Artist', name, 'bio.txt'), 
+                        os.path.join(home, 'Music', 'Artist', name_tmp, 'bio.txt'), 
                         False)
                 m.append(summary)
             else:
                 m.append("Summary Not Available")
         elif opt == "History":
             if siteName:
-                dir_name =os.path.join(home, 'History', site, siteName, name)
+                dir_name =os.path.join(home, 'History', site, siteName, name_tmp)
             else:
-                dir_name =os.path.join(home, 'History', site, name)
+                dir_name =os.path.join(home, 'History', site, name_tmp)
             if os.path.exists(dir_name):
                 logger.info(dir_name)
-                picn = os.path.join(home, 'History', site, name, 'poster.jpg')
-                thumbnail = os.path.join(home, 'History', site, name, 'thumbnail.jpg')
+                picn = os.path.join(home, 'History', site, name_tmp, 'poster.jpg')
+                thumbnail = os.path.join(home, 'History', site, name_tmp, 'thumbnail.jpg')
                 picn = thumbnail
                 m.append(os.path.join(dir_name, 'poster.jpg'))
                 try:	
@@ -4330,7 +4410,14 @@ watch/unwatch status")
             picn = m.pop()
         except:
             picn = "No.jpg"
-        if br_cnt_opt == "image":
+        if br_cnt_opt == 'image_list':
+            if picn != "No.jpg" and os.path.exists(picn):
+                if dimn:
+                    picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(dimn[0]), int(dimn[1])))
+                #img = QtGui.QPixmap(picn, "1")
+                picn = re.sub('poster.jpg', 'thumbnail.jpg', picn)
+            return picn
+        elif br_cnt_opt == "image":
             if picn != "No.jpg" and os.path.exists(picn):
                 if dimn:
                     picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(dimn[0]), int(dimn[1])))
@@ -4338,7 +4425,7 @@ watch/unwatch status")
                 q1="self.label_"+str(browse_cnt)+".setPixmap(img)"
                 exec (q1)
             
-            name1 = name
+            name1 = name_tmp
             q3="self.label_"+str(length+browse_cnt)+".setText((name1))"
             exec (q3)
             try:
@@ -4362,7 +4449,7 @@ watch/unwatch status")
         global tab_6_size_indicator
         global labelGeometry, total_till
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        global label_arr, hist_arr, bookmark, status, thumbnail_indicator
+        global hist_arr, bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
         self.lock_process = True
@@ -5451,7 +5538,7 @@ watch/unwatch status")
             self.frame1.show()
         
     def IconView(self):
-        global fullscrT, idwMain, idw, total_till, label_arr, browse_cnt, tmp_name
+        global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
         global view_layout, thumbnail_indicator, total_till_epn, viewMode
         
         if self.list1.count() == 0:
@@ -5460,7 +5547,6 @@ watch/unwatch status")
         thumbnail_indicator[:]=[]
         self.scrollArea1.hide()
         self.scrollArea.show()
-        label_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         num = self.list2.currentRow()
@@ -5548,7 +5634,7 @@ watch/unwatch status")
             QtWidgets.QApplication.processEvents()
     
     def IconViewEpn(self, start=None):
-        global fullscrT, idwMain, idw, total_till, label_arr, browse_cnt, tmp_name
+        global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
         global view_layout, iconv_r, curR, viewMode, thumbnail_indicator
         global site, total_till_epn
         if isinstance(start, int):
@@ -5558,7 +5644,6 @@ watch/unwatch status")
         
         thumbnail_indicator[:]=[]
         self.scrollArea.hide()
-        label_arr[:]=[]
         tmp_name[:]=[]
         num = self.list2.currentRow()
         if num < 0:
@@ -6725,7 +6810,7 @@ watch/unwatch status")
                 
     def label_filter_list_update(self, item_index):
         global viewMode, opt, site, bookmark, thumbnail_indicator, total_till
-        global label_arr, browse_cnt, tmp_name, list1_items
+        global browse_cnt, tmp_name, list1_items
         
         length = len(item_index)
         if not self.scrollArea.isHidden():
@@ -12508,7 +12593,7 @@ def main():
     global rfr_url, category, fullscr, curR, idw, idwMain, home
     global player_focus, fullscrT, artist_name_mplayer
     global pict_arr, name_arr, summary_arr, total_till, tmp_name, browse_cnt
-    global label_arr, hist_arr, nxtImg_cnt, view_layout, quitReally, toggleCache
+    global hist_arr, nxtImg_cnt, view_layout, quitReally, toggleCache
     global status, wget, playlist_show, img_arr_artist
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
@@ -12595,7 +12680,6 @@ def main():
     view_layout = "List"
     nxtImg_cnt = 0
     hist_arr=[]
-    label_arr=[]
     total_till = 0
     pict_arr=[]
     name_arr=[]
