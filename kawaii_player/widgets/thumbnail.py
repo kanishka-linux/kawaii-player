@@ -1604,3 +1604,138 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
         elif action == adImage:
             ui.copyImg()
     """
+
+
+class TitleListWidgetPoster(QtWidgets.QListWidget):
+    
+    def __init__(self, parent, uiwidget=None, home_var=None,
+                 tmp=None, logr=None, sw=None, sh=None):
+        super(TitleListWidgetPoster, self).__init__(parent)
+        global MainWindow, home, TMPDIR, logger, ui, screen_width, screen_height
+        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.setAcceptDrops(True)
+        self.setDragEnabled(True)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        MainWindow = parent
+        ui = uiwidget
+        TMPDIR = tmp
+        home = home_var
+        logger = logr
+        screen_width = sw
+        screen_height = sh
+        self.setObjectName(_fromUtf8("list_poster"))
+        self.setMouseTracking(True)
+        ui.verticalLayout_40.addWidget(self)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.itemClicked['QListWidgetItem*'].connect(self.poster_list_clicked)
+        self.hide()
+        self.show_list()
+        self.setMaximumWidth(screen_width)
+        self.setFlow(QtWidgets.QListWidget.LeftToRight)
+        self.setWrapping(True)
+        self.setViewMode(QtWidgets.QListView.IconMode)
+        self.setBatchSize(10)
+        num = int(screen_width/128)
+        if ui.player_theme == 'default':
+            width = int((screen_width-20)/num)
+            self.setStyleSheet("""
+                        QListWidget{
+                        font: Bold 12px;color:white;
+                        background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
+                        border-radius:3px;
+                        }
+                        
+                        QListWidget:item {
+                        height: 256px;
+                        }
+                        QListWidget:item:selected:active {
+                        background:rgba(0, 0, 0, 20%);
+                        color: yellow;
+                        }
+                        QListWidget:item:selected:inactive {
+                        border:rgba(0, 0, 0, 30%);
+                        }
+                        QMenu{
+                            font: bold 12px;color:black;background-image:url('1.png');
+                        }
+                        
+                        """)
+        else:
+            width = int((screen_width-40)/num)
+            self.setStyleSheet("""
+                        QListWidget:item {
+                        height: 256px;
+                        }
+                        """)
+        self.setGridSize(QtCore.QSize(width, 256))
+        self.setIconSize(QtCore.QSize(width, 256))
+        self.nav_arr = [
+            QtCore.Qt.Key_Left, QtCore.Qt.Key_Right,
+            QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
+            ]
+        self.title_clicked = False
+    
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Return:
+            self.poster_list_clicked()
+            self.title_clicked = True
+        else:
+            super(TitleListWidgetPoster, self).keyPressEvent(event)
+            
+    def mouseMoveEvent(self, event):
+        if ui.auto_hide_dock:
+            ui.dockWidget_3.hide()
+            
+    def poster_list_clicked(self):
+        if self.currentItem():
+            row = self.currentRow()
+            ui.list1.setCurrentRow(row)
+            txt = self.item(row).text()
+            ui.labelFrame2.setText('{0}. {1}'.format(row+1, txt))
+            ui.listfound(row_select=row, show_ep_thumbnail=True)
+            self.title_clicked = True
+            
+    def show_list(self, mode=None):
+        if self.isHidden() or mode == 'next':
+            self.status_dict_poster = {
+                'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
+                'frame1':ui.frame1.isHidden(), 'label':ui.label.isHidden(),
+                'label_new':ui.label_new.isHidden(), 'text':ui.text.isHidden(),
+                'player':ui.tab_5.isHidden(), 'scrollArea':ui.scrollArea.isHidden(),
+                'scrollArea1':ui.scrollArea1.isHidden(), 'frame':ui.frame.isHidden(),
+                'dock_3':ui.dockWidget_3.isHidden(), 'tab_2':ui.tab_2.isHidden(),
+                'tab_6':ui.tab_6.isHidden()
+                }
+            for i in self.status_dict_poster:
+                status = self.status_dict_poster[i]
+                if not status:
+                    ui.widget_dict[i].hide()
+            
+            self.clear()
+            self.show()
+            self.setFocus()
+            for i in range(ui.list1.count()):
+                txt = ui.list1.item(i).text()
+                picn = ui.display_image(i, "image_list", txt_name=txt)
+                #icon_new_pixel = self.create_new_image_pixel(picn, 128)
+                if os.path.isfile(picn):
+                    self.addItem(txt)
+                    self.item(i).setIcon(QtGui.QIcon(picn))
+                    #os.remove(icon_new_pixel)
+                else:
+                    self.addItem(txt)
+            if ui.list1.currentItem():
+                row = ui.list1.currentRow()
+                self.setCurrentRow(row)
+            if mode == 'next':
+                ui.dockWidget_3.show()
+        else:
+            self.hide()
+            for i in ui.widget_dict:
+                status = self.status_dict_poster[i]
+                if not status:
+                    ui.widget_dict[i].show()
+                else:
+                    ui.widget_dict[i].hide()
