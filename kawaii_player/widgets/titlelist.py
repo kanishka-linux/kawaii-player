@@ -1018,7 +1018,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             new_pls = submenu.addAction("Create New Bookmark Category")
             history = menu.addAction("History (Ctrl+H)")
             thumbnail = menu.addAction("Thumbnail Grid View (Ctrl+Z)")
-            thumbnail_light = menu.addAction("Thumbnail Light View (F1)")
+            thumbnail_light = menu.addAction("Thumbnail Wall View (F1)")
             cat_arr = []
             for i in ui.category_array:
                 cat_arr.append(menu_cat.addAction(i))
