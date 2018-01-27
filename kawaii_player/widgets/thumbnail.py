@@ -1546,14 +1546,12 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
         ui.set_parameters_value(curRow=curR)
         time.sleep(0.01)
         if not ui.lock_process:
+            ui.view_mode = 'thumbnail'
             ui.gridLayout.addWidget(ui.tab_6, 0, 1, 1, 1)
-            #ui.thumbnailHide('ExtendedQLabel')
             ui.IconViewEpn()
             if not ui.scrollArea1.isHidden():
                 ui.scrollArea1.setFocus()
-            if ui.list_poster is not None:
-                ui.list_poster.title_clicked = False
-
+            
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
@@ -1628,10 +1626,12 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         screen_height = sh
         self.setObjectName(_fromUtf8("list_poster"))
         self.setMouseTracking(True)
-        ui.verticalLayout_40.addWidget(self)
+        #ui.verticalLayout_40.addWidget(self)
+        ui.horizontalLayout10.addWidget(self)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.itemClicked['QListWidgetItem*'].connect(self.poster_list_clicked)
+        self.currentRowChanged['int'].connect(self.set_title)
         self.hide()
         self.title_clicked = False
         self.setMaximumWidth(screen_width)
@@ -1643,7 +1643,6 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         self.setBatchSize(10)
         self.num = int(screen_width/128)
         if ui.player_theme == 'default':
-            width = int((screen_width-20)/self.num)
             self.setStyleSheet("""
                         QListWidget{
                         font: Bold 12px;color:white;
@@ -1667,19 +1666,23 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                         
                         """)
         else:
-            width = int((screen_width-40)/self.num)
             self.setStyleSheet("""
                         QListWidget:item {
                         height: 256px;
                         }
                         """)
-        self.setGridSize(QtCore.QSize(width, 256))
-        self.setIconSize(QtCore.QSize(width, 256))
         self.nav_arr = [
             QtCore.Qt.Key_Left, QtCore.Qt.Key_Right,
             QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
             ]
-    
+        self.status_dict_poster = {}
+        
+    def set_title(self):
+        if self.currentItem():
+            num = self.currentRow() + 1
+            txt = self.currentItem().text()
+            ui.labelFrame2.setText('{0}. {1}'.format(num, txt))
+        
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.poster_list_clicked()
@@ -1731,7 +1734,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             
     def show_list(self, mode=None):
         if self.isHidden() or mode == 'next' or mode == 'prev':
-            if mode != 'next':
+            if mode != 'next' or not self.status_dict_poster:
                 self.status_dict_poster = {
                     'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
                     'frame1':ui.frame1.isHidden(), 'label':ui.label.isHidden(),
@@ -1745,10 +1748,19 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                 status = self.status_dict_poster[i]
                 if not status:
                     ui.widget_dict[i].hide()
-            if mode == 'prev':
+            if mode == 'prev' and self.count() > 0:
+                ui.tab_6.show()
                 self.show()
                 self.setFocus()
             else:
+                ui.tab_6.show()
+                self.num = int(ui.tab_6.width()/128)
+                if ui.player_theme == 'default':
+                    width = int((ui.tab_6.width()-20)/self.num)
+                else:
+                    width = int((ui.tab_6.width()-20)/self.num)
+                self.setGridSize(QtCore.QSize(width, 256))
+                self.setIconSize(QtCore.QSize(width, 256))
                 self.clear()
                 self.show()
                 self.setFocus()
