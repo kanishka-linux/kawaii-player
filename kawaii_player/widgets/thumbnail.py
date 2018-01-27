@@ -1642,35 +1642,6 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         self.setViewMode(QtWidgets.QListView.IconMode)
         self.setBatchSize(10)
         self.num = int(screen_width/128)
-        if ui.player_theme == 'default':
-            self.setStyleSheet("""
-                        QListWidget{
-                        font: Bold 12px;color:white;
-                        background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-                        border-radius:3px;
-                        }
-                        
-                        QListWidget:item {
-                        height: 256px;
-                        }
-                        QListWidget:item:selected:active {
-                        background:rgba(0, 0, 0, 20%);
-                        color: yellow;
-                        }
-                        QListWidget:item:selected:inactive {
-                        border:rgba(0, 0, 0, 30%);
-                        }
-                        QMenu{
-                            font: bold 12px;color:black;background-image:url('1.png');
-                        }
-                        
-                        """)
-        else:
-            self.setStyleSheet("""
-                        QListWidget:item {
-                        height: 256px;
-                        }
-                        """)
         self.nav_arr = [
             QtCore.Qt.Key_Left, QtCore.Qt.Key_Right,
             QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
@@ -1722,6 +1693,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
+            self.setFocus()
             
     def poster_list_clicked(self):
         if self.currentItem():
@@ -1755,10 +1727,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             else:
                 ui.tab_6.show()
                 self.num = int(ui.tab_6.width()/128)
-                if ui.player_theme == 'default':
-                    width = int((ui.tab_6.width()-20)/self.num)
-                else:
-                    width = int((ui.tab_6.width()-20)/self.num)
+                width = int((ui.tab_6.width()-20)/self.num)
                 self.setGridSize(QtCore.QSize(width, 256))
                 self.setIconSize(QtCore.QSize(width, 256))
                 self.clear()
