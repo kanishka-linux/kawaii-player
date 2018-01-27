@@ -12264,7 +12264,38 @@ watch/unwatch status")
                 QtCore.Qt.Window | QtCore.Qt.WindowTitleHint 
                 | QtCore.Qt.WindowStaysOnTopHint)
         MainWindow.show()
-    
+        
+    def apply_new_style(self):
+        change_opt_file(HOME_OPT_FILE, 'THEME=', 'THEME={0}'.format(self.player_theme.upper()))
+        if self.player_theme == 'system':
+            msg = 'Restart Application To Apply System Theme'
+            send_notification(msg)
+            self.text.setText(msg)
+        else:
+            if self.player_theme == 'mix':
+                QtCore.QTimer.singleShot(
+                    100, partial(
+                        set_mainwindow_palette, self.default_background,
+                        first_time=True, theme='default'
+                        )
+                    )
+            else:
+                QtCore.QTimer.singleShot(
+                    100, partial(
+                        set_mainwindow_palette, self.current_background,
+                        first_time=True, theme=self.player_theme
+                        )
+                    )
+            self.widget_style.apply_stylesheet(theme=self.player_theme)
+            self.list1.setAlternatingRowColors(False)
+            self.list2.setAlternatingRowColors(False)
+            self.list3.setAlternatingRowColors(False)
+            self.label_new.clear()
+            self.VerticalLayoutLabel_Dock3.setSpacing(5)
+            self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
+            
+            
+        
     def watch_external_video(self, var, mode=None, start_now=None):
         global quitReally, video_local_stream, curR, site
         global home
