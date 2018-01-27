@@ -1551,6 +1551,8 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
             ui.IconViewEpn()
             if not ui.scrollArea1.isHidden():
                 ui.scrollArea1.setFocus()
+            if ui.list_poster is not None:
+                ui.list_poster.title_clicked = False
 
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
@@ -1631,7 +1633,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.itemClicked['QListWidgetItem*'].connect(self.poster_list_clicked)
         self.hide()
-        self.show_list()
+        self.title_clicked = False
         self.setMaximumWidth(screen_width)
         self.setFlow(QtWidgets.QListWidget.LeftToRight)
         self.setWrapping(True)
@@ -1639,9 +1641,9 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         self.setTextElideMode(QtCore.Qt.ElideRight)
         self.setViewMode(QtWidgets.QListView.IconMode)
         self.setBatchSize(10)
-        num = int(screen_width/128)
+        self.num = int(screen_width/128)
         if ui.player_theme == 'default':
-            width = int((screen_width-20)/num)
+            width = int((screen_width-20)/self.num)
             self.setStyleSheet("""
                         QListWidget{
                         font: Bold 12px;color:white;
@@ -1665,7 +1667,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                         
                         """)
         else:
-            width = int((screen_width-40)/num)
+            width = int((screen_width-40)/self.num)
             self.setStyleSheet("""
                         QListWidget:item {
                         height: 256px;
@@ -1677,12 +1679,40 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             QtCore.Qt.Key_Left, QtCore.Qt.Key_Right,
             QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
             ]
-        self.title_clicked = False
     
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.poster_list_clicked()
             self.title_clicked = True
+        elif event.key() == QtCore.Qt.Key_Right:
+            nextr = self.currentRow() + 1
+            if nextr == self.count():
+                self.setCurrentRow(0)
+            else:
+                self.setCurrentRow(nextr)
+        elif event.key() == QtCore.Qt.Key_Left:
+            prev_r = self.currentRow() - 1
+            if self.currentRow() == 0:
+                self.setCurrentRow(self.count()-1)
+            else:
+                self.setCurrentRow(prev_r)
+        elif event.text().isalnum():
+                ui.focus_widget = ui.list1
+                if ui.search_on_type_btn.isHidden():
+                    g = self.geometry()
+                    txt = event.text()
+                    ui.search_on_type_btn.setGeometry(
+                        g.x()+self.width()-ui.width_allowed, g.y(),
+                        ui.width_allowed, 32
+                        )
+                    ui.search_on_type_btn.show()
+                    ui.search_on_type_btn.clear()
+                    ui.search_on_type_btn.setText(txt)
+                else:
+                    ui.search_on_type_btn.setFocus()
+                    txt = ui.search_on_type_btn.text()
+                    new_txt = txt+event.text()
+                    ui.search_on_type_btn.setText(new_txt)
         else:
             super(TitleListWidgetPoster, self).keyPressEvent(event)
             
@@ -1700,7 +1730,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             self.title_clicked = True
             
     def show_list(self, mode=None):
-        if self.isHidden() or mode == 'next':
+        if self.isHidden() or mode == 'next' or mode == 'prev':
             if mode != 'next':
                 self.status_dict_poster = {
                     'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
@@ -1715,25 +1745,30 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                 status = self.status_dict_poster[i]
                 if not status:
                     ui.widget_dict[i].hide()
-            
-            self.clear()
-            self.show()
-            self.setFocus()
-            for i in range(ui.list1.count()):
-                txt = ui.list1.item(i).text()
-                picn = ui.display_image(i, "image_list", txt_name=txt)
-                #icon_new_pixel = self.create_new_image_pixel(picn, 128)
-                if os.path.isfile(picn):
-                    self.addItem(txt)
-                    self.item(i).setIcon(QtGui.QIcon(picn))
-                    #os.remove(icon_new_pixel)
-                else:
-                    self.addItem(txt)
-            if ui.list1.currentItem():
-                row = ui.list1.currentRow()
-                self.setCurrentRow(row)
-            if mode == 'next':
-                ui.dockWidget_3.show()
+            if mode == 'prev':
+                self.show()
+                self.setFocus()
+            else:
+                self.clear()
+                self.show()
+                self.setFocus()
+                for i in range(ui.list1.count()):
+                    txt = ui.list1.item(i).text()
+                    picn, summary = ui.display_image(i, "image_list", txt_name=txt)
+                    #icon_new_pixel = self.create_new_image_pixel(picn, 128)
+                    if os.path.isfile(picn):
+                        self.addItem(txt)
+                        self.item(i).setIcon(QtGui.QIcon(picn))
+                        #os.remove(icon_new_pixel)
+                    else:
+                        self.addItem(txt)
+                    #summary = "<html><h1>{0}</h1><head/><body><p>{1}</p></body></html>".format(txt, summary)
+                    #self.item(i).setToolTip(summary)
+                if ui.list1.currentItem():
+                    row = ui.list1.currentRow()
+                    self.setCurrentRow(row)
+                if mode == 'next':
+                    ui.dockWidget_3.show()
         else:
             self.hide()
             for i in ui.widget_dict:
