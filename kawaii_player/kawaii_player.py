@@ -1476,7 +1476,7 @@ watch/unwatch status")
         self.float_window_layout.setSpacing(0)
         
         self.horizontalLayout10.insertWidget(2, self.frame2, 0)
-        self.horizontalLayout10.setSpacing(1)
+        self.horizontalLayout10.setSpacing(0)
         
         self.btn20.setMaximumWidth(96)
         self.comboBoxMode.setMaximumWidth(96)
