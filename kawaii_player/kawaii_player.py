@@ -1847,7 +1847,7 @@ watch/unwatch status")
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Z"), MainWindow, 
                             self.IconView)
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
-                            partial(self.IconViewEpn, 1))
+                            partial(self.IconViewEpn, mode=3))
         QtWidgets.QShortcut(QtGui.QKeySequence("F1"), MainWindow, 
                             partial(self.experiment_list, 'show'))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), MainWindow, 
@@ -5564,7 +5564,10 @@ watch/unwatch status")
         global view_layout, iconv_r, curR, thumbnail_indicator
         global site, total_till_epn
         if isinstance(mode, int):
-            if mode == 1:
+            if mode == 3:
+                if self.view_mode == 'list':
+                    self.view_mode = 'thumbnail'
+            elif mode == 1:
                 self.view_mode = 'thumbnail'
             else:
                 self.view_mode = 'thumbnail_light'
