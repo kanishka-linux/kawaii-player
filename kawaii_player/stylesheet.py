@@ -95,10 +95,6 @@ class WidgetStyleSheet:
             gui.btnWebNext.setStyleSheet("font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
             """
-            gui.btn20.setStyleSheet("""font: bold 12px;color:white;
-                background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
-            gui.btn201.setStyleSheet("""font: bold 12px;color:white;
-                background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
             gui.btnOpt.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
             gui.go_opt.setStyleSheet("""font: bold 12px;color:white;
@@ -117,13 +113,36 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 25%);border:rgba(0, 0, 0, 30%);border-radius:3px;""")
             gui.frame1.setStyleSheet("""font: bold 11px;color:white;
                 background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px;""")
+            
             gui.torrent_frame.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);""")
             gui.float_window.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);""")
             gui.player_opt.setStyleSheet("""font:bold 11px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;height:20px""")
-
+            gui.frame2.setStyleSheet("""
+                QFrame{background:rgba(0, 0, 0, 10%);border:rgba(0, 0, 0, 0%);}
+                QPushButton{border-radius:0px;}
+                QPushButton::hover{background-color: yellow;color: black;}
+                QPushButton:pressed{background-color: violet;}
+                QLabel{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 0%);}
+                QComboBox {
+                selection-color:yellow;
+                }
+                QComboBox::hover{background-color: yellow;color: black;}
+                QComboBox::drop-down {
+                width: 47px;
+                border: 0px;
+                color:black;
+                }
+                QComboBox::focus {
+                color:yellow;
+                }
+                QComboBox::down-arrow {
+                width: 2px;
+                height: 2px;
+                }
+                """)
             gui.player_opt.setStyleSheet("""
             QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
             QPushButton{border-radius:0px;max-height:30px;}
@@ -133,26 +152,6 @@ class WidgetStyleSheet:
             gui.btn1.setStyleSheet("""QComboBox {
             min-height:30px;
             max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            selection-color:yellow;
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::focus {
-            color:yellow;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            
-            gui.comboBoxMode.setStyleSheet("""QComboBox {
             border-radius: 3px;
             font-size:10px;
             padding: 1px 1px 1px 1px;
@@ -252,7 +251,6 @@ class WidgetStyleSheet:
             QListWidget{
             font: Bold 12px;color:white;
             background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            border-radius:3px;
             }
             
             QListWidget:item {
