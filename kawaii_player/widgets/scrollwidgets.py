@@ -406,13 +406,8 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 item = ui.list1.currentItem()
                 if item:
                     ui.prev_thumbnails()
-                    if ui.list_poster is not None:
-                        if not ui.list_poster.title_clicked:
-                            ui.scrollArea.setFocus()
-                            ui.labelFrame2.setText('{0}. {1}'.format(ui.list1.row(item)+1, item.text()))
-                    else:
+                    if ui.view_mode == 'thumbnail':
                         ui.scrollArea.setFocus()
-                        ui.labelFrame2.setText('{0}. {1}'.format(ui.list1.row(item)+1, item.text()))
             elif event.key() == QtCore.Qt.Key_Return:
                 num = ui.list2.currentRow()
                 txt_count = num + ui.list2.count()
