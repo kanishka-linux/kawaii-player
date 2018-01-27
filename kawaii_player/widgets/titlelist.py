@@ -986,6 +986,16 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_search = QtWidgets.QMenu(menu)
             menu_search.setTitle('Poster Options')
             menu.addMenu(menu_search)
+            
+            menu_theme = QtWidgets.QMenu(menu)
+            menu_theme.setTitle('Select Theme')
+            menu.addMenu(menu_theme)
+            
+            menu_theme_arr = ['Default', 'System', 'Transparent']
+            menu_theme_act = []
+            for i in menu_theme_arr:
+                menu_theme_act.append(menu_theme.addAction(i))
+            
             reviews = []
             for i in ui.browser_bookmark:
                 if i.lower() != 'reviews':
@@ -1041,6 +1051,13 @@ class TitleListWidget(QtWidgets.QListWidget):
             if action in item_m:
                 item_index = item_m.index(action)
                 self.triggerBookmark(item_m[item_index].text())
+            elif action in menu_theme_act:
+                item_index = menu_theme_act.index(action)
+                theme_name = menu_theme_act[item_index].text()
+                if theme_name.startswith('&'):
+                    theme_name = theme_name[1:]
+                ui.player_theme = theme_name.lower()
+                ui.apply_new_style()
             elif action in reviews:
                 item_index = reviews.index(action)
                 new_review = reviews[item_index].text()
