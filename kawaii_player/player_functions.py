@@ -206,6 +206,7 @@ def get_home_dir(mode=None):
     return home
 
 def change_opt_file(config_file, old, new):
+    found = False
     if os.path.exists(config_file):
         lines = open_files(config_file, True)
         if isinstance(lines, list):
@@ -213,6 +214,9 @@ def change_opt_file(config_file, old, new):
                 lines[i] = lines[i].strip()
                 if lines[i].startswith(old):
                     lines[i] = new
+                    found = True
+            if not found:
+                lines.append(new)
             write_files(config_file, lines, line_by_line=True)
 
 def set_logger(file_name, TMPDIR):
