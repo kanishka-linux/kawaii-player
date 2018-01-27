@@ -2033,8 +2033,7 @@ watch/unwatch status")
                 MainWindow, self, home, TMPDIR, logger,
                 screen_width, screen_height
                 )
-        else:
-            self.list_poster.show_list()
+        self.list_poster.show_list()
             
     def give_search_index(self, txt, mode=None, widget=None):
         index_found = False
@@ -2072,18 +2071,27 @@ watch/unwatch status")
             index = self.give_search_index(txt, mode=1, widget=self.focus_widget)
         if index >=0:
             if self.focus_widget == self.list1:
-                self.list1.setCurrentRow(index)
-                if not self.tab_6.isHidden() and not self.lock_process:
-                    self.take_to_thumbnail(row=index, mode='title')
-                    self.scrollArea.cur_row = index
+                try:
+                    self.list1.setCurrentRow(index)
+                    if not self.tab_6.isHidden() and not self.lock_process:
+                        self.take_to_thumbnail(row=index, mode='title')
+                        self.scrollArea.cur_row = index
+                    elif not self.list_poster is None:
+                        if not self.list_poster.isHidden():
+                            self.list_poster.setCurrentRow(index)
+                except Exception as err:
+                    logger.error(err)
             elif self.focus_widget == self.list2:
                 self.list2.setCurrentRow(index)
-                if not self.tab_6.isHidden():
-                    try:
+                try:
+                    if not self.tab_6.isHidden():
                         self.take_to_thumbnail(row=index, mode='epn')
                         self.scrollArea1.cur_row = index
-                    except Exception as err:
-                        logger.error(err)
+                    elif not self.list_poster is None:
+                        if not self.list_poster.isHidden():
+                            self.list_poster.setCurrentRow(index)
+                except Exception as err:
+                    logger.error(err)
             
     def remove_queue_item_btn_method(self, row=None):
         global video_local_stream
@@ -3961,7 +3969,7 @@ watch/unwatch status")
         mode_another = False
         if self.list_poster is not None:
             if self.list_poster.title_clicked:
-                self.list_poster.show_list()
+                self.list_poster.show_list(mode='prev')
                 mode_another = True
                 try:
                     for i in range(0, total_till_epn):
@@ -3970,7 +3978,7 @@ watch/unwatch status")
                     total_till_epn=0
                 except Exception as err:
                     logger.error(err)
-                
+        print(mode_another, '--mode-another--')
         if not mode_another:
             self.scrollArea1.hide()
             self.scrollArea.show()
@@ -4353,7 +4361,7 @@ watch/unwatch status")
                     picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(dimn[0]), int(dimn[1])))
                 #img = QtGui.QPixmap(picn, "1")
                 picn = re.sub('poster.jpg', 'thumbnail.jpg', picn)
-            return picn
+            return (picn, summary)
         elif br_cnt_opt == "image":
             if picn != "No.jpg" and os.path.exists(picn):
                 if dimn:
@@ -4442,8 +4450,8 @@ watch/unwatch status")
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
         self.icon_size_arr.append(height)
-        print(length)
-        print(browse_cnt)
+        logger.debug(length)
+        logger.debug(browse_cnt)
         dim_tuple = (height, width)
         self.labelFrame2.setText('Wait...')
         if total_till==0 or value_str == "not_deleted" or value_str == 'zoom':
@@ -4463,7 +4471,7 @@ watch/unwatch status")
             if total_till == 0:
                 value_str = "deleted"
             while(i<length):
-                print(value_str, '--value--str--')
+                logger.debug('--value--str={0}'.format(value_str))
                 if value_str == "deleted":
                     p1= "self.label_"+str(i)+" = TitleThumbnailWidget(self.scrollAreaWidgetContents)"
                     p4 = "self.label_{0}.setup_globals(self, home, TMPDIR, logger)".format(i)
@@ -4491,7 +4499,6 @@ watch/unwatch status")
                     p7 = "l_"+str(length+i)+" = weakref.ref(self.label_"+str(length+i)+")"
                     exec(p1)
                     exec(p7)
-                    print("creating")
                 p2="self.label_"+str(length+i)+".setMinimumWidth("+width+")"
                 p3="self.label_"+str(length+i)+".setMaximumHeight("+hei_ght+")"
                 p4 = "self.label_"+str(length+i)+".lineWrapMode()"
