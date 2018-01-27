@@ -1476,7 +1476,7 @@ watch/unwatch status")
         self.float_window_layout.setSpacing(0)
         
         self.horizontalLayout10.insertWidget(2, self.frame2, 0)
-        self.horizontalLayout10.setSpacing(0)
+        self.horizontalLayout10.setSpacing(1)
         
         self.btn20.setMaximumWidth(96)
         self.comboBoxMode.setMaximumWidth(96)
@@ -1494,10 +1494,10 @@ watch/unwatch status")
         self.frame2.setMinimumHeight(self.frame2_height)
         self.frame2.setMaximumHeight(self.frame2_height)
         
-        self.btn20.setMinimumHeight(self.frame2_height)
-        self.comboBoxMode.setMinimumHeight(self.frame2_height)
-        self.btn201.setMinimumHeight(self.frame2_height)
-        self.label_search.setMinimumHeight(self.frame2_height)
+        self.btn20.setMaximumHeight(self.frame2_height)
+        self.comboBoxMode.setMaximumHeight(self.frame2_height)
+        self.btn201.setMaximumHeight(self.frame2_height)
+        self.label_search.setMaximumHeight(self.frame2_height)
         ####################################################
         self.comboBox20.hide()
         self.comboBox30.hide()
