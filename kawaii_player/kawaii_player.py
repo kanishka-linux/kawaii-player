@@ -5349,6 +5349,7 @@ watch/unwatch status")
             iconv_r = 5
         self.tab_6.setMaximumSize(16777215, 16777215)
         browse_cnt = 0
+        self.list_poster.hide()
         self.tab_6.hide()
         self.list1.show()
         self.list2.show()
