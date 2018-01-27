@@ -6819,7 +6819,7 @@ watch/unwatch status")
         print(opt)
         print(site)
         found_item_index[:]=[]
-        if not self.scrollArea.isHidden():
+        if not self.scrollArea.isHidden() or not self.list_poster.isHidden():
             if key:
                 for i in range(self.list1.count()):
                     srch = str(self.list1.item(i).text()).lower()
@@ -6843,8 +6843,15 @@ watch/unwatch status")
             else:
                 for i in range(self.list2.count()):				
                         found_item_index.append(1)
-                
-        self.label_filter_list_update(found_item_index)
+        if self.list_poster.isHidden():
+            self.label_filter_list_update(found_item_index)
+        else:
+            if found_item_index:
+                for i, j in enumerate(found_item_index):
+                    if j == 1:
+                        self.list_poster.setCurrentRow(i)
+                        break
+                        
     
     def filter_list(self):
         global opt, pgn, site, list1_items, base_url, filter_on, base_url, embed
