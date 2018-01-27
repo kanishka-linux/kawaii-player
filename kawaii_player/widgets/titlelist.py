@@ -889,7 +889,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                             ui.IconView()
                             ui.lock_process = False
             elif action == thumbnail_light:
-                ui.experiment_list(1)
+                ui.experiment_list(mode='show')
             elif (action == delInfo or action == delPosters 
                     or action == default or action == delThumb 
                     or action == delFanart):
@@ -1107,7 +1107,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.IconView()
                     ui.lock_process = False
             elif action == thumbnail_light:
-                ui.experiment_list(1)
+                ui.experiment_list(mode='show')
             elif action == cache:
                 m = os.listdir(TMPDIR)
                 for i in m:
