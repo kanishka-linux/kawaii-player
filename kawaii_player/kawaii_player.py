@@ -2045,10 +2045,10 @@ watch/unwatch status")
     def experiment_list(self, mode=None):
         global screen_width, screen_height
         self.view_mode = 'thumbnail_light'
+        self.list_poster.title_clicked = True
         if mode == 'show' or mode is None:
             self.list_poster.show_list()
         elif mode == 'hide':
-            self.list_poster.title_clicked = True
             logger.debug(self.list_poster.title_clicked)
             
     def give_search_index(self, txt, mode=None, widget=None):
