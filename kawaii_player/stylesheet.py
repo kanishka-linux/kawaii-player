@@ -248,6 +248,28 @@ class WidgetStyleSheet:
                 font: bold 12px;color:black;background-image:url('1.png');
             }
             """)
+            gui.list_poster.setStyleSheet("""
+            QListWidget{
+            font: Bold 12px;color:white;
+            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
+            border-radius:3px;
+            }
+            
+            QListWidget:item {
+            height: 256px;
+            }
+            QListWidget:item:selected:active {
+            background:rgba(0, 0, 0, 20%);
+            color: yellow;
+            }
+            QListWidget:item:selected:inactive {
+            border:rgba(0, 0, 0, 30%);
+            }
+            QMenu{
+                font: bold 12px;color:black;background-image:url('1.png');
+            }
+            
+            """)
             gui.list4.setStyleSheet("""QListWidget{
             font: Bold 12px;color:white;
             background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
@@ -627,6 +649,11 @@ class WidgetStyleSheet:
             else:
                 gui.progressEpn.setStyleSheet("""QProgressBar{
                 text-align: center;
+                }
+                """)
+                gui.list_poster.setStyleSheet("""
+                QListWidget:item {
+                height: 256px;
                 }
                 """)
                 gui.VerticalLayoutLabel_Dock3.setSpacing(0)
