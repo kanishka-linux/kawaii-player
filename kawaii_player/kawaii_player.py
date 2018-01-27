@@ -1644,6 +1644,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.view_mode = 'list'
         self.queue_stop = False
         self.queue_item = None
         self.history_dict_obj = {}
@@ -1775,7 +1776,19 @@ watch/unwatch status")
             'DuckDuckGo': 'https://duckduckgo.com/?q=',
             'last.fm': 'http://www.last.fm/search?q='
             }
-        
+        self.list_poster = TitleListWidgetPoster(
+                MainWindow, self, home, TMPDIR, logger,
+                screen_width, screen_height
+                )
+        self.list_poster.hide()
+        self.widget_dict = {
+            'list1':self.list1, 'list2':self.list2, 'frame1':self.frame1,
+            'label':self.label, 'label_new':self.label_new, 'text':self.text,
+            'player':self.tab_5, 'scrollArea':self.scrollArea,
+            'scrollArea1':self.scrollArea1, 'frame':self.frame,
+            'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
+            'tab_6':self.tab_6
+            }
         self.update_proc = QtCore.QProcess()
         self.btn30.addItem(_fromUtf8(""))
         self.btn30.addItem(_fromUtf8(""))
@@ -1824,7 +1837,7 @@ watch/unwatch status")
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
                             partial(self.IconViewEpn, 1))
         QtWidgets.QShortcut(QtGui.QKeySequence("F1"), MainWindow, 
-                            partial(self.experiment_list, 1))
+                            partial(self.experiment_list, 'show'))
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), MainWindow, 
                             self.webHide)
         QtWidgets.QShortcut(QtGui.QKeySequence("ESC"), MainWindow, 
@@ -2016,24 +2029,15 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-        self.list_poster = None
-        self.widget_dict = {
-            'list1':self.list1, 'list2':self.list2, 'frame1':self.frame1,
-            'label':self.label, 'label_new':self.label_new, 'text':self.text,
-            'player':self.tab_5, 'scrollArea':self.scrollArea,
-            'scrollArea1':self.scrollArea1, 'frame':self.frame,
-            'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
-            'tab_6':self.tab_6
-            }
             
-    def experiment_list(self, mode):
+    def experiment_list(self, mode=None):
         global screen_width, screen_height
-        if self.list_poster is None:
-            self.list_poster = TitleListWidgetPoster(
-                MainWindow, self, home, TMPDIR, logger,
-                screen_width, screen_height
-                )
-        self.list_poster.show_list()
+        self.view_mode = 'thumbnail_light'
+        if mode == 'show' or mode is None:
+            self.list_poster.show_list()
+        elif mode == 'hide':
+            self.list_poster.title_clicked = True
+            logger.debug(self.list_poster.title_clicked)
             
     def give_search_index(self, txt, mode=None, widget=None):
         index_found = False
@@ -2073,12 +2077,11 @@ watch/unwatch status")
             if self.focus_widget == self.list1:
                 try:
                     self.list1.setCurrentRow(index)
-                    if not self.tab_6.isHidden() and not self.lock_process:
+                    if self.view_mode == 'thumbnail' and not self.lock_process:
                         self.take_to_thumbnail(row=index, mode='title')
                         self.scrollArea.cur_row = index
-                    elif not self.list_poster is None:
-                        if not self.list_poster.isHidden():
-                            self.list_poster.setCurrentRow(index)
+                    elif self.view_mode == 'thumbnail_light':
+                        self.list_poster.setCurrentRow(index)
                 except Exception as err:
                     logger.error(err)
             elif self.focus_widget == self.list2:
@@ -2087,9 +2090,6 @@ watch/unwatch status")
                     if not self.tab_6.isHidden():
                         self.take_to_thumbnail(row=index, mode='epn')
                         self.scrollArea1.cur_row = index
-                    elif not self.list_poster is None:
-                        if not self.list_poster.isHidden():
-                            self.list_poster.setCurrentRow(index)
                 except Exception as err:
                     logger.error(err)
             
@@ -3579,7 +3579,7 @@ watch/unwatch status")
                         self.frame1.show()
         
     def playerPlaylist(self, val):
-        global quitReally, playlist_show, site, viewMode, thumbnail_indicator
+        global quitReally, playlist_show, site, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
         global show_hide_player, Player, httpd, idw, cur_label_num
         
@@ -3637,7 +3637,7 @@ watch/unwatch status")
             #else:
             #	self.tab_6.hide()
         elif val == "Show/Hide Title List":
-            if viewMode == 'Thumbnail' and thumbnail_indicator:
+            if self.view_mode == 'thumbnail' and thumbnail_indicator:
                 pass
             else:
                 if not self.list1.isHidden():
@@ -3965,21 +3965,26 @@ watch/unwatch status")
     def prev_thumbnails(self):
         global thumbnail_indicator, total_till, browse_cnt, tmp_name
         global total_till_epn, iconv_r, iconv_r_indicator
-        
-        mode_another = False
-        if self.list_poster is not None:
-            if self.list_poster.title_clicked:
-                self.list_poster.show_list(mode='prev')
-                mode_another = True
-                try:
-                    for i in range(0, total_till_epn):
-                        t = "self.label_epn_"+str(i)+".deleteLater()"
-                        exec (t)
-                    total_till_epn=0
-                except Exception as err:
-                    logger.error(err)
-        print(mode_another, '--mode-another--')
-        if not mode_another:
+        logger.debug(self.view_mode)
+        if self.view_mode == 'thumbnail_light':
+            self.list_poster.show_list(mode='prev')
+            try:
+                for i in range(0, total_till_epn):
+                    t = "self.label_epn_"+str(i)+".deleteLater()"
+                    exec (t)
+                total_till_epn=0
+            except Exception as err:
+                logger.error(err)
+            try:
+                self.labelFrame2.setText(
+                '{0}. {1}'.format(
+                    self.list1.currentRow()+1,
+                    self.list1.currentItem().text()
+                    )
+                 )
+            except Exception as err:
+                logger.error(err)
+        elif self.view_mode == 'thumbnail_light':
             self.scrollArea1.hide()
             self.scrollArea.show()
             try:
@@ -5115,7 +5120,7 @@ watch/unwatch status")
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, mpvAlive, curR, idw, Player, MainWindow, viewMode
+        global queueNo, mpvAlive, curR, idw, Player, MainWindow
         curR = self.list2.currentRow()
         queueNo = queueNo + 1
         mpvAlive = 0
@@ -5123,7 +5128,7 @@ watch/unwatch status")
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
         if self.float_window.isHidden():
-            if (viewMode == 'Thumbnail' and idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
+            if (self.view_mode == 'thumbnail' and idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
                 num = self.list2.currentRow()
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvNextEpnList(play_row=num, mode= 'play_now')
@@ -5342,13 +5347,11 @@ watch/unwatch status")
         
     def thumbnailHide(self, context):
         global view_layout, total_till, browse_cnt, iconv_r
-        global memory_num_arr, idw, viewMode
+        global memory_num_arr, idw
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
         idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
         memory_num_arr[:]=[]
-        if self.list_poster is not None:
-            self.list_poster.title_clicked = False
         i = 0
         if context == "ExtendedQLabel":
             pass
@@ -5362,6 +5365,8 @@ watch/unwatch status")
                 for i in range(total_till_epn):
                     t = "self.label_epn_"+str(i)+".deleteLater()"
                     exec(t)
+            self.list_poster.clear()
+            self.list_poster.title_clicked = False
             total_till = 0
             total_till_epn = 0
         if iconv_r_indicator:
@@ -5382,7 +5387,7 @@ watch/unwatch status")
             pass
         else:
             view_layout = "List"
-            viewMode = "List"
+            self.view_mode = "list"
         if self.mpvplayer_val.processId() > 0:
             self.text.hide()
             self.label.hide()
@@ -5483,13 +5488,13 @@ watch/unwatch status")
         
     def IconView(self):
         global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
-        global view_layout, thumbnail_indicator, total_till_epn, viewMode
+        global view_layout, thumbnail_indicator, total_till_epn
         
         if self.list_poster is not None:
             self.list_poster.title_clicked = False
         if self.list1.count() == 0:
             return 0
-        viewMode = 'Thumbnail'
+        self.view_mode = 'thumbnail'
         thumbnail_indicator[:]=[]
         self.scrollArea1.hide()
         self.scrollArea.show()
@@ -5579,12 +5584,15 @@ watch/unwatch status")
                 self.labelFrame2.setText(txt)
             QtWidgets.QApplication.processEvents()
     
-    def IconViewEpn(self, start=None):
+    def IconViewEpn(self, start=None, mode=None):
         global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
-        global view_layout, iconv_r, curR, viewMode, thumbnail_indicator
+        global view_layout, iconv_r, curR, thumbnail_indicator
         global site, total_till_epn
-        if isinstance(start, int):
-            viewMode = 'Thumbnail'
+        if isinstance(mode, int):
+            if mode == 1:
+                self.view_mode = 'thumbnail'
+            else:
+                self.view_mode = 'thumbnail_light'
         if self.list2.count() == 0:
             return 0
         
@@ -5595,8 +5603,8 @@ watch/unwatch status")
         if num < 0:
             num = 0
         i = 0
-        print(viewMode, site, '--viewmode--')
-        if self.tab_6.isHidden() or viewMode == "Thumbnail" or start:
+        print(self.view_mode, site, '--viewmode--')
+        if self.tab_6.isHidden() or self.view_mode in ["thumbnail", 'thumbnail_light'] or start:
             self.list1.hide()
             self.list2.hide()
             self.tab_5.hide()
@@ -5606,7 +5614,7 @@ watch/unwatch status")
             self.frame.hide()
             #self.frame1.hide()
             self.goto_epn.hide()
-            if self.list_poster is not None:
+            if self.view_mode == 'thumbnail_light':
                 if not self.list_poster.isHidden():
                     self.list_poster.hide()
             if ui.auto_hide_dock:
@@ -6095,7 +6103,7 @@ watch/unwatch status")
             
     def setPreOpt(self, option_val=None):
         global pre_opt, opt, hdr, base_url, site, insidePreopt, embed, home
-        global hist_arr, name, bookmark, status, viewMode, total_till, browse_cnt
+        global hist_arr, name, bookmark, status, total_till, browse_cnt
         global embed, siteName
         
         insidePreopt = 1
@@ -6758,7 +6766,7 @@ watch/unwatch status")
                 self.nextp(-1)
                 
     def label_filter_list_update(self, item_index):
-        global viewMode, opt, site, bookmark, thumbnail_indicator, total_till
+        global opt, site, bookmark, thumbnail_indicator, total_till
         global browse_cnt, tmp_name, list1_items
         
         length = len(item_index)
@@ -8061,7 +8069,10 @@ watch/unwatch status")
         self.current_background = fanart
         self.update_list2()
         if show_ep_thumbnail:
-            self.IconViewEpn(1)
+            if self.view_mode == 'thumbnail':
+                self.IconViewEpn(mode=1)
+            elif self.view_mode == 'thumbnail_light':
+                self.IconViewEpn(mode=2)
 
     def set_list_thumbnail(self, k):
         if self.list_with_thumbnail:
@@ -10833,7 +10844,7 @@ watch/unwatch status")
                 self.frame_timer.stop()
         
     def finished(self):
-        global quitReally, mpv_start, viewMode, idw, thumbnail_indicator
+        global quitReally, mpv_start, idw, thumbnail_indicator
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
@@ -10852,13 +10863,13 @@ watch/unwatch status")
             self.player_restart()
             
     def player_restart(self):
-        global quitReally, mpv_start, viewMode, idw, thumbnail_indicator
+        global quitReally, mpv_start, idw, thumbnail_indicator
         logger.warning('quit={0} , hence --restarting--'.format(quitReally))
         num = curR
         self.list2.setCurrentRow(num)
         item = self.list2.item(num)
         if item:
-            if ((viewMode == 'Thumbnail' and idw != str(int(self.tab_5.winId()))
+            if ((self.view_mode == 'thumbnail' and idw != str(int(self.tab_5.winId()))
                     and thumbnail_indicator) or self.fullscreen_mode == 1):
                 finalUrl = self.epn_return(num)
                 if finalUrl.startswith('"'):
@@ -11864,7 +11875,7 @@ watch/unwatch status")
         global pre_opt, mirrorNo, insidePreopt, quality, home, siteName, finalUrlFound
         global nameListArr, show_hide_playlist, show_hide_titlelist
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        global hist_arr, list2_items, bookmark, status, viewMode, video_local_stream
+        global hist_arr, list2_items, bookmark, status, video_local_stream
         
         hist_arr[:]=[]
         pict_arr[:]=[]
@@ -11904,14 +11915,7 @@ watch/unwatch status")
                 self.media_data.create_update_music_db(music_db, music_file, music_file_bak)
                 update_start = 1
             elif not update_start:
-                #self.text.setText('Wait..Checking New Files')
-                #QtWidgets.QApplication.processEvents()
-                #QtCore.QTimer.singleShot(
-                #    1000, partial(self.media_data.update_on_start_music_db, 
-                #    music_db, music_file, music_file_bak))
-                
                 update_start = 1
-                #self.text.clear()
                 self.update_thread = UpdateMusicThread(self, music_db, music_file, music_file_bak)
                 if not self.update_thread.isRunning():
                     self.update_thread.start()
@@ -12090,13 +12094,12 @@ watch/unwatch status")
             for i in list2_items:
                 hist_arr.append(i)
         
-        if ((viewMode == "Thumbnail" or not self.tab_6.isHidden()) 
+        if ((self.view_mode in ["thumbnail", "thumbnail_light"] or not self.tab_6.isHidden()) 
                 and (opt == "History" or site=='Video' or bookmark
                 or site == "PlayLists")):
-            mode_another = False
             if site == "NotMentioned":
                 print("PlayLists")
-            elif self.list_poster is not None:
+            elif self.view_mode == 'thumbnail_light':
                 if self.list_poster.title_clicked:
                     self.list_poster.show_list(mode='next')
                     try:
@@ -12106,8 +12109,7 @@ watch/unwatch status")
                         total_till_epn=0
                     except Exception as err:
                         logger.error(err)
-                    mode_another = True
-            if not mode_another:
+            elif self.view_mode == 'thumbnail':
                 self.list1.hide()
                 self.list2.hide()
                 self.tab_5.hide()
@@ -12121,7 +12123,6 @@ watch/unwatch status")
                 self.tab_2.hide()
                 self.scrollArea1.hide()
                 self.scrollArea.show()
-                
                 if (opt == "History" or (site == "Video" or site == 'PlayLists') 
                         or bookmark):
                     print(total_till, 2*self.list1.count()-1, '--count--')
@@ -12141,17 +12142,7 @@ watch/unwatch status")
                             total_till_epn=0
                             self.next_page('deleted')
                             #self.thumbnail_label_update_epn()
-        elif self.list_poster is not None:
-            if not self.list_poster.isHidden():
-                self.list_poster.show_list(mode='next')
-                try:
-                    for i in range(0, total_till_epn):
-                        t = "self.label_epn_"+str(i)+".deleteLater()"
-                        exec (t)
-                    total_till_epn=0
-                except Exception as err:
-                    logger.error(err)
-                    
+                            
         list1_items[:] = []	
         for i in range(self.list1.count()):
             list1_items.append(str(self.list1.item(i).text()))
@@ -12571,7 +12562,7 @@ def main():
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator, opt_movies_indicator, epn_name_in_list
-    global cur_label_num, iconv_r_indicator, tab_6_size_indicator, viewMode
+    global cur_label_num, iconv_r_indicator, tab_6_size_indicator
     global tab_6_player, audio_id, sub_id, site_arr, siteName, finalUrlFound
     global refererNeeded, base_url_picn, base_url_summary, nameListArr
     global update_start, screen_width, screen_height, total_till_epn
@@ -12626,7 +12617,6 @@ def main():
     audio_id = "auto"
     sub_id = "auto"
     tab_6_player = "False"
-    viewMode = "List"
     tab_6_size_indicator = []
     iconv_r_indicator = []
     cur_label_num = 0
@@ -12696,6 +12686,7 @@ def main():
     episode_index = -1
     option_val = ''
     option_sitename = None
+    thumb_light = False
     dock_opt = 1
     pos_x = 0
     pos_y = 0
@@ -12916,6 +12907,11 @@ def main():
                         if option_sitename.lower() == 'none':
                             option_sitename = None
                     print(option_sitename, siteName, '-------')
+                elif "Thumbnail_Light" in i:
+                    thumb_light = re.sub('\n', '', j)
+                    if thumb_light:
+                        if thumb_light.lower() == 'true':
+                            thumb_light = True
                 elif "Video_Aspect" in i:
                     video_aspect = re.sub('\n', '', j)
                     if video_aspect.isdigit():
@@ -13006,12 +13002,11 @@ def main():
                         icon_poster = int(j)
                         ui.icon_poster_indicator.append(icon_poster)
                 elif "View" in i:
-                    viewMode = j.replace('\n', '')
-                    if viewMode=="Thumbnail":
-                        #ui.comboView.setCurrentIndex(2)
-                        pass
-                    elif viewMode=="List":
-                        ui.comboView.setCurrentIndex(1)
+                    view_mode = j.replace('\n', '')
+                    if view_mode == "thumbnail":
+                        ui.view_mode = 'thumbnail'
+                    elif view_mode == 'thumbnail_light':
+                        ui.view_mode = 'thumbnail_light'
                 elif "Layout" in i:
                     layout_mode = j.replace('\n', '')
                 elif "POSX" in i:
@@ -13697,9 +13692,13 @@ def main():
     
     if ui.media_server_autostart:
         ui.start_stop_media_server(True)
-    if viewMode == 'Thumbnail':
+    if ui.view_mode in ['thumbnail', 'thumbnail_light']:
         time.sleep(0.01)
-        ui.IconViewEpn(start=True)
+        if ui.view_mode == 'thumbnail':
+            ui.IconViewEpn(start=True, mode=1)
+        else:
+            ui.IconViewEpn(start=True, mode=2)
+        
     
     if ui.force_fs:
         MainWindow.showFullScreen()
@@ -13758,7 +13757,7 @@ def main():
             icon_poster = ui.icon_poster_indicator[-1]
         f.write("\nThumbnail_Poster="+str(icon_poster))
         f.write("\nThumbnail_Size="+str(iconv_r))
-        f.write("\nView="+str(viewMode))
+        f.write("\nView="+str(ui.view_mode))
         f.write("\nQuality="+str(quality))
         f.write("\nSite_Index="+str(ui.btn1.currentIndex()))
         f.write("\nAddon_Index="+str(ui.btnAddon.currentIndex()))
