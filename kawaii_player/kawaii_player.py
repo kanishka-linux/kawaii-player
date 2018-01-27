@@ -3985,7 +3985,7 @@ watch/unwatch status")
                  )
             except Exception as err:
                 logger.error(err)
-        elif self.view_mode == 'thumbnail_light':
+        elif self.view_mode == 'thumbnail':
             self.scrollArea1.hide()
             self.scrollArea.show()
             try:
