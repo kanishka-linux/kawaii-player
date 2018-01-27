@@ -1652,6 +1652,7 @@ watch/unwatch status")
         self.poster_count_start = 0
         self.focus_widget = None
         self.status_dict = {'label_dock':0}
+        self.status_dict_widget = {}
         self.player_theme = 'default'
         self.mpv_length_find_attempt = 0
         self.force_fs = False
@@ -5286,64 +5287,26 @@ watch/unwatch status")
         elif self.mpvplayer_val.processId() > 0:
             pass
         else:
-            fullscrT = 1 - fullscrT
-            if hide_var:
-                if hide_var == 'hide':
-                    self.tab_2.hide()
-                    self.tab_6.hide()
-                    self.list1.hide()
-                    self.list2.hide()
-                    self.tab_5.hide()
-                    self.label.hide()
-                    self.label_new.hide()
-                    self.text.hide()
-                    self.frame.hide()
-                    self.dockWidget_3.hide()
-                    self.tab_6.hide()
-                    self.tab_2.hide()
-                    self.goto_epn.hide()
-                    self.list1.setFocus()
-                    self.frame1.hide()
-                elif hide_var == 'unhide':
-                    self.list1.show()
-                    self.list2.show()
-                    self.label.show()
-                    self.label_new.show()
-                    self.text.show()
-                    self.frame.show()
-                    self.dockWidget_3.show()
-                    self.goto_epn.show()
-                    self.list1.setFocus()
-                    self.frame1.show()
+            if not self.status_dict_widget:
+                self.status_dict_widget = {
+                        'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
+                        'frame1':ui.frame1.isHidden(), 'label':ui.label.isHidden(),
+                        'label_new':ui.label_new.isHidden(), 'text':ui.text.isHidden(),
+                        'player':ui.tab_5.isHidden(), 'scrollArea':ui.scrollArea.isHidden(),
+                        'scrollArea1':ui.scrollArea1.isHidden(), 'frame':ui.frame.isHidden(),
+                        'dock_3':ui.dockWidget_3.isHidden(), 'tab_2':ui.tab_2.isHidden(),
+                        'tab_6':ui.tab_6.isHidden()
+                        }
+                for i in self.status_dict_widget:
+                    status = self.status_dict_widget[i]
+                    if not status:
+                        self.widget_dict[i].hide()
             else:
-                if fullscrT == 1:
-                    
-                    self.tab_2.hide()
-                    self.tab_6.hide()
-                    self.list1.hide()
-                    self.list2.hide()
-                    self.tab_5.hide()
-                    self.label.hide()
-                    self.label_new.hide()
-                    self.text.hide()
-                    self.frame.hide()
-                    self.dockWidget_3.hide()
-                    self.tab_6.hide()
-                    self.tab_2.hide()
-                    self.goto_epn.hide()
-                    self.list1.setFocus()
-                    self.frame1.hide()
-                else:
-                    self.list1.show()
-                    self.list2.show()
-                    self.label.show()
-                    self.label_new.show()
-                    self.text.show()
-                    self.frame.show()
-                    self.dockWidget_3.show()
-                    self.goto_epn.show()
-                    self.list1.setFocus()
-                    self.frame1.show()
+                for i in self.status_dict_widget:
+                    status = self.status_dict_widget[i]
+                    if not status:
+                        self.widget_dict[i].show()
+                self.status_dict_widget.clear()
         
     def thumbnailHide(self, context):
         global view_layout, total_till, browse_cnt, iconv_r
