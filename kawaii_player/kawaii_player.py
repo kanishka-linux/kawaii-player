@@ -5591,6 +5591,8 @@ watch/unwatch status")
             if self.view_mode == 'thumbnail_light':
                 if not self.list_poster.isHidden():
                     self.list_poster.hide()
+                if start:
+                    self.list_poster.title_clicked = True
             if ui.auto_hide_dock:
                 self.dockWidget_3.hide()
             if self.mpvplayer_val.processId()>0:
