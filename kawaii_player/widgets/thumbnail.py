@@ -816,7 +816,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 hgt=eval(p3)
 
                 ui.scrollArea1.horizontalScrollBar().setValue(xy-10)
-                ui.scrollArea1.verticalScrollBar().setValue(yy-10)
+                ui.scrollArea1.verticalScrollBar().setValue(yy-5)
 
             quitReally = "no"
             ui.set_parameters_value(quit_r=quitReally)
