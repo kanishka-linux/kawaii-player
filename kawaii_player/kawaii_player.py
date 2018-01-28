@@ -3268,7 +3268,7 @@ watch/unwatch status")
         except Exception as err:
             print(err)
             yy = 0
-        self.scrollArea1.verticalScrollBar().setValue(yy-10)
+        self.scrollArea1.verticalScrollBar().setValue(yy-5)
         #QtWidgets.QApplication.processEvents()
         self.frame1.show()
         self.gridLayout.setContentsMargins(5, 5, 5, 5)
@@ -4548,7 +4548,7 @@ watch/unwatch status")
             self.labelFrame2.setText('Finished!')
         self.lock_process = False
             
-    def thumbnail_label_update(self):
+    def thumbnail_label_update(self, clicked_num=None):
         global total_till, browse_cnt, home, iconv_r, site
         global thumbnail_indicator, tab_6_size_indicator
         global finalUrlFound, total_till_epn
@@ -4579,10 +4579,10 @@ watch/unwatch status")
             #w = float(self.tab_6.width())
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
-        width = str(int(w))
-        height = str(int(h))
-        print("self.width="+width)
-        print("self.height="+height)
+        width = int(w)
+        height = int(h)
+        print("self.width={}".format(width))
+        print("self.height={}".format(height))
         
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
@@ -4593,10 +4593,13 @@ watch/unwatch status")
         if not thumbnail_indicator:
             thumbnail_indicator.append("Thumbnail View")
         length = self.list2.count()
-    
+        if clicked_num:
+            range_show = [i for i in range(clicked_num-15, clicked_num+15)]
+        else:
+            range_show = None
+        self.scrollArea1.hide()
         if total_till_epn > 0:
             i = 0
-            #j = 5
             j = iconv_r+1
             k = 0
             length1 = 2*length
@@ -4607,38 +4610,44 @@ watch/unwatch status")
                 jj = 2*iconv_r
             kk = 0
             while(i<length):
-                p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-                p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
-                #p4="self.label_epn_"+str(i)+".setScaledContents(True)"
-                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                exec (p2)
-                exec (p3)
-                #exec (p4)
-                exec (p5)
-                exec (p6)
+                p2 = "self.label_epn_{0}".format(i)
+                label_epn = eval(p2)
+                label_hide = False
+                if range_show:
+                    if i not in range_show:
+                        label_epn.hide()
+                        label_hide = True
+                if not label_hide:
+                    label_epn.setMaximumSize(QtCore.QSize(width, height))
+                    label_epn.setMinimumSize(QtCore.QSize(width, height))
+                    label_epn.setObjectName(_fromUtf8('label_epn_{0}'.format(i)))
+                    self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
+                    label_epn.show()
                 i=i+1
                 k = k+1
                 if k == iconv_r:
                     j = j + 2*iconv_r
                     k = 0
-                    
-                p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
-                p3="self.label_epn_"+str(ii)+".setMaximumWidth("+width+")"
-                p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
-                exec(p2)
-                exec(p3)
-                exec(p5)
-                exec(p6)
+                
+                p2 = "self.label_epn_{0}".format(ii)
+                label_epn_txt = eval(p2)
+                if not label_hide:
+                    label_epn_txt.setMinimumWidth(width)
+                    label_epn_txt.setMaximumWidth(width)
+                    label_epn_txt.setObjectName(_fromUtf8('label_epn_{0}'.format(ii)))
+                    self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
+                    label_epn_txt.show()
+                else:
+                    label_epn_txt.hide()
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
                     jj = jj + 2*iconv_r
                     kk = 0
             total_till_epn = length1
+            self.scrollArea1.show()
             
-    def thumbnail_label_update_epn(self):
+    def thumbnail_label_update_epn(self, clicked_num=None):
         global total_till, browse_cnt, home, iconv_r, site
         global thumbnail_indicator, tab_6_size_indicator
         global finalUrlFound, total_till_epn
@@ -4669,11 +4678,11 @@ watch/unwatch status")
             w = float(self.tab_6.width()-40)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
-        width = str(int(w))
-        height = str(int(h))
-        hei_ght= str(int((int(height)/3)))
-        print("self.width="+width)
-        print("self.height="+height)
+        width = int(w)
+        height = int(h)
+        hei_ght= int(int(height)/3)
+        print("self.width={}".format(width))
+        print("self.height={}".format(height))
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
@@ -4681,7 +4690,12 @@ watch/unwatch status")
         if not thumbnail_indicator:
             thumbnail_indicator.append("Thumbnail View")
         length = self.list2.count()
-    
+        if clicked_num:
+            range_show = [i for i in range(clicked_num-15, clicked_num+15)]
+        else:
+            range_show = None
+        print(range_show, '--range--')
+        self.scrollArea1.hide()
         if total_till_epn > 0:
             i = 0
             j = iconv_r+1
@@ -4696,88 +4710,93 @@ watch/unwatch status")
             label_txt = self.labelFrame2.text()
             self.labelFrame2.setText('Wait...')
             while(i<length):
-                p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-                p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
-                #p4="self.label_epn_"+str(i)+".setScaledContents(True)"
-                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                exec (p2)
-                exec (p3)
-                #exec (p4)
-                exec (p5)
-                exec (p6)
-                
+                p2 = "self.label_epn_{0}".format(i)
+                label_epn = eval(p2)
+                label_hide = False
+                if range_show:
+                    if i not in range_show:
+                        label_epn.hide()
+                        label_hide = True
+                #print(label_hide, i, range_show, clicked_num)
+                if not label_hide:
+                    label_epn.setMaximumSize(QtCore.QSize(width, height))
+                    label_epn.setMinimumSize(QtCore.QSize(width, height))
+                    label_epn.setObjectName(_fromUtf8('label_epn_{0}'.format(i)))
+                    label_epn.show()
+                self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
                 counter = i
-                if (site == "Local" or site=="None" or site == "Music"
-                    or site == "Video" or site.lower() == 'myserver' 
-                    or site.lower() == 'playlists'):
-                    if '	' in self.epn_arr_list[counter]:
-                        nameEpn = (self.epn_arr_list[counter]).split('	')[0]
-                        
-                        path = ((self.epn_arr_list[counter]).split('	')[1])
-                    else:
-                        nameEpn = os.path.basename(self.epn_arr_list[counter])
-                        path = (self.epn_arr_list[counter])
-                    nameEpn = nameEpn.strip()
-                    if self.list1.currentItem():
-                        name_t = self.list1.currentItem().text()
-                    else:
-                        name_t = ''
-                    picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
-                else:
-                    if finalUrlFound == True:
+                if not label_hide:
+                    if site in ["Video", "Music", 'PlayLists', 'MyServer', 'None']:
                         if '	' in self.epn_arr_list[counter]:
                             nameEpn = (self.epn_arr_list[counter]).split('	')[0]
-                        
+                            
+                            path = ((self.epn_arr_list[counter]).split('	')[1])
                         else:
                             nameEpn = os.path.basename(self.epn_arr_list[counter])
-                        nameEpn = nameEpn
-                    else:
-                        if '	' in self.epn_arr_list[counter]:
-                            nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                            path = (self.epn_arr_list[counter])
+                        nameEpn = nameEpn.strip()
+                        if self.list1.currentItem():
+                            name_t = self.list1.currentItem().text()
                         else:
-                            nameEpn = (self.epn_arr_list[counter])
-                        nameEpn = nameEpn
-                    picnD = os.path.join(home, 'thumbnails', name)
-                    if not os.path.exists(picnD):
-                        os.makedirs(picnD)
-                    picn = os.path.join(picnD, nameEpn+'.jpg')
-                    picn = picn.replace('#', '', 1)
-                    if picn.startswith(self.check_symbol):
-                        picn = picn[1:]
-                
-                picn_old = picn
-                picn = self.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
-                img = QtGui.QPixmap(picn, "1")
-                q1="self.label_epn_"+str(counter)+".setPixmap(img)"
-                exec (q1)
+                            name_t = ''
+                        picn = self.get_thumbnail_image_path(counter, self.epn_arr_list[counter])
+                    else:
+                        if finalUrlFound == True:
+                            if '	' in self.epn_arr_list[counter]:
+                                nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                            
+                            else:
+                                nameEpn = os.path.basename(self.epn_arr_list[counter])
+                            nameEpn = nameEpn
+                        else:
+                            if '	' in self.epn_arr_list[counter]:
+                                nameEpn = (self.epn_arr_list[counter]).split('	')[0]
+                            else:
+                                nameEpn = (self.epn_arr_list[counter])
+                            nameEpn = nameEpn
+                        picnD = os.path.join(home, 'thumbnails', name)
+                        if not os.path.exists(picnD):
+                            os.makedirs(picnD)
+                        picn = os.path.join(picnD, nameEpn+'.jpg')
+                        picn = picn.replace('#', '', 1)
+                        if picn.startswith(self.check_symbol):
+                            picn = picn[1:]
+                    
+                    picn_old = picn
+                    picn = self.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
+                    img = QtGui.QPixmap(picn, "1")
+                    q1="self.label_epn_"+str(counter)+".setPixmap(img)"
+                    exec (q1)
                 
                 i=i+1
                 k = k+1
                 if k == iconv_r:
                     j = j + 2*iconv_r
                     k = 0
-        
-                p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
-                p3="self.label_epn_"+str(ii)+".setMaximumWidth("+width+")"
-                p4="self.label_epn_"+str(ii)+".setMaximumHeight("+hei_ght+")"
-                p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
-                exec(p2)
-                exec(p3)
-                exec(p4)
-                exec(p5)
-                exec(p6)
+                
+                p2 = "self.label_epn_{0}".format(ii)
+                label_epn_txt = eval(p2)
+                if not label_hide:
+                    label_epn_txt.setMinimumWidth(width)
+                    label_epn_txt.setMaximumWidth(width)
+                    label_epn_txt.setMaximumHeight(hei_ght)
+                    label_epn_txt.setObjectName(_fromUtf8('label_epn_{0}'.format(ii)))
+                    label_epn_txt.show()
+                else:
+                    label_epn_txt.hide()
+                self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
                     jj = jj + 2*iconv_r
                     kk = 0
                     self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i), int(length)))
-                    QtWidgets.QApplication.processEvents()
+                    #if not range_show:
+                    #QtWidgets.QApplication.processEvents()
             self.labelFrame2.setText(label_txt)
             total_till_epn = length1
-    
+            self.scrollArea1.show()
+            
     def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None,
                                  title_list=None, start_async=None, send_path=None):
         global site, home, name
