@@ -1600,7 +1600,7 @@ watch/unwatch status")
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (2, 9, 0, 0)
+        self.version_number = (2, 9, 9, 0)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
@@ -11842,6 +11842,12 @@ watch/unwatch status")
                             else:
                                 self.discover_server = False
                     return 0
+                elif code == 6:
+                    file_path = os.path.join(home, 'History', 'MyServer', 'history.txt')
+                    if os.path.isfile(file_path):
+                        lines = open_files(file_path, True)
+                        m = [i for i in lines]
+                        list_1 = True
                         
             if not list_1 and not list_2 and not list_3:
                 list_1 = True
