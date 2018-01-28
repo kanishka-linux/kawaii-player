@@ -255,6 +255,7 @@ class WidgetStyleSheet:
             
             QListWidget:item {
             height: 256px;
+            width: 128px;
             }
             QListWidget:item:selected:active {
             background:rgba(0, 0, 0, 60%);
@@ -652,6 +653,7 @@ class WidgetStyleSheet:
                 gui.list_poster.setStyleSheet("""
                 QListWidget:item {
                 height: 256px;
+                width:128px;
                 }
                 """)
                 gui.VerticalLayoutLabel_Dock3.setSpacing(0)
