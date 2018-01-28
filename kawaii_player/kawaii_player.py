@@ -3434,10 +3434,13 @@ watch/unwatch status")
                         else:
                             self.thumbnail_window_present_mode()
                     elif (str(idw) == str(int(self.tab_5.winId()))):
+                        self.tab_5.hide()
+                        self.scrollArea1.hide()
+                        QtWidgets.QApplication.processEvents()
                         self.gridLayout.addWidget(self.tab_6, 0, 1, 1, 1)
                         self.gridLayout.setSpacing(5)
                         self.tab_6.setMaximumSize(16777215, 16777215)
-                        self.tab_5.hide()
+                        
                         tab_6_size_indicator.append(screen_width-20)
                         thumbnail_indicator[:]=[]
                         if iconv_r_indicator:
