@@ -121,11 +121,11 @@ class WidgetStyleSheet:
             gui.player_opt.setStyleSheet("""font:bold 11px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;height:20px""")
             gui.frame2.setStyleSheet("""
-                QFrame{background:rgba(0, 0, 0, 10%);border:rgba(0, 0, 0, 0%);}
+                QFrame{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}
                 QPushButton{border-radius:0px;}
                 QPushButton::hover{background-color: yellow;color: black;}
                 QPushButton:pressed{background-color: violet;}
-                QLabel{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 0%);}
+                QLabel{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}
                 QComboBox {
                 selection-color:yellow;
                 }
@@ -250,14 +250,14 @@ class WidgetStyleSheet:
             gui.list_poster.setStyleSheet("""
             QListWidget{
             font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
+            background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 50%);
             }
             
             QListWidget:item {
             height: 256px;
             }
             QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
+            background:rgba(0, 0, 0, 60%);
             color: yellow;
             }
             QListWidget:item:selected:inactive {
