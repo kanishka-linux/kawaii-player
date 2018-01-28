@@ -1801,6 +1801,7 @@ watch/unwatch status")
             'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
             'tab_6':self.tab_6
             }
+        self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
         self.btn30.addItem(_fromUtf8(""))
         self.btn30.addItem(_fromUtf8(""))
@@ -5313,7 +5314,7 @@ watch/unwatch status")
                 curR = curR - 1
             self.mpvNextEpnList(play_row=curR, mode='play_now')
     
-    def HideEveryThing(self, hide_var=None):
+    def HideEveryThing(self, widget_except=None, mode=None):
         global fullscrT, idwMain, idw, view_layout
         if not self.search_on_type_btn.isHidden():
             self.search_on_type_btn.hide()
@@ -5334,6 +5335,12 @@ watch/unwatch status")
                     status = self.status_dict_widget[i]
                     if not status:
                         self.widget_dict[i].hide()
+                if widget_except is not None:
+                    if isinstance(widget_except, list):
+                        for widget in widget_except:
+                            widget.show()
+                    elif widget_except.isHidden():
+                        widget_except.show()
             else:
                 for i in self.status_dict_widget:
                     status = self.status_dict_widget[i]
@@ -5468,21 +5475,25 @@ watch/unwatch status")
         
     def showHideBrowser(self):
         global fullscrT, idwMain, idw, view_layout
-        
         if self.tab_2.isHidden():
-            self.HideEveryThing(hide_var='hide')
+            for widget in self.widget_dict:
+                self.browser_dict_widget.update(
+                    {widget:self.widget_dict[widget].isHidden()}
+                    )
+            for i in self.browser_dict_widget:
+                status = self.browser_dict_widget[i]
+                if not status:
+                    self.widget_dict[i].hide()
             self.tab_2.show()
-            self.frame1.show()
         else:
-            self.tab_6.hide()
             self.tab_2.hide()
-            self.list1.show()
-            self.list2.show()
-            self.label.show()
-            self.label_new.show()
-            self.text.show()
-            self.frame1.show()
-        
+            for i in self.browser_dict_widget:
+                status = self.browser_dict_widget[i]
+                if not status:
+                    self.widget_dict[i].show()
+            
+        self.frame1.show()
+            
     def IconView(self):
         global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
         global view_layout, thumbnail_indicator, total_till_epn
