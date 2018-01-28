@@ -104,7 +104,7 @@ class MyServer:
         self.server_name = None
         
     def getOptions(self):
-            criteria = ['Login', 'Logout', 'Discover', 'newversion']
+            criteria = ['Login', 'Logout', 'Discover', 'History', 'newversion']
             return criteria
             
     def getFinalUrl(self, name, epn, mirror, quality):
@@ -191,7 +191,7 @@ class MyServer:
                 except Exception as err:
                     print(err, '--111---')
                 m = self.site_arr.copy()
-                m.append('<-')
+                m.append('<--')
                 m.append(0)
         elif opt in self.site_arr:
             self.site = opt
@@ -199,29 +199,32 @@ class MyServer:
             if self.site.lower() == 'playlists':
                 m.append(1)
             else:
-                m.append('<--')
+                m.append('<----')
                 m.append(0)
-        elif opt == '<--' or opt == '<-':
+        elif opt == '<----' or opt == '<--':
             self.site = None
             self.opt = None
-            if opt == '<--':
+            if opt == '<----':
                 m = self.site_arr.copy()
-                m.append('<-')
+                m.append('<--')
             else:
-                m = ['Login', 'Logout', 'Discover']
+                m = ['Login', 'Logout', 'Discover', 'History']
             m.append(0)
         elif opt == 'History':
-            self.opt = opt
-            url_new = self.url+urllib.parse.quote(
-                'site={0}&opt={1}'.format(self.site.lower(), self.opt.lower())
-                )
-            print(url_new)
-            content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
-            #print(content)
-            m = content.split('\n')
-            if self.site.lower() == 'video' or self.site.lower() == 'music':
-                m = [i.replace('::::', '\t', 1) for i in m]
-            m.append(1)
+            if self.site is None:
+                m.append(6)
+            else:
+                self.opt = opt
+                url_new = self.url+urllib.parse.quote(
+                    'site={0}&opt={1}'.format(self.site.lower(), self.opt.lower())
+                    )
+                print(url_new)
+                content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
+                #print(content)
+                m = content.split('\n')
+                if self.site.lower() == 'video' or self.site.lower() == 'music':
+                    m = [i.replace('::::', '\t', 1) for i in m]
+                m.append(1)
         elif opt.lower() == 'discover':
             self.opt = opt
             m.append(4)
