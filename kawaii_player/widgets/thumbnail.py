@@ -701,7 +701,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                             iconv_r_indicator.append(iconv_r)
                         iconv_r = 1
                         ui.set_parameters_value(iconv=iconv_r)
-                        ui.thumbnail_label_update_epn()
+                        ui.thumbnail_label_update_epn(clicked_num=num)
                         QtWidgets.QApplication.processEvents()
                         p1 = "ui.label_epn_"+str(num)+".y()"
                         ht = eval(p1)
@@ -878,13 +878,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
             iconv_r = 1
             ui.set_parameters_value(iconv=iconv_r)
             ui.tab_6.setMaximumSize(ui.width_allowed, 16777215) # (400, 1000) earlier
-
-            ui.thumbnail_label_update()
+            num = curR
+            ui.thumbnail_label_update(clicked_num=num)
             tab_6_player = "True"
             
             ui.set_parameters_value(t6_ply=tab_6_player)
 
-            num = curR
+            
             self.setFocus()
             ui.gridLayout2.setAlignment(QtCore.Qt.AlignCenter)
             w = float(ui.thumbnail_video_width)
@@ -910,7 +910,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             hgt=eval(p3)
 
             ui.scrollArea1.horizontalScrollBar().setValue(xy-10)
-            ui.scrollArea1.verticalScrollBar().setValue(yy-10)
+            ui.scrollArea1.verticalScrollBar().setValue(yy-5)
 
             quitReally = "no"
             ui.set_parameters_value(quit_r=quitReally)
