@@ -423,6 +423,7 @@ class QLineCustomEpn(QtWidgets.QLineEdit):
             ui.list5.setFocus()
         super(QLineCustomEpn, self).keyPressEvent(event)
 
+
 class QLabelFloat(QtWidgets.QLabel):
 
     def __init(self, parent=None):
@@ -447,3 +448,29 @@ class QLabelFloat(QtWidgets.QLabel):
         
     def mouseEnterEvent(self, event):
         print('Enter Float')
+
+
+class SelectButton(QtWidgets.QComboBox):
+    
+    def __init__(self, parent, ui_widget):
+        super(SelectButton, self).__init__(parent)
+        global ui
+        ui = ui_widget
+        
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Right:
+            if not ui.list1.isHidden():
+                ui.list1.setFocus()
+            elif not ui.scrollArea.isHidden():
+                ui.scrollArea.setFocus()
+            elif not ui.scrollArea1.isHidden():
+                ui.scrollArea1.setFocus()
+            if ui.auto_hide_dock:
+                ui.dockWidget_3.hide()
+        elif event.key() == QtCore.Qt.Key_Left:
+            if self.currentText() == 'Addons':
+                ui.btnAddon.setFocus()
+            else:
+                ui.list3.setFocus()
+        else:
+            super(SelectButton, self).keyPressEvent(event)
