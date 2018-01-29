@@ -190,7 +190,7 @@ from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
 from widgets.thumbnail import ThumbnailWidget, TitleThumbnailWidget
-from widgets.thumbnail import TitleListWidgetPoster
+from widgets.thumbnail import TitleListWidgetPoster, TabThumbnail
 from widgets.playlist import PlaylistWidget
 from widgets.titlelist import TitleListWidget
 from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
@@ -300,24 +300,7 @@ class MainWindowWidget(QtWidgets.QWidget):
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden():
                     if site != 'Music' and ui.list2.isHidden() and ui.tab_6.isHidden() and ui.tab_2.isHidden():
                         ui.frame1.hide()
-
-
-class MyEventFilter(QtCore.QObject):
-
-    def eventFilter(self, receiver, event):
-        global tray, MainWindow, ui
-        print(event)
-        if event.type():
-            if(event.type() == QtCore.QEvent.ToolTip):
-                pos = event.pos()
-                print(pos)
-                if MainWindow.isHidden() and ui.float_window.isHidden():
-                    tray.right_menu._detach_video()
-                return 0
-        else:
-            #Call Base Class Method to Continue Normal Event Processing
-            return super(MyEventFilter, self).eventFilter(receiver, event)
-
+                        
 
 class EventFilterFloatWindow(QtCore.QObject):
 
@@ -343,158 +326,6 @@ class EventFilterFloatWindow(QtCore.QObject):
                 return super(EventFilterFloatWindow, self).eventFilter(receiver, event)
         else:
             return super(EventFilterFloatWindow, self).eventFilter(receiver, event)
-
-
-class ScaledLabel(QtWidgets.QLabel):
-
-    def __init__(self, *args, **kwargs):
-        QtWidgets.QLabel.__init__(self)
-        self._pixmap = QtGui.QPixmap(self.pixmap())
-
-    def resizeEvent(self, event):
-        self.setPixmap(self._pixmap.scaled(
-        self.width(), self.height(), 
-        QtCore.Qt.KeepAspectRatio))
-
-
-class labelDock(QtWidgets.QLabel):
-
-    def __init__(self, *args, **kwargs):
-        QtWidgets.QLabel.__init__(self)
-        
-    def mouseMoveEvent(self, event):
-        logger.info(event.pos())
-
-
-class Btn1(QtWidgets.QComboBox):
-    
-    def __init__(self, parent):
-        super(Btn1, self).__init__(parent)
-        
-    def keyPressEvent(self, event):
-        global iconv_r
-        if event.key() == QtCore.Qt.Key_Right:
-            if not ui.list1.isHidden():
-                ui.list1.setFocus()
-            elif not ui.scrollArea.isHidden():
-                ui.scrollArea.setFocus()
-            elif not ui.scrollArea1.isHidden():
-                ui.scrollArea1.setFocus()
-            if ui.auto_hide_dock:
-                ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_Left:
-            if self.currentText() == 'Addons':
-                ui.btnAddon.setFocus()
-            else:
-                ui.list3.setFocus()
-        super(Btn1, self).keyPressEvent(event)
-
-
-class tab6(QtWidgets.QWidget):
-    
-    def __init__(self, parent):
-        super(tab6, self).__init__(parent)
-        
-    def resizeEvent(self, event):
-        global tab_6_size_indicator, total_till, browse_cnt, thumbnail_indicator
-        global tab_6_player, screen_width
-        
-        if (ui.tab_6.width() > 500 and tab_6_player == "False" 
-                    and iconv_r != 1 and not ui.lock_process):
-                #browse_cnt = 0
-                #if tab_6_size_indicator:
-                #    tab_6_size_indicator.pop()
-                new_width = ui.tab_6.width()
-                if tab_6_size_indicator:
-                    old_width = tab_6_size_indicator[-1]
-                else:
-                    old_width = screen_width
-                if new_width != old_width:
-                    tab_6_size_indicator.append(new_width)
-                if not ui.scrollArea.isHidden():
-                    print('--------resizing----')
-                    #ui.next_page('not_deleted')
-                    #QtWidgets.QApplication.processEvents()
-                elif not ui.scrollArea1.isHidden():
-                    #ui.thumbnail_label_update()
-                    logger.debug('updating thumbnail window')
-                        
-    def mouseMoveEvent(self, event):
-        print('Tab_6')
-        if not ui.scrollArea1.isHidden():
-            ui.scrollArea1.setFocus()
-        elif not ui.scrollArea.isHidden():
-            ui.scrollArea.setFocus()
-        
-    def keyPressEvent(self, event):
-        global Player, wget, cycle_pause, cache_empty, buffering_mplayer
-        global curR, pause_indicator, thumbnail_indicator, iconv_r_indicator
-        global cur_label_num
-        global fullscr, idwMain, idw, quitReally, new_epn, toggleCache
-        global site, iconv_r, browse_cnt, total_till, browse_cnt
-        global tab_6_size_indicator
-        
-        #if tab_6_size_indicator:
-        #    tab_6_size_indicator.pop()
-        tab_6_size_indicator.append(ui.tab_6.width())
-        if event.key() == QtCore.Qt.Key_F:
-            #if tab_6_size_indicator:
-            #    tab_6_size_indicator.pop()
-            if self.width() > 500:
-                tab_6_size_indicator.append(self.width())
-            fullscr = 1 - fullscr
-            if not MainWindow.isFullScreen():
-                ui.text.hide()
-                ui.label.hide()
-                ui.frame1.hide()
-                ui.goto_epn.hide()
-                ui.btn10.hide()
-                if wget:
-                    if wget.processId() > 0:
-                        ui.progress.hide()
-                ui.list2.hide()
-                ui.list6.hide()
-                ui.list1.hide()
-                ui.frame.hide()
-                ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                ui.gridLayout.setSpacing(0)
-                ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
-                ui.gridLayout1.setSpacing(10)
-                ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
-                ui.gridLayout2.setSpacing(10)
-                ui.horizontalLayout10.setContentsMargins(0, 0, 0, 0)
-                ui.horizontalLayout10.setSpacing(0)
-                ui.tab_6.show()
-                ui.tab_6.setFocus()
-                MainWindow.showFullScreen()
-            else:
-                ui.gridLayout.setSpacing(5)
-                ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                ui.gridLayout1.setSpacing(10)
-                ui.gridLayout1.setContentsMargins(10, 10, 10, 10)
-                ui.gridLayout2.setSpacing(10)
-                ui.gridLayout2.setContentsMargins(10, 10, 10, 10)
-                ui.horizontalLayout10.setContentsMargins(10, 10, 10, 10)
-                ui.horizontalLayout10.setSpacing(10)
-                if wget:
-                    if wget.processId() > 0:
-                        ui.goto_epn.hide()
-                        ui.progress.show()
-                MainWindow.showNormal()
-                MainWindow.showMaximized()
-        
-
-class QDockNew(QtWidgets.QDockWidget):
-    
-    def __init__(self, parent):
-        global cycle_pause
-        super(QDockNew, self).__init__(parent)
-        
-    def mouseReleaseEvent(self, ev):
-        if ev.button() == QtCore.Qt.LeftButton:
-            self.hide()
-            ui.list4.hide()
 
 
 try:
@@ -843,6 +674,7 @@ watch/unwatch status")
             home = get_home_dir(mode='test')
             if not os.path.exists(home):
                 os.makedirs(home)
+        self.screen_size = (screen_width, screen_height)
         self.width_allowed = int((screen_width)/4.5)
         self.height_allowed = (self.width_allowed/aspect) #int((screen_height)/3.3)
         self.frame_height = int(self.height_allowed/2.5)
@@ -1219,7 +1051,7 @@ watch/unwatch status")
         self.tab_5.hide()
         #self.tab_5.setMinimumSize(100, 100)
         #self.tab_6 = QtGui.QWidget(MainWindow)
-        self.tab_6 = tab6(MainWindow)
+        self.tab_6 = TabThumbnail(MainWindow, self)
         self.tab_6.setMouseTracking(True)
         #self.tab_6 = QtGui.QWidget()
         #self.gridLayout.addWidget(self.tab_6)
@@ -1265,12 +1097,12 @@ watch/unwatch status")
         self.line.setObjectName(_fromUtf8("line"))
         #self.line.hide()
         self.line.setReadOnly(True)
-        self.btn1 = Btn1(self.dockWidgetContents_3)
+        self.btn1 = SelectButton(self.dockWidgetContents_3, self)
         #self.btn1.setGeometry(QtCore.QRect(20, 55, 130, 31))
         #self.btn1.setGeometry(QtCore.QRect(20, 20, 130, 26))
         self.btn1.setObjectName(_fromUtf8("btn1"))
         
-        self.btnAddon = Btn1(self.dockWidgetContents_3)
+        self.btnAddon = SelectButton(self.dockWidgetContents_3, self)
         self.btnAddon.setObjectName(_fromUtf8("btnAddon"))
         self.btnAddon.hide()
         #self.btn1.setEditable(True)
@@ -1433,7 +1265,7 @@ watch/unwatch status")
         
         
         
-        self.btn30 = Btn1(self.scrollAreaWidgetContents)
+        self.btn30 = SelectButton(self.scrollAreaWidgetContents, self)
         self.btn30.setObjectName(_fromUtf8("btn30"))
         self.horizontalLayout_20.insertWidget(0, self.btn30, 0)
         self.comboBox20 = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
@@ -1668,6 +1500,8 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.tab_6_size_indicator = []
+        self.tab_6_player = False
         self.view_mode = 'list'
         self.queue_stop = False
         self.queue_item = None
@@ -2332,7 +2166,7 @@ watch/unwatch status")
             book_mark=None):
         global site, curR, quitReally, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
-        global pause_indicator, mpv_indicator, fullscr, tab_6_size_indicator
+        global pause_indicator, mpv_indicator, fullscr
         global cur_label_num, path_final_Url, idw, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
         global show_hide_playlist, show_hide_titlelist, opt, quality, mirrorNo
@@ -2376,7 +2210,7 @@ watch/unwatch status")
         if show_hide_tl:
             show_hide_titlelist = show_hide_tl
         if tab_6:
-            tab_6_size_indicator = tab_6.copy()
+            self.tab_6_size_indicator = tab_6.copy()
         if idw_val:
             idw = idw_val
         if fullsc:
@@ -2386,7 +2220,7 @@ watch/unwatch status")
         if cur_ply:
             current_playing_file_path = cur_ply
         if t6_ply:
-            tab_6_player = t6_ply
+            self.tab_6_player = t6_ply
         if path_final:
             path_final_Url = path_final
         if inter:
@@ -2405,13 +2239,12 @@ watch/unwatch status")
         global pause_indicator, mpv_indicator, wget, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
         global idw, iconv_r, cur_label_num, fullscr, tab_6_size_indicator
-        global refererNeeded, server, tab_6_player, memory_num_arr
+        global refererNeeded, server, memory_num_arr
         global finalUrlFound, interval, name, opt, bookmark, status
         global base_url, embed, mirrorNo, category, screen_width, screen_height
         arg_dict = {}
         for key, val in kargs.items():
             arg_dict.update({'{0}'.format(val):eval(str(val))})
-        #logger.info(arg_dict)
         return arg_dict
         
     def remote_fullscreen(self):
@@ -3375,9 +3208,15 @@ watch/unwatch status")
             else:
                 rem_quit = 0
             if site != 'Music' or rem_quit:
-                self.history_dict_obj.update({self.final_playing_url:[counter, time.time(), sub_id, audio_id, rem_quit]})
+                self.history_dict_obj.update(
+                        {
+                        self.final_playing_url:[
+                            counter, time.time(), sub_id,
+                            audio_id, rem_quit
+                            ]
+                        }
+                    )
             quitReally = "yes"
-            #self.mpvplayer_val.write(b'\n quit \n')
             if msg:
                 if msg.lower() == 'already quit':
                     logger.debug(msg)
@@ -3399,14 +3238,12 @@ watch/unwatch status")
                         if self.fullscreen_mode == 0:
                             if show_hide_titlelist == 1:
                                 self.list1.show()
-                                #self.frame.show()
                             if show_hide_cover == 1:
                                 self.label.show()
                                 self.label_new.show()
                                 self.text.show()
                             if show_hide_titlelist == 1:
                                 self.list2.show()
-                                #ui.goto_epn.show()
                             self.list2.setFocus()
                         elif self.fullscreen_mode == 1:
                             self.tab_6.show()
@@ -3416,7 +3253,7 @@ watch/unwatch status")
                             if self.video_mode_index != 1:
                                 self.gridLayout.setSpacing(5)
                                 self.tab_6.setMaximumSize(16777215, 16777215)
-                                tab_6_size_indicator.append(screen_width-20)
+                                self.tab_6_size_indicator.append(screen_width-20)
                                 thumbnail_indicator[:]=[]
                                 if iconv_r_indicator:
                                     iconv_r = iconv_r_indicator[0]
@@ -3455,7 +3292,7 @@ watch/unwatch status")
                         self.gridLayout.setSpacing(5)
                         self.tab_6.setMaximumSize(16777215, 16777215)
                         
-                        tab_6_size_indicator.append(screen_width-20)
+                        self.tab_6_size_indicator.append(screen_width-20)
                         thumbnail_indicator[:]=[]
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
@@ -3471,7 +3308,8 @@ watch/unwatch status")
                         if self.player_theme == 'default':
                             self.label_new.setMinimumHeight(0)
                         
-            if ((MainWindow.isFullScreen() and self.tab_6.isHidden()) or self.fullscreen_mode == 1) and not self.force_fs:
+            if (((MainWindow.isFullScreen() and self.tab_6.isHidden())
+                    or self.fullscreen_mode == 1) and not self.force_fs):
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
                 MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -4277,7 +4115,6 @@ watch/unwatch status")
                       dimn=None, txt_name=None):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, iconv_r
-        global tab_6_size_indicator
         global labelGeometry, video_local_stream
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
         global hist_arr, bookmark, status, thumbnail_indicator
@@ -4419,7 +4256,6 @@ watch/unwatch status")
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo
         global list1_items
         global list2_items, quality, row_history, home, epn, iconv_r
-        global tab_6_size_indicator
         global labelGeometry, total_till
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
         global hist_arr, bookmark, status, thumbnail_indicator
@@ -4459,8 +4295,8 @@ watch/unwatch status")
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
-                    if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[-1]-60)/iconv_r_poster
+                    if self.tab_6_size_indicator:
+                        l= (self.tab_6_size_indicator[-1]-60)/iconv_r_poster
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -4561,7 +4397,7 @@ watch/unwatch status")
             
     def thumbnail_label_update(self, clicked_num=None):
         global total_till, browse_cnt, home, iconv_r, site
-        global thumbnail_indicator, tab_6_size_indicator
+        global thumbnail_indicator
         global finalUrlFound, total_till_epn
         
         m=[]
@@ -4578,8 +4414,8 @@ watch/unwatch status")
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
-                    if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[-1]-60)/iconv_r
+                    if self.tab_6_size_indicator:
+                        l= (self.tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -4660,7 +4496,7 @@ watch/unwatch status")
             
     def thumbnail_label_update_epn(self, clicked_num=None):
         global total_till, browse_cnt, home, iconv_r, site
-        global thumbnail_indicator, tab_6_size_indicator
+        global thumbnail_indicator
         global finalUrlFound, total_till_epn
         
         m=[]
@@ -4678,8 +4514,8 @@ watch/unwatch status")
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
-                    if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[-1]-60)/iconv_r
+                    if self.tab_6_size_indicator:
+                        l= (self.tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -4802,8 +4638,6 @@ watch/unwatch status")
                     jj = jj + 2*iconv_r
                     kk = 0
                     self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i), int(length)))
-                    #if not range_show:
-                    #QtWidgets.QApplication.processEvents()
             self.labelFrame2.setText(label_txt)
             total_till_epn = length1
             self.scrollArea1.show()
@@ -4915,7 +4749,7 @@ watch/unwatch status")
     
     def thumbnailEpn(self):
         global total_till, browse_cnt, home, iconv_r, site
-        global thumbnail_indicator, tab_6_size_indicator
+        global thumbnail_indicator
         global finalUrlFound, home, total_till_epn
         
         m=[]
@@ -4932,8 +4766,8 @@ watch/unwatch status")
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
-                    if tab_6_size_indicator:
-                        l= (tab_6_size_indicator[-1]-60)/iconv_r
+                    if self.tab_6_size_indicator:
+                        l= (self.tab_6_size_indicator[-1]-60)/iconv_r
                     else:
                         l = self.tab_6.width()-60
                     w = float(l)
@@ -12618,8 +12452,8 @@ def main():
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator, opt_movies_indicator, epn_name_in_list
-    global cur_label_num, iconv_r_indicator, tab_6_size_indicator
-    global tab_6_player, audio_id, sub_id, site_arr, siteName, finalUrlFound
+    global cur_label_num, iconv_r_indicator
+    global audio_id, sub_id, site_arr, siteName, finalUrlFound
     global refererNeeded, base_url_picn, base_url_summary, nameListArr
     global update_start, screen_width, screen_height, total_till_epn
     global mpv_start
@@ -12672,8 +12506,6 @@ def main():
         ]
     audio_id = "auto"
     sub_id = "auto"
-    tab_6_player = "False"
-    tab_6_size_indicator = []
     iconv_r_indicator = []
     cur_label_num = 0
     labelGeometry = 0
@@ -12778,6 +12610,7 @@ def main():
     ui.getdb = ServerLib(ui, home, BASEDIR, TMPDIR, logger)
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
+    ui.screen_size = (screen_width, screen_height)
     if not os.path.exists(home):
         os.makedirs(home)
     if not os.path.exists(os.path.join(home, 'src')):
@@ -13639,11 +13472,7 @@ def main():
     else:
         ui.dockWidget_3.show()
     
-    
     print(int(MainWindow.winId()))
-    #myFilter	 = MyEventFilter()
-    #app.installEventFilter(myFilter)
-    
     
     try:
         tray = SystemAppIndicator(ui_widget=ui, home=home, window=MainWindow, logr=logger)
