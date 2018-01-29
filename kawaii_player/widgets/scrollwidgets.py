@@ -61,10 +61,6 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             elif direction == "backward":
                 prevR = nextR + 1
             if prevR >= 0 and prevR < ui.list1.count():
-                p1 = "ui.label_"+str(prevR)+".setMinimumSize("+wi+", "+hi+")"
-                #exec (p1)
-                p1 = "ui.label_"+str(prevR)+".setMaximumSize("+wi+", "+hi+")"
-                #exec (p1)
                 ht1 = (0.6*int(hi))
                 wd1 = (0.6*int(wi))
                 ht = str(ht1)
@@ -106,8 +102,6 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
         
         ui.scrollArea.verticalScrollBar().setValue(yy-ht1)
         ui.scrollArea.horizontalScrollBar().setValue(xy-wd1)
-        p1 = "ui.label_"+str(nextR)+".setMinimumSize("+wd+", "+ht+")"
-        p1 = "ui.label_"+str(nextR)+".setMaximumSize("+wd+", "+ht+")"
         item = ui.list1.item(self.cur_row)
         if item:
             ui.labelFrame2.setText('{0}. {1}'.format(self.cur_row+1, item.text()))
@@ -231,10 +225,9 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
         ui.list2.setCurrentRow(nextR)
         try:
             p1 = "ui.label_epn_"+str(nextR)+".y()"
-            yy=eval(p1)
-            
+            yy = eval(p1)
             p1 = "ui.label_epn_"+str(nextR)+".x()"
-            xy=eval(p1)
+            xy = eval(p1)
             p1 = "ui.label_epn_"+str(nextR)+".setFocus()"
             exec (p1)
             new_cnt = str(nextR+ui.list2.count())
@@ -270,8 +263,6 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 elif direction == "backward":
                     prevR = nextR + 1
                 if prevR >= 0 and prevR < ui.list2.count():
-                    #p1 = "ui.label_epn_"+str(prevR)+".setMinimumSize("+wi+", "+hi+")"
-                    #p1 = "ui.label_epn_"+str(prevR)+".setMaximumSize("+wi+", "+hi+")"
                     ht1 = (0.6*int(hi))
                     wd1 = (0.6*int(wi))
                     ht = str(ht1)
@@ -301,15 +292,13 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                     print("wd="+wd)
             else:
                 p1 = "ui.label_epn_"+str(nextR)+".width()"
-                wd1=eval(p1)
+                wd1 = eval(p1)
                 p1 = "ui.label_epn_"+str(nextR)+".height()"
-                ht1=eval(p1)
+                ht1 = eval(p1)
                 ht = str(0.6*ht1)
                 wd = str(0.6*wd1)
             ui.scrollArea1.verticalScrollBar().setValue(yy-ht1)
             ui.scrollArea1.horizontalScrollBar().setValue(xy-wd1)
-            p1 = "ui.label_epn_"+str(nextR)+".setMinimumSize("+wd+", "+ht+")"
-            p1 = "ui.label_epn_"+str(nextR)+".setMaximumSize("+wd+", "+ht+")"
             site = ui.get_parameters_value(s='site')['site']
             if site != "PlayLists":
                 ui.labelFrame2.setText(ui.list2.currentItem().text())
