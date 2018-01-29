@@ -140,12 +140,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     self.seek_timer.setSingleShot(True)
                     
         if ui.mpvplayer_val.processId() > 0:
-            param_dict = ui.get_parameters_value(t='tab_6_size_indicator')
-            tab_6_size_indicator = param_dict['tab_6_size_indicator']
-            if tab_6_size_indicator:
-                tab_6_size_indicator.pop()
-            tab_6_size_indicator.append(ui.tab_6.width())
-            ui.set_parameters_value(tab_6=tab_6_size_indicator)
+            if ui.tab_6_size_indicator:
+                ui.tab_6_size_indicator.pop()
+            ui.tab_6_size_indicator.append(ui.tab_6.width())
             if event.key() == QtCore.Qt.Key_Equal:
                 param_dict = ui.get_parameters_value(
                     i='iconv_r', ir='iconv_r_indicator', c='curR')
@@ -646,13 +643,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
         Mode 6: Show video in thumbnail/poster label widget
         """
         param_dict = ui.get_parameters_value(
-            s='site', tab6='tab_6_size_indicator',
-            serv='server', tab_pl='tab_6_player',
+            s='site', serv='server',
             iconv_r='iconv_r', iconv_r_indicator='iconv_r_indicator')
         site = param_dict['site']
-        tab_6_size_indicator = param_dict['tab_6_size_indicator']
         server = param_dict['server']
-        tab_6_player = param_dict['tab_6_player']
         iconv_r = param_dict['iconv_r']
         iconv_r_indicator = param_dict['iconv_r_indicator']
         finalUrl = ''
@@ -661,12 +655,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
         if var_mode == 2 or var_mode == 1:
             ui.label_search.clear()
             ui.labelFrame2.hide()
-            tab_6_player = "False"
-            if tab_6_size_indicator:
-                tab_6_size_indicator.pop()
+            ui.tab_6_player = False
+            if ui.tab_6_size_indicator:
+                ui.tab_6_size_indicator.pop()
             if ui.tab_6.width()>500:
-                tab_6_size_indicator.append(ui.tab_6.width())
-            ui.set_parameters_value(tab_6=tab_6_size_indicator)
+                ui.tab_6_size_indicator.append(ui.tab_6.width())
             ui.gridLayout.setSpacing(0)
             if site in ["Video", "Music", "PlayLists", "None"]:
                 num = curR
@@ -788,8 +781,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.mpvplayer_started = False
                 ui.tab_5.hide()
                 ui.tab_6.setMaximumSize(16777215, 16777215)
-            tab_6_player = "True"
-            ui.set_parameters_value(t6_ply=tab_6_player)
+            ui.tab_6_player = True
             num = curR
             self.setFocus()
             ui.gridLayout2.setAlignment(QtCore.Qt.AlignCenter)
@@ -880,11 +872,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.tab_6.setMaximumSize(ui.width_allowed, 16777215) # (400, 1000) earlier
             num = curR
             ui.thumbnail_label_update(clicked_num=num)
-            tab_6_player = "True"
-            
-            ui.set_parameters_value(t6_ply=tab_6_player)
-
-            
+            ui.tab_6_player = True
             self.setFocus()
             ui.gridLayout2.setAlignment(QtCore.Qt.AlignCenter)
             w = float(ui.thumbnail_video_width)
@@ -955,12 +943,12 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.infoPlay(command)	
             ui.labelFrame2.setText(ui.epn_name_in_list)
         elif var_mode == 6 or var_mode == 7:
-            tab_6_player = "True"
+            ui.tab_6_player = False
 
             num = curR
             self.setFocus()
             quitReally = "no"
-            ui.set_parameters_value(quit_r=quitReally, t6_ply=tab_6_player)
+            ui.set_parameters_value(quit_r=quitReally)
             ui.list2.setCurrentRow(num)
             p4="ui.label.setMouseTracking(True)"
             exec(p4)
@@ -1760,3 +1748,79 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                     ui.widget_dict[i].show()
                 else:
                     ui.widget_dict[i].hide()
+
+
+class TabThumbnail(QtWidgets.QWidget):
+    
+    def __init__(self, parent, ui_widget=None):
+        super(TabThumbnail, self).__init__(parent)
+        global ui, MainWindow
+        ui = ui_widget
+        MainWindow = parent
+        
+    def resizeEvent(self, event):
+        if (ui.tab_6.width() > 500 and not ui.tab_6_player 
+                and not ui.lock_process):
+            iconv_r = ui.get_parameters_value(wgt='iconv_r')['iconv_r']
+            if iconv_r != 1:
+                new_width = ui.tab_6.width()
+                if ui.tab_6_size_indicator:
+                    old_width = ui.tab_6_size_indicator[-1]
+                else:
+                    old_width = ui.screen_size[0]
+                if new_width != old_width:
+                    ui.tab_6_size_indicator.append(new_width)
+                        
+    def mouseMoveEvent(self, event):
+        if not ui.scrollArea1.isHidden():
+            ui.scrollArea1.setFocus()
+        elif not ui.scrollArea.isHidden():
+            ui.scrollArea.setFocus()
+        
+    def keyPressEvent(self, event):
+        global wget
+        wget = ui.get_parameters_value(wgt='wget')['wget']
+        ui.tab_6_size_indicator.append(ui.tab_6.width())
+        if event.key() == QtCore.Qt.Key_F:
+            if self.width() > 500:
+                ui.tab_6_size_indicator.append(self.width())
+            if not MainWindow.isFullScreen():
+                ui.text.hide()
+                ui.label.hide()
+                ui.frame1.hide()
+                ui.goto_epn.hide()
+                ui.btn10.hide()
+                if wget:
+                    if wget.processId() > 0:
+                        ui.progress.hide()
+                ui.list2.hide()
+                ui.list6.hide()
+                ui.list1.hide()
+                ui.frame.hide()
+                ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                ui.gridLayout.setSpacing(0)
+                ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
+                ui.gridLayout1.setSpacing(10)
+                ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
+                ui.gridLayout2.setSpacing(10)
+                ui.horizontalLayout10.setContentsMargins(0, 0, 0, 0)
+                ui.horizontalLayout10.setSpacing(0)
+                ui.tab_6.show()
+                ui.tab_6.setFocus()
+                MainWindow.showFullScreen()
+            else:
+                ui.gridLayout.setSpacing(5)
+                ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                ui.gridLayout1.setSpacing(10)
+                ui.gridLayout1.setContentsMargins(10, 10, 10, 10)
+                ui.gridLayout2.setSpacing(10)
+                ui.gridLayout2.setContentsMargins(10, 10, 10, 10)
+                ui.horizontalLayout10.setContentsMargins(10, 10, 10, 10)
+                ui.horizontalLayout10.setSpacing(10)
+                if wget:
+                    if wget.processId() > 0:
+                        ui.goto_epn.hide()
+                        ui.progress.show()
+                MainWindow.showNormal()
+                MainWindow.showMaximized()
