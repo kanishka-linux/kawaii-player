@@ -45,6 +45,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
 
+- [Beta Release](https://github.com/kanishka-linux/kawaii-player/releases/tag/v2.9.9-0)
+
 - [Contacts](#contacts)
 
 ## Why Another Media Player
@@ -719,6 +721,8 @@ From version 2.4 onwards, the application can accept keyboard shortcuts as defin
 
 * q : quit
 
+* Shift+q: remember position before quitting
+
 * spacebar: play/pause
 
 * f : fullscreen
@@ -796,7 +800,7 @@ Similarly, most of the properties of mpv global config file '~/.config/mpv/confi
 
         ao=pulse 
 
-        vo=opengl {or anything that works on your system}
+        vo=opengl {or anything that works on your system} {opengl has been replaced with gpu in mpv v0.28}
 
         cache-secs=120
 
@@ -819,6 +823,8 @@ Similarly, most of the properties of mpv global config file '~/.config/mpv/confi
 * Right,Left: set focus alternate between Option column, Title column and Playlist column (If Player is not Playing Anything)
 
 * Ctrl+0 to Ctrl+9 : Change aspect ratio of background image
+
+* F1 : Thumbnail Wall Mode
 
 ### Title Column:(if Title list is focussed)
 
