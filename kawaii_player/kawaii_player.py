@@ -3770,13 +3770,7 @@ watch/unwatch status")
                             )
                         )
         elif val == "Show/Hide Web Browser":
-            if self.tab_2.isHidden():
-                if self.mpvplayer_val.processId() > 0:
-                    self.tab_2.show()
-                else:
-                    self.showHideBrowser()
-            else:
-                self.tab_2.hide()
+            self.showHideBrowser()
         elif (site == "Music" or site == "Local" or site == "Video" 
                 or site == "PlayLists"):
             convert_str = (lambda txt: int(txt) if txt.isdigit() else txt.lower())
@@ -7111,6 +7105,8 @@ watch/unwatch status")
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
         global name, nam, old_manager, new_manager, home, screen_width, quality
         global site
+        if self.tab_2.isHidden():
+            self.showHideBrowser()
         self.web_review_browser_started = True
         btn_hide = self.horizontalLayout_player_opt.itemAt(14)
         print(btn_hide, '--hide--btn--')
@@ -7148,21 +7144,11 @@ watch/unwatch status")
                 self.web.setObjectName(_fromUtf8("web"))
                 self.horizontalLayout_5.addWidget(self.web)
             print(self.web, '2')
-        
-        self.list1.hide()
-        self.list2.hide()
-        self.dockWidget_3.hide()
-        self.label.hide()
-        self.label_new.hide()
-        self.text.hide()
         #print(self.VerticalLayoutLabel.itemAt(2), '--itemAt--')
         #if self.VerticalLayoutLabel.itemAt(2):
         #    self.VerticalLayoutLabel.takeAt(2)
         #    print('--stretch--deleted--')
-        self.frame.hide()
-        #self.frame1.hide()
         self.tab_2.show()
-        self.goto_epn.hide()
         try:
             name = str(name)
         except:
