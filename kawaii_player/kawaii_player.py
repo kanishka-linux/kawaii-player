@@ -799,7 +799,6 @@ watch/unwatch status")
         self.horizontalLayout_torrent_frame.insertWidget(2, self.label_up_speed, 0)
         
         self.frame1 = QtWidgets.QFrame(MainWindow)
-        #self.frame1.setMaximumSize(QtCore.QSize(10000, 32))
         self.frame1.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.frame1.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame1.setObjectName(_fromUtf8("frame1"))
@@ -810,7 +809,7 @@ watch/unwatch status")
         #self.gridLayout.addWidget(self.frame1, 1, 0, 1, 1)
         
         self.frame2 = QtWidgets.QFrame(MainWindow)
-        self.frame2.setMaximumSize(QtCore.QSize(10000, 32))
+        #self.frame2.setMaximumSize(QtCore.QSize(16777215, 32))
         self.frame2.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.frame2.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame2.setObjectName(_fromUtf8("frame2"))
@@ -826,7 +825,7 @@ watch/unwatch status")
         #self.gridLayout.addWidget(self.progressEpn, 1, 0, 1, 1)
         self.progressEpn.setMinimum(0)
         self.progressEpn.setMaximum(100)
-        self.progressEpn.setMaximumSize(QtCore.QSize(10000, 32))
+        self.progressEpn.setMaximumSize(QtCore.QSize(16777215, 32))
         self.progressEpn.setTextVisible(True)
         
         self.slider = MySlider(self.frame1, self, home)
@@ -1216,7 +1215,6 @@ watch/unwatch status")
         #self.tabWidget1.addTab(self.tab_5, _fromUtf8(""))
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
         self.tab_5.setMouseTracking(True)
-        #self.tab_5.setMaximumSize(100000, 100000)
         #self.VerticalLayoutLabel.insertWidget(1, self.tab_5, 0)
         self.tab_5.hide()
         #self.tab_5.setMinimumSize(100, 100)
@@ -1307,9 +1305,16 @@ watch/unwatch status")
         #self.horizontalLayout_5.addWidget(self.web)
         ##self.gridLayout.addWidget(self.tab_2, 2, 1, 1, 1)
         #self.web.hide()
-        self.horizLayout_web = QtWidgets.QHBoxLayout()
+        self.frame_web = QtWidgets.QFrame(MainWindow)
+        self.frame_web.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_web.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_web.setObjectName(_fromUtf8("frame_web"))
+        
+        self.horizLayout_web = QtWidgets.QHBoxLayout(self.frame_web)
+        #self.horizLayout_web.setSpacing(0)
+        self.horizLayout_web.setContentsMargins(0, 0 ,0, 0)
         self.horizLayout_web.setObjectName(_fromUtf8("horizLayout_web"))
-        self.horizontalLayout_5.addLayout(self.horizLayout_web)
+        self.horizontalLayout_5.insertWidget(0 ,self.frame_web, 0)
         
         
         
@@ -1363,7 +1368,11 @@ watch/unwatch status")
         self.btnWebReviews_search.returnPressed.connect(
             lambda x=0:self.reviewsWeb(action='return_pressed')
             )
-        
+        self.browser_buttons = [
+            self.btnWebClose, self.btnWebResize, self.btnWebPrev,
+            self.btnWebNext, self.btnWebReviews, self.btnGoWeb,
+            self.btnWebReviews_search
+            ]
         ##################
         
         self.btn2 = QtWidgets.QComboBox(self.dockWidgetContents_3)
@@ -1493,6 +1502,10 @@ watch/unwatch status")
         
         self.frame2.setMinimumHeight(self.frame2_height)
         self.frame2.setMaximumHeight(self.frame2_height)
+        self.frame_web.setMinimumHeight(self.frame2_height)
+        self.frame_web.setMaximumHeight(self.frame2_height)
+        for browser_btn in self.browser_buttons:
+            browser_btn.setMinimumHeight(self.frame2_height)
         
         self.btn20.setMaximumHeight(self.frame2_height)
         self.comboBoxMode.setMaximumHeight(self.frame2_height)
