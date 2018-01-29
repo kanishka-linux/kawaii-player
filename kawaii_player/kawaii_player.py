@@ -11898,7 +11898,7 @@ watch/unwatch status")
     def options(self, val=None):
         global opt, pgn, genre_num, site, name, base_url, name1, embed, list1_items
         global pre_opt, mirrorNo, insidePreopt, quality, home, siteName, finalUrlFound
-        global nameListArr, show_hide_playlist, show_hide_titlelist
+        global nameListArr, show_hide_playlist, show_hide_titlelist, total_till_epn
         global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
         global hist_arr, list2_items, bookmark, status, video_local_stream
         
