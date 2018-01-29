@@ -120,29 +120,30 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);""")
             gui.player_opt.setStyleSheet("""font:bold 11px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;height:20px""")
-            gui.frame2.setStyleSheet("""
-                QFrame{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}
-                QPushButton{border-radius:0px;}
-                QPushButton::hover{background-color: yellow;color: black;}
-                QPushButton:pressed{background-color: violet;}
-                QLabel{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}
-                QComboBox {
-                selection-color:yellow;
-                }
-                QComboBox::hover{background-color: yellow;color: black;}
-                QComboBox::drop-down {
-                width: 47px;
-                border: 0px;
-                color:black;
-                }
-                QComboBox::focus {
-                color:yellow;
-                }
-                QComboBox::down-arrow {
-                width: 2px;
-                height: 2px;
-                }
-                """)
+            for frame in [gui.frame2, gui.frame_web]:
+                frame.setStyleSheet("""
+                    QFrame{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}
+                    QPushButton{border-radius:0px;}
+                    QPushButton::hover{background-color: yellow;color: black;}
+                    QPushButton:pressed{background-color: violet;}
+                    QLabel{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}
+                    QComboBox {
+                    selection-color:yellow;
+                    }
+                    QComboBox::hover{background-color: yellow;color: black;}
+                    QComboBox::drop-down {
+                    width: 47px;
+                    border: 0px;
+                    color:black;
+                    }
+                    QComboBox::focus {
+                    color:yellow;
+                    }
+                    QComboBox::down-arrow {
+                    width: 2px;
+                    height: 2px;
+                    }
+                    """)
             gui.player_opt.setStyleSheet("""
             QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
             QPushButton{border-radius:0px;max-height:30px;}
