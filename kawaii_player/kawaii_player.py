@@ -1502,6 +1502,7 @@ watch/unwatch status")
         self.mpvplayer_val = QtCore.QProcess()
         self.tab_6_size_indicator = []
         self.tab_6_player = False
+        self.epn_list_count = []
         self.view_mode = 'list'
         self.queue_stop = False
         self.queue_item = None
@@ -3827,13 +3828,15 @@ watch/unwatch status")
         global thumbnail_indicator, total_till, browse_cnt, tmp_name
         global total_till_epn, iconv_r, iconv_r_indicator
         logger.debug(self.view_mode)
+        self.epn_list_count.append(self.list2.count())
         if self.view_mode == 'thumbnail_light':
             self.list_poster.show_list(mode='prev')
             try:
                 for i in range(0, total_till_epn):
-                    t = "self.label_epn_"+str(i)+".deleteLater()"
-                    exec (t)
+                    t = "self.label_epn_{0}.deleteLater()".format(i)
+                    exec(t)
                 total_till_epn=0
+            
             except Exception as err:
                 logger.error(err)
             try:
@@ -4564,7 +4567,6 @@ watch/unwatch status")
                     if i not in range_show:
                         label_epn.hide()
                         label_hide = True
-                #print(label_hide, i, range_show, clicked_num)
                 if not label_hide:
                     label_epn.setMaximumSize(QtCore.QSize(width, height))
                     label_epn.setMinimumSize(QtCore.QSize(width, height))
@@ -4775,19 +4777,21 @@ watch/unwatch status")
         elif iconv_r == 1:
             w = float(self.tab_6.width()-40)
             h = int(w/self.image_aspect_allowed)
-        width = str(int(w))
-        height = str(int(h))
+        width = int(w)
+        height = int(h)
         
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
         self.icon_size_arr.append(height)
-        print("self.width="+width)
-        print("self.height="+height)
         if not thumbnail_indicator:
             thumbnail_indicator.append("Thumbnail View")
         length = self.list2.count()
-    
+        if len(self.epn_list_count) >= 2:
+            prev_count = self.epn_list_count[-2]
+        else:
+            prev_count = -1
+        logger.debug('current={0}::prev={1}'.format(length, prev_count))
         if total_till_epn==0:
             i = 0
             #j = 5
@@ -4801,28 +4805,28 @@ watch/unwatch status")
             else:
                 jj = 2*iconv_r
             kk = 0
-            hei_ght= str(int((int(height)/3)))
+            hei_ght = int((int(height)/3))
             label_txt = self.labelFrame2.text()
             self.labelFrame2.setText('Wait...')
             while(i<length):
-                p1="self.label_epn_"+str(i)+" = ThumbnailWidget(self.scrollAreaWidgetContents1)"
-                p4 = "self.label_epn_{0}.setup_globals(MainWindow, ui, home, TMPDIR, logger, screen_width, screen_height)".format(i)
-                p7 = "l_"+str(i)+" = weakref.ref(self.label_epn_"+str(i)+")"
-                p2="self.label_epn_"+str(i)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-                p3="self.label_epn_"+str(i)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
-                p5="self.label_epn_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(i)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                p8 = "self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)".format(str(i))
-                p12="self.label_epn_"+str(i)+".setMouseTracking(True)"
-                exec(p1)
-                exec(p4)
-                exec(p7)
-                exec(p2)
-                exec(p3)
-                exec(p5)
-                exec(p6)
-                exec(p8)
-                exec(p12)
+                if prev_count >= 0 and prev_count <= length and i < prev_count:
+                    create_widget = False
+                elif prev_count >= 0 and prev_count > length and i < length:
+                    create_widget = False
+                else:
+                    create_widget = True
+                p1 = "self.label_epn_{0} = ThumbnailWidget(self.scrollAreaWidgetContents1)".format(i)
+                exec (p1)
+                p1 = "l_{0} = weakref.ref(self.label_epn_{0})".format(i)
+                exec (p1)
+                label_epn = eval('self.label_epn_{0}'.format(i))
+                label_epn.setup_globals(MainWindow, ui, home, TMPDIR, logger, screen_width, screen_height)
+                label_epn.setMaximumSize(QtCore.QSize(width, height))
+                label_epn.setMinimumSize(QtCore.QSize(width, height))
+                label_epn.setObjectName(_fromUtf8('label_epn_{0}'.format(i)))
+                self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
+                label_epn.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+                label_epn.setMouseTracking(True)
                 
                 counter = i
                 start_already = False
@@ -4878,37 +4882,28 @@ watch/unwatch status")
                 if not start_already:
                     picn = ui.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
                     img = QtGui.QPixmap(picn, "1")
-                    q1="ui.label_epn_"+str(counter)+".setPixmap(img)"
-                    exec (q1)
+                    label_epn.setPixmap(img)
                 
                 i=i+1
                 k = k+1
                 if k == iconv_r:
                     j = j + 2*iconv_r
                     k = 0
-        
-            
-                p1="self.label_epn_"+str(ii)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents1)"
-                p7 = "l_"+str(ii)+" = weakref.ref(self.label_epn_"+str(ii)+")"
-                p2="self.label_epn_"+str(ii)+".setMinimumWidth("+width+")"
-                p5="self.label_epn_"+str(ii)+".setObjectName(_fromUtf8("+'"'+"label_epn_"+str(ii)+'"'+"))"
-                p6="self.gridLayout2.addWidget(self.label_epn_"+str(ii)+", "+str(jj)+", "+str(kk)+", 1, 1, QtCore.Qt.AlignCenter)"
-                
-                p9="self.label_epn_"+str(ii)+".setMaximumHeight("+hei_ght+")"
-                p10="self.label_epn_"+str(ii)+".lineWrapMode()"
-                p11="self.label_epn_"+str(ii)+".setReadOnly(True)"
-                p12 = "self.label_epn_{0}.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(ii)
-                p13 = "self.label_epn_{0}.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(ii)
+                    
+                p1 = "self.label_epn_{} = QtWidgets.QTextEdit(self.scrollAreaWidgetContents1)".format(ii)
                 exec(p1)
+                p7 = "l_"+str(ii)+" = weakref.ref(self.label_epn_"+str(ii)+")"
                 exec(p7)
-                exec(p2)
-                exec(p5)
-                exec(p6)
-                exec(p9)
-                exec(p10)
-                exec(p11)
-                exec(p12)
-                exec(p13)
+                label_epn_txt = eval('self.label_epn_{0}'.format(ii))
+                label_epn_txt.setMinimumWidth(width)
+                label_epn_txt.setObjectName(_fromUtf8('label_epn_{}'.format(ii)))
+                self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
+                label_epn_txt.setMaximumHeight(hei_ght)
+                label_epn_txt.lineWrapMode()
+                label_epn_txt.setReadOnly(True)
+                label_epn_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                label_epn_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                    
                 if nameEpn.startswith('#'):
                     nameEpn = nameEpn.replace('#', self.check_symbol, 1)
                 nameEpn = nameEpn.replace('_', ' ')
@@ -4922,12 +4917,9 @@ watch/unwatch status")
                     sumry = open_files(txt_path, False)
                     sumry = sumry.replace('\n', '<br>')
                     sumry = "<html>"+sumry+"</html>"
-                q3="ui.label_epn_"+str(ii)+".setText((nameEpn))"
-                exec (q3)
-                q3="ui.label_epn_"+str(ii)+".setAlignment(QtCore.Qt.AlignCenter)"
-                exec(q3)
-                q3='ui.label_epn_'+str(ii)+'.setToolTip(sumry)'
-                exec(q3)
+                label_epn_txt.setText(nameEpn)
+                label_epn_txt.setAlignment(QtCore.Qt.AlignCenter)
+                label_epn_txt.setToolTip(sumry)
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
@@ -4937,13 +4929,9 @@ watch/unwatch status")
                 QtWidgets.QApplication.processEvents()
             self.labelFrame2.setText(label_txt)
             total_till_epn = length1
-            
-    
+                
     def grid_thumbnail_process_finished(self, k):
-        #if (k%10) == 0 or k == 0:
-        #    QtWidgets.QApplication.processEvents()
         logger.debug('finished={0}'.format(k))
-        #QtWidgets.QApplication.processEvents()
         
     def append_to_thread_list(self, thread_arr, thread_obj, finish_fun, *args):
         thread_arr.append(thread_obj)
@@ -5447,7 +5435,8 @@ watch/unwatch status")
                 self.view_mode = 'thumbnail_light'
         if self.list2.count() == 0:
             return 0
-        
+        else:
+            self.epn_list_count.append(self.list2.count())
         thumbnail_indicator[:]=[]
         self.scrollArea.hide()
         tmp_name[:]=[]
