@@ -7627,8 +7627,8 @@ watch/unwatch status")
                         self.record_history, self.depth_list = send_list[3], send_list[4]
                         name, extra_info = send_list[5], send_list[6]
                         siteName, opt = send_list[7], send_list[8]
-                        cur_row = send_list[9]
-                        new_name_with_info = self.original_path_name[cur_row].strip()
+                        row_select = send_list[9]
+                        new_name_with_info = self.original_path_name[row_select].strip()
                         self.text.setText('Load..Complete')
                         logger.info(m)
                         logger.info(summary)
@@ -7654,7 +7654,7 @@ watch/unwatch status")
                                     self.epn_wait_thread = PlayerGetEpn(
                                         self, logger, 'list', name, opt, 
                                         self.depth_list, extra_info, siteName,
-                                        category, cur_row)
+                                        category, row_select)
                                     self.epn_wait_thread.start()
                                     return 0
                                 else:
