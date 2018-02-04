@@ -416,21 +416,21 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.deleteHistory()
             if r < self.count():
                 self.setCurrentRow(r)
-        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_H:
+        elif (event.modifiers() == QtCore.Qt.ControlModifier
+                and event.key() == QtCore.Qt.Key_H):
             ui.setPreOpt('fromtitlelist')
-        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_R:
+        elif (event.modifiers() == QtCore.Qt.ControlModifier
+                and event.key() == QtCore.Qt.Key_R):
             ui.shuffleList()
-        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_T:
+        elif (event.modifiers() == QtCore.Qt.ControlModifier
+                and event.key() == QtCore.Qt.Key_T):
             ui.sortList()
-        elif event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_Y:
-            ui.getList()
         elif event.key() == QtCore.Qt.Key_Return:
             ui.list1_double_clicked()
         elif event.key() == QtCore.Qt.Key_Right:
             ui.list2.setFocus()
         elif event.key() == QtCore.Qt.Key_F2:
             if ui.original_path_name:
-                print('F2 Pressed')
                 if self.currentItem():
                     self.edit_name_list1(self.currentRow())
         elif event.key() == QtCore.Qt.Key_Left:
