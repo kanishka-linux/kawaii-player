@@ -1763,8 +1763,8 @@ watch/unwatch status")
         self.btn20.clicked.connect(lambda r = 0: self.thumbnailHide('clicked'))
         self.btn201.clicked.connect(self.prev_thumbnails)
         
-        self.go_opt.clicked.connect(self.go_opt_options)
-        self.btn10.currentIndexChanged['int'].connect(self.browse_epn)
+        #self.go_opt.clicked.connect(self.go_opt_options)
+        #self.btn10.currentIndexChanged['int'].connect(self.browse_epn)
         self.line.returnPressed.connect(self.searchNew)
         self.label_down_speed.returnPressed.connect(self.set_new_download_speed)
         self.label_up_speed.returnPressed.connect(self.set_new_upload_speed)
@@ -1773,8 +1773,8 @@ watch/unwatch status")
         self.btn1.currentIndexChanged['int'].connect(self.ka)
         self.btnAddon.currentIndexChanged['int'].connect(self.ka2)
         self.btn30.currentIndexChanged['int'].connect(self.ka1)
-        self.comboBox20.currentIndexChanged['int'].connect(self.browserView_view)
-        self.comboView.currentIndexChanged['int'].connect(self.viewPreference)
+        #self.comboBox20.currentIndexChanged['int'].connect(self.browserView_view)
+        #self.comboView.currentIndexChanged['int'].connect(self.viewPreference)
         self.comboBoxMode.currentIndexChanged['int'].connect(self.set_video_mode)
         
         self.list1.itemDoubleClicked['QListWidgetItem*'].connect(self.list1_double_clicked)
@@ -2236,7 +2236,7 @@ watch/unwatch status")
             
     def get_parameters_value(self, *arg, **kargs):
         global curR, path_final_Url, opt, site, siteName
-        global video_local_stream, name, html_default_arr, Player
+        global video_local_stream, name, html_default_arr
         global pause_indicator, mpv_indicator, wget, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
         global idw, iconv_r, cur_label_num, fullscr, tab_6_size_indicator
@@ -2306,7 +2306,7 @@ watch/unwatch status")
                     self.tab_5.setFocus()
                     if not self.tab_2.isHidden():
                         self.tab_2.hide()
-                    if (Player == "mplayer" or Player=="mpv"):
+                    if (self.player_val == "mplayer" or self.player_val=="mpv"):
                         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
                     MainWindow.showFullScreen()
             else:
@@ -2319,7 +2319,7 @@ watch/unwatch status")
                 if wget.processId() > 0 or video_local_stream:
                     self.progress.show()
                 self.frame1.show()
-                if Player == "mplayer" or Player=="mpv":
+                if self.player_val == "mplayer" or self.player_val=="mpv":
                     MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
@@ -2331,7 +2331,6 @@ watch/unwatch status")
                     self.list2.hide()
                     self.goto_epn.hide()
                     self.tab_2.show()
-                #QtW
         else:
             if self.detach_fullscreen:
                 self.detach_fullscreen = False
@@ -2345,9 +2344,8 @@ watch/unwatch status")
                         self.float_window.showNormal()
                     
     def seek_to_val_abs(self):
-        global Player
         val = self.client_seek_val
-        if Player == "mplayer":
+        if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n seek {0} 2\n'.format(val)
         else:
@@ -2358,8 +2356,7 @@ watch/unwatch status")
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def seek_to_val(self, val):
-        global Player
-        if Player == "mplayer":
+        if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n seek {0}\n'.format(val)
         else:
@@ -2370,8 +2367,7 @@ watch/unwatch status")
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         
     def seek_to_vol_val(self, val):
-        global Player
-        if Player == "mplayer":
+        if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n volume {0} \n'.format(val)
             self.mpvplayer_val.write(b'')
@@ -2549,7 +2545,6 @@ watch/unwatch status")
             
     def generate_thumbnail_method(self, picn, interval, path,
                                   width_allowed=None, from_client=None):
-        global Player
         path = path.replace('"', '')
         inter = str(interval)
         
@@ -2617,12 +2612,12 @@ watch/unwatch status")
                                         "--start="+str(inter)+"%", "--frames=1"
                                         , path])
                     else:
-                        if Player == 'mpv':
+                        if self.player_val == 'mpv':
                             new_tmp = new_tmp.replace('"', '')
                             subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
                             "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
                             "--start="+str(inter)+"%", "--frames=1", path], shell=True)
-                        elif Player == 'mplayer':
+                        elif self.player_val == 'mplayer':
                             subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
                             '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
                             "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
@@ -2909,7 +2904,7 @@ watch/unwatch status")
             self.mpvplayer_val.write(b'\n print-text "SUB_ID=${sid}" \n')
             
     def subMplayer(self):
-        global audio_id, sub_id, Player, site
+        global audio_id, sub_id, site
         atxt = self.audio_track.text()
         subtxt = self.subtitle_track.text()
         if self.final_playing_url in self.history_dict_obj:
@@ -2944,8 +2939,7 @@ watch/unwatch status")
             
             
     def osd_hide(self):
-        global Player
-        if Player == 'mplayer':
+        if self.player_val == 'mplayer':
             self.mpvplayer_val.write(b'\n osd 0 \n')
         else:
             self.mpvplayer_val.write(b'\n set osd-level 0 \n')
@@ -2966,9 +2960,9 @@ watch/unwatch status")
                 self.mirror_change.setText(str(mirrorNo))
         
     def toggleAudio(self):
-        global Player, audio_id
+        global audio_id
         if self.mpvplayer_val.processId() > 0:
-            if Player == "mplayer":
+            if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
                     self.mpvplayer_val.write(b'\n osd 1 \n')
                 else:
@@ -2984,7 +2978,7 @@ watch/unwatch status")
         self.audio_track.setText("A:"+str(audio_id))
             
     def load_external_sub(self):
-        global Player, sub_id, current_playing_file_path
+        global sub_id, current_playing_file_path
         external_sub = False
         sub_arr = []
         new_name = self.epn_name_in_list.replace('/', '-')
@@ -3041,7 +3035,7 @@ watch/unwatch status")
         if self.mpvplayer_val.processId() > 0 and sub_arr:
             sub_arr.reverse()
             for title_sub in sub_arr:
-                if Player == "mplayer":
+                if self.player_val == "mplayer":
                     if os.path.exists(title_sub):
                         txt = '\nsub_load '+'"'+title_sub+'"\n'
                         txt_b = bytes(txt, 'utf-8')
@@ -3055,9 +3049,9 @@ watch/unwatch status")
                         self.mpvplayer_val.write(txt_b)
                         
     def toggleSubtitle(self):
-        global Player, sub_id
+        global sub_id
         if self.mpvplayer_val.processId() > 0:
-            if Player == "mplayer":
+            if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
                     self.mpvplayer_val.write(b'\n osd 1 \n')
                 else:
@@ -3194,7 +3188,7 @@ watch/unwatch status")
             
     def playerStop(self, msg=None):
         global quitReally, thumbnail_indicator, total_till, browse_cnt
-        global iconv_r_indicator, iconv_r, curR, wget, Player, show_hide_cover
+        global iconv_r_indicator, iconv_r, curR, wget, show_hide_cover
         global show_hide_playlist, show_hide_titlelist, video_local_stream
         global idw, new_tray_widget, sub_id, audio_id
         
@@ -3336,15 +3330,15 @@ watch/unwatch status")
             self.sortList()
             
     def set_playerLoopFile(self):
-        global Player, quitReally, tray, new_tray_widget
+        global quitReally, tray, new_tray_widget
         if self.mpvplayer_val.processId() > 0:
-            if Player == 'mpv':
+            if self.player_val == 'mpv':
                 self.mpvplayer_val.write(b'\n set loop-file inf \n')
             else:
                 self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                 
     def playerLoopFile(self, loop_widget):
-        global Player, quitReally, tray, new_tray_widget
+        global quitReally, tray, new_tray_widget
         txt = loop_widget.text()
         #txt = self.player_loop_file.text()
         
@@ -3354,7 +3348,7 @@ watch/unwatch status")
             new_tray_widget.lock.setText(self.player_buttons['lock'])
             quitReally = 'no'
             if self.mpvplayer_val.processId() > 0:
-                if Player == 'mpv':
+                if self.player_val == 'mpv':
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
@@ -3363,7 +3357,7 @@ watch/unwatch status")
             self.player_loop_file.setText(self.player_buttons['unlock'])
             new_tray_widget.lock.setText(self.player_buttons['unlock'])
             if self.mpvplayer_val.processId() > 0:
-                if Player == 'mpv':
+                if self.player_val == 'mpv':
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
@@ -3374,7 +3368,7 @@ watch/unwatch status")
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
             if self.mpvplayer_val.processId() > 0:
-                if Player == "mpv":
+                if self.player_val == "mpv":
                     txt_osd = '\n set osd-level 1 \n'
                     self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause no \n')
@@ -3396,7 +3390,7 @@ watch/unwatch status")
                         self.play_file_now(finalUrl, win_id=idw)
         elif txt == self.player_buttons['pause']:
             if self.mpvplayer_val.processId() > 0:
-                if Player == "mpv":
+                if self.player_val == "mpv":
                     txt_osd = '\n set osd-level 3 \n'
                     self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause yes \n')
@@ -3411,7 +3405,7 @@ watch/unwatch status")
     def player_force_play(self):
         global curR, idw, cur_label_num
         if self.mpvplayer_val.processId() > 0:
-            if Player == "mpv":
+            if self.player_val == "mpv":
                 txt_osd = '\n set osd-level 1 \n'
                 self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                 self.mpvplayer_val.write(b'\n set pause no \n')
@@ -3421,7 +3415,7 @@ watch/unwatch status")
             
     def player_force_pause(self):
         global curR, idw, cur_label_num
-        if Player == "mpv":
+        if self.player_val == "mpv":
             txt_osd = '\n set osd-level 3 \n'
             self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
             self.mpvplayer_val.write(b'\n set pause yes \n')
@@ -3433,14 +3427,14 @@ watch/unwatch status")
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play'] and status == 'play':
             if self.mpvplayer_val.processId() > 0:
-                if Player == "mpv":
+                if self.player_val == "mpv":
                     self.player_play_pause.setText(self.player_buttons['pause'])
                     if (MainWindow.isFullScreen() and site != "Music" and self.tab_6.isHidden()
                             and self.list2.isHidden() and self.tab_2.isHidden()):
                         self.frame1.hide()
         elif txt == self.player_buttons['pause'] and status == 'pause':
             if self.mpvplayer_val.processId() > 0:
-                if Player == "mpv":
+                if self.player_val == "mpv":
                     self.player_play_pause.setText(self.player_buttons['play'])
                     if (MainWindow.isFullScreen() and site != "Music" and self.tab_6.isHidden()
                             and self.list2.isHidden() and self.tab_2.isHidden()):
@@ -3449,7 +3443,7 @@ watch/unwatch status")
     def playerPlaylist(self, val):
         global quitReally, playlist_show, site, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
-        global show_hide_player, Player, httpd, idw, cur_label_num
+        global show_hide_player, httpd, idw, cur_label_num
         
         self.player_menu_option = [
             'Show/Hide Video', 'Show/Hide Cover And Summary', 
@@ -3524,7 +3518,7 @@ watch/unwatch status")
                 self.player_setLoop_var = True
                 self.action_player_menu[5].setText("UnLock File")
                 self.player_loop_file.setText("unLock")
-                if Player == 'mpv':
+                if self.player_val == 'mpv':
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
@@ -3532,7 +3526,7 @@ watch/unwatch status")
                     self.player_setLoop_var = False
                     self.action_player_menu[5].setText("Lock File")
                     self.player_loop_file.setText("Lock")
-                    if Player == 'mpv':
+                    if self.player_val == 'mpv':
                         self.mpvplayer_val.write(b'\n set loop-file no \n')
                     else:
                         self.mpvplayer_val.write(b'\n set_property loop -1 \n')
@@ -3820,10 +3814,6 @@ watch/unwatch status")
             del lines[index]
             write_files(file_name, lines, line_by_line=True)
         
-    def viewPreference(self):
-        global viewMode
-        viewMode = str(self.comboView.currentText())
-        
     def prev_thumbnails(self):
         global thumbnail_indicator, total_till, browse_cnt, tmp_name
         global total_till_epn, iconv_r, iconv_r_indicator
@@ -3888,17 +3878,14 @@ watch/unwatch status")
                 self.scrollArea.verticalScrollBar().setValue(yy)
                 self.scrollArea1.hide()
                 self.scrollArea.show()
-                
-    def mouseMoveEvent(self, event):
-        print("hello how r u" )
         
     def mplayer_unpause(self):
-        global fullscr, Player, buffering_mplayer, mpv_indicator
+        global fullscr, buffering_mplayer, mpv_indicator
         global cache_empty, pause_indicator
         buffering_mplayer = "no"
         self.mplayer_pause_buffer = False
         self.mplayer_nop_error_pause = False
-        if Player == "mplayer":
+        if self.player_val == "mplayer":
             self.mpvplayer_val.write(b'\n pause \n')
         else:
             self.mpvplayer_val.write(b'\n set pause no \n')
@@ -3956,170 +3943,13 @@ watch/unwatch status")
             self.label_new.show()
             self.list1.setFocus()
             
-    def PlayEpn(self):
-        global name, epn, direct_epn_browser, opt, browse_cnt, curR
-        val = self.btnEpnList.currentIndex()
-        logger.info("val="+str(val))
-        if val > 0:
-            epn = str(self.btnEpnList.currentText())
-            logger.info(epn)
-            direct_epn_browser=1
-            val = val-1
-            curR = val
-            self.list2.setCurrentRow(val)
-            self.epnfound()
-            
-    def go_opt_options_btn20(self):
-        global site, home, opt, browse_cnt
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        j=0
-        opt = str(self.comboBox30.currentText())
-        print(opt)
-        for index in range(self.list3.count()):
-            k=str(self.list3.item(index).text())
-            if k == opt:
-                self.list3.setCurrentRow(j)
-                print(k)
-                print(self.list3.currentItem().text())
-                break
-            j = j+1
-        self.options('Nill')
-        pict_arr[:]=[]
-        name_arr[:]=[]
-        summary_arr[:]=[]
-        i = 0
-        while(i<total_till):
-            t = "self.label_"+str(i)+".close()"
-            exec (t)
-            print(str(i)+" cleared")
-            i = i+1
-    
-        total_till=0	
-        browse_cnt=0
-        if opt == "History":
-            self.setPreOpt()
-            self.next_page('deleted')
-        elif opt == "Random":
-            self.shuffleList()
-            self.next_page('deleted')
-        else:
-            self.next_page('deleted')
-    
-    def go_opt_options(self):
-        global site, opt
-        j=0
-        opt = str(self.btnOpt.currentText())
-        for index in range(self.list3.count()):
-            k=str(self.list3.item(index).text())
-            if k == opt:
-                self.list3.setCurrentRow(j)
-                break
-            j = j+1
-        self.options('Nill')
-    
-    def load_more(self, value):
-        global browse_cnt, opt, labelGeometry
-        val1 = labelGeometry
-        
-    def browse_epn(self):
-        global name, epn, direct_epn_browser, opt, browse_cnt, curR
-        if opt=="History":
-            self.scrollArea.verticalScrollBar().setValue(
-                self.scrollArea.verticalScrollBar().minimum())
-        else:
-            val=self.scrollArea.verticalScrollBar().minimum()
-            self.scrollArea.verticalScrollBar().setValue(val)
-        
-        val = self.btn10.currentIndex()
-        logger.info("val="+str(val))
-        if val > 0:
-            epn = str(self.btn10.currentText())
-            logger.info(epn)
-            direct_epn_browser=1
-            val = val-1
-            curR = val
-            self.list2.setCurrentRow(val)
-            self.epnfound()
-            self.tab_6.hide()
-            
-    def browserView_view(self):
-        global site, home, opt, browse_cnt
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
-        global list1_items, siteName
-        pict_arr[:]=[]
-        name_arr[:]=[]
-        summary_arr[:]=[]
-        if siteName:
-            j=0
-            t = str(self.comboBox30.currentText())
-            for index in range(self.list3.count()):
-                k=str(self.list3.item(index).text())
-                if k == t:
-                    self.list3.setCurrentRow(j)
-                    break
-                j = j+1
-        opt1 = ""
-        opt1 = str(self.comboBox20.currentText())
-        print(total_till)
-        i = 0
-        while(i<total_till):
-            t = "self.label_"+str(i)+".close()"
-            exec (t)
-            #print str(i)+" cleared"
-            i = i+1
-        total_till=0
-        browse_cnt=0
-        tmp_name[:]=[]
-        if opt1 == "History":
-            self.setPreOpt()
-            self.next_page('deleted')
-        elif opt1 == "Random" or opt1 == "List":
-            self.next_page('deleted')
-            
-    def browserView(self):
-        global site, home, opt, browse_cnt
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt
-        global tmp_name, list1_items, thumbnail_indicator, siteName
-        
-        pict_arr[:]=[]
-        name_arr[:]=[]
-        summary_arr[:]=[]
-        self.scrollArea1.hide()
-        self.scrollArea.show()
-        if siteName:
-            j=0
-            t = str(self.comboBox30.currentText())
-            for index in range(self.list3.count()):
-                k=str(self.list3.item(index).text())
-                if k == t:
-                    self.list3.setCurrentRow(j)
-                    break
-                j = j+1
-        opt1 = ""
-        opt1 = str(self.comboBox20.currentText())
-        print(total_till)
-        i = 0
-        thumbnail_indicator[:]=[]
-        while(i<total_till):
-            t = "self.label_"+str(i)+".deleteLater()"
-            exec (t)
-            i = i+1
-        total_till=0
-        browse_cnt=0
-        tmp_name[:]=[]
-        if opt == "History":
-            self.setPreOpt()
-            self.next_page()
-        else:
-            self.next_page()
-            
     def display_image(self, br_cnt, br_cnt_opt,
                       iconv_r_poster=None, value_str=None,
                       dimn=None, txt_name=None):
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, iconv_r
-        global labelGeometry, video_local_stream
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global video_local_stream
+        global name_arr, total_till, browse_cnt, tmp_name
         global hist_arr, bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
@@ -4256,11 +4086,11 @@ watch/unwatch status")
                 pass
                 
     def next_page(self, value_str):
-        global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo
+        global site, name, name1, embed, opt, pre_opt, mirrorNo
         global list1_items
         global list2_items, quality, row_history, home, epn, iconv_r
-        global labelGeometry, total_till
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global total_till
+        global name_arr, total_till, browse_cnt, tmp_name
         global hist_arr, bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
@@ -4940,7 +4770,7 @@ watch/unwatch status")
         thread_arr[length].start()
     
     def searchAnime(self):
-        global fullscrT, idwMain, idw
+        global idw
         self.filter_btn_options()
         
     def setCategoryMovie(self):
@@ -4984,10 +4814,9 @@ watch/unwatch status")
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, mpvAlive, curR, idw, Player, MainWindow
+        global queueNo, curR, idw, MainWindow
         curR = self.list2.currentRow()
         queueNo = queueNo + 1
-        mpvAlive = 0
         thumb_mode = False
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
@@ -5036,7 +4865,7 @@ watch/unwatch status")
                 self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None):
-        global epn, curR, Player, site, current_playing_file_path
+        global epn, curR, site, current_playing_file_path
         print(play_row, '--play_row--', mode)
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
@@ -5109,7 +4938,7 @@ watch/unwatch status")
                 else:
                     self.localGetInList()
             else:
-                if Player == "mpv":
+                if self.player_val == "mpv":
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     self.getNextInList()
@@ -5121,7 +4950,7 @@ watch/unwatch status")
                     self.getNextInList()
     
     def mpvPrevEpnList(self):
-        global epn, curR, Player, site
+        global epn, curR, site
         global current_playing_file_path
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
@@ -5144,7 +4973,7 @@ watch/unwatch status")
             self.mpvNextEpnList(play_row=curR, mode='play_now')
     
     def HideEveryThing(self, widget_except=None, mode=None):
-        global fullscrT, idwMain, idw, view_layout
+        global idw, view_layout
         if not self.search_on_type_btn.isHidden():
             self.search_on_type_btn.hide()
         elif self.mpvplayer_val.processId() > 0:
@@ -5303,7 +5132,7 @@ watch/unwatch status")
                 self.list1.setFocus()
         
     def showHideBrowser(self):
-        global fullscrT, idwMain, idw, view_layout
+        global idw, view_layout
         if self.tab_2.isHidden():
             for widget in self.widget_dict:
                 self.browser_dict_widget.update(
@@ -5324,7 +5153,7 @@ watch/unwatch status")
         self.frame1.show()
             
     def IconView(self):
-        global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
+        global idw, total_till, browse_cnt, tmp_name
         global view_layout, thumbnail_indicator, total_till_epn
         
         if self.list_poster is not None:
@@ -5422,7 +5251,7 @@ watch/unwatch status")
             QtWidgets.QApplication.processEvents()
     
     def IconViewEpn(self, start=None, mode=None):
-        global fullscrT, idwMain, idw, total_till, browse_cnt, tmp_name
+        global idw, total_till, browse_cnt, tmp_name
         global view_layout, iconv_r, curR, thumbnail_indicator
         global site, total_till_epn
         if isinstance(mode, int):
@@ -5499,15 +5328,8 @@ watch/unwatch status")
                 print(err)
             QtWidgets.QApplication.processEvents()
             
-    def textShowHide(self):
-        global fullscrT, idwMain, idw
-        if fullscrT == 1:
-            self.text.show()
-        else:
-            self.text.hide()
-            
     def fullscreenToggle(self):
-        global fullscrT, idwMain, idw
+        global idw
         if not MainWindow.isFullScreen():
             #self.dockWidget_4.close()
             self.dockWidget_3.hide()
@@ -5521,13 +5343,11 @@ watch/unwatch status")
     
     
     def shuffleList(self):
-        global list1_items, pre_opt, opt, hdr, base_url, site, embed, base_url
+        global list1_items, pre_opt, opt, hdr, site, embed
         global finalUrlFound
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global name_arr, total_till, browse_cnt, tmp_name
         global bookmark
-        pict_arr[:]=[]
         name_arr[:]=[]
-        summary_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         embed = 0
@@ -5573,14 +5393,12 @@ watch/unwatch status")
         opt = "Random"
         
     def sortList(self):
-        global list1_items, pre_opt, opt, hdr, base_url, site, embed
+        global list1_items, pre_opt, opt, hdr, site, embed
         global finalUrlFound
-        global pict_arr, name_arr, summary_arr, total_till
+        global name_arr, total_till
         global browse_cnt, tmp_name, bookmark
         
-        pict_arr[:]=[]
         name_arr[:]=[]
-        summary_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         tmp_arr = []
@@ -5945,9 +5763,9 @@ watch/unwatch status")
             self.epnfound()
             
     def setPreOpt(self, option_val=None):
-        global pre_opt, opt, hdr, base_url, site, insidePreopt, embed, home
+        global pre_opt, opt, hdr, site, insidePreopt, home
         global hist_arr, name, bookmark, status, total_till, browse_cnt
-        global embed, siteName
+        global siteName
         
         insidePreopt = 1
         hist_arr[:]=[]
@@ -6129,7 +5947,7 @@ watch/unwatch status")
                 self.list2.setCurrentRow(row)
         
     def watchToggle(self):
-        global site, base_url, embed, epn, epn_goto, pre_opt, home, path_Local_Dir
+        global site, epn, epn_goto, pre_opt, home, path_Local_Dir
         global opt, siteName, finalUrlFound, refererNeeded
         if (opt == "History" and (site.lower() !="video" 
                     and site.lower()!= 'music' and site.lower()!= 'playlists' 
@@ -6166,9 +5984,7 @@ watch/unwatch status")
     
     
     def search_list4_options(self):
-        global opt, site, name, base_url, name1, embed, pre_opt, bookmark
-        global base_url_picn
-        global base_url_summary
+        global opt, site, name, name1, pre_opt, bookmark
         
         r = self.list4.currentRow()
         item = self.list4.item(r)
@@ -6183,9 +5999,7 @@ watch/unwatch status")
             self.go_page.clear()
             
     def search_list5_options(self):
-        global opt, site, name, base_url, name1, embed, pre_opt, bookmark
-        global base_url_picn
-        global base_url_summary
+        global opt, site, name, name1, pre_opt, bookmark
         r = self.list5.currentRow()
         item = self.list5.item(r)
         if item:
@@ -6198,9 +6012,8 @@ watch/unwatch status")
             self.goto_epn_filter_txt.clear()
             
     def history_highlight(self):
-        global opt, site, name, base_url, name1, embed, pre_opt, bookmark
-        global base_url_picn, video_local_stream, category, audio_id, sub_id
-        global base_url_summary
+        global opt, site, name, name1, pre_opt, bookmark
+        global video_local_stream, category, audio_id, sub_id
         audio_id = 'auto'
         sub_id = 'auto'
         if site!= "Music":
@@ -6246,9 +6059,7 @@ watch/unwatch status")
         self.update_list2()
         
     def search_highlight(self):
-        global opt, site, name, base_url, name1, embed, pre_opt, bookmark
-        global base_url_picn
-        global base_url_summary
+        global opt, site, name, name1, pre_opt, bookmark
         r = self.list4.currentRow()
         item = self.list4.item(r)
         if item:
@@ -6351,7 +6162,7 @@ watch/unwatch status")
             self.update_list2()
         
     def deleteHistory(self):
-        global opt, site, name, pre_opt, home, bookmark, base_url, embed, status, siteName
+        global opt, site, name, pre_opt, home, bookmark, status, siteName
         global video_local_stream
         
         if self.list1.currentItem():
@@ -6501,13 +6312,11 @@ watch/unwatch status")
         self.epnfound()
     
     def preview(self):
-        global embed, playMpv, Player
         txt = str(self.chk.text())
         index = self.playback_engine.index(txt)
         index = (index + 1) % (len(self.playback_engine))
         txt = self.playback_engine[index]
         self.chk.setText(txt)
-        Player = txt
         self.player_val = txt
         if self.mpvplayer_val.processId()>0 and self.tab_2.isHidden() and self.player_val in ['mpv', 'mplayer']:
             self.mpvplayer_val.kill()
@@ -6515,13 +6324,11 @@ watch/unwatch status")
             self.epnfound()
     
     def nextp(self, val):
-        global opt, pgn, genre_num, site, embed, mirrorNo, quality, name
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global opt, pgn, genre_num, site, mirrorNo, quality, name
+        global name_arr, total_till, browse_cnt, tmp_name
         global list1_items
     
-        pict_arr[:]=[]
         name_arr[:]=[]
-        summary_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         list1_items[:]=[]
@@ -6565,7 +6372,7 @@ watch/unwatch status")
             pass
         
     def backp(self, val):
-        global opt, pgn, genre_num, embed, mirrorNo, quality, name
+        global opt, pgn, genre_num, mirrorNo, quality, name
         self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
         if val == "back":
             r = self.list3.currentRow()
@@ -6601,12 +6408,11 @@ watch/unwatch status")
     def gotopage(self):
         key = self.page_number.text()
         global opt, pgn, site
-        if (opt != "") and (site == "KissAnime"):
-            if key:
-                self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
-                pgn = int(key)
-                pgn = pgn - 1
-                self.nextp(-1)
+        if key and opt and site not in ['Video', 'Music', 'None', 'MyServer']:
+            self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
+            pgn = int(key)
+            pgn = pgn - 1
+            self.nextp(-1)
                 
     def label_filter_list_update(self, item_index):
         global opt, site, bookmark, thumbnail_indicator, total_till
@@ -6649,8 +6455,8 @@ watch/unwatch status")
                     i = i+1
             
     def filter_label_list(self):
-        global opt, pgn, site, list1_items, base_url, filter_on, base_url
-        global embed, hist_arr
+        global opt, pgn, site, list1_items, filter_on
+        global hist_arr
         print("filter label")
         filter_on = 1
         row_history = []
@@ -6697,7 +6503,7 @@ watch/unwatch status")
                         
     
     def filter_list(self):
-        global opt, pgn, site, list1_items, base_url, filter_on, base_url, embed
+        global opt, pgn, site, list1_items, filter_on
         global hist_arr
         print("filter label")
         filter_on = 1
@@ -6729,8 +6535,8 @@ watch/unwatch status")
             self.list1.show()
                 
     def filter_epn_list_txt(self):
-        global opt, pgn, site, list1_items, base_url, filter_on, base_url
-        global embed, hist_arr
+        global opt, pgn, site, list1_items, filter_on
+        global hist_arr
         print("filter epn list")
         filter_on = 1
         row_history = []
@@ -6765,7 +6571,7 @@ watch/unwatch status")
             
     def ka(self):
         global site, home
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global name_arr, total_till, browse_cnt, tmp_name
         global list1_items, bookmark, total_till, thumbnail_indicator, genre_num
         global rfr_url, finalUrlFound, refererNeeded
         global video_local_stream, siteName, audio_id, sub_id
@@ -6876,7 +6682,7 @@ watch/unwatch status")
         
     def ka2(self):
         global site, home
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global name_arr, total_till, browse_cnt, tmp_name
         global list1_items, bookmark, total_till, thumbnail_indicator
         global genre_num, rfr_url, finalUrlFound, refererNeeded, siteName
         
@@ -6916,7 +6722,7 @@ watch/unwatch status")
     
     def ka1(self):
         global site, home
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global name_arr, total_till, browse_cnt, tmp_name
         global list1_items, bookmark
         
         self.label.clear()
@@ -7059,7 +6865,7 @@ watch/unwatch status")
             self.btnWebReviews_search.setPlaceholderText('Search ' + review_site)
         
     def rawlist_highlight(self):
-        global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
+        global site, name, name1, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, path_Local_Dir
         global bookmark, status, siteName
         global screen_height, screen_width
@@ -7174,14 +6980,12 @@ watch/unwatch status")
             
     def search(self):
         code = 1
-        global site, base_url, embed, list1_items, opt, mirrorNo, hdr, quality
+        global site, list1_items, opt, mirrorNo, hdr, quality
         global site_arr, siteName, finalUrlFound
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global name_arr, total_till, browse_cnt, tmp_name
         global list2_items, bookmark, refererNeeded, video_local_stream, name
         
-        pict_arr[:]=[]
         name_arr[:]=[]
-        summary_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         opt = "Search"
@@ -7513,10 +7317,9 @@ watch/unwatch status")
         global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
         global list2_items, quality, row_history, home, epn, path_Local_Dir, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
-        global opt_movies_indicator, base_url_picn, base_url_summary, siteName
-        global img_arr_artist, screen_height, screen_width, video_local_stream
+        global opt_movies_indicator, siteName
+        global screen_height, screen_width, video_local_stream
         
-        img_arr_artist[:]=[]
         opt_movies_indicator[:]=[]
         new_dir_path = None
         fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
@@ -8521,7 +8324,7 @@ watch/unwatch status")
         return file_name_mp4, file_name_mkv
 
     def play_file_now(self, file_name, win_id=None):
-        global Player, epn_name_in_list, idw, quitReally
+        global epn_name_in_list, idw, quitReally
         global current_playing_file_path, cur_label_num, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
@@ -8544,10 +8347,10 @@ watch/unwatch status")
         if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' and self.mpvplayer_started
                 and not finalUrl.startswith('http') and not self.external_audio_file):
             epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
-            if Player.lower() == "mplayer":
+            if self.player_val.lower() == "mplayer":
                 t1 = bytes('\n '+'show_text '+epnShow+' \n', 'utf-8')
                 t2 = bytes('\n '+"loadfile "+finalUrl+" replace "+'\n', 'utf-8')
-            elif Player.lower() == 'mpv':
+            elif self.player_val.lower() == 'mpv':
                 t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
                 t2 = bytes('\n '+"loadfile "+finalUrl+' replace \n', 'utf-8')
             logger.info('{0}---hello-----'.format(t2))
@@ -8577,7 +8380,7 @@ watch/unwatch status")
                         idw = str(int(self.tab_5.winId()))
                 else:
                     idw = str(int(self.tab_5.winId()))
-            command = self.mplayermpv_command(idw, finalUrl, Player)
+            command = self.mplayermpv_command(idw, finalUrl, self.player_val)
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
         seek_time = 0
@@ -8866,7 +8669,7 @@ watch/unwatch status")
         return nm
     
     def epnfound_now_start_player(self, url_link, row_val):
-        global site, Player, refererNeeded, idw, current_playing_file_path
+        global site, refererNeeded, idw, current_playing_file_path
         global refererNeeded, finalUrlFound, quitReally, rfr_url, curR
         finalUrl = url_link
         print(row_val, '--epn--row--')
@@ -8911,30 +8714,30 @@ watch/unwatch status")
         if self.mpvplayer_val.processId() > 0:
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
-        if Player == "mpv":
+        if self.player_val == "mpv":
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, Player, a_url=aurl, s_url=surl)
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_url=aurl, s_url=surl)
             else:
-                command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, rfr=referer)
             logger.info(command)
             self.infoPlay(command)
-        elif Player == "mplayer":
+        elif self.player_val == "mplayer":
             quitReally = "no"
             idw = str(int(self.tab_5.winId()))
             if site != "Music":
                 self.tab_5.show()
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, Player, a_url=aurl, s_url=surl)
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_url=aurl, s_url=surl)
             else:
-                command = self.mplayermpv_command(idw, finalUrl, Player, rfr=referer)
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, rfr=referer)
             logger.info(command)
             self.infoPlay(command)
         else:
             finalUrl = finalUrl.replace('"', '')
-            if Player.lower() in ['mpv', 'mplayer']:
-                subprocess.Popen([Player.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            if self.player_val.lower() in ['mpv', 'mplayer']:
+                subprocess.Popen([self.player_val.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             else:
-                subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             
         if not isinstance(finalUrl, list):
             self.final_playing_url = finalUrl.replace('"', '')
@@ -8960,11 +8763,11 @@ watch/unwatch status")
             self.paste_background(row)
         
     def epnfound(self):
-        global site, base_url, embed, epn, epn_goto, mirrorNo, list2_items, quality
+        global site, epn, epn_goto, mirrorNo, list2_items, quality
         global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
-        global mpv, mpvAlive, indexQueue, Player, startPlayer
+        global mpv, indexQueue
         global new_epn, idw, quitReally, buffering_mplayer
         global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
@@ -9188,28 +8991,28 @@ watch/unwatch status")
             if self.mpvplayer_val.processId() > 0:
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
-            if Player == "mpv":
-                command = self.mplayermpv_command(idw, finalUrl, Player)
+            if self.player_val == "mpv":
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val)
                 logger.info(command)
                 logger.debug('**********************8808-----')
                 self.infoPlay(command)
-            elif Player == "mplayer":
+            elif self.player_val == "mplayer":
                 quitReally = "no"
                 
                 idw = str(int(self.tab_5.winId()))
                 if site != "Music":
                     self.tab_5.show()
-                command = self.mplayermpv_command(idw, finalUrl, Player)
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val)
                 logger.info(command)
                 self.infoPlay(command)
             else:
                 finalUrl = finalUrl.replace('"', '')
-                if Player.lower() in ['mpv', 'mplayer']:
-                    subprocess.Popen([Player.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                if self.player_val.lower() in ['mpv', 'mplayer']:
+                    subprocess.Popen([self.player_val.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 else:
-                    subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                    subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         elif not self.epn_wait_thread.isRunning():
-            if self.download_video == 0 and Player == "mpv":
+            if self.download_video == 0 and self.player_val == "mpv":
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
@@ -9223,10 +9026,10 @@ watch/unwatch status")
                         if refererNeeded == True or rfr_needed:
                             rfr_url = finalUrl[1]
                             nepn = '"'+str(finalUrl[0])+'"'
-                            command = self.mplayermpv_command(idw, nepn, Player, rfr=rfr_url)
+                            command = self.mplayermpv_command(idw, nepn, self.player_val, rfr=rfr_url)
                         else:
                             nepn = str(finalUrl[0])
-                            command = self.mplayermpv_command(idw, nepn, Player)
+                            command = self.mplayermpv_command(idw, nepn, self.player_val)
                         logger.info(command)
                     
                     else:
@@ -9236,7 +9039,7 @@ watch/unwatch status")
                         for i in range(len(finalUrl)-1):
                             self.queue_url_list.append(finalUrl[i+1])
                         self.queue_url_list.reverse()
-                        command = self.mplayermpv_command(idw, epnShow, Player)
+                        command = self.mplayermpv_command(idw, epnShow, self.player_val)
                     self.infoPlay(command)
                 else:
                     if '""' in finalUrl:
@@ -9245,9 +9048,9 @@ watch/unwatch status")
                         finalUrl = str(finalUrl)
                     except:
                         finalUrl = finalUrl
-                    command = self.mplayermpv_command(idw, finalUrl, Player)
+                    command = self.mplayermpv_command(idw, finalUrl, self.player_val)
                     self.infoPlay(command)
-            elif self.download_video == 0 and Player != "mpv":
+            elif self.download_video == 0 and self.player_val != "mpv":
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
@@ -9260,61 +9063,61 @@ watch/unwatch status")
                     if finalUrlFound == True or site=="PlayLists" or rfr_needed:
                         if refererNeeded == True or rfr_needed:
                             rfr_url = finalUrl[1]
-                            if Player == "mplayer":
+                            if self.player_val == "mplayer":
                                 quitReally = "no"
                                 idw = str(int(self.tab_5.winId()))
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
-                                command = self.mplayermpv_command(idw, final_url, Player, rfr=rfr_url)
+                                command = self.mplayermpv_command(idw, final_url, self.player_val, rfr=rfr_url)
                                 logger.info(command)
                                 self.infoPlay(command)
                             else:
-                                if Player.lower() in ['mpv', 'mplayer']:
-                                    subprocess.Popen([Player.lower(), "-referrer", rfr_url, finalUrl[0]])
+                                if self.player_val.lower() in ['mpv', 'mplayer']:
+                                    subprocess.Popen([self.player_val.lower(), "-referrer", rfr_url, finalUrl[0]])
                                 else:
-                                    subprocess.Popen([Player, "-referrer", rfr_url, finalUrl[0]])
+                                    subprocess.Popen([self.player_val, "-referrer", rfr_url, finalUrl[0]])
                         else:
-                            if Player == "mplayer":
+                            if self.player_val == "mplayer":
                                 quitReally = "no"
                                 idw = str(int(self.tab_5.winId()))
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
-                                command = self.mplayermpv_command(idw, final_url, Player)
+                                command = self.mplayermpv_command(idw, final_url, self.player_val)
                                 logger.info(command)
                                 self.infoPlay(command)
                             else:
                                 final_url = str(finalUrl[0])
-                                if Player.lower() in ['mpv', 'mplayer']:
-                                    subprocess.Popen([Player.lower(), final_url])
+                                if self.player_val.lower() in ['mpv', 'mplayer']:
+                                    subprocess.Popen([self.player_val.lower(), final_url])
                                 else:
-                                    subprocess.Popen([Player, final_url])
+                                    subprocess.Popen([self.player_val, final_url])
                     else:
                         epnShow = finalUrl[0]
                         for i in range(len(finalUrl)-1):
                             self.queue_url_list.append(finalUrl[i+1])
                         self.queue_url_list.reverse()
-                        command = self.mplayermpv_command(idw, epnShow, Player)
+                        command = self.mplayermpv_command(idw, epnShow, self.player_val)
                         logger.info(command)
                         self.infoPlay(command)
                 else:
-                    print(Player)
+                    print(self.player_val)
                     logger.info("15712:Final Url mplayer = {0}".format(finalUrl))
                     if '""' in finalUrl:
                         finalUrl = finalUrl.replace('""', '"')
                     finalUrl = str(finalUrl)
-                    if Player == "mplayer":
+                    if self.player_val == "mplayer":
                         quitReally = "no"
                         idw = str(int(self.tab_5.winId()))
                         self.tab_5.show()
-                        command = self.mplayermpv_command(idw, finalUrl, Player)
+                        command = self.mplayermpv_command(idw, finalUrl, self.player_val)
                         logger.info(command)
                         self.infoPlay(command)
                     else:
                         finalUrl = re.sub('"', "", finalUrl)
-                        if Player.lower() in ['mpv', 'mplayer']:
-                            subprocess.Popen([Player.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                        if self.player_val.lower() in ['mpv', 'mplayer']:
+                            subprocess.Popen([self.player_val.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                         else:
-                            subprocess.Popen([Player, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                            subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             elif self.download_video == 1 and refererNeeded == False:
                 if type(finalUrl) is list:
                     j = 0
@@ -9477,7 +9280,7 @@ watch/unwatch status")
             if self.float_window.isHidden():
                 self.tab_5.hide()
         else:
-            if Player in ['mpv', 'mplayer']:
+            if self.player_val in ['mpv', 'mplayer']:
                 self.tab_5.show()
                 self.list1.hide()
                 self.frame.hide()
@@ -9579,10 +9382,10 @@ watch/unwatch status")
             return url
                 
     def epn_return(self, row, mode=None):
-        global site, base_url, embed, epn_goto, mirrorNo, list2_items, quality
+        global site, epn_goto, mirrorNo, list2_items, quality
         global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
         global video_local_stream
-        global mpv, mpvAlive, indexQueue, Player, startPlayer
+        global mpv, indexQueue
         global new_epn, idw, quitReally, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
@@ -9682,7 +9485,7 @@ watch/unwatch status")
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
-        global site, base_url, idw, quitReally, Player, epn_name_in_list
+        global site, idw, quitReally, epn_name_in_list
         global path_final_Url, current_playing_file_path, curR
         curR = 0
         if title:
@@ -9695,7 +9498,7 @@ watch/unwatch status")
             title_sub_path = title_sub_path[1:]
         title_sub_path = os.path.join(self.yt_sub_folder, title_sub_path+'.en.vtt')
         
-        if Player=='mplayer':
+        if self.player_val=='mplayer':
             print(self.mpvplayer_val.processId(), '=self.mpvplayer_val.processId()')
             if (self.mpvplayer_val.processId()>0):
                 self.mpvplayer_val.kill()
@@ -9726,9 +9529,9 @@ watch/unwatch status")
                 finalUrl, a_url, s_url = finalUrl.split('::', 2)
             if a_url or s_url:
                 self.external_audio_file = True
-        command = self.mplayermpv_command(idw, finalUrl, Player, a_url=a_url, s_url=s_url)
+        command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_url=a_url, s_url=s_url)
         if os.path.exists(title_sub_path):
-            if Player == 'mpv':
+            if self.player_val == 'mpv':
                 command = command+' --sub-file='+title_sub_path
                 logger.info(command)
         self.infoPlay(command)
@@ -9827,7 +9630,7 @@ watch/unwatch status")
         self.download_video = 0
         
     def dataReadyW(self, p, get_lib):
-        global wget, new_epn, quitReally, curR, epn, opt, base_url, Player, site
+        global wget, new_epn, quitReally, curR, epn, opt, site
         global sizeFile
         #print('----------------', a)
         if not get_lib:
@@ -9973,7 +9776,7 @@ watch/unwatch status")
         logger.debug('sid={}::aid={}::updating file info'.format(sid, aid))
         
     def dataReady(self, p):
-        global new_epn, quitReally, curR, epn, opt, base_url, Player, site
+        global new_epn, quitReally, curR, epn, opt, site
         global wget, cache_empty, buffering_mplayer, slider_clicked
         global fullscr, artist_name_mplayer, layout_mode, server
         global new_tray_widget, video_local_stream, pause_indicator
@@ -9989,7 +9792,7 @@ watch/unwatch status")
                 logger.debug(a)
             elif 'Audio' in a:
                 logger.info(a)
-            if self.custom_mpv_input_conf and Player.lower() == 'mpv':
+            if self.custom_mpv_input_conf and self.player_val.lower() == 'mpv':
                 if 'set property: fullscreen' in a.lower():
                     logger.debug(a)
                     if (self.tab_5.width() >= screen_width
@@ -10040,7 +9843,7 @@ watch/unwatch status")
                 if a and 'AV:' not in a and 'A:' not in a:
                     #logger.debug('-->{0}<--'.format(a))
                     pass
-            if (Player.lower() == 'mpv' and self.mplayerLength
+            if (self.player_val.lower() == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a 
                     or "HTTP error 403 Forbidden" in a 
                     or self.progress_counter > self.mplayerLength + 1
@@ -10069,7 +9872,7 @@ watch/unwatch status")
         #el = time.process_time() - tt
         #print(el)
         try:
-            if Player.lower() == "mpv":
+            if self.player_val.lower() == "mpv":
                 if "AUDIO_ID" in a or "AUDIO_KEY_ID" in a:
                     new_arr = a.split('\n')
                     a_id = None
@@ -10384,7 +10187,7 @@ watch/unwatch status")
                     elif quitReally == "yes": 
                         self.player_stop.clicked.emit()
                         self.list2.setFocus()
-            elif Player.lower() == "mplayer":
+            elif self.player_val.lower() == "mplayer":
                 if "PAUSE" in a:
                     if buffering_mplayer != 'yes':
                         self.player_play_pause.setText(self.player_buttons['play'])
@@ -10661,7 +10464,7 @@ watch/unwatch status")
         
     def started(self):
         global epn, new_epn, epn_name_in_list, fullscr, mpv_start
-        global Player, cur_label_num, epn_name_in_list, site
+        global cur_label_num, epn_name_in_list, site
         if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
             length_1 = self.list2.count()
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
@@ -10732,7 +10535,7 @@ watch/unwatch status")
                 self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 
     def infoPlay(self, command):
-        global Player, site, new_epn, mpv_indicator, cache_empty
+        global site, new_epn, mpv_indicator, cache_empty
         self.eof_reached = False
         self.eof_lock = False
         self.mpv_playback_duration = None
@@ -10747,7 +10550,7 @@ watch/unwatch status")
             if command.startswith('mplayer') and OSNAME == 'nt':
                 command = command + ' -vo gl'
             if self.player_setLoop_var:
-                if Player == 'mplayer':
+                if self.player_val == 'mplayer':
                     command = command+' -loop 0'
                     
             print('--line--15662--')
@@ -10775,7 +10578,7 @@ watch/unwatch status")
                 logger.info(command)
                 logger.info('infoplay--18165--')
                 self.mpvplayer_started = True
-                if self.player_setLoop_var and Player == 'mpv':
+                if self.player_setLoop_var and self.player_val == 'mpv':
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
                 
     def adjust_thumbnail_window(self, row):
@@ -10892,11 +10695,11 @@ watch/unwatch status")
                     print(e)
     
     def localGetInList(self):
-        global site, base_url, embed, epn, epn_goto, mirrorNo, list2_items, quality
+        global site, epn, epn_goto, mirrorNo, list2_items, quality
         global finalUrl, curR, home, buffering_mplayer, epn_name_in_list
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
-        global mpv, mpvAlive, indexQueue, Player, startPlayer
-        global new_epn, path_Local_Dir, Player, curR
+        global mpv, indexQueue
+        global new_epn, path_Local_Dir, curR
         global fullscr, thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, music_arr_setting
         global default_arr_setting, wget, idw
@@ -11009,8 +10812,8 @@ watch/unwatch status")
             finalUrl = finalUrl
             
         if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
-            if Player.lower() == "mplayer":
-                command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
+            if self.player_val.lower() == "mplayer":
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
                 if (not self.external_url and self.mpvplayer_started 
                         and not self.external_audio_file and OSNAME == 'posix'):
                     #try:
@@ -11030,8 +10833,8 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
-            elif Player.lower() == "mpv":
-                command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
+            elif self.player_val.lower() == "mpv":
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
                 if (not self.external_url and self.mpvplayer_started 
                         and not self.external_audio_file and OSNAME == 'posix'):
                     epnShow = '"' + "Playing:  "+ new_epn + '"'
@@ -11050,7 +10853,7 @@ watch/unwatch status")
             
             print("mpv=" + str(self.mpvplayer_val.processId()))
         elif not self.epn_wait_thread.isRunning():
-            command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
+            command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
             self.infoPlay(command)
         
             print("mpv=" + str(self.mpvplayer_val.processId()))
@@ -11107,7 +10910,7 @@ watch/unwatch status")
         
     def getQueueInList(self):
         global curR, site, epn_name_in_list, artist_name_mplayer, idw
-        global sub_id, audio_id, Player, server, current_playing_file_path, quality
+        global sub_id, audio_id, server, current_playing_file_path, quality
         try:
             t1 = self.queue_url_list[0]
             server._emitMeta("queue"+'#'+t1, site, self.epn_arr_list)
@@ -11169,12 +10972,12 @@ watch/unwatch status")
             
         
         epnShowN = '"'+epnShow.replace('"', '')+'"'
-        command = self.mplayermpv_command(idw, epnShowN, Player, a_id=audio_id, s_id=sub_id)
+        command = self.mplayermpv_command(idw, epnShowN, self.player_val, a_id=audio_id, s_id=sub_id)
         if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning() and OSNAME == 'posix':
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
             
-            if Player.lower() == 'mpv':
+            if self.player_val.lower() == 'mpv':
                 if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
                     logger.info(t2)
@@ -11184,7 +10987,7 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
-            elif Player.lower() == "mplayer":
+            elif self.player_val.lower() == "mplayer":
                 if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
                     logger.info(t2)
@@ -11247,7 +11050,7 @@ watch/unwatch status")
  --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"'.format(
                 aspect_value, idw, self.mpv_input_conf)
         else:
-            command = Player
+            command = self.player_val
         if a_id:
             if a_id == "auto":
                 if player == 'mplayer':
@@ -11317,11 +11120,11 @@ watch/unwatch status")
         return command
         
     def getNextInList(self):
-        global site, base_url, embed, epn, epn_goto, mirrorNo, list2_items, quality
+        global site, epn, epn_goto, mirrorNo, list2_items, quality
         global finalUrl, curR, home, buffering_mplayer, epn_name_in_list
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
-        global mpv, mpvAlive, indexQueue, Player, startPlayer
-        global new_epn, path_Local_Dir, Player, curR
+        global mpv, indexQueue
+        global new_epn, path_Local_Dir, curR
         global fullscr, thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, default_arr_setting
         global music_arr_setting, video_local_stream, wget, audio_id, sub_id
@@ -11390,7 +11193,7 @@ watch/unwatch status")
                                 if self.torrent_handle.file_priority(row):
                                     self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Get Next', self.torrent_download_folder, self.stream_session)
                                 else:
-                                    if Player == 'mplayer':
+                                    if self.player_val == 'mplayer':
                                         self.mpvplayer_val.write(b'\n quit \n')
                             else:
                                 finalUrl, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Already Running', self.torrent_download_folder, self.stream_session)
@@ -11440,12 +11243,12 @@ watch/unwatch status")
                                 rfr_url = finalUrl[1]
                                 nepn = str(finalUrl[0])
                                 epnShow = str(nepn)
-                                command = self.mplayermpv_command(idw, nepn, Player, rfr=rfr_url)
+                                command = self.mplayermpv_command(idw, nepn, self.player_val, rfr=rfr_url)
                                 
                             else:
                                 nepn = str(finalUrl[0])
                                 epnShow = nepn
-                                command = self.mplayermpv_command(idw, nepn, Player)
+                                command = self.mplayermpv_command(idw, nepn, self.player_val)
                                 
                         else:
                             self.queue_url_list[:]=[]
@@ -11453,7 +11256,7 @@ watch/unwatch status")
                             for i in range(len(finalUrl)-1):
                                 self.queue_url_list.append(finalUrl[i+1])
                             self.queue_url_list.reverse()
-                            command = self.mplayermpv_command(idw, epnShow, Player)
+                            command = self.mplayermpv_command(idw, epnShow, self.player_val)
                             
                         logger.info(command)
                         if self.mpvplayer_val.processId() > 0:
@@ -11467,10 +11270,10 @@ watch/unwatch status")
                     finalUrl = str(finalUrl)
                 except:
                     finalUrl = finalUrl
-                command = self.mplayermpv_command(idw, finalUrl, Player, a_id=audio_id, s_id=sub_id)
+                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
                 
                 print("mpv=" + str(self.mpvplayer_val.processId()))
-                print(Player, '---------state----'+str(self.mpvplayer_val.state()))
+                print(self.player_val, '---------state----'+str(self.mpvplayer_val.state()))
                 
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
@@ -11488,22 +11291,6 @@ watch/unwatch status")
                 self.final_playing_url = finalUrl[0].replace('"', '')
                 if refererNeeded == True:
                     rfr_url = finalUrl[1].replace('"', '')
-    
-    def play_video_url(self, player, url):
-        print('hello')
-    
-    def getList(self):
-        global nameListArr, opt
-        self.list1.clear()
-        opt = "Random" 
-        self.original_path_name[:] = []
-        for i in nameListArr:
-            i = i.strip()
-            j = i
-            if '	' in i:
-                i = i.split('	')[0]
-            self.list1.addItem(i)
-            self.original_path_name.append(j)
             
     def update_playlist_original(self, pls):
         self.list2.clear()
@@ -11719,16 +11506,14 @@ watch/unwatch status")
                 self.backward.hide()
         
     def options(self, val=None):
-        global opt, pgn, genre_num, site, name, base_url, name1, embed, list1_items
+        global opt, pgn, genre_num, site, name, name1, list1_items
         global pre_opt, mirrorNo, insidePreopt, quality, home, siteName, finalUrlFound
-        global nameListArr, show_hide_playlist, show_hide_titlelist, total_till_epn
-        global pict_arr, name_arr, summary_arr, total_till, browse_cnt, tmp_name
+        global show_hide_playlist, show_hide_titlelist, total_till_epn
+        global name_arr, total_till, browse_cnt, tmp_name
         global hist_arr, list2_items, bookmark, status, video_local_stream
         
         hist_arr[:]=[]
-        pict_arr[:]=[]
         name_arr[:]=[]
-        summary_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         list2_items=[]
@@ -11994,10 +11779,6 @@ watch/unwatch status")
         list1_items[:] = []	
         for i in range(self.list1.count()):
             list1_items.append(str(self.list1.item(i).text()))
-        if opt != "History":
-            nameListArr[:]=[]
-            for i in range(len(self.original_path_name)):
-                nameListArr.append(self.original_path_name[i])
                 
         if self.list1.isHidden() and not self.list2.isHidden():
             if self.list1.count() > 0:
@@ -12158,8 +11939,6 @@ watch/unwatch status")
             self.VerticalLayoutLabel_Dock3.setSpacing(5)
             self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
-            
-        
     def watch_external_video(self, var, mode=None, start_now=None):
         global quitReally, video_local_stream, curR, site
         global home
@@ -12372,7 +12151,6 @@ watch/unwatch status")
                 
                 for i in m:
                     i1 = i
-                    #i = i.split('/')[-1]
                     i = os.path.basename(i)
                     self.epn_arr_list.append(i+'	'+i1+'	'+'NONE')
                     self.list2.addItem((i))
@@ -12427,23 +12205,23 @@ watch/unwatch status")
 
 
 def main():
-    global ui, MainWindow, tray, hdr, name, pgn, genre_num, site, name, epn, base_url
-    global name1, embed, epn_goto, list1_items, opt, mirrorNo, mpv, queueNo, playMpv
-    global mpvAlive, pre_opt, insidePreopt, posterManually, labelGeometry
+    global ui, MainWindow, tray, hdr, name, pgn, genre_num, site, name, epn
+    global name1, embed, epn_goto, list1_items, opt, mirrorNo, mpv, queueNo
+    global pre_opt, insidePreopt
     global new_tray_widget
-    global list2_items, quality, indexQueue, Player, startPlayer
-    global rfr_url, category, fullscr, curR, idw, idwMain, home
-    global player_focus, fullscrT, artist_name_mplayer
-    global pict_arr, name_arr, summary_arr, total_till, tmp_name, browse_cnt
-    global hist_arr, nxtImg_cnt, view_layout, quitReally, toggleCache
-    global status, wget, playlist_show, img_arr_artist
+    global list2_items, quality, indexQueue
+    global rfr_url, category, fullscr, curR, idw, home
+    global player_focus, artist_name_mplayer
+    global name_arr, total_till, tmp_name, browse_cnt
+    global hist_arr, view_layout, quitReally
+    global status, wget, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator, opt_movies_indicator, epn_name_in_list
     global cur_label_num, iconv_r_indicator
     global audio_id, sub_id, site_arr, siteName, finalUrlFound
-    global refererNeeded, base_url_picn, base_url_summary, nameListArr
+    global refererNeeded
     global update_start, screen_width, screen_height, total_till_epn
     global mpv_start
     global show_hide_cover, show_hide_playlist, show_hide_titlelist, server
@@ -12467,15 +12245,11 @@ def main():
     total_till_epn = 0
     idw = ""
     update_start = 0
-    nameListArr = []
     artist_name_mplayer =""
-    img_arr_artist = []
     playlist_show = 1
     siteName = ""
     finalUrlFound = False
     refererNeeded = False
-    base_url_picn = ""
-    base_url_summary = ""
     site_arr = [
         "Local", "PlayLists", "Bookmark", 
         "Music", 'Video', 'YouTube', 'None'
@@ -12497,7 +12271,6 @@ def main():
     sub_id = "auto"
     iconv_r_indicator = []
     cur_label_num = 0
-    labelGeometry = 0
     opt_movies_indicator=[]
     thumbnail_indicator=[]
     pause_indicator = []
@@ -12508,21 +12281,16 @@ def main():
     slider_clicked = "no"
     buffering_mplayer = "no"
     cache_empty = "no"
-    fullscrT = 0
     player_focus = 0
     wget = QtCore.QProcess()
     
         
     status = "bookmark"
-    toggleCache = 0
     quitReally = "no"
     view_layout = "List"
-    nxtImg_cnt = 0
     hist_arr=[]
     total_till = 0
-    pict_arr=[]
     name_arr=[]
-    summary_arr=[]
     browse_cnt = 0
     tmp_name=[]
     home = get_home_dir()
@@ -12530,17 +12298,12 @@ def main():
     fullscr = 0
     category = "Animes"
     rfr_url = ""
-    startPlayer = "Yes"
     
-    Player = "mpv"
     indexQueue = 0
     quality = "best"
     list2_items = []
-    posterManually = 0
     insidePreopt = 0
     pre_opt = ""
-    mpvAlive = 0
-    playMpv = 1
     queueNo = 0
     mpv = ""
     mirrorNo = 1
@@ -12549,7 +12312,6 @@ def main():
     epn = ""
     embed = 0
     name1 = ""
-    base_url = 0
     epn = ''
     name = ''
     site = "Local"
@@ -12595,7 +12357,7 @@ def main():
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow, media_data=media_data)
     ui.media_data.set_ui(ui)
-    ui.tab_5.set_mpvplayer(player=Player, mpvplayer=ui.mpvplayer_val)
+    ui.tab_5.set_mpvplayer(player=ui.player_val, mpvplayer=ui.mpvplayer_val)
     ui.getdb = ServerLib(ui, home, BASEDIR, TMPDIR, logger)
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
@@ -12716,12 +12478,10 @@ def main():
                         player_txt = player_txt_val
                     else:
                         player_txt = 'mpv'
-                    Player = player_txt
-                    ui.player_val = Player
+                    ui.player_val = player_txt
                     ui.chk.setText(ui.player_val)
                     if j.strip() in ['MPV', 'MPLAYER']:
-                        Player = j.strip()
-                        ui.player_val = Player
+                        ui.player_val = j.strip()
                         ui.chk.setText(ui.player_val)
                 elif "WindowFrame" in i:
                     try:
@@ -13616,10 +13376,9 @@ def main():
         show_hide_playlist = 1
     icon_poster = iconv_r
     if os.path.exists(os.path.join(home, "config.txt")):
-        print(Player)
         f = open(os.path.join(home, "config.txt"), "w")
         f.write("VERSION_NUMBER="+str(ui.version_number))
-        f.write("\nDefaultPlayer="+Player)
+        f.write("\nDefaultPlayer="+ui.player_val)
         f.write("\nWindowFrame="+str(ui.window_frame))
         f.write("\nFloatWindow="+str(ui.float_window_dim))
         f.write("\nDockPos="+str(ui.orientation_dock))
