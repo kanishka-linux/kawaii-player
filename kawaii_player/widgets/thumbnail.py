@@ -503,19 +503,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
     def player_thumbnail_fs(self, mode=None):
         param_dict = ui.get_parameters_value(
-            wgt='wget', icn='iconv_r_indicator', i='iconv_r', fl='fullscr')
+            wgt='wget', icn='iconv_r_indicator', i='iconv_r')
         wget = param_dict['wget']
         iconv_r_indicator = param_dict['iconv_r_indicator']
         iconv_r = param_dict['iconv_r']
-        fullscr = param_dict['fullscr']
         if not MainWindow.isHidden():
             if ui.video_mode_index == 6:
                 pass
             else:
                 if iconv_r_indicator:
                     iconv_r = iconv_r_indicator[0]
-                fullscr = 1 - fullscr
-                ui.set_parameters_value(iconv=iconv_r, fullsc=fullscr)
+                ui.set_parameters_value(iconv=iconv_r)
                 widget = "ui.label_epn_"+str(ui.thumbnail_label_number[0])
                 col = (ui.thumbnail_label_number[0]%iconv_r)
                 row = 2*int(ui.thumbnail_label_number[0]/iconv_r)
