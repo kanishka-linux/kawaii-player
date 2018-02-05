@@ -782,7 +782,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.tab_6_player = True
             num = curR
             self.setFocus()
-            ui.gridLayout2.setAlignment(QtCore.Qt.AlignCenter)
+            ui.gridLayout2.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
             if var_mode == 4:
                 w = float(ui.thumbnail_video_width)
                 #h = float((9*w)/16)
@@ -872,7 +872,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.thumbnail_label_update(clicked_num=num)
             ui.tab_6_player = True
             self.setFocus()
-            ui.gridLayout2.setAlignment(QtCore.Qt.AlignCenter)
+            ui.gridLayout2.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
             w = float(ui.thumbnail_video_width)
             h = int(w/ui.image_aspect_allowed)
             width=str(int(w))
