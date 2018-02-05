@@ -2167,7 +2167,7 @@ watch/unwatch status")
             book_mark=None):
         global site, curR, quitReally, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
-        global pause_indicator, mpv_indicator, fullscr
+        global pause_indicator, mpv_indicator
         global cur_label_num, path_final_Url, idw, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
         global show_hide_playlist, show_hide_titlelist, opt, quality, mirrorNo
@@ -2214,8 +2214,6 @@ watch/unwatch status")
             self.tab_6_size_indicator = tab_6.copy()
         if idw_val:
             idw = idw_val
-        if fullsc:
-            fullscr = fullsc
         if amp:
             artist_name_mplayer = amp
         if cur_ply:
@@ -2239,7 +2237,7 @@ watch/unwatch status")
         global video_local_stream, name, html_default_arr
         global pause_indicator, mpv_indicator, wget, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
-        global idw, iconv_r, cur_label_num, fullscr, tab_6_size_indicator
+        global idw, iconv_r, cur_label_num, tab_6_size_indicator
         global refererNeeded, server, memory_num_arr
         global finalUrlFound, interval, name, opt, bookmark, status
         global base_url, embed, mirrorNo, category, screen_width, screen_height
@@ -3880,7 +3878,7 @@ watch/unwatch status")
                 self.scrollArea.show()
         
     def mplayer_unpause(self):
-        global fullscr, buffering_mplayer, mpv_indicator
+        global buffering_mplayer, mpv_indicator
         global cache_empty, pause_indicator
         buffering_mplayer = "no"
         self.mplayer_pause_buffer = False
@@ -3946,11 +3944,11 @@ watch/unwatch status")
     def display_image(self, br_cnt, br_cnt_opt,
                       iconv_r_poster=None, value_str=None,
                       dimn=None, txt_name=None):
-        global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
-        global list2_items, quality, row_history, home, epn, iconv_r
+        global site, name, base_url, embed, opt, pre_opt, mirrorNo
+        global quality, row_history, home, epn, iconv_r
         global video_local_stream
-        global name_arr, total_till, browse_cnt, tmp_name
-        global hist_arr, bookmark, status, thumbnail_indicator
+        global total_till, browse_cnt, tmp_name
+        global bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
         browse_cnt = br_cnt
@@ -4086,12 +4084,11 @@ watch/unwatch status")
                 pass
                 
     def next_page(self, value_str):
-        global site, name, name1, embed, opt, pre_opt, mirrorNo
-        global list1_items
-        global list2_items, quality, row_history, home, epn, iconv_r
+        global site, name, embed, opt, pre_opt, mirrorNo
+        global quality, row_history, home, epn, iconv_r
         global total_till
-        global name_arr, total_till, browse_cnt, tmp_name
-        global hist_arr, bookmark, status, thumbnail_indicator
+        global total_till, browse_cnt, tmp_name
+        global bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
         self.lock_process = True
@@ -4769,18 +4766,6 @@ watch/unwatch status")
         thread_arr[length].finished.connect(partial(finish_fun, args[0]))
         thread_arr[length].start()
     
-    def searchAnime(self):
-        global idw
-        self.filter_btn_options()
-        
-    def setCategoryMovie(self):
-        global category, site
-        category = "Movies" 
-        
-    def setCategoryAnime(self):
-        global category, site
-        category = "Animes" 
-    
     def get_external_url_status(self, finalUrl):
         external_url = False
         if finalUrl.startswith('"http') or finalUrl.startswith('http'):
@@ -5120,14 +5105,15 @@ watch/unwatch status")
             self.goto_epn.hide()
             
     def dockShowHide(self):
-        global fullscr
         if self.dockWidget_3.isHidden():
             self.dockWidget_3.show()
             self.btn1.setFocus()
         else:
             self.dockWidget_3.hide()
-            if fullscr == 1:
+            if self.mpvplayer_val.processId() > 0:
                 self.tab_5.setFocus()
+            elif not self.tab_6.isHidden():
+                self.tab_6.setFocus()
             else:
                 self.list1.setFocus()
         
@@ -5343,11 +5329,10 @@ watch/unwatch status")
     
     
     def shuffleList(self):
-        global list1_items, pre_opt, opt, hdr, site, embed
+        global pre_opt, opt, hdr, site, embed
         global finalUrlFound
-        global name_arr, total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt, tmp_name
         global bookmark
-        name_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         embed = 0
@@ -5393,12 +5378,11 @@ watch/unwatch status")
         opt = "Random"
         
     def sortList(self):
-        global list1_items, pre_opt, opt, hdr, site, embed
+        global pre_opt, opt, hdr, site, embed
         global finalUrlFound
-        global name_arr, total_till
+        global total_till
         global browse_cnt, tmp_name, bookmark
         
-        name_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         tmp_arr = []
@@ -5764,11 +5748,10 @@ watch/unwatch status")
             
     def setPreOpt(self, option_val=None):
         global pre_opt, opt, hdr, site, insidePreopt, home
-        global hist_arr, name, bookmark, status, total_till, browse_cnt
+        global name, bookmark, status, total_till, browse_cnt
         global siteName
         
         insidePreopt = 1
-        hist_arr[:]=[]
         var = (self.btn1.currentText())
         if var == "Select":
             return 0
@@ -5789,7 +5772,6 @@ watch/unwatch status")
                     if '	' in t:
                         t = t.split('	')[0]
                     self.list1.addItem(t)
-                    hist_arr.append(j[5])
                     self.original_path_name.append(j[5])
         else:
             if option_val:
@@ -5984,7 +5966,7 @@ watch/unwatch status")
     
     
     def search_list4_options(self):
-        global opt, site, name, name1, pre_opt, bookmark
+        global opt, site, name, pre_opt, bookmark
         
         r = self.list4.currentRow()
         item = self.list4.item(r)
@@ -5999,7 +5981,7 @@ watch/unwatch status")
             self.go_page.clear()
             
     def search_list5_options(self):
-        global opt, site, name, name1, pre_opt, bookmark
+        global opt, site, name, pre_opt, bookmark
         r = self.list5.currentRow()
         item = self.list5.item(r)
         if item:
@@ -6012,7 +5994,7 @@ watch/unwatch status")
             self.goto_epn_filter_txt.clear()
             
     def history_highlight(self):
-        global opt, site, name, name1, pre_opt, bookmark
+        global opt, site, name, pre_opt, bookmark
         global video_local_stream, category, audio_id, sub_id
         audio_id = 'auto'
         sub_id = 'auto'
@@ -6059,7 +6041,7 @@ watch/unwatch status")
         self.update_list2()
         
     def search_highlight(self):
-        global opt, site, name, name1, pre_opt, bookmark
+        global opt, site, name, pre_opt, bookmark
         r = self.list4.currentRow()
         item = self.list4.item(r)
         if item:
@@ -6325,13 +6307,10 @@ watch/unwatch status")
     
     def nextp(self, val):
         global opt, pgn, genre_num, site, mirrorNo, quality, name
-        global name_arr, total_till, browse_cnt, tmp_name
-        global list1_items
+        global total_till, browse_cnt, tmp_name
     
-        name_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
-        list1_items[:]=[]
         
         if val == "next":
             r = self.list3.currentRow()
@@ -6366,7 +6345,6 @@ watch/unwatch status")
                     if '	' in i:
                         i = i.split('	')[0]
                     self.list1.addItem(i)
-                    list1_items.append(i)
                     self.original_path_name.append(j)
         except:
             pass
@@ -6400,7 +6378,6 @@ watch/unwatch status")
                     if '	' in i:
                         i = i.split('	')[0]
                     self.list1.addItem(i)
-                    list1_items.append(i)
                     self.original_path_name.append(j)
         except:
             pass
@@ -6408,7 +6385,7 @@ watch/unwatch status")
     def gotopage(self):
         key = self.page_number.text()
         global opt, pgn, site
-        if key and opt and site not in ['Video', 'Music', 'None', 'MyServer']:
+        if key and opt and site not in ['Video', 'Music', 'None', 'MyServer', 'PlayLists']:
             self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
             pgn = int(key)
             pgn = pgn - 1
@@ -6416,11 +6393,11 @@ watch/unwatch status")
                 
     def label_filter_list_update(self, item_index):
         global opt, site, bookmark, thumbnail_indicator, total_till
-        global browse_cnt, tmp_name, list1_items
+        global browse_cnt, tmp_name
         
         length = len(item_index)
         if not self.scrollArea.isHidden():
-            length1 = len(list1_items)
+            length1 = self.list1.count()
         else:
             length1 = self.list2.count()
         
@@ -6455,8 +6432,7 @@ watch/unwatch status")
                     i = i+1
             
     def filter_label_list(self):
-        global opt, pgn, site, list1_items, filter_on
-        global hist_arr
+        global opt, pgn, site, filter_on
         print("filter label")
         filter_on = 1
         row_history = []
@@ -6503,8 +6479,7 @@ watch/unwatch status")
                         
     
     def filter_list(self):
-        global opt, pgn, site, list1_items, filter_on
-        global hist_arr
+        global opt, pgn, site, filter_on
         print("filter label")
         filter_on = 1
         row_history = []
@@ -6535,8 +6510,7 @@ watch/unwatch status")
             self.list1.show()
                 
     def filter_epn_list_txt(self):
-        global opt, pgn, site, list1_items, filter_on
-        global hist_arr
+        global opt, pgn, site, filter_on
         print("filter epn list")
         filter_on = 1
         row_history = []
@@ -6571,8 +6545,8 @@ watch/unwatch status")
             
     def ka(self):
         global site, home
-        global name_arr, total_till, browse_cnt, tmp_name
-        global list1_items, bookmark, total_till, thumbnail_indicator, genre_num
+        global total_till, browse_cnt, tmp_name
+        global bookmark, total_till, thumbnail_indicator, genre_num
         global rfr_url, finalUrlFound, refererNeeded
         global video_local_stream, siteName, audio_id, sub_id
         
@@ -6682,8 +6656,8 @@ watch/unwatch status")
         
     def ka2(self):
         global site, home
-        global name_arr, total_till, browse_cnt, tmp_name
-        global list1_items, bookmark, total_till, thumbnail_indicator
+        global total_till, browse_cnt, tmp_name
+        global bookmark, total_till, thumbnail_indicator
         global genre_num, rfr_url, finalUrlFound, refererNeeded, siteName
         
         genre_num = 0
@@ -6722,8 +6696,8 @@ watch/unwatch status")
     
     def ka1(self):
         global site, home
-        global name_arr, total_till, browse_cnt, tmp_name
-        global list1_items, bookmark
+        global total_till, browse_cnt, tmp_name
+        global bookmark
         
         self.label.clear()
         self.text.clear()
@@ -6865,8 +6839,8 @@ watch/unwatch status")
             self.btnWebReviews_search.setPlaceholderText('Search ' + review_site)
         
     def rawlist_highlight(self):
-        global site, name, name1, opt, pre_opt, mirrorNo, list1_items
-        global list2_items, quality, row_history, home, epn, path_Local_Dir
+        global site, name, opt, pre_opt, mirrorNo
+        global quality, row_history, home, epn, path_Local_Dir
         global bookmark, status, siteName
         global screen_height, screen_width
         #print('========raw_list_highlight==========')
@@ -6980,12 +6954,11 @@ watch/unwatch status")
             
     def search(self):
         code = 1
-        global site, list1_items, opt, mirrorNo, hdr, quality
+        global site, opt, mirrorNo, hdr, quality
         global site_arr, siteName, finalUrlFound
-        global name_arr, total_till, browse_cnt, tmp_name
-        global list2_items, bookmark, refererNeeded, video_local_stream, name
+        global total_till, browse_cnt, tmp_name
+        global bookmark, refererNeeded, video_local_stream, name
         
-        name_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
         opt = "Search"
@@ -7178,10 +7151,6 @@ watch/unwatch status")
                             i = i.split('	')[0]
                         self.list1.addItem(i)
                         self.original_path_name.append(i)
-        list1_items[:] = []
-        if m:
-            for i in m:
-                list1_items.append(i)	
     
     def get_torrent_handle(self, nm):
         handle = None
@@ -7314,8 +7283,8 @@ watch/unwatch status")
         return title
     
     def listfound(self, send_list=None, row_select=None, show_ep_thumbnail=None):
-        global site, name, base_url, name1, embed, opt, pre_opt, mirrorNo, list1_items
-        global list2_items, quality, row_history, home, epn, path_Local_Dir, bookmark
+        global site, name, base_url, embed, opt, pre_opt, mirrorNo
+        global quality, row_history, home, epn, path_Local_Dir, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
         global opt_movies_indicator, siteName
         global screen_height, screen_width, video_local_stream
@@ -8324,7 +8293,7 @@ watch/unwatch status")
         return file_name_mp4, file_name_mkv
 
     def play_file_now(self, file_name, win_id=None):
-        global epn_name_in_list, idw, quitReally
+        global idw, quitReally
         global current_playing_file_path, cur_label_num, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
@@ -8763,11 +8732,10 @@ watch/unwatch status")
             self.paste_background(row)
         
     def epnfound(self):
-        global site, epn, epn_goto, mirrorNo, list2_items, quality
-        global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
+        global site, epn, epn_goto, mirrorNo, quality
+        global finalUrl, home, hdr, path_Local_Dir
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
-        global mpv, indexQueue
         global new_epn, idw, quitReally, buffering_mplayer
         global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
@@ -9382,10 +9350,9 @@ watch/unwatch status")
             return url
                 
     def epn_return(self, row, mode=None):
-        global site, epn_goto, mirrorNo, list2_items, quality
-        global finalUrl, home, hdr, path_Local_Dir, epn_name_in_list
+        global site, epn_goto, mirrorNo, quality
+        global finalUrl, home, hdr, path_Local_Dir
         global video_local_stream
-        global mpv, indexQueue
         global new_epn, idw, quitReally, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
@@ -9485,7 +9452,7 @@ watch/unwatch status")
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
-        global site, idw, quitReally, epn_name_in_list
+        global site, idw, quitReally
         global path_final_Url, current_playing_file_path, curR
         curR = 0
         if title:
@@ -9778,9 +9745,9 @@ watch/unwatch status")
     def dataReady(self, p):
         global new_epn, quitReally, curR, epn, opt, site
         global wget, cache_empty, buffering_mplayer, slider_clicked
-        global fullscr, artist_name_mplayer, layout_mode, server
+        global artist_name_mplayer, layout_mode, server
         global new_tray_widget, video_local_stream, pause_indicator
-        global epn_name_in_list, mpv_indicator, mpv_start, idw, cur_label_num
+        global mpv_indicator, mpv_start, idw, cur_label_num
         global sub_id, audio_id, current_playing_file_path, wget, desktop_session
         
         try:
@@ -10463,8 +10430,8 @@ watch/unwatch status")
             logger.error('{0}::dataready-exception'.format(e))
         
     def started(self):
-        global epn, new_epn, epn_name_in_list, fullscr, mpv_start
-        global cur_label_num, epn_name_in_list, site
+        global epn, new_epn, mpv_start
+        global cur_label_num, site
         if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
             length_1 = self.list2.count()
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
@@ -10695,12 +10662,11 @@ watch/unwatch status")
                     print(e)
     
     def localGetInList(self):
-        global site, epn, epn_goto, mirrorNo, list2_items, quality
-        global finalUrl, curR, home, buffering_mplayer, epn_name_in_list
+        global site, epn, epn_goto, mirrorNo, quality
+        global finalUrl, curR, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
-        global mpv, indexQueue
         global new_epn, path_Local_Dir, curR
-        global fullscr, thumbnail_indicator, category, finalUrlFound, refererNeeded
+        global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, music_arr_setting
         global default_arr_setting, wget, idw
         
@@ -10909,7 +10875,7 @@ watch/unwatch status")
             print(e, '--14180--')
         
     def getQueueInList(self):
-        global curR, site, epn_name_in_list, artist_name_mplayer, idw
+        global curR, site, artist_name_mplayer, idw
         global sub_id, audio_id, server, current_playing_file_path, quality
         try:
             t1 = self.queue_url_list[0]
@@ -11120,12 +11086,11 @@ watch/unwatch status")
         return command
         
     def getNextInList(self):
-        global site, epn, epn_goto, mirrorNo, list2_items, quality
-        global finalUrl, curR, home, buffering_mplayer, epn_name_in_list
+        global site, epn, epn_goto, mirrorNo, quality
+        global finalUrl, curR, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
-        global mpv, indexQueue
         global new_epn, path_Local_Dir, curR
-        global fullscr, thumbnail_indicator, category, finalUrlFound, refererNeeded
+        global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, default_arr_setting
         global music_arr_setting, video_local_stream, wget, audio_id, sub_id
         audio_id = 'auto'
@@ -11341,7 +11306,7 @@ watch/unwatch status")
             self.newoptionmode(val)
             
     def newoptionmode(self, val):
-        global opt, home, site, list1_items, pgn, video_local_stream, siteName
+        global opt, home, site, pgn, video_local_stream, siteName
         t_opt = "History"
         offline_history = False
         print(val, '----clicked---', type(val))
@@ -11371,8 +11336,6 @@ watch/unwatch status")
             if os.path.isfile(file_path):
                 lines = open_files(file_path, True)
                 lins = open_files(file_path, True)
-                list1_items[:] = []
-                list2_items[:] = []
                 self.original_path_name[:] = []
                 for i in lins:
                     i = i.strip()
@@ -11380,8 +11343,6 @@ watch/unwatch status")
                     if '	' in i:
                         i = i.split('	')[0]
                     self.list1.addItem(i)
-                    list1_items.append(i)
-                    list2_items.append(i)
                     self.original_path_name.append(j)
                 self.forward.hide()
                 self.backward.hide()
@@ -11481,7 +11442,6 @@ watch/unwatch status")
                 self.list3.setCurrentRow(row_value)
             elif list_1:
                 self.list1.clear()
-                list1_items[:] = []
                 self.original_path_name[:] = []
                 for i in m:
                     i = i.strip()
@@ -11506,18 +11466,14 @@ watch/unwatch status")
                 self.backward.hide()
         
     def options(self, val=None):
-        global opt, pgn, genre_num, site, name, name1, list1_items
+        global opt, pgn, genre_num, site, name
         global pre_opt, mirrorNo, insidePreopt, quality, home, siteName, finalUrlFound
         global show_hide_playlist, show_hide_titlelist, total_till_epn
-        global name_arr, total_till, browse_cnt, tmp_name
-        global hist_arr, list2_items, bookmark, status, video_local_stream
+        global total_till, browse_cnt, tmp_name
+        global bookmark, status, video_local_stream
         
-        hist_arr[:]=[]
-        name_arr[:]=[]
         browse_cnt=0
         tmp_name[:]=[]
-        list2_items=[]
-        list1_items[:]=[]
         
         if bookmark:
             r = self.list3.currentRow()
@@ -11723,9 +11679,6 @@ watch/unwatch status")
                             self.watch_external_video(fname)
         self.page_number.setText(str(self.list1.count()))
         insidePreopt = 0
-        if opt == "History":
-            for i in list2_items:
-                hist_arr.append(i)
         
         if ((self.view_mode in ["thumbnail", "thumbnail_light"] or not self.tab_6.isHidden()) 
                 and (opt == "History" or site=='Video' or bookmark
@@ -11775,10 +11728,6 @@ watch/unwatch status")
                             total_till_epn=0
                             self.next_page('deleted')
                             #self.thumbnail_label_update_epn()
-                            
-        list1_items[:] = []	
-        for i in range(self.list1.count()):
-            list1_items.append(str(self.list1.item(i).text()))
                 
         if self.list1.isHidden() and not self.list2.isHidden():
             if self.list1.count() > 0:
@@ -12206,19 +12155,19 @@ watch/unwatch status")
 
 def main():
     global ui, MainWindow, tray, hdr, name, pgn, genre_num, site, name, epn
-    global name1, embed, epn_goto, list1_items, opt, mirrorNo, mpv, queueNo
+    global embed, epn_goto, opt, mirrorNo, queueNo
     global pre_opt, insidePreopt
     global new_tray_widget
-    global list2_items, quality, indexQueue
-    global rfr_url, category, fullscr, curR, idw, home
+    global quality
+    global rfr_url, category, curR, idw, home
     global player_focus, artist_name_mplayer
-    global name_arr, total_till, tmp_name, browse_cnt
-    global hist_arr, view_layout, quitReally
+    global total_till, tmp_name, browse_cnt
+    global view_layout, quitReally
     global status, wget, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
-    global thumbnail_indicator, opt_movies_indicator, epn_name_in_list
+    global thumbnail_indicator, opt_movies_indicator
     global cur_label_num, iconv_r_indicator
     global audio_id, sub_id, site_arr, siteName, finalUrlFound
     global refererNeeded
@@ -12288,30 +12237,22 @@ def main():
     status = "bookmark"
     quitReally = "no"
     view_layout = "List"
-    hist_arr=[]
     total_till = 0
-    name_arr=[]
     browse_cnt = 0
     tmp_name=[]
     home = get_home_dir()
     curR = 0
-    fullscr = 0
     category = "Animes"
     rfr_url = ""
     
-    indexQueue = 0
     quality = "best"
-    list2_items = []
     insidePreopt = 0
     pre_opt = ""
     queueNo = 0
-    mpv = ""
     mirrorNo = 1
-    list1_items = []
     epn_goto = 0
     epn = ""
     embed = 0
-    name1 = ""
     epn = ''
     name = ''
     site = "Local"
