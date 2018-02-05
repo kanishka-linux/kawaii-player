@@ -3807,7 +3807,7 @@ watch/unwatch status")
             write_files(file_name, lines, line_by_line=True)
         
     def prev_thumbnails(self):
-        global thumbnail_indicator, total_till, browse_cnt, tmp_name
+        global thumbnail_indicator, total_till, browse_cnt
         global total_till_epn, iconv_r, iconv_r_indicator
         logger.debug(self.view_mode)
         self.epn_list_count.append(self.list2.count())
@@ -3941,7 +3941,7 @@ watch/unwatch status")
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
         global row_history, home, epn, iconv_r
         global video_local_stream
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
@@ -3949,8 +3949,10 @@ watch/unwatch status")
         if txt_name:
             name_tmp = txt_name
         else:
-            name_tmp = tmp_name[browse_cnt]
-        length = len(tmp_name)
+            name_tmp = self.original_path_name[browse_cnt]
+            if '\t' in name_tmp:
+                name_tmp = name_tmp.split('\t')[0]
+        length = self.list1.count()
         m =[]
         if (bookmark and os.path.exists(os.path.join(home, 'Bookmark', status+'.txt'))):
             file_name = os.path.join(home, 'Bookmark', status+'.txt')
@@ -4081,7 +4083,7 @@ watch/unwatch status")
         global site, name, embed, opt, pre_opt, mirrorNo
         global row_history, home, epn, iconv_r
         global total_till
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
         
@@ -4095,12 +4097,7 @@ watch/unwatch status")
                 exec(t)
             total_till = 0
         if total_till==0 or value_str=="not_deleted" or value_str == 'zoom':
-            tmp_name[:] = []
-            for i in range(self.list1.count()):
-                    txt = str(self.list1.item(i).text())
-                    tmp_name.append(txt)
-            length = len(tmp_name)
-            logger.info(tmp_name)
+            length = self.list1.count()
         else:
             if (site == "Local" or site == "None" or site == "PlayLists" 
                     or site=="Video" or site=="Music" or opt == "History"
@@ -4147,9 +4144,8 @@ watch/unwatch status")
             j = iconv_r_poster+1
             k = 0
             if opt != "History":
-                if (site == "Local" or site == "Video" or site == "Music" 
-                        or site=='PlayLists' or site == 'MyServer'):
-                    length = len(tmp_name)
+                if site in ["Video", "Music", 'PlayLists', 'MyServer']:
+                    length = self.list1.count()
                 else:
                     length = 100
             if iconv_r_poster == 1:
@@ -5133,7 +5129,7 @@ watch/unwatch status")
         self.frame1.show()
             
     def IconView(self):
-        global idw, total_till, browse_cnt, tmp_name
+        global idw, total_till, browse_cnt
         global view_layout, thumbnail_indicator, total_till_epn
         
         if self.list_poster is not None:
@@ -5145,7 +5141,6 @@ watch/unwatch status")
         self.scrollArea1.hide()
         self.scrollArea.show()
         browse_cnt=0
-        tmp_name[:]=[]
         num = self.list2.currentRow()
         i = 0
         if total_till > 0:
@@ -5231,7 +5226,7 @@ watch/unwatch status")
             QtWidgets.QApplication.processEvents()
     
     def IconViewEpn(self, start=None, mode=None):
-        global idw, total_till, browse_cnt, tmp_name
+        global idw, total_till, browse_cnt
         global view_layout, iconv_r, curR, thumbnail_indicator
         global site, total_till_epn
         if isinstance(mode, int):
@@ -5248,7 +5243,6 @@ watch/unwatch status")
             self.epn_list_count.append(self.list2.count())
         thumbnail_indicator[:]=[]
         self.scrollArea.hide()
-        tmp_name[:]=[]
         num = self.list2.currentRow()
         if num < 0:
             num = 0
@@ -5325,10 +5319,9 @@ watch/unwatch status")
     def shuffleList(self):
         global pre_opt, opt, hdr, site, embed
         global finalUrlFound
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark
         browse_cnt=0
-        tmp_name[:]=[]
         embed = 0
         n = []
         m = []
@@ -5375,10 +5368,9 @@ watch/unwatch status")
         global pre_opt, opt, hdr, site, embed
         global finalUrlFound
         global total_till
-        global browse_cnt, tmp_name, bookmark
+        global browse_cnt, bookmark
         
         browse_cnt=0
-        tmp_name[:]=[]
         tmp_arr = []
         embed = 0
         n = []
@@ -6301,10 +6293,9 @@ watch/unwatch status")
     
     def nextp(self, val):
         global opt, pgn, genre_num, site, mirrorNo, name
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
     
         browse_cnt=0
-        tmp_name[:]=[]
         
         if val == "next":
             r = self.list3.currentRow()
@@ -6387,7 +6378,7 @@ watch/unwatch status")
                 
     def label_filter_list_update(self, item_index):
         global opt, site, bookmark, thumbnail_indicator, total_till
-        global browse_cnt, tmp_name
+        global browse_cnt
         
         length = len(item_index)
         if not self.scrollArea.isHidden():
@@ -6539,7 +6530,7 @@ watch/unwatch status")
             
     def ka(self):
         global site, home
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark, total_till, thumbnail_indicator, genre_num
         global rfr_url, finalUrlFound, refererNeeded
         global video_local_stream, siteName, audio_id, sub_id
@@ -6650,7 +6641,7 @@ watch/unwatch status")
         
     def ka2(self):
         global site, home
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark, total_till, thumbnail_indicator
         global genre_num, rfr_url, finalUrlFound, refererNeeded, siteName
         
@@ -6690,7 +6681,7 @@ watch/unwatch status")
     
     def ka1(self):
         global site, home
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark
         
         self.label.clear()
@@ -6950,11 +6941,10 @@ watch/unwatch status")
         code = 1
         global site, opt, mirrorNo, hdr
         global site_arr, siteName, finalUrlFound
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark, refererNeeded, video_local_stream, name
         
         browse_cnt=0
-        tmp_name[:]=[]
         opt = "Search"
         m=[]
         criteria = []
@@ -11463,12 +11453,10 @@ watch/unwatch status")
         global opt, pgn, genre_num, site, name
         global pre_opt, mirrorNo, insidePreopt, home, siteName, finalUrlFound
         global show_hide_playlist, show_hide_titlelist, total_till_epn
-        global total_till, browse_cnt, tmp_name
+        global total_till, browse_cnt
         global bookmark, status, video_local_stream
         
         browse_cnt=0
-        tmp_name[:]=[]
-        
         if bookmark:
             r = self.list3.currentRow()
             item = self.list3.item(r)
@@ -12154,7 +12142,7 @@ def main():
     global new_tray_widget
     global rfr_url, category, curR, idw, home
     global player_focus, artist_name_mplayer
-    global total_till, tmp_name, browse_cnt
+    global total_till, browse_cnt
     global view_layout, quitReally
     global status, wget, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
@@ -12232,7 +12220,6 @@ def main():
     view_layout = "List"
     total_till = 0
     browse_cnt = 0
-    tmp_name=[]
     home = get_home_dir()
     curR = 0
     category = "Animes"
