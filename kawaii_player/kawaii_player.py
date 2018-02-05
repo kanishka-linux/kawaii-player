@@ -2006,8 +2006,6 @@ watch/unwatch status")
             self.queue_item_external = -1
     
     def set_quality_server_btn_method(self):
-        global quality
-        quality = self.quality_val 
         if self.quality_val in self.quality_dict:
             self.sd_hd.setText(self.quality_dict[self.quality_val])
             
@@ -2170,7 +2168,7 @@ watch/unwatch status")
         global pause_indicator, mpv_indicator
         global cur_label_num, path_final_Url, idw, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
-        global show_hide_playlist, show_hide_titlelist, opt, quality, mirrorNo
+        global show_hide_playlist, show_hide_titlelist, opt, mirrorNo
         global name, category, bookmark
         if siteval:
             site = siteval
@@ -2185,9 +2183,6 @@ watch/unwatch status")
             opt = op
         if book_mark:
             bookmark = True
-        if qual:
-            quality = qual
-            self.quality_val = qual
         if local_ip:
             self.local_ip_stream = get_lan_ip()
         if mir:
@@ -3653,7 +3648,6 @@ watch/unwatch status")
             self.update_list2()
         
     def selectQuality(self):
-        global quality
         txt = str(self.sd_hd.text())
         if txt == "SD":
             quality = "sd480p"
@@ -3945,7 +3939,7 @@ watch/unwatch status")
                       iconv_r_poster=None, value_str=None,
                       dimn=None, txt_name=None):
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
-        global quality, row_history, home, epn, iconv_r
+        global row_history, home, epn, iconv_r
         global video_local_stream
         global total_till, browse_cnt, tmp_name
         global bookmark, status, thumbnail_indicator
@@ -4085,7 +4079,7 @@ watch/unwatch status")
                 
     def next_page(self, value_str):
         global site, name, embed, opt, pre_opt, mirrorNo
-        global quality, row_history, home, epn, iconv_r
+        global row_history, home, epn, iconv_r
         global total_till
         global total_till, browse_cnt, tmp_name
         global bookmark, status, thumbnail_indicator
@@ -6306,7 +6300,7 @@ watch/unwatch status")
             self.epnfound()
     
     def nextp(self, val):
-        global opt, pgn, genre_num, site, mirrorNo, quality, name
+        global opt, pgn, genre_num, site, mirrorNo, name
         global total_till, browse_cnt, tmp_name
     
         browse_cnt=0
@@ -6350,7 +6344,7 @@ watch/unwatch status")
             pass
         
     def backp(self, val):
-        global opt, pgn, genre_num, mirrorNo, quality, name
+        global opt, pgn, genre_num, mirrorNo, name
         self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
         if val == "back":
             r = self.list3.currentRow()
@@ -6719,7 +6713,7 @@ watch/unwatch status")
         
             
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
-        global name, nam, old_manager, new_manager, home, screen_width, quality
+        global name, nam, old_manager, new_manager, home, screen_width
         global site
         if self.tab_2.isHidden():
             self.showHideBrowser()
@@ -6840,7 +6834,7 @@ watch/unwatch status")
         
     def rawlist_highlight(self):
         global site, name, opt, pre_opt, mirrorNo
-        global quality, row_history, home, epn, path_Local_Dir
+        global row_history, home, epn, path_Local_Dir
         global bookmark, status, siteName
         global screen_height, screen_width
         #print('========raw_list_highlight==========')
@@ -6954,7 +6948,7 @@ watch/unwatch status")
             
     def search(self):
         code = 1
-        global site, opt, mirrorNo, hdr, quality
+        global site, opt, mirrorNo, hdr
         global site_arr, siteName, finalUrlFound
         global total_till, browse_cnt, tmp_name
         global bookmark, refererNeeded, video_local_stream, name
@@ -7284,7 +7278,7 @@ watch/unwatch status")
     
     def listfound(self, send_list=None, row_select=None, show_ep_thumbnail=None):
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
-        global quality, row_history, home, epn, path_Local_Dir, bookmark
+        global row_history, home, epn, path_Local_Dir, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
         global opt_movies_indicator, siteName
         global screen_height, screen_width, video_local_stream
@@ -8732,7 +8726,7 @@ watch/unwatch status")
             self.paste_background(row)
         
     def epnfound(self):
-        global site, epn, epn_goto, mirrorNo, quality
+        global site, epn, epn_goto, mirrorNo
         global finalUrl, home, hdr, path_Local_Dir
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
@@ -8856,7 +8850,7 @@ watch/unwatch status")
                         if not self.epn_wait_thread.isRunning():
                             self.epn_wait_thread = PlayerGetEpn(
                                 self, logger, 'addons', name, epn, mirrorNo,
-                                quality, row)
+                                self.quality_val, row)
                             self.epn_wait_thread.start()
                 except Exception as e:
                     print(e)
@@ -8890,7 +8884,7 @@ watch/unwatch status")
                     print(self.epn_wait_thread.isRunning())
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
-                            self, logger, 'yt', finalUrl, quality,
+                            self, logger, 'yt', finalUrl, self.quality_val,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
         elif site == "None" or site == "Music" or site == "Video" or site == "Local":
@@ -8923,13 +8917,13 @@ watch/unwatch status")
             elif site == 'None' and self.btn1.currentText().lower() == 'youtube':
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
-                            self, logger, yt_mode, finalUrl, quality,
+                            self, logger, yt_mode, finalUrl, self.quality_val,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
             if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
                 if not self.epn_wait_thread.isRunning():
                     self.epn_wait_thread = PlayerGetEpn(
-                        self, logger, yt_mode, finalUrl, quality,
+                        self, logger, yt_mode, finalUrl, self.quality_val,
                         self.ytdl_path, row)
                     self.epn_wait_thread.start()
                 
@@ -9350,7 +9344,7 @@ watch/unwatch status")
             return url
                 
     def epn_return(self, row, mode=None):
-        global site, epn_goto, mirrorNo, quality
+        global site, epn_goto, mirrorNo
         global finalUrl, home, hdr, path_Local_Dir
         global video_local_stream
         global new_epn, idw, quitReally, buffering_mplayer
@@ -9391,11 +9385,11 @@ watch/unwatch status")
                 epn = arr[0]
                 if 'youtube.com' in finalUrl:
                     if mode == 'offline':
-                        finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger, mode='offline').strip()
+                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode='offline').strip()
                         if '::' in finalUrl:
                             finalUrl = finalUrl.split('::')[0]
                     else:
-                        finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger).strip()
                     
         
         if (site!="PlayLists" and site!= "None" and site != "Music" 
@@ -9423,7 +9417,7 @@ watch/unwatch status")
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
-                        finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
+                        finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, self.quality_val)
                 except:
                     return ''
         elif site=="None" or site == "Music" or site == "Video" or site == "Local":
@@ -9435,20 +9429,20 @@ watch/unwatch status")
             if site == 'None' and self.btn1.currentText().lower() == 'youtube':
                     finalUrl = finalUrl.replace('"', '')
                     if mode == 'offline':
-                        finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger, mode='offline').strip()
+                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode='offline').strip()
                         if '::' in finalUrl:
                             finalUrl = finalUrl.split('::')[0]
                     else:
-                        finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger).strip()
                     finalUrl = '"'+finalUrl+'"'
             if 'youtube.com' in finalUrl.lower():
                 finalUrl = finalUrl.replace('"', '')
                 if mode == 'offline':
-                    finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger, mode='offline').strip()
+                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode='offline').strip()
                     if '::' in finalUrl:
                         finalUrl = finalUrl.split('::')[0]
                 else:
-                    finalUrl = get_yt_url(finalUrl, quality, self.ytdl_path, logger).strip()
+                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger).strip()
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
@@ -10662,7 +10656,7 @@ watch/unwatch status")
                     print(e)
     
     def localGetInList(self):
-        global site, epn, epn_goto, mirrorNo, quality
+        global site, epn, epn_goto, mirrorNo
         global finalUrl, curR, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
         global new_epn, path_Local_Dir, curR
@@ -10731,7 +10725,7 @@ watch/unwatch status")
                 if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
-                            self, logger, 'yt', finalUrl, quality,
+                            self, logger, 'yt', finalUrl, self.quality_val,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
                 #self.external_url = self.get_external_url_status(finalUrl)
@@ -10764,7 +10758,7 @@ watch/unwatch status")
             if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
                 if not self.epn_wait_thread.isRunning():
                     self.epn_wait_thread = PlayerGetEpn(
-                        self, logger, yt_mode, finalUrl, quality,
+                        self, logger, yt_mode, finalUrl, self.quality_val,
                         self.ytdl_path, row)
                     self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(finalUrl)
@@ -10876,7 +10870,7 @@ watch/unwatch status")
         
     def getQueueInList(self):
         global curR, site, artist_name_mplayer, idw
-        global sub_id, audio_id, server, current_playing_file_path, quality
+        global sub_id, audio_id, server, current_playing_file_path
         try:
             t1 = self.queue_url_list[0]
             server._emitMeta("queue"+'#'+t1, site, self.epn_arr_list)
@@ -10926,7 +10920,7 @@ watch/unwatch status")
                     yt_mode = 'yt'
                 if not self.epn_wait_thread.isRunning():
                     self.epn_wait_thread = PlayerGetEpn(
-                        self, logger, yt_mode, finalUrl, quality,
+                        self, logger, yt_mode, finalUrl, self.quality_val,
                         self.ytdl_path, self.epn_name_in_list)
                     self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(epnShow)
@@ -11086,7 +11080,7 @@ watch/unwatch status")
         return command
         
     def getNextInList(self):
-        global site, epn, epn_goto, mirrorNo, quality
+        global site, epn, epn_goto, mirrorNo
         global finalUrl, curR, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
         global new_epn, path_Local_Dir, curR
@@ -11172,7 +11166,7 @@ watch/unwatch status")
                         if not self.epn_wait_thread.isRunning():
                             self.epn_wait_thread = PlayerGetEpn(
                                 self, logger, 'addons', name, epn, mirrorNo,
-                                quality, row)
+                                self.quality_val, row)
                             self.epn_wait_thread.start()
                 except Exception as e:
                     print(e)
@@ -11467,7 +11461,7 @@ watch/unwatch status")
         
     def options(self, val=None):
         global opt, pgn, genre_num, site, name
-        global pre_opt, mirrorNo, insidePreopt, quality, home, siteName, finalUrlFound
+        global pre_opt, mirrorNo, insidePreopt, home, siteName, finalUrlFound
         global show_hide_playlist, show_hide_titlelist, total_till_epn
         global total_till, browse_cnt, tmp_name
         global bookmark, status, video_local_stream
@@ -12158,7 +12152,6 @@ def main():
     global embed, epn_goto, opt, mirrorNo, queueNo
     global pre_opt, insidePreopt
     global new_tray_widget
-    global quality
     global rfr_url, category, curR, idw, home
     global player_focus, artist_name_mplayer
     global total_till, tmp_name, browse_cnt
@@ -12245,7 +12238,6 @@ def main():
     category = "Animes"
     rfr_url = ""
     
-    quality = "best"
     insidePreopt = 0
     pre_opt = ""
     queueNo = 0
@@ -12518,6 +12510,7 @@ def main():
                 elif "Quality" in i:
                     quality = re.sub('\n', '', j)
                     ui.client_quality_val = quality
+                    ui.quality_val = quality
                     print(quality, '----quality---')
                     if quality == "hd":
                         ui.sd_hd.setText("HD")
@@ -13259,7 +13252,6 @@ def main():
                     create_ssl_cert(ui, TMPDIR, pass_phrase)
         elif os.path.exists(sys.argv[1]):
             ui.watch_external_video(sys.argv[1])
-    ui.quality_val = quality
     
     if old_version <= (2, 0, 0, 0) and old_version > (0, 0, 0, 0):
         logger.info('old version: need to change videodb schema')
@@ -13332,7 +13324,7 @@ def main():
         f.write("\nThumbnail_Poster="+str(icon_poster))
         f.write("\nThumbnail_Size="+str(iconv_r))
         f.write("\nView="+str(ui.view_mode))
-        f.write("\nQuality="+str(quality))
+        f.write("\nQuality="+str(ui.quality_val))
         f.write("\nSite_Index="+str(ui.btn1.currentIndex()))
         f.write("\nAddon_Index="+str(ui.btnAddon.currentIndex()))
         f.write("\nOption_Index="+str(ui.list3.currentRow()))
