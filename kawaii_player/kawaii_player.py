@@ -1500,6 +1500,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.quit_really = 'no'
         self.tab_6_size_indicator = []
         self.tab_6_player = False
         self.epn_list_count = []
@@ -2163,7 +2164,7 @@ watch/unwatch status")
             memory_num=None, show_hide_pl=None, show_hide_tl=None, op=None,
             qual=None, mir=None, name_val=None, catg=None, local_ip=None,
             book_mark=None):
-        global site, curR, quitReally, iconv_r, thumbnail_indicator
+        global site, curR, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator
         global cur_label_num, path_final_Url, idw, current_playing_file_path
@@ -2175,8 +2176,6 @@ watch/unwatch status")
         if curRow:
             curR = curRow
             logger.debug('set current row={0}'.format(curR))
-        if quit_r:
-            quitReally = quit_r
         if catg:
             category = catg
         if op:
@@ -3092,7 +3091,6 @@ watch/unwatch status")
                 logger.error(e)
     
     def update_thumbnail_position(self, context=None):
-        global quitReally
         r = self.list2.currentRow()
         if r < 0:
             r = 0
@@ -3124,8 +3122,8 @@ watch/unwatch status")
         except Exception as err:
             print(err)
         if not context:
-            logger.debug('quit::{0}::'.format(quitReally))
-            if quitReally == 'no':
+            logger.debug('quit::{0}::'.format(self.quit_really))
+            if self.quit_really == 'no':
                 self.mark_epn_thumbnail_label(r)
             else:
                 self.mark_epn_thumbnail_label(r, old_num=True)
@@ -3180,7 +3178,7 @@ watch/unwatch status")
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             
     def playerStop(self, msg=None):
-        global quitReally, thumbnail_indicator, total_till, browse_cnt
+        global thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, curR, wget, show_hide_cover
         global show_hide_playlist, show_hide_titlelist, video_local_stream
         global idw, new_tray_widget, sub_id, audio_id
@@ -3204,7 +3202,7 @@ watch/unwatch status")
                             ]
                         }
                     )
-            quitReally = "yes"
+            self.quit_really = "yes"
             if msg:
                 if msg.lower() == 'already quit':
                     logger.debug(msg)
@@ -3323,7 +3321,7 @@ watch/unwatch status")
             self.sortList()
             
     def set_playerLoopFile(self):
-        global quitReally, tray, new_tray_widget
+        global tray, new_tray_widget
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == 'mpv':
                 self.mpvplayer_val.write(b'\n set loop-file inf \n')
@@ -3331,7 +3329,7 @@ watch/unwatch status")
                 self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                 
     def playerLoopFile(self, loop_widget):
-        global quitReally, tray, new_tray_widget
+        global tray, new_tray_widget
         txt = loop_widget.text()
         #txt = self.player_loop_file.text()
         
@@ -3339,7 +3337,7 @@ watch/unwatch status")
             self.player_setLoop_var = True
             self.player_loop_file.setText(self.player_buttons['lock'])
             new_tray_widget.lock.setText(self.player_buttons['lock'])
-            quitReally = 'no'
+            self.quit_really = 'no'
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == 'mpv':
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
@@ -3434,7 +3432,7 @@ watch/unwatch status")
                         self.frame1.show()
         
     def playerPlaylist(self, val):
-        global quitReally, playlist_show, site, thumbnail_indicator
+        global playlist_show, site, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
         global show_hide_player, httpd, idw, cur_label_num
         
@@ -3532,9 +3530,9 @@ watch/unwatch status")
                     self.playerPlaylist_setLoop_var = 0
                     self.action_player_menu[2].setText("Lock Playlist")
         elif val == "Stop After Current File (Ctrl+Q)":
-            quitReally = "yes"
+            self.quit_really = "yes"
         elif val == "Continue(default Mode)":
-            quitReally = "no"
+            self.quit_really = "no"
         elif val == "Shuffle":
             self.epn_arr_list = random.sample(self.epn_arr_list, len(self.epn_arr_list))
             self.update_list2()
@@ -8277,14 +8275,14 @@ watch/unwatch status")
         return file_name_mp4, file_name_mkv
 
     def play_file_now(self, file_name, win_id=None):
-        global idw, quitReally
+        global idw
         global current_playing_file_path, cur_label_num, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
             file_name = self.if_path_is_rel(file_name)
         
         self.mplayerLength = 0
-        quitReally = 'no'
+        self.quit_really = 'no'
         logger.info(file_name)
         if self.mpvplayer_val.processId() == 0:
             self.initial_view_mode()
@@ -8623,7 +8621,7 @@ watch/unwatch status")
     
     def epnfound_now_start_player(self, url_link, row_val):
         global site, refererNeeded, idw, current_playing_file_path
-        global refererNeeded, finalUrlFound, quitReally, rfr_url, curR
+        global refererNeeded, finalUrlFound, rfr_url, curR
         finalUrl = url_link
         print(row_val, '--epn--row--')
         if not idw:
@@ -8675,7 +8673,7 @@ watch/unwatch status")
             logger.info(command)
             self.infoPlay(command)
         elif self.player_val == "mplayer":
-            quitReally = "no"
+            self.quit_really = "no"
             idw = str(int(self.tab_5.winId()))
             if site != "Music":
                 self.tab_5.show()
@@ -8720,7 +8718,7 @@ watch/unwatch status")
         global finalUrl, home, hdr, path_Local_Dir
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
-        global new_epn, idw, quitReally, buffering_mplayer
+        global new_epn, idw, buffering_mplayer
         global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
         global current_playing_file_path
@@ -8730,7 +8728,7 @@ watch/unwatch status")
         buffering_mplayer="no"
         self.list4.hide()
         self.player_play_pause.setText(self.player_buttons['pause'])
-        quitReally = "no"
+        self.quit_really = "no"
         finalUrl = ''
         try:
             server._emitMeta("Play", site, self.epn_arr_list)
@@ -8949,7 +8947,7 @@ watch/unwatch status")
                 logger.debug('**********************8808-----')
                 self.infoPlay(command)
             elif self.player_val == "mplayer":
-                quitReally = "no"
+                self.quit_really = "no"
                 
                 idw = str(int(self.tab_5.winId()))
                 if site != "Music":
@@ -9016,7 +9014,7 @@ watch/unwatch status")
                         if refererNeeded == True or rfr_needed:
                             rfr_url = finalUrl[1]
                             if self.player_val == "mplayer":
-                                quitReally = "no"
+                                self.quit_really = "no"
                                 idw = str(int(self.tab_5.winId()))
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
@@ -9030,7 +9028,7 @@ watch/unwatch status")
                                     subprocess.Popen([self.player_val, "-referrer", rfr_url, finalUrl[0]])
                         else:
                             if self.player_val == "mplayer":
-                                quitReally = "no"
+                                self.quit_really = "no"
                                 idw = str(int(self.tab_5.winId()))
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
@@ -9058,7 +9056,7 @@ watch/unwatch status")
                         finalUrl = finalUrl.replace('""', '"')
                     finalUrl = str(finalUrl)
                     if self.player_val == "mplayer":
-                        quitReally = "no"
+                        self.quit_really = "no"
                         idw = str(int(self.tab_5.winId()))
                         self.tab_5.show()
                         command = self.mplayermpv_command(idw, finalUrl, self.player_val)
@@ -9337,7 +9335,7 @@ watch/unwatch status")
         global site, epn_goto, mirrorNo
         global finalUrl, home, hdr, path_Local_Dir
         global video_local_stream
-        global new_epn, idw, quitReally, buffering_mplayer
+        global new_epn, idw, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
         if self.if_file_path_exists_then_play(row, self.list2, False):
@@ -9436,7 +9434,7 @@ watch/unwatch status")
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
-        global site, idw, quitReally
+        global site, idw
         global path_final_Url, current_playing_file_path, curR
         curR = 0
         if title:
@@ -9457,7 +9455,7 @@ watch/unwatch status")
         if self.mpvplayer_val.processId() > 0:
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
-        quitReally = quit_val
+        self.quit_really = quit_val
         
         self.list1.hide()
         self.text.hide()
@@ -9581,7 +9579,7 @@ watch/unwatch status")
         self.download_video = 0
         
     def dataReadyW(self, p, get_lib):
-        global wget, new_epn, quitReally, curR, epn, opt, site
+        global wget, new_epn, curR, epn, opt, site
         global sizeFile
         #print('----------------', a)
         if not get_lib:
@@ -9727,7 +9725,7 @@ watch/unwatch status")
         logger.debug('sid={}::aid={}::updating file info'.format(sid, aid))
         
     def dataReady(self, p):
-        global new_epn, quitReally, curR, epn, opt, site
+        global new_epn, curR, epn, opt, site
         global wget, cache_empty, buffering_mplayer, slider_clicked
         global artist_name_mplayer, layout_mode, server
         global new_tray_widget, video_local_stream, pause_indicator
@@ -9770,7 +9768,7 @@ watch/unwatch status")
                         self.acquire_subtitle_lock = True
                         self.tab_5.load_external_sub()
                 elif 'stop_cmd: stop_after_current_file' in a.lower():
-                    quitReally = 'yes'
+                    self.quit_really = 'yes'
                     txt_osd = '\n show-text "Stop After Current File" \n'
                     self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     logger.debug(a)
@@ -10117,8 +10115,8 @@ watch/unwatch status")
                         mpv_start.pop()
                     if "HTTP error 403 Forbidden" in a:
                         print(a)
-                        quitReally = "yes"
-                    if quitReally == "no" and not self.epn_wait_thread.isRunning():
+                        self.quit_really = "yes"
+                    if self.quit_really == "no" and not self.epn_wait_thread.isRunning():
                         if self.tab_5.isHidden() and thumbnail_indicator:
                             length_1 = self.list2.count()
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText(self.epn_name_in_list)"
@@ -10135,7 +10133,7 @@ watch/unwatch status")
                                 self.getNextInList()
                             else:
                                 self.getQueueInList()
-                    elif quitReally == "yes": 
+                    elif self.quit_really == "yes": 
                         self.player_stop.clicked.emit()
                         self.list2.setFocus()
             elif self.player_val.lower() == "mplayer":
@@ -10380,8 +10378,8 @@ watch/unwatch status")
                         
                     if "HTTP error 403 Forbidden" in a:
                         print(a)
-                        quitReally = "yes"
-                    if quitReally == "no" and not self.epn_wait_thread.isRunning():
+                        self.quit_really = "yes"
+                    if self.quit_really == "no" and not self.epn_wait_thread.isRunning():
                         if (site == "Local" or site == "Video" 
                                 or site == "Music" or site == "PlayLists" 
                                 or site == "None" or site == 'MyServer'):
@@ -10407,7 +10405,7 @@ watch/unwatch status")
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
                             exec(q3)
                             QtWidgets.QApplication.processEvents()
-                    elif quitReally == "yes":
+                    elif self.quit_really == "yes":
                         self.player_stop.clicked.emit() 
                         self.list2.setFocus()
         except Exception as e:
@@ -10440,7 +10438,7 @@ watch/unwatch status")
                 self.frame_timer.stop()
         
     def finished(self):
-        global quitReally, mpv_start, idw, thumbnail_indicator
+        global mpv_start, idw, thumbnail_indicator
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
@@ -10454,13 +10452,13 @@ watch/unwatch status")
         self.mplayer_finished_counter += 1
         print(self.mpvplayer_val.processId(), '--finished--id--')
         logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
-        if (quitReally == 'no' and self.mpvplayer_val.processId() == 0
+        if (self.quit_really == 'no' and self.mpvplayer_val.processId() == 0
                 and OSNAME == 'posix' and self.mpvplayer_started and self.mplayer_finished_counter == 1):
             self.player_restart()
             
     def player_restart(self):
-        global quitReally, mpv_start, idw, thumbnail_indicator
-        logger.warning('quit={0} , hence --restarting--'.format(quitReally))
+        global mpv_start, idw, thumbnail_indicator
+        logger.warning('quit={0} , hence --restarting--'.format(self.quit_really))
         num = curR
         self.list2.setCurrentRow(num)
         item = self.list2.item(num)
@@ -10533,7 +10531,7 @@ watch/unwatch status")
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
                 
     def adjust_thumbnail_window(self, row):
-        global thumbnail_indicator, idw, quitReally
+        global thumbnail_indicator, idw
         if self.epn_name_in_list.startswith('#'):
             self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
         if (thumbnail_indicator and idw == str(int(self.tab_5.winId()))):
@@ -10625,7 +10623,7 @@ watch/unwatch status")
                     exec(p1)
                     
                     init_cnt = self.thumbnail_label_number[0] + self.list2.count()
-                    if quitReally == 'yes':
+                    if self.quit_really == 'yes':
                         txt = self.thumbnail_label_number[1]
                     p1 = "self.label_epn_{0}".format(init_cnt)
                     label_number = eval(p1)
@@ -11871,7 +11869,7 @@ watch/unwatch status")
             self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
     def watch_external_video(self, var, mode=None, start_now=None):
-        global quitReally, video_local_stream, curR, site
+        global video_local_stream, curR, site
         global home
         t = var
         logger.info(t)
@@ -11881,7 +11879,7 @@ watch/unwatch status")
             file_exists = True
         if (("file:///" in t or t.startswith('/') or t.startswith('http') or 
                 file_exists) and not t.endswith('.torrent') and not 'magnet:' in t):
-            quitReally="no"
+            self.quit_really="no"
             logger.info(t)
             txt_file = True
             if 'http' in t:
@@ -12126,7 +12124,7 @@ watch/unwatch status")
             video_local_stream = True
             self.local_torrent_open(t, start_now=start_now)
         else:
-            quitReally="yes"
+            self.quit_really = "yes"
             new_epn = os.path.basename(t)
             t = '"'+t+'"'
             self.epn_name_in_list = urllib.parse.unquote(new_epn)
@@ -12143,7 +12141,7 @@ def main():
     global rfr_url, category, curR, idw, home
     global player_focus, artist_name_mplayer
     global total_till, browse_cnt
-    global view_layout, quitReally
+    global view_layout
     global status, wget, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
@@ -12216,7 +12214,6 @@ def main():
     
         
     status = "bookmark"
-    quitReally = "no"
     view_layout = "List"
     total_till = 0
     browse_cnt = 0

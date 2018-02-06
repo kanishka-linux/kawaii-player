@@ -384,8 +384,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 logger.warn('Not Allowed')
                 
     def player_quit_old(self, msg=None):
-        quitReally = "yes"
-        self.ui.set_parameters_value(quit_r=quitReally)
+        self.ui.quit_really = "yes"
         if not msg:
             self.mpvplayer.write(b'\n quit \n')
         param_dict_val = self.ui.get_parameters_value(idw='idw', sw='screen_width',
@@ -922,15 +921,13 @@ class PlayerWidget(QtWidgets.QWidget):
             self.ui.mpvPrevEpnList()
         elif (event.modifiers() == QtCore.Qt.ControlModifier
                 and event.key() == QtCore.Qt.Key_Q):
-            quitReally = "yes"
-            self.ui.set_parameters_value(quit_r=quitReally)
+            self.ui.quit_really = "yes"
             msg = '"Stop After current file"'
             msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
             self.mpvplayer.write(msg_byt)
         elif (event.modifiers() == QtCore.Qt.ShiftModifier
                 and event.key() == QtCore.Qt.Key_Q):
-            quitReally = "yes"
-            self.ui.set_parameters_value(quit_r=quitReally)
+            self.ui.quit_really = "yes"
             self.ui.playerStop(msg='remember quit')
         elif event.key() == QtCore.Qt.Key_Q:
             self.player_quit()

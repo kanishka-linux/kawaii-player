@@ -465,15 +465,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.mpvPrevEpnList()
             elif (event.modifiers() == QtCore.Qt.ControlModifier
                 and event.key() == QtCore.Qt.Key_Q):
-                quitReally = "yes"
-                ui.set_parameters_value(quit_r=quitReally)
+                ui.quit_really = "yes"
                 msg = '"Stop After current file"'
                 msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
                 ui.mpvplayer_val.write(msg_byt)
             elif (event.modifiers() == QtCore.Qt.ShiftModifier
                 and event.key() == QtCore.Qt.Key_Q):
-                quitReally = "yes"
-                ui.set_parameters_value(quit_r=quitReally)
+                ui.quit_really = "yes"
                 ui.playerStop(msg='remember quit')
             elif event.key() == QtCore.Qt.Key_Q:
                 ui.player_stop.clicked.emit()
@@ -808,8 +806,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.scrollArea1.horizontalScrollBar().setValue(xy-10)
                 ui.scrollArea1.verticalScrollBar().setValue(yy-5)
 
-            quitReally = "no"
-            ui.set_parameters_value(quit_r=quitReally)
+            ui.quit_really = "no"
             ui.list2.setCurrentRow(num)
             p4="ui.label_epn_"+str(num)+".setMouseTracking(True)"
             exec (p4)
@@ -898,8 +895,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.scrollArea1.horizontalScrollBar().setValue(xy-10)
             ui.scrollArea1.verticalScrollBar().setValue(yy-5)
 
-            quitReally = "no"
-            ui.set_parameters_value(quit_r=quitReally)
+            ui.quit_really = "no"
             ui.list2.setCurrentRow(num)
             p4="ui.label_epn_"+str(num)+".setMouseTracking(True)"
             exec(p4)
@@ -945,10 +941,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
             num = curR
             self.setFocus()
-            quitReally = "no"
-            ui.set_parameters_value(quit_r=quitReally)
+            ui.quit_really = "no"
             ui.list2.setCurrentRow(num)
-            p4="ui.label.setMouseTracking(True)"
+            p4 = "ui.label.setMouseTracking(True)"
             exec(p4)
 
             if '	' in ui.epn_arr_list[num]:
@@ -1090,8 +1085,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
     def mouseReleaseEvent(self, ev):
         if ev.button() == QtCore.Qt.LeftButton:
             self.setFocus()
-            quitReally = "no"
-            ui.set_parameters_value(quit_r=quitReally)
+            ui.quit_really = "no"
             label_name = str(self.objectName())
             label_watch = False
             logger.debug(label_name)
@@ -1151,8 +1145,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         ui.thumbnail_label_number = [num, txt]
     
     def play_within_poster(self):
-        quitReally = "no"
-        ui.set_parameters_value(quit_r=quitReally)
+        ui.quit_really = "no"
         num = ui.list2.currentRow()
         if num >= 0:
             curR = num
