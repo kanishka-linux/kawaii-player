@@ -60,10 +60,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
 
     def init_offline_mode(self):
         print(self.currentRow(), '--init--offline--')
-        param_dict = ui.get_parameters_value(s='site', w='wget', n='name',
+        param_dict = ui.get_parameters_value(s='site', n='name',
                                              sn='siteName', m='mirrorNo')
         site = param_dict['site']
-        wget = param_dict['wget']
         name = param_dict['name']
         siteName = param_dict['siteName']
         mirrorNo = param_dict['mirrorNo']
@@ -78,7 +77,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 eptxt = eptxt.replace('#', '', 1)
             aitem = (name, epfinal, mirrorNo, ui.quality_val, r, site, siteName, eptxt)
             if site not in ['Music', 'Video']:
-                if wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
+                if ui.wget.processId() == 0 and not ui.epn_wait_thread.isRunning():
                     ui.download_video = 1
                     ui.queue_item = aitem
                     ui.start_offline_mode(r, aitem)
@@ -132,9 +131,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             send_notification(msg)
             
     def queue_item(self):
-        param_dict = ui.get_parameters_value(s='site', v='video_local_stream')
-        site = param_dict['site']
-        video_local_stream = param_dict['video_local_stream']
+        site = ui.get_parameters_value(s='site')['site']
         for item in self.selectedItems():
             r = self.row(item)
             if site in ["Music", "Video", "PlayLists", "None"]:
@@ -155,7 +152,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 ui.list6.addItem(txt_load)
                 logger.info(ui.queue_url_list)
                 write_files(file_path, txt_queue, line_by_line=True)
-            elif video_local_stream:
+            elif ui.video_local_stream:
                 if ui.list6.count() > 0:
                     txt = ui.list6.item(0).text()
                     if txt.startswith('Queue Empty:'):
@@ -956,10 +953,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             ui.set_parameters_value(mir=mirrorNo)
         elif event.key() == QtCore.Qt.Key_F and ui.mpvplayer_val.processId() > 0:
             if not MainWindow.isHidden():
-                param_dict = ui.get_parameters_value(w='wget', v='video_local_stream',
-                                                     t='total_till')
-                wget = param_dict['wget']
-                video_local_stream = param_dict['video_local_stream']
+                param_dict = ui.get_parameters_value(t='total_till')
                 total_till = param_dict['total_till']
                 if not MainWindow.isFullScreen():
                     ui.gridLayout.setSpacing(0)
@@ -972,7 +966,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     ui.tab_6.hide()
                     ui.goto_epn.hide()
                     #ui.btn20.hide()
-                    if wget.processId() > 0 or video_local_stream:
+                    if ui.wget.processId() > 0 or ui.video_local_stream:
                         ui.progress.hide()
                         if not ui.torrent_frame.isHidden():
                             ui.torrent_frame.hide()
@@ -991,10 +985,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
                     ui.list2.show()
                     ui.btn20.show()
-                    if wget:
-                        if wget.processId() > 0:
-                            ui.goto_epn.hide()
-                            ui.progress.show()
+                    if ui.wget.processId() > 0:
+                        ui.goto_epn.hide()
+                        ui.progress.show()
 
                     ui.frame1.show()
                     if ui.player_val == "mplayer" or ui.player_val == "mpv":

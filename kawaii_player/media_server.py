@@ -64,11 +64,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     
     def process_HEAD(self):
         global ui, logger, getdb
-        global path_final_Url, curR
+        global path_final_Url
 
-        arg_dict = ui.get_parameters_value(
-            r='curR', path='path_final_Url')
-        curR = arg_dict['curR']
+        arg_dict = ui.get_parameters_value(path='path_final_Url')
         path_final_Url = arg_dict['path_final_Url']
         epnArrList = ui.epn_arr_list
 
@@ -262,12 +260,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
 
     def do_init_function(self, type_request=None):
-        global ui, curR, logger
-        #logger.info(self.path)
-        arg_dict = ui.get_parameters_value(r='curR')
-        curR = arg_dict['curR']
+        global ui, logger
         epnArrList = ui.epn_arr_list
-        
         path = self.path.replace('/', '', 1)
         if '/' in path:
             if not path.startswith('site=') and'&s=' not in path:
@@ -601,12 +595,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         global ui
 
         arg_dict = ui.get_parameters_value(
-            s='site', o='opt', sn='siteName', n='name', v='video_local_stream')
+            s='site', o='opt', sn='siteName', n='name'
+            )
         site = arg_dict['site']
         opt = arg_dict['opt']
         siteName = arg_dict['siteName']
         name = arg_dict['name']
-        video_local_stream = arg_dict['video_local_stream']
+        video_local_stream = ui.video_local_stream
 
         tmp = ''
         if row:
@@ -852,11 +847,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
         global ui, home, html_default_arr, logger, getdb
-        global path_final_Url, curR, site
+        global path_final_Url, site
 
         arg_dict = ui.get_parameters_value(
-            r='curR', path='path_final_Url', s='site')
-        curR = arg_dict['curR']
+            path='path_final_Url', s='site'
+            )
         path_final_Url = arg_dict['path_final_Url']
         epnArrList = ui.epn_arr_list.copy()
         site = arg_dict['site']
@@ -890,8 +885,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             new_arr = [i for i in range(len(epnArrList))]
 
             if path.startswith('channel'):
-                new_arr = new_arr[curR:]
-                new_epnArrList = new_epnArrList[curR:]
+                new_arr = new_arr[ui.cur_row:]
+                new_epnArrList = new_epnArrList[ui.cur_row:]
                 logger.info('{0}++++++++++++++++++{1}'.format(new_arr, new_epnArrList))
             if path.lower().startswith('stream_continue_from_'):
                 row_digit = 0
@@ -1151,8 +1146,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 n_art = ui.list1.currentItem().text()
                 n_out = "Server"
             if epnArrList:
-                if '	' in epnArrList[curR]:
-                    epn_arr = epnArrList[curR].strip()
+                if '	' in epnArrList[ui.cur_row]:
+                    epn_arr = epnArrList[ui.cur_row].strip()
                     length = len(epn_arr.split('	'))
                     if length == 3:
                         n_out, __, n_art = epn_arr.split('	')
@@ -1161,7 +1156,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     else:
                         n_out = epn_arr
                 else:
-                    n_out = epnArrList[curR].strip()
+                    n_out = epnArrList[ui.cur_row].strip()
                     if not n_art:
                         n_art = 'Not Available'
 
@@ -1386,7 +1381,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
         elif path.lower() == 'playpause':
             if ui.remote_control and ui.remote_control_field:
-                b = 'playpause:{0}'.format(curR)
+                b = 'playpause:{0}'.format(ui.cur_row)
                 self.final_message(bytes(b, 'utf-8'))
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(-1000, 'playpause')
@@ -1395,7 +1390,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
         elif path.lower() == 'playpause_pause':
             if ui.remote_control and ui.remote_control_field:
-                b = 'playpause_pause:{0}'.format(curR)
+                b = 'playpause_pause:{0}'.format(ui.cur_row)
                 self.final_message(bytes(b, 'utf-8'))
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(-1000, 'playpause_pause')
@@ -1404,7 +1399,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
         elif path.lower() == 'playpause_play':
             if ui.remote_control and ui.remote_control_field:
-                b = 'playpause_play:{0}'.format(curR)
+                b = 'playpause_play:{0}'.format(ui.cur_row)
                 self.final_message(bytes(b, 'utf-8'))
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(-1000, 'playpause_play')
@@ -1513,7 +1508,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
         elif path.lower() == 'playnext':
             if ui.remote_control and ui.remote_control_field:
-                b = 'Next:{0}'.format(str((curR+1)%ui.list2.count()))
+                b = 'Next:{0}'.format(str((ui.cur_row+1)%ui.list2.count()))
                 self.final_message(bytes(b, 'utf-8'))
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(-1000, 'next')
@@ -1522,7 +1517,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
         elif path.lower() == 'playprev':
             if ui.remote_control and ui.remote_control_field:
-                b = 'Prev:{0}'.format(str((curR-1)%ui.list2.count()))
+                b = 'Prev:{0}'.format(str((ui.cur_row-1)%ui.list2.count()))
                 self.final_message(bytes(b, 'utf-8'))
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(-1000, 'prev')
@@ -1609,7 +1604,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         try:
                             num_row = self.path.rsplit('/', 1)[-1]
                             if num_row == 'server' or num_row == 'now_playing':
-                                row = curR
+                                row = ui.cur_row
                             else:
                                 row = int(num_row)
                         except Exception as err_val:
@@ -2757,17 +2752,14 @@ def get_my_ip_regularly(nm):
 
 @pyqtSlot(int, str)
 def start_player_remotely(nm, mode):
-    global ui, curR, MainWindow
-
-    #print(nm, mode, '--2133--')
+    global ui, MainWindow
     if mode == 'normal' and ui.list2.count():
         if nm < ui.list2.count() and nm >= 0:
-            curR = nm
+            ui.cur_row = nm
         else:
-            curR = (nm%ui.list2.count())
-        ui.set_parameters_value(curRow=curR)
-        ui.list2.setCurrentRow(curR)
-        item = ui.list2.item(curR)
+            ui.cur_row = (nm%ui.list2.count())
+        ui.list2.setCurrentRow(ui.cur_row)
+        item = ui.list2.item(ui.cur_row)
         if item:
             ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         #print('---1523---')

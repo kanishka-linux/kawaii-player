@@ -164,16 +164,8 @@ class PlayerWidget(QtWidgets.QWidget):
         self.ui.slider.setValue(t)
     
     def player_fs(self, mode=None):
-        idw = self.ui.get_parameters_value(idw='idw')['idw']
-        screen_width = self.ui.screen_size[0]
-        screen_height = self.ui.screen_size[1]
-        if not idw or idw == str(int(self.winId())):
+        if not self.ui.idw or self.ui.idw == str(int(self.winId())):
             if not MainWindow.isHidden():
-                param_dict = self.ui.get_parameters_value(
-                    wgt='wget', vl='video_local_stream')
-                wget = param_dict['wget']
-                video_local_stream = param_dict['video_local_stream']
-                
                 if not MainWindow.isFullScreen() or mode == 'fs':
                     if os.name == 'nt' and self.ui.web_review_browser_started:
                         self.ui.detach_fullscreen = True
@@ -198,9 +190,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.frame1.hide()
                         self.ui.tab_6.hide()
                         self.ui.goto_epn.hide()
-                        #self.ui.btn20.hide()
-                        
-                        if wget.processId() > 0 or video_local_stream:
+                        if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
                             self.ui.progress.hide()
                             if not self.ui.torrent_frame.isHidden():
                                 self.ui.torrent_frame.hide()
@@ -223,7 +213,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
                     self.ui.list2.show()
                     self.ui.btn20.show()
-                    if wget.processId() > 0 or video_local_stream:
+                    if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
                         self.ui.progress.show()
                     self.ui.frame1.show()
                     if self.player_val == "mplayer" or self.player_val == "mpv":
@@ -255,9 +245,8 @@ class PlayerWidget(QtWidgets.QWidget):
         else:
             self.ui.tab_6_size_indicator.append(self.ui.tab_6.width())
             param_dict = self.ui.get_parameters_value(
-                wgt='wget', icn='iconv_r_indicator', i='iconv_r',
+                icn='iconv_r_indicator', i='iconv_r',
                 cl='cur_label_num')
-            wget = param_dict['wget']
             iconv_r_indicator = param_dict['iconv_r_indicator']
             iconv_r = param_dict['iconv_r']
             cur_label_num = param_dict['cur_label_num']
@@ -381,29 +370,16 @@ class PlayerWidget(QtWidgets.QWidget):
         self.ui.quit_really = "yes"
         if not msg:
             self.mpvplayer.write(b'\n quit \n')
-        param_dict_val = self.ui.get_parameters_value(idw='idw', sw='screen_width',
-                                                      sh='screen_height')
-        idw = param_dict_val['idw']
-        screen_width = param_dict_val['screen_width']
-        screen_height = param_dict_val['screen_height']
-        if not idw or idw == str(int(self.winId())):
-            #self.ui.player_stop.clicked.emit()
-            #return 0
+        if not self.ui.idw or self.ui.idw == str(int(self.winId())):
             self.ui.player_play_pause.setText(self.ui.player_buttons['play'])
             param_dict = self.ui.get_parameters_value(
-                wgt='wget', vl='video_local_stream', sh='show_hide_titlelist',
-                sc='show_hide_cover', icn='iconv_r_indicator',
-                screen_width='screen_width')
-            wget = param_dict['wget']
-            video_local_stream = param_dict['video_local_stream']
+                sh='show_hide_titlelist',
+                sc='show_hide_cover', icn='iconv_r_indicator'
+                )
             show_hide_titlelist = param_dict['show_hide_titlelist']
             show_hide_cover = param_dict['show_hide_cover']
             iconv_r_indicator = param_dict['iconv_r_indicator']
-            screen_width = param_dict['screen_width']
-            logger.info(
-                '{0}-{1}-{2}-{3}-{4}'.format(
-                wget, video_local_stream, show_hide_titlelist, show_hide_cover, iconv_r_indicator))
-            if video_local_stream:
+            if self.ui.video_local_stream:
                 tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
                 f = open(tmp_pl, 'w')
                 f.close()
@@ -443,9 +419,8 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.thumbnail_label_update_epn()
                     QtWidgets.QApplication.processEvents()
                     QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
-                if wget:
-                    if wget.processId() > 0:
-                        self.ui.progress.show()
+                if self.ui.wget.processId() > 0:
+                    self.ui.progress.show()
                 if MainWindow.isFullScreen():
                     self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                     MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -469,9 +444,8 @@ class PlayerWidget(QtWidgets.QWidget):
         else:
             self.ui.tab_6_size_indicator.append(self.ui.tab_6.width())
             param_dict = self.ui.get_parameters_value(
-                wgt='wget', i='iconv_r', cl='cur_label_num'
+                i='iconv_r', cl='cur_label_num'
                 )
-            wget = param_dict['wget']
             iconv_r_indicator = param_dict['iconv_r_indicator']
             iconv_r = param_dict['iconv_r']
             cur_label_num = param_dict['cur_label_num']
@@ -514,10 +488,9 @@ class PlayerWidget(QtWidgets.QWidget):
     
                         self.ui.gridLayout.setSpacing(5)
                         self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                        if wget:
-                            if wget.processId() > 0:
-                                self.ui.goto_epn.hide()
-                                self.ui.progress.show()
+                        if self.ui.wget.processId() > 0:
+                            self.ui.goto_epn.hide()
+                            self.ui.progress.show()
                         self.ui.frame2.show()
                         MainWindow.showNormal()
                         MainWindow.showMaximized()

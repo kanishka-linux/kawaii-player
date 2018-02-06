@@ -198,8 +198,6 @@ class FloatWindowWidget(QtWidgets.QWidget):
             ui.float_timer.stop()
 
     def cover_frame(self):
-        param_dict = ui.get_parameters_value(i='idw')
-        idw = param_dict['idw']
         cur_label_num = ui.thumbnail_label_number[0]
         if not ui.list_with_thumbnail:
             ui.list2.setMaximumHeight(30)
@@ -212,7 +210,7 @@ class FloatWindowWidget(QtWidgets.QWidget):
             ui.new_tray_widget.show()
             self.cover_mode.setText(ui.player_buttons['down'])
             self.cover_mode.setToolTip('Restore Default')
-            if not idw or str(idw) == str(int(ui.tab_5.winId())) or str(idw) == str(int(ui.label.winId())):
+            if not ui.idw or str(ui.idw) == str(int(ui.tab_5.winId())) or str(ui.idw) == str(int(ui.label.winId())):
                 self.hide_video_window = False
             else:
                 p1 = "ui.label_epn_{0}.hide()".format(cur_label_num)
@@ -361,16 +359,12 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         screen_height = height
 
     def _detach_video(self):
-        param_dict = ui.get_parameters_value(i='idw', cr='curR')
-        idw = param_dict['idw']
         cur_label_num = ui.thumbnail_label_number[0]
-        curR = param_dict['curR']
-
         txt = self.d_vid.text()
         ui.float_window_open = True
         if txt.lower() == '&detach video':
             self.d_vid.setText('&Attach Video')
-            if str(idw) == str(int(ui.tab_5.winId())) or not idw:
+            if str(ui.idw) == str(int(ui.tab_5.winId())) or not ui.idw:
                 ui.float_window_layout.insertWidget(0, ui.tab_5, 0)
                 ui.float_window.show()
                 ui.tab_5.show()
@@ -429,7 +423,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                         logger.info('Error in getting Thumbnail: {0}, --line--17659--'.format(e))
         else:
             self.d_vid.setText('&Detach Video')
-            if str(idw) == str(int(ui.tab_5.winId())) or not idw:
+            if str(ui.idw) == str(int(ui.tab_5.winId())) or not ui.idw:
                 ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
             else:
                 r = ui.current_thumbnail_position[0]
@@ -448,7 +442,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                 if ui.mpvplayer_val.processId() > 0:
                     try:
                         new_cnt = cur_label_num + ui.list2.count()
-                        new_new_cnt = curR + ui.list2.count()
+                        new_new_cnt = ui.cur_row + ui.list2.count()
                         p1 = "ui.label_epn_{0}.setTextColor(QtCore.Qt.green)".format(new_cnt)
                         exec(p1)
                         p1 = "ui.label_epn_{0}.toPlainText()".format(new_new_cnt)

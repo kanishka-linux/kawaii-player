@@ -1049,6 +1049,7 @@ watch/unwatch status")
         self.tab_5.setMouseTracking(True)
         #self.VerticalLayoutLabel.insertWidget(1, self.tab_5, 0)
         self.tab_5.hide()
+        self.idw = str(int(self.tab_5.winId()))
         #self.tab_5.setMinimumSize(100, 100)
         #self.tab_6 = QtGui.QWidget(MainWindow)
         self.tab_6 = TabThumbnail(MainWindow, self)
@@ -1501,6 +1502,9 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.quit_really = 'no'
+        self.wget = QtCore.QProcess()
+        self.video_local_stream = False
+        self.cur_row = 0
         self.tab_6_size_indicator = []
         self.tab_6_player = False
         self.epn_list_count = []
@@ -1956,7 +1960,6 @@ watch/unwatch status")
                     logger.error(err)
             
     def remove_queue_item_btn_method(self, row=None):
-        global video_local_stream
         row = self.queue_item_external_remove
         if row >= 0:
             r = row
@@ -1964,12 +1967,12 @@ watch/unwatch status")
                 item = self.list6.item(r)
                 self.list6.takeItem(r)
                 del item
-                if not video_local_stream and r < len(self.queue_url_list):
+                if not self.video_local_stream and r < len(self.queue_url_list):
                     del self.queue_url_list[r]
             self.queue_item_external_remove = -1
     
     def set_queue_item_btn_method(self, row=None):
-        global site, video_local_stream
+        global site
         #if row is None:
         row = self.queue_item_external
         if row >= 0:
@@ -1988,7 +1991,7 @@ watch/unwatch status")
                     self.list6.addItem(self.epn_arr_list[r].split('	')[0])
                     logger.info(self.queue_url_list)
                     write_files(file_path, self.epn_arr_list[r], line_by_line=True)
-            elif video_local_stream:
+            elif self.video_local_stream:
                 if ui.list6.count() > 0:
                     txt = self.list6.item(0).text()
                     if txt.startswith('Queue Empty:'):
@@ -2164,18 +2167,15 @@ watch/unwatch status")
             memory_num=None, show_hide_pl=None, show_hide_tl=None, op=None,
             qual=None, mir=None, name_val=None, catg=None, local_ip=None,
             book_mark=None):
-        global site, curR, iconv_r, thumbnail_indicator
+        global site, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator
-        global cur_label_num, path_final_Url, idw, current_playing_file_path
+        global cur_label_num, path_final_Url, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
         global show_hide_playlist, show_hide_titlelist, opt, mirrorNo
         global name, category, bookmark
         if siteval:
             site = siteval
-        if curRow:
-            curR = curRow
-            logger.debug('set current row={0}'.format(curR))
         if catg:
             category = catg
         if op:
@@ -2206,8 +2206,6 @@ watch/unwatch status")
             show_hide_titlelist = show_hide_tl
         if tab_6:
             self.tab_6_size_indicator = tab_6.copy()
-        if idw_val:
-            idw = idw_val
         if amp:
             artist_name_mplayer = amp
         if cur_ply:
@@ -2227,11 +2225,11 @@ watch/unwatch status")
             cache_empty = cache_val
             
     def get_parameters_value(self, *arg, **kargs):
-        global curR, path_final_Url, opt, site, siteName
-        global video_local_stream, name, html_default_arr
-        global pause_indicator, mpv_indicator, wget, rfr_url, total_till
+        global path_final_Url, opt, site, siteName
+        global name, html_default_arr
+        global pause_indicator, mpv_indicator, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
-        global idw, iconv_r, cur_label_num, tab_6_size_indicator
+        global iconv_r, cur_label_num, tab_6_size_indicator
         global refererNeeded, server, memory_num_arr
         global finalUrlFound, interval, name, opt, bookmark, status
         global base_url, embed, mirrorNo, category, screen_width, screen_height
@@ -2241,7 +2239,7 @@ watch/unwatch status")
         return arg_dict
         
     def remote_fullscreen(self):
-        global MainWindow, wget, site
+        global MainWindow, site
         if MainWindow.isHidden():
             MainWindow.show()
         if not MainWindow.isHidden():
@@ -2262,7 +2260,7 @@ watch/unwatch status")
                         self.fullscreen_mode = 0
                     
                     #self.btn20.hide()
-                    if wget.processId() > 0 or video_local_stream:
+                    if self.wget.processId() > 0 or self.video_local_stream:
                         self.progress.hide()
                         if not self.torrent_frame.isHidden():
                             self.torrent_frame.hide()
@@ -2308,7 +2306,7 @@ watch/unwatch status")
                 self.superGridLayout.setContentsMargins(5, 5, 5, 5)
                 self.list2.show()
                 self.btn20.show()
-                if wget.processId() > 0 or video_local_stream:
+                if self.wget.processId() > 0 or self.video_local_stream:
                     self.progress.show()
                 self.frame1.show()
                 if self.player_val == "mplayer" or self.player_val=="mpv":
@@ -2677,12 +2675,12 @@ watch/unwatch status")
         return abs_path_thumb
         
     def list1_double_clicked(self):
-        global show_hide_titlelist, show_hide_playlist, curR
+        global show_hide_titlelist, show_hide_playlist
         self.listfound()
         if site == "Music" and not self.list2.isHidden():
             self.list2.setFocus()
             self.list2.setCurrentRow(0)
-            curR = 0
+            self.cur_row = 0
             self.list1.show()
             self.list1.setFocus()
         else:
@@ -2700,7 +2698,7 @@ watch/unwatch status")
         self.progress.hide()
         
     def stop_torrent(self, from_client=None):
-        global video_local_stream, wget, site
+        global site
         try:
             stop_now = False
             new_video_local_stream = False
@@ -2711,7 +2709,7 @@ watch/unwatch status")
             else:
                 stop_now = True
             if stop_now:
-                if video_local_stream or new_video_local_stream:
+                if self.video_local_stream or new_video_local_stream:
                     if self.do_get_thread.isRunning():
                         logger.debug('----------stream-----pausing-----')
                         t_list = self.stream_session.get_torrents()
@@ -2726,9 +2724,9 @@ watch/unwatch status")
                     send_notification(txt)
                     self.torrent_frame.hide()
                     self.progress.hide()
-                elif wget.processId() > 0:
+                elif self.wget.processId() > 0:
                     ui.queue_stop = True
-                    wget.kill()
+                    self.wget.kill()
                     msg = 'Stopping download'
                     send_notification(msg)
                     self.torrent_frame.hide()
@@ -2757,7 +2755,7 @@ watch/unwatch status")
             logger.error(e)
     
     def stop_torrent_forcefully(self, from_client=None):
-        global video_local_stream, site
+        global site
         try:
             if self.do_get_thread.isRunning():
                 print('----------stream-----pausing-----')
@@ -3077,8 +3075,7 @@ watch/unwatch status")
         exec(p1)
     
     def mark_epn_thumbnail_label(self, num, old_num=None):
-        global idw
-        if idw and idw != str(int(self.tab_5.winId())) and idw != str(int(self.label.winId())):
+        if self.idw and self.idw != str(int(self.tab_5.winId())) and self.idw != str(int(self.label.winId())):
             try:
                 index = num + self.list2.count()
                 txt = self.list2.item(num).text()
@@ -3129,7 +3126,7 @@ watch/unwatch status")
                 self.mark_epn_thumbnail_label(r, old_num=True)
         
     def thumbnail_window_present_mode(self, mode=None):
-        global iconv_r, MainWindow, wget, iconv_r_indicator
+        global iconv_r, MainWindow, iconv_r_indicator
         
         if MainWindow.isFullScreen() and mode != 5:
             if self.list2.count() == 0:
@@ -3153,10 +3150,9 @@ watch/unwatch status")
             self.gridLayout.setSpacing(5)
             #self.gridLayout.setContentsMargins(10, 10, 10, 10)
             self.superGridLayout.setContentsMargins(5, 5, 5, 5)
-            if wget:
-                if wget.processId() > 0:
-                    self.goto_epn.hide()
-                    self.progress.show()
+            if self.wget.processId() > 0:
+                self.goto_epn.hide()
+                self.progress.show()
             self.frame2.show()
             if self.tab_6.isHidden() and not self.force_fs:
                 MainWindow.showNormal()
@@ -3179,9 +3175,9 @@ watch/unwatch status")
             
     def playerStop(self, msg=None):
         global thumbnail_indicator, total_till, browse_cnt
-        global iconv_r_indicator, iconv_r, curR, wget, show_hide_cover
-        global show_hide_playlist, show_hide_titlelist, video_local_stream
-        global idw, new_tray_widget, sub_id, audio_id
+        global iconv_r_indicator, iconv_r, show_hide_cover
+        global show_hide_playlist, show_hide_titlelist
+        global new_tray_widget, sub_id, audio_id
         
         if self.mpvplayer_val.processId() > 0 or msg:
             logger.warn(self.progress_counter)
@@ -3211,7 +3207,7 @@ watch/unwatch status")
             else:
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
-            if self.tab_6.isHidden() and (str(idw) == str(int(self.tab_5.winId()))):
+            if self.tab_6.isHidden() and (str(self.idw) == str(int(self.tab_5.winId()))):
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
                         self.float_window.showNormal()
@@ -3260,9 +3256,9 @@ watch/unwatch status")
                     else:
                         pass
                 else:
-                    if ((str(idw) != str(int(self.tab_5.winId()))) 
-                            and (str(idw) != str(int(self.label.winId())))
-                            and (str(idw) != str(int(self.label_new.winId())))):
+                    if ((str(self.idw) != str(int(self.tab_5.winId()))) 
+                            and (str(self.idw) != str(int(self.label.winId())))
+                            and (str(self.idw) != str(int(self.label_new.winId())))):
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
                         #self.scrollArea1.verticalScrollBar().setValue(0)
@@ -3270,7 +3266,7 @@ watch/unwatch status")
                             self.thumbnail_window_present_mode(mode=5)
                         else:
                             self.thumbnail_window_present_mode()
-                    elif (str(idw) == str(int(self.tab_5.winId()))):
+                    elif (str(self.idw) == str(int(self.tab_5.winId()))):
                         self.tab_5.hide()
                         self.scrollArea1.hide()
                         QtWidgets.QApplication.processEvents()
@@ -3290,7 +3286,7 @@ watch/unwatch status")
                         self.labelFrame2.show()
                         self.thumbnail_label_update_epn()
                         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
-                    elif str(idw) in [str(int(self.label.winId())), str(int(self.label_new.winId()))]:
+                    elif str(self.idw) in [str(int(self.label.winId())), str(int(self.label_new.winId()))]:
                         if self.player_theme == 'default':
                             self.label_new.setMinimumHeight(0)
                         
@@ -3354,7 +3350,7 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                 
     def playerPlayPause(self):
-        global curR, idw, cur_label_num
+        global cur_label_num
         
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
@@ -3368,17 +3364,17 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
                 if self.list2.currentItem():
-                    curR = self.list2.currentRow()
-                    if not idw or idw == str(int(self.tab_5.winId())):
+                    self.cur_row = self.list2.currentRow()
+                    if not self.idw or self.idw == str(int(self.tab_5.winId())):
                         self.epnfound()
-                    elif idw == str(int(self.label.winId())):
+                    elif self.idw == str(int(self.label.winId())):
                         pass
                     else:
                         p1 = "self.label_epn_{0}.winId()".format(str(self.thumbnail_label_number[0]))
                         id_w = eval(p1)
-                        idw = str(int(id_w))
-                        finalUrl = self.epn_return(curR)
-                        self.play_file_now(finalUrl, win_id=idw)
+                        self.idw = str(int(id_w))
+                        finalUrl = self.epn_return(self.cur_row)
+                        self.play_file_now(finalUrl, win_id=self.idw)
         elif txt == self.player_buttons['pause']:
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == "mpv":
@@ -3390,11 +3386,11 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
                 if self.list2.currentItem():
-                    curR = self.list2.currentRow()
+                    self.cur_row = self.list2.currentRow()
                     self.epnfound()
     
     def player_force_play(self):
-        global curR, idw, cur_label_num
+        global cur_label_num
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == "mpv":
                 txt_osd = '\n set osd-level 1 \n'
@@ -3405,7 +3401,7 @@ watch/unwatch status")
                 self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             
     def player_force_pause(self):
-        global curR, idw, cur_label_num
+        global cur_label_num
         if self.player_val == "mpv":
             txt_osd = '\n set osd-level 3 \n'
             self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
@@ -3434,7 +3430,7 @@ watch/unwatch status")
     def playerPlaylist(self, val):
         global playlist_show, site, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
-        global show_hide_player, httpd, idw, cur_label_num
+        global show_hide_player, httpd, cur_label_num
         
         self.player_menu_option = [
             'Show/Hide Video', 'Show/Hide Cover And Summary', 
@@ -3938,7 +3934,6 @@ watch/unwatch status")
                       dimn=None, txt_name=None):
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
         global row_history, home, epn, iconv_r
-        global video_local_stream
         global total_till, browse_cnt
         global bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
@@ -3984,16 +3979,16 @@ watch/unwatch status")
                     refererNeeded = False
                 if len(tmp1) >= 9:
                     if tmp1[8] == "True":
-                        video_local_stream = True
+                        self.video_local_stream = True
                     else:
-                        video_local_stream = False
+                        self.video_local_stream = False
                 print(finalUrlFound)
                 print(refererNeeded)
-                print(video_local_stream)
+                print(self.video_local_stream)
             else:
                 refererNeeded = False
                 finalUrlFound = False
-                video_local_stream = False
+                self.video_local_stream = False
             logger.info(site + ":"+opt)
         
         if site == "Video":
@@ -4787,14 +4782,14 @@ watch/unwatch status")
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, curR, idw, MainWindow
-        curR = self.list2.currentRow()
+        global queueNo, MainWindow
+        self.cur_row = self.list2.currentRow()
         queueNo = queueNo + 1
         thumb_mode = False
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
         if self.float_window.isHidden():
-            if (self.view_mode == 'thumbnail' and idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
+            if (self.view_mode == 'thumbnail' and self.idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
                 num = self.list2.currentRow()
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvNextEpnList(play_row=num, mode= 'play_now')
@@ -4804,12 +4799,12 @@ watch/unwatch status")
                 thumb_mode = True
             else:
                 if self.mpvplayer_val.processId() > 0:
-                    if idw != str(int(self.tab_5.winId())):
+                    if self.idw != str(int(self.tab_5.winId())):
                         self.mpvplayer_val.kill()
                         self.mpvplayer_started = False
-                        idw = str(int(self.tab_5.winId()))
+                        self.idw = str(int(self.tab_5.winId()))
                     if self.mpvplayer_started:
-                        self.mpvNextEpnList(play_row=curR, mode='play_now')
+                        self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
                     else:
                         self.epnfound()
                 else:
@@ -4818,14 +4813,14 @@ watch/unwatch status")
                 if self.auto_hide_dock:
                     self.dockWidget_3.hide()
         else:
-            if not idw or idw == str(int(self.tab_5.winId())):
+            if not self.idw or self.idw == str(int(self.tab_5.winId())):
                 self.epnfound()
-            elif idw == str(int(self.label.winId())) or idw == str(int(self.label_new.winId())):
+            elif self.idw == str(int(self.label.winId())) or self.idw == str(int(self.label_new.winId())):
                 self.epnfound()
             else:
-                final = self.epn_return(curR)
+                final = self.epn_return(self.cur_row)
                 self.play_file_now(final)
-                self.paste_background(curR)
+                self.paste_background(self.cur_row)
                 try:
                     server._emitMeta("Play", site, self.epn_arr_list)
                 except Exception as e:
@@ -4838,17 +4833,17 @@ watch/unwatch status")
                 self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None):
-        global epn, curR, site, current_playing_file_path
+        global epn, site, current_playing_file_path
         print(play_row, '--play_row--', mode)
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
         if self.mpvplayer_val.processId() > 0:
             print("-----------inside-------")
             if play_row != None and mode == 'play_now':
-                curR = play_row
+                self.cur_row = play_row
             else:
-                if curR == self.list2.count() - 1:
-                    curR = 0
+                if self.cur_row == self.list2.count() - 1:
+                    self.cur_row = 0
                     if (site == "Music" and not self.playerPlaylist_setLoop_var) or (self.list2.count()==1):
                         r1 = self.list1.currentRow()
                         it1 = self.list1.item(r1)
@@ -4860,13 +4855,13 @@ watch/unwatch status")
                             self.list1.setCurrentRow(r2)
                             self.listfound()
                 else:
-                    curR = curR + 1
+                    self.cur_row += 1
 
-            self.list2.setCurrentRow(curR)
+            self.list2.setCurrentRow(self.cur_row)
             if site != "PlayLists" and not self.queue_url_list:
                 try:
-                    if '	' in self.epn_arr_list[curR]:
-                        epn = self.epn_arr_list[curR].split('	')[1]
+                    if '	' in self.epn_arr_list[self.cur_row]:
+                        epn = self.epn_arr_list[self.cur_row].split('	')[1]
                     else:
                         epn = self.list2.currentItem().text()
                     epn = epn.replace('#', '', 1)
@@ -4894,8 +4889,8 @@ watch/unwatch status")
                         )    
                 
                 if self.external_url:
-                    if '	' in self.epn_arr_list[curR]:
-                        lnk_epn = self.epn_arr_list[curR].split('	')[1]
+                    if '	' in self.epn_arr_list[self.cur_row]:
+                        lnk_epn = self.epn_arr_list[self.cur_row].split('	')[1]
                     else:
                         lnk_epn = self.list2.currentItem().text()
                     if lnk_epn.startswith('abs_path=') or lnk_epn.startswith('relative_path='):
@@ -4923,14 +4918,14 @@ watch/unwatch status")
                     self.getNextInList()
     
     def mpvPrevEpnList(self):
-        global epn, curR, site
+        global epn, site
         global current_playing_file_path
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
         if self.mpvplayer_val.processId() > 0:
             print("inside")
-            if curR == 0:
-                curR = self.list2.count() - 1
+            if self.cur_row == 0:
+                self.cur_row = self.list2.count() - 1
                 if ((site == "Music" and not self.playerPlaylist_setLoop_var) 
                         or (self.list2.count() == 1)):
                     r1 = self.list1.currentRow()
@@ -4940,13 +4935,13 @@ watch/unwatch status")
                             r2 = r1-1
                         else:
                             r2 = self.list2.count()-1
-                        curR = self.list2.count() - 1
+                        self.cur_row = self.list2.count() - 1
             else:
-                curR = curR - 1
-            self.mpvNextEpnList(play_row=curR, mode='play_now')
+                self.cur_row -= 1
+            self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
     
     def HideEveryThing(self, widget_except=None, mode=None):
-        global idw, view_layout
+        global view_layout
         if not self.search_on_type_btn.isHidden():
             self.search_on_type_btn.hide()
         elif self.mpvplayer_val.processId() > 0:
@@ -4981,9 +4976,9 @@ watch/unwatch status")
         
     def thumbnailHide(self, context):
         global view_layout, total_till, browse_cnt, iconv_r
-        global memory_num_arr, idw
+        global memory_num_arr
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
-        idw = str(int(self.tab_5.winId()))
+        self.idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
         memory_num_arr[:]=[]
         i = 0
@@ -5106,7 +5101,7 @@ watch/unwatch status")
                 self.list1.setFocus()
         
     def showHideBrowser(self):
-        global idw, view_layout
+        global view_layout
         if self.tab_2.isHidden():
             for widget in self.widget_dict:
                 self.browser_dict_widget.update(
@@ -5127,7 +5122,7 @@ watch/unwatch status")
         self.frame1.show()
             
     def IconView(self):
-        global idw, total_till, browse_cnt
+        global total_till, browse_cnt
         global view_layout, thumbnail_indicator, total_till_epn
         
         if self.list_poster is not None:
@@ -5224,8 +5219,8 @@ watch/unwatch status")
             QtWidgets.QApplication.processEvents()
     
     def IconViewEpn(self, start=None, mode=None):
-        global idw, total_till, browse_cnt
-        global view_layout, iconv_r, curR, thumbnail_indicator
+        global total_till, browse_cnt
+        global view_layout, iconv_r, thumbnail_indicator
         global site, total_till_epn
         if isinstance(mode, int):
             if mode == 3:
@@ -5301,7 +5296,6 @@ watch/unwatch status")
             QtWidgets.QApplication.processEvents()
             
     def fullscreenToggle(self):
-        global idw
         if not MainWindow.isFullScreen():
             #self.dockWidget_4.close()
             self.dockWidget_3.hide()
@@ -5979,7 +5973,7 @@ watch/unwatch status")
             
     def history_highlight(self):
         global opt, site, name, pre_opt, bookmark
-        global video_local_stream, category, audio_id, sub_id
+        global category, audio_id, sub_id
         audio_id = 'auto'
         sub_id = 'auto'
         if site!= "Music":
@@ -6003,7 +5997,7 @@ watch/unwatch status")
                 self.newlistfound_thread_box.append(
                     GetServerEpisodeInfo(
                         self, logger, site, opt, siteName,
-                        video_local_stream, name_now, extra_info,
+                        self.video_local_stream, name_now, extra_info,
                         category,from_cache=False
                     ))
                 length = len(self.newlistfound_thread_box)-1
@@ -6099,7 +6093,7 @@ watch/unwatch status")
         self.page_number.setText(txt_str)
         
     def mark_History(self):
-        global curR, opt, siteName, site, name, home
+        global opt, siteName, site, name, home
         file_path = ""
         row = self.list2.currentRow()
         if opt == "History" and site != "PlayLists":
@@ -6129,7 +6123,6 @@ watch/unwatch status")
         
     def deleteHistory(self):
         global opt, site, name, pre_opt, home, bookmark, status, siteName
-        global video_local_stream
         
         if self.list1.currentItem():
             epn = self.list1.currentItem().text()
@@ -6193,7 +6186,7 @@ watch/unwatch status")
                     logger.info(dir_name)
                 if os.path.exists(dir_name):
                     shutil.rmtree(dir_name)
-                    if video_local_stream:
+                    if self.video_local_stream:
                         torrent_file = dir_name+'.torrent'
                         if os.path.exists(torrent_file):
                             os.remove(torrent_file)
@@ -6531,7 +6524,7 @@ watch/unwatch status")
         global total_till, browse_cnt
         global bookmark, total_till, thumbnail_indicator, genre_num
         global rfr_url, finalUrlFound, refererNeeded
-        global video_local_stream, siteName, audio_id, sub_id
+        global siteName, audio_id, sub_id
         
         self.options_mode = 'legacy'
         self.music_playlist = False
@@ -6582,7 +6575,7 @@ watch/unwatch status")
             criteria = ['List', 'Open File', 'Open Url', 'Open Directory']
             for i in criteria:
                 self.list3.addItem(i)
-            video_local_stream = False
+            self.video_local_stream = False
         elif site == "Bookmark":
             bookmark = True
             criteria = [
@@ -6940,7 +6933,7 @@ watch/unwatch status")
         global site, opt, mirrorNo, hdr
         global site_arr, siteName, finalUrlFound
         global total_till, browse_cnt
-        global bookmark, refererNeeded, video_local_stream, name
+        global bookmark, refererNeeded, name
         
         browse_cnt=0
         opt = "Search"
@@ -6966,7 +6959,7 @@ watch/unwatch status")
                     tmp = criteria[-1]
                 if tmp == 'LocalStreaming':
                     criteria.pop()
-                    video_local_stream = True
+                    self.video_local_stream = True
                     if not self.local_ip:
                         self.local_ip = get_lan_ip()
                     if not self.local_port:
@@ -6975,7 +6968,7 @@ watch/unwatch status")
                 else:
                     finalUrlFound = False
                     refererNeeded = False
-                    video_local_stream = False
+                    self.video_local_stream = False
                 for i in criteria:
                     self.list3.addItem(i)
                 self.line.setPlaceholderText("Search Available")
@@ -7016,7 +7009,7 @@ watch/unwatch status")
             self.line.setPlaceholderText("No Search Option")
             self.line.setReadOnly(True)
             refererNeeded = False
-            video_local_stream = False
+            self.video_local_stream = False
         elif site == "Music":
             self.mirror_change.hide()
             criteria = [
@@ -7032,7 +7025,7 @@ watch/unwatch status")
             self.line.setPlaceholderText("Search Available")
             self.line.setReadOnly(False)
             refererNeeded = False
-            video_local_stream = False
+            self.video_local_stream = False
             nm = self.line.text()
             if nm:
                 self.line.clear()
@@ -7068,7 +7061,7 @@ watch/unwatch status")
             self.line.setPlaceholderText("Search Available")
             self.line.setReadOnly(False)
             refererNeeded = False
-            video_local_stream = False
+            self.video_local_stream = False
             nm = self.line.text()
             if nm:
                 self.line.clear()
@@ -7086,7 +7079,7 @@ watch/unwatch status")
                         self.epn_arr_list.append(j)
                 self.update_list2()
         elif ((site == "None" and self.btn1.currentText().lower() == 'youtube') or not self.tab_2.isHidden()):
-            video_local_stream = False
+            self.video_local_stream = False
             self.mirror_change.hide()
             self.line.setPlaceholderText("Search Available")
             self.line.setReadOnly(False)
@@ -7100,7 +7093,7 @@ watch/unwatch status")
                     self.btnWebReviews.setCurrentIndex(index)
                 #self.reviewsWeb(srch_txt=name, review_site='yt', action='line_return_pressed')
         elif siteName:
-            video_local_stream = False
+            self.video_local_stream = False
             self.mirror_change.show()
             
             if self.site_var:
@@ -7269,7 +7262,7 @@ watch/unwatch status")
         global row_history, home, epn, path_Local_Dir, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
         global opt_movies_indicator, siteName
-        global screen_height, screen_width, video_local_stream
+        global screen_height, screen_width
         
         opt_movies_indicator[:]=[]
         new_dir_path = None
@@ -7330,9 +7323,9 @@ watch/unwatch status")
                     refererNeeded = False
                 if len(tmp1) >=9:
                     if tmp1[8] == "True":
-                        video_local_stream = True
+                        self.video_local_stream = True
                     else:
-                        video_local_stream = False
+                        self.video_local_stream = False
                 if len(tmp1) >=10:
                     new_dir_path = tmp1[9]
                     if OSNAME == 'nt':
@@ -7341,12 +7334,12 @@ watch/unwatch status")
                         
                 print(finalUrlFound)
                 print(refererNeeded)
-                print(video_local_stream)
+                print(self.video_local_stream)
                 logger.info(new_dir_path)
             else:
                 refererNeeded = False
                 finalUrlFound = False
-                video_local_stream = False
+                self.video_local_stream = False
             logger.info(site + ":"+opt)
             if (site != "PlayLists" and site != "Music" and site != "Video" 
                     and site!="Local" and site !="None"):
@@ -7394,7 +7387,7 @@ watch/unwatch status")
                         self.text.setText('Wait...Loading')
                         QtWidgets.QApplication.processEvents()
                         try:
-                            if video_local_stream:
+                            if self.video_local_stream:
                                 siteName = os.path.join(home, 'History', site)
                                 if not os.path.exists(siteName):
                                     os.makedirs(siteName)
@@ -8147,8 +8140,8 @@ watch/unwatch status")
             self.text.setText(summary)
         elif mode is None or mode == 'no summary':
             txt_old = self.text.toPlainText()
-            if self.list2.item(curR):
-                txt = self.list2.item(curR).text()
+            if self.list2.item(self.cur_row):
+                txt = self.list2.item(self.cur_row).text()
                 if txt.startswith(self.check_symbol):
                     txt = txt.replace(self.check_symbol, '', 1)
             else:
@@ -8275,7 +8268,6 @@ watch/unwatch status")
         return file_name_mp4, file_name_mkv
 
     def play_file_now(self, file_name, win_id=None):
-        global idw
         global current_playing_file_path, cur_label_num, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
@@ -8316,22 +8308,22 @@ watch/unwatch status")
                 self.external_audio_file = False
             if OSNAME == 'posix':
                 if not win_id:
-                    idw = str(int(self.tab_5.winId()))
+                    self.idw = str(int(self.tab_5.winId()))
                 else:
-                    idw = str(win_id)
+                    self.idw = str(win_id)
             elif OSNAME == 'nt':
                 if win_id:
-                    idw = str(win_id)
+                    self.idw = str(win_id)
                 elif thumbnail_indicator and self.video_mode_index not in [1, 2]:
                     try:
                         p1 = 'self.label_epn_{0}.winId()'.format(str(self.thumbnail_label_number[0]))
-                        idw = str(int(eval(p1)))
+                        self.idw = str(int(eval(p1)))
                     except Exception as e:
                         print(e)
-                        idw = str(int(self.tab_5.winId()))
+                        self.idw = str(int(self.tab_5.winId()))
                 else:
-                    idw = str(int(self.tab_5.winId()))
-            command = self.mplayermpv_command(idw, finalUrl, self.player_val)
+                    self.idw = str(int(self.tab_5.winId()))
+            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
         seek_time = 0
@@ -8368,13 +8360,13 @@ watch/unwatch status")
             return False
 
     def if_file_path_exists_then_play(self, row, list_widget, play_now=None):
-        global site, wget, video_local_stream, artist_name_mplayer
+        global site, artist_name_mplayer
         
         file_path_name_mp4, file_path_name_mkv = self.get_file_name(row, list_widget)
         
         if ((os.path.exists(file_path_name_mp4) or os.path.exists(file_path_name_mkv)) 
                 and (site.lower() != 'video' and site.lower() != 'music' 
-                and site.lower() != 'local') and not video_local_stream):
+                and site.lower() != 'local') and not self.video_local_stream):
             logger.info('now--playing: {0}-{1}'.format(file_path_name_mp4, file_path_name_mkv))
             if play_now:
                 self.epn_name_in_list = list_widget.item(row).text().replace('#', '', 1)
@@ -8409,7 +8401,7 @@ watch/unwatch status")
                     return file_path_name_mkv
         elif (site.lower() == 'music' and self.list3.currentItem() 
                 and (os.path.exists(file_path_name_mp4) 
-                or os.path.exists(file_path_name_mkv)) and not video_local_stream):
+                or os.path.exists(file_path_name_mkv)) and not self.video_local_stream):
             if self.list3.currentItem().text().lower() == 'playlist':
                 logger.info('now--playing: {0}-{1}--8626'.format(file_path_name_mp4, file_path_name_mkv))
                 if play_now:
@@ -8445,7 +8437,7 @@ watch/unwatch status")
         elif ((os.path.exists(file_path_name_mp4) or os.path.exists(file_path_name_mkv)) 
                 and (site.lower() == 'video' or site.lower() == 'music' 
                 or site.lower() == 'local' or site.lower() == 'none') 
-                and not video_local_stream):
+                and not self.video_local_stream):
             logger.info('now--playing: {0}-{1}'.format(file_path_name_mp4, file_path_name_mkv))
             if play_now:
                 if list_widget.item(row):
@@ -8509,7 +8501,7 @@ watch/unwatch status")
                     return file_path_name_mp4
                 else:
                     return file_path_name_mkv
-        elif wget.processId() > 0 and play_now:
+        elif self.wget.processId() > 0 and play_now:
             return True
         else:
             return False
@@ -8571,7 +8563,7 @@ watch/unwatch status")
                     try:
                         num_row = self.path.rsplit('/', 1)[-1]
                         if num_row == 'server' or num_row == 'now_playing':
-                            row = curR
+                            row = self.cur_row
                         else:
                             row = int(num_row)
                     except Exception as err_val:
@@ -8620,15 +8612,15 @@ watch/unwatch status")
         return nm
     
     def epnfound_now_start_player(self, url_link, row_val):
-        global site, refererNeeded, idw, current_playing_file_path
-        global refererNeeded, finalUrlFound, rfr_url, curR
+        global site, refererNeeded, current_playing_file_path
+        global refererNeeded, finalUrlFound, rfr_url
         finalUrl = url_link
         print(row_val, '--epn--row--')
-        if not idw:
-            idw = str(int(self.tab_5.winId()))
+        if not self.idw:
+            self.idw = str(int(self.tab_5.winId()))
         if row_val.isnumeric():
             row = int(row_val)
-            curR = row
+            self.cur_row = row
             self.list2.setCurrentRow(row)
         else:
             row = row_val
@@ -8667,20 +8659,30 @@ watch/unwatch status")
             self.mpvplayer_started = False
         if self.player_val == "mpv":
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_url=aurl, s_url=surl)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val, a_url=aurl,
+                    s_url=surl)
             else:
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, rfr=referer)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val,
+                    rfr=referer)
             logger.info(command)
             self.infoPlay(command)
         elif self.player_val == "mplayer":
             self.quit_really = "no"
-            idw = str(int(self.tab_5.winId()))
+            self.idw = str(int(self.tab_5.winId()))
             if site != "Music":
                 self.tab_5.show()
             if not referer:
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_url=aurl, s_url=surl)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val, a_url=aurl,
+                    s_url=surl
+                    )
             else:
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, rfr=referer)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val,
+                    rfr=referer
+                    )
             logger.info(command)
             self.infoPlay(command)
         else:
@@ -8718,13 +8720,11 @@ watch/unwatch status")
         global finalUrl, home, hdr, path_Local_Dir
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
-        global new_epn, idw, buffering_mplayer
+        global new_epn, buffering_mplayer
         global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
         global current_playing_file_path
         global music_arr_setting, default_arr_setting, local_torrent_file_path
-        global video_local_stream
-        print('>>>>>>>>>>><<<<<<<<<<<<')
         buffering_mplayer="no"
         self.list4.hide()
         self.player_play_pause.setText(self.player_buttons['pause'])
@@ -8735,7 +8735,7 @@ watch/unwatch status")
         except:
             pass
 
-        if video_local_stream:
+        if self.video_local_stream:
             tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
             if os.path.exists(tmp_pl):
                 os.remove(tmp_pl)
@@ -8814,7 +8814,7 @@ watch/unwatch status")
             if site != "Local":
                 try:
                     self.progressEpn.setFormat('Wait..')
-                    if video_local_stream:
+                    if self.video_local_stream:
                         if self.thread_server.isRunning():
                             if self.do_get_thread.isRunning():
                                 row_file = os.path.join(TMPDIR, 'row.txt')
@@ -8900,7 +8900,7 @@ watch/unwatch status")
                 yt_mode = 'yt_music'
             else:
                 yt_mode = 'yt'
-            if site == 'None' and video_local_stream:
+            if site == 'None' and self.video_local_stream:
                     finalUrl = self.local_torrent_open(local_torrent_file_path)
             elif site == 'None' and self.btn1.currentText().lower() == 'youtube':
                     if not self.epn_wait_thread.isRunning():
@@ -8917,8 +8917,7 @@ watch/unwatch status")
                 
         new_epn = self.epn_name_in_list
         
-        idw = str(int(self.tab_5.winId()))
-        print(self.tab_5.winId(), '----winID---', idw)
+        self.idw = str(int(self.tab_5.winId()))
         if site != "Music":
             self.tab_5.show()
             
@@ -8942,17 +8941,17 @@ watch/unwatch status")
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
             if self.player_val == "mpv":
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val)
+                command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                 logger.info(command)
                 logger.debug('**********************8808-----')
                 self.infoPlay(command)
             elif self.player_val == "mplayer":
                 self.quit_really = "no"
                 
-                idw = str(int(self.tab_5.winId()))
+                self.idw = str(int(self.tab_5.winId()))
                 if site != "Music":
                     self.tab_5.show()
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val)
+                command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                 logger.info(command)
                 self.infoPlay(command)
             else:
@@ -8976,10 +8975,10 @@ watch/unwatch status")
                         if refererNeeded == True or rfr_needed:
                             rfr_url = finalUrl[1]
                             nepn = '"'+str(finalUrl[0])+'"'
-                            command = self.mplayermpv_command(idw, nepn, self.player_val, rfr=rfr_url)
+                            command = self.mplayermpv_command(self.idw, nepn, self.player_val, rfr=rfr_url)
                         else:
                             nepn = str(finalUrl[0])
-                            command = self.mplayermpv_command(idw, nepn, self.player_val)
+                            command = self.mplayermpv_command(self.idw, nepn, self.player_val)
                         logger.info(command)
                     
                     else:
@@ -8989,7 +8988,7 @@ watch/unwatch status")
                         for i in range(len(finalUrl)-1):
                             self.queue_url_list.append(finalUrl[i+1])
                         self.queue_url_list.reverse()
-                        command = self.mplayermpv_command(idw, epnShow, self.player_val)
+                        command = self.mplayermpv_command(self.idw, epnShow, self.player_val)
                     self.infoPlay(command)
                 else:
                     if '""' in finalUrl:
@@ -8998,7 +8997,7 @@ watch/unwatch status")
                         finalUrl = str(finalUrl)
                     except:
                         finalUrl = finalUrl
-                    command = self.mplayermpv_command(idw, finalUrl, self.player_val)
+                    command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                     self.infoPlay(command)
             elif self.download_video == 0 and self.player_val != "mpv":
                 if self.mpvplayer_val.processId() > 0:
@@ -9015,10 +9014,10 @@ watch/unwatch status")
                             rfr_url = finalUrl[1]
                             if self.player_val == "mplayer":
                                 self.quit_really = "no"
-                                idw = str(int(self.tab_5.winId()))
+                                self.idw = str(int(self.tab_5.winId()))
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
-                                command = self.mplayermpv_command(idw, final_url, self.player_val, rfr=rfr_url)
+                                command = self.mplayermpv_command(self.idw, final_url, self.player_val, rfr=rfr_url)
                                 logger.info(command)
                                 self.infoPlay(command)
                             else:
@@ -9029,10 +9028,10 @@ watch/unwatch status")
                         else:
                             if self.player_val == "mplayer":
                                 self.quit_really = "no"
-                                idw = str(int(self.tab_5.winId()))
+                                self.idw = str(int(self.tab_5.winId()))
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
-                                command = self.mplayermpv_command(idw, final_url, self.player_val)
+                                command = self.mplayermpv_command(self.idw, final_url, self.player_val)
                                 logger.info(command)
                                 self.infoPlay(command)
                             else:
@@ -9046,7 +9045,7 @@ watch/unwatch status")
                         for i in range(len(finalUrl)-1):
                             self.queue_url_list.append(finalUrl[i+1])
                         self.queue_url_list.reverse()
-                        command = self.mplayermpv_command(idw, epnShow, self.player_val)
+                        command = self.mplayermpv_command(self.idw, epnShow, self.player_val)
                         logger.info(command)
                         self.infoPlay(command)
                 else:
@@ -9057,9 +9056,9 @@ watch/unwatch status")
                     finalUrl = str(finalUrl)
                     if self.player_val == "mplayer":
                         self.quit_really = "no"
-                        idw = str(int(self.tab_5.winId()))
+                        self.idw = str(int(self.tab_5.winId()))
                         self.tab_5.show()
-                        command = self.mplayermpv_command(idw, finalUrl, self.player_val)
+                        command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                         logger.info(command)
                         self.infoPlay(command)
                     else:
@@ -9334,8 +9333,7 @@ watch/unwatch status")
     def epn_return(self, row, mode=None):
         global site, epn_goto, mirrorNo
         global finalUrl, home, hdr, path_Local_Dir
-        global video_local_stream
-        global new_epn, idw, buffering_mplayer
+        global new_epn, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
         if self.if_file_path_exists_then_play(row, self.list2, False):
@@ -9384,7 +9382,7 @@ watch/unwatch status")
                 and site != "Video" and site !="Local"):
             if site != "Local":
                 try:
-                    if video_local_stream:
+                    if self.video_local_stream:
                         if self.https_media_server:
                             https_val = 'https'
                         else:
@@ -9434,9 +9432,9 @@ watch/unwatch status")
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
-        global site, idw
-        global path_final_Url, current_playing_file_path, curR
-        curR = 0
+        global site
+        global path_final_Url, current_playing_file_path
+        self.cur_row = 0
         if title:
             self.epn_name_in_list = title
         else:
@@ -9462,7 +9460,7 @@ watch/unwatch status")
         self.label.hide()
         self.label_new.hide()
         self.frame.hide()
-        idw = str(int(self.tab_5.winId()))
+        self.idw = str(int(self.tab_5.winId()))
         self.tab_5.show()
         self.tab_5.setFocus()
         
@@ -9478,7 +9476,10 @@ watch/unwatch status")
                 finalUrl, a_url, s_url = finalUrl.split('::', 2)
             if a_url or s_url:
                 self.external_audio_file = True
-        command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_url=a_url, s_url=s_url)
+        command = self.mplayermpv_command(
+            self.idw, finalUrl, self.player_val, a_url=a_url,
+            s_url=s_url
+            )
         if os.path.exists(title_sub_path):
             if self.player_val == 'mpv':
                 command = command+' --sub-file='+title_sub_path
@@ -9579,7 +9580,7 @@ watch/unwatch status")
         self.download_video = 0
         
     def dataReadyW(self, p, get_lib):
-        global wget, new_epn, curR, epn, opt, site
+        global new_epn, epn, opt, site
         global sizeFile
         #print('----------------', a)
         if not get_lib:
@@ -9690,15 +9691,14 @@ watch/unwatch status")
                         self.epn_wait_thread.start()
         
     def infoWget(self, command, src, get_library=None):
-        global wget
-        wget = QtCore.QProcess()
-        wget.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        self.wget = QtCore.QProcess()
+        self.wget.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.curl_progress_init = ''
         self.curl_progress_end = ''
-        wget.started.connect(self.startedW)
-        wget.readyReadStandardOutput.connect(partial(self.dataReadyW, wget, get_library))
-        wget.finished.connect(lambda x=src : self.finishedW(src))
-        QtCore.QTimer.singleShot(1000, partial(wget.start, command))
+        self.wget.started.connect(self.startedW)
+        self.wget.readyReadStandardOutput.connect(partial(self.dataReadyW, self.wget, get_library))
+        self.wget.finished.connect(lambda x=src : self.finishedW(src))
+        QtCore.QTimer.singleShot(1000, partial(self.wget.start, command))
     
     def change_sid_aid_video(self, sid=None, aid=None):
         if self.final_playing_url in self.history_dict_obj:
@@ -9725,12 +9725,12 @@ watch/unwatch status")
         logger.debug('sid={}::aid={}::updating file info'.format(sid, aid))
         
     def dataReady(self, p):
-        global new_epn, curR, epn, opt, site
-        global wget, cache_empty, buffering_mplayer, slider_clicked
+        global new_epn, epn, opt, site
+        global cache_empty, buffering_mplayer, slider_clicked
         global artist_name_mplayer, layout_mode, server
-        global new_tray_widget, video_local_stream, pause_indicator
-        global mpv_indicator, mpv_start, idw, cur_label_num
-        global sub_id, audio_id, current_playing_file_path, wget, desktop_session
+        global new_tray_widget, pause_indicator
+        global mpv_indicator, mpv_start, cur_label_num
+        global sub_id, audio_id, current_playing_file_path, desktop_session
         
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
@@ -10083,7 +10083,7 @@ watch/unwatch status")
                     self.cache_mpv_indicator = False
                     self.cache_mpv_counter = '00'
                     self.mpv_playback_duration = None
-                    logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(curR, reason_end, a))
+                    logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(self.cur_row, reason_end, a))
                     logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
                     queue_item = None
                     if self.queue_url_list:
@@ -10093,8 +10093,8 @@ watch/unwatch status")
                     elif queue_item is None or isinstance(queue_item, tuple):
                         if self.list2.count() == 0:
                             return 0
-                        if curR == self.list2.count() - 1:
-                            curR = 0
+                        if self.cur_row == self.list2.count() - 1:
+                            self.cur_row = 0
                             if site == "Music" and not self.playerPlaylist_setLoop_var:
                                 r1 = self.list1.currentRow()
                                 it1 = self.list1.item(r1)
@@ -10106,9 +10106,9 @@ watch/unwatch status")
                                     self.list1.setCurrentRow(r2)
                                     self.listfound()
                         else:
-                            curR = curR + 1
-                        self.list2.setCurrentRow(curR)
-                        logger.debug('\ncurR={0}\n'.format(curR))
+                            self.cur_row += 1
+                        self.list2.setCurrentRow(self.cur_row)
+                        logger.debug('\ncurR={0}\n'.format(self.cur_row))
                     self.mplayerLength = 0
                     self.total_file_size = 0
                     if mpv_start:
@@ -10249,17 +10249,16 @@ watch/unwatch status")
                             t = ""
                         #print(t, ' --t val--')
                         if buffering_mplayer == "yes" or self.mplayer_pause_buffer:
-                            #print(video_local_stream, '--video--local--stream--')
                             print('buffering mplayer')
                             if 'Cache:' not in t:
                                 out = "(Paused Caching..Wait) "+t+' Cache:'+c
                             else:
                                 out = "(Paused Caching..Wait) "+t
                             if ((not self.mplayer_timer.isActive()) 
-                                    and (not video_local_stream) and c_int > 0):
+                                    and (not self.video_local_stream) and c_int > 0):
                                 self.mplayer_timer.start(1000)
                             elif ((not self.mplayer_timer.isActive()) 
-                                    and (video_local_stream) and c_int > 5):
+                                    and (self.video_local_stream) and c_int > 5):
                                 self.mplayer_timer.start(1000)
                             #buffering_mplayer = "no"
                         else:
@@ -10269,7 +10268,7 @@ watch/unwatch status")
                                 out = "(Paused) "+t
                             
                             if ((not self.mplayer_timer.isActive()) 
-                                    and (video_local_stream) and c_int > 5):
+                                    and (self.video_local_stream) and c_int > 5):
                                 self.mplayer_timer.start(1000)
                         #print(out, '--out--')
                     else:
@@ -10312,7 +10311,7 @@ watch/unwatch status")
                             
                         if not new_tray_widget.isHidden():
                             new_tray_widget.update_signal.emit(out_time, int(l))
-                        if video_local_stream:
+                        if self.video_local_stream:
                             if c == '0%' and not self.mplayer_pause_buffer and not self.mplayer_nop_error_pause:
                                 self.mpvplayer_val.write(b'\n pause \n')
                                 self.mplayer_pause_buffer = True
@@ -10360,8 +10359,8 @@ watch/unwatch status")
                         if not self.queue_url_list:
                             if self.list2.count() == 0:
                                 return 0
-                            if curR == self.list2.count() - 1:
-                                curR = 0
+                            if self.cur_row == self.list2.count() - 1:
+                                self.cur_row = 0
                                 if site == "Music" and not self.playerPlaylist_setLoop_var:
                                     r1 = self.list1.currentRow()
                                     it1 = self.list1.item(r1)
@@ -10373,8 +10372,8 @@ watch/unwatch status")
                                         self.list1.setCurrentRow(r2)
                                         self.listfound()
                             else:
-                                curR = curR + 1
-                            self.list2.setCurrentRow(curR)
+                                self.cur_row += 1
+                            self.list2.setCurrentRow(self.cur_row)
                         
                     if "HTTP error 403 Forbidden" in a:
                         print(a)
@@ -10438,7 +10437,7 @@ watch/unwatch status")
                 self.frame_timer.stop()
         
     def finished(self):
-        global mpv_start, idw, thumbnail_indicator
+        global mpv_start, thumbnail_indicator
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
@@ -10457,13 +10456,13 @@ watch/unwatch status")
             self.player_restart()
             
     def player_restart(self):
-        global mpv_start, idw, thumbnail_indicator
+        global mpv_start, thumbnail_indicator
         logger.warning('quit={0} , hence --restarting--'.format(self.quit_really))
-        num = curR
+        num = self.cur_row
         self.list2.setCurrentRow(num)
         item = self.list2.item(num)
         if item:
-            if ((self.view_mode == 'thumbnail' and idw != str(int(self.tab_5.winId()))
+            if ((self.view_mode == 'thumbnail' and self.idw != str(int(self.tab_5.winId()))
                     and thumbnail_indicator) or self.fullscreen_mode == 1):
                 finalUrl = self.epn_return(num)
                 if finalUrl.startswith('"'):
@@ -10473,11 +10472,11 @@ watch/unwatch status")
                 if finalUrl.startswith('abs_path=') or finalUrl.startswith('relative_path='):
                     finalUrl = self.if_path_is_rel(finalUrl)
                 if self.player_val == "mplayer":
-                    command = self.mplayermpv_command(idw, finalUrl, 'mplayer')
+                    command = self.mplayermpv_command(self.idw, finalUrl, 'mplayer')
                     logger.info(command)
                     self.infoPlay(command)
                 elif self.player_val == "mpv":
-                    command = self.mplayermpv_command(idw, finalUrl, 'mpv')
+                    command = self.mplayermpv_command(self.idw, finalUrl, 'mpv')
                     logger.info(command)
                     self.infoPlay(command)
             else:
@@ -10531,10 +10530,10 @@ watch/unwatch status")
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
                 
     def adjust_thumbnail_window(self, row):
-        global thumbnail_indicator, idw
+        global thumbnail_indicator
         if self.epn_name_in_list.startswith('#'):
             self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
-        if (thumbnail_indicator and idw == str(int(self.tab_5.winId()))):
+        if (thumbnail_indicator and self.idw == str(int(self.tab_5.winId()))):
             try:
                 title_num = row + self.list2.count()
                 if self.epn_name_in_list.startswith(self.check_symbol):
@@ -10557,7 +10556,7 @@ watch/unwatch status")
                 self.scrollArea1.verticalScrollBar().setValue(ht)
                 self.labelFrame2.setText(newTitle)
                 
-                new_cnt = curR + self.list2.count()
+                new_cnt = self.cur_row + self.list2.count()
                 p1 = "self.label_epn_{0}".format(new_cnt)
                 label_number = eval(p1)
                 label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
@@ -10579,9 +10578,9 @@ watch/unwatch status")
             except Exception as e:
                 print(e)
         else:
-            if (idw and idw != str(int(self.tab_5.winId()))
-                    and idw != str(int(self.label.winId())) 
-                    and idw != str(int(self.label_new.winId()))):
+            if (self.idw and self.idw != str(int(self.tab_5.winId()))
+                    and self.idw != str(int(self.label.winId())) 
+                    and self.idw != str(int(self.label_new.winId()))):
                 try:
                     title_num = row + self.list2.count()
                     if self.epn_name_in_list.startswith(self.check_symbol):
@@ -10603,7 +10602,7 @@ watch/unwatch status")
                         self.scrollArea1.verticalScrollBar().setValue(ht)
                     self.labelFrame2.setText(newTitle)
                     
-                    new_cnt = curR + self.list2.count()
+                    new_cnt = self.cur_row + self.list2.count()
                     p1 = "self.label_epn_{0}".format(new_cnt)
                     label_number = eval(p1)
                     label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
@@ -10645,12 +10644,12 @@ watch/unwatch status")
     
     def localGetInList(self):
         global site, epn, epn_goto, mirrorNo
-        global finalUrl, curR, home, buffering_mplayer
+        global finalUrl, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
-        global new_epn, path_Local_Dir, curR
+        global new_epn, path_Local_Dir
         global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, music_arr_setting
-        global default_arr_setting, wget, idw
+        global default_arr_setting
         
         self.external_url = False
         print(self.player_setLoop_var)
@@ -10761,7 +10760,10 @@ watch/unwatch status")
             
         if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
             if self.player_val.lower() == "mplayer":
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val, a_id=audio_id,
+                    s_id=sub_id
+                    )
                 if (not self.external_url and self.mpvplayer_started 
                         and not self.external_audio_file and OSNAME == 'posix'):
                     #try:
@@ -10782,7 +10784,10 @@ watch/unwatch status")
                     #self.external_url = False
                     logger.info(command)
             elif self.player_val.lower() == "mpv":
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val, a_id=audio_id,
+                    s_id=sub_id
+                    )
                 if (not self.external_url and self.mpvplayer_started 
                         and not self.external_audio_file and OSNAME == 'posix'):
                     epnShow = '"' + "Playing:  "+ new_epn + '"'
@@ -10801,7 +10806,10 @@ watch/unwatch status")
             
             print("mpv=" + str(self.mpvplayer_val.processId()))
         elif not self.epn_wait_thread.isRunning():
-            command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
+            command = self.mplayermpv_command(
+                self.idw, finalUrl, self.player_val, a_id=audio_id,
+                s_id=sub_id
+                )
             self.infoPlay(command)
         
             print("mpv=" + str(self.mpvplayer_val.processId()))
@@ -10857,7 +10865,7 @@ watch/unwatch status")
             print(e, '--14180--')
         
     def getQueueInList(self):
-        global curR, site, artist_name_mplayer, idw
+        global site, artist_name_mplayer
         global sub_id, audio_id, server, current_playing_file_path
         try:
             t1 = self.queue_url_list[0]
@@ -10897,8 +10905,8 @@ watch/unwatch status")
             if t1:
                 self.list6.takeItem(0)
                 del t1
-            if not idw:
-                idw = str(int(self.tab_5.winId()))
+            if not self.idw:
+                self.idw = str(int(self.tab_5.winId()))
             if 'youtube.com' in epnShow.lower():
                 finalUrl = epnShow.replace('"', '')
                 epnShow = finalUrl
@@ -10914,13 +10922,15 @@ watch/unwatch status")
             self.external_url = self.get_external_url_status(epnShow)
         else:
             epnShow = self.queue_url_list.pop()
-            curR = curR - 1
-            print('--------inside getQueueInlist------')
-            self.list2.setCurrentRow(curR)
+            self.cur_row -= 1
+            self.list2.setCurrentRow(self.cur_row)
             
         
         epnShowN = '"'+epnShow.replace('"', '')+'"'
-        command = self.mplayermpv_command(idw, epnShowN, self.player_val, a_id=audio_id, s_id=sub_id)
+        command = self.mplayermpv_command(
+            self.idw, epnShowN, self.player_val, a_id=audio_id,
+            s_id=sub_id
+            )
         if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning() and OSNAME == 'posix':
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
@@ -11069,12 +11079,12 @@ watch/unwatch status")
         
     def getNextInList(self):
         global site, epn, epn_goto, mirrorNo
-        global finalUrl, curR, home, buffering_mplayer
+        global finalUrl, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
-        global new_epn, path_Local_Dir, curR
+        global new_epn, path_Local_Dir
         global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, default_arr_setting
-        global music_arr_setting, video_local_stream, wget, audio_id, sub_id
+        global music_arr_setting, audio_id, sub_id
         audio_id = 'auto'
         sub_id = 'auto'
         row = self.list2.currentRow()
@@ -11129,7 +11139,7 @@ watch/unwatch status")
                     return 0
                 self.progressEpn.setFormat('Wait..')
                 try:
-                    if video_local_stream:
+                    if self.video_local_stream:
                         if self.thread_server.isRunning():
                             if self.do_get_thread.isRunning():
                                 if self.https_media_server:
@@ -11150,7 +11160,7 @@ watch/unwatch status")
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
                         #finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
-                        print(self.epn_wait_thread.isRunning(), curR, epn, '--10619--')
+                        print(self.epn_wait_thread.isRunning(), self.cur_row, epn, '--10619--')
                         if not self.epn_wait_thread.isRunning():
                             self.epn_wait_thread = PlayerGetEpn(
                                 self, logger, 'addons', name, epn, mirrorNo,
@@ -11190,12 +11200,15 @@ watch/unwatch status")
                                 rfr_url = finalUrl[1]
                                 nepn = str(finalUrl[0])
                                 epnShow = str(nepn)
-                                command = self.mplayermpv_command(idw, nepn, self.player_val, rfr=rfr_url)
+                                command = self.mplayermpv_command(
+                                    self.idw, nepn, self.player_val,
+                                    rfr=rfr_url
+                                    )
                                 
                             else:
                                 nepn = str(finalUrl[0])
                                 epnShow = nepn
-                                command = self.mplayermpv_command(idw, nepn, self.player_val)
+                                command = self.mplayermpv_command(self.idw, nepn, self.player_val)
                                 
                         else:
                             self.queue_url_list[:]=[]
@@ -11203,7 +11216,7 @@ watch/unwatch status")
                             for i in range(len(finalUrl)-1):
                                 self.queue_url_list.append(finalUrl[i+1])
                             self.queue_url_list.reverse()
-                            command = self.mplayermpv_command(idw, epnShow, self.player_val)
+                            command = self.mplayermpv_command(self.idw, epnShow, self.player_val)
                             
                         logger.info(command)
                         if self.mpvplayer_val.processId() > 0:
@@ -11217,7 +11230,10 @@ watch/unwatch status")
                     finalUrl = str(finalUrl)
                 except:
                     finalUrl = finalUrl
-                command = self.mplayermpv_command(idw, finalUrl, self.player_val, a_id=audio_id, s_id=sub_id)
+                command = self.mplayermpv_command(
+                    self.idw, finalUrl, self.player_val, a_id=audio_id,
+                    s_id=sub_id
+                    )
                 
                 print("mpv=" + str(self.mpvplayer_val.processId()))
                 print(self.player_val, '---------state----'+str(self.mpvplayer_val.state()))
@@ -11288,7 +11304,7 @@ watch/unwatch status")
             self.newoptionmode(val)
             
     def newoptionmode(self, val):
-        global opt, home, site, pgn, video_local_stream, siteName
+        global opt, home, site, pgn, siteName
         t_opt = "History"
         offline_history = False
         print(val, '----clicked---', type(val))
@@ -11331,7 +11347,7 @@ watch/unwatch status")
         else:
             self.text.setText('Wait...Loading')
             QtWidgets.QApplication.processEvents()
-            if video_local_stream:
+            if self.video_local_stream:
                 try:
                     history_folder = os.path.join(home, 'History', site)
                     if not os.path.exists(history_folder):
@@ -11452,7 +11468,7 @@ watch/unwatch status")
         global pre_opt, mirrorNo, insidePreopt, home, siteName, finalUrlFound
         global show_hide_playlist, show_hide_titlelist, total_till_epn
         global total_till, browse_cnt
-        global bookmark, status, video_local_stream
+        global bookmark, status
         
         browse_cnt=0
         if bookmark:
@@ -11869,8 +11885,7 @@ watch/unwatch status")
             self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
     def watch_external_video(self, var, mode=None, start_now=None):
-        global video_local_stream, curR, site
-        global home
+        global site, home
         t = var
         logger.info(t)
         file_exists = False
@@ -12088,7 +12103,7 @@ watch/unwatch status")
                         row = j
                     j =j+1
                 self.list2.setCurrentRow(row)
-                curR = row
+                self.cur_row = row
                 if self.epn_arr_list:
                     file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
                     f = open(file_name, 'w').close()
@@ -12100,7 +12115,7 @@ watch/unwatch status")
                 self.quick_torrent_play_method(url=t)
             else:
                 self.torrent_type = 'file'
-                video_local_stream = True
+                self.video_local_stream = True
                 site = 'None'
                 t = t.replace('file:///', '/')
                 t=urllib.parse.unquote(t)
@@ -12121,7 +12136,7 @@ watch/unwatch status")
             t = re.search('magnet:[^"]*', t).group()
             site = 'None'
             self.torrent_type = 'magnet'
-            video_local_stream = True
+            self.video_local_stream = True
             self.local_torrent_open(t, start_now=start_now)
         else:
             self.quit_really = "yes"
@@ -12138,11 +12153,11 @@ def main():
     global embed, epn_goto, opt, mirrorNo, queueNo
     global pre_opt, insidePreopt
     global new_tray_widget
-    global rfr_url, category, curR, idw, home
+    global rfr_url, category, home
     global player_focus, artist_name_mplayer
     global total_till, browse_cnt
     global view_layout
-    global status, wget, playlist_show
+    global status, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
@@ -12154,14 +12169,13 @@ def main():
     global mpv_start
     global show_hide_cover, show_hide_playlist, show_hide_titlelist, server
     global show_hide_player, layout_mode, current_playing_file_path
-    global music_arr_setting, default_arr_setting, video_local_stream
+    global music_arr_setting, default_arr_setting
     global local_torrent_file_path, wait_player, desktop_session
     global html_default_arr, app
     
     wait_player = False
     local_torrent_file_path = ''
     path_final_Url = ''
-    video_local_stream = False
     default_arr_setting = [0, 0, 0, 0, 0]
     music_arr_setting = [0, 0, 0]
     layout_mode = "Default"
@@ -12171,7 +12185,6 @@ def main():
     show_hide_titlelist = 1
     mpv_start = []
     total_till_epn = 0
-    idw = ""
     update_start = 0
     artist_name_mplayer =""
     playlist_show = 1
@@ -12210,15 +12223,12 @@ def main():
     buffering_mplayer = "no"
     cache_empty = "no"
     player_focus = 0
-    wget = QtCore.QProcess()
-    
         
     status = "bookmark"
     view_layout = "List"
     total_till = 0
     browse_cnt = 0
     home = get_home_dir()
-    curR = 0
     category = "Animes"
     rfr_url = ""
     
@@ -13336,7 +13346,7 @@ def main():
         #f.write("\nSUB_ID={0}".format(sub_id))
         #f.write("\nAUDIO_ID={0}".format(audio_id))
         f.close()
-    if wget.processId() > 0 and ui.queue_item:
+    if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
             ui.queue_url_list.insert(0, ui.queue_item)
     if ui.queue_url_list:
@@ -13344,7 +13354,7 @@ def main():
             pickle.dump(ui.queue_url_list, pls_file_queue)
     with open(ui.playing_history_file, 'wb') as pls_file:
         if ui.list1.currentItem():
-            ui.history_dict_obj.update({'#LAST@TITLE':[curR, curR, ui.list1.currentItem().text(), '', 1]})
+            ui.history_dict_obj.update({'#LAST@TITLE':[ui.cur_row, ui.cur_row, ui.list1.currentItem().text(), '', 1]})
         pickle.dump(ui.history_dict_obj, pls_file)
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()

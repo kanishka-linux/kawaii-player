@@ -124,8 +124,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 h = int(w/ui.image_aspect_allowed)
                 width=str(int(w))
                 height=str(int(h))
-                curR = ui.get_parameters_value(c='curR')['curR']
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r_poster)-1)*h+((curR+1)/iconv_r_poster)*10)
+                ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r_poster)-1)*h+((ui.cur_row+1)/iconv_r_poster)*10)
         elif event.key() == QtCore.Qt.Key_Minus:
             iconv_r_poster = ui.icon_poster_indicator[-1]
             iconv_r_poster += 1
@@ -140,8 +139,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 h = int(w/ui.image_aspect_allowed)
                 width=str(int(w))
                 height=str(int(h))
-                curR = ui.get_parameters_value(c='curR')['curR']
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r_poster)-1)*h+((curR+1)/iconv_r_poster)*10)
+                ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r_poster)-1)*h+((ui.cur_row+1)/iconv_r_poster)*10)
         elif event.key() == QtCore.Qt.Key_Left:
                 nextR = self.cur_row - 1
                 if nextR >=0:
@@ -328,8 +326,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 h = int(w/ui.image_aspect_allowed)
                 width=str(int(w))
                 height=str(int(h))
-                curR = ui.get_parameters_value(c='curR')['curR']
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
+                ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
         elif event.key() == QtCore.Qt.Key_Minus:
             param_dict = ui.get_parameters_value(i='iconv_r', ir='iconv_r_indicator')
             iconv_r = param_dict['iconv_r']
@@ -349,8 +346,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 h = int(w/ui.image_aspect_allowed)
                 width=str(int(w))
                 height=str(int(h))
-                curR = ui.get_parameters_value(c='curR')['curR']
-                ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
+                ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
         if ui.mpvplayer_val.processId() == 0:
             if event.key() == QtCore.Qt.Key_Right:
                 nextR = ui.list2.currentRow()

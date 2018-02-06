@@ -549,8 +549,9 @@ class TitleListWidget(QtWidgets.QListWidget):
         bookmark = param_dict['bookmark']
         opt = param_dict['opt']
         param_dict = ui.get_parameters_value(
-            s='site', sn='siteName', bu='base_url', e='embed', v='video_local_stream',
-            n='name', r='refererNeeded', f='finalUrlFound')
+            s='site', sn='siteName', bu='base_url', e='embed',
+            n='name', r='refererNeeded', f='finalUrlFound'
+            )
         site = param_dict['site']
         siteName = param_dict['siteName']
         base_url = param_dict['base_url']
@@ -558,7 +559,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         name = param_dict['name']
         refererNeeded = param_dict['refererNeeded']
         finalUrlFound = param_dict['finalUrlFound']
-        video_local_stream = param_dict['video_local_stream']
+        video_local_stream = ui.video_local_stream
         bookmark_entry = []
         item_name = ''
         file_path = os.path.join(home, 'Bookmark', val+'.txt')

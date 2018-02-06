@@ -230,11 +230,10 @@ class QueueListWidget(QtWidgets.QListWidget):
             else:
                 self.setCurrentRow(prev_r)
         elif event.key() == QtCore.Qt.Key_PageUp:
-            video_local_stream = ui.get_parameters_value(v='video_local_stream')['video_local_stream']
             r = self.currentRow()
             if r > 0:
                 r1 = r - 1
-                if not video_local_stream:
+                if not ui.video_local_stream:
                     ui.queue_url_list[r], ui.queue_url_list[r1] = ui.queue_url_list[r1], ui.queue_url_list[r]
                 item = self.item(r)
                 txt = item.text()
@@ -243,11 +242,10 @@ class QueueListWidget(QtWidgets.QListWidget):
                 self.insertItem(r1, txt)
                 self.setCurrentRow(r1)
         elif event.key() == QtCore.Qt.Key_PageDown:
-            video_local_stream = ui.get_parameters_value(v='video_local_stream')['video_local_stream']
             r = self.currentRow()
             if r < self.count()-1 and r >= 0:
                 r1 = r + 1
-                if not video_local_stream:
+                if not ui.video_local_stream:
                     ui.queue_url_list[r], ui.queue_url_list[r1] = ui.queue_url_list[r1], ui.queue_url_list[r]
                 item = self.item(r)
                 txt = item.text()
@@ -260,13 +258,12 @@ class QueueListWidget(QtWidgets.QListWidget):
             if self.item(r):
                 ui.queueList_return_pressed(r)
         elif event.key() == QtCore.Qt.Key_Delete:
-            video_local_stream = ui.get_parameters_value(v='video_local_stream')['video_local_stream']
             r = self.currentRow()
             if self.item(r):
                 item = self.item(r)
                 self.takeItem(r)
                 del item
-                if not video_local_stream:
+                if not ui.video_local_stream:
                     del ui.queue_url_list[r]
 
 
@@ -317,11 +314,8 @@ class QProgressBarCustom(QtWidgets.QProgressBar):
         self.gui = gui
         
     def mouseReleaseEvent(self, ev):
-        video_local_stream = self.gui.get_parameters_value(v='video_local_stream')['video_local_stream']
         if ev.button() == QtCore.Qt.LeftButton:
-            print('progressbar clicked')
-            if video_local_stream:
-                print('hello')
+            if self.gui.video_local_stream:
                 if self.gui.torrent_frame.isHidden():
                     self.gui.torrent_frame.show()
                     self.gui.label_torrent_stop.setToolTip('Stop Torrent')

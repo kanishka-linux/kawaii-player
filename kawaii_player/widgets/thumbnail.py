@@ -145,10 +145,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.tab_6_size_indicator.append(ui.tab_6.width())
             if event.key() == QtCore.Qt.Key_Equal:
                 param_dict = ui.get_parameters_value(
-                    i='iconv_r', ir='iconv_r_indicator', c='curR')
+                    i='iconv_r', ir='iconv_r_indicator'
+                    )
                 iconv_r = param_dict['iconv_r']
                 iconv_r_indicator = param_dict['iconv_r_indicator']
-                curR = param_dict['curR']
                 if iconv_r > 1:
                     iconv_r = iconv_r-1
                     if iconv_r_indicator:
@@ -164,13 +164,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     h = int(w/ui.image_aspect_allowed)
                     width=str(int(w))
                     height=str(int(h))
-                    ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
+                    ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
             elif event.key() == QtCore.Qt.Key_Minus:
                 param_dict = ui.get_parameters_value(
-                    i='iconv_r', ir='iconv_r_indicator', c='curR')
+                    i='iconv_r', ir='iconv_r_indicator'
+                    )
                 iconv_r = param_dict['iconv_r']
                 iconv_r_indicator = param_dict['iconv_r_indicator']
-                curR = param_dict['curR']
                 iconv_r = iconv_r+1
                 if iconv_r_indicator:
                     iconv_r_indicator.pop()
@@ -185,7 +185,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     h = int(w/ui.image_aspect_allowed)
                     width=str(int(w))
                     height=str(int(h))
-                    ui.scrollArea1.verticalScrollBar().setValue((((curR+1)/iconv_r)-1)*h+((curR+1)/iconv_r)*10)
+                    ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
             elif event.key() == QtCore.Qt.Key_Right:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
@@ -501,8 +501,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
     def player_thumbnail_fs(self, mode=None):
         param_dict = ui.get_parameters_value(
-            wgt='wget', icn='iconv_r_indicator', i='iconv_r')
-        wget = param_dict['wget']
+            icn='iconv_r_indicator', i='iconv_r'
+            )
         iconv_r_indicator = param_dict['iconv_r_indicator']
         iconv_r = param_dict['iconv_r']
         if not MainWindow.isHidden():
@@ -599,8 +599,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
         if ui.player_val == "mplayer" or ui.player_val=="mpv":
             try:
-                idw = ui.get_parameters_value(i='idw')['idw']
-                if str(idw) == str(int(self.winId())):
+                if str(ui.idw) == str(int(self.winId())):
                     if self.arrow_timer.isActive():
                         self.arrow_timer.stop()
                     self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -646,8 +645,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         iconv_r = param_dict['iconv_r']
         iconv_r_indicator = param_dict['iconv_r_indicator']
         finalUrl = ''
-        curR = c_row
-        ui.set_parameters_value(curRow=curR)
+        ui.cur_row = c_row
         if var_mode == 2 or var_mode == 1:
             ui.label_search.clear()
             ui.labelFrame2.hide()
@@ -658,7 +656,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.tab_6_size_indicator.append(ui.tab_6.width())
             ui.gridLayout.setSpacing(0)
             if site in ["Video", "Music", "PlayLists", "None"]:
-                num = curR
+                num = ui.cur_row
                 ui.gridLayout.addWidget(ui.tab_6, 0, 2, 1, 1)
                 if '	' in ui.epn_arr_list[num]:
                     new_epn = (ui.epn_arr_list[num]).split('	')[0]
@@ -674,8 +672,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     finalUrl = finalUrl.replace("'", '')
                 if num < ui.list2.count():
                     ui.list2.setCurrentRow(num)
-                    idw = str(int(ui.tab_5.winId()))
-                    ui.set_parameters_value(idw_val=idw)
+                    ui.idw = str(int(ui.tab_5.winId()))
                     ui.play_file_now(finalUrl)
                     if var_mode == 1:
                         ui.tab_5.player_fs(mode='fs')
@@ -716,7 +713,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.final_playing_url = finalUrl
                     ui.set_parameters_value(cur_ply=current_playing_file_path)
             else:
-                    num = curR
+                    num = ui.cur_row
                     if '	' in ui.epn_arr_list[num]:
                         new_epn = (ui.epn_arr_list[num]).split('	')[0]
                     else:
@@ -778,7 +775,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.tab_5.hide()
                 ui.tab_6.setMaximumSize(16777215, 16777215)
             ui.tab_6_player = True
-            num = curR
+            num = ui.cur_row
             self.setFocus()
             ui.gridLayout2.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
             if var_mode == 4:
@@ -834,16 +831,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.list2.setCurrentRow(num)
                 p1 = "ui.label_epn_"+str(num)+".winId()"
                 mn=int(eval(p1))
-                idw = str(mn)
-                ui.set_parameters_value(idw_val=idw)
+                ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
                 if ui.player_val == "mplayer":
-                    command = ui.mplayermpv_command(idw, finalUrl, 'mplayer')
+                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                     logger.info(command)
                     ui.infoPlay(command)
                 elif ui.player_val == "mpv":
-                    command = ui.mplayermpv_command(idw, finalUrl, 'mpv')
+                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
                     logger.info(command)
                     ui.infoPlay(command)	
             ui.labelFrame2.setText(ui.epn_name_in_list)
@@ -865,7 +861,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             iconv_r = 1
             ui.set_parameters_value(iconv=iconv_r)
             ui.tab_6.setMaximumSize(ui.width_allowed, 16777215) # (400, 1000) earlier
-            num = curR
+            num = ui.cur_row
             ui.thumbnail_label_update(clicked_num=num)
             ui.tab_6_player = True
             self.setFocus()
@@ -923,23 +919,22 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.list2.setCurrentRow(num)
                 p1 = "ui.label_epn_"+str(num)+".winId()"
                 mn=int(eval(p1))
-                idw = str(mn)
-                ui.set_parameters_value(idw_val=idw)
+                ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
                 if ui.player_val == "mplayer":
-                    command = ui.mplayermpv_command(idw, finalUrl, 'mplayer')
+                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                     logger.info(command)
                     ui.infoPlay(command)
                 elif ui.player_val == "mpv":
-                    command = ui.mplayermpv_command(idw, finalUrl, 'mpv')
+                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
                     logger.info(command)
                     ui.infoPlay(command)	
             ui.labelFrame2.setText(ui.epn_name_in_list)
         elif var_mode == 6 or var_mode == 7:
             ui.tab_6_player = False
 
-            num = curR
+            num = ui.cur_row
             self.setFocus()
             ui.quit_really = "no"
             ui.list2.setCurrentRow(num)
@@ -965,8 +960,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 tmp_idw = str(int(ui.label.winId()))
             else:
                 tmp_idw = str(int(ui.label_new.winId()))
-            idw = ui.get_parameters_value(i='idw')['idw']
-            if tmp_idw != idw:
+            if tmp_idw != ui.idw:
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.kill()
                     ui.mpvplayer_started = False
@@ -983,17 +977,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     else:
                         p1 = "ui.label_new.winId()"
                     mn = int(eval(p1))
-                    idw = str(mn)
-                    ui.set_parameters_value(idw_val=idw)
-                    #ui.tab_5.setFocus()
+                    ui.idw = str(mn)
                     ui.frame1.show()
                     finalUrl = str(finalUrl)
                     if ui.player_val == "mplayer":
-                        command = ui.mplayermpv_command(idw, finalUrl, 'mplayer')
+                        command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                         logger.info(command)
                         ui.infoPlay(command)
                     elif ui.player_val == "mpv":
-                        command = ui.mplayermpv_command(idw, finalUrl, 'mpv')
+                        command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
                         logger.info(command)
                         ui.infoPlay(command)
             #Mode 2 Ends Here#
@@ -1015,11 +1007,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         artist_name_mplayer = ""
                     ui.set_parameters_value(amp=artist_name_mplayer)
                     ui.media_data.update_music_count('count', finalUrl)
-                    r = curR
+                    r = ui.cur_row
                     ui.musicBackground(r, 'Search')
             elif site.lower() == 'video' or site.lower() == 'local' or site.lower() == 'playlists':
                 try:
-                    row = curR
+                    row = ui.cur_row
                     if (site.lower() == 'playlists'):
                         if ui.is_artist_exists(row):
                             ui.musicBackground(row, 'get now')
@@ -1044,7 +1036,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             print(e, '--1622--')
         
         try:
-            new_cnt = curR + ui.list2.count()
+            new_cnt = ui.cur_row + ui.list2.count()
             p1 = "ui.label_epn_{0}".format(new_cnt)
             label_number = eval(p1)
             text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
@@ -1067,11 +1059,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if site.lower() == 'music' or site.lower() == 'none' or site.lower() == 'local':
                     pass
                 elif site.lower() == 'video':
-                    ui.mark_video_list('mark', curR)
+                    ui.mark_video_list('mark', ui.cur_row)
                 elif site.lower() == 'playlists':
-                    ui.mark_playlist('mark', curR)
+                    ui.mark_playlist('mark', ui.cur_row)
                 else:
-                    ui.mark_addons_history_list('mark', curR)
+                    ui.mark_addons_history_list('mark', ui.cur_row)
         except Exception as e:
             logger.error(e)
     
@@ -1091,8 +1083,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             logger.debug(label_name)
             if label_name in ['label', 'label_new']:
                 num = ui.list2.currentRow()
-                curR = num
-                ui.set_parameters_value(curRow=curR)
+                ui.cur_row = num
                 if label_name == 'label':
                     ui.video_mode_index = 6
                     p1 = "ui.label.winId()"
@@ -1109,19 +1100,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
             else:
                 label_num = re.sub('label_epn_', '', label_name)
                 num = int(label_num)
-                curR = num
-                ui.list2.setCurrentRow(curR)
-                logger.debug('trying to set curR {}'.format(curR))
-                ui.set_parameters_value(curRow=curR)
+                ui.cur_row = num
+                ui.list2.setCurrentRow(ui.cur_row)
+                logger.debug('trying to set cur_row :: {}'.format(ui.cur_row))
                 p1 = "ui.label_epn_"+str(num)+".winId()"
                 mn = int(eval(p1))
                 tmp_idw = str(mn)
                 if ui.video_mode_index == 6:
                     ui.video_mode_index = 1
                     ui.comboBoxMode.setCurrentIndex(0)
-            idw = ui.get_parameters_value(i='idw')['idw']
             if num >= 0:
-                if tmp_idw == idw:
+                if tmp_idw == ui.idw:
                     if ui.mpvplayer_val.processId() > 0:
                         ui.playerPlayPause()
                     else:
@@ -1148,11 +1137,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
         ui.quit_really = "no"
         num = ui.list2.currentRow()
         if num >= 0:
-            curR = num
-            ui.set_parameters_value(curRow=curR)
+            ui.cur_row = num
             ui.video_mode_index = 5
             p1 = "ui.label.winId()"
-            mn=int(eval(p1))
+            mn = int(eval(p1))
             tmp_idw = str(mn)
             self.change_video_mode(ui.video_mode_index, num)
                 
@@ -1521,8 +1509,7 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
         ui.btn10.setItemText(0, _translate("MainWindow", name, None))
         ui.listfound()
         ui.list2.setCurrentRow(0)
-        curR = 0
-        ui.set_parameters_value(curRow=curR)
+        ui.cur_row = 0
         time.sleep(0.01)
         if not ui.lock_process:
             ui.view_mode = 'thumbnail'
@@ -1769,8 +1756,6 @@ class TabThumbnail(QtWidgets.QWidget):
             ui.scrollArea.setFocus()
         
     def keyPressEvent(self, event):
-        global wget
-        wget = ui.get_parameters_value(wgt='wget')['wget']
         ui.tab_6_size_indicator.append(ui.tab_6.width())
         if event.key() == QtCore.Qt.Key_F:
             if self.width() > 500:
@@ -1781,9 +1766,8 @@ class TabThumbnail(QtWidgets.QWidget):
                 ui.frame1.hide()
                 ui.goto_epn.hide()
                 ui.btn10.hide()
-                if wget:
-                    if wget.processId() > 0:
-                        ui.progress.hide()
+                if ui.wget.processId() > 0:
+                    ui.progress.hide()
                 ui.list2.hide()
                 ui.list6.hide()
                 ui.list1.hide()
@@ -1809,9 +1793,8 @@ class TabThumbnail(QtWidgets.QWidget):
                 ui.gridLayout2.setContentsMargins(10, 10, 10, 10)
                 ui.horizontalLayout10.setContentsMargins(10, 10, 10, 10)
                 ui.horizontalLayout10.setSpacing(10)
-                if wget:
-                    if wget.processId() > 0:
-                        ui.goto_epn.hide()
-                        ui.progress.show()
+                if ui.wget.processId() > 0:
+                    ui.goto_epn.hide()
+                    ui.progress.show()
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
