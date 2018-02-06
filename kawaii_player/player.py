@@ -256,20 +256,18 @@ class PlayerWidget(QtWidgets.QWidget):
             self.ui.tab_6_size_indicator.append(self.ui.tab_6.width())
             param_dict = self.ui.get_parameters_value(
                 wgt='wget', icn='iconv_r_indicator', i='iconv_r',
-                cl='cur_label_num', fl='fullscr')
+                cl='cur_label_num')
             wget = param_dict['wget']
             iconv_r_indicator = param_dict['iconv_r_indicator']
             iconv_r = param_dict['iconv_r']
             cur_label_num = param_dict['cur_label_num']
-            fullscr = param_dict['fullscr']
             if not MainWindow.isHidden():
                 if self.ui.video_mode_index == 5:
                     pass
                 else:
                     if iconv_r_indicator:
                         iconv_r = iconv_r_indicator[0]
-                    fullscr = 1 - fullscr
-                    self.ui.set_parameters_value(iconv=iconv_r, fullsc=fullscr)
+                    self.ui.set_parameters_value(iconv=iconv_r)
                     widget = "self.ui.label_epn_"+str(cur_label_num)
                     col = (cur_label_num%iconv_r)
                     row = 2*int(cur_label_num/iconv_r)
