@@ -30,10 +30,8 @@ class PlayerWidget(QtWidgets.QWidget):
         self.seek_timer.setSingleShot(True)
         self.mplayer_aspect_msg = False
         
-        param_dict_val = self.ui.get_parameters_value(sw='screen_width',
-                                                      sh='screen_height')
-        screen_width = param_dict_val['screen_width']
-        screen_height = param_dict_val['screen_height']
+        screen_width = self.ui.screen_size[0]
+        screen_height = self.ui.screen_size[1]
     
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
@@ -166,11 +164,9 @@ class PlayerWidget(QtWidgets.QWidget):
         self.ui.slider.setValue(t)
     
     def player_fs(self, mode=None):
-        param_dict_val = self.ui.get_parameters_value(idw='idw', sw='screen_width',
-                                                      sh='screen_height')
-        idw = param_dict_val['idw']
-        screen_width = param_dict_val['screen_width']
-        screen_height = param_dict_val['screen_height']
+        idw = self.ui.get_parameters_value(idw='idw')['idw']
+        screen_width = self.ui.screen_size[0]
+        screen_height = self.ui.screen_size[1]
         if not idw or idw == str(int(self.winId())):
             if not MainWindow.isHidden():
                 param_dict = self.ui.get_parameters_value(
