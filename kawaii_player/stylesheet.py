@@ -760,7 +760,7 @@ class WidgetStyleSheet:
                     color:white;background:rgb(56,60,74);border:rgb(56,60,74);
                     """)
                     
-                for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3]:
+                for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn]:
                     frame.setStyleSheet("""
                         QFrame{color:white;background:rgb(56,60,74);border:rgb(56,60,74);}
                         QPushButton{color:white;background:rgb(56,60,74); max-height:30px;border:rgba(0, 0, 0, 30%);border-radius:3px;}
@@ -768,14 +768,14 @@ class WidgetStyleSheet:
                         QPushButton:pressed{background-color: violet;}
                         QLineEdit{color:white;background:rgb(56,60,74); max-height:30px;border:rgba(0, 0, 0, 30%);border-radius:3px;}
                         QComboBox {
-                        selection-color:yellow;color:black;background:rgb(56,60,74);
+                        selection-color:yellow;color:white;background:rgb(56,60,74);
                         border:rgba(0, 0, 0, 30%);border-radius:3px;
                         }
                         QComboBox::hover{background-color: yellow;color: black;}
                         QComboBox::drop-down {
                         width: 47px;
                         border: 2px;
-                        color:black;
+                        color:white;
                         }
                         QComboBox::focus {
                         color:yellow;
