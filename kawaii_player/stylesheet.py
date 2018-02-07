@@ -72,7 +72,7 @@ class WidgetStyleSheet:
         elif gui.player_theme == 'dark':
             if gui.list_with_thumbnail:
                 gui.list2.setStyleSheet("""QListWidget{
-                color:white;background:rgb(56,60,74);border:rgb(56,60,74);
+                color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);;
                 }
                 
                 QListWidget:item {
@@ -85,7 +85,7 @@ class WidgetStyleSheet:
                 """)
             else:
                 gui.list2.setStyleSheet("""QListWidget{
-                color:white;background:rgb(56,60,74);border:rgb(56,60,74);
+                color:white;background:background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
                 }
                 
                 QListWidget:item {
@@ -769,12 +769,12 @@ class WidgetStyleSheet:
                         QPushButton::hover{background-color: yellow;color: black;}
                         QPushButton:pressed{background-color: violet;}
                         QLineEdit{color:white;background:rgba(0,0,0,30%);
-                        max-height:30px;border:rgba(0, 0, 0, 30%);border-radius:3px;}
+                        max-height:30px;border:rgba(0, 0, 0, 30%);}
                         QComboBox {
                         selection-color:yellow;color:white;background:rgba(0,0,0,30%);
-                        border:rgba(0, 0, 0, 30%);border-radius:3px;
+                        border:rgba(0, 0, 0, 30%);
                         }
-                        QComboBox::hover{background-color: yellow;color: black;}
+                        QComboBox::hover{background-color: green;color: black;}
                         QComboBox::drop-down {
                         width: 47px;
                         border: 2px;
@@ -848,8 +848,8 @@ class WidgetStyleSheet:
                     height: 30px;
                     }
                     QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 10%);
-                    color: green;
+                    background:rgba(0, 0, 0, 20%);
+                    color: violet;;
                     }
                     """)
                 if gui.list_with_thumbnail:
