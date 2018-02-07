@@ -39,11 +39,23 @@ class SidebarWidget(QtWidgets.QListWidget):
                 ui.scrollArea.setFocus()
             elif not ui.scrollArea1.isHidden():
                 ui.scrollArea1.setFocus()
+            elif not ui.list_poster.isHidden():
+                ui.list_poster.setFocus()
             ui.dockWidget_3.hide()
         elif event.key() == QtCore.Qt.Key_Return:
             ui.newoptions('clicked')
+            self.setFocus()
         elif event.key() == QtCore.Qt.Key_Left:
-            ui.list2.setFocus()
+            if not ui.list2.isHidden():
+                ui.list2.setFocus()
+            elif not ui.list1.isHidden():
+                ui.list1.setFocus()
+            elif not ui.scrollArea.isHidden():
+                ui.scrollArea.setFocus()
+            elif not ui.scrollArea1.isHidden():
+                ui.scrollArea1.setFocus()
+            elif not ui.list_poster.isHidden():
+                ui.list_poster.setFocus()
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
         elif event.key() == QtCore.Qt.Key_H:
@@ -459,6 +471,8 @@ class SelectButton(QtWidgets.QComboBox):
                 ui.scrollArea.setFocus()
             elif not ui.scrollArea1.isHidden():
                 ui.scrollArea1.setFocus()
+            elif not ui.list_poster.isHidden():
+                ui.list_poster.setFocus()
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
         elif event.key() == QtCore.Qt.Key_Left:
