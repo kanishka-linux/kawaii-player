@@ -437,8 +437,8 @@ class TitleListWidget(QtWidgets.QListWidget):
                     self.edit_name_list1(self.currentRow())
         elif event.key() == QtCore.Qt.Key_Left:
             if ui.tab_5.isHidden() and ui.mpvplayer_val.processId() == 0:
-                ui.btn1.setFocus()
                 ui.dockWidget_3.show()
+                ui.btn1.setFocus()
             else:
                 ui.tab_5.setFocus()
         elif event.key() == QtCore.Qt.Key_Period:
@@ -994,7 +994,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_theme.setTitle('Select Theme')
             menu.addMenu(menu_theme)
             
-            menu_theme_arr = ['Default', 'Dark', 'System', 'Transparent']
+            menu_theme_arr = ['Default', 'Dark', 'System']
             menu_theme_act = []
             for i in menu_theme_arr:
                 menu_theme_act.append(menu_theme.addAction(i))
