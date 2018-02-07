@@ -1633,7 +1633,9 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         elif event.key() == QtCore.Qt.Key_Left:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
-                self.setCurrentRow(self.count()-1)
+                ui.dockWidget_3.show()
+                ui.btn1.setFocus()
+                #self.setCurrentRow(self.count()-1)
             else:
                 self.setCurrentRow(prev_r)
         elif event.text().isalnum():
