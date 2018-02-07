@@ -755,23 +755,23 @@ class WidgetStyleSheet:
                     }
                     """)
             else:
-                gui.line.setStyleSheet("""color:white;background:rgb(56,60,74);""")
-                gui.text.setStyleSheet("""color:white;background:rgb(56,60,74);""")
-                gui.frame.setStyleSheet("""color:white;background:rgb(56,60,74);""")
-                gui.frame1.setStyleSheet("""color:white;background:rgb(56,60,74);""")
-                gui.torrent_frame.setStyleSheet("""color:white;background:rgb(56,60,74);""")
-                gui.float_window.setStyleSheet("""color:white;background:rgb(56,60,74);""")
+                for widget in [gui.line, gui.text, gui.frame1, gui.frame, gui.torrent_frame, gui.float_window]: 
+                    widget.setStyleSheet("""
+                    color:white;background:rgb(56,60,74);border:rgb(56,60,74);
+                    """)
+                    
                 for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3]:
                     frame.setStyleSheet("""
-                        QFrame{color:white;background:rgb(56,60,74);}
-                        QPushButton{color:white;background:rgb(56,60,74); max-height:30px;}
+                        QFrame{color:white;background:rgb(56,60,74);border:rgb(56,60,74);}
+                        QPushButton{color:white;background:rgb(56,60,74); max-height:30px;border:rgba(0, 0, 0, 30%);border-radius:3px;}
                         QPushButton::hover{background-color: yellow;color: black;}
                         QPushButton:pressed{background-color: violet;}
-                        QLineEdit{color:white;background:rgb(56,60,74); max-height:30px;}
+                        QLineEdit{color:white;background:rgb(56,60,74); max-height:30px;border:rgba(0, 0, 0, 30%);border-radius:3px;}
                         QComboBox {
-                        selection-color:yellow;color:white;background:rgb(56,60,74);
+                        selection-color:yellow;color:black;background:rgb(56,60,74);
+                        border:rgba(0, 0, 0, 30%);border-radius:3px;
                         }
-                        QComboBox::hover{background-color: green;color: black;}
+                        QComboBox::hover{background-color: yellow;color: black;}
                         QComboBox::drop-down {
                         width: 47px;
                         border: 2px;
@@ -786,22 +786,43 @@ class WidgetStyleSheet:
                         }""")
                 gui.player_opt.setStyleSheet("""
                     QFrame{color:white;background:rgb(56,60,74);}
-                    QPushButton{max-height:30px;}
+                    QPushButton{max-height:30px;border:rgba(0, 0, 0, 30%);border-radius:3px;}
                     QPushButton::hover{background-color: yellow;color: black;}
                     QPushButton:pressed{background-color: violet;}""")
                
                 gui.tab_6.setStyleSheet("""color:white;
-                    background:rgb(56,60,74);""")
+                    background:rgb(56,60,74);border:rgb(56,60,74);""")
                 gui.tab_5.setStyleSheet("""color:white;
-                    background:rgb(56,60,74);""")
-                gui.progressEpn.setStyleSheet("""QProgressBar{
-                text-align: center;
-                color:white;background:rgb(56,60,74);
-                }
+                    background:rgb(56,60,74);border:rgb(56,60,74);""")
+                
+                gui.progress.setStyleSheet("""QProgressBar{
+                background:rgb(56,60,74);
+                color:white;
+                border-radius: 1px;
+                text-align: center;}
+                QProgressBar:chunk {
+                background-color: rgb(56,60,74);
+                width: 10px;
+                margin: 0.5px;
+                }}
                 """)
+                
+                gui.progressEpn.setStyleSheet("""QProgressBar{
+                background:rgb(56,60,74);
+                color:white;
+                border-radius: 1px;
+                text-align: center;
+                }
+                
+                QProgressBar:chunk {
+                background-color: rgb(56,60,74);
+                width: 10px;
+                margin: 0.5px;
+                }}""")
+                
                 gui.list_poster.setStyleSheet("""
                 QListWidget{
-                color:white;background:rgb(56,60,74);
+                color:white;background:rgb(56,60,74);border:rgb(56,60,74);
                 }
                 QListWidget:item {
                 height: 256px;
@@ -812,7 +833,7 @@ class WidgetStyleSheet:
                 gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
                     widget.setStyleSheet("""QListWidget{
-                    color:white;background:rgb(56,60,74);
+                    color:white;background:rgb(56,60,74);border:rgb(56,60,74);
                     }
                     QListWidget:item {
                     height: 30px;
@@ -824,7 +845,7 @@ class WidgetStyleSheet:
                     """)
                 if gui.list_with_thumbnail:
                     gui.list2.setStyleSheet("""QListWidget{
-                    color:white;background:rgb(56,60,74);
+                    color:white;background:rgb(56,60,74);border:rgb(56,60,74);
                     }
                     
                     QListWidget:item {
@@ -837,7 +858,7 @@ class WidgetStyleSheet:
                     """)
                 else:
                     gui.list2.setStyleSheet("""QListWidget{
-                    color:white;background:rgb(56,60,74);
+                    color:white;background:rgb(56,60,74);border:rgb(56,60,74);
                     }
                     
                     QListWidget:item {
