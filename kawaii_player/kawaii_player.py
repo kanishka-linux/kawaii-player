@@ -1511,6 +1511,7 @@ watch/unwatch status")
         self.cur_row = 0
         self.global_font = 'default'
         self.global_font_size = 'default'
+        self.show_search_thumbnail = False
         self.tab_6_size_indicator = []
         self.tab_6_player = False
         self.epn_list_count = []
@@ -4466,7 +4467,7 @@ watch/unwatch status")
         picn = ''
         title = row_string.strip()
         path = ''
-        if (site == "Local" or site=="None" or site == "Music" 
+        if (site == "Local" or site == "None" or site == "Music" 
                 or site.lower() == 'playlists' or site == "Video" 
                 or site.lower() == 'myserver'):
             
@@ -4474,14 +4475,13 @@ watch/unwatch status")
             if not os.path.exists(thumbnail_dir):
                 os.makedirs(thumbnail_dir)
             
-            
             if title_list:
                 name_t = title_list
             else:
                 if self.list1.currentItem():
                     name_t = self.list1.currentItem().text()
                 else:
-                    name_t = ''
+                    name_t = name
                     
             if '	' in title:
                 path = title.split('	')[1]
@@ -4508,7 +4508,6 @@ watch/unwatch status")
                             if os.stat(pic).st_size:
                                 shutil.copy(pic, picn)
                                 picn = pic
-            #logger.debug('\npicn_thumb={0}::pic_music={1}\n'.format(picn, pic))
         else:
             if '	' in title:
                 nameEpn = title.split('	')[0]
@@ -4521,7 +4520,7 @@ watch/unwatch status")
                 if self.list1.currentItem():
                     name_t = self.list1.currentItem().text()
                 else:
-                    name_t = ''
+                    name_t = name
                     
             if OSNAME != 'posix':
                 nameEpn = self.replace_special_characters(nameEpn)
@@ -6883,15 +6882,19 @@ watch/unwatch status")
             
     def searchNew(self):
         global search, name
+        self.show_search_thumbnail = False
         if self.btn1.currentText() == "Select":
             site = "None"
+            self.line.clear()
             return 0
         elif (self.line.placeholderText()) == "No Search Option":
+            self.line.clear()
             return 0
         else:
             self.search()
             name = (self.line.text())
-            
+        
+        
     def search(self):
         code = 1
         global site, opt, mirrorNo, hdr
@@ -6965,6 +6968,7 @@ watch/unwatch status")
                     else:
                         self.list1.addItem("Sorry No Search Function")
         elif site == "Music":
+            self.show_search_thumbnail = True
             self.mirror_change.hide()
             criteria = [
                 'Playlist', "Artist", 'Album', 'Title', 'Directory', 
@@ -7000,6 +7004,7 @@ watch/unwatch status")
                         self.epn_arr_list.append(j)
                 self.update_list2()
         elif site == "Video":
+            self.show_search_thumbnail = True
             self.mirror_change.hide()
             criteria = [
                 'Directory', 'Available', 'History', 'Recent', 'Update', 'UpdateAll'
@@ -7080,6 +7085,7 @@ watch/unwatch status")
                             i = i.split('	')[0]
                         self.list1.addItem(i)
                         self.original_path_name.append(i)
+        self.line.clear()
     
     def get_torrent_handle(self, nm):
         handle = None
@@ -11250,6 +11256,7 @@ watch/unwatch status")
                 self.list2.addItem(new_epn_title)
                 
     def newoptions(self, val=None):
+        self.show_search_thumbnail = False
         if self.options_mode == 'legacy':
             self.options(val)
         else:
@@ -11442,6 +11449,7 @@ watch/unwatch status")
                     self.setPreOpt()
         elif site == "Music":
             global update_start
+            self.show_search_thumbnail = True
             music_dir = os.path.join(home, 'Music')
             if not os.path.exists(music_dir):
                 os.makedirs(music_dir)
@@ -12917,7 +12925,7 @@ def main():
         f.write("\nMPV_INPUT_CONF=False")
         f.write("\nBROADCAST_MESSAGE=False")
         f.write("\nMEDIA_SERVER_AUTOSTART=False")
-        f.write("\n#THEME=default,system,transparent,mix")
+        f.write("\n#THEME=default,system,dark")
         f.write("\nTHEME=DEFAULT")
         f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
         f.write("\nEXTRA_PLAYERS=NONE")
