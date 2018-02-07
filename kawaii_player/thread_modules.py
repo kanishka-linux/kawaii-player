@@ -1168,7 +1168,7 @@ class SetThumbnail(QtCore.QThread):
             txt = ui.list1.currentItem().text()
             if txt == self.title_list:
                 generate_thumbnail = True
-        if generate_thumbnail:
+        if generate_thumbnail or ui.show_search_thumbnail:
             for i, k in enumerate(self.epn_arr):
                 if ui.list_with_thumbnail and self.update_pl:
                     self.setThumb.emit(i, k, self.title_list)
