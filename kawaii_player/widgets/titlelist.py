@@ -992,7 +992,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_theme.setTitle('Select Theme')
             menu.addMenu(menu_theme)
             
-            menu_theme_arr = ['Default', 'System', 'Transparent']
+            menu_theme_arr = ['Default', 'System', 'Transparent', 'Dark']
             menu_theme_act = []
             for i in menu_theme_arr:
                 menu_theme_act.append(menu_theme.addAction(i))

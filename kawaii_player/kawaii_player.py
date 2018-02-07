@@ -223,7 +223,11 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
                                 QtGui.QBrush(QtGui.QPixmap(fanart)))
                 MainWindow.setPalette(palette)
                 ui.current_background = fanart
-    elif theme in ['system', 'transparent', 'mix']:
+    elif theme in ['system', 'transparent', 'mix', 'dark']:
+        if theme == 'dark' and first_time:
+            palette	= QtGui.QPalette()
+            palette.setColor(MainWindow.backgroundRole(), QtGui.QColor(56,60,74))
+            MainWindow.setPalette(palette)
         if os.path.isfile(fanart):
             ui.current_background = fanart
             if '.' in fanart:
@@ -1505,6 +1509,8 @@ watch/unwatch status")
         self.wget = QtCore.QProcess()
         self.video_local_stream = False
         self.cur_row = 0
+        self.global_font = 'default'
+        self.global_font_size = 'default'
         self.tab_6_size_indicator = []
         self.tab_6_player = False
         self.epn_list_count = []
@@ -5367,11 +5373,7 @@ watch/unwatch status")
         embed = 0
         n = []
         m =[]
-        if site == "Local":
-            m = sorted(self.original_path_name, key = lambda x: x.split('@')[-1].lower())
-            self.original_path_name[:]=[]
-            self.original_path_name = m
-        elif site == "Music" or site == "Video":
+        if site == "Music" or site == "Video":
             if self.original_path_name:
                 tmp = self.original_path_name[0]
                 if '/' in tmp:
@@ -5408,16 +5410,12 @@ watch/unwatch status")
             self.list2.clear()
             self.text.clear()
             for i in m:
-                if site == "Local":
-                    k = i.split('@')[-1]
-                    i = k
-                elif site.lower() == 'music' or site.lower() == 'video':
+                if site.lower() == 'music' or site.lower() == 'video':
                     pass
                 else:
                     if '	' in i:
                         i = i.split('	')[0]
                 self.list1.addItem(i)
-        #opt = "List"
         
     def deleteArtwork(self):
             global name
@@ -5863,16 +5861,6 @@ watch/unwatch status")
                             epn = epn
                         else:
                             return 0
-                    else:
-                        if epn.startswith('#') and mark_val == 'unmark':
-                            n_epnt = epn[1:]
-                            n_epn = ((self.epn_arr_list[row])).replace('#', '', 1)
-                        elif not epn.startswith('#') and mark_val == 'mark':
-                            n_epnt = epn
-                            n_epn = '#' + self.epn_arr_list[row]
-                        else:
-                            return 0
-                        epn = n_epnt
                         
                 file_path = self.get_local_file_ep_name()
                 txt = item.text()
@@ -6842,41 +6830,17 @@ watch/unwatch status")
             fanart1 = os.path.join(home, 'History', site, siteName, name, 'fanart.jpg')
             thumbnail1 = os.path.join(home, 'History', site, siteName, name, 'thumbnail.jpg')
             summary_file = os.path.join(home, 'History', site, siteName, name, 'summary.txt')
-        elif site == "Local":
-            
-            name = self.original_path_name[cur_row]
-            file_name = os.path.join(home, 'Local', name, 'Ep.txt')
-            picn1 = os.path.join(home, 'Local', name, 'poster.jpg')
-            fanart1 = os.path.join(home, 'Local', name, 'fanart.jpg')
-            thumbnail1 = os.path.join(home, 'Local', name, 'thumbnail.jpg')
-            summary_file = os.path.join(home, 'Local', name, 'summary.txt')
         else:
             file_name = os.path.join(home, 'History', site, name, 'Ep.txt')
             picn1 = os.path.join(home, 'History', site, name, 'poster.jpg')
             fanart1 = os.path.join(home, 'History', site, name, 'fanart.jpg')
             thumbnail1 = os.path.join(home, 'History', site, name, 'thumbnail.jpg')
             summary_file = os.path.join(home, 'History', site, name, 'summary.txt')
-        #print "file_name="+file_name
         logger.info(file_name)
         if os.path.exists(file_name) and site!="PlayLists":
-            #print(site, siteName, name, file_name)
             lines = open_files(file_name, True)
             m = []
-            if site == "Local" and lines:
-                for i in lines:
-                    i = i.strip()
-                    if i:
-                        if '	'in i:
-                            k = i.split('	')
-                            
-                            self.epn_arr_list.append(i)
-                            
-                            m.append(k[0])
-                        else:
-                            k = os.path.basename(i)
-                            self.epn_arr_list.append(k+'	'+i)
-                            m.append(k)
-            elif lines:
+            if lines:
                 logger.info(file_name)
                 for i in lines:
                     i = i.strip()
@@ -7000,16 +6964,6 @@ watch/unwatch status")
                             self.original_path_name.append(j)
                     else:
                         self.list1.addItem("Sorry No Search Function")
-        elif site == "Local":
-            self.mirror_change.hide()
-            criteria = ["List", 'History', 'All']
-            self.list3.clear()
-            for i in criteria:
-                self.list3.addItem(i)
-            self.line.setPlaceholderText("No Search Option")
-            self.line.setReadOnly(True)
-            refererNeeded = False
-            self.video_local_stream = False
         elif site == "Music":
             self.mirror_change.hide()
             criteria = [
@@ -7178,8 +7132,6 @@ watch/unwatch status")
             name = nm
             if '/' in name:
                 name = name.replace('/', '-')
-        elif site == 'Local':
-            name = self.original_path_name[row]
         elif site == 'Video':
             item = self.list1.item(row)
             if item:
@@ -12241,7 +12193,7 @@ def main():
     embed = 0
     epn = ''
     name = ''
-    site = "Local"
+    site = "None"
     genre_num = 0
     opt = ""
     pgn = 1
@@ -12867,7 +12819,7 @@ def main():
                     try:
                         k = j.lower()
                         if k:
-                            if k in ['system', 'transparent', 'mix']:
+                            if k in ['system', 'transparent', 'mix', 'dark']:
                                 ui.player_theme = k
                             else:
                                 ui.player_theme = 'default'
@@ -12895,6 +12847,20 @@ def main():
                         thumb_color = j.lower()
                         if thumb_color in ui.thumbnail_text_color_dict:
                             ui.thumbnail_text_color_focus = thumb_color
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('GLOBAL_FONT='):
+                    try:
+                        global_font = j
+                        if global_font:
+                            ui.global_font = global_font
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('GLOBAL_FONT_SIZE='):
+                    try:
+                        global_font_size = j.lower()
+                        if global_font_size.isnumeric():
+                            ui.global_font_size = int(global_font_size)
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('YTDL_PATH='):
@@ -12955,6 +12921,9 @@ def main():
         f.write("\nTHEME=DEFAULT")
         f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
         f.write("\nEXTRA_PLAYERS=NONE")
+        f.write("\n#GLOBAL_FONT=Name of Font")
+        f.write("\nGLOBAL_FONT=Default")
+        f.write("\nGLOBAL_FONT_SIZE=Default")
         f.write("\n#THUMBNAIL_TEXT_COLOR=red,green,blue,yellow,gray,white,black")
         f.write("\nTHUMBNAIL_TEXT_COLOR=white")
         f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
@@ -12975,6 +12944,19 @@ def main():
                 theme=ui.player_theme
                 )
             )
+    try:
+        if ui.global_font != 'default':
+            if isinstance(ui.global_font_size, int):
+                font = QtGui.QFont(ui.global_font, ui.global_font_size)
+            else:
+                font = QtGui.QFont(ui.global_font)
+            app.setFont(font)
+        elif isinstance(ui.global_font_size, int):
+            font = QtGui.QFont('default', ui.global_font_size)
+            app.setFont(font)
+        logger.debug('{}{}'.format(ui.global_font, ui.global_font_size))
+    except Exception as err:
+        logger.error(err)
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
@@ -13259,7 +13241,6 @@ def main():
             ui.IconViewEpn(start=True, mode=1)
         else:
             ui.IconViewEpn(start=True, mode=2)
-        
     
     if ui.force_fs:
         MainWindow.showFullScreen()
