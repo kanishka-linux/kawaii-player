@@ -428,7 +428,9 @@ class TitleListWidget(QtWidgets.QListWidget):
         elif event.key() == QtCore.Qt.Key_Return:
             ui.list1_double_clicked()
         elif event.key() == QtCore.Qt.Key_Right:
-            ui.list2.setFocus()
+            if ui.list2.count() > 0:
+                ui.list2.setCurrentRow(0)
+                ui.list2.setFocus()
         elif event.key() == QtCore.Qt.Key_F2:
             if ui.original_path_name:
                 if self.currentItem():
