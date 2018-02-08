@@ -4141,9 +4141,9 @@ watch/unwatch status")
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
             
-        width = str(int(w))
-        height = str(int(h))
-        hei_ght= str(int(h/3))
+        width = int(w)
+        height = int(h)
+        hei_ght= int(h/3)
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
@@ -4170,50 +4170,35 @@ watch/unwatch status")
             while(i<length):
                 logger.debug('--value--str={0}'.format(value_str))
                 if value_str == "deleted":
-                    p1= "self.label_"+str(i)+" = TitleThumbnailWidget(self.scrollAreaWidgetContents)"
-                    p4 = "self.label_{0}.setup_globals(self, home, TMPDIR, logger)".format(i)
-                    p7 = "l_"+str(i)+" = weakref.ref(self.label_"+str(i)+")"
+                    p1 = "self.label_{0} = TitleThumbnailWidget(self.scrollAreaWidgetContents)".format(i)
                     exec(p1)
-                    exec(p4)
-                    exec(p7)
-                p2="self.label_"+str(i)+".setMaximumSize(QtCore.QSize("+height+", "+width+"))"
-                p3="self.label_"+str(i)+".setMinimumSize(QtCore.QSize("+height+", "+width+"))"
-                #p4="self.label_"+str(i)+".setScaledContents(True)"
-                p5="self.label_"+str(i)+".setObjectName(_fromUtf8("+'"'+"label_"+str(i)+'"'+"))"
-                p6="self.gridLayout1.addWidget(self.label_"+str(i)+", "+str(j)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                p8 = "self.label_{0}.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)".format(str(i))
-                p9 = "self.label_{0}.setMouseTracking(True)".format(str(i))
-                exec(p2)
-                exec(p3)
-                #exec(p4)
-                exec(p5)
-                exec(p6)
-                exec(p8)
-                exec(p9)
+                    p1 = "l_{0} = weakref.ref(self.label_{0})".format(i)
+                    exec(p1)
+                label_title = eval('self.label_{0}'.format(i))
+                label_title.setup_globals(self, home, TMPDIR, logger)
+                label_title.setMaximumSize(QtCore.QSize(height, width))
+                label_title.setMinimumSize(QtCore.QSize(height, width))
+                label_title.setObjectName(_fromUtf8('label_{0}'.format(i)))
+                self.gridLayout1.addWidget(label_title, j, k, 1, 1, QtCore.Qt.AlignCenter)
+                label_title.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+                label_title.setMouseTracking(True)
                 
                 if value_str == "deleted":
-                    p1="self.label_"+str(length+i)+" = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)"
-                    p7 = "l_"+str(length+i)+" = weakref.ref(self.label_"+str(length+i)+")"
+                    p1 = "self.label_{0} = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)".format(length+i)
                     exec(p1)
-                    exec(p7)
-                p2="self.label_"+str(length+i)+".setMinimumWidth("+width+")"
-                p3="self.label_"+str(length+i)+".setMaximumHeight("+hei_ght+")"
-                p4 = "self.label_"+str(length+i)+".lineWrapMode()"
-                p5="self.label_"+str(length+i)+".setObjectName(_fromUtf8("+'"'+"label_"+str(length+i)+'"'+"))"
-                p6="self.gridLayout1.addWidget(self.label_"+str(length+i)+", "+str(j1)+", "+str(k)+", 1, 1, QtCore.Qt.AlignCenter)"
-                #p8="self.label_"+str(length+i)+".setAlignment(QtCore.Qt.AlignCenter)"
-                p9="self.label_"+str(length+i)+".setReadOnly(True)"
-                p12 = "self.label_{0}.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(length+i)
-                p13 = "self.label_{0}.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)".format(length+i)
-                exec(p2)
-                exec(p3)
-                exec(p4)
-                exec(p5)
-                exec(p6)
-                #exec(p8)
-                exec(p9)
-                exec(p12)
-                exec(p13)
+                    p1 = "l_{0} = weakref.ref(self.label_{0})".format(length+i)
+                    exec(p1)
+                label_title_txt = eval('self.label_{0}'.format(length+i))
+                label_title_txt.setMinimumWidth(width)
+                label_title_txt.setMaximumHeight(hei_ght)
+                label_title_txt.lineWrapMode()
+                label_title_txt.setObjectName('label_{0}'.format(length+i))
+                self.gridLayout1.addWidget(label_title_txt, j1, k, 1, 1, QtCore.Qt.AlignCenter)
+                label_title_txt.setReadOnly(True)
+                label_title_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                if self.global_font != 'default':
+                    label_title_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
                 if value_str == "deleted" or value_str == 'zoom':
                     self.display_image(i, "image", iconv_r_poster, value_str, dimn=dim_tuple)
                     
@@ -4764,6 +4749,8 @@ watch/unwatch status")
                 label_epn_txt.setText(nameEpn)
                 label_epn_txt.setAlignment(QtCore.Qt.AlignCenter)
                 label_epn_txt.setToolTip(sumry)
+                if self.global_font != 'default':
+                    label_epn_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
