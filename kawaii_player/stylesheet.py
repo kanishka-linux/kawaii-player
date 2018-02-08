@@ -769,31 +769,32 @@ class WidgetStyleSheet:
                     background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                     """)
                 for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn]:
+                    bg = '30%'
                     frame.setStyleSheet("""
-                        QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
-                        QPushButton{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);max-height:30px;}
-                        QPushButton::hover{background-color: yellow;color: black;}
-                        QPushButton:pressed{background-color: violet;}
-                        QLineEdit{color:white;background:rgba(0,0,0,30%);
-                        max-height:30px;border:rgba(0, 0, 0, 30%);}
-                        QComboBox {
+                        QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
+                        QPushButton{{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);max-height:30px;}}
+                        QPushButton::hover{{background-color: yellow;color: black;}}
+                        QPushButton:pressed{{background-color: violet;}}
+                        QLineEdit{{color:white;background:rgba(0,0,0,30%);
+                        max-height:30px;border:rgba(0, 0, 0, 30%);}}
+                        QComboBox {{
                         color: white;
                         selection-color:yellow;background:rgba(0,0,0,30%);
                         border:rgba(0, 0, 0, 30%);
-                        }
-                        QComboBox::hover{background-color: rgba(0,0,0,60%);color: white;}
-                        QComboBox::drop-down {
+                        }}
+                        QComboBox::hover{{background-color: rgba(0,0,0,60%);color: white;}}
+                        QComboBox::drop-down {{
                         width: 47px;
                         border: 2px;
                         color:white;
-                        }
-                        QComboBox::focus {
-                        color:yellow;
-                        }
-                        QComboBox::down-arrow {
+                        }}
+                        QComboBox::focus {{
+                        background-color:rgba(0,0,0,60%);color: white;;
+                        }}
+                        QComboBox::down-arrow {{
                         width: 2px;
                         height: 2px;
-                        }""")
+                        }}""".format(alpha=bg))
                 gui.player_opt.setStyleSheet("""
                     QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
                     QPushButton{max-height:30px;border:rgba(0, 0, 0, 30%)}
@@ -837,15 +838,19 @@ class WidgetStyleSheet:
                 }
                 """)
                 gui.list_poster.setStyleSheet("""
-                QListWidget{
-                color:white;
+                QListWidget{{
+                color:{0};
                 background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 50%);
-                }
-                QListWidget:item {
+                }}
+                QListWidget:item {{
                 height: 256px;
                 width:128px;
-                }
-                """)
+                }}
+                QListWidget:item:selected:active {{
+                background:rgba(0, 0, 0, 30%);
+                color: {1};
+                }}
+                """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus))
                 gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
