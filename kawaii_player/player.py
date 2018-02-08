@@ -595,6 +595,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume +5 \n')
+                self.mpvplayer.write(b'\n print-text volume-print=${ao-volume}\n')
         elif event.key() == QtCore.Qt.Key_9:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
@@ -604,6 +605,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume -5 \n')
+                self.mpvplayer.write(b'\n print-text volume-print=${ao-volume}\n')
         elif event.key() == QtCore.Qt.Key_A:
             self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
             aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
@@ -619,13 +621,31 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(msg, 'utf-8'))
                 txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
                 self.mpvplayer.write(bytes(txt_osd, 'utf-8'))
+                if self.ui.final_playing_url in self.ui.history_dict_obj:
+                    seek_time, acc_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj.get(self.ui.final_playing_url)
+                    rem_quit = 1
+                    asp = aspect_val
+                    self.ui.history_dict_obj.update(
+                        {self.ui.final_playing_url:[
+                            seek_time, acc_time, sub_id, audio_id,
+                            rem_quit, vol, asp
+                            ]
+                        }
+                    )
             elif self.player_val == 'mplayer':
                 self.mplayer_aspect_msg = True
                 if self.mpvplayer.processId() > 0:
                     if self.ui.final_playing_url in self.ui.history_dict_obj:
-                        seek_time, acc_time, sub_id, audio_id, rem_quit = self.ui.history_dict_obj.get(self.ui.final_playing_url)
+                        seek_time, acc_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj.get(self.ui.final_playing_url)
                         rem_quit = 1
-                        self.ui.history_dict_obj.update({self.ui.final_playing_url:[seek_time, acc_time, sub_id, audio_id, rem_quit]})
+                        self.ui.history_dict_obj.update(
+                            {
+                                self.ui.final_playing_url:[
+                                    seek_time, acc_time, sub_id, audio_id,
+                                    rem_quit, vol, asp
+                                    ]
+                            }
+                        )
                     self.mpvplayer.kill()
         elif event.key() == QtCore.Qt.Key_N:
             self.mpvplayer.write(b'\n playlist_next \n')
