@@ -138,16 +138,6 @@ class WidgetStyleSheet:
                 print(e)
             gui.tab_5.setStyleSheet("""font:bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);""")
-            """
-            gui.btnWebClose.setStyleSheet("font: bold 12px;color:white;
-                background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            gui.btnWebHide.setStyleSheet("font: bold 12px;color:white;
-                background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            gui.btnWebPrev.setStyleSheet("font: bold 12px;color:white;
-                background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            gui.btnWebNext.setStyleSheet("font: bold 12px;color:white;
-                background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;")
-            """
             gui.btnOpt.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
             gui.go_opt.setStyleSheet("""font: bold 12px;color:white;
