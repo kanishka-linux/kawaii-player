@@ -3903,12 +3903,18 @@ watch/unwatch status")
         global desktop_session
         try:
             if desktop_session.lower() != 'plasma':
-                web.setStyleSheet(
-                    """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-                    border:rgba(0, 0, 0, 30%);border-radius: 3px;""")
-                web.setStyleSheet(
-                    """QMenu{font: bold 12px;color:black;
-                    background-image:url('1.png');}""")
+                if self.player_theme == 'dark':
+                    web.setStyleSheet(
+                        """
+                        QMenu{
+                        color: white;
+                        background: rgb(56,60,74);border: rgba(0,0,0, 30%);
+                        }
+                        """)
+                else:
+                    web.setStyleSheet(
+                        """QMenu{color:black;
+                        background-image:url('1.png');}""")
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
@@ -6742,6 +6748,9 @@ watch/unwatch status")
                 self.tmp_web_srch = key
                 if review_site == 'Reviews':
                     review_site = 'DuckDuckGo'
+                if key.startswith('http:') or key.startswith('https:'):
+                    self.web.load(QUrl(key))
+                    return 0
             elif action == 'context_menu' or action == 'search_by_name':
                 key = srch_txt
             elif action == 'index_changed' or action == 'btn_pushed':
