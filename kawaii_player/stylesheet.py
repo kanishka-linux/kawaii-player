@@ -72,9 +72,8 @@ class WidgetStyleSheet:
         elif gui.player_theme == 'dark':
             if gui.list_with_thumbnail:
                 gui.list2.setStyleSheet("""QListWidget{
-                color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);;
+                color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
                 }
-                
                 QListWidget:item {
                 height: 128px;
                 }
@@ -85,9 +84,8 @@ class WidgetStyleSheet:
                 """)
             else:
                 gui.list2.setStyleSheet("""QListWidget{
-                color:white;background:background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
+                color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
                 }
-                
                 QListWidget:item {
                 height: 30px;
                 }
@@ -730,7 +728,7 @@ class WidgetStyleSheet:
             if widget == gui.list2:
                 if gui.list_with_thumbnail:
                     gui.list2.setStyleSheet("""QListWidget{
-                    color:white;background:rgb(56,60,74);
+                    color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                     }
                     
                     QListWidget:item {
@@ -740,10 +738,14 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 20%);
                     color: green;
                     }
+                    QMenu{
+                    color: white;
+                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
+                    }
                     """)
                 else:
                     gui.list2.setStyleSheet("""QListWidget{
-                    color:white;background:rgb(56,60,74);
+                    color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                     }
                     
                     QListWidget:item {
@@ -752,6 +754,10 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:active {
                     background:rgba(0, 0, 0, 20%);
                     color: green;
+                    }
+                    QMenu{
+                    color: white;
+                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
                     }
                     """)
             else:
@@ -771,10 +777,11 @@ class WidgetStyleSheet:
                         QLineEdit{color:white;background:rgba(0,0,0,30%);
                         max-height:30px;border:rgba(0, 0, 0, 30%);}
                         QComboBox {
-                        selection-color:yellow;color:white;background:rgba(0,0,0,30%);
+                        color: white;
+                        selection-color:yellow;background:rgba(0,0,0,30%);
                         border:rgba(0, 0, 0, 30%);
                         }
-                        QComboBox::hover{background-color: green;color: black;}
+                        QComboBox::hover{background-color: rgba(0,0,0,60%);color: white;}
                         QComboBox::drop-down {
                         width: 47px;
                         border: 2px;
@@ -831,7 +838,8 @@ class WidgetStyleSheet:
                 """)
                 gui.list_poster.setStyleSheet("""
                 QListWidget{
-                color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);;
+                color:white;
+                background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 50%);
                 }
                 QListWidget:item {
                 height: 256px;
@@ -851,10 +859,14 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 20%);
                     color: violet;;
                     }
+                    QMenu{
+                    color: white;
+                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
+                    }
                     """)
                 if gui.list_with_thumbnail:
                     gui.list2.setStyleSheet("""QListWidget{
-                    color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);;
+                    color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                     }
                     QListWidget:item {
                     height: 128px;
@@ -862,6 +874,10 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:active {
                     background:rgba(0, 0, 0, 20%);
                     color: green;
+                    }
+                    QMenu{
+                    color: white;
+                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
                     }
                     """)
                 else:
@@ -874,5 +890,9 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:active {
                     background:rgba(0, 0, 0, 20%);
                     color: green;
+                    }
+                    QMenu{
+                    color: white;
+                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
                     }
                     """)
