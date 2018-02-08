@@ -1592,7 +1592,7 @@ watch/unwatch status")
         self.download_video = 0
         self.total_seek = 0
         self.new_tray_widget = None
-        self.widget_style = WidgetStyleSheet(self, home, BASEDIR)
+        self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = 'mpv'
         self.addons_option_arr = []
@@ -3924,25 +3924,7 @@ watch/unwatch status")
             self.frame1.hide()
             self.gridLayout.setSpacing(5)
             
-    def webStyle(self, web):
-        global desktop_session
-        try:
-            if desktop_session.lower() != 'plasma':
-                if self.player_theme == 'dark':
-                    web.setStyleSheet(
-                        """
-                        QMenu{
-                        color: white;
-                        background: rgb(56,60,74);border: rgba(0,0,0, 30%);
-                        }
-                        """)
-                else:
-                    web.setStyleSheet(
-                        """QMenu{color:black;
-                        background-image:url('1.png');}""")
-        except NameError as e:
-            print(e)
-            desktop_session = 'lxde'
+    
 
     def setPlayerFocus(self):
         global player_focus
@@ -4673,7 +4655,23 @@ watch/unwatch status")
                 self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
                 label_epn.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
                 label_epn.setMouseTracking(True)
-                
+                if self.player_theme == 'dark':
+                    label_epn.setStyleSheet("""
+                    QMenu{
+                    color: white;
+                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
+                    padding: 2px;
+                    }
+                    QMenu::item{
+                    color: white;
+                    background:rgb(56,60,74);border: rgba(0,0,0, 30%);
+                    padding: 4px; margin: 2px 2px 2px 10px;
+                    }
+                    QMenu::item:selected{
+                    color: white;
+                    background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
+                    }
+                    """)
                 counter = i
                 start_already = False
                 if site in [site=="None", "Music", "Video", 'MyServer', 'PlayLists']: 
@@ -6810,7 +6808,7 @@ watch/unwatch status")
                 name1 = name1[1:]
                 
         logger.info(self.web)
-        self.webStyle(self.web)
+        self.widget_style.webStyle(self.web)
         logger.info('--13527---{0}-{1}'.format(review_site, name1))
         self.review_site_code = review_site
         if not name1:
