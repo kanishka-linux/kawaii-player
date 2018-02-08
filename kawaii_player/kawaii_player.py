@@ -1530,7 +1530,7 @@ watch/unwatch status")
         self.media_server_cache_music = {}
         self.media_server_cache_video = {}
         self.media_server_cache_playlist = {}
-        self.icon_poster_indicator = [5]
+        self.icon_poster_indicator = [6]
         self.mplayer_finished_counter = 0
         self.wget_counter_list = []
         self.wget_counter_list_text = []
