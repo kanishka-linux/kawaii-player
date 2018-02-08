@@ -3247,7 +3247,7 @@ watch/unwatch status")
                                 if iconv_r_indicator:
                                     iconv_r = iconv_r_indicator[0]
                                 else:
-                                    iconv_r = 5
+                                    iconv_r = 6
                                 logger.debug(iconv_r_indicator)
                                 self.thumbnail_label_update_epn()
                             QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
@@ -3286,7 +3286,7 @@ watch/unwatch status")
                         if iconv_r_indicator:
                             iconv_r = iconv_r_indicator[0]
                         else:
-                            iconv_r = 5
+                            iconv_r = 6
                         logger.debug(iconv_r_indicator)
                         self.frame2.show()
                         self.frame1.show()
@@ -5012,7 +5012,7 @@ watch/unwatch status")
         if iconv_r_indicator:
             iconv_r = iconv_r_indicator[0]
         else:
-            iconv_r = 5
+            iconv_r = 6
         self.tab_6.setMaximumSize(16777215, 16777215)
         browse_cnt = 0
         self.list_poster.hide()
@@ -12186,7 +12186,7 @@ def main():
     pause_indicator = []
     mpv_indicator = []
     memory_num_arr = []
-    iconv_r = 5
+    iconv_r = 6
     interval = 0
     slider_clicked = "no"
     buffering_mplayer = "no"
