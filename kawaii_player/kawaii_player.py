@@ -4198,7 +4198,10 @@ watch/unwatch status")
                 label_title_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
                 label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
                 if self.global_font != 'default':
-                    label_title_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
+                    if self.player_theme == 'default':
+                        label_title_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
+                    else:
+                        label_title_txt.setStyleSheet("""font: {0};""".format(self.global_font))
                 if value_str == "deleted" or value_str == 'zoom':
                     self.display_image(i, "image", iconv_r_poster, value_str, dimn=dim_tuple)
                     
@@ -4750,7 +4753,10 @@ watch/unwatch status")
                 label_epn_txt.setAlignment(QtCore.Qt.AlignCenter)
                 label_epn_txt.setToolTip(sumry)
                 if self.global_font != 'default':
-                    label_epn_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
+                    if self.player_theme == 'default':
+                        label_epn_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
+                    else:
+                        label_epn_txt.setStyleSheet("""font: {0};""".format(self.global_font))
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
