@@ -1495,11 +1495,14 @@ watch/unwatch status")
         self.progress_counter = 0
         self.posterfound_arr = []
         self.client_auth_arr = ['127.0.0.1', '0.0.0.0']
+        self.video_db_location = os.path.join(home, 'VideoDB')
+        if not os.path.isdir(self.video_db_location):
+            os.makedirs(self.video_db_location)
         self.current_background = os.path.join(home, 'default.jpg')
         self.default_background = os.path.join(home, 'default.jpg')
         self.yt_sub_folder = os.path.join(home, 'External-Subtitle')
         self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
-        self.playing_history_file = os.path.join(home, 'src', 'historydata')
+        self.playing_history_file = os.path.join(self.video_db_location, 'historydata')
         self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
         self.torrent_type = 'file'
         self.torrent_handle = ''
@@ -2929,7 +2932,7 @@ watch/unwatch status")
             aid = 'auto'
             sid = 'auto'
             vol = 'auto'
-            asp = '-1'
+            asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
         if atxt != 'A/V' and aid == 'auto':
             aidr = re.search('[0-9]+', atxt)
             if aidr:
@@ -8318,7 +8321,7 @@ watch/unwatch status")
         seek_time = 0
         rem_quit = 0
         vol = 'auto'
-        asp = '-1'
+        asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
         if self.final_playing_url in self.history_dict_obj:
             seek_time, _, sub_id, audio_id, rem_quit, vol, asp = self.history_dict_obj.get(self.final_playing_url)
             self.history_dict_obj.update({self.final_playing_url:[seek_time, time.time(), sub_id, audio_id, rem_quit, vol, asp]})
