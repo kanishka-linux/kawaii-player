@@ -1219,14 +1219,20 @@ watch/unwatch status")
         self.btn3.setMinimumHeight(30)
         
         self.thumbnail_text_color_dict = {
-            'green':QtCore.Qt.green, 'white':QtCore.Qt.white,
-            'yellow':QtCore.Qt.yellow, 'black':QtCore.Qt.black,
-            'red':QtCore.Qt.red, 'blue':QtCore.Qt.blue,
-            'gray':QtCore.Qt.gray
+            'white':QtCore.Qt.white, 'black':QtCore.Qt.black,
+            'red':QtCore.Qt.red, 'darkred':QtCore.Qt.darkRed,
+            'green':QtCore.Qt.green, 'darkgreen':QtCore.Qt.darkGreen,
+            'blue':QtCore.Qt.blue, 'darkblue':QtCore.Qt.darkBlue,
+            'cyan':QtCore.Qt.cyan, 'darkcyan':QtCore.Qt.darkCyan,
+            'magenta':QtCore.Qt.magenta, 'darkmagenta':QtCore.Qt.darkMagenta,
+            'yellow':QtCore.Qt.yellow,  'darkyellow':QtCore.Qt.darkYellow,
+            'gray':QtCore.Qt.gray, 'darkgray':QtCore.Qt.darkGray,
+            'lightgray':QtCore.Qt.lightGray, 'transparent':QtCore.Qt.transparent
             }
         self.thumbnail_text_color = 'white'
         self.thumbnail_text_color_focus = 'green'
-        
+        self.list_text_color = 'white'
+        self.list_text_color_focus = 'violet'
         self.horizontalLayout10 = QtWidgets.QVBoxLayout(self.tab_6)
         self.horizontalLayout10.setObjectName(_fromUtf8("horizontalLayout"))
         self.scrollArea = QtGuiQWidgetScroll(self.tab_6, self)
@@ -4215,9 +4221,15 @@ watch/unwatch status")
                 label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
-                        label_title_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
+                        label_title_txt.setStyleSheet(
+                            """font: bold 12px {0};color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color)
+                            )
                     else:
-                        label_title_txt.setStyleSheet("""font: {0};""".format(self.global_font))
+                        label_title_txt.setStyleSheet(
+                            """font: {0}; color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color)
+                            )
                 if value_str == "deleted" or value_str == 'zoom':
                     self.display_image(i, "image", iconv_r_poster, value_str, dimn=dim_tuple)
                     
@@ -4661,21 +4673,21 @@ watch/unwatch status")
                 label_epn.setMouseTracking(True)
                 if self.player_theme == 'dark':
                     label_epn.setStyleSheet("""
-                    QMenu{
+                    QMenu{{
                     color: white;
                     background: rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 2px;
-                    }
-                    QMenu::item{
-                    color: white;
+                    }}
+                    QMenu::item{{
+                    color: {0};
                     background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 4px; margin: 2px 2px 2px 10px;
-                    }
-                    QMenu::item:selected{
-                    color: white;
+                    }}
+                    QMenu::item:selected{{
+                    color: {1};
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
-                    }
-                    """)
+                    }}
+                    """.format(self.list_text_color, self.list_text_color_focus))
                 counter = i
                 start_already = False
                 if site in [site=="None", "Music", "Video", 'MyServer', 'PlayLists']: 
@@ -4770,9 +4782,15 @@ watch/unwatch status")
                 label_epn_txt.setToolTip(sumry)
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
-                        label_epn_txt.setStyleSheet("""font: bold 12px {0};""".format(self.global_font))
+                        label_epn_txt.setStyleSheet(
+                            """font: bold 12px {0};color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color)
+                            )
                     else:
-                        label_epn_txt.setStyleSheet("""font: {0};""".format(self.global_font))
+                        label_epn_txt.setStyleSheet(
+                            """font: {0};color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color)
+                            )
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
@@ -12972,6 +12990,20 @@ def main():
                             ui.thumbnail_text_color_focus = thumb_color
                     except Exception as e:
                         logger.error(e)
+                elif i.startswith('LIST_TEXT_COLOR='):
+                    try:
+                        list_color = j.lower()
+                        if list_color in ui.thumbnail_text_color_dict:
+                            ui.list_text_color = list_color
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('LIST_TEXT_COLOR_FOCUS='):
+                    try:
+                        list_color = j.lower()
+                        if list_color in ui.thumbnail_text_color_dict:
+                            ui.list_text_color_focus = list_color
+                    except Exception as e:
+                        logger.error(e)
                 elif i.startswith('GLOBAL_FONT='):
                     try:
                         global_font = j
@@ -13061,9 +13093,13 @@ def main():
         f.write("\n#GLOBAL_FONT=Name of Font")
         f.write("\nGLOBAL_FONT=Default")
         f.write("\nGLOBAL_FONT_SIZE=Default")
-        f.write("\n#THUMBNAIL_TEXT_COLOR=red,green,blue,yellow,gray,white,black")
+        f.write("\n#TEXT_COLORS=red,green,blue,yellow,gray,white,black,cyan,magenta")
+        f.write("\n#TEXT_COLORS=darkgray,lightgray,darkred,darkblue,darkyellow,transparent")
+        f.write("\n#For Dark Theme, Text Color has been fixed to lightgray")
         f.write("\nTHUMBNAIL_TEXT_COLOR=white")
         f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
+        f.write("\nLIST_TEXT_COLOR=white")
+        f.write("\nLIST_TEXT_COLOR_FOCUS=violet")
         f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
         f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
         f.close()
