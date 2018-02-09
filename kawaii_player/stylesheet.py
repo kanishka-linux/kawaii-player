@@ -26,38 +26,41 @@ class WidgetStyleSheet:
         else:
             height = '30px'
         if gui.player_theme in ['default', 'transparent', 'mix']:
-            gui.list2.setStyleSheet("""QListWidget{{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
+            gui.list2.setStyleSheet("""
+                QListWidget{{font: bold 12px;
+                color:{1};background:rgba(0, 0, 0, 30%);
                 border:rgba(0, 0, 0, 30%);border-radius: 3px;}}
-                QListWidget:item {{height: {ht};}}
+                QListWidget:item {{height: {0};}}
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
-                color: violet;}}
+                color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
                 QMenu{{font: 12px;color:black;
-                background-image:url('1.png');}}""".format(ht=height))
+                background-image:url('1.png');}}
+                """.format(height, gui.list_text_color, gui.list_text_color_focus))
         elif gui.player_theme == 'system':
             gui.list2.setAlternatingRowColors(True)
             gui.list2.setStyleSheet("""QListWidget{{
                 border-radius:3px;
                 }}
                 QListWidget:item {{
-                height: {ht};
+                height: {0};
                 }}
                 QListWidget:item:selected:active {{
                 background:rgba(0, 0, 0, 20%);
-                color: green;
+                color: {1};
                 }}
-                """.format(ht=height))
+                """.format(height, gui.list_text_color_focus))
         elif gui.player_theme == 'dark':
-            gui.list2.setStyleSheet("""QListWidget{{
-                color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+            gui.list2.setStyleSheet("""
+                QListWidget{{
+                color:{1};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                 }}
                 QListWidget:item {{
-                height: {ht};
+                height: {0};
                 }}
                 QListWidget:item:selected:active {{
                 background:rgba(0, 0, 0, 20%);
-                color: green;
+                color: {2};
                 }}
                 QMenu{{
                 color: white;
@@ -73,7 +76,7 @@ class WidgetStyleSheet:
                 color: white;
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
-                """.format(ht=height))
+                """.format(height, gui.list_text_color, gui.list_text_color_focus))
                 
     def qmenu_style(self, widget):
         widget.setStyleSheet("""
@@ -156,7 +159,6 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 25%);border:rgba(0, 0, 0, 30%);border-radius:3px;""")
             gui.frame1.setStyleSheet("""font: bold 11px;color:white;
                 background:rgba(0, 0, 0, 60%);border:rgba(0, 0, 0, 30%);border-radius:3px;""")
-            
             gui.torrent_frame.setStyleSheet("""font: bold 12px;color:white;
                 background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);""")
             gui.float_window.setStyleSheet("""font: bold 12px;color:white;
@@ -188,272 +190,118 @@ class WidgetStyleSheet:
                     }
                     """)
             gui.player_opt.setStyleSheet("""
-            QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
-            QPushButton{border-radius:0px;max-height:30px;}
-            QPushButton::hover{background-color: yellow;color: black;}
-            QPushButton:pressed{background-color: violet;}""")
-
-            gui.btn1.setStyleSheet("""QComboBox {
-            min-height:30px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            selection-color:yellow;
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::focus {
-            color:yellow;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            
-            gui.btnAddon.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            selection-color:yellow;
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::focus {
-            color:yellow;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            gui.comboView.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            padding: 1px 1px 1px 1px;
-            font:bold 12px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            gui.slider.setStyleSheet("""QSlider:groove:horizontal {
-            height: 8px;
-            border:rgba(0, 0, 0, 30%);
-            background:rgba(0, 0, 0, 30%);
-            margin: 2px 0;
-            }
-            QSlider:handle:horizontal {
-            background: qlineargradient(
-                x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-            border: 1px solid #5c5c5c;
-            width: 2px;
-            margin: -2px 0; 
-            border-radius: 3px;
-            }
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }
-            """)
-            gui.list1.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius:3px;
-            }
-            
-            QListWidget:item {
-            height: 30px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
+                QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
+                QPushButton{border-radius:0px;max-height:30px;}
+                QPushButton::hover{background-color: yellow;color: black;}
+                QPushButton:pressed{background-color: violet;}""")
+            gui.slider.setStyleSheet("""
+                QSlider:groove:horizontal {
+                height: 8px;
+                border:rgba(0, 0, 0, 30%);
+                background:rgba(0, 0, 0, 30%);
+                margin: 2px 0;
+                }
+                QSlider:handle:horizontal {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+                border: 1px solid #5c5c5c;
+                width: 2px;
+                margin: -2px 0; 
+                border-radius: 3px;
+                }
+                QToolTip {
+                font : Bold 10px;
+                color: white;
+                background:rgba(157, 131, 131, 80%)
+                }
+                """)
             gui.list_poster.setStyleSheet("""
-            QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 50%);
-            }
-            
-            QListWidget:item {
-            height: 256px;
-            width: 128px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 60%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            
-            """)
-            gui.list4.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            gui.list5.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            gui.list6.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            gui.scrollArea.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            gui.scrollArea1.setStyleSheet("""QListWidget{
-            font: Bold 12px;color:white;
-            background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: yellow;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
+                QListWidget{{
+                font: Bold 12px;color:{0};
+                background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 50%);
+                }}
+                QListWidget:item {{
+                height: 256px;
+                width: 128px;
+                }}
+                QListWidget:item:selected:active {{
+                background:rgba(0, 0, 0, 60%);
+                color: {1};
+                }}
+                QListWidget:item:selected:inactive {{
+                border:rgba(0, 0, 0, 30%);
+                }}
+                QMenu{{
+                    font: 12px;color:black;background-image:url('1.png');
+                }}
+                """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus))
+            for widget in [gui.scrollArea, gui.scrollArea1]:
+                widget.setStyleSheet("""
+                    QListWidget{
+                    font: Bold 12px;color:white;
+                    background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);border-radius: 3px;
+                    }
+                    QListWidget:item:selected:active {
+                    background:rgba(0, 0, 0, 20%);
+                    color: yellow;
+                    }
+                    QListWidget:item:selected:inactive {
+                    border:rgba(0, 0, 0, 30%);
+                    }
+                    QMenu{
+                        font: 12px;color:black;background-image:url('1.png');
+                    }
+                    """)
+            for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
+                widget.setStyleSheet("""
+                    QListWidget{{
+                    font: bold 12px;color:{0};background:rgba(0, 0, 0, 30%);
+                    border:rgba(0, 0, 0, 30%);border-radius: 3px;
+                    }}
+                    QListWidget:item {{
+                    height: 30px;
+                    }}
+                    QListWidget:item:selected:active {{
+                    background:rgba(0, 0, 0, 20%);
+                    color: {1};
+                    }}
+                    QListWidget:item:selected:inactive {{
+                    border:rgba(0, 0, 0, 30%);
+                    }}
+                    QMenu{{
+                        font: 12px;color:black;background-image:url('1.png');
+                    }}
+                    """.format(gui.list_text_color, gui.list_text_color_focus))
             if gui.list_with_thumbnail:
-                gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                QListWidget:item {height: 128px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: 12px;color:black;
-                background-image:url('1.png');}""")
+                ht = '128px'
             else:
-                gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                QListWidget:item {height: 30px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: 12px;color:black;
-                background-image:url('1.png');}""")
-            gui.list3.setStyleSheet("""QListWidget{
-            font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;
-            }
-            QListWidget:item {
-            height: 30px;
-            }
-            QListWidget:item:selected:active {
-            background:rgba(0, 0, 0, 20%);
-            color: violet;
-            }
-            QListWidget:item:selected:inactive {
-            border:rgba(0, 0, 0, 30%);
-            }
-            QMenu{
-                font: 12px;color:black;background-image:url('1.png');
-            }
-            """)
-            gui.progress.setStyleSheet("""QProgressBar{
-            font: bold 12px;
-            color:white;
-            background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 1%) ;
-            border-radius: 1px;
-            text-align: center;}
-            
-            QProgressBar:chunk {
-            background-color: rgba(255, 255, 255, 30%);
-            width: 10px;
-            margin: 0.5px;
-            }}""")
-            
-            gui.progressEpn.setStyleSheet("""QProgressBar{
-            font: bold 12px;
-            color:white;
-            background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 1%) ;
-            border-radius: 1px;
-            text-align: center;
-            }
-            
-            QProgressBar:chunk {
-            background-color: rgba(255, 255, 255, 30%);
-            width: 10px;
-            margin: 0.5px;
-            }}""")
+                ht = '30px'
+            gui.list2.setStyleSheet(
+                """
+                QListWidget{{font: bold 12px;
+                color:{1};background:rgba(0, 0, 0, 30%);
+                border:rgba(0, 0, 0, 30%);border-radius:3px;}}
+                QListWidget:item {{height: {0};}}
+                QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
+                color: {2};}}
+                QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
+                QMenu{{font: 12px;color:black;
+                background-image:url('1.png');}}
+                """.format(ht, gui.list_text_color, gui.list_text_color_focus))
+            for widget in [gui.progress, gui.progressEpn]:
+                widget.setStyleSheet("""QProgressBar{
+                    font: bold 12px;
+                    color:white;
+                    background:rgba(0, 0, 0, 30%);
+                    border:rgba(0, 0, 0, 1%) ;
+                    border-radius: 1px;
+                    text-align: center;}
+                    
+                    QProgressBar:chunk {
+                    background-color: rgba(255, 255, 255, 30%);
+                    width: 10px;
+                    margin: 0.5px;
+                    }}""")
             try:
                 if desktop_session.lower() != 'plasma':
                     gui.btnWebReviews.setStyleSheet("""QComboBox {
@@ -475,220 +323,75 @@ class WidgetStyleSheet:
                     }""")
             except NameError as e:
                 print(e)
-        
-            gui.btn30.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            gui.btn2.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            gui.btn3.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
             
-            gui.btn10.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""") 
+            for widget in ([gui.btn1, gui.btnAddon, gui.comboView,
+                            gui.btn30, gui.btn2, gui.btn3, gui.btn10,
+                            gui.chk, gui.comboBox20, gui.comboBox30,
+                            gui.btnOpt]):
+                widget.setStyleSheet("""
+                    QComboBox {
+                    min-height:20px;
+                    max-height:63px;
+                    font-size:10px;
+                    padding: 1px 1px 1px 1px;
+                    font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
+                    selection-color:yellow;
+                    }
+                    QComboBox::drop-down {
+                    width: 47px;
+                    border: 0px;
+                    color:black;
+                    }
+                    QComboBox::focus {
+                    color:yellow;
+                    }
+                    QComboBox::down-arrow {
+                    width: 2px;
+                    height: 2px;
+                    }""")
             
-            gui.chk.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            font-size:9px;
-            padding: 1px 1px 1px 1px;
-            font:bold 12px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""") 
-
-            gui.comboBox20.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            gui.comboBox30.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-
-            gui.btnOpt.setStyleSheet("""QComboBox {
-            min-height:20px;
-            max-height:63px;
-            border-radius: 3px;
-            font-size:10px;
-            padding: 1px 1px 1px 1px;
-            font:bold 10px;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);
-            }
-            QComboBox::drop-down {
-            width: 47px;
-            border: 0px;
-            color:black;
-            }
-            QComboBox::down-arrow {
-            width: 2px;
-            height: 2px;
-            }""")
-            
-            gui.label_torrent_stop.setStyleSheet("""
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }
+            for widget in [gui.label_torrent_stop, gui.label_down_speed, gui.label_up_speed]:
+                widget.setStyleSheet("""
+                QToolTip {
+                font : Bold 10px;
+                color: white;
+                background:rgba(157, 131, 131, 80%)
+                }
                 """)
-            
-            gui.label_down_speed.setStyleSheet("""
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }
-                """)
-            
-            gui.label_up_speed.setStyleSheet("""
-            QToolTip {
-            font : Bold 10px;
-            color: white;
-            background:rgba(157, 131, 131, 80%)
-            }""")
         elif widget == gui.list2 and (theme is None or theme in ['default', 'transparent', 'mix']):
             if gui.list_with_thumbnail:
-                gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                QListWidget:item {height: 128px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: 12px;color:black;
-                background-image:url('1.png');}""")
+                ht = '128px'
             else:
-                gui.list2.setStyleSheet("""QListWidget{font: bold 12px;
-                color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius:3px;}
-                QListWidget:item {height: 30px;}
-                QListWidget:item:selected:active {background:rgba(0, 0, 0, 20%);
-                color: violet;}
-                QListWidget:item:selected:inactive {border:rgba(0, 0, 0, 30%);}
-                QMenu{font: 12px;color:black;
-                background-image:url('1.png');}""")
+                ht = '30px'
+            gui.list2.setStyleSheet("""
+                QListWidget{{font: bold 12px;
+                color:{1};background:rgba(0, 0, 0, 30%);
+                border:rgba(0, 0, 0, 30%);border-radius:3px;}}
+                QListWidget:item {{height: {0};}}
+                QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
+                color: {2};}}
+                QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
+                QMenu{{font: 12px;color:black;
+                background-image:url('1.png');}}
+                """.format(ht, gui.list_text_color, gui.list_text_color_focus))
         elif theme == 'system':
             if widget == gui.list2:
-                gui.list2.setAlternatingRowColors(True)
                 if gui.list_with_thumbnail:
-                    gui.list2.setStyleSheet("""QListWidget{
-                    border-radius:3px;
-                    }
-                    
-                    QListWidget:item {
-                    height: 128px;
-                    }
-                    QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 20%);
-                    color: green;
-                    }
-                    """)
+                    ht = '128px'
                 else:
-                    gui.list2.setStyleSheet("""QListWidget{
-                    border-radius:3px;
-                    }
-                    
-                    QListWidget:item {
-                    height: 30px;
-                    }
-                    QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 20%);
-                    color: green;
-                    }
-                    """)
+                    ht = '30px'
+                gui.list2.setAlternatingRowColors(True)
+                gui.list2.setStyleSheet("""QListWidget{{
+                border-radius:3px;
+                }}
+                QListWidget:item {{
+                height: {0};
+                }}
+                QListWidget:item:selected:active {{
+                background:rgba(0, 0, 0, 20%);
+                color: {1};
+                }}
+                """.format(ht, gui.list_text_color_focus))
             else:
                 gui.progressEpn.setStyleSheet("""QProgressBar{
                 text-align: center;
@@ -704,59 +407,50 @@ class WidgetStyleSheet:
                 gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
                     widget.setAlternatingRowColors(True)
-                    widget.setStyleSheet("""QListWidget{
+                    widget.setStyleSheet("""QListWidget{{
                     border-radius:3px;
-                    }
-                    QListWidget:item {
+                    }}
+                    QListWidget:item {{
                     height: 30px;
-                    }
-                    QListWidget:item:selected:active {
+                    }}
+                    QListWidget:item:selected:active {{
                     background:rgba(0, 0, 0, 10%);
-                    color: green;
-                    }
-                    """)
+                    color: {0};
+                    }}
+                    """.format(gui.list_text_color_focus))
                 gui.list2.setAlternatingRowColors(True)
                 if gui.list_with_thumbnail:
-                    gui.list2.setStyleSheet("""QListWidget{
-                    border-radius:3px;
-                    }
-                    
-                    QListWidget:item {
-                    height: 128px;
-                    }
-                    QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 20%);
-                    color: green;
-                    }
-                    """)
+                    ht = '128px'
                 else:
-                    gui.list2.setStyleSheet("""QListWidget{
-                    border-radius:3px;
-                    }
-                    
-                    QListWidget:item {
-                    height: 30px;
-                    }
-                    QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 20%);
-                    color: green;
-                    }
-                    """)
+                    ht = '30px'
+                gui.list2.setAlternatingRowColors(True)
+                gui.list2.setStyleSheet("""QListWidget{{
+                border-radius:3px;
+                }}
+                QListWidget:item {{
+                height: {0};
+                }}
+                QListWidget:item:selected:active {{
+                background:rgba(0, 0, 0, 20%);
+                color: {1};
+                }}
+                """.format(ht, gui.list_text_color_focus))
         elif theme == 'dark':
+            gui.list_text_color = 'lightgray'
+            gui.thumbnail_text_color = 'lightgray'
             if gui.list_with_thumbnail:
                 height = '128px'
             else:
                 height = '30px'
-                
             gui.list2.setStyleSheet("""QListWidget{{
-                color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                color:{1};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                 }}
                 QListWidget:item {{
-                height: {ht};
+                height: {0};
                 }}
                 QListWidget:item:selected:active {{
                 background:rgba(0, 0, 0, 20%);
-                color: green;
+                color: {2};
                 }}
                 QMenu{{
                 color: white;
@@ -764,15 +458,15 @@ class WidgetStyleSheet:
                 padding: 2px;
                 }}
                 QMenu::item{{
-                color: white;
+                color: {1};
                 background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                 padding: 4px; margin: 2px 2px 2px 10px;
                 }}
                 QMenu::item:selected{{
-                color: white;
+                color: {2};
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
-                """.format(ht=height))
+                """.format(height, gui.list_text_color, gui.list_text_color_focus))
             if widget != gui.list2:
                 for widget_item in ([gui.line, gui.text, gui.frame1, gui.frame,
                                 gui.torrent_frame, gui.float_window,
@@ -782,9 +476,9 @@ class WidgetStyleSheet:
                     else:
                         alpha = '30%'
                     widget_item.setStyleSheet("""
-                        color:white;
+                        color:{color};
                         background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});
-                        """.format(alpha=alpha))
+                        """.format(alpha=alpha, color=gui.list_text_color))
                 for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn]:
                     bg = '30%'
                     if frame == gui.dockWidget_3:
@@ -793,31 +487,34 @@ class WidgetStyleSheet:
                         qbtn = '10%'
                     frame.setStyleSheet("""
                         QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
-                        QPushButton{{color:white;background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});max-height:30px;}}
+                        QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});max-height:30px;}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{color:white;background:rgba(0,0,0,10%);
                         max-height:30px;border:rgba(0, 0, 0, 10%);}}
-                        QLabel{{color:white;background:rgba(0,0,0,10%);
+                        QLabel{{color:{color};background:rgba(0,0,0,10%);
                         max-height:30px;border:rgba(0, 0, 0, 10%);}}
                         QComboBox {{
-                        color: white;
+                        color: {color};
                         selection-color:yellow;background:rgba(0,0,0,{btn});
                         border:rgba(0, 0, 0, 10%);
                         }}
-                        QComboBox::hover{{background-color: rgba(0,0,0,60%);color: white;}}
+                        QComboBox::hover{{background-color: rgba(0,0,0,60%);color: {color};}}
                         QComboBox::drop-down {{
                         width: 47px;
                         border: 2px;
                         color:white;
                         }}
                         QComboBox::focus {{
-                        background-color:rgba(0,0,0,60%);color: white;;
+                        background-color:rgba(0,0,0,60%);color: {focus};
                         }}
                         QComboBox::down-arrow {{
                         width: 2px;
                         height: 2px;
-                        }}""".format(alpha=bg, btn=qbtn))
+                        }}""".format(
+                            alpha=bg, btn=qbtn, color=gui.list_text_color,
+                            focus=gui.list_text_color_focus)
+                        )
                 gui.player_opt.setStyleSheet("""
                     QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
                     QPushButton{max-height:30px;border:rgba(0, 0, 0, 30%)}
@@ -876,44 +573,44 @@ class WidgetStyleSheet:
                     padding: 2px;
                     }}
                     QMenu::item{{
-                    color: white;
+                    color: {0};
                     background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 4px; margin: 2px 2px 2px 10px;
                     }}
                     QMenu::item:selected{{
-                    color: white;
+                    color: {1};
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                     }}
                     """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus))
                 gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
-                    widget.setStyleSheet("""QListWidget{
-                    color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
-                    }
-                    QListWidget:item {
+                    widget.setStyleSheet("""QListWidget{{
+                    color:{0};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                    }}
+                    QListWidget:item {{
                     height: 30px;
-                    }
-                    QListWidget:item:selected:active {
+                    }}
+                    QListWidget:item:selected:active {{
                     background:rgba(0, 0, 0, 20%);
-                    color: violet;;
-                    }
-                    QListWidget:item:selected:focus {
+                    color: {1};
+                    }}
+                    QListWidget:item:selected:focus {{
                     background:rgba(0, 0, 0, 20%);
-                    color: violet;;
-                    }
-                    QMenu{
+                    color: {1};
+                    }}
+                    QMenu{{
                     color: white;
                     background: rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 2px;
-                    }
-                    QMenu::item{
-                    color: white;
+                    }}
+                    QMenu::item{{
+                    color: {0};
                     background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 4px; margin: 2px 2px 2px 10px;
-                    }
-                    QMenu::item:selected{
-                    color: white;
+                    }}
+                    QMenu::item:selected{{
+                    color: {1};
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
-                    }
-                    """)
+                    }}
+                    """.format(gui.list_text_color, gui.list_text_color_focus))
