@@ -436,8 +436,8 @@ class WidgetStyleSheet:
                 }}
                 """.format(ht, gui.list_text_color_focus))
         elif theme == 'dark':
-            gui.list_text_color = 'lightgray'
-            gui.thumbnail_text_color = 'lightgray'
+            #gui.list_text_color = 'lightgray'
+            #gui.thumbnail_text_color = 'lightgray'
             if gui.list_with_thumbnail:
                 height = '128px'
             else:
