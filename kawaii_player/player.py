@@ -623,8 +623,10 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(txt_osd, 'utf-8'))
                 if self.ui.final_playing_url in self.ui.history_dict_obj:
                     seek_time, acc_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj.get(self.ui.final_playing_url)
-                    rem_quit = 1
                     asp = aspect_val
+                    if self.ui.video_parameters:
+                        if self.ui.video_parameters[0] == self.ui.final_playing_url:
+                            self.ui.video_parameters[-1] = asp
                     self.ui.history_dict_obj.update(
                         {self.ui.final_playing_url:[
                             seek_time, acc_time, sub_id, audio_id,
@@ -637,7 +639,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 if self.mpvplayer.processId() > 0:
                     if self.ui.final_playing_url in self.ui.history_dict_obj:
                         seek_time, acc_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj.get(self.ui.final_playing_url)
-                        rem_quit = 1
+                        if self.ui.video_parameters:
+                            if self.ui.video_parameters[0] == self.ui.final_playing_url:
+                                self.ui.video_parameters[-1] = asp
                         self.ui.history_dict_obj.update(
                             {
                                 self.ui.final_playing_url:[
