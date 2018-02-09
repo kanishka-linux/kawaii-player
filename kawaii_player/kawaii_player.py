@@ -13058,7 +13058,7 @@ def main():
         if BROWSER_BACKEND == 'QTWEBENGINE':
             f.write("\nBROWSER_BACKEND=QTWEBENGINE")
         elif BROWSER_BACKEND == 'QTWEBKIT':
-            f.write("BROWSER_BACKEND=QTWEBKIT")
+            f.write("\nBROWSER_BACKEND=QTWEBKIT")
         f.write("\nLOCAL_STREAM_IP=127.0.0.1:9001")
         f.write("\nDEFAULT_DOWNLOAD_LOCATION="+TMPDIR)
         f.write("\nKEEP_BACKGROUND_CONSTANT=no")
@@ -13095,7 +13095,7 @@ def main():
         f.write("\nGLOBAL_FONT_SIZE=Default")
         f.write("\n#TEXT_COLORS=red,green,blue,yellow,gray,white,black,cyan,magenta")
         f.write("\n#TEXT_COLORS=darkgray,lightgray,darkred,darkblue,darkyellow,transparent")
-        f.write("\n#For Dark Theme, Text Color has been fixed to lightgray")
+        f.write("\n#For Dark Theme, use TEXT_COLOR=lightgray, if white color looks bright")
         f.write("\nTHUMBNAIL_TEXT_COLOR=white")
         f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
         f.write("\nLIST_TEXT_COLOR=white")
