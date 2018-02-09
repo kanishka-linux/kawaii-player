@@ -246,17 +246,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 else:
                         ui.mpvplayer_val.write(b'\n osd-msg-bar seek -5 \n')
             elif event.key() == QtCore.Qt.Key_0:
-                if ui.player_val == "mplayer":
-                        ui.mpvplayer_val.write(b'\n volume +5 \n')
-                else:
-                        ui.mpvplayer_val.write(b'\n add ao-volume +5 \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_9:
-                if ui.player_val == "mplayer":
-                        ui.mpvplayer_val.write(b'\n volume -5 \n')
-                else:
-                        ui.mpvplayer_val.write(b'\n add ao-volume -5 \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_A:
-                ui.mpvplayer_val.write(b'\n cycle_values video-aspect "16:9" "4:3" "2.35:1" "-1" \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_N:
                 ui.mpvplayer_val.write(b'\n playlist_next \n')
             elif event.key() == QtCore.Qt.Key_L:
