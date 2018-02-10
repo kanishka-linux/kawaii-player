@@ -11660,14 +11660,26 @@ watch/unwatch status")
             if not os.path.exists(video_db):
                 self.media_data.create_update_video_db(video_db, video_file, video_file_bak)
             elif video_opt == "UpdateAll":
-                self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
+                msg = ('This Option Will Update The Database\
+                        \nby Removing All Unreachable Links\
+                        \nFrom it. Do You Want To Continue?')
+                msg = re.sub('[ ]+', ' ', msg)
+                msgreply = QtWidgets.QMessageBox.question(
+                    MainWindow, 'Total Update', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
+                    QtWidgets.QMessageBox.No
+                    )
+                if msgreply == QtWidgets.QMessageBox.Yes:
+                    self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
+                    logger.debug('Proceed With Removing unreachable links')
+                else:
+                    logger.debug('Canceled UpdateAll')
                 self.video_dict.clear()
             elif video_opt == "Update":
                 self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
                 self.video_dict.clear()
-            print(video_opt)
+            logger.debug(video_opt)
             if video_opt.lower() != 'update' and video_opt.lower() != 'updateall':
                 opt = video_opt
             artist = []
@@ -13471,50 +13483,57 @@ def main():
     else:
         show_hide_playlist = 1
     icon_poster = iconv_r
-    if os.path.exists(os.path.join(home, "config.txt")):
-        f = open(os.path.join(home, "config.txt"), "w")
-        f.write("VERSION_NUMBER="+str(ui.version_number))
-        f.write("\nDefaultPlayer="+ui.player_val)
-        f.write("\nWindowFrame="+str(ui.window_frame))
-        f.write("\nFloatWindow="+str(ui.float_window_dim))
-        f.write("\nDockPos="+str(ui.orientation_dock))
-        f.write("\nMusicWindowDim="+str(ui.music_mode_dim))
-        f.write("\nMusicModeDimShow="+str(ui.music_mode_dim_show))
-        if iconv_r_indicator:
-            iconv_r = icon_poster = iconv_r_indicator[0]
-        if ui.icon_poster_indicator:
-            icon_poster = ui.icon_poster_indicator[-1]
-        f.write("\nThumbnail_Poster="+str(icon_poster))
-        f.write("\nThumbnail_Size="+str(iconv_r))
-        f.write("\nView="+str(ui.view_mode))
-        f.write("\nQuality="+str(ui.quality_val))
-        f.write("\nSite_Index="+str(ui.btn1.currentIndex()))
-        f.write("\nAddon_Index="+str(ui.btnAddon.currentIndex()))
-        f.write("\nOption_Index="+str(ui.list3.currentRow()))
-        f.write("\nOption_SiteName="+str(siteName))
-        f.write("\nOption_Val="+str(opt))
-        f.write("\nName_Index="+str(ui.list1.currentRow()))
-        f.write("\nEpisode_Index="+str(ui.list2.currentRow()))
-        f.write("\nShow_Hide_Cover="+str(show_hide_cover))
-        f.write("\nShow_Hide_Playlist="+str(show_hide_playlist))
-        f.write("\nShow_Hide_Titlelist="+str(show_hide_titlelist))
-        f.write("\nShow_Hide_Player="+str(show_hide_player))
-        f.write("\nDock_Option="+str(dock_opt))
-        f.write("\nPOSX="+str(MainWindow.pos().x()))
-        f.write("\nPOSY="+str(MainWindow.pos().y()))
-        f.write("\nWHeight="+str(MainWindow.height()))
-        f.write("\nWWidth="+str(MainWindow.width()))
-        f.write("\nLayout="+str(layout_mode))
-        f.write("\nDefault_Mode="+str(def_val))
-        f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
-        f.write("\nMusic_Mode="+str(music_val))
-        f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
-        f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
-        f.write("\nUpload_Speed="+str(ui.setuploadspeed))
-        f.write("\nForce_FS={0}".format(ui.force_fs))
-        #f.write("\nSUB_ID={0}".format(sub_id))
-        #f.write("\nAUDIO_ID={0}".format(audio_id))
-        f.close()
+    config_path = os.path.join(home, "config.txt")
+    if os.path.exists(config_path):
+        with open(config_path, "w") as f:
+            f.write("VERSION_NUMBER="+str(ui.version_number))
+            f.write("\nDefaultPlayer="+ui.player_val)
+            f.write("\nWindowFrame="+str(ui.window_frame))
+            f.write("\nFloatWindow="+str(ui.float_window_dim))
+            f.write("\nDockPos="+str(ui.orientation_dock))
+            f.write("\nMusicWindowDim="+str(ui.music_mode_dim))
+            f.write("\nMusicModeDimShow="+str(ui.music_mode_dim_show))
+            if iconv_r_indicator:
+                iconv_r = icon_poster = iconv_r_indicator[0]
+            if ui.icon_poster_indicator:
+                icon_poster = ui.icon_poster_indicator[-1]
+            f.write("\nThumbnail_Poster="+str(icon_poster))
+            f.write("\nThumbnail_Size="+str(iconv_r))
+            f.write("\nView="+str(ui.view_mode))
+            f.write("\nQuality="+str(ui.quality_val))
+            f.write("\nSite_Index="+str(ui.btn1.currentIndex()))
+            f.write("\nAddon_Index="+str(ui.btnAddon.currentIndex()))
+            opt_val = opt
+            if ui.list3.currentItem():
+                opt_index = ui.list3.currentRow()
+                opt_txt = ui.list3.currentItem().text()
+                if opt_txt.lower() in ['update', 'updateall']:
+                    opt_val = 'Available'
+                    opt_index = '1'
+            else:
+                opt_index = '0'
+            f.write("\nOption_Val="+str(opt_val))
+            f.write("\nOption_Index="+str(opt_index))
+            f.write("\nOption_SiteName="+str(siteName))
+            f.write("\nName_Index="+str(ui.list1.currentRow()))
+            f.write("\nEpisode_Index="+str(ui.list2.currentRow()))
+            f.write("\nShow_Hide_Cover="+str(show_hide_cover))
+            f.write("\nShow_Hide_Playlist="+str(show_hide_playlist))
+            f.write("\nShow_Hide_Titlelist="+str(show_hide_titlelist))
+            f.write("\nShow_Hide_Player="+str(show_hide_player))
+            f.write("\nDock_Option="+str(dock_opt))
+            f.write("\nPOSX="+str(MainWindow.pos().x()))
+            f.write("\nPOSY="+str(MainWindow.pos().y()))
+            f.write("\nWHeight="+str(MainWindow.height()))
+            f.write("\nWWidth="+str(MainWindow.width()))
+            f.write("\nLayout="+str(layout_mode))
+            f.write("\nDefault_Mode="+str(def_val))
+            f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
+            f.write("\nMusic_Mode="+str(music_val))
+            f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
+            f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
+            f.write("\nUpload_Speed="+str(ui.setuploadspeed))
+            f.write("\nForce_FS={0}".format(ui.force_fs))
     if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
             ui.queue_url_list.insert(0, ui.queue_item)
