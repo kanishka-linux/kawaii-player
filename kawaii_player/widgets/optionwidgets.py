@@ -47,6 +47,9 @@ class SidebarWidget(QtWidgets.QListWidget):
             self.setFocus()
         elif event.key() == QtCore.Qt.Key_Left:
             if not ui.list2.isHidden():
+                if ui.list2.currentItem():
+                    index = ui.list2.currentRow()
+                    ui.list2.setCurrentRow(index)
                 ui.list2.setFocus()
             elif not ui.list1.isHidden():
                 ui.list1.setFocus()
