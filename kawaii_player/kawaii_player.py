@@ -1233,6 +1233,7 @@ watch/unwatch status")
         self.thumbnail_text_color_focus = 'green'
         self.list_text_color = 'white'
         self.list_text_color_focus = 'violet'
+        self.font_bold = True
         self.horizontalLayout10 = QtWidgets.QVBoxLayout(self.tab_6)
         self.horizontalLayout10.setObjectName(_fromUtf8("horizontalLayout"))
         self.scrollArea = QtGuiQWidgetScroll(self.tab_6, self)
@@ -1523,8 +1524,8 @@ watch/unwatch status")
         self.wget = QtCore.QProcess()
         self.video_local_stream = False
         self.cur_row = 0
-        self.global_font = 'default'
-        self.global_font_size = 'default'
+        self.global_font = 'Ubuntu'
+        self.global_font_size = 9
         self.show_search_thumbnail = False
         self.tab_6_size_indicator = []
         self.tab_6_player = False
@@ -2426,7 +2427,10 @@ watch/unwatch status")
             logger.info(
                 "\npicn={0}, fanart={1}, image_fit_option={2}\n".format(
                 picn, fanart, self.image_fit_option_val))
-            self.image_fit_option(picn, fanart, fit_size=self.image_fit_option_val)
+            if var == 4:
+                self.image_fit_option(picn, fanart, fit_size=6, widget=self.label_new)
+            else:
+                self.image_fit_option(picn, fanart, fit_size=self.image_fit_option_val)
             set_mainwindow_palette(fanart, theme=self.player_theme)
         
     def webResize(self):
@@ -4162,7 +4166,11 @@ watch/unwatch status")
             w = float(self.tab_6.width()-60)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
-            
+        if self.font_bold:
+            font_bold = 'bold'
+        else:
+            font_bold = ''
+        font_size = self.global_font_size + 3
         width = int(w)
         height = int(h)
         hei_ght= int(h/3)
@@ -4222,13 +4230,13 @@ watch/unwatch status")
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_title_txt.setStyleSheet(
-                            """font: bold 12px {0};color: {1}
-                            """.format(self.global_font, self.thumbnail_text_color)
+                            """font: {bold} {size}px {0};color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color, bold=font_bold, size=font_size)
                             )
                     else:
                         label_title_txt.setStyleSheet(
-                            """font: {0}; color: {1}
-                            """.format(self.global_font, self.thumbnail_text_color)
+                            """font: {bold} {size}px {0}; color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color, bold=font_bold, size=font_size)
                             )
                 if value_str == "deleted" or value_str == 'zoom':
                     self.display_image(i, "image", iconv_r_poster, value_str, dimn=dim_tuple)
@@ -4623,7 +4631,11 @@ watch/unwatch status")
             h = int(w/self.image_aspect_allowed)
         width = int(w)
         height = int(h)
-        
+        if self.font_bold:
+            font_bold = 'bold'
+        else:
+            font_bold = ''
+        font_size = self.global_font_size + 3
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
@@ -4783,13 +4795,15 @@ watch/unwatch status")
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_epn_txt.setStyleSheet(
-                            """font: bold 12px {0};color: {1}
-                            """.format(self.global_font, self.thumbnail_text_color)
+                            """font: {bold} {size}px {0};color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color,
+                                       bold=font_bold, size=font_size)
                             )
                     else:
                         label_epn_txt.setStyleSheet(
-                            """font: {0};color: {1}
-                            """.format(self.global_font, self.thumbnail_text_color)
+                            """font: {bold} {size}px {0};color: {1}
+                            """.format(self.global_font, self.thumbnail_text_color,
+                                       bold=font_bold, size=font_size)
                             )
                 ii += 1
                 kk += 1
@@ -7826,6 +7840,7 @@ watch/unwatch status")
         global screen_height, screen_width
         if not color:
             color = 'RGB'
+        color_val = (56,60,74)
         try:
             if fit_size:
                 if (fit_size == 1 or fit_size == 2) or fit_size > 100:
@@ -7882,7 +7897,7 @@ watch/unwatch status")
                     wpercent = (baseheight / float(img.size[1]))
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
-                    bg = Image.new(color, (wsize+20, baseheight))
+                    bg = Image.new(color, (wsize+20, baseheight), color_val)
                     offset = (0, 0)
                     bg.paste(img, offset)
                     try:
@@ -7902,7 +7917,7 @@ watch/unwatch status")
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     sz = (wsize, baseheight)
                     img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
-                    bg = Image.new(color, (screen_width, screen_height))
+                    bg = Image.new(color, (screen_width, screen_height), color_val)
                     if fit_size == 5:
                         offset = (int((screen_width-wsize)/2), int((screen_height-baseheight)/2))
                     else:
@@ -7929,7 +7944,7 @@ watch/unwatch status")
                     #img = self.round_corner(img, 30)
                     wpercent = (basewidth / float(img.size[0]))
                     hsize = int((float(img.size[1]) * float(wpercent)))
-                    bg = Image.new(color, (screen_width, screen_height))
+                    bg = Image.new(color, (screen_width, screen_height), color_val)
                     #bg = Image.open(os.path.join(home, 'default.jpg'))
                     if hsize < screen_height:
                         sz = (basewidth, hsize)
@@ -7977,9 +7992,10 @@ watch/unwatch status")
                         else:
                             basewidth = self.float_window.width()
                             baseheight = self.float_window.height()
-                    #logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
-                    bg = Image.new(color, (basewidth, baseheight))
-                    #logger.debug('width={0}::ht={1}'.format(basewidth, baseheight))
+                    if fit_size == 6:
+                        bg = Image.new(color, (basewidth, baseheight))
+                    else:
+                        bg = Image.new(color, (basewidth, baseheight))
                     try:
                         if os.path.exists(picn) and os.stat(picn).st_size:
                             img = Image.open(str(picn))
@@ -12774,9 +12790,9 @@ def main():
         f.close()
         ui.local_ip = '127.0.0.1'
         ui.local_port = 8001
-        
-    if os.path.exists(os.path.join(home, 'other_options.txt')):
-        lines = open_files(os.path.join(home, 'other_options.txt'), True)
+    options_txt_file = os.path.join(home, 'other_options.txt')
+    if os.path.exists(options_txt_file):
+        lines = open_files(options_txt_file, True)
         for i in lines:
             i = i.strip()
             if not i.startswith('#'):
@@ -13023,6 +13039,13 @@ def main():
                             ui.global_font = global_font
                     except Exception as e:
                         logger.error(e)
+                elif i.startswith('FONT_BOLD='):
+                    try:
+                        font_bold = j.lower()
+                        if font_bold in ['false', 'no']:
+                            ui.font_bold = False
+                    except Exception as e:
+                        logger.error(e)
                 elif i.startswith('GLOBAL_FONT_SIZE='):
                     try:
                         global_font_size = j.lower()
@@ -13065,56 +13088,59 @@ def main():
             else:
                 logger.debug(i)
     else:
-        f = open(os.path.join(home, 'other_options.txt'), 'w')
-        f.write("#BROWSER_BACKEND=QTWEBENGINE,QTWEBKIT")
-        if BROWSER_BACKEND == 'QTWEBENGINE':
-            f.write("\nBROWSER_BACKEND=QTWEBENGINE")
-        elif BROWSER_BACKEND == 'QTWEBKIT':
-            f.write("\nBROWSER_BACKEND=QTWEBKIT")
-        f.write("\nLOCAL_STREAM_IP=127.0.0.1:9001")
-        f.write("\nDEFAULT_DOWNLOAD_LOCATION="+TMPDIR)
-        f.write("\nKEEP_BACKGROUND_CONSTANT=no")
-        f.write("\nTMP_REMOVE=no")
-        f.write("\n#GET_LIBRARY=pycurl,curl,wget")
-        if OSNAME == 'nt':
-            f.write("\nGET_LIBRARY=curl")
-        else:
-            f.write("\nGET_LIBRARY=pycurl")
-        f.write("\n#IMAGE_FIT_OPTION=0-9")
-        f.write("\nIMAGE_FIT_OPTION=3")
-        f.write("\nAUTH=NONE")
-        f.write("\nACCESS_FROM_OUTSIDE_NETWORK=False")
-        f.write("\nCLOUD_IP_FILE=none")
-        f.write("\nHTTPS_ON=False")
-        f.write("\nMEDIA_SERVER_COOKIE=False")
-        f.write("\nCOOKIE_EXPIRY_LIMIT=24")
-        f.write("\nCOOKIE_PLAYLIST_EXPIRY_LIMIT=24")
-        f.write("\nLOGGING=Off")
-        f.write("\n#YTDL_PATH=default,automatic")
-        f.write("\nYTDL_PATH=DEFAULT")
-        f.write("\nANIME_REVIEW_SITE=False")
-        f.write("\nGET_MUSIC_METADATA=False")
-        f.write("\nREMOTE_CONTROL=False")
-        f.write("\nMPV_INPUT_CONF=False")
-        f.write("\nBROADCAST_MESSAGE=False")
-        f.write("\nMEDIA_SERVER_AUTOSTART=False")
-        f.write("\n#THEME=default,system,dark")
-        f.write("\nTHEME=DEFAULT")
-        f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
-        f.write("\nEXTRA_PLAYERS=NONE")
-        f.write("\n#GLOBAL_FONT=Name of Font")
-        f.write("\nGLOBAL_FONT=Default")
-        f.write("\nGLOBAL_FONT_SIZE=Default")
-        f.write("\n#TEXT_COLORS=red,green,blue,yellow,gray,white,black,cyan,magenta")
-        f.write("\n#TEXT_COLORS=darkgray,lightgray,darkred,darkblue,darkyellow,transparent")
-        f.write("\n#For Dark Theme, use TEXT_COLOR=lightgray, if white color looks bright")
-        f.write("\nTHUMBNAIL_TEXT_COLOR=white")
-        f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
-        f.write("\nLIST_TEXT_COLOR=white")
-        f.write("\nLIST_TEXT_COLOR_FOCUS=violet")
-        f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
-        f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
-        f.close()
+        with open(options_txt_file, 'w') as f:
+            f.write("#BROWSER_BACKEND=QTWEBENGINE,QTWEBKIT")
+            if BROWSER_BACKEND == 'QTWEBENGINE':
+                f.write("\nBROWSER_BACKEND=QTWEBENGINE")
+            elif BROWSER_BACKEND == 'QTWEBKIT':
+                f.write("\nBROWSER_BACKEND=QTWEBKIT")
+            f.write("\nLOCAL_STREAM_IP=127.0.0.1:9001")
+            f.write("\nDEFAULT_DOWNLOAD_LOCATION="+TMPDIR)
+            f.write("\nKEEP_BACKGROUND_CONSTANT=no")
+            f.write("\nTMP_REMOVE=no")
+            f.write("\n#GET_LIBRARY=pycurl,curl,wget")
+            if OSNAME == 'nt':
+                f.write("\nGET_LIBRARY=curl")
+            else:
+                f.write("\nGET_LIBRARY=pycurl")
+            f.write("\n#IMAGE_FIT_OPTION=0-9")
+            f.write("\nIMAGE_FIT_OPTION=3")
+            f.write("\nAUTH=NONE")
+            f.write("\nACCESS_FROM_OUTSIDE_NETWORK=False")
+            f.write("\nCLOUD_IP_FILE=none")
+            f.write("\nHTTPS_ON=False")
+            f.write("\nMEDIA_SERVER_COOKIE=False")
+            f.write("\nCOOKIE_EXPIRY_LIMIT=24")
+            f.write("\nCOOKIE_PLAYLIST_EXPIRY_LIMIT=24")
+            f.write("\nLOGGING=Off")
+            f.write("\n#YTDL_PATH=default,automatic")
+            f.write("\nYTDL_PATH=DEFAULT")
+            f.write("\nANIME_REVIEW_SITE=False")
+            f.write("\nGET_MUSIC_METADATA=False")
+            f.write("\nREMOTE_CONTROL=False")
+            f.write("\nMPV_INPUT_CONF=False")
+            f.write("\nBROADCAST_MESSAGE=False")
+            f.write("\nMEDIA_SERVER_AUTOSTART=False")
+            f.write("\n#THEME=default,system,dark")
+            f.write("\nTHEME=DEFAULT")
+            f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
+            f.write("\nEXTRA_PLAYERS=NONE")
+            f.write("\n#GLOBAL_FONT=Name of Font")
+            f.write("\nGLOBAL_FONT=Default")
+            f.write("\nGLOBAL_FONT_SIZE=Default")
+            f.write("\nFONT_BOLD=True")
+            msg = ("\n#THUMBNAIL_TEXT_COLOR/LIST_TEXT_COLOR=red,green,blue,yellow,\
+                   gray,white,black,cyan,magenta,darkgray,lightgray,darkred,\
+                   darkblue,darkyellow,transparent")
+            msg = re.sub('[ ]+', ' ', msg)
+            f.write(msg)
+            f.write("\n#For Dark Theme, use lightgray, if white color looks bright")
+            f.write("\nTHUMBNAIL_TEXT_COLOR=white")
+            f.write("\nTHUMBNAIL_TEXT_COLOR_FOCUS=green")
+            f.write("\nLIST_TEXT_COLOR=white")
+            f.write("\nLIST_TEXT_COLOR_FOCUS=violet")
+            f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
+            f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
@@ -13131,7 +13157,9 @@ def main():
                 theme=ui.player_theme
                 )
             )
+    
     try:
+        font = 'default'
         if ui.global_font != 'default':
             if isinstance(ui.global_font_size, int):
                 font = QtGui.QFont(ui.global_font, ui.global_font_size)
@@ -13144,6 +13172,7 @@ def main():
         logger.debug('{}{}'.format(ui.global_font, ui.global_font_size))
     except Exception as err:
         logger.error(err)
+    
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
