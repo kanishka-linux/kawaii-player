@@ -1516,7 +1516,6 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.player_volume = 'auto'
-        self.settings_box = None
         self.browser_backend = BROWSER_BACKEND
         self.settings_tab_index = 0
         #video_parameters=[url, seek_time, cur_time, sub, aid, rem_quit, vol, asp]
@@ -1672,6 +1671,10 @@ watch/unwatch status")
                 screen_width, screen_height
                 )
         self.list_poster.hide()
+        self.settings_box = OptionsSettings(MainWindow, self, TMPDIR)
+        self.settings_box.setMaximumWidth(screen_width-2*self.width_allowed-35)
+        self.vertical_layout_new.insertWidget(0, self.settings_box)
+        self.settings_box.hide()
         self.widget_dict = {
             'list1':self.list1, 'list2':self.list2, 'frame1':self.frame1,
             'label':self.label, 'label_new':self.label_new, 'text':self.text,
@@ -1724,6 +1727,8 @@ watch/unwatch status")
                             MainWindow, self.show_hide_progressbar)
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+F"), MainWindow, 
                             self.show_hide_filter_toolbar)
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+P"), MainWindow, 
+                            self.settings_box.start)
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Z"), MainWindow, 
                             self.IconView)
         QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
@@ -3651,7 +3656,6 @@ watch/unwatch status")
         elif val.lower() == 'set media server user/password':
             new_set = LoginAuth(parent=MainWindow, media_server=True, ui=self, tmp=TMPDIR)
         elif val.lower() == 'preferences':
-            self.settings_box = OptionsSettings(MainWindow, self, TMPDIR)
             self.settings_box.start()
         elif val == "Set Current Background As Default":
             if (os.path.exists(self.current_background) 
