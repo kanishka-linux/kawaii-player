@@ -2427,7 +2427,7 @@ watch/unwatch status")
             logger.info(
                 "\npicn={0}, fanart={1}, image_fit_option={2}\n".format(
                 picn, fanart, self.image_fit_option_val))
-            if var == 4:
+            if var == 8:
                 self.image_fit_option(picn, fanart, fit_size=6, widget=self.label_new)
             else:
                 self.image_fit_option(picn, fanart, fit_size=self.image_fit_option_val)
