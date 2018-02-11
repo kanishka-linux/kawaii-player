@@ -524,6 +524,50 @@ class WidgetStyleSheet:
                     QPushButton::hover{background-color: yellow;color: black;}
                     QPushButton:pressed{background-color: violet;}""")
                 
+                gui.settings_box.setStyleSheet("""
+                        QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
+                        QTabWidget{{
+                            color:{color};
+                            border:rgba(0,0,0,{alpha});background:rgb(56,60,74);
+                            background-color:rgba(0,0,0,{alpha});
+                            }}
+                        QTabWidget:pane {{
+                            color:{color};font: {bold};
+                            border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
+                        }}
+                        QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
+                        max-height:40px; font: {bold};}}
+                        QPushButton::hover{{background-color: yellow;color: black;}}
+                        QPushButton:pressed{{background-color: violet;}}
+                        QLineEdit{{color:white;background:rgba(0,0,0,10%);
+                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold}}}
+                        QLabel{{color:{color};background:rgba(0,0,0,0%);
+                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold};}}
+                        QComboBox {{
+                        color: {color};
+                        selection-color:yellow;background:rgba(0,0,0,{btn});
+                        border:rgba(0, 0, 0, 10%);
+                        padding: 2px 0px 2px 4px;
+                        font: {bold};
+                        max-height: 40px;
+                        }}
+                        QComboBox::hover{{background-color: rgba(0,0,0,60%);color: {color};}}
+                        QComboBox::drop-down {{
+                        width: 22px;
+                        border: 2px;
+                        color:white;
+                        }}
+                        QComboBox::focus {{
+                        background-color:rgba(0,0,0,60%);color: {focus};
+                        }}
+                        QComboBox::down-arrow {{
+                        width: 2px;
+                        height: 2px;
+                        }}""".format(
+                            alpha=bg, btn=qbtn, color=gui.list_text_color,
+                            focus=gui.list_text_color_focus, bold=font_bold)
+                        )
+                
                 for widget in [gui.progress, gui.progressEpn]:
                     widget.setStyleSheet("""QProgressBar{
                     color:white;
