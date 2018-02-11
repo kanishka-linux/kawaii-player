@@ -367,18 +367,27 @@ class QLineCustom(QtWidgets.QLineEdit):
         ui = ui_widget
         
     def keyPressEvent(self, event):
-        print("down")
-        if (event.key() == QtCore.Qt.Key_Down):
-            print("Down")
-            ui.list4.show()
-            ui.list4.setFocus()
-            self.show()
-        elif event.key() == QtCore.Qt.Key_Up:
-            ui.list4.show()
-            ui.list4.setFocus()
-            self.show()
-        else:
-            super(QLineCustom, self).keyPressEvent(event)
+        if self.objectName() == 'go_page':
+            if event.key() == QtCore.Qt.Key_Down:
+                ui.list4.show()
+                ui.list4.setFocus()
+                self.show()
+            elif event.key() == QtCore.Qt.Key_Up:
+                ui.list4.show()
+                ui.list4.setFocus()
+                self.show()
+            else:
+                super(QLineCustom, self).keyPressEvent(event)
+        elif self.objectName() == 'label_search':
+            if event.key() in [QtCore.Qt.Key_Down, QtCore.Qt.Key_Return]:
+                if not ui.list_poster.isHidden():
+                    ui.list_poster.setFocus()
+                elif not ui.scrollArea.isHidden():
+                    ui.scrollArea.setFocus()
+                elif not ui.scrollArea1.isHidden():
+                    ui.scrollArea1.setFocus()
+            else:
+                super(QLineCustom, self).keyPressEvent(event)
 
 
 class QLineCustomSearch(QtWidgets.QLineEdit):
