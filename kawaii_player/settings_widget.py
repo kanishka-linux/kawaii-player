@@ -309,7 +309,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.ui.watch_external_video(self.url)
 
 
-class OptionsSettings(QtWidgets.QDialog):
+class OptionsSettings(QtWidgets.QTabWidget):
     
     def __init__(self, parent, uiwidget, tmp):
         super(OptionsSettings, self).__init__(parent)
@@ -318,39 +318,56 @@ class OptionsSettings(QtWidgets.QDialog):
         MainWindow = parent
         TMPDIR = tmp
         logger = ui.logger
-        self.tab = QtWidgets.QTabWidget(self)
         self.setWindowTitle("Kawaii-Player Settings")
-        self.tab.setMinimumSize(QtCore.QSize(600, 300))
-        self.tab_app = QtWidgets.QWidget()
+        #self.tab.setMinimumSize(QtCore.QSize(600, 300))
+        self.tab_app = QtWidgets.QWidget(self)
         self.gl1 = QtWidgets.QGridLayout(self.tab_app)
-        self.tab_server = QtWidgets.QWidget()
+        self.tab_server = QtWidgets.QWidget(self)
         self.gl2 = QtWidgets.QGridLayout(self.tab_server)
-        self.tab_torrent = QtWidgets.QWidget()
+        self.tab_torrent = QtWidgets.QWidget(self)
         self.gl3 = QtWidgets.QGridLayout(self.tab_torrent)
-        self.tab_meta = QtWidgets.QWidget()
+        self.tab_meta = QtWidgets.QWidget(self)
         self.gl4 = QtWidgets.QGridLayout(self.tab_meta)
-        self.tab_help = QtWidgets.QWidget()
-        self.tab.addTab(self.tab_app, 'Appearance')
-        self.tab.addTab(self.tab_server, 'Media Server')
-        self.tab.addTab(self.tab_torrent, 'Torrent And P2P')
-        self.tab.addTab(self.tab_meta, 'Other Essential')
-        self.tab.addTab(self.tab_help, 'Help')
+        self.tab_help = QtWidgets.QWidget(self)
+        self.addTab(self.tab_app, 'Appearance')
+        self.addTab(self.tab_server, 'Media Server')
+        self.addTab(self.tab_torrent, 'Torrent And P2P')
+        self.addTab(self.tab_meta, 'Other Essential')
+        self.addTab(self.tab_help, 'Help')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
-    
+        self.hide_label = False
+        self.tabs_present = False
+        
     def tab_changed(self):
-        ui.settings_tab_index = self.tab.currentIndex()
+        ui.settings_tab_index = self.currentIndex()
         logger.debug(ui.settings_tab_index)
         
     def start(self):
-        logger.debug(ui.settings_tab_index)
-        self.tab.setCurrentIndex(ui.settings_tab_index)
-        self.appeareance()
-        self.mediaserver()
-        self.torrentsettings()
-        self.othersettings()
-        self.tab.show()
-        self.show()
-        self.tab.currentChanged.connect(self.tab_changed)
+        if self.isHidden():
+            logger.debug(ui.settings_tab_index)
+            if not ui.label.isHidden():
+                ui.label_new.hide()
+                ui.label.hide()
+                ui.text.hide()
+                self.hide_label = True
+            self.setCurrentIndex(ui.settings_tab_index)
+            if not self.tabs_present:
+                self.appeareance()
+                self.mediaserver()
+                self.torrentsettings()
+                self.othersettings()
+                self.tabs_present = True
+            self.show()
+            self.currentChanged.connect(self.tab_changed)
+        else:
+            self.hide()
+            if self.hide_label:
+                ui.label.show()
+                ui.text.show()
+                if ui.player_theme != 'default':
+                    ui.label_new.show()
+                self.hide_label = False
+            
         
     def appeareance(self):
         self.param_list = []
@@ -381,7 +398,7 @@ class OptionsSettings(QtWidgets.QDialog):
         index = self.line4.findText(str(ui.font_bold))
         self.line4.setCurrentIndex(index)
         self.text4 = QtWidgets.QLabel()
-        self.text4.setText("Bold Font")
+        self.text4.setText("Font Bold")
         self.param_list.append('font_bold')
         
         self.line5 = QtWidgets.QLineEdit()
