@@ -185,7 +185,7 @@ except Exception as e:
                  Torrent Streaming feature will be disabled'
     send_notification(notify_txt, code=0)
 
-from settings_widget import LoginAuth
+from settings_widget import LoginAuth, OptionsSettings
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
@@ -843,7 +843,7 @@ watch/unwatch status")
                 'Lock Playlist', 'Shuffle', 'Stop After Current File (Ctrl+Q)', 
                 'Continue(default Mode)', 'Set Media Server User/PassWord', 
                 'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control', 
-                'Set Current Background As Default', 'Settings'
+                'Set Current Background As Default', 'Preferences'
                 ]
                                 
         self.action_player_menu =[]
@@ -1516,7 +1516,11 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.player_volume = 'auto'
+        self.settings_box = None
+        self.browser_backend = BROWSER_BACKEND
+        self.settings_tab_index = 0
         #video_parameters=[url, seek_time, cur_time, sub, aid, rem_quit, vol, asp]
+        self.theme_list = ['Default', 'Dark', 'System']
         self.video_parameters = ['none', 0, 0, 'auto', 'auto', 0, 'auto', '-1']
         self.quit_really = 'no'
         self.restore_volume = False
@@ -3500,7 +3504,7 @@ watch/unwatch status")
             'Lock Playlist', 'Shuffle', 'Stop After Current File (Ctrl+Q)', 
             'Continue(default Mode)', 'Set Media Server User/PassWord', 
             'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control',
-            'Set Current Background As Default', 'Settings'
+            'Set Current Background As Default', 'Preferences'
             ]
         
         print(val)
@@ -3646,8 +3650,9 @@ watch/unwatch status")
             send_notification(msg)
         elif val.lower() == 'set media server user/password':
             new_set = LoginAuth(parent=MainWindow, media_server=True, ui=self, tmp=TMPDIR)
-        elif val.lower() == 'settings':
-            new_set = LoginAuth(parent=MainWindow, settings=True, ui=self, tmp=TMPDIR)
+        elif val.lower() == 'preferences':
+            self.settings_box = OptionsSettings(MainWindow, self, TMPDIR)
+            self.settings_box.start()
         elif val == "Set Current Background As Default":
             if (os.path.exists(self.current_background) 
                         and self.current_background != self.default_background):
@@ -12658,6 +12663,11 @@ def main():
                             ui.label.hide()
                     except:
                         show_hide_cover = 0
+                elif 'SETTINGS_TAB_INDEX' in i:
+                    try:
+                        ui.settings_tab_index = int(j)
+                    except Exception as err:
+                        logger.error(err)
                 elif "Show_Hide_Playlist" in i:
                     try:
                         show_hide_playlist = int(j)
@@ -13574,6 +13584,7 @@ def main():
             f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
             f.write("\nUpload_Speed="+str(ui.setuploadspeed))
             f.write("\nForce_FS={0}".format(ui.force_fs))
+            f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
     if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
             ui.queue_url_list.insert(0, ui.queue_item)
