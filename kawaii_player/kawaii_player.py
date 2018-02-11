@@ -1303,7 +1303,7 @@ watch/unwatch status")
         self.labelFrame2.setScaledContents(True)
         self.labelFrame2.setAlignment(QtCore.Qt.AlignCenter)
         
-        self.label_search = QtWidgets.QLineEdit(self.scrollAreaWidgetContents)
+        self.label_search = QLineCustom(self.scrollAreaWidgetContents, self)
         self.label_search.setObjectName(_fromUtf8("label_search"))
         self.label_search.setMaximumWidth(100)
         
@@ -2477,45 +2477,50 @@ watch/unwatch status")
         self.text_save_btn.setGeometry(g.x()+g.width()-30, g.y()-25, 35, 25)
         self.text_save_btn.show()
         self.text_save_btn_timer.start(4000)
-        
+    
     def show_hide_filter_toolbar(self):
-        go_pg = False
-        go_epn = False
-        if self.list1.isHidden() and self.list2.isHidden():
-            pass
-        elif not self.list1.isHidden() and self.list2.isHidden():
-            if self.frame.isHidden():
-                self.frame.show()
-                #go_pg = True
-            elif not self.frame.isHidden():
-                self.frame.hide()
-        elif self.list1.isHidden() and not self.list2.isHidden():
-            if self.goto_epn.isHidden():
-                self.goto_epn.show()
+        if self.view_mode in ['thumbnail', 'thumbnail_light']:
+            self.label_search.clear()
+            self.label_search.setFocus()
+        else:
+            print(type(self))
+            go_pg = False
+            go_epn = False
+            if self.list1.isHidden() and self.list2.isHidden():
+                pass
+            elif not self.list1.isHidden() and self.list2.isHidden():
+                if self.frame.isHidden():
+                    self.frame.show()
+                    #go_pg = True
+                elif not self.frame.isHidden():
+                    self.frame.hide()
+            elif self.list1.isHidden() and not self.list2.isHidden():
+                if self.goto_epn.isHidden():
+                    self.goto_epn.show()
+                elif not self.goto_epn.isHidden():
+                    self.goto_epn.hide()
+            elif not self.list1.isHidden() and not self.list2.isHidden():
+                if self.frame.isHidden() and not self.goto_epn.isHidden():
+                    self.goto_epn.hide()
+                elif not self.frame.isHidden() and self.goto_epn.isHidden():
+                    self.frame.hide()
+                elif not self.frame.isHidden() and not self.goto_epn.isHidden():
+                    self.frame.hide()
+                    self.goto_epn.hide()
+                elif self.frame.isHidden() and self.goto_epn.isHidden():
+                    self.frame.show()
+                    self.goto_epn.show()
+                
+            if not self.frame.isHidden():
+                self.go_page.setFocus()
             elif not self.goto_epn.isHidden():
-                self.goto_epn.hide()
-        elif not self.list1.isHidden() and not self.list2.isHidden():
-            if self.frame.isHidden() and not self.goto_epn.isHidden():
-                self.goto_epn.hide()
-            elif not self.frame.isHidden() and self.goto_epn.isHidden():
-                self.frame.hide()
-            elif not self.frame.isHidden() and not self.goto_epn.isHidden():
-                self.frame.hide()
-                self.goto_epn.hide()
-            elif self.frame.isHidden() and self.goto_epn.isHidden():
-                self.frame.show()
-                self.goto_epn.show()
+                self.goto_epn_filter_txt.setFocus()
             
-        if not self.frame.isHidden():
-            self.go_page.setFocus()
-        elif not self.goto_epn.isHidden():
-            self.goto_epn_filter_txt.setFocus()
-        
-        if self.frame.isHidden() and self.goto_epn.isHidden():
-            if not self.list1.isHidden():
-                self.list1.setFocus()
-            elif not self.list2.isHidden():
-                self.list2.setFocus()
+            if self.frame.isHidden() and self.goto_epn.isHidden():
+                if not self.list1.isHidden():
+                    self.list1.setFocus()
+                elif not self.list2.isHidden():
+                    self.list2.setFocus()
                     
     def orient_dock(self, initial_start=None):
         if initial_start:
@@ -4814,7 +4819,8 @@ watch/unwatch status")
                 QtWidgets.QApplication.processEvents()
             self.labelFrame2.setText(label_txt)
             total_till_epn = length1
-                
+            self.scrollArea1.setFocus()
+            
     def grid_thumbnail_process_finished(self, k):
         logger.debug('finished={0}'.format(k))
         
@@ -6486,7 +6492,7 @@ watch/unwatch status")
                     else:
                         found_item_index.append(0)
             else:
-                for i in range(self.list1.count()):				
+                for i in range(self.list1.count()):
                         found_item_index.append(1)
         else:
             if key:
@@ -6498,17 +6504,22 @@ watch/unwatch status")
                     else:
                         found_item_index.append(0)
             else:
-                for i in range(self.list2.count()):				
+                for i in range(self.list2.count()):
                         found_item_index.append(1)
         if self.list_poster.isHidden():
             self.label_filter_list_update(found_item_index)
         else:
             if found_item_index:
+                first_item = None
                 for i, j in enumerate(found_item_index):
                     if j == 1:
-                        self.list_poster.setCurrentRow(i)
-                        break
-                        
+                        if first_item is None:
+                            first_item = i
+                        self.list_poster.item(i).setHidden(False)
+                    else:
+                        self.list_poster.item(i).setHidden(True)
+                if first_item is not None:
+                    self.list_poster.setCurrentRow(first_item)
     
     def filter_list(self):
         global opt, pgn, site, filter_on
