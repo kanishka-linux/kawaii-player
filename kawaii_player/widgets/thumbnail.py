@@ -1623,15 +1623,28 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             if nextr == self.count():
                 self.setCurrentRow(0)
             else:
+                while self.item(nextr).isHidden() and nextr < self.count():
+                    nextr += 1
+                    if nextr == self.count():
+                        break
+                if nextr == self.count():
+                    nextr = 0
                 self.setCurrentRow(nextr)
         elif event.key() == QtCore.Qt.Key_Left:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
-                #self.setCurrentRow(self.count()-1)
             else:
-                self.setCurrentRow(prev_r)
+                while self.item(prev_r).isHidden() and prev_r >= 0:
+                    prev_r -= 1
+                    if prev_r < 0:
+                        break
+                if prev_r < 0:
+                    ui.dockWidget_3.show()
+                    ui.btn1.setFocus()
+                else:
+                    self.setCurrentRow(prev_r)
         elif event.text().isalnum():
                 ui.focus_widget = ui.list1
                 if ui.search_on_type_btn.isHidden():
