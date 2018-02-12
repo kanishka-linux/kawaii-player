@@ -48,7 +48,7 @@ class Torrent():
         m = ['Not Able To Open']
         if opt == 'Open':
             MainWindow = QtWidgets.QWidget()
-            item, ok = QtWidgets.QInputDialog.getText(MainWindow, 'Input Dialog', 'Enter Torrent Url or Magnet Link or local torrent file path')
+            item, ok = QtWidgets.QInputDialog.getText(ui, 'Input Dialog', 'Enter Torrent Url or Magnet Link or local torrent file path')
             if ok and item:
                 if (item.startswith('http') or (os.path.isfile(item) and item.endswith('.torrent'))):
                     home = hist_folder
