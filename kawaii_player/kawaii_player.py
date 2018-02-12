@@ -2543,7 +2543,7 @@ watch/unwatch status")
                 self.btn_orient.setText(self.player_buttons['left'])
                 self.btn_orient.setToolTip('Orient Dock to Left')
                 self.orientation_dock = 'right'
-                self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 1, 1)
+                self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 2, 1)
                 #self.gridLayout.addWidget(self.dockWidget_3, 0, 3, 1, 1)
         else:
             txt = self.btn_orient.text()
@@ -2551,7 +2551,7 @@ watch/unwatch status")
                 self.btn_orient.setText(self.player_buttons['left'])
                 self.btn_orient.setToolTip('Orient Dock to Left')
                 self.orientation_dock = 'right'
-                self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 1, 1)
+                self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 2, 1)
                 #self.gridLayout.addWidget(self.dockWidget_3, 0, 3, 1, 1)
             else:
                 self.player_buttons['left']
