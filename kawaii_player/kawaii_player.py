@@ -843,7 +843,7 @@ watch/unwatch status")
                 'Lock Playlist', 'Shuffle', 'Stop After Current File (Ctrl+Q)', 
                 'Continue(default Mode)', 'Set Media Server User/PassWord', 
                 'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control', 
-                'Set Current Background As Default', 'Preferences'
+                'Set Current Background As Default', 'Preferences (Ctrl+P)'
                 ]
                                 
         self.action_player_menu =[]
@@ -1364,6 +1364,7 @@ watch/unwatch status")
         
         self.chk = QtWidgets.QPushButton(self.dockWidget_3) 
         self.chk.setObjectName(_fromUtf8("chk"))
+        self.chk.setText("mpv")
         self.comboView = QtWidgets.QComboBox(self.dockWidget_3) 
         self.comboView.setObjectName(_fromUtf8("comboView"))
         self.comboView.hide()
@@ -3509,7 +3510,7 @@ watch/unwatch status")
             'Lock Playlist', 'Shuffle', 'Stop After Current File (Ctrl+Q)', 
             'Continue(default Mode)', 'Set Media Server User/PassWord', 
             'Start Media Server', 'Broadcast Server', 'Turn ON Remote Control',
-            'Set Current Background As Default', 'Preferences'
+            'Set Current Background As Default', 'Preferences (Ctrl+P)'
             ]
         
         print(val)
@@ -3655,7 +3656,7 @@ watch/unwatch status")
             send_notification(msg)
         elif val.lower() == 'set media server user/password':
             new_set = LoginAuth(parent=MainWindow, media_server=True, ui=self, tmp=TMPDIR)
-        elif val.lower() == 'preferences':
+        elif val.lower() == 'preferences (ctrl+p)':
             self.settings_box.start()
         elif val == "Set Current Background As Default":
             if (os.path.exists(self.current_background) 
@@ -3768,72 +3769,7 @@ watch/unwatch status")
             self.label_search.setFocus()
             
     def addToLibrary(self):
-        global home
-        #self.LibraryDialog.show()
-        self.LibraryDialog = QtWidgets.QDialog()
-        self.LibraryDialog.setObjectName(_fromUtf8("Dialog"))
-        self.LibraryDialog.resize(582, 254)
-        self.listLibrary = QtWidgets.QListWidget(self.LibraryDialog)
-        self.listLibrary.setGeometry(QtCore.QRect(20, 20, 341, 192))
-        self.listLibrary.setObjectName(_fromUtf8("listLibrary"))
-        self.AddLibraryFolder = QtWidgets.QPushButton(self.LibraryDialog)
-        self.AddLibraryFolder.setGeometry(QtCore.QRect(420, 50, 94, 27))
-        self.AddLibraryFolder.setObjectName(_fromUtf8("AddLibraryFolder"))
-        self.RemoveLibraryFolder = QtWidgets.QPushButton(self.LibraryDialog)
-        self.RemoveLibraryFolder.setGeometry(QtCore.QRect(420, 90, 94, 27))
-        self.RemoveLibraryFolder.setObjectName(_fromUtf8("RemoveLibraryFolder"))
-        self.LibraryClose = QtWidgets.QPushButton(self.LibraryDialog)
-        self.LibraryClose.setGeometry(QtCore.QRect(420, 130, 94, 27))
-        self.LibraryClose.setObjectName(_fromUtf8("LibraryClose"))
-        self.LibraryDialog.setWindowTitle(_translate("Dialog", "Library Setting", None))
-        self.AddLibraryFolder.setText(_translate("Dialog", "ADD", None))
-        self.RemoveLibraryFolder.setText(_translate("Dialog", "Remove", None))
-        self.LibraryClose.setText(_translate("Dialog", "Close", None))
-        self.LibraryDialog.show()
-        file_name = os.path.join(home, 'local.txt')
-        if os.path.exists(file_name):
-            lines = open_files(file_name, True)
-            self.listLibrary.clear()
-            for i in lines:
-                i = i.replace('\n', '')
-                self.listLibrary.addItem(i)
-        self.AddLibraryFolder.clicked.connect(self.addFolderLibrary)
-        self.RemoveLibraryFolder.clicked.connect(self.removeFolderLibrary)
-        self.LibraryClose.clicked.connect(self.LibraryDialog.close)
-        
-        self.LibraryClose.setStyleSheet(
-            """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;"""
-            )
-        self.RemoveLibraryFolder.setStyleSheet(
-            """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;"""
-            )
-        self.AddLibraryFolder.setStyleSheet(
-            """font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-            border:rgba(0, 0, 0, 30%);border-radius: 3px;"""
-            )
-        self.listLibrary.setStyleSheet(
-            """QListWidget{
-                font: bold 12px;color:white;background:rgba(0, 0, 0, 30%);
-                border:rgba(0, 0, 0, 30%);border-radius: 3px;
-                }
-                QListWidget:item:selected:active {
-                    background:rgba(0, 0, 0, 20%);
-                    color: violet;
-                }
-                QListWidget:item:selected:inactive {
-                    border:rgba(0, 0, 0, 30%);
-                }
-                QMenu{
-                    font: bold 12px;color:black;background-image:url('1.png');
-                }
-            """
-            )
-        picn = self.default_background
-        palette	= QtGui.QPalette()
-        palette.setBrush(QtGui.QPalette.Background, QtGui.QBrush(QtGui.QPixmap(picn)))
-        self.LibraryDialog.setPalette(palette)
+        self.settings_box.start(index='library')
         
     def options_clicked(self):
         global site, bookmark, siteName, opt, genre_num
@@ -3843,34 +3779,6 @@ watch/unwatch status")
             if (site == "PlayLists" or bookmark
                     or site == "Local" or site =="Music"):
                 self.options('local') 
-                
-                    
-    def addFolderLibrary(self):
-        print("add")
-        fname = QtWidgets.QFileDialog.getExistingDirectory(
-                self.LibraryDialog, 'open folder', self.last_dir)
-        self.last_dir = fname
-        logger.info(self.last_dir)
-        logger.info(fname)
-        if not fname:
-            pass
-        else:
-            self.listLibrary.addItem(fname)
-            file_name = os.path.join(self.home_folder, 'local.txt')
-            write_files(file_name, fname, line_by_line=True)
-            
-    def removeFolderLibrary(self):
-        print("remove")
-        index = self.listLibrary.currentRow()
-        item  = self.listLibrary.item(index)
-        if item:
-            file_name = os.path.join(home, 'local.txt')
-            lines = open_files(file_name, True)
-            logger.info(self.listLibrary.item(index).text())
-            self.listLibrary.takeItem(index)
-            del item
-            del lines[index]
-            write_files(file_name, lines, line_by_line=True)
         
     def prev_thumbnails(self):
         global thumbnail_indicator, total_till, browse_cnt
