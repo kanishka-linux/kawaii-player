@@ -331,13 +331,20 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.tab_help = QtWidgets.QWidget(self)
         self.addTab(self.tab_app, 'Appearance')
         self.addTab(self.tab_server, 'Media Server')
-        self.addTab(self.tab_torrent, 'Torrent And P2P')
+        self.addTab(self.tab_torrent, 'Torrent')
         self.addTab(self.tab_meta, 'Other Essential')
         self.addTab(self.tab_help, 'Help')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
         self.hide_label = False
         self.tabs_present = False
+        self.setMouseTracking(True)
         
+    def mouseMoveEvent(self, event):
+        if ui.auto_hide_dock:
+            ui.dockWidget_3.hide()
+        if ui.search_on_type_btn.isHidden():
+            self.setFocus()
+    
     def tab_changed(self):
         ui.settings_tab_index = self.currentIndex()
         logger.debug(ui.settings_tab_index)
@@ -520,7 +527,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text11 = QtWidgets.QLabel()
         self.text11.setText("Local Stream IP")
         self.btn11 = QtWidgets.QPushButton()
-        self.btn11.setText("Check")
+        self.btn11.setText(" Check IP ")
         self.media_param.append('local_ip_stream')
         
         self.line12 = QtWidgets.QComboBox()
@@ -562,6 +569,18 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text16.setText("Media Server Autostart")
         self.media_param.append('media_server_autostart')
         
+        self.line17 = QtWidgets.QLineEdit()
+        self.line17.setPlaceholderText("{} (upload speed in peer to peer mode)".format(ui.setuploadspeed))
+        self.text17 = QtWidgets.QLabel()
+        self.text17.setText("P2P Upload Speed")
+        self.media_param.append('setuploadspeed')
+        
+        self.line18 = QtWidgets.QLineEdit()
+        self.line18.setPlaceholderText("{}".format(ui.broadcast_message))
+        self.text18 = QtWidgets.QLabel()
+        self.text18.setText("Broadcast Message")
+        self.media_param.append('broadcast_message')
+        
         for index, j in enumerate(self.media_param):
             i = index + 1
             text = eval('self.text1{}'.format(i))
@@ -589,13 +608,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.torrent_param.append('local_ip')
         
         self.btn21 = QtWidgets.QPushButton()
-        self.btn21.setText("Check")
+        self.btn21.setText("Check IP")
         self.line22 = QtWidgets.QLineEdit()
         self.line22.setPlaceholderText(ui.torrent_download_folder)
         self.text22 = QtWidgets.QLabel()
         self.text22.setText("Torrent Download Folder")
         self.btn22 = QtWidgets.QPushButton()
-        self.btn22.setText("Set")
+        self.btn22.setText(" Set Location ")
         self.btn22.clicked.connect(partial(self.set_folder, self.line22, 'torrent_download_folder'))
         self.torrent_param.append('torrent_download_folder')
         
@@ -610,18 +629,6 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text24 = QtWidgets.QLabel()
         self.text24.setText("Torrent Download Rate")
         self.torrent_param.append('torrent_download_limit')
-        
-        self.line25 = QtWidgets.QLineEdit()
-        self.line25.setPlaceholderText("{} (upload speed in peer to peer mode)".format(ui.setuploadspeed))
-        self.text25 = QtWidgets.QLabel()
-        self.text25.setText("P2P Upload Speed")
-        self.torrent_param.append('setuploadspeed')
-        
-        self.line26 = QtWidgets.QLineEdit()
-        self.line26.setPlaceholderText("{}".format(ui.broadcast_message))
-        self.text26 = QtWidgets.QLabel()
-        self.text26.setText("Broadcast Message")
-        self.torrent_param.append('broadcast_message')
         
         for index, j in enumerate(self.torrent_param):
             i = index + 1
@@ -648,7 +655,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text31 = QtWidgets.QLabel()
         self.text31.setText("Default Download Location")
         self.btn31 = QtWidgets.QPushButton()
-        self.btn31.setText("Set")
+        self.btn31.setText(" Set Location ")
         self.btn31.clicked.connect(partial(self.set_folder, self.line31, 'default_download_location'))
         self.other_settings.append('default_download_location')
         
