@@ -532,7 +532,7 @@ class WidgetStyleSheet:
                             background-color:rgba(0,0,0,{alpha});
                             }}
                         QTabWidget:pane {{
-                            color:{color};font: {bold};
+                            color:{color};font: {bold} {font};
                             border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
                         }}
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
@@ -540,9 +540,9 @@ class WidgetStyleSheet:
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{color:white;background:rgba(0,0,0,10%);
-                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold}}}
+                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                         QLabel{{color:{color};background:rgba(0,0,0,0%);
-                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold};}}
+                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
                         QComboBox {{
                         color: {color};
                         selection-color:yellow;background:rgba(0,0,0,{btn});
@@ -565,7 +565,8 @@ class WidgetStyleSheet:
                         height: 2px;
                         }}""".format(
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
-                            focus=gui.list_text_color_focus, bold=font_bold)
+                            focus=gui.list_text_color_focus, bold=font_bold,
+                            size=gui.global_font_size, font=gui.global_font)
                         )
                 
                 for widget in [gui.progress, gui.progressEpn]:
