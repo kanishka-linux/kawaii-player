@@ -338,6 +338,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.addTab(self.tab_meta, ' Other Essential ')
         self.addTab(self.tab_close, ' Close ')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
+        self.torrent_config = os.path.join(ui.home_folder, 'torrent_config.txt')
         self.library_file_name = os.path.join(ui.home_folder, 'local.txt')
         self.hide_label = False
         self.tabs_present = False
@@ -529,8 +530,27 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j))
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j))
-    
-    def combobox_changed(self, widget, var_name=None):
+                
+    def check_and_set_ip(self, widget, var_name):
+        try:
+            ip = get_lan_ip()
+            text = ''
+            if var_name == 'local_ip_stream':
+                text = ip + ':' + str(ui.local_port_stream)
+            elif var_name == 'local_ip':
+                text = ip + ':' + str(ui.local_port)
+            if text:
+                widget.setText(text)
+                if var_name == 'local_ip':
+                    self.line_entered(widget, var_name, option='torrent')
+                else:
+                    self.line_entered(widget, var_name)
+        except Exception as err:
+            logger.error(err)
+            msg = 'Not able to find. Try Setting it up manually in the format ip:port'
+            widget.setText(msg)
+            
+    def combobox_changed(self, widget, var_name=None, option=None):
         obj_name = widget.objectName()
         obj_value = widget.currentText()
         param = obj_name + '='
@@ -553,9 +573,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.logger.disabled = True
             else:
                 exec('ui.{} = "{}"'.format(var_name, obj_value))
-        change_opt_file(self.option_file, param, param_value)
+        if option == 'torrent':
+            change_opt_file(self.torrent_config, param, param_value)
+        else:
+            change_opt_file(self.option_file, param, param_value)
         
-    def line_entered(self, widget, var_name=None):
+    def line_entered(self, widget, var_name=None, option=None):
         obj_name = widget.objectName()
         obj_value = widget.text()
         param = obj_name + '='
@@ -573,6 +596,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ip, port = obj_value.rsplit(':', 1)
                 ui.local_ip = ip
                 ui.local_port = int(port)
+        elif var_name == 'torrent_download_limit' and obj_value.isnumeric():
+            ui.torrent_download_limit = int(obj_value) * 1024
+        elif var_name == 'torrent_upload_limit' and obj_value.isnumeric():
+            ui.torrent_upload_limit = int(obj_value) * 1024
         elif var_name == 'playback_engine':
             extra_players = obj_value.split(',')
             for extra_player in extra_players:
@@ -581,7 +608,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.playback_engine.append(extra_player)
         else:
             exec('ui.{} = "{}"'.format(var_name, obj_value))
-        change_opt_file(self.option_file, param, param_value)
+        if option == 'torrent':
+            change_opt_file(self.torrent_config, param, param_value)
+        else:
+            change_opt_file(self.option_file, param, param_value)
     
     def mediaserver(self):
         self.media_param = []
@@ -591,6 +621,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text11.setText("Local Stream IP")
         self.btn11 = QtWidgets.QPushButton()
         self.btn11.setText(" Check IP ")
+        self.btn11.clicked.connect(partial(self.check_and_set_ip, self.line11, 'local_ip_stream'))
         self.media_param.append('local_ip_stream')
         
         self.line12 = QtWidgets.QComboBox()
@@ -668,10 +699,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line21.setText("{}:{}".format(ui.local_ip, ui.local_port))
         self.text21 = QtWidgets.QLabel()
         self.text21.setText("Torrent Stream IP")
+        self.btn21 = QtWidgets.QPushButton()
+        self.btn21.setText(" Check IP ")
+        self.btn21.clicked.connect(partial(self.check_and_set_ip, self.line21, 'local_ip'))
         self.torrent_param.append('local_ip')
         
-        self.btn21 = QtWidgets.QPushButton()
-        self.btn21.setText("Check IP")
         self.line22 = QtWidgets.QLineEdit()
         self.line22.setPlaceholderText(ui.torrent_download_folder)
         self.text22 = QtWidgets.QLabel()
@@ -682,13 +714,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.torrent_param.append('torrent_download_folder')
         
         self.line23 = QtWidgets.QLineEdit()
-        self.line23.setPlaceholderText("{} (in KB, 0 means unlimited )".format(ui.torrent_upload_limit))
+        self.line23.setPlaceholderText("{} (in KB, 0 means unlimited )".format(int(ui.torrent_upload_limit/1024)))
         self.text23 = QtWidgets.QLabel()
         self.text23.setText("Torrent Upload Rate")
         self.torrent_param.append('torrent_upload_limit')
         
         self.line24 = QtWidgets.QLineEdit()
-        self.line24.setPlaceholderText("{}".format(ui.torrent_download_limit))
+        self.line24.setPlaceholderText("{}".format(int(ui.torrent_download_limit/1024)))
         self.text24 = QtWidgets.QLabel()
         self.text24.setText("Torrent Download Rate")
         self.torrent_param.append('torrent_download_limit')
@@ -707,9 +739,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
-                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j))
+                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, option='torrent'))
             elif isinstance(line, QtWidgets.QLineEdit):
-                line.returnPressed.connect(partial(self.line_entered, line, j))
+                line.returnPressed.connect(partial(self.line_entered, line, j, option='torrent'))
     
     def othersettings(self):
         self.other_settings = []
@@ -833,5 +865,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
             if os.path.exists(fname):
                 ui.last_dir = fname
                 widget.setText(fname)
-                self.line_entered(widget, var_name)
+                if var_name == 'torrent_download_folder':
+                    self.line_entered(widget, var_name, option='torrent')
+                else:
+                    self.line_entered(widget, var_name)
                 
