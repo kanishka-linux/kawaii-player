@@ -331,10 +331,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.tab_library = QtWidgets.QWidget(self)
         self.gl5 = QtWidgets.QGridLayout(self.tab_library)
         self.tab_close = QtWidgets.QWidget(self)
+        self.tab_player = QtWidgets.QWidget(self)
+        self.gl6 = QtWidgets.QGridLayout(self.tab_player)
         self.addTab(self.tab_app, 'Appearance')
         self.addTab(self.tab_library, ' Library ')
         self.addTab(self.tab_server, 'Media Server')
-        self.addTab(self.tab_torrent, 'Torrent')
+        self.addTab(self.tab_torrent, ' Torrent ')
+        self.addTab(self.tab_player, ' Player ')
         self.addTab(self.tab_meta, ' Other Essential ')
         self.addTab(self.tab_close, ' Close ')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
@@ -379,6 +382,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.torrentsettings()
                 self.othersettings()
                 self.library()
+                self.player_settings()
                 self.tabs_present = True
             self.show()
             self.currentChanged.connect(self.tab_changed)
@@ -395,51 +399,6 @@ class OptionsSettings(QtWidgets.QTabWidget):
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()    
         
-    def library(self):
-        self.list_library = QtWidgets.QListWidget()
-        self.list_library.setObjectName("list_library")
-        self.add_library_btn = QtWidgets.QPushButton()
-        self.add_library_btn.setObjectName('add_library_btn')
-        self.add_library_btn.setText(" Add Folder ")
-        self.remove_library_btn = QtWidgets.QPushButton()
-        self.remove_library_btn.setObjectName('remove_library_btn')
-        self.remove_library_btn.setText(' Remove Folder ')
-        self.add_library_btn.setMinimumHeight(32)
-        self.remove_library_btn.setMinimumHeight(32)
-        self.gl5.addWidget(self.list_library, 0, 0, 1, 2)
-        self.gl5.addWidget(self.add_library_btn, 1, 0, 1, 1)
-        self.gl5.addWidget(self.remove_library_btn, 1, 1, 1, 1)
-        
-        if os.path.exists(self.library_file_name):
-            lines = open_files(self.library_file_name, True)
-            self.list_library.clear()
-            for i in lines:
-                i = i.strip()
-                self.list_library.addItem(i)
-        self.add_library_btn.clicked.connect(self.add_folder_to_library)
-        self.remove_library_btn.clicked.connect(self.remove_folder_from_library)
-    
-    def add_folder_to_library(self):
-        fname = QtWidgets.QFileDialog.getExistingDirectory(
-                MainWindow, 'open folder', ui.last_dir)
-        if fname:
-            ui.last_dir = fname
-            logger.info(ui.last_dir)
-            logger.info(fname)
-            self.list_library.addItem(fname)
-            write_files(self.library_file_name, fname, line_by_line=True)
-    
-    def remove_folder_from_library(self):
-        index = self.list_library.currentRow()
-        item  = self.list_library.item(index)
-        if item:
-            lines = open_files(self.library_file_name, True)
-            logger.info(self.list_library.item(index).text())
-            self.list_library.takeItem(index)
-            del item
-            del lines[index]
-            write_files(self.library_file_name, lines, line_by_line=True)
-    
     def appeareance(self):
         self.param_list = []
         self.line1 = QtWidgets.QComboBox()
@@ -527,91 +486,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
-                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j))
+                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'appearance'))
             elif isinstance(line, QtWidgets.QLineEdit):
-                line.returnPressed.connect(partial(self.line_entered, line, j))
-                
-    def check_and_set_ip(self, widget, var_name):
-        try:
-            ip = get_lan_ip()
-            text = ''
-            if var_name == 'local_ip_stream':
-                text = ip + ':' + str(ui.local_port_stream)
-            elif var_name == 'local_ip':
-                text = ip + ':' + str(ui.local_port)
-            if text:
-                widget.setText(text)
-                if var_name == 'local_ip':
-                    self.line_entered(widget, var_name, option='torrent')
-                else:
-                    self.line_entered(widget, var_name)
-        except Exception as err:
-            logger.error(err)
-            msg = 'Not able to find. Try Setting it up manually in the format ip:port'
-            widget.setText(msg)
-            
-    def combobox_changed(self, widget, var_name=None, option=None):
-        obj_name = widget.objectName()
-        obj_value = widget.currentText()
-        param = obj_name + '='
-        param_value = param + obj_value
-        print(param, param_value, var_name, obj_value)
-        if obj_value.lower() in ['true', 'false']:
-            exec('ui.{} = {}'.format(var_name, obj_value.title()))
-        else:
-            if var_name == 'keep_background_constant':
-                if obj_value.lower() == 'yes':
-                    ui.keep_background_constant = True
-                else:
-                    ui.keep_background_constant = False
-            if var_name == 'logging_module':
-                if obj_value.lower() == 'on':
-                    ui.logging_module = True
-                    ui.logger.disabled = False
-                else:
-                    ui.logging_module = False
-                    ui.logger.disabled = True
-            else:
-                exec('ui.{} = "{}"'.format(var_name, obj_value))
-        if option == 'torrent':
-            change_opt_file(self.torrent_config, param, param_value)
-        else:
-            change_opt_file(self.option_file, param, param_value)
-        
-    def line_entered(self, widget, var_name=None, option=None):
-        obj_name = widget.objectName()
-        obj_value = widget.text()
-        param = obj_name + '='
-        param_value = param + obj_value
-        print(param, param_value, var_name, obj_value)
-        widget.clear()
-        widget.setText(obj_value)
-        if var_name == 'local_ip_stream':
-            if ':' in obj_value:
-                ip, port = obj_value.rsplit(':', 1)
-                ui.local_ip_stream = ip
-                ui.local_port_stream = int(port)
-        elif var_name == 'local_ip':
-            if ':' in obj_value:
-                ip, port = obj_value.rsplit(':', 1)
-                ui.local_ip = ip
-                ui.local_port = int(port)
-        elif var_name == 'torrent_download_limit' and obj_value.isnumeric():
-            ui.torrent_download_limit = int(obj_value) * 1024
-        elif var_name == 'torrent_upload_limit' and obj_value.isnumeric():
-            ui.torrent_upload_limit = int(obj_value) * 1024
-        elif var_name == 'playback_engine':
-            extra_players = obj_value.split(',')
-            for extra_player in extra_players:
-                if (extra_player not in ui.playback_engine
-                        and extra_player.lower() != 'none'):
-                    ui.playback_engine.append(extra_player)
-        else:
-            exec('ui.{} = "{}"'.format(var_name, obj_value))
-        if option == 'torrent':
-            change_opt_file(self.torrent_config, param, param_value)
-        else:
-            change_opt_file(self.option_file, param, param_value)
+                line.returnPressed.connect(partial(self.line_entered, line, j, 'appearance'))
     
     def mediaserver(self):
         self.media_param = []
@@ -689,9 +566,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
-                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j))
+                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'mediaserver'))
             elif isinstance(line, QtWidgets.QLineEdit):
-                line.returnPressed.connect(partial(self.line_entered, line, j))
+                line.returnPressed.connect(partial(self.line_entered, line, j, 'mediaserver'))
             
     def torrentsettings(self):
         self.torrent_param = []
@@ -814,30 +691,6 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text37.setText("Get Music Metadata")
         self.other_settings.append('get_artist_metadata')
         
-        self.line38 = QtWidgets.QComboBox()
-        self.line38.addItem('False')
-        self.line38.addItem('True')
-        index = self.line38.findText(str(ui.custom_mpv_input_conf))
-        self.line38.setCurrentIndex(index)
-        self.text38 = QtWidgets.QLabel()
-        self.text38.setText("MPV Input Conf")
-        self.other_settings.append('custom_mpv_input_conf')
-        
-        self.line39 = QtWidgets.QLineEdit()
-        if len(ui.playback_engine) > 2:
-            extra_players = [i for i in ui.playback_engine if i not in ['mpv', 'mplayer']]
-            extra_string = ','.join(extra_players)
-        else:
-            extra_string = 'None'
-        self.line39.setPlaceholderText(
-            "{} (Comma separated list of external players eg: vlc, kodi etc..)".format(
-                extra_string
-                )
-            )
-        self.text39 = QtWidgets.QLabel()
-        self.text39.setText("Extra Players")
-        self.other_settings.append('playback_engine')
-        
         for index, j in enumerate(self.other_settings):
             i = index + 1
             text = eval('self.text3{}'.format(i))
@@ -852,9 +705,90 @@ class OptionsSettings(QtWidgets.QTabWidget):
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
-                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j))
+                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'othersettings'))
             elif isinstance(line, QtWidgets.QLineEdit):
-                line.returnPressed.connect(partial(self.line_entered, line, j))
+                line.returnPressed.connect(partial(self.line_entered, line, j, 'othersettings'))
+                
+    def library(self):
+        self.list_library = QtWidgets.QListWidget()
+        self.list_library.setObjectName("list_library")
+        self.add_library_btn = QtWidgets.QPushButton()
+        self.add_library_btn.setObjectName('add_library_btn')
+        self.add_library_btn.setText(" Add Folder ")
+        self.remove_library_btn = QtWidgets.QPushButton()
+        self.remove_library_btn.setObjectName('remove_library_btn')
+        self.remove_library_btn.setText(' Remove Folder ')
+        self.add_library_btn.setMinimumHeight(32)
+        self.remove_library_btn.setMinimumHeight(32)
+        self.gl5.addWidget(self.list_library, 0, 0, 1, 2)
+        self.gl5.addWidget(self.add_library_btn, 1, 0, 1, 1)
+        self.gl5.addWidget(self.remove_library_btn, 1, 1, 1, 1)
+        if os.path.exists(self.library_file_name):
+            lines = open_files(self.library_file_name, True)
+            self.list_library.clear()
+            for i in lines:
+                i = i.strip()
+                self.list_library.addItem(i)
+        self.add_library_btn.clicked.connect(self.add_folder_to_library)
+        self.remove_library_btn.clicked.connect(self.remove_folder_from_library)
+            
+    def player_settings(self):
+        self.player_list = []
+        
+        self.line41 = QtWidgets.QComboBox()
+        self.line41.addItem("False")
+        self.line41.addItem("True")
+        index = self.line41.findText(str(ui.restore_volume))
+        self.line41.setCurrentIndex(index)
+        self.text41 = QtWidgets.QLabel()
+        self.text41.setText("Remember Volume Per Video")
+        self.player_list.append('restore_volume')
+        
+        self.line42 = QtWidgets.QComboBox()
+        self.line42.addItem("False")
+        self.line42.addItem("True")
+        index = self.line42.findText(str(ui.restore_aspect))
+        self.line42.setCurrentIndex(index)
+        self.text42 = QtWidgets.QLabel()
+        self.text42.setText("Remember Aspect Per Video")
+        self.player_list.append('restore_aspect')
+        
+        self.line43 = QtWidgets.QComboBox()
+        self.line43.addItem('False')
+        self.line43.addItem('True')
+        index = self.line43.findText(str(ui.custom_mpv_input_conf))
+        self.line43.setCurrentIndex(index)
+        self.text43 = QtWidgets.QLabel()
+        self.text43.setText("MPV Input Conf")
+        self.player_list.append('custom_mpv_input_conf')
+        
+        self.line44 = QtWidgets.QLineEdit()
+        if len(ui.playback_engine) > 2:
+            extra_players = [i for i in ui.playback_engine if i not in ['mpv', 'mplayer']]
+            extra_string = ','.join(extra_players)
+        else:
+            extra_string = 'None'
+        self.line44.setPlaceholderText(
+            "{} (Comma separated list of external players eg: vlc, kodi etc..)".format(
+                extra_string
+                )
+            )
+        self.text44 = QtWidgets.QLabel()
+        self.text44.setText("Extra Players")
+        self.player_list.append('playback_engine')
+        
+        for i, j in enumerate(self.player_list):
+            index = i+1
+            text = eval('self.text4{}'.format(index))
+            line = eval('self.line4{}'.format(index))
+            self.gl6.addWidget(text, index, 0, 1, 1)
+            self.gl6.addWidget(line, index, 1, 1, 1)
+            obj_name = text.text().upper().replace(' ', '_')
+            line.setObjectName(obj_name)
+            if isinstance(line, QtWidgets.QComboBox):
+                line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'player_settings'))
+            elif isinstance(line, QtWidgets.QLineEdit):
+                line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
     def set_folder(self, widget, var_name=None):
         fname = QtWidgets.QFileDialog.getExistingDirectory(
@@ -870,3 +804,105 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 else:
                     self.line_entered(widget, var_name)
                 
+    def check_and_set_ip(self, widget, var_name):
+        try:
+            ip = get_lan_ip()
+            text = ''
+            if var_name == 'local_ip_stream':
+                text = ip + ':' + str(ui.local_port_stream)
+            elif var_name == 'local_ip':
+                text = ip + ':' + str(ui.local_port)
+            if text:
+                widget.setText(text)
+                if var_name == 'local_ip':
+                    self.line_entered(widget, var_name, option='torrent')
+                else:
+                    self.line_entered(widget, var_name)
+        except Exception as err:
+            logger.error(err)
+            msg = 'Not able to find. Try Setting it up manually in the format ip:port'
+            widget.setText(msg)
+            
+    def combobox_changed(self, widget, var_name=None, option=None):
+        obj_name = widget.objectName()
+        obj_value = widget.currentText()
+        param = obj_name + '='
+        param_value = param + obj_value
+        print(param, param_value, var_name, obj_value)
+        if obj_value.lower() in ['true', 'false']:
+            exec('ui.{} = {}'.format(var_name, obj_value.title()))
+        else:
+            if var_name == 'keep_background_constant':
+                if obj_value.lower() == 'yes':
+                    ui.keep_background_constant = True
+                else:
+                    ui.keep_background_constant = False
+            if var_name == 'logging_module':
+                if obj_value.lower() == 'on':
+                    ui.logging_module = True
+                    ui.logger.disabled = False
+                else:
+                    ui.logging_module = False
+                    ui.logger.disabled = True
+            else:
+                exec('ui.{} = "{}"'.format(var_name, obj_value))
+        if option == 'torrent':
+            change_opt_file(self.torrent_config, param, param_value)
+        else:
+            change_opt_file(self.option_file, param, param_value)
+        
+    def line_entered(self, widget, var_name=None, option=None):
+        obj_name = widget.objectName()
+        obj_value = widget.text()
+        param = obj_name + '='
+        param_value = param + obj_value
+        print(param, param_value, var_name, obj_value)
+        widget.clear()
+        widget.setText(obj_value)
+        if var_name == 'local_ip_stream':
+            if ':' in obj_value:
+                ip, port = obj_value.rsplit(':', 1)
+                ui.local_ip_stream = ip
+                ui.local_port_stream = int(port)
+        elif var_name == 'local_ip':
+            if ':' in obj_value:
+                ip, port = obj_value.rsplit(':', 1)
+                ui.local_ip = ip
+                ui.local_port = int(port)
+        elif var_name == 'torrent_download_limit' and obj_value.isnumeric():
+            ui.torrent_download_limit = int(obj_value) * 1024
+        elif var_name == 'torrent_upload_limit' and obj_value.isnumeric():
+            ui.torrent_upload_limit = int(obj_value) * 1024
+        elif var_name == 'playback_engine':
+            extra_players = obj_value.split(',')
+            for extra_player in extra_players:
+                if (extra_player not in ui.playback_engine
+                        and extra_player.lower() != 'none'):
+                    ui.playback_engine.append(extra_player)
+        else:
+            exec('ui.{} = "{}"'.format(var_name, obj_value))
+        if option == 'torrent':
+            change_opt_file(self.torrent_config, param, param_value)
+        else:
+            change_opt_file(self.option_file, param, param_value)
+
+    def add_folder_to_library(self):
+        fname = QtWidgets.QFileDialog.getExistingDirectory(
+                MainWindow, 'open folder', ui.last_dir)
+        if fname:
+            ui.last_dir = fname
+            logger.info(ui.last_dir)
+            logger.info(fname)
+            self.list_library.addItem(fname)
+            write_files(self.library_file_name, fname, line_by_line=True)
+    
+    def remove_folder_from_library(self):
+        index = self.list_library.currentRow()
+        item  = self.list_library.item(index)
+        if item:
+            lines = open_files(self.library_file_name, True)
+            logger.info(self.list_library.item(index).text())
+            self.list_library.takeItem(index)
+            del item
+            del lines[index]
+            write_files(self.library_file_name, lines, line_by_line=True)
