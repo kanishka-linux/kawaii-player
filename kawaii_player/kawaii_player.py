@@ -11910,6 +11910,8 @@ watch/unwatch status")
             msg = 'Restart Application To Apply System Theme'
             send_notification(msg)
             self.text.setText(msg)
+            self.progressEpn.setValue(0)
+            self.progressEpn.setFormat((msg))
         else:
             if self.player_theme == 'mix':
                 QtCore.QTimer.singleShot(
@@ -12196,7 +12198,23 @@ watch/unwatch status")
             self.watchDirectly(urllib.parse.unquote(t), '', 'no')
             self.dockWidget_3.hide()
 
-
+    def apply_new_font(self):
+        global app
+        try:
+            font = 'default'
+            if self.global_font != 'default':
+                if isinstance(self.global_font_size, int):
+                    font = QtGui.QFont(self.global_font, self.global_font_size)
+                else:
+                    font = QtGui.QFont(self.global_font)
+                app.setFont(font)
+            elif isinstance(self.global_font_size, int):
+                font = QtGui.QFont('default', self.global_font_size)
+                app.setFont(font)
+            logger.debug('{}{}'.format(self.global_font, self.global_font_size))
+        except Exception as err:
+            logger.error(err)
+            
 def main():
     global ui, MainWindow, tray, hdr, name, pgn, genre_num, site, name, epn
     global embed, epn_goto, opt, mirrorNo, queueNo
