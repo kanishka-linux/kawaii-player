@@ -137,6 +137,8 @@ class WidgetStyleSheet:
             font_bold = ''
         if not widget and (theme is None or theme in ['default', 'transparent', 'mix']):
             #gui.VerticalLayoutLabel_Dock3.setSpacing(0)
+            alpha = '30%'
+            qbtn = '10%'
             gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             for widget in [gui.tab_2, gui.tab_5, gui.tab_6, gui.go_opt,
                            gui.text, gui.text_save_btn, gui.search_on_type_btn,
@@ -207,6 +209,80 @@ class WidgetStyleSheet:
                 QPushButton{border-radius:0px;max-height:30px;}
                 QPushButton::hover{background-color: yellow;color: black;}
                 QPushButton:pressed{background-color: violet;}""")
+            
+            
+            gui.settings_box.setStyleSheet("""
+                    QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
+                    QTabWidget{{
+                        color:{color};
+                        border:rgba(0,0,0,{alpha});background:rgb(56,60,74);
+                        background-color:rgba(0,0,0,{alpha});
+                        }}
+                    QTabWidget:pane {{
+                        color:{color};font: {bold} {font};
+                        border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
+                    }}
+                    
+                    QTabBar {{
+                        color:{color};font: {bold} {font};
+                        border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
+                        background-color:rgba(0,0,0,{alpha});
+                    }}
+                    
+                    QTabBar:tab{{
+                        color:{color};background:rgba(56,60,74, {alpha});
+                    }}
+                    
+                    QTabBar:tab:selected{{
+                        color:{color};background:rgba(0,0,0, 20%);
+                    }}
+                    
+                    QListWidget{{
+                        color:{color};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                        font: {bold} {font};
+                    }}
+                    QListWidget:item {{
+                        height: 30px;
+                    }}
+                    QListWidget:item:selected:active {{
+                        background:rgba(0, 0, 0, 20%);
+                        color: {focus};
+                    }}
+                    
+                    QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
+                    max-height:40px; font: {bold};}}
+                    QPushButton::hover{{background-color: yellow;color: black;}}
+                    QPushButton:pressed{{background-color: violet;}}
+                    QLineEdit{{color:white;background:rgba(0,0,0,10%);
+                    max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                    QLabel{{color:{color};background:rgba(0,0,0,0%);
+                    max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
+                    QComboBox {{
+                    color: {color};
+                    selection-color:yellow;background:rgba(0,0,0,{btn});
+                    border:rgba(0, 0, 0, 10%);
+                    padding: 2px 0px 2px 4px;
+                    font: {bold};
+                    max-height: 40px;
+                    }}
+                    QComboBox::hover{{background-color: rgba(0,0,0,60%);color: {color};}}
+                    QComboBox::drop-down {{
+                    width: 22px;
+                    border: 2px;
+                    color:white;
+                    }}
+                    QComboBox::focus {{
+                    background-color:rgba(0,0,0,60%);color: {focus};
+                    }}
+                    QComboBox::down-arrow {{
+                    width: 2px;
+                    height: 2px;
+                    }}""".format(
+                        alpha=alpha, btn=qbtn, color=gui.list_text_color,
+                        focus=gui.list_text_color_focus, bold=font_bold,
+                        size=gui.global_font_size, font=gui.global_font)
+                    )
+            
             gui.slider.setStyleSheet("""
                 QSlider:groove:horizontal {
                 height: 8px;
@@ -430,6 +506,8 @@ class WidgetStyleSheet:
                 }}
                 """.format(ht, gui.list_text_color_focus))
         elif theme == 'dark':
+            alpha = '30%'
+            qbtn = '10%'
             if gui.list_with_thumbnail:
                 height = '128px'
             else:
@@ -542,8 +620,12 @@ class WidgetStyleSheet:
                             background-color:rgba(0,0,0,{alpha});
                         }}
                         
+                        QTabBar:tab{{
+                            color:{color};background:rgba(56,60,74, {alpha});
+                        }}
+                        
                         QTabBar:tab:selected{{
-                            color:{color};background:rgba(0,0,0, {alpha});
+                            color:{color};background:rgba(0,0,0, 20%);
                         }}
                         
                         QListWidget{{
