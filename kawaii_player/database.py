@@ -485,19 +485,24 @@ class MediaDatabase():
                                 else:
                                     o.append(os.path.join(r, z))
 
-                        print(len(m))
+                        print(len(music))
                         j = 0
                         lines = []
                         for i in music:
                             if os.path.exists(i):
-                                n = os.listdir(i)
+                                try:
+                                    n = os.listdir(i)
+                                except Exception as err:
+                                    self.logger.error(err)
+                                    n = []
                                 p[:] = []
                                 for k in n:
                                     file_ext = k.rsplit('.', 1)[-1]
                                     if file_ext.lower() in self.video_ext:
                                         p.append(os.path.join(i, k))
                                         path = os.path.join(i, k)
-                                        m_files.append(path)
+                                        if os.path.isfile(path):
+                                            m_files.append(path)
                                 if p:
                                     r = i
                                     lines.append(r)
