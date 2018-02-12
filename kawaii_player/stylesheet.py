@@ -535,6 +535,29 @@ class WidgetStyleSheet:
                             color:{color};font: {bold} {font};
                             border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
                         }}
+                        
+                        QTabBar {{
+                            color:{color};font: {bold} {font};
+                            border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
+                            background-color:rgba(0,0,0,{alpha});
+                        }}
+                        
+                        QTabBar:tab:selected{{
+                            color:{color};background:rgba(0,0,0, {alpha});
+                        }}
+                        
+                        QListWidget{{
+                            color:{color};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                            font: {bold} {font};
+                        }}
+                        QListWidget:item {{
+                            height: 30px;
+                        }}
+                        QListWidget:item:selected:active {{
+                            background:rgba(0, 0, 0, 20%);
+                            color: {focus};
+                        }}
+                        
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                         max-height:40px; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
