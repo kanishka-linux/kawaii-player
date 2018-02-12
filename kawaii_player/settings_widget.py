@@ -328,13 +328,17 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.gl3 = QtWidgets.QGridLayout(self.tab_torrent)
         self.tab_meta = QtWidgets.QWidget(self)
         self.gl4 = QtWidgets.QGridLayout(self.tab_meta)
-        self.tab_help = QtWidgets.QWidget(self)
+        self.tab_library = QtWidgets.QWidget(self)
+        self.gl5 = QtWidgets.QGridLayout(self.tab_library)
+        self.tab_close = QtWidgets.QWidget(self)
         self.addTab(self.tab_app, 'Appearance')
+        self.addTab(self.tab_library, ' Library ')
         self.addTab(self.tab_server, 'Media Server')
         self.addTab(self.tab_torrent, 'Torrent')
-        self.addTab(self.tab_meta, 'Other Essential')
-        self.addTab(self.tab_help, 'Help')
+        self.addTab(self.tab_meta, ' Other Essential ')
+        self.addTab(self.tab_close, ' Close ')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
+        self.library_file_name = os.path.join(ui.home_folder, 'local.txt')
         self.hide_label = False
         self.tabs_present = False
         self.setMouseTracking(True)
@@ -346,10 +350,20 @@ class OptionsSettings(QtWidgets.QTabWidget):
             self.setFocus()
     
     def tab_changed(self):
-        ui.settings_tab_index = self.currentIndex()
-        logger.debug(ui.settings_tab_index)
+        index = self.currentIndex()
+        if self.tabText(index) == ' Close ':
+            self.hide()
+            if self.hide_label:
+                ui.label.show()
+                ui.text.show()
+                if ui.player_theme != 'default':
+                    ui.label_new.show()
+                self.hide_label = False
+        else:
+            ui.settings_tab_index = index
+            logger.debug(ui.settings_tab_index)
         
-    def start(self):
+    def start(self, index=None):
         if self.isHidden():
             logger.debug(ui.settings_tab_index)
             if not ui.label.isHidden():
@@ -363,6 +377,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.mediaserver()
                 self.torrentsettings()
                 self.othersettings()
+                self.library()
                 self.tabs_present = True
             self.show()
             self.currentChanged.connect(self.tab_changed)
@@ -374,8 +389,56 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 if ui.player_theme != 'default':
                     ui.label_new.show()
                 self.hide_label = False
-            
+        if index:
+            self.setCurrentIndex(1)
+            if ui.auto_hide_dock:
+                ui.dockWidget_3.hide()    
         
+    def library(self):
+        self.list_library = QtWidgets.QListWidget()
+        self.list_library.setObjectName("list_library")
+        self.add_library_btn = QtWidgets.QPushButton()
+        self.add_library_btn.setObjectName('add_library_btn')
+        self.add_library_btn.setText(" Add Folder ")
+        self.remove_library_btn = QtWidgets.QPushButton()
+        self.remove_library_btn.setObjectName('remove_library_btn')
+        self.remove_library_btn.setText(' Remove Folder ')
+        self.add_library_btn.setMinimumHeight(32)
+        self.remove_library_btn.setMinimumHeight(32)
+        self.gl5.addWidget(self.list_library, 0, 0, 1, 2)
+        self.gl5.addWidget(self.add_library_btn, 1, 0, 1, 1)
+        self.gl5.addWidget(self.remove_library_btn, 1, 1, 1, 1)
+        
+        if os.path.exists(self.library_file_name):
+            lines = open_files(self.library_file_name, True)
+            self.list_library.clear()
+            for i in lines:
+                i = i.strip()
+                self.list_library.addItem(i)
+        self.add_library_btn.clicked.connect(self.add_folder_to_library)
+        self.remove_library_btn.clicked.connect(self.remove_folder_from_library)
+    
+    def add_folder_to_library(self):
+        fname = QtWidgets.QFileDialog.getExistingDirectory(
+                MainWindow, 'open folder', ui.last_dir)
+        if fname:
+            ui.last_dir = fname
+            logger.info(ui.last_dir)
+            logger.info(fname)
+            self.list_library.addItem(fname)
+            write_files(self.library_file_name, fname, line_by_line=True)
+    
+    def remove_folder_from_library(self):
+        index = self.list_library.currentRow()
+        item  = self.list_library.item(index)
+        if item:
+            lines = open_files(self.library_file_name, True)
+            logger.info(self.list_library.item(index).text())
+            self.list_library.takeItem(index)
+            del item
+            del lines[index]
+            write_files(self.library_file_name, lines, line_by_line=True)
+    
     def appeareance(self):
         self.param_list = []
         self.line1 = QtWidgets.QComboBox()
