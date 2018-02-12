@@ -11604,7 +11604,6 @@ watch/unwatch status")
             if not os.path.exists(video_db):
                 self.media_data.create_update_video_db(video_db, video_file, video_file_bak)
             elif video_opt == "UpdateAll":
-                video_opt = "Directory"
                 msg = ('This Option Will Update The Database\
                         \nby Removing All Unreachable Links\
                         \nFrom it. Do You Want To Continue?')
@@ -11619,6 +11618,7 @@ watch/unwatch status")
                 else:
                     logger.debug('Canceled UpdateAll')
                 self.video_dict.clear()
+                video_opt = "Directory"
             elif video_opt == "Update":
                 self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
