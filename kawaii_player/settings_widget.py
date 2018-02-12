@@ -338,7 +338,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.addTab(self.tab_server, 'Media Server')
         self.addTab(self.tab_torrent, ' Torrent ')
         self.addTab(self.tab_player, ' Player ')
-        self.addTab(self.tab_meta, ' Other Essential ')
+        self.addTab(self.tab_meta, ' Other ')
         self.addTab(self.tab_close, ' Close ')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
         self.torrent_config = os.path.join(ui.home_folder, 'torrent_config.txt')
@@ -850,7 +850,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
             change_opt_file(self.torrent_config, param, param_value)
         else:
             change_opt_file(self.option_file, param, param_value)
-        
+            
+        if option == 'appearance':
+            self.post_changes(var_name)
+            
     def line_entered(self, widget, var_name=None, option=None):
         obj_name = widget.objectName()
         obj_value = widget.text()
@@ -885,7 +888,30 @@ class OptionsSettings(QtWidgets.QTabWidget):
             change_opt_file(self.torrent_config, param, param_value)
         else:
             change_opt_file(self.option_file, param, param_value)
-
+            
+        if option == 'appearance':
+            self.post_changes(var_name)
+            
+    def post_changes(self, var_name):
+        if ui.player_theme.istitle():
+            ui.player_theme = ui.player_theme.lower()
+        if var_name == 'player_theme':
+            ui.apply_new_font()
+            ui.apply_new_style()
+            if ui.player_theme != 'system':
+                ui.progressEpn.setValue(0)
+                ui.progressEpn.setFormat((""))
+        elif 'font' in var_name or 'color' in var_name:
+            if 'font' in var_name:
+                msg = 'Restart Application To Apply Font Changes'
+            else:
+                msg = 'Restart Application To Apply Color Changes'
+            ui.progressEpn.setValue(0)
+            ui.progressEpn.setFormat((msg))
+        else:
+            ui.progressEpn.setValue(0)
+            ui.progressEpn.setFormat((""))
+            
     def add_folder_to_library(self):
         fname = QtWidgets.QFileDialog.getExistingDirectory(
                 MainWindow, 'open folder', ui.last_dir)
