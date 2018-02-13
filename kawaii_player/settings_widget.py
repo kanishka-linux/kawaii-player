@@ -401,86 +401,118 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
     def appeareance(self):
         self.param_list = []
-        self.line1 = QtWidgets.QComboBox()
+        self.line101 = QtWidgets.QComboBox()
         for i in ui.theme_list:
-            self.line1.addItem(i)
-        index = self.line1.findText(ui.player_theme.title())
-        self.line1.setCurrentIndex(index)
-        self.text1 = QtWidgets.QLabel()
-        self.text1.setText("Theme")
+            self.line101.addItem(i)
+        index = self.line101.findText(ui.player_theme.title())
+        self.line101.setCurrentIndex(index)
+        self.text101 = QtWidgets.QLabel()
+        self.text101.setText("Theme")
         self.param_list.append('player_theme')
         
-        self.line2 = QtWidgets.QLineEdit()
-        self.line2.setPlaceholderText(ui.global_font)
-        self.text2 = QtWidgets.QLabel()
-        self.text2.setText("Global Font")
+        self.line102 = QtWidgets.QLineEdit()
+        self.line102.setPlaceholderText(
+            '{} , enter new font name and press return to apply changes'.format(ui.global_font))
+        self.text102 = QtWidgets.QLabel()
+        self.text102.setText("Global Font")
         self.param_list.append('global_font')
         
-        self.line3 = QtWidgets.QLineEdit()
-        self.line3.setPlaceholderText(str(ui.global_font_size))
-        self.text3 = QtWidgets.QLabel()
-        self.text3.setText("Global Font Size")
+        self.line103 = QtWidgets.QLineEdit()
+        self.line103.setPlaceholderText(str(ui.global_font_size))
+        self.text103 = QtWidgets.QLabel()
+        self.text103.setText("Global Font Size")
         self.param_list.append('global_font_size')
         
-        self.line4 = QtWidgets.QComboBox()
-        self.line4.addItem("True")
-        self.line4.addItem("False")
-        index = self.line4.findText(str(ui.font_bold))
-        self.line4.setCurrentIndex(index)
-        self.text4 = QtWidgets.QLabel()
-        self.text4.setText("Font Bold")
+        self.line104 = QtWidgets.QComboBox()
+        self.line104.addItem("True")
+        self.line104.addItem("False")
+        index = self.line104.findText(str(ui.font_bold))
+        self.line104.setCurrentIndex(index)
+        self.text104 = QtWidgets.QLabel()
+        self.text104.setText("Font Bold")
         self.param_list.append('font_bold')
         
-        self.line5 = QtWidgets.QLineEdit()
-        self.line5.setPlaceholderText(ui.thumbnail_text_color)
-        self.text5 = QtWidgets.QLabel()
-        self.text5.setText("Thumbnail Text Color")
+        self.line105 = QtWidgets.QLineEdit()
+        self.line105.setPlaceholderText(ui.thumbnail_text_color)
+        msg = ("<html>red, green, blue, yellow, gray, white, black, cyan, magenta, darkgray,\
+                lightgray, darkred, darkblue, darkyellow, transparent.\
+                \nFor Dark Theme, use lightgray, if white color looks bright<\html>")
+        self.line105.setToolTip(msg)
+        self.text105 = QtWidgets.QLabel()
+        self.text105.setText("Thumbnail Text Color")
         self.param_list.append('thumbnail_text_color')
         
-        self.line6 = QtWidgets.QLineEdit()
-        self.line6.setPlaceholderText(ui.thumbnail_text_color_focus)
-        self.text6 = QtWidgets.QLabel()
-        self.text6.setText("Thumbnail Text Color Focus")
+        self.line106 = QtWidgets.QLineEdit()
+        self.line106.setPlaceholderText(ui.thumbnail_text_color_focus)
+        msg1 = ('For focus, use somewhat bright color')
+        self.line106.setToolTip(msg1)
+        self.text106 = QtWidgets.QLabel()
+        self.text106.setText("Thumbnail Text Color Focus")
         self.param_list.append('thumbnail_text_color_focus')
         
-        self.line7 = QtWidgets.QLineEdit()
-        self.line7.setPlaceholderText(ui.list_text_color)
-        self.text7 = QtWidgets.QLabel()
-        self.text7.setText("List Text Color")
+        msg = msg.replace('.', ', violet.')
+        
+        self.line107 = QtWidgets.QLineEdit()
+        self.line107.setPlaceholderText(ui.list_text_color)
+        self.line107.setToolTip(msg)
+        self.text107 = QtWidgets.QLabel()
+        self.text107.setText("List Text Color")
         self.param_list.append('list_text_color')
         
-        self.line8 = QtWidgets.QLineEdit()
-        self.line8.setPlaceholderText(ui.list_text_color_focus)
-        self.text8 = QtWidgets.QLabel()
-        self.text8.setText("List Text Color Focus")
+        self.line108 = QtWidgets.QLineEdit()
+        self.line108.setPlaceholderText(ui.list_text_color_focus)
+        self.line108.setToolTip(msg1)
+        self.text108 = QtWidgets.QLabel()
+        self.text108.setText("List Text Color Focus")
         self.param_list.append('list_text_color_focus')
         
-        self.line9 = QtWidgets.QComboBox()
+        msg2 = ('<html>Use Ctrl+0 to Ctrl+9 keyboard shortcuts to Experiment with\
+                various background image modes. These modes are useful only for \
+                default theme.\
+                \n\n1:Fit To Screen\n2:Fit To Width\n3:Fit To Height\n4:Tiled mode.\n\
+                When next backgound image will be downloaded it will automatically\
+                follow the mode. If new image does not follow mode then restart application.</html>')
+        
+        self.line109 = QtWidgets.QComboBox()
         for i in range(0, 10):
-            self.line9.addItem(str(i))
-        index = self.line9.findText(str(ui.image_fit_option_val))
-        self.line9.setCurrentIndex(index)
-        self.text9 = QtWidgets.QLabel()
-        self.text9.setText("Image Fit Option")
+            self.line109.addItem(str(i))
+        index = self.line109.findText(str(ui.image_fit_option_val))
+        self.line109.setCurrentIndex(index)
+        self.line109.setToolTip(msg2)
+        self.text109 = QtWidgets.QLabel()
+        self.text109.setText("Image Fit Option")
         self.param_list.append('image_fit_option_val')
         
-        self.line10 = QtWidgets.QComboBox()
-        self.line10.addItem("No")
-        self.line10.addItem("Yes")
+        self.line110 = QtWidgets.QComboBox()
+        self.line110.addItem("No")
+        self.line110.addItem("Yes")
         if ui.keep_background_constant:
             val = 'Yes'
         else:
             val = 'No'
-        index = self.line10.findText(val)
-        self.line10.setCurrentIndex(index)
-        self.text10 = QtWidgets.QLabel()
-        self.text10.setText("Keep Background Constant")
+        index = self.line110.findText(val)
+        self.line110.setCurrentIndex(index)
+        self.text110 = QtWidgets.QLabel()
+        self.text110.setText("Keep Background Constant")
         self.param_list.append('keep_background_constant')
+        
+        self.line111 = QtWidgets.QComboBox()
+        self.line111.addItem("True")
+        self.line111.addItem("False")
+        index = self.line111.findText(str(ui.list_with_thumbnail))
+        self.line111.setCurrentIndex(index)
+        self.text111 = QtWidgets.QLabel()
+        self.text111.setText("List With Thumbnail")
+        self.param_list.append('list_with_thumbnail')
         
         for i, j in enumerate(self.param_list):
             index = i+1
-            text = eval('self.text{}'.format(index))
-            line = eval('self.line{}'.format(index))
+            if index < 10:
+                index_str = '0' + str(index)
+            else:
+                index_str = str(index)
+            text = eval('self.text1{}'.format(index_str))
+            line = eval('self.line1{}'.format(index_str))
             self.gl1.addWidget(text, index, 0, 1, 1)
             self.gl1.addWidget(line, index, 1, 1, 1)
             obj_name = text.text().upper().replace(' ', '_')
@@ -769,7 +801,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         else:
             extra_string = 'None'
         self.line44.setPlaceholderText(
-            "{} (Comma separated list of external players eg: vlc, kodi etc..)".format(
+            "{} (Comma separated list of external players commands)".format(
                 extra_string
                 )
             )
@@ -777,6 +809,61 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text44.setText("Extra Players")
         self.player_list.append('playback_engine')
         
+        self.line45 = QtWidgets.QTextEdit()
+        msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
+              the application remembers audio and subtitle track by default. \
+              It also remembers last quit position for every video in the History\
+              section. If user will watch video from history then it will be played\
+              from last position. If user wants the application to remember last quit\
+              position for videos in other sections, then while quitting mpv/mplayer\
+              they have to use key 'shift+q' instead of 'q'.\
+              \n\n2. Use key 'w' on playlist items to toggle their watch/unwatch\
+              status. Series having items with watch status are included in history\
+              section.\
+              \n\n3. Both titlelist and playlist columns have contextmenus with variety of\
+              features including metadata fetching for series and movies.\
+              \n4. When on titlelist, use keys ctrl+up or ctrl+right to fetch metadata from\
+              tvdb. When on playlist use keys F8 or F7 to fetch episode information.\
+              \n\n5. If metadata is not found, then directly focus on title and from\
+              its contextmenu directly go to reviews->tvdb using internal browser. Contextmenu\
+              of internal browser has been tweaked to facilitate fetching metadata.\
+              \n\n6. For better metadata fetching, rename title entries with proper\
+              name using key F2. Episodes also needs to be renamed properly according\
+              to standard convention. For better match use episode names in a format\
+              mentioned below.\
+              \n\n7. Episodes can be mass renamed in the database without affecting names of\
+              original files. Some tips, shortcuts and options on renaming episodes can be found\
+              in playlist contextmenu. ")
+        msg = re.sub(' +', ' ', msg)
+        
+        msg1 = ('For fetching Episode Summary from TVDB, first focus either \
+                   TitleList or PlayList Column, and then press either F6 or F7 or F8. \
+                   \nF6: Get Episode Summary and Thumbnails from TVDB directly \
+                   \nF7: Get Episode Summary and Thumbnails from TVDB using duckduckgo as \
+                   search engine backend. F8 will search using google as search engine backend.\n\
+                   \n\nEpisode Naming patterns for better automatic fetching \
+                   \nEpisode Naming Patterns with seasons: S01EP02, S01E02 \
+                   \nEpisode Naming Patterns without seasons: EP01, Episode01, Episode-01, Ep-01 \
+                   \nFor Specials: S00EP01\
+                   \nEpisode can be renamed using F2(single entry) or F3(Batch Rename).\
+                   \nBatch renaming pattern is NameStart{start-end}NameEnd. \
+                   eg. S01EP{01-20}, Episode-{05-25} \
+                   \nOriginal names can be restored using F4(single entry) or F5(All).\
+                   When restoring original names using keys F2, F3, F4 and F5 playlist \
+                   needs to be focussed.\
+                   \n\nIf application does not find episodes names in regular convention\
+                    then it will find metadata according to its order. First entry of \
+                    playlist will be treated as first episode and last entry will be\
+                    treated as last episode of the series, and then entries will be\
+                    mapped with tvdb databse. Ordering option for episodes can be found by\
+                    pressing filter/order button (or use shortcut ctrl+f). \
+                    For manual order use page-up and page-down keys')
+                    
+        msg1 = re.sub('  +', ' ', msg1)
+        msg = msg + '\n\n' + msg1
+        
+        self.line45.setText(msg)
+        self.line45.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
             text = eval('self.text4{}'.format(index))
@@ -790,6 +877,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
+        self.gl6.addWidget(self.line45, index+1, 0, 1, 2)
+        
+        
     def set_folder(self, widget, var_name=None):
         fname = QtWidgets.QFileDialog.getExistingDirectory(
                     MainWindow, 'Add Directory',
@@ -822,7 +912,22 @@ class OptionsSettings(QtWidgets.QTabWidget):
             logger.error(err)
             msg = 'Not able to find. Try Setting it up manually in the format ip:port'
             widget.setText(msg)
-            
+    
+    def change_playlist_viewmode(self):
+        if ui.list_with_thumbnail:
+            ui.widget_style.change_list2_style(mode=True)
+            if not ui.float_window.isHidden():
+                ui.list2.setMaximumHeight(16777215)
+            ui.update_list2()
+        else:
+            ui.widget_style.change_list2_style(mode=False)
+            if not ui.float_window.isHidden():
+                if ui.new_tray_widget.cover_mode.text() == ui.player_buttons['down']: 
+                    ui.list2.setMaximumHeight(30)
+                else:
+                    ui.list2.setMaximumHeight(16777215)
+            ui.update_list2()
+
     def combobox_changed(self, widget, var_name=None, option=None):
         obj_name = widget.objectName()
         obj_value = widget.currentText()
@@ -831,6 +936,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         print(param, param_value, var_name, obj_value)
         if obj_value.lower() in ['true', 'false']:
             exec('ui.{} = {}'.format(var_name, obj_value.title()))
+            if var_name == 'list_with_thumbnail':
+                self.change_playlist_viewmode()
         else:
             if var_name == 'keep_background_constant':
                 if obj_value.lower() == 'yes':
