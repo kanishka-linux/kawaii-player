@@ -173,6 +173,9 @@ class WidgetStyleSheet:
                     QLineEdit{{
                         font:{bold};color:white;background:rgba(0,0,0,30%);
                         max-height:30px;border:rgba(0, 0, 0, 30%);}}
+                    QTextEdit{{
+                        font:{bold};color:white;background:rgba(0,0,0,30%);
+                        border:rgba(0, 0, 0, 30%);}}
                     QLabel{{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);color: {color}; font:{bold};}}
                     QComboBox {{
                     selection-color:yellow;
@@ -646,6 +649,8 @@ class WidgetStyleSheet:
                         QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{color:white;background:rgba(0,0,0,10%);
                         max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                        QTextEdit{{color:white;background:rgba(0,0,0,10%);
+                        border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                         QLabel{{color:{color};background:rgba(0,0,0,0%);
                         max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
                         QComboBox {{
