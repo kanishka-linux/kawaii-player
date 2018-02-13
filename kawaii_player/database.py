@@ -835,7 +835,7 @@ class MediaDatabase():
                             else:
                                 o.append(os.path.join(r, z))
 
-                    print(len(m))
+                    self.logger.debug(len(music))
                     j = 0
                     lines = []
                     for i in music:
