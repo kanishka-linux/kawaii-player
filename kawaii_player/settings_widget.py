@@ -594,13 +594,51 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.gl2.addWidget(eval('self.btn1{}'.format(i)), i, 2, 1, 1)
             else:
                 self.gl2.addWidget(text, i, 0, 1, 1)
-                self.gl2.addWidget(line, i, 1, 1, 2)
+                if j != 'broadcast_message':
+                    self.gl2.addWidget(line, i, 1, 1, 2)
+                else:
+                    self.gl2.addWidget(line, i, 1, 1, 1)
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
                 line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'mediaserver'))
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'mediaserver'))
+        self.mediaserver_extra_buttons(index=index+1, mode=1)
+        
+    def mediaserver_extra_buttons(self, index=None, mode=None):
+        if index and mode == 1:
+            self.line021 = QtWidgets.QPushButton(ui.action_player_menu[8].text())
+            self.line021.clicked.connect(partial(self.media_server_start, 'broadcast server'))
+            self.gl2.addWidget(self.line021, index, 2, 1, 1)
+            
+            self.line022 = QtWidgets.QPushButton('Username/Password')
+            self.line022.clicked.connect(partial(self.media_server_start, 'username'))
+            self.gl2.addWidget(self.line022, index+1, 0, 1, 1)
+            
+            self.line19 = QtWidgets.QPushButton(ui.action_player_menu[7].text())
+            self.line19.clicked.connect(partial(self.media_server_start, 'start'))
+            self.gl2.addWidget(self.line19, index+1, 1, 1, 1)
+            
+            self.line020 = QtWidgets.QPushButton(ui.action_player_menu[9].text())
+            self.line020.clicked.connect(partial(self.media_server_start, 'remote_control'))
+            self.gl2.addWidget(self.line020, index+1, 2, 1, 1)
+            
+            
+        elif index is None and mode == 2:
+            self.line19.setText(ui.action_player_menu[7].text())
+            self.line020.setText(ui.action_player_menu[9].text())
+            self.line021.setText(ui.action_player_menu[8].text())
+            
+    def media_server_start(self, val):
+        if val == 'start':
+            ui.playerPlaylist('Start Media Server')
+        elif val == 'remote_control':
+            ui.playerPlaylist('turn on remote control')
+        elif val == 'broadcast server':
+            ui.playerPlaylist('Broadcast Server')
+        elif val == 'username':
+            ui.playerPlaylist('set media server user/password')
             
     def torrentsettings(self):
         self.torrent_param = []
