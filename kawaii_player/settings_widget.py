@@ -790,6 +790,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line43.addItem('True')
         index = self.line43.findText(str(ui.custom_mpv_input_conf))
         self.line43.setCurrentIndex(index)
+        msg = '<html>Once it is enabled, application will start following\
+               global mpv shortcuts as defined in input.conf</html>'
+        self.line43.setToolTip(msg)
         self.text43 = QtWidgets.QLabel()
         self.text43.setText("MPV Input Conf")
         self.player_list.append('custom_mpv_input_conf')
