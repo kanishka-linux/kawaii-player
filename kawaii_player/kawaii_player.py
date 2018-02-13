@@ -2445,11 +2445,14 @@ watch/unwatch status")
         
     def webResize(self):
         global screen_width
-        wdt = self.tab_2.width()
-        if wdt <= 400:
-            self.tab_2.setMaximumWidth(screen_width)
+        if self.btnWebReviews_search.isHidden():
+            self.btnWebReviews_search.show()
         else:
-            self.tab_2.setMaximumWidth(400)
+            wdt = self.tab_2.width()
+            if wdt <= 400:
+                self.tab_2.setMaximumWidth(screen_width)
+            else:
+                self.tab_2.setMaximumWidth(400)
             
     def go_prev_web_page(self):
         if self.web:
@@ -3623,6 +3626,8 @@ watch/unwatch status")
                 self.start_stop_media_server(True)
             elif v == 'Stop Media Server':
                 self.start_stop_media_server(False)
+            if self.settings_box.tabs_present:
+                self.settings_box.line19.setText(self.action_player_menu[7].text())
         elif val =="Broadcast Server":
             v= str(self.action_player_menu[8].text())
             if v == 'Broadcast Server' and self.local_http_server.isRunning():
@@ -3639,6 +3644,8 @@ watch/unwatch status")
                 self.action_player_menu[8].setText("Broadcast Server")
             elif not self.local_http_server.isRunning():
                 send_notification('No Server To Broadcast. First Start Media Server')
+            if self.settings_box.tabs_present:
+                self.settings_box.line021.setText(self.action_player_menu[8].text())
         elif val.lower() == 'turn on remote control':
             v= str(self.action_player_menu[9].text()).lower()
             msg = "Not Able to Take Action"
@@ -3654,6 +3661,8 @@ watch/unwatch status")
                 change_opt_file(HOME_OPT_FILE, 'REMOTE_CONTROL=', 'REMOTE_CONTROL=False')
                 msg = "Remote Control Mode Disabled"
             send_notification(msg)
+            if self.settings_box.tabs_present:
+                self.settings_box.line020.setText(self.action_player_menu[9].text())
         elif val.lower() == 'set media server user/password':
             new_set = LoginAuth(parent=MainWindow, media_server=True, ui=self, tmp=TMPDIR)
         elif val.lower() == 'preferences (ctrl+p)':
@@ -5671,6 +5680,7 @@ watch/unwatch status")
         self.tab_5.show()
         self.frame1.show()
         self.tab_2.setMaximumWidth(self.width_allowed+50)
+        self.btnWebReviews_search.hide()
         #self.progressEpn.setFormat('Wait....')
         #QtWidgets.QApplication.processEvents()
     
