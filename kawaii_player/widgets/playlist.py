@@ -1204,7 +1204,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
             txt = re.sub('  +', ' ', txt)
         ui.text.setText(txt)
         ui.text.setFocus()
-        
+        if ui.text.isHidden():
+            ui.text.show()
+            
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(s='site', n='name')
         site = param_dict['site']
