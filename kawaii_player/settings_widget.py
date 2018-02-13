@@ -1009,7 +1009,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
         param_value = param + obj_value
         print(param, param_value, var_name, obj_value)
         widget.clear()
-        widget.setText(obj_value)
+        if obj_value.isnumeric() or len(obj_value) < 10:
+            widget.setPlaceholderText(obj_value)
+        else:
+            widget.setText(obj_value)
         if var_name == 'local_ip_stream':
             if ':' in obj_value:
                 ip, port = obj_value.rsplit(':', 1)
@@ -1024,6 +1027,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
             ui.torrent_download_limit = int(obj_value) * 1024
         elif var_name == 'torrent_upload_limit' and obj_value.isnumeric():
             ui.torrent_upload_limit = int(obj_value) * 1024
+        elif var_name == 'setuploadspeed':
+            ui.setuploadspeed = int(obj_value)
         elif var_name == 'playback_engine':
             extra_players = obj_value.split(',')
             for extra_player in extra_players:
