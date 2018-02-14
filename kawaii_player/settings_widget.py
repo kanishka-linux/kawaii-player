@@ -418,6 +418,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     break
             if found:
                 ui.global_font = found
+            else:
+                self.global_font = QtGui.QFont().defaultFamily()
             ui.global_font_size = 10
             ui.font_bold = False
             ui.thumbnail_text_color = 'lightgray'
@@ -436,14 +438,15 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     break
             if found:
                 ui.global_font = found
-            ui.global_font_size = 9
+            else:
+                self.global_font = QtGui.QFont().defaultFamily()
+            ui.global_font_size = 10
             ui.font_bold = True
             ui.thumbnail_text_color = 'white'
             ui.thumbnail_text_color_focus = 'green'
             ui.list_text_color = 'white'
             ui.list_text_color_focus = 'violet'
-        index = self.line102.findText(str(ui.global_font))
-        self.line102.setCurrentIndex(index)
+        self.line102.setPlaceholderText(ui.global_font)
         self.line103.setPlaceholderText(str(ui.global_font_size))
         index = self.line104.findText(str(ui.font_bold))
         self.line104.setCurrentIndex(index)
@@ -488,15 +491,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text101.setText("Theme")
         self.param_list.append('player_theme')
         
-        self.line102 = QtWidgets.QComboBox()
-        try:
-            for font in self.font_families:
-                self.line102.addItem(font)
-            index = self.line102.findText(str(ui.global_font))
-            self.line102.setCurrentIndex(index)
-        except Exception as err:
-            logger.error(err)
-            self.line102.addItem(ui.global_font)
+        self.line102 = QtWidgets.QLineEdit()
+        self.completer = QtWidgets.QCompleter(self.font_families)
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.line102.setCompleter(self.completer)
+        self.line102.setPlaceholderText(ui.global_font)
         self.text102 = QtWidgets.QLabel()
         self.text102.setText("Global Font")
         self.param_list.append('global_font')
@@ -529,7 +528,6 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line106 = QtWidgets.QLineEdit()
         self.line106.setPlaceholderText(ui.thumbnail_text_color_focus)
         msg1 = ('For focus, use somewhat bright color')
-        self.line106.setToolTip(msg1)
         self.text106 = QtWidgets.QLabel()
         self.text106.setText("Thumbnail Text Color Focus")
         self.param_list.append('thumbnail_text_color_focus')
@@ -545,7 +543,6 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line108 = QtWidgets.QLineEdit()
         self.line108.setPlaceholderText(ui.list_text_color_focus)
-        self.line108.setToolTip(msg1)
         self.text108 = QtWidgets.QLabel()
         self.text108.setText("List Text Color Focus")
         self.param_list.append('list_text_color_focus')
@@ -1097,7 +1094,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         param_value = param + obj_value
         print(param, param_value, var_name, obj_value)
         widget.clear()
-        if obj_value.isnumeric() or len(obj_value) < 10:
+        if obj_value.isnumeric() or len(obj_value) < 10 or var_name == 'global_font':
             widget.setPlaceholderText(obj_value)
         else:
             widget.setText(obj_value)
@@ -1115,8 +1112,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
             ui.torrent_download_limit = int(obj_value) * 1024
         elif var_name == 'torrent_upload_limit' and obj_value.isnumeric():
             ui.torrent_upload_limit = int(obj_value) * 1024
-        elif var_name == 'setuploadspeed':
+        elif var_name == 'setuploadspeed' and obj_value.isnumeric():
             ui.setuploadspeed = int(obj_value)
+        elif var_name == 'global_font_size' and obj_value.isnumeric():
+            ui.global_font_size = int(obj_value)
         elif var_name == 'playback_engine':
             extra_players = obj_value.split(',')
             for extra_player in extra_players:
@@ -1136,26 +1135,14 @@ class OptionsSettings(QtWidgets.QTabWidget):
     def post_changes(self, var_name):
         if ui.player_theme.istitle():
             ui.player_theme = ui.player_theme.lower()
-        if var_name == 'player_theme':
+        msg = 'Restart Application, if changes are not applied'
+        if var_name == 'player_theme' or 'font' in var_name or 'color' in var_name:
             ui.apply_new_font()
             ui.apply_new_style()
-            if ui.player_theme != 'system':
-                ui.progressEpn.setValue(0)
-                ui.progressEpn.setFormat((""))
-        elif 'font' in var_name or 'color' in var_name:
-            if 'font' in var_name:
-                msg = 'Restart Application, if changes are not applied'
-                ui.apply_new_font()
-                ui.apply_new_style()
-            else:
-                msg = 'Restart Application, if changes are not applied'
-                ui.apply_new_font()
-                ui.apply_new_style()
-            ui.progressEpn.setValue(0)
-            ui.progressEpn.setFormat((msg))
-        else:
-            ui.progressEpn.setValue(0)
-            ui.progressEpn.setFormat((""))
+        ui.progressEpn.setValue(0)
+        if var_name == 'player_theme' and ui.player_theme == 'system':
+            msg = 'System Theme requires application restart'
+        ui.progressEpn.setFormat((msg))
             
     def add_folder_to_library(self):
         fname = QtWidgets.QFileDialog.getExistingDirectory(
