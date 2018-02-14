@@ -692,14 +692,16 @@ watch/unwatch status")
         self.list5.setMaximumWidth(self.width_allowed)
         self.list6.setMaximumWidth(self.width_allowed)
         self.goto_epn.setMaximumWidth(self.width_allowed)
-        self.text.setMaximumWidth(screen_width-3*self.width_allowed-35)
+        self.text_width = screen_width-3*self.width_allowed-35
+        self.text.setMaximumWidth(self.text_width)
         self.text.setMaximumHeight(self.height_allowed)
         self.text.setMinimumWidth(self.width_allowed)
         self.label.setMaximumHeight(self.height_allowed)
         self.label.setMinimumHeight(self.height_allowed)
         self.label.setMaximumWidth(self.width_allowed)
         self.label.setMinimumWidth(self.width_allowed)
-        self.label_new.setMaximumWidth(screen_width-2*self.width_allowed-35)
+        self.label_new_width = screen_width-2*self.width_allowed-35
+        self.label_new.setMaximumWidth(self.label_new_width)
         #self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
         self.label_new.setMaximumHeight(2.5*self.height_allowed)
         #self.label_new.setScaledContents(True)
@@ -3553,19 +3555,17 @@ watch/unwatch status")
                 self.tab_5.show()
                 show_hide_player = 1
         elif val == "Show/Hide Playlist":
-            #if self.tab_6.isHidden():
             if not self.list2.isHidden():
                 self.list2.hide()
                 self.goto_epn.hide()
                 show_hide_playlist = 0
+                self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
             else:
                 self.list2.show()
-                #self.goto_epn.show()
                 show_hide_playlist = 1
                 if MainWindow.isFullScreen():
                     MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-            #else:
-            #	self.tab_6.hide()
         elif val == "Show/Hide Title List":
             if self.view_mode == 'thumbnail' and thumbnail_indicator:
                 pass
@@ -3574,9 +3574,10 @@ watch/unwatch status")
                     self.list1.hide()
                     self.frame.hide()
                     show_hide_titlelist = 0
+                    self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                    self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                 else:
                     self.list1.show()
-                    #self.frame.show()
                     show_hide_titlelist = 1
                     if MainWindow.isFullScreen():
                         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -13380,6 +13381,7 @@ def main():
     
     if show_hide_playlist == 1:
         ui.list2.show()
+        ui.update_list2()
     elif show_hide_playlist == 0:
         ui.list2.hide()
         ui.goto_epn.hide()
@@ -13389,6 +13391,9 @@ def main():
     elif show_hide_titlelist == 0:
         ui.list1.hide()
         ui.frame.hide()
+    if (ui.list1.isHidden() or ui.list2.isHidden()) and ui.view_mode == 'list':
+        ui.text.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
+        ui.label_new.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
     if ui.access_from_outside_network:
         get_ip_thread = GetIpThread(ui, interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
         get_ip_thread.start()

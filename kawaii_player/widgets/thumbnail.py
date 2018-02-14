@@ -82,6 +82,12 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.fs_timer_focus.timeout.connect(self.thumbnail_fs_focus)
         self.fs_timer_focus.setSingleShot(True)
     
+    def resizeEvent(self, event):
+        if self.objectName() == 'label_new':
+            if not ui.list1.isHidden() and not ui.list2.isHidden() and not ui.text.isHidden():
+                self.setMaximumWidth(ui.label_new_width)
+                ui.text.setMaximumWidth(ui.text_width)
+    
     def thumbnail_fs(self):
         self.player_thumbnail_fs(mode='fs_now')
         self.fs_timer_focus.start(2000)
