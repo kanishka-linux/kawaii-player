@@ -321,109 +321,83 @@ def create_ssl_cert(ui, TMPDIR, pass_word):
     else:
         print('Length of password less than 8 characters, Make it atleast 8')
 
-def write_files(file_name, content, line_by_line):
-    tmp_new_file = os.path.join(get_home_dir(), 'tmp', 'tmp_write.txt')
+def write_files(file_name, content, line_by_line, mode=None):
+    if mode == 'test':
+        tmp_new_file = os.path.join(get_home_dir(mode='test'), 'tmp', 'tmp_write.txt')
+    else:
+        tmp_new_file = os.path.join(get_home_dir(), 'tmp', 'tmp_write.txt')
     file_exists = False
     write_operation = True
     if os.path.exists(file_name):
         file_exists = True
         shutil.copy(file_name, tmp_new_file)
-        #print('copying ', file_name, ' to ', tmp_new_file)
     try:
         if isinstance(content, list):
             bin_mode = False
-            f = open(file_name, 'w')
-            j = 0
-            for i in range(len(content)):
-                fname = content[i].strip()
-                if j == 0:
-                    try:
-                        f.write(fname)
-                    except UnicodeEncodeError as e:
-                        #print(e, file_name+' will be written in binary mode')
-                        bin_mode = True
-                        f.close()
-                        break
-                else:
-                    try:
-                        f.write('\n'+fname)
-                    except UnicodeEncodeError as e:
-                        #print(e, file_name+' will be written in binary mode')
-                        bin_mode = True
-                        f.close()
-                        break
-                j = j+1
-            if not bin_mode:
-                f.close()
-            else:
-                f = open(file_name, 'wb')
-                j = 0
-                for i in range(len(content)):
-                    fname = content[i].strip()
+            with open(file_name, 'w') as f:
+                for j, i in enumerate(content):
+                    fname = i.strip()
                     if j == 0:
-                        f.write(fname.encode('utf-8'))
+                        try:
+                            f.write(fname)
+                        except UnicodeEncodeError as e:
+                            bin_mode = True
+                            break
                     else:
-                        f.write(('\n'+fname).encode('utf-8'))
-                    j = j+1
-                f.close()
+                        try:
+                            f.write('\n'+fname)
+                        except UnicodeEncodeError as e:
+                            bin_mode = True
+                            break
+            if bin_mode:
+                with open(file_name, 'wb') as f:
+                    for j, i in enumerate(content):
+                        fname = i.strip()
+                        if j == 0:
+                            f.write(fname.encode('utf-8'))
+                        else:
+                            f.write(('\n'+fname).encode('utf-8'))
         else:
             if line_by_line:
                 content = content.strip()
                 if not os.path.exists(file_name) or (os.stat(file_name).st_size == 0):
-                    f = open(file_name, 'w')
+                    with open(file_name, 'w') as f:
+                        bin_mode = False
+                        try:
+                            f.write(content)
+                        except UnicodeEncodeError as e:
+                            bin_mode = True
+                    if bin_mode:
+                        with open(file_name, 'wb') as f:
+                            f.write(content.encode('utf-8'))
+                else:
+                    with open(file_name, 'a') as f:
+                        bin_mode = False
+                        try:
+                            f.write('\n'+content)
+                        except UnicodeEncodeError as e:
+                            bin_mode = True
+                    if bin_mode:
+                        with open(file_name, 'ab') as f:
+                            f.write(('\n'+content).encode('utf-8'))
+            else:
+                with open(file_name, 'w') as f:
                     bin_mode = False
                     try:
                         f.write(content)
                     except UnicodeEncodeError as e:
-                        #print(e, file_name+' will be written in binary mode')
-                        f.close()
                         bin_mode = True
-                        
-                    if bin_mode:
-                        f = open(file_name, 'wb')
-                        f.write(content.encode('utf-8'))
-                        f.close()
-                else:
-                    f = open(file_name, 'a')
-                    bin_mode = False
-                    try:
-                        f.write('\n'+content)
-                    except UnicodeEncodeError as e:
-                        #print(e, file_name+' will be written in binary mode')
-                        f.close()
-                        bin_mode = True
-                        
-                    if bin_mode:
-                        f = open(file_name, 'ab')
-                        f.write(('\n'+content).encode('utf-8'))
-                        f.close()
-            else:
-                f = open(file_name, 'w')
-                bin_mode = False
-                try:
-                    f.write(content)
-                except UnicodeEncodeError as e:
-                    #print(e, file_name+' will be written in binary mode')
-                    f.close()
-                    bin_mode = True
                 if bin_mode:
-                    f = open(file_name, 'wb')
-                    f.write(content.encode('utf-8'))
-                    f.close()
+                    with open(file_name, 'wb') as f:
+                        f.write(content.encode('utf-8'))
     except Exception as e:
         write_operation = False
         print(e, 'error in handling file, hence restoring original')
         if file_exists:
             shutil.copy(tmp_new_file, file_name)
-            #print('copying ', tmp_new_file, ' to ', file_name)
     if os.path.exists(tmp_new_file):
-        if write_operation:
-            #print('write operation on '+file_name+' successful')
-            #print('Debug:write operation successful')
-            pass
-        else:
+        if not write_operation:
             print('Debug:write operation failed hence restored original')
-            #print('write operation on '+file_name+' failed hence original restored')
 
 
 get_lib = get_config_options(
