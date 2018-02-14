@@ -82,6 +82,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.fs_timer_focus.timeout.connect(self.thumbnail_fs_focus)
         self.fs_timer_focus.setSingleShot(True)
         self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
+        self.rect = None
         
         if obj_name is not None:
             self.setObjectName(_fromUtf8(obj_name))
@@ -95,6 +96,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 self.setMaximumHeight(2.5*ui.height_allowed)
                 ui.text.setMaximumWidth(ui.text_width)
                 self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
+                self.rect = QtCore.QRect(self.x()+20, self.y()+20, self.width()-40, self.height()-40)
                 
     def thumbnail_fs(self):
         self.player_thumbnail_fs(mode='fs_now')
@@ -627,8 +629,14 @@ class ThumbnailWidget(QtWidgets.QLabel):
             if ui.mpvplayer_val.processId() > 0:
                 pass
             else:
-                ui.progressEpn.setValue(0)
-                ui.progressEpn.setFormat((self.tooltip))
+                if self.rect is None:
+                    self.rect = QtCore.QRect(self.x()+20, self.y()+20, self.width()-40, self.height()-40)
+                if self.rect.contains(event.pos()):
+                    ui.progressEpn.setValue(0)
+                    ui.progressEpn.setFormat((self.tooltip))
+                else:
+                    ui.progressEpn.setValue(0)
+                    ui.progressEpn.setFormat((''))
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
         if ui.search_on_type_btn.isHidden():
@@ -672,8 +680,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden() :
                     ui.frame1.hide()
                     ui.gridLayout.setSpacing(5)
-
-
+        if ui.mpvplayer_val.processId() == 0:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            
     def change_video_mode(self, var_mode, c_row, restart=None):
         """
         Mode 1: Show video within thumbnail and fullscreen by default
