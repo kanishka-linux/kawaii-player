@@ -408,15 +408,11 @@ class Ui_MainWindow(object):
         
         self.label = ThumbnailWidget(MainWindow)
         self.label.setup_globals(MainWindow, self, home, TMPDIR,
-                                 logger, screen_width, screen_height)
-        self.label.setText(_fromUtf8(""))
-        self.label.setObjectName(_fromUtf8("label"))
+                                 logger, screen_width, screen_height, 'label')
         
         self.label_new = ThumbnailWidget(MainWindow)
         self.label_new.setup_globals(MainWindow, self, home, TMPDIR,
-                                 logger, screen_width, screen_height)
-        self.label_new.setText(_fromUtf8(""))
-        self.label_new.setObjectName(_fromUtf8("label_new"))
+                                 logger, screen_width, screen_height, 'label_new')
         self.label_new.setMouseTracking(True)
         #self.label_new.setFrameStyle(QtWidgets.QFrame.StyledPanel)
         #self.text = QtWidgets.QTextBrowser(MainWindow)
@@ -3399,7 +3395,10 @@ watch/unwatch status")
                 MainWindow.showMaximized()
                 MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             QtCore.QTimer.singleShot(3000, partial(self.show_cursor_now))
-    
+        self.progressEpn.setValue(0)
+        self.progressEpn.setFormat((''))
+        self.idw = str(int(self.tab_5.winId()))
+            
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
     
