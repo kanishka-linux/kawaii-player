@@ -3372,6 +3372,26 @@ watch/unwatch status")
                     elif str(self.idw) in [str(int(self.label.winId())), str(int(self.label_new.winId()))]:
                         if self.player_theme == 'default':
                             self.label_new.setMinimumHeight(0)
+                        if self.video_mode_index == 7:
+                            wd = self.label_new.maximumWidth()
+                            ht = self.label_new.maximumHeight()
+                            fs = False
+                            logger.debug('{0}, {1}::original {2}, {3}'.format(wd, ht, screen_width, screen_height))
+                            if wd == screen_width and ht == screen_height:
+                                fs = True
+                            if fs:
+                                self.gridLayout.setSpacing(5)
+                                self.superGridLayout.setSpacing(0)
+                                self.gridLayout.setContentsMargins(5, 5, 5, 5)
+                                self.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                                self.vertical_layout_new.insertWidget(0, self.label_new)
+                                if not self.force_fs:
+                                    MainWindow.showNormal()
+                                    MainWindow.showMaximized()
+                                wd, ht = self.label_new.prev_dim_label
+                                self.label_new.setMaximumSize(QtCore.QSize(wd, ht))
+                                self.HideEveryThing(mode='fs')
+                                self.label_new.setFocus()
                         
             if (((MainWindow.isFullScreen() and self.tab_6.isHidden())
                     or self.fullscreen_mode == 1) and not self.force_fs):
@@ -3560,9 +3580,13 @@ watch/unwatch status")
                 self.list2.hide()
                 self.goto_epn.hide()
                 show_hide_playlist = 0
-                self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
-                self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
-                self.label_new.setMaximumHeight(ht - self.height_allowed)
+                width = self.label_new.maximumWidth()
+                height = self.label_new.maximumHeight()
+                logger.debug('wd={}::ht={}::{}::{}'.format(width, height, screen_width, screen_height))
+                if width != screen_width or height != screen_height:
+                    self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                    self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                    self.label_new.setMaximumHeight(ht - self.height_allowed)
             else:
                 self.list2.show()
                 show_hide_playlist = 1
@@ -3577,14 +3601,23 @@ watch/unwatch status")
                     self.list1.hide()
                     self.frame.hide()
                     show_hide_titlelist = 0
-                    self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
-                    self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
-                    self.label_new.setMaximumHeight(ht - self.height_allowed)
+                    width = self.label_new.maximumWidth()
+                    height = self.label_new.maximumHeight()
+                    if width != screen_width or height != screen_height:
+                        self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                        self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                        self.label_new.setMaximumHeight(ht - self.height_allowed)
                 else:
-                    self.list1.show()
-                    show_hide_titlelist = 1
-                    if MainWindow.isFullScreen():
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                    width = self.label_new.maximumWidth()
+                    height = self.label_new.maximumHeight()
+                    show_list = True
+                    if width == screen_width and height == screen_height:
+                        show_list = False
+                    if show_list:
+                        self.list1.show()
+                        show_hide_titlelist = 1
+                        if MainWindow.isFullScreen():
+                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         elif val == "Lock File":
             v = str(self.action_player_menu[5].text())
             if v == "Lock File":
@@ -4817,9 +4850,12 @@ watch/unwatch status")
             else:
                 if self.mpvplayer_val.processId() > 0:
                     if self.idw != str(int(self.tab_5.winId())):
-                        self.mpvplayer_val.kill()
-                        self.mpvplayer_started = False
-                        self.idw = str(int(self.tab_5.winId()))
+                        if self.idw == str(int(self.label_new.winId())):
+                            self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
+                        else:
+                            self.mpvplayer_val.kill()
+                            self.mpvplayer_started = False
+                            self.idw = str(int(self.tab_5.winId()))
                     if self.mpvplayer_started:
                         self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
                     else:
@@ -4960,7 +4996,7 @@ watch/unwatch status")
         global view_layout
         if not self.search_on_type_btn.isHidden():
             self.search_on_type_btn.hide()
-        elif self.mpvplayer_val.processId() > 0:
+        elif self.mpvplayer_val.processId() > 0 and mode != 'fs':
             pass
         else:
             if not self.status_dict_widget:
