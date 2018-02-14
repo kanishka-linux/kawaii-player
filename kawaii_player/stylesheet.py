@@ -186,6 +186,12 @@ class WidgetStyleSheet:
                     max-height: 32px;
                     padding: 0px 0px 0px 4px;
                     }}
+                    QComboBox QAbstractItemView{{
+                        background-color: rgba(0,0,0,{alpha});
+                        border-radius: 0px;
+                        color: {color};
+                        font: {bold};
+                     }}
                     QComboBox::hover{{background-color: rgba(0, 0, 0, 50%);color: {focus};}}
                     QComboBox::drop-down {{
                     width: 22px;
@@ -272,6 +278,12 @@ class WidgetStyleSheet:
                     font: {bold};
                     max-height: 40px;
                     }}
+                    QComboBox QAbstractItemView{{
+                        background-color: rgba(0,0,0,{alpha});
+                        border-radius: 0px;
+                        color: {color};
+                        font: {bold} {font};
+                     }}
                     QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
                     QComboBox::drop-down {{
                     width: 22px;
@@ -593,6 +605,12 @@ class WidgetStyleSheet:
                         border: 2px;
                         color:white;
                         }}
+                        QComboBox QAbstractItemView{{
+                        background-color: rgba(0,0,0,{btn});
+                        border-radius: 0px;
+                        color: {color};
+                        font: {bold};
+                        }}
                         QComboBox::focus {{
                         background-color:rgba(0,0,0,60%);color: {focus};
                         }}
@@ -664,6 +682,12 @@ class WidgetStyleSheet:
                         padding: 2px 0px 2px 4px;
                         font: {bold};
                         max-height: 40px;
+                        }}
+                        QComboBox QAbstractItemView{{
+                        background-color: rgba(0,0,0,{btn});
+                        border-radius: 0px;
+                        color: {color};
+                        font: {bold} {font};
                         }}
                         QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
                         QComboBox::drop-down {{
