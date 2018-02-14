@@ -1091,7 +1091,8 @@ watch/unwatch status")
         
         self.VerticalLayoutLabel_Dock3 = QtWidgets.QVBoxLayout(self.dockWidgetContents_3)
         self.VerticalLayoutLabel_Dock3.setObjectName(_fromUtf8("VerticalLayoutLabel_Dock3"))
-        
+        self.VerticalLayoutLabel_Dock3.setSpacing(0)
+        self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
         self.list3 = SidebarWidget(self.dockWidgetContents_3, self, home)
         self.list3.setMouseTracking(True)
         self.list3.setGeometry(QtCore.QRect(20, 100, 130, 201))
@@ -1528,7 +1529,11 @@ watch/unwatch status")
         self.wget = QtCore.QProcess()
         self.video_local_stream = False
         self.cur_row = 0
-        self.global_font = 'Ubuntu'
+        try:
+            self.global_font = QtGui.QFont().defaultFamily()
+        except Exception as err:
+            logger.error(err)
+            self.global_font = 'Ubuntu'
         self.global_font_size = 9
         self.show_search_thumbnail = False
         self.tab_6_size_indicator = []
@@ -11942,8 +11947,8 @@ watch/unwatch status")
             self.list2.setAlternatingRowColors(False)
             self.list3.setAlternatingRowColors(False)
             self.label_new.clear()
-            self.VerticalLayoutLabel_Dock3.setSpacing(5)
-            self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
+            #self.VerticalLayoutLabel_Dock3.setSpacing(5)
+            #self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
     def watch_external_video(self, var, mode=None, start_now=None):
         global site, home
@@ -12222,6 +12227,7 @@ watch/unwatch status")
                 font = QtGui.QFont('default', self.global_font_size)
                 app.setFont(font)
             logger.debug('{}{}'.format(self.global_font, self.global_font_size))
+            QtWidgets.QApplication.processEvents()
         except Exception as err:
             logger.error(err)
             
@@ -12997,7 +13003,10 @@ def main():
                     try:
                         global_font = j
                         if global_font:
-                            ui.global_font = global_font
+                            if global_font.lower() == 'default':
+                                ui.global_font = QtGui.QFont().defaultFamily()
+                            else:
+                                ui.global_font = global_font
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('FONT_BOLD='):
