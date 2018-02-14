@@ -81,14 +81,16 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.fs_timer_focus = QtCore.QTimer()
         self.fs_timer_focus.timeout.connect(self.thumbnail_fs_focus)
         self.fs_timer_focus.setSingleShot(True)
-    
+        self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
+        
     def resizeEvent(self, event):
         if self.objectName() == 'label_new':
             if not ui.list1.isHidden() and not ui.list2.isHidden() and not ui.text.isHidden():
                 self.setMaximumWidth(ui.label_new_width)
                 self.setMaximumHeight(2.5*ui.height_allowed)
                 ui.text.setMaximumWidth(ui.text_width)
-    
+                self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
+                
     def thumbnail_fs(self):
         self.player_thumbnail_fs(mode='fs_now')
         self.fs_timer_focus.start(2000)
@@ -497,6 +499,38 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     if self.fs_timer_focus.isActive():
                         self.fs_timer_focus.stop()
                     self.fs_timer_focus.start(1000)
+                elif ui.video_mode_index == 7:
+                    wd = ui.label_new.maximumWidth()
+                    ht = ui.label_new.maximumHeight()
+                    fs = False
+                    logger.debug('{0}, {1}::original {2}, {3}'.format(wd, ht, screen_width, screen_height))
+                    if wd == screen_width and ht == screen_height:
+                        fs = True
+                    if not fs:
+                        ui.HideEveryThing(widget_except=self, mode='fs')
+                        ui.gridLayout.addWidget(self, 0, 1, 1, 1)
+                        ui.gridLayout.setSpacing(0)
+                        ui.superGridLayout.setSpacing(0)
+                        ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                        ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                        MainWindow.showFullScreen()
+                        self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
+                        self.setMaximumSize(QtCore.QSize(screen_width, screen_height))
+                        self.show()
+                        self.setFocus()
+                    else:
+                        ui.gridLayout.setSpacing(5)
+                        ui.superGridLayout.setSpacing(0)
+                        ui.gridLayout.setContentsMargins(5, 5, 5, 5)
+                        ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                        ui.vertical_layout_new.insertWidget(0, self)
+                        if not ui.force_fs:
+                            MainWindow.showNormal()
+                            MainWindow.showMaximized()
+                        wd, ht = self.prev_dim_label
+                        self.setMaximumSize(QtCore.QSize(wd, ht))
+                        ui.HideEveryThing(mode='fs')
+                        self.setFocus()
         else:
             super(ThumbnailWidget, self).keyPressEvent(event)
 
@@ -508,6 +542,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
         iconv_r = param_dict['iconv_r']
         if not MainWindow.isHidden():
             if ui.video_mode_index == 6:
+                pass
+            elif ui.video_mode_index == 7:
                 pass
             else:
                 if iconv_r_indicator:
