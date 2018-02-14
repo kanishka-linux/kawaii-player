@@ -1534,7 +1534,7 @@ watch/unwatch status")
         except Exception as err:
             logger.error(err)
             self.global_font = 'Ubuntu'
-        self.global_font_size = 9
+        self.global_font_size = 10
         self.show_search_thumbnail = False
         self.tab_6_size_indicator = []
         self.tab_6_player = False
