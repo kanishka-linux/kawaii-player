@@ -44,9 +44,6 @@ class TitleListWidget(QtWidgets.QListWidget):
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
             ui.dockWidget_3.hide()
         self.setFocus()
-        if ui.mpvplayer_val.processId() == 0:
-            ui.progressEpn.setValue(0)
-            ui.progressEpn.setFormat((''))
     """
     def dropEvent(self, event):
         if (event.source() == self 
