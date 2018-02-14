@@ -39,7 +39,7 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig)
-
+        
 
 class ThumbnailWidget(QtWidgets.QLabel):
 
@@ -50,7 +50,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
     
     def setup_globals(
             self, parent, uiwidget=None, hm=None, tmp=None, logr=None,
-            scw=None, sch=None):
+            scw=None, sch=None, obj_name=None):
         global ui, TMPDIR, home, logger, MainWindow, screen_width
         global screen_height
         ui = uiwidget
@@ -82,6 +82,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.fs_timer_focus.timeout.connect(self.thumbnail_fs_focus)
         self.fs_timer_focus.setSingleShot(True)
         self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
+        
+        if obj_name is not None:
+            self.setObjectName(_fromUtf8(obj_name))
+            if obj_name == 'label_new':
+                self.tooltip = "Click on Fanart to Play Focussed Video Directly Inside Fanart Frame"
         
     def resizeEvent(self, event):
         if self.objectName() == 'label_new':
@@ -618,6 +623,12 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.float_window.showNormal()
                     
     def mouseMoveEvent(self, event):
+        if self.objectName() == 'label_new':
+            if ui.mpvplayer_val.processId() > 0:
+                pass
+            else:
+                ui.progressEpn.setValue(0)
+                ui.progressEpn.setFormat((self.tooltip))
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
         if ui.search_on_type_btn.isHidden():
@@ -1123,7 +1134,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
             logger.debug(label_name)
             if label_name in ['label', 'label_new']:
                 num = ui.list2.currentRow()
+                logger.debug(num)
+                if num < 0 and ui.list2.count() > 0:
+                    num = 0
                 ui.cur_row = num
+                ui.list2.setCurrentRow(num)
                 if label_name == 'label':
                     ui.video_mode_index = 6
                     p1 = "ui.label.winId()"
@@ -1260,7 +1275,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         ui.total_seek = 0
         t=str(self.objectName())
         thumbnail_grid = True
-        if t == 'label':
+        if t in ['label', 'label_new']:
             num = ui.list2.currentRow()
             thumbnail_grid = False
         else:
