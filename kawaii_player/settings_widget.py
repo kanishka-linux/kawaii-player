@@ -25,7 +25,7 @@ import hashlib
 import ipaddress
 import subprocess
 from functools import partial
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from player_functions import ccurl, send_notification, get_lan_ip
 from player_functions import open_files, write_files, change_opt_file
 
@@ -346,6 +346,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.hide_label = False
         self.tabs_present = False
         self.setMouseTracking(True)
+        self.font_families = ['default']
         
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
@@ -370,13 +371,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
     def start(self, index=None):
         if self.isHidden():
             logger.debug(ui.settings_tab_index)
-            if not ui.label.isHidden():
-                ui.label_new.hide()
-                ui.label.hide()
-                ui.text.hide()
-                self.hide_label = True
             self.setCurrentIndex(ui.settings_tab_index)
             if not self.tabs_present:
+                try:
+                    self.font_families = [i for i in QtGui.QFontDatabase().families()]
+                except Exception as err:
+                    logger.error(err)
+                ui.apply_new_font()
                 self.appeareance()
                 self.mediaserver()
                 self.torrentsettings()
@@ -384,6 +385,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.library()
                 self.player_settings()
                 self.tabs_present = True
+            if not ui.label.isHidden():
+                ui.label_new.hide()
+                ui.label.hide()
+                ui.text.hide()
+                self.hide_label = True
             self.show()
             self.currentChanged.connect(self.tab_changed)
         else:
@@ -398,7 +404,79 @@ class OptionsSettings(QtWidgets.QTabWidget):
             self.setCurrentIndex(1)
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()    
-        
+    
+    def appeareance_setdefault(self):
+        if ui.player_theme == 'dark':
+            fonts = ['noto serif', 'noto sans', 'ubuntu']
+            found = None
+            for font in fonts:
+                for family in self.font_families:
+                    if font == family.lower():
+                        found = family
+                        break
+                if found:
+                    break
+            if found:
+                ui.global_font = found
+            ui.global_font_size = 10
+            ui.font_bold = False
+            ui.thumbnail_text_color = 'lightgray'
+            ui.thumbnail_text_color_focus = 'green'
+            ui.list_text_color = 'lightgray'
+            ui.list_text_color_focus = 'violet'
+        elif ui.player_theme == 'default':
+            fonts = ['ubuntu', 'noto sans', 'noto serif']
+            found = None
+            for font in fonts:
+                for family in self.font_families:
+                    if font == family.lower():
+                        found = family
+                        break
+                if found:
+                    break
+            if found:
+                ui.global_font = found
+            ui.global_font_size = 9
+            ui.font_bold = True
+            ui.thumbnail_text_color = 'white'
+            ui.thumbnail_text_color_focus = 'green'
+            ui.list_text_color = 'white'
+            ui.list_text_color_focus = 'violet'
+        index = self.line102.findText(str(ui.global_font))
+        self.line102.setCurrentIndex(index)
+        self.line103.setPlaceholderText(str(ui.global_font_size))
+        index = self.line104.findText(str(ui.font_bold))
+        self.line104.setCurrentIndex(index)
+        self.line105.setPlaceholderText(ui.thumbnail_text_color)
+        self.line106.setPlaceholderText(ui.thumbnail_text_color_focus)
+        self.line107.setPlaceholderText(ui.list_text_color)
+        self.line108.setPlaceholderText(ui.list_text_color_focus)
+        QtCore.QTimer.singleShot(2000, partial(self.apply_changes_to_file, self.option_file))
+    
+    def apply_changes_to_file(self, file_name):
+        lines = open_files(file_name)
+        new_lines = []
+        for i in lines:
+            i = i.strip()
+            if i.startswith('THEME='):
+                i = 'THEME={}'.format(ui.player_theme.upper())
+            elif i.startswith('GLOBAL_FONT='):
+                i = 'GLOBAL_FONT={}'.format(ui.global_font)
+            elif i.startswith('GLOBAL_FONT_SIZE='):
+                i = 'GLOBAL_FONT_SIZE={}'.format(ui.global_font_size)
+            elif i.startswith('FONT_BOLD='):
+                i = 'FONT_BOLD={}'.format(ui.font_bold)
+            elif i.startswith('THUMBNAIL_TEXT_COLOR='):
+                i = 'THUMBNAIL_TEXT_COLOR={}'.format(ui.thumbnail_text_color)
+            elif i.startswith('THUMBNAIL_TEXT_COLOR_FOCUS='):
+                i = 'THUMBNAIL_TEXT_COLOR_FOCUS={}'.format(ui.thumbnail_text_color_focus)
+            elif i.startswith('LIST_TEXT_COLOR='):
+                i = 'LIST_TEXT_COLOR={}'.format(ui.list_text_color)
+            elif i.startswith('LIST_TEXT_COLOR_FOCUS='):
+                i = 'LIST_TEXT_COLOR_FOCUS={}'.format(ui.list_text_color_focus)
+            new_lines.append(i)
+        write_files(file_name, new_lines, line_by_line=True)
+    
     def appeareance(self):
         self.param_list = []
         self.line101 = QtWidgets.QComboBox()
@@ -410,9 +488,15 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text101.setText("Theme")
         self.param_list.append('player_theme')
         
-        self.line102 = QtWidgets.QLineEdit()
-        self.line102.setPlaceholderText(
-            '{} , enter new font name and press return to apply changes'.format(ui.global_font))
+        self.line102 = QtWidgets.QComboBox()
+        try:
+            for font in self.font_families:
+                self.line102.addItem(font)
+            index = self.line102.findText(str(ui.global_font))
+            self.line102.setCurrentIndex(index)
+        except Exception as err:
+            logger.error(err)
+            self.line102.addItem(ui.global_font)
         self.text102 = QtWidgets.QLabel()
         self.text102.setText("Global Font")
         self.param_list.append('global_font')
@@ -985,13 +1069,17 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.keep_background_constant = True
                 else:
                     ui.keep_background_constant = False
-            if var_name == 'logging_module':
+            elif var_name == 'logging_module':
                 if obj_value.lower() == 'on':
                     ui.logging_module = True
                     ui.logger.disabled = False
                 else:
                     ui.logging_module = False
                     ui.logger.disabled = True
+            elif var_name == 'player_theme':
+                ui.player_theme = obj_value.lower()
+                if ui.player_theme == 'dark' or ui.player_theme == 'default':
+                    self.appeareance_setdefault()
             else:
                 exec('ui.{} = "{}"'.format(var_name, obj_value))
         if option == 'torrent':
@@ -1056,9 +1144,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.progressEpn.setFormat((""))
         elif 'font' in var_name or 'color' in var_name:
             if 'font' in var_name:
-                msg = 'Restart Application To Apply Font Changes'
+                msg = 'Restart Application, if changes are not applied'
+                ui.apply_new_font()
+                ui.apply_new_style()
             else:
-                msg = 'Restart Application To Apply Color Changes'
+                msg = 'Restart Application, if changes are not applied'
+                ui.apply_new_font()
+                ui.apply_new_style()
             ui.progressEpn.setValue(0)
             ui.progressEpn.setFormat((msg))
         else:
