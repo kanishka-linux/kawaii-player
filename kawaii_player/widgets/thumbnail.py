@@ -86,6 +86,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         if self.objectName() == 'label_new':
             if not ui.list1.isHidden() and not ui.list2.isHidden() and not ui.text.isHidden():
                 self.setMaximumWidth(ui.label_new_width)
+                self.setMaximumHeight(2.5*ui.height_allowed)
                 ui.text.setMaximumWidth(ui.text_width)
     
     def thumbnail_fs(self):
@@ -949,6 +950,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 finalUrl = '"'+ui.epn_arr_list[num]+'"'
                 new_epn = os.path.basename(ui.epn_arr_list[num])
                 ui.epn_name_in_list = new_epn
+            if new_epn.startswith('#'):
+                new_epn = new_epn.replace('#', '', 1)
+            ui.epn_name_in_list = new_epn
             finalUrl = ui.epn_return(num)
             if finalUrl.startswith('"'):
                 finalUrl = finalUrl.replace('"', '')
