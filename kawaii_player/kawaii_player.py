@@ -3556,11 +3556,13 @@ watch/unwatch status")
                 show_hide_player = 1
         elif val == "Show/Hide Playlist":
             if not self.list2.isHidden():
+                ht = self.list2.height()
                 self.list2.hide()
                 self.goto_epn.hide()
                 show_hide_playlist = 0
                 self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                 self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                self.label_new.setMaximumHeight(ht - self.height_allowed)
             else:
                 self.list2.show()
                 show_hide_playlist = 1
@@ -3571,11 +3573,13 @@ watch/unwatch status")
                 pass
             else:
                 if not self.list1.isHidden():
+                    ht = self.list1.height()
                     self.list1.hide()
                     self.frame.hide()
                     show_hide_titlelist = 0
                     self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                     self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
+                    self.label_new.setMaximumHeight(ht - self.height_allowed)
                 else:
                     self.list1.show()
                     show_hide_titlelist = 1
@@ -12637,6 +12641,7 @@ def main():
                     except:
                         show_hide_player = 0
                 elif "Force_FS" in i:
+                    j = j.strip()
                     try:
                         if j.lower() == 'true':
                             ui.force_fs = True
@@ -13445,7 +13450,7 @@ def main():
             ui.IconViewEpn(start=True, mode=1)
         else:
             ui.IconViewEpn(start=True, mode=2)
-    
+    logger.debug('FullScreen={}'.format(ui.force_fs))
     if ui.force_fs:
         MainWindow.showFullScreen()
     ret = app.exec_()
