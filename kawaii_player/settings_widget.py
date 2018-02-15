@@ -22,6 +22,7 @@ import re
 import sys
 import base64
 import hashlib
+import pickle
 import ipaddress
 import subprocess
 from functools import partial
@@ -333,16 +334,20 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.tab_close = QtWidgets.QWidget(self)
         self.tab_player = QtWidgets.QWidget(self)
         self.gl6 = QtWidgets.QGridLayout(self.tab_player)
+        self.tab_config = QtWidgets.QWidget(self)
+        self.gl7 = QtWidgets.QGridLayout(self.tab_config)
         self.addTab(self.tab_app, 'Appearance')
         self.addTab(self.tab_library, ' Library ')
         self.addTab(self.tab_server, 'Media Server')
         self.addTab(self.tab_torrent, ' Torrent ')
         self.addTab(self.tab_player, ' Player ')
         self.addTab(self.tab_meta, ' Other ')
+        self.addTab(self.tab_config, ' Config ')
         self.addTab(self.tab_close, ' Close ')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
         self.torrent_config = os.path.join(ui.home_folder, 'torrent_config.txt')
         self.library_file_name = os.path.join(ui.home_folder, 'local.txt')
+        self.config_file_name = os.path.join(ui.home_folder, 'src', 'customconfig')
         self.hide_label = False
         self.tabs_present = False
         self.setMouseTracking(True)
@@ -384,6 +389,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.othersettings()
                 self.library()
                 self.player_settings()
+                self.configsettings()
                 self.tabs_present = True
             if not ui.label.isHidden():
                 ui.label_new.hide()
@@ -1005,6 +1011,80 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
         self.gl6.addWidget(self.line45, index+1, 0, 1, 2)
+        
+    
+    def configsettings(self):
+        self.line501 = QtWidgets.QTextEdit()
+        self.gl7.addWidget(self.line501, 0, 0, 1, 2)
+        
+        self.checkbox = QtWidgets.QCheckBox("Use This Config File")
+        self.checkbox.stateChanged.connect(self.use_config_file)
+        self.gl7.addWidget(self.checkbox, 1, 0, 1, 1)
+        if ui.use_custom_config_file:
+            self.checkbox.setChecked(True)
+        mpvlist = self.basic_params('mpv')
+        mpvstr = '\n'.join(mpvlist)
+        self.line501.setText(mpvstr) 
+        
+        self.btn_confirm = QtWidgets.QPushButton('Save Changes')
+        self.gl7.addWidget(self.btn_confirm, 1, 1, 1, 1)
+        self.btn_confirm.clicked.connect(self.save_config_settings)
+    
+    def save_config_settings(self):
+        txt = self.line501.toPlainText()
+        txt_list = txt.split('\n')
+        mpv_cmd_dict = {}
+        mpv_cmd = []
+        ui.mpvplayer_string_list.clear()
+        for i in txt_list:
+            i = i.strip()
+            mpv_cmd.append(i)
+            if i and not i.startswith('#'):
+                if '=' in i:
+                    j = i.split('=')[1]
+                    if not j:
+                        i = ''
+                if i and i not in ui.mpvplayer_string_list:
+                    ui.mpvplayer_string_list.append('--'+i)
+        write_files(self.config_file_name, mpv_cmd, line_by_line=True)
+        mpv_cmd_dict.update({'file':mpv_cmd})
+        mpv_cmd_dict.update({'str':ui.mpvplayer_string_list})
+        try:
+            with open(self.config_file_name, 'wb') as config_file:
+                pickle.dump(mpv_cmd_dict, config_file)
+        except Exception as err:
+            logger.error(err)
+            
+    def use_config_file(self):
+        if self.checkbox.isChecked():
+            ui.use_custom_config_file = True
+        else:
+            ui.use_custom_config_file = False
+        change_opt_file(self.option_file, 'USE_CUSTOM_CONFIG_FILE=',
+                        'USE_CUSTOM_CONFIG_FILE={}'.format(ui.use_custom_config_file))
+        
+    def basic_params(self, player):
+        mpv_cmd = []
+        try:
+            if os.path.isfile(self.config_file_name):
+                with open(self.config_file_name, 'rb') as config_file:
+                    mpv_cmd_dict = pickle.load(config_file)
+                    mpv_cmd = mpv_cmd_dict['file']
+        except Exception as err:
+            logger.error(err)
+            
+        if not mpv_cmd:
+            mpv_cmd = [
+                "#Define Custom Settings Here for mpv",
+                "vo=gpu", "ao=pulse", "cache=auto", 'cache-secs=120',
+                "cache-default=100000", "cache-initial=0", "cache-seek-min=100",
+                "cache-pause", "video-aspect=-1", "alang=", "slang=",
+                "video-sync=display-resample",
+                "interpolation=yes", "tscale=oversample",
+                'input-conf="{}"'.format(ui.mpv_input_conf),
+                '#blend-subtitle=yes'
+                ]
+        return mpv_cmd
         
         
     def set_folder(self, widget, var_name=None):
