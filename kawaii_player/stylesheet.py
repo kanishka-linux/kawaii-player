@@ -279,7 +279,7 @@ class WidgetStyleSheet:
                     max-height: 40px;
                     }}
                     QComboBox QAbstractItemView{{
-                        background-color: rgba(0,0,0,{alpha});
+                        background-color: rgba(54,60,74);
                         border-radius: 0px;
                         color: {color};
                         font: {bold} {font};
@@ -303,26 +303,30 @@ class WidgetStyleSheet:
                     )
             
             gui.slider.setStyleSheet("""
-                QSlider:groove:horizontal {
+                QSlider:groove:horizontal {{
                 height: 8px;
                 border:rgba(0, 0, 0, 30%);
                 background:rgba(0, 0, 0, 30%);
                 margin: 2px 0;
-                }
-                QSlider:handle:horizontal {
+                }}
+                QSlider:handle:horizontal {{
                 background: qlineargradient(
                     x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
                 border: 1px solid #5c5c5c;
                 width: 2px;
                 margin: -2px 0; 
                 border-radius: 3px;
-                }
-                QToolTip {
-                font : Bold 10px;
-                color: white;
-                background:rgba(157, 131, 131, 80%)
-                }
-                """)
+                }}
+                QToolTip {{
+                font : {bold} {size}px {font};
+                color: {color};
+                background:rgb(54, 60, 74);
+                }}
+                """.format(
+                        color=gui.list_text_color, bold=font_bold,
+                        size=gui.global_font_size+3, font=gui.global_font
+                        )
+                    )
             gui.list_poster.setStyleSheet("""
                 QListWidget{{
                 font: {bold};color:{0};
@@ -442,11 +446,13 @@ class WidgetStyleSheet:
             for widget in [gui.label_torrent_stop, gui.label_down_speed, gui.label_up_speed]:
                 widget.setStyleSheet("""
                 QToolTip {{
-                font : {bold} 10px;
-                color: white;
-                background:rgba(157, 131, 131, 80%)
+                font : {bold} {size}px {font};
+                color: {color};
+                background:rgb(56,60,74);
                 }}
-                """.format(bold=font_bold))
+                """.format(bold=font_bold, font=gui.global_font,
+                           size=gui.global_font_size+3, color=gui.list_text_color)
+                        )
         elif widget == gui.list2 and (theme is None or theme in ['default', 'transparent', 'mix']):
             if gui.list_with_thumbnail:
                 ht = '128px'
@@ -606,7 +612,7 @@ class WidgetStyleSheet:
                         color:white;
                         }}
                         QComboBox QAbstractItemView{{
-                        background-color: rgba(0,0,0,{btn});
+                        background-color: rgb(54,60,74);
                         border-radius: 0px;
                         color: {color};
                         font: {bold};
@@ -673,6 +679,10 @@ class WidgetStyleSheet:
                         max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                         QTextEdit{{color:{color};background:rgba(0,0,0,10%);
                         border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                        
+                        QCheckBox{{color:{color};background:rgba(0,0,0,10%);
+                        border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                        
                         QLabel{{color:{color};background:rgba(0,0,0,0%);
                         max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
                         QComboBox {{
@@ -684,8 +694,9 @@ class WidgetStyleSheet:
                         max-height: 40px;
                         }}
                         QComboBox QAbstractItemView{{
-                        background-color: rgba(0,0,0,{btn});
+                        background-color: rgb(56,60,74);
                         border-radius: 0px;
+                        border-color:rgb(56,60,74);
                         color: {color};
                         font: {bold} {font};
                         }}
@@ -720,26 +731,32 @@ class WidgetStyleSheet:
                     width: 10px;
                     margin: 0.5px;
                     }}""")
-                gui.slider.setStyleSheet("""QSlider:groove:horizontal {
+                gui.slider.setStyleSheet("""QSlider:groove:horizontal {{
                     height: 8px;
                     border:rgba(0, 0, 0, 30%);
                     background:rgba(0, 0, 0, 30%);
                     margin: 2px 0;
-                    }
-                    QSlider:handle:horizontal {
+                    }}
+                    QSlider:handle:horizontal {{
                     background: qlineargradient(
                         x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
                     border: 1px solid #5c5c5c;
                     width: 2px;
                     margin: -2px 0; 
                     border-radius: 3px;
-                    }
-                    QToolTip {
-                    font : Bold 10px;
-                    color: white;
-                    background:rgba(157, 131, 131, 80%)
-                    }
-                    """)
+                    }}
+                    QToolTip {{
+                    font : {bold} {size}px {font};
+                    color: {color};
+                    background:rgb(56,60,74);
+                    padding: 1px 2px 1px 2px;
+                    }}
+                    """.format(
+                            alpha=bg, color=gui.list_text_color,
+                            bold=font_bold, size=gui.global_font_size+3,
+                            font=gui.global_font
+                            )
+                        )
                 gui.list_poster.setStyleSheet("""
                     QListWidget{{
                     color:{0};
