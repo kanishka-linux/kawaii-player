@@ -1207,6 +1207,20 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 if (extra_player not in ui.playback_engine
                         and extra_player.lower() != 'none'):
                     ui.playback_engine.append(extra_player)
+        elif var_name == 'ytdl_path':
+            k = obj_value.lower()
+            if k == 'default':
+                ui.ytdl_path = 'default'
+            elif k == 'automatic':
+                if os.name == 'posix':
+                    ui.ytdl_path = os.path.join(ui.home_folder, 'src', 'ytdl')
+                elif os.name == 'nt':
+                    ui.ytdl_path = os.path.join(ui.home_folder, 'src', 'ytdl.exe') 
+            else:
+                if os.path.exists(obj_value):
+                    ui.ytdl_path = obj_value
+                else:
+                    ui.ytdl_path = 'default'
         else:
             exec('ui.{} = "{}"'.format(var_name, obj_value))
         if option == 'torrent':
