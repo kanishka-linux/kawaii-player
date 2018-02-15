@@ -281,7 +281,13 @@ class QueueListWidget(QtWidgets.QListWidget):
                 if not ui.video_local_stream:
                     del ui.queue_url_list[r]
 
-
+class MyToolTip(QtWidgets.QToolTip):
+    
+    def __init__(self, uiwidget):
+        super(MyToolTip).__init__()
+        global ui
+        ui = uiwidget
+        
 class MySlider(QtWidgets.QSlider):
 
     def __init__(self, parent, uiwidget, home_dir):
@@ -290,6 +296,8 @@ class MySlider(QtWidgets.QSlider):
         ui = uiwidget
         home = home_dir
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.tooltip = MyToolTip(ui)
+        self.parent = parent
         
     def mouseMoveEvent(self, event): 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
@@ -301,7 +309,10 @@ class MySlider(QtWidgets.QSlider):
             l = str(0)
         if '.' in l:
             l = l.split('.')[0]
-        self.setToolTip(l)
+        #self.setToolTip(l)
+        point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
+        rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+        self.tooltip.showText(point, l, self, rect, 1000)
         
     def mousePressEvent(self, event):
         old_val = int(self.value())
