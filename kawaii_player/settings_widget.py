@@ -927,6 +927,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 extra_string
                 )
             )
+        msg = ("<html>Comma Separated list of external players like vlc, kodi etc...\
+                Users can also write MPV, MPLAYER in capital letters here,\
+                which will open videos in cli versions of mpv and mplayer.\
+                The list will be available in sidebar.</html>")
+        self.line44.setToolTip(msg)
         self.text44 = QtWidgets.QLabel()
         self.text44.setText("Extra Players")
         self.player_list.append('playback_engine')
