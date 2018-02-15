@@ -296,7 +296,12 @@ class MySlider(QtWidgets.QSlider):
         ui = uiwidget
         home = home_dir
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.tooltip = MyToolTip(ui)
+        version = QtCore.QT_VERSION_STR
+        self.version = tuple([int(i) for i in version.split('.')])
+        if self.version >= (5, 9, 0):
+            self.tooltip = MyToolTip(ui)
+        else:
+            self.tooltip = None
         self.parent = parent
         
     def mouseMoveEvent(self, event): 
@@ -309,10 +314,12 @@ class MySlider(QtWidgets.QSlider):
             l = str(0)
         if '.' in l:
             l = l.split('.')[0]
-        #self.setToolTip(l)
-        point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
-        rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
-        self.tooltip.showText(point, l, self, rect, 1000)
+        if self.tooltip is None:
+            self.setToolTip(l)
+        else:
+            point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
+            rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+            self.tooltip.showText(point, l, self, rect, 1000)
         
     def mousePressEvent(self, event):
         old_val = int(self.value())
