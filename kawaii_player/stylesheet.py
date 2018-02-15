@@ -268,6 +268,10 @@ class WidgetStyleSheet:
                     max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                     QTextEdit{{color:{color};background:rgba(0,0,0,10%);
                     border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                    
+                    QCheckBox{{color:{color};background:rgba(0,0,0,10%);
+                        border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                    
                     QLabel{{color:{color};background:rgba(0,0,0,0%);
                     max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
                     QComboBox {{
