@@ -269,7 +269,7 @@ class MainWindowWidget(QtWidgets.QWidget):
         x = self.width()
         dock_w = ui.dockWidget_3.width()
         if ui.orientation_dock == 'right':
-            if px <= x and px >= x-6:
+            if px <= x and px >= x-6 and ui.auto_hide_dock:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
                 logger.info('show options sidebar')
@@ -280,7 +280,7 @@ class MainWindowWidget(QtWidgets.QWidget):
                 elif not ui.list2.isHidden():
                     ui.list2.setFocus()
         else:
-            if px >= 0 and px <= 10:
+            if px >= 0 and px <= 10 and ui.auto_hide_dock:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
                 logger.info('show options sidebar')
@@ -1516,6 +1516,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.player_volume = 'auto'
+        self.use_custom_config_file = False
         self.browser_backend = BROWSER_BACKEND
         self.settings_tab_index = 0
         #video_parameters=[url, seek_time, cur_time, sub, aid, rem_quit, vol, asp]
@@ -1527,6 +1528,7 @@ watch/unwatch status")
         self.wget = QtCore.QProcess()
         self.video_local_stream = False
         self.cur_row = 0
+        self.mpvplayer_string_list = []
         try:
             self.global_font = QtGui.QFont().defaultFamily()
         except Exception as err:
@@ -4203,12 +4205,18 @@ watch/unwatch status")
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_title_txt.setStyleSheet(
-                            """font: {bold} {size}px {0};color: {1}
+                            """font: {bold} {size}px {0};color: {1};
+                            QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                            background:rgb(56,60,74);
+                            }}
                             """.format(self.global_font, self.thumbnail_text_color, bold=font_bold, size=font_size)
                             )
                     else:
                         label_title_txt.setStyleSheet(
-                            """font: {bold} {size}px {0}; color: {1}
+                            """font: {bold} {size}px {0}; color: {1};
+                            QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                            background:rgb(56,60,74);
+                            }}
                             """.format(self.global_font, self.thumbnail_text_color, bold=font_bold, size=font_size)
                             )
                 if value_str == "deleted" or value_str == 'zoom':
@@ -4764,20 +4772,26 @@ watch/unwatch status")
                     sumry = "<html>"+sumry+"</html>"
                 label_epn_txt.setText(nameEpn)
                 label_epn_txt.setAlignment(QtCore.Qt.AlignCenter)
-                label_epn_txt.setToolTip(sumry)
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_epn_txt.setStyleSheet(
-                            """font: {bold} {size}px {0};color: {1}
+                            """font: {bold} {size}px {0};color: {1};
+                            QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                            background:rgb(56,60,74);
+                            }}
                             """.format(self.global_font, self.thumbnail_text_color,
                                        bold=font_bold, size=font_size)
                             )
                     else:
                         label_epn_txt.setStyleSheet(
-                            """font: {bold} {size}px {0};color: {1}
+                            """font: {bold} {size}px {0};color: {1};
+                            QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                            background:rgb(56,60,74);
+                            }}
                             """.format(self.global_font, self.thumbnail_text_color,
                                        bold=font_bold, size=font_size)
                             )
+                label_epn_txt.setToolTip(sumry)
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
@@ -11148,7 +11162,9 @@ watch/unwatch status")
             command = re.sub('--cursor-autohide=no|--no-input-cursor|--no-osc|--no-osd-bar|--ytdl=no', '', command)
         elif player == 'MPLAYER':
             command = re.sub('-wid [0-9]+', '', command)
-        print(command, '---10446---')
+        logger.debug(command)
+        if self.player_val.lower() == 'mpv' and self.use_custom_config_file and self.mpvplayer_string_list:
+            command = command + ' ' + ' '.join(self.mpvplayer_string_list)
         logger.debug(finalUrl)
         if finalUrl:
             if self.quality_val == 'best' and self.ytdl_path == 'default':
@@ -12981,6 +12997,12 @@ def main():
                         logger.info('mpv_conf: {0}'.format(ui.custom_mpv_input_conf))
                     except Exception as e:
                         print(e)
+                elif i.startswith('USE_CUSTOM_CONFIG_FILE='):
+                    try:
+                        if j and j.lower() in ['true', 'yes']:
+                            ui.use_custom_config_file = True
+                    except Exception as e:
+                        print(e)
                 elif i.startswith('ANIME_REVIEW_SITE='):
                     try:
                         k = j.lower()
@@ -13488,6 +13510,14 @@ def main():
     logger.debug('FullScreen={}'.format(ui.force_fs))
     if ui.force_fs:
         MainWindow.showFullScreen()
+    try:
+        if os.path.isfile(ui.settings_box.config_file_name) and ui.use_custom_config_file:
+            with open(ui.settings_box.config_file_name, 'rb') as config_file:
+                config_dict = pickle.load(config_file)
+                ui.mpvplayer_string_list = config_dict['str']
+    except Exception as err:
+        logger.error(err)
+        
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
