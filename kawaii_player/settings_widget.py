@@ -914,17 +914,14 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text42.setText("Remember Aspect Per Video")
         self.player_list.append('restore_aspect')
         
-        self.line43 = QtWidgets.QComboBox()
-        self.line43.addItem('False')
-        self.line43.addItem('True')
-        index = self.line43.findText(str(ui.custom_mpv_input_conf))
-        self.line43.setCurrentIndex(index)
-        msg = '<html>Once it is enabled, application will start following\
-               global mpv shortcuts as defined in input.conf</html>'
+        self.line43 = QtWidgets.QLineEdit()
+        self.line43.setPlaceholderText(str(ui.cache_pause_seconds) + ' (In Seconds)')
+        msg = '<html>Stop This many before starting out again seconds when run\
+                out of cache</html>'
         self.line43.setToolTip(msg)
         self.text43 = QtWidgets.QLabel()
-        self.text43.setText("MPV Input Conf")
-        self.player_list.append('custom_mpv_input_conf')
+        self.text43.setText("Cache Pause Seconds")
+        self.player_list.append('cache_pause_seconds')
         
         self.line44 = QtWidgets.QLineEdit()
         if len(ui.playback_engine) > 2:
@@ -1279,6 +1276,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.ytdl_path = obj_value
                 else:
                     ui.ytdl_path = 'default'
+        elif var_name == 'cache_pause_seconds' and obj_value.isnumeric():
+            ui.cache_pause_seconds = int(obj_value)
         else:
             exec('ui.{} = "{}"'.format(var_name, obj_value))
         if option == 'torrent':
