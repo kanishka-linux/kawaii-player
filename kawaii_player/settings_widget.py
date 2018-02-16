@@ -1198,7 +1198,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         obj_value = widget.currentText()
         param = obj_name + '='
         param_value = param + obj_value
-        print(param, param_value, var_name, obj_value)
+        logger.debug('{}::{}::{}::{}'.format(param, param_value, var_name, obj_value))
         if obj_value.lower() in ['true', 'false']:
             exec('ui.{} = {}'.format(var_name, obj_value.title()))
             if var_name == 'list_with_thumbnail':
