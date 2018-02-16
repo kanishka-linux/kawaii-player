@@ -569,10 +569,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 if command:
                     command_list = command.split('::')
                     for part in command_list:
-                        if part.startswith('function'):
+                        if part in self.function_map:
                             myfunction = self.function_map.get(part)
-                            if myfunction:
-                                myfunction()
+                            myfunction()
                         elif part.startswith('ignore'):
                             pass
                         else:
@@ -686,7 +685,17 @@ class PlayerWidget(QtWidgets.QWidget):
         
     def quit_player(self):
         self.player_quit()
-        
+    
+    def cycle_player_subtitle(self):
+        self.mpvplayer.write(b'\n cycle sub \n')
+        self.mpvplayer.write(b'\n print-text "SUB_KEY_ID=${sid}" \n')
+        self.mpvplayer.write(b'\n show-text "${sid}" \n')
+                
+    def cycle_player_audio(self):
+        self.mpvplayer.write(b'\n cycle audio \n')
+        self.mpvplayer.write(b'\n print-text "AUDIO_KEY_ID=${aid}" \n')
+        self.mpvplayer.write(b'\n show-text "${aid}" \n')
+                
     def stop_after_current_file(self):
         self.ui.quit_really = "yes"
         msg = '"Stop After current file"'
@@ -1112,18 +1121,20 @@ class KeyBoardShortcuts:
     def get_default_keys(self):
         default_key_map = OrderedDict()
         
-        default_key_map['f'] = 'function_toggle_fullscreen'
-        default_key_map['.'] = 'function_get_next_playlist_entry'
-        default_key_map[','] = 'function_get_prev_playlist_entry'
-        default_key_map['q'] = 'function_quit'
-        default_key_map['ctrl+q'] = 'function_stop_after_current_file'
-        default_key_map['Q'] ='function_remember_and_quit'
-        default_key_map['l'] = 'function_player_loop'
-        default_key_map['p'] = 'function_show_hide_status_frame'
-        default_key_map['space'] = 'function_play_pause'
-        default_key_map['a'] = 'function_cycle_aspect_ratio'
-        default_key_map['J'] = 'function_load_external_sub'
-        default_key_map['ctrl+j'] ='function_load_network_sub'
+        default_key_map['f'] = 'cycle fullscreen'
+        default_key_map['.'] = 'playlist-next'
+        default_key_map[','] = 'playlist-prev'
+        default_key_map['q'] = 'quit'
+        default_key_map['ctrl+q'] = 'stop-after-current-file'
+        default_key_map['Q'] ='quit-watch-later'
+        default_key_map['l'] = 'toggle-loop'
+        default_key_map['p'] = 'show-hide-status-frame'
+        default_key_map['space'] = 'cycle pause'
+        default_key_map['a'] = 'cycle-aspect-ratio'
+        default_key_map['J'] = 'load-external-subtitle'
+        default_key_map['ctrl+j'] ='load-network-subtitle'
+        default_key_map['j'] ='cycle sub'
+        default_key_map['k'] ='cycle audio'
         
         default_key_map['right'] = 'set osd-level 1::osd-msg-bar seek +10'
         default_key_map['left'] = 'set osd-level 1::osd-msg-bar seek -10'
@@ -1137,8 +1148,6 @@ class KeyBoardShortcuts:
         
         default_key_map['0'] = 'add ao-volume +5::print-text volume-print=${ao-volume}'
         default_key_map['9'] = 'add ao-volume -5::print-text volume-print=${ao-volume}'
-        default_key_map['j'] = 'cycle sub::print-text "SUB_KEY_ID=${sid}"::show-text "${sid}"'
-        default_key_map['k'] = 'cycle audio::print-text "AUDIO_KEY_ID=${aid}"::show-text "${aid}"'
         default_key_map['$'] = 'cycle ass-style-override'
         default_key_map['V'] ='cycle ass-vsfilter-aspect-compat'
         default_key_map['v'] = 'cycle sub-visibility'
@@ -1213,18 +1222,20 @@ class KeyBoardShortcuts:
                     
     def function_map(self):
         func_map = {
-            'function_cycle_aspect_ratio': self.parent.change_aspect_ratio,
-            'function_player_loop': self.parent.start_player_loop,
-            'function_show_hide_status_frame':self.parent.show_hide_status_frame,
-            'function_play_pause':self.parent.toggle_play_pause,
-            'function_load_external_sub':self.parent.load_subtitle_from_file,
-            'function_load_network_sub':self.parent.load_subtitle_from_network,
-            'function_toggle_fullscreen':self.parent.toggle_fullscreen_mode,
-            'function_get_next_playlist_entry':self.parent.get_next,
-            'function_get_prev_playlist_entry':self.parent.get_previous,
-            'function_quit':self.parent.quit_player,
-            'function_stop_after_current_file':self.parent.stop_after_current_file,
-            'function_remember_and_quit':self.parent.remember_and_quit
+            'cycle-aspect-ratio': self.parent.change_aspect_ratio,
+            'toggle-loop': self.parent.start_player_loop,
+            'show-hide-status-frame':self.parent.show_hide_status_frame,
+            'cycle pause':self.parent.toggle_play_pause,
+            'load-external-subtitle':self.parent.load_subtitle_from_file,
+            'load-network-subtitle':self.parent.load_subtitle_from_network,
+            'cycle fullscreen':self.parent.toggle_fullscreen_mode,
+            'playlist-next':self.parent.get_next,
+            'playlist-prev':self.parent.get_previous,
+            'quit':self.parent.quit_player,
+            'stop-after-current-file':self.parent.stop_after_current_file,
+            'quit-watch-later':self.parent.remember_and_quit,
+            'cycle sub':self.parent.cycle_player_subtitle,
+            'cycle audio':self.parent.cycle_player_audio
         }
         return func_map
     
