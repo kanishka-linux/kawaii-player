@@ -574,6 +574,8 @@ class PlayerWidget(QtWidgets.QWidget):
                             myfunction()
                         elif part.startswith('ignore'):
                             pass
+                        elif part.startswith('add volume') or part.startswith('add ao-volume'):
+                            self.change_volume(part)
                         else:
                             cmd = '\n {} \n'.format(part)
                             command_string = bytes(cmd, 'utf-8')
@@ -610,7 +612,31 @@ class PlayerWidget(QtWidgets.QWidget):
                         ]
                     }
                 )
-                
+    
+    def change_volume(self, command):
+        vol = None
+        volume = False
+        msg = None
+        if ' ' in command:
+            vol_int = command.split(' ')[-1]
+            if vol_int.startswith('-') or vol_int.startswith('+'):
+                vol = vol_int[1:]
+            else:
+                vol = vol_int
+            if vol.isnumeric():
+                volume = True
+        if command.startswith('add volume') and volume:
+            command = '\n add volume {} \n'.format(vol_int)
+            msg = '\n print-text volume-print=${volume} \n'
+        elif command.startswith('add ao-volume') and volume:
+            command = '\n add ao-volume {} \n'.format(vol_int)
+            msg = '\n print-text ao-volume-print=${ao-volume} \n'
+        if msg:
+            new_command = bytes(command, 'utf8')
+            self.mpvplayer.write(new_command)
+            msg = bytes(msg, 'utf-8')
+            self.mpvplayer.write(msg)
+            
     def start_player_loop(self):
         self.ui.playerLoopFile(self.ui.player_loop_file)
     
@@ -1146,8 +1172,8 @@ class KeyBoardShortcuts:
         default_key_map['['] = 'osd-msg-bar seek -5'
         default_key_map['R'] = 'vf add flip'
         
-        default_key_map['0'] = 'add ao-volume +5::print-text volume-print=${ao-volume}'
-        default_key_map['9'] = 'add ao-volume -5::print-text volume-print=${ao-volume}'
+        default_key_map['0'] = 'add ao-volume +5'
+        default_key_map['9'] = 'add ao-volume -5'
         default_key_map['$'] = 'cycle ass-style-override'
         default_key_map['V'] ='cycle ass-vsfilter-aspect-compat'
         default_key_map['v'] = 'cycle sub-visibility'
