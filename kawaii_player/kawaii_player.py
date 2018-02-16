@@ -1517,6 +1517,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.cache_pause_seconds = 4
         self.player_volume = 'auto'
         self.use_custom_config_file = False
         self.browser_backend = BROWSER_BACKEND
@@ -10130,7 +10131,7 @@ watch/unwatch status")
                             new_tray_widget.update_signal.emit(out, val)
                         if cache_empty == 'yes':
                             try:
-                                if new_cache_val > 4:
+                                if new_cache_val > self.cache_pause_seconds:
                                     cache_empty = 'no'
                                     self.mpvplayer_val.write(b'\n set pause no \n')
                                     self.player_play_pause.setText(self.player_buttons['pause'])
@@ -12957,6 +12958,12 @@ def main():
                     except Exception as e:
                         print(e)
                         ui.cookie_playlist_expiry_limit = 24
+                elif i.startswith('CACHE_PAUSE_SECONDS='):
+                    try:
+                        if j.isnumeric():
+                            ui.cache_pause_seconds = int(j)
+                    except Exception as e:
+                        print(e)
                 elif i.startswith('LOGGING='):
                     try:
                         k = j.lower()
