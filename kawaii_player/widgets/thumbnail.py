@@ -539,6 +539,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.setMaximumSize(QtCore.QSize(wd, ht))
                         ui.HideEveryThing(mode='fs')
                         self.setFocus()
+            else:
+                ui.tab_5.keyPressEvent(event)
         else:
             super(ThumbnailWidget, self).keyPressEvent(event)
 
