@@ -1139,30 +1139,68 @@ class OptionsSettings(QtWidgets.QTabWidget):
                         mpv_cmd = mpv_cmd_dict['file']
             except Exception as err:
                 logger.error(err)
-            
+        
+        if not ui.video_outputs or not ui.audio_outputs:
+            ui.video_outputs, ui.audio_outputs = self.get_audio_video_outputs()
+            change_opt_file(self.option_file, 'AUDIO_OUTPUTS=', 'AUDIO_OUTPUTS={}'.format(ui.audio_outputs))
+            change_opt_file(self.option_file, 'VIDEO_OUTPUTS=', 'VIDEO_OUTPUTS={}'.format(ui.video_outputs))
         if not mpv_cmd:
             mpv_cmd = [
-                "#Define Custom Settings Here for mpv. Comment out lines as per need",
-                '#Write string with space in double quotes',
-                "#Video Output","vo=gpu",
-                "#Audio Output", "ao=pulse",
+                "##Define Custom Settings Here for mpv. Comment out lines as per need",
+                '##Write string with space in double quotes',
+                "##Available Video Outputs (vo): {}".format(ui.video_outputs),"vo=gpu",
+                "##Available Audio Outputs (ao): {}".format(ui.audio_outputs), "ao=pulse",
                 "#Cache Settings", "cache=auto", 'cache-secs=120',
                 "cache-default=100000", "cache-initial=0", "cache-seek-min=100",
                 "cache-pause",
-                "#Set Video Aspect", "video-aspect=-1",
-                "#Set Audio and Subtitle language options",
+                "##Set Video Aspect: cycle through aspect ratio using key a", "video-aspect=-1",
+                "##Set Audio and Subtitle language options",
                 "#alang=", "#slang=",
-                "#For Smooth Playback",
+                "##For Smooth Playback",
                 "#video-sync=display-resample",
                 "#interpolation=yes", "#tscale=oversample",
-                '#Subtitle Options', '#sub-font=', '#sub-font-size=', '#sub-color=',
+                '##Subtitle Options', '#sub-font=', '#sub-font-size=', '#sub-color=',
                 '#sub-border-color=', '#sub-border-size=', '#sub-shadow-offset=',
                 '#sub-shadow-offset=', '#sub-shadow-color', '#sub-spacing',
                 '#blend-subtitle=yes',
+                '##Setup screenshot directory. Take screenshot using keys s, S',
+                '#screenshot-directory="{}"'.format(ui.tmp_download_folder),
+                '##Define user agent string, sometimes necessary for streaming videos',
                 '#user-agent="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0"'
                 ]
         return mpv_cmd
         
+    def get_audio_video_outputs(self, val=None):
+        output_audio = ''
+        output_video = ''
+        for value in ['--vo', '--ao']:
+            output = None
+            try:
+                if os.name == 'posix':
+                    output = subprocess.check_output(['mpv', value, 'help'])
+                else:
+                    output = subprocess.check_output(['mpv', value, 'help'], shell=True)
+                output = output.decode('utf-8')
+            except Exception as err:
+                logger.error(err)
+            if output:
+                output_list = output.split('\n')
+                for i in output_list:
+                    i = i.strip()
+                    if ':' in i:
+                        i = i.split(':')[0].strip()
+                    if i and not i.lower().startswith('available'):
+                        if value == '--vo':
+                            if not output_video:
+                                output_video = i
+                            else:
+                                output_video = output_video + ', ' + i
+                        else:
+                            if not output_audio:
+                                output_audio = i
+                            else:
+                                output_audio = output_audio + ', ' + i
+        return (output_video, output_audio)
         
     def set_folder(self, widget, var_name=None):
         fname = QtWidgets.QFileDialog.getExistingDirectory(
