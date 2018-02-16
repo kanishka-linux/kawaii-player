@@ -32,15 +32,19 @@ class PlayerWidget(QtWidgets.QWidget):
         
         screen_width = self.ui.screen_size[0]
         screen_height = self.ui.screen_size[1]
+        self.custom_keys = {}
         
         self.key_map = KeyBoardShortcuts(ui, self)
         self.mpv_default = self.key_map.get_default_keys()
-        self.mpv_custom = self.key_map.get_custom_keys()
+        self.mpv_custom, self.input_conf_list = self.key_map.get_custom_keys(self.ui.mpv_input_conf)
+        self.custom_keys, _ = self.key_map.get_custom_keys(self.ui.custom_key_file)
         self.function_map = self.key_map.function_map()
         self.non_alphanumeric_keys = self.key_map.non_alphanumeric_keys()
         self.alphanumeric_keys = self.key_map.alphanumeric_keys()
+        if self.custom_keys:
+            self.mpv_default = self.custom_keys.copy()
         self.shift_keys = [
-            '?', '>', '<', '"', ':', '}', '{', '|', '+', '_',
+            '?', '>', '<', '"', ':', '}', '{', '|', '+', '_', 'sharp',
             ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
             ]
             
@@ -568,6 +572,8 @@ class PlayerWidget(QtWidgets.QWidget):
                             myfunction = self.function_map.get(part)
                             if myfunction:
                                 myfunction()
+                        elif part.startswith('ignore'):
+                            pass
                         else:
                             cmd = '\n {} \n'.format(part)
                             command_string = bytes(cmd, 'utf-8')
@@ -1104,58 +1110,111 @@ class KeyBoardShortcuts:
         
     def get_default_keys(self):
         default_key_map = {
+            'f': 'function_toggle_fullscreen',
+            '.':'function_get_next_playlist_entry', 
+            ',': 'function_get_prev_playlist_entry',
+            'q': 'function_quit',
+            'ctrl+q': 'function_stop_after_current_file',
+            'Q':'function_remember_and_quit',
+            'l': 'function_player_loop',
+            'p': 'function_show_hide_status_frame',
+            'space': 'function_play_pause',
+            'a': 'function_cycle_aspect_ratio',
+            'J': 'function_load_external_sub',
+            'ctrl+j':'function_load_network_sub',
+            
             'right':'set osd-level 1::osd-msg-bar seek +10',
             'left':'set osd-level 1::osd-msg-bar seek -10',
             'up': 'set osd-level 1::osd-msg-bar seek +60',
             'down': 'set osd-level 1::osd-msg-bar seek -60',
             'pgup':'set osd-level 1::osd-msg-bar seek +300',
             'pgdwn': 'set osd-level 1::osd-msg-bar seek -300',
-            ']':'osd-msg-bar seek +90', '[':'osd-msg-bar seek -5',
+            ']':'osd-msg-bar seek +90',
+            '[':'osd-msg-bar seek -5',
+            'R':'vf add flip',
+            
             '0': 'add ao-volume +5::print-text volume-print=${ao-volume}',
             '9': 'add ao-volume -5::print-text volume-print=${ao-volume}',
-            '1':'add chapter -1', '2':'add chapter 1',
-            '3':'cycle ass-style-override',
-            'V':'cycle ass-vsfilter-aspect-compat',
-            'a': 'function_change_aspect', 'n': 'playlist_next', 'l': 'function_player_loop',
-            'end': 'osd-msg-bar seek 100 absolute-percent', 'p': 'function_show_hide_frame',
-            'space': 'function_play_pause',
-            'o':'cycle osd-level', 'i':'show_text ${file-size}',
-            'e':'add video-zoom +0.01', 'w':'add video-zoom -0.01',
-            'r':'add sub-pos -1', 't': 'add sub-pos +1', 'J': 'load_external_sub',
-            'ctrl+j':'function_load_network_sub',
             'j': 'cycle sub::print-text "SUB_KEY_ID=${sid}"::show-text "${sid}"',
             'k': 'cycle audio::print-text "AUDIO_KEY_ID=${aid}"::show-text "${aid}"',
-            'f': 'function_toggle_fullscreen', '.':'function_get_next_playlist_entry', 
-            ',': 'function_get_prev_playlist_entry', 'q': 'function_quit',
-            'ctrl+q': 'function_stop_after_current_file',
-            'Q':'function_remember_and_quit',
-            'm':'osd_show_property_text ${filename}'
+            '$':'cycle ass-style-override',
+            'V':'cycle ass-vsfilter-aspect-compat',
+            'v' :'cycle sub-visibility',
+            
+            'end': 'osd-msg-bar seek 100 absolute-percent',
+            'o':'cycle osd-level',
+            'i':'show_text ${file-size}',
+            'e':'add video-zoom +0.01', 
+            'w':'add video-zoom -0.01',
+            'r':'add sub-pos -1',
+            't': 'add sub-pos +1',
+            'M':'osd_show_property_text ${filename}',
+            
+            'shift+right': 'no-osd seek  1 exact',
+            'shift+left': 'no-osd seek -1 exact',
+            'shift+up': 'no-osd seek  5 exact',
+            'shift+down': 'no-osd seek -5 exact',
+            
+            'ctrl+left': 'no-osd sub-seek -1',
+            'ctrl+right': 'no-osd sub-seek  1',
+            '{': 'multiply speed 0.5',
+            '}': 'multiply speed 2.0',
+            'bs': 'set speed 1.0',
+            'I': 'script-binding stats/display-stats-toggle',
+            'z': 'add sub-delay -0.1',
+            'x': 'add sub-delay +0.1',
+            'ctrl++': 'add audio-delay 0.100',
+            'ctrl+-': 'add audio-delay -0.100',
+            'm': 'cycle mute',
+            'd': 'cycle deinterlace',
+            'u' :'cycle-values sub-ass-override "force" "no"',
+            'sharp': 'cycle audio',
+            '_' :'cycle video',
+            'T': 'cycle ontop',
+            's': 'async screenshot',
+            'S': 'async screenshot video', 
+            'ctrl+s': 'async screenshot window',
+            'alt+s': 'screenshot each-frame', 
+            '!' :'add chapter -1',
+            '@': 'add chapter 1',
+            '1': 'add contrast -1',
+            '2': 'add contrast 1',
+            '3': 'add brightness -1',
+            '4': 'add brightness 1',
+            '5': 'add gamma -1',
+            '6': 'add gamma 1',
+            '7': 'add saturation -1',
+            '8': 'add saturation 1',
+            
         } 
         return default_key_map
         
-    def get_custom_keys(self):
-        input_conf = self.ui.mpv_input_conf
+    def get_custom_keys(self, input_conf):
         custom_key_map = {}
+        lines_arr = []
         if os.path.isfile(input_conf):
             lines = open_files(input_conf, True)
             for i in lines:
                 i = i.strip()
+                lines_arr.append(i)
                 if i and not i.startswith('#'):
                     if ' ' in i:
                         lst = i.split(' ', 1)
                         key = lst[0]
                         command = lst[1]
+                        command = re.sub('#[^\n]*', '', command)
+                        command = command.strip()
                         if key.isalnum() and len(key) == 1:
                             custom_key_map.update({key:command})
                         else:
                             custom_key_map.update({key.lower():command})
-        return custom_key_map
+        return custom_key_map, lines_arr
                     
     def function_map(self):
         func_map = {
-            'function_change_aspect': self.parent.change_aspect_ratio,
+            'function_cycle_aspect_ratio': self.parent.change_aspect_ratio,
             'function_player_loop': self.parent.start_player_loop,
-            'function_show_hide_frame':self.parent.show_hide_status_frame,
+            'function_show_hide_status_frame':self.parent.show_hide_status_frame,
             'function_play_pause':self.parent.toggle_play_pause,
             'function_load_external_sub':self.parent.load_subtitle_from_file,
             'function_load_network_sub':self.parent.load_subtitle_from_network,
@@ -1208,7 +1267,7 @@ class KeyBoardShortcuts:
             QtCore.Qt.Key_F12: 'F12',
             QtCore.Qt.Key_Exclam: '!',
             QtCore.Qt.Key_QuoteDbl: '""',
-            QtCore.Qt.Key_NumberSign: '#',
+            QtCore.Qt.Key_NumberSign: 'sharp',
             QtCore.Qt.Key_Dollar: '$',
             QtCore.Qt.Key_Ampersand: '&',
             QtCore.Qt.Key_Apostrophe: "'",
