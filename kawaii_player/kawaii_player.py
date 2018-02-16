@@ -13519,6 +13519,11 @@ def main():
     logger.debug('FullScreen={}'.format(ui.force_fs))
     if ui.force_fs:
         MainWindow.showFullScreen()
+    if not os.path.isfile(ui.mpv_input_conf):
+        input_conf = os.path.join(RESOURCE_DIR, 'input.conf')
+        if os.path.isfile(input_conf):
+            shutil.copy(input_conf, ui.mpv_input_conf)
+        
     try:
         if os.path.isfile(ui.settings_box.config_file_name) and ui.use_custom_config_file:
             with open(ui.settings_box.config_file_name, 'rb') as config_file:
