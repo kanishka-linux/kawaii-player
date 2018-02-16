@@ -1,7 +1,7 @@
 import os
 import re
 from PyQt5 import QtCore, QtGui, QtWidgets
-from player_functions import ccurl
+from player_functions import ccurl, open_files
 
 class PlayerWidget(QtWidgets.QWidget):
 
@@ -32,7 +32,18 @@ class PlayerWidget(QtWidgets.QWidget):
         
         screen_width = self.ui.screen_size[0]
         screen_height = self.ui.screen_size[1]
-    
+        
+        self.key_map = KeyBoardShortcuts(ui, self)
+        self.mpv_default = self.key_map.get_default_keys()
+        self.mpv_custom = self.key_map.get_custom_keys()
+        self.function_map = self.key_map.function_map()
+        self.non_alphanumeric_keys = self.key_map.non_alphanumeric_keys()
+        self.alphanumeric_keys = self.key_map.alphanumeric_keys()
+        self.shift_keys = [
+            '?', '>', '<', '"', ':', '}', '{', '|', '+', '_',
+            ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
+            ]
+            
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
             self.mpvplayer = mpvplayer
@@ -518,8 +529,168 @@ class PlayerWidget(QtWidgets.QWidget):
                         pass
                     else:
                         self.ui.float_window.showNormal()
-                    
+    
     def keyPressEvent(self, event):
+        if self.player_val.lower() == 'mpv':
+            key = None
+            if event.modifiers() == QtCore.Qt.ControlModifier:
+                if event.key() in self.alphanumeric_keys:
+                    key = 'ctrl+'+ self.alphanumeric_keys.get(event.key())
+                elif event.key() in self.non_alphanumeric_keys:
+                    key = 'ctrl+' + self.non_alphanumeric_keys.get(event.key())
+            elif event.modifiers() == QtCore.Qt.AltModifier:
+                if event.key() in self.alphanumeric_keys:
+                    key = 'alt+'+ self.alphanumeric_keys.get(event.key())
+                elif event.key() in self.non_alphanumeric_keys:
+                    key = 'alt+' + self.non_alphanumeric_keys.get(event.key())
+            elif event.modifiers() == QtCore.Qt.ShiftModifier:
+                if event.text().isalnum():
+                    key = event.text().upper()
+                elif event.key() in self.non_alphanumeric_keys:
+                    key = self.non_alphanumeric_keys.get(event.key())
+                    if key not in self.shift_keys:
+                        key = 'shift+' + key
+            elif event.text().isalnum():
+                key = event.text()
+            else:
+                key = self.non_alphanumeric_keys.get(event.key())
+            if key is not None:
+                logger.debug(key)
+                command = self.mpv_default.get(key)
+                logger.debug(command)
+                if not command:
+                    command = self.mpv_custom.get(key)
+                logger.debug(command)
+                if command:
+                    command_list = command.split('::')
+                    for part in command_list:
+                        if part.startswith('function'):
+                            myfunction = self.function_map.get(part)
+                            if myfunction:
+                                myfunction()
+                        else:
+                            cmd = '\n {} \n'.format(part)
+                            command_string = bytes(cmd, 'utf-8')
+                            logger.debug(command_string)
+                            self.mpvplayer.write(command_string)
+        elif self.player_val.lower() == 'mplayer':
+            self.keyPressEventOld(event)
+            
+    def change_aspect_ratio(self):
+        self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
+        aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
+        logger.info('aspect:{0}::value:{1}'.format(self.ui.mpvplayer_aspect_cycle, aspect_val))
+        if aspect_val == '-1':
+            show_text_val = 'Original Aspect'
+        elif aspect_val == '0':
+            show_text_val = 'Aspect Ratio Disabled'
+        else:
+            show_text_val = aspect_val
+        if self.player_val == 'mpv':
+            msg = '\n set video-aspect "{0}" \n'.format(aspect_val)
+            self.mpvplayer.write(bytes(msg, 'utf-8'))
+            txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
+            self.mpvplayer.write(bytes(txt_osd, 'utf-8'))
+            if self.ui.final_playing_url in self.ui.history_dict_obj:
+                seek_time, acc_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj.get(self.ui.final_playing_url)
+                asp = aspect_val
+                if self.ui.video_parameters:
+                    if self.ui.video_parameters[0] == self.ui.final_playing_url:
+                        self.ui.video_parameters[-1] = asp
+                self.ui.history_dict_obj.update(
+                    {self.ui.final_playing_url:[
+                        seek_time, acc_time, sub_id, audio_id,
+                        rem_quit, vol, asp
+                        ]
+                    }
+                )
+                
+    def start_player_loop(self):
+        self.ui.playerLoopFile(self.ui.player_loop_file)
+    
+    def show_hide_status_frame(self):
+        if self.ui.frame1.isHidden():
+            self.ui.gridLayout.setSpacing(0)
+            self.ui.frame1.show()
+        else:
+            self.ui.gridLayout.setSpacing(5)
+            self.ui.frame1.hide()
+            
+    def toggle_play_pause(self):
+        txt = self.ui.player_play_pause.text()
+        if txt == self.ui.player_buttons['play']:
+            self.ui.player_play_pause.setText(self.ui.player_buttons['pause'])
+        elif txt == self.ui.player_buttons['pause']:
+            self.ui.player_play_pause.setText(self.ui.player_buttons['play'])
+            self.ui.mplayer_pause_buffer = False
+            self.ui.mplayer_nop_error_pause = False
+            buffering_mplayer = "no"
+            self.ui.set_parameters_value(bufm=buffering_mplayer)
+        if self.ui.frame_timer.isActive:
+            self.ui.frame_timer.stop()
+        if self.ui.mplayer_timer.isActive():
+            self.ui.mplayer_timer.stop()
+        param_dict = self.ui.get_parameters_value(
+            ps='pause_indicator', mpv='mpv_indicator', s='site')
+        pause_indicator = param_dict['pause_indicator']
+        mpv_indicator = param_dict['mpv_indicator']
+        site = param_dict['site']
+        if not pause_indicator:
+            self.mpvplayer.write(b'\n set pause yes \n')
+            if MainWindow.isFullScreen():
+                self.ui.gridLayout.setSpacing(0)
+                self.ui.frame1.show()
+            pause_indicator.append("Pause")
+        else:
+            self.mpvplayer.write(b'\n set pause no \n')
+            if MainWindow.isFullScreen():
+                if (site != "Music" and self.ui.tab_6.isHidden()
+                        and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                    self.ui.frame1.hide()
+            pause_indicator.pop()
+            if mpv_indicator:
+                mpv_indicator.pop()
+                cache_empty = 'no'
+                self.ui.set_parameters_value(
+                    cache_val=cache_empty, mpv_i=mpv_indicator)
+                    
+    def load_subtitle_from_file(self):
+        self.load_external_sub()
+    
+    def load_subtitle_from_network(self):
+        self.load_external_sub(mode='network')
+        
+    def toggle_fullscreen_mode(self):
+        if not self.ui.force_fs:
+            self.player_fs()
+        else:
+            wd = self.width()
+            ht = self.height()
+            if wd == screen_width and ht == screen_height:
+                self.player_fs()
+            else:
+                self.player_fs(mode='fs')
+                
+    def get_next(self):
+        self.ui.mpvNextEpnList()
+        
+    def get_previous(self):
+        self.ui.mpvPrevEpnList()
+        
+    def quit_player(self):
+        self.player_quit()
+        
+    def stop_after_current_file(self):
+        self.ui.quit_really = "yes"
+        msg = '"Stop After current file"'
+        msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
+        self.mpvplayer.write(msg_byt)
+        
+    def remember_and_quit(self):
+        self.ui.quit_really = "yes"
+        self.ui.playerStop(msg='remember quit')
+            
+    def keyPressEventOld(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier
                 and event.key() == QtCore.Qt.Key_Right):
             self.ui.list2.setFocus()
@@ -923,3 +1094,153 @@ class PlayerWidget(QtWidgets.QWidget):
         elif event.key() == QtCore.Qt.Key_Q:
             self.player_quit()
         #super(PlayerWidget, self).keyPressEvent(event)
+
+
+class KeyBoardShortcuts:
+    
+    def __init__(self, uiwidget, parent):
+        self.ui = uiwidget
+        self.parent = parent
+        
+    def get_default_keys(self):
+        default_key_map = {
+            'right':'set osd-level 1::osd-msg-bar seek +10',
+            'left':'set osd-level 1::osd-msg-bar seek -10',
+            'up': 'set osd-level 1::osd-msg-bar seek +60',
+            'down': 'set osd-level 1::osd-msg-bar seek -60',
+            'pgup':'set osd-level 1::osd-msg-bar seek +300',
+            'pgdwn': 'set osd-level 1::osd-msg-bar seek -300',
+            ']':'osd-msg-bar seek +90', '[':'osd-msg-bar seek -5',
+            '0': 'add ao-volume +5::print-text volume-print=${ao-volume}',
+            '9': 'add ao-volume -5::print-text volume-print=${ao-volume}',
+            '1':'add chapter -1', '2':'add chapter 1',
+            '3':'cycle ass-style-override',
+            'V':'cycle ass-vsfilter-aspect-compat',
+            'a': 'function_change_aspect', 'n': 'playlist_next', 'l': 'function_player_loop',
+            'end': 'osd-msg-bar seek 100 absolute-percent', 'p': 'function_show_hide_frame',
+            'space': 'function_play_pause',
+            'o':'cycle osd-level', 'i':'show_text ${file-size}',
+            'e':'add video-zoom +0.01', 'w':'add video-zoom -0.01',
+            'r':'add sub-pos -1', 't': 'add sub-pos +1', 'J': 'load_external_sub',
+            'ctrl+j':'function_load_network_sub',
+            'j': 'cycle sub::print-text "SUB_KEY_ID=${sid}"::show-text "${sid}"',
+            'k': 'cycle audio::print-text "AUDIO_KEY_ID=${aid}"::show-text "${aid}"',
+            'f': 'function_toggle_fullscreen', '.':'function_get_next_playlist_entry', 
+            ',': 'function_get_prev_playlist_entry', 'q': 'function_quit',
+            'ctrl+q': 'function_stop_after_current_file',
+            'Q':'function_remember_and_quit',
+            'm':'osd_show_property_text ${filename}'
+        } 
+        return default_key_map
+        
+    def get_custom_keys(self):
+        input_conf = self.ui.mpv_input_conf
+        custom_key_map = {}
+        if os.path.isfile(input_conf):
+            lines = open_files(input_conf, True)
+            for i in lines:
+                i = i.strip()
+                if i and not i.startswith('#'):
+                    if ' ' in i:
+                        lst = i.split(' ', 1)
+                        key = lst[0]
+                        command = lst[1]
+                        if key.isalnum() and len(key) == 1:
+                            custom_key_map.update({key:command})
+                        else:
+                            custom_key_map.update({key.lower():command})
+        return custom_key_map
+                    
+    def function_map(self):
+        func_map = {
+            'function_change_aspect': self.parent.change_aspect_ratio,
+            'function_player_loop': self.parent.start_player_loop,
+            'function_show_hide_frame':self.parent.show_hide_status_frame,
+            'function_play_pause':self.parent.toggle_play_pause,
+            'function_load_external_sub':self.parent.load_subtitle_from_file,
+            'function_load_network_sub':self.parent.load_subtitle_from_network,
+            'function_toggle_fullscreen':self.parent.toggle_fullscreen_mode,
+            'function_get_next_playlist_entry':self.parent.get_next,
+            'function_get_prev_playlist_entry':self.parent.get_previous,
+            'function_quit':self.parent.quit_player,
+            'function_stop_after_current_file':self.parent.stop_after_current_file,
+            'function_remember_and_quit':self.parent.remember_and_quit
+        }
+        return func_map
+    
+    def non_alphanumeric_keys(self):
+        non_alphanumeric = {
+            QtCore.Qt.Key_BracketLeft : '[',
+            QtCore.Qt.Key_BracketRight: ']',
+            QtCore.Qt.Key_BraceLeft: '{',
+            QtCore.Qt.Key_BraceRight: '}',
+            QtCore.Qt.Key_ParenLeft: '(',
+            QtCore.Qt.Key_ParenRight: ')',
+            QtCore.Qt.Key_Period: '.',
+            QtCore.Qt.Key_Comma: ',',
+            QtCore.Qt.Key_PageUp: 'pgup',
+            QtCore.Qt.Key_PageDown: 'pgdwn',
+            QtCore.Qt.Key_Left: 'left',
+            QtCore.Qt.Key_Right: 'right',
+            QtCore.Qt.Key_Up: 'up',
+            QtCore.Qt.Key_Down: 'down',
+            QtCore.Qt.Key_End: 'end',
+            QtCore.Qt.Key_Return: 'enter',
+            QtCore.Qt.Key_Space: 'space',
+            QtCore.Qt.Key_Home: 'home',
+            QtCore.Qt.Key_Backspace: 'bs',
+            QtCore.Qt.Key_Tab: 'tab',
+            QtCore.Qt.Key_Backtab: 'backtab',
+            QtCore.Qt.Key_Escape: 'esc',
+            QtCore.Qt.Key_Delete: 'del',
+            QtCore.Qt.Key_Insert: 'ins',
+            QtCore.Qt.Key_F1: 'F1',
+            QtCore.Qt.Key_F2: 'F2',
+            QtCore.Qt.Key_F3: 'F3',
+            QtCore.Qt.Key_F4: 'F4',
+            QtCore.Qt.Key_F5: 'F5',
+            QtCore.Qt.Key_F6: 'F6',
+            QtCore.Qt.Key_F7: 'F7',
+            QtCore.Qt.Key_F8: 'F8',
+            QtCore.Qt.Key_F9: 'F9',
+            QtCore.Qt.Key_F10: 'F10',
+            QtCore.Qt.Key_F11: 'F11',
+            QtCore.Qt.Key_F12: 'F12',
+            QtCore.Qt.Key_Exclam: '!',
+            QtCore.Qt.Key_QuoteDbl: '""',
+            QtCore.Qt.Key_NumberSign: '#',
+            QtCore.Qt.Key_Dollar: '$',
+            QtCore.Qt.Key_Ampersand: '&',
+            QtCore.Qt.Key_Apostrophe: "'",
+            QtCore.Qt.Key_Asterisk: '*',
+            QtCore.Qt.Key_Minus: '-',
+            QtCore.Qt.Key_Plus: '+',
+            QtCore.Qt.Key_Slash: '/',
+            QtCore.Qt.Key_Colon: ':',
+            QtCore.Qt.Key_Semicolon: ';',
+            QtCore.Qt.Key_Less: '<',
+            QtCore.Qt.Key_Equal: '=',
+            QtCore.Qt.Key_Greater: '>',
+            QtCore.Qt.Key_Question: '?',
+            QtCore.Qt.Key_At: '@',
+            QtCore.Qt.Key_Backslash: '\\',
+            QtCore.Qt.Key_Underscore: '_',
+            QtCore.Qt.Key_QuoteLeft: '`',
+            QtCore.Qt.Key_cent: '%',
+            QtCore.Qt.Key_Bar: '|'
+        }
+        return non_alphanumeric
+    
+    def alphanumeric_keys(self):
+        a = ord('a')
+        key_dict = {}
+        for i in range(a, a+26):
+            key = 'QtCore.Qt.Key_{}'.format(chr(i).upper())
+            key_dict.update({eval(key):chr(i)})
+        
+        for i in range(0, 10):
+            key = 'QtCore.Qt.Key_{}'.format(i)
+            key_dict.update({eval(key):str(i)})
+        
+        return key_dict
+        
