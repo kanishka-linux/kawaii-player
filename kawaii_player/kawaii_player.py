@@ -1517,6 +1517,8 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.audio_outputs = ''
+        self.video_outputs = ''
         self.cache_pause_seconds = 4
         self.player_volume = 'auto'
         self.use_custom_config_file = False
@@ -13109,6 +13111,16 @@ def main():
                         asp = j.lower()
                         if asp in ['true', 'yes']:
                             ui.restore_aspect = True
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('AUDIO_OUTPUTS='):
+                    try:
+                        ui.audio_outputs = j
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('VIDEO_OUTPUTS='):
+                    try:
+                        ui.video_outputs = j
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('YTDL_PATH='):
