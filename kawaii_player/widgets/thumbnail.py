@@ -221,17 +221,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.seek_timer.start(500)
                         self.frameShowHide()
                 else:
-                    txt = '\n set osd-level 1 \n'
-                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek +10 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_1:
-                ui.mpvplayer_val.write(b'\n add chapter -1 \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_2:
-                ui.mpvplayer_val.write(b'\n add chapter 1 \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_3:
-                ui.mpvplayer_val.write(b'\n cycle ass-style-override \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_V:
-                ui.mpvplayer_val.write(b'\n cycle ass-vsfilter-aspect-compat \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Left:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
@@ -249,19 +247,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.seek_timer.start(500)
                         self.frameShowHide()
                 else:
-                    txt = '\n set osd-level 1 \n'
-                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek -10 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_BracketRight:
                 if ui.player_val == "mplayer":
                         ui.mpvplayer_val.write(b'\n seek +90 \n')
                 else:
-                        ui.mpvplayer_val.write(b'\n osd-msg-bar seek +90 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_BracketLeft:
                 if ui.player_val == "mplayer":
-                        ui.mpvplayer_val.write(b'\n seek -5 \n')
+                    ui.mpvplayer_val.write(b'\n seek -5 \n')
                 else:
-                        ui.mpvplayer_val.write(b'\n osd-msg-bar seek -5 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_0:
                 ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_9:
@@ -269,21 +265,16 @@ class ThumbnailWidget(QtWidgets.QLabel):
             elif event.key() == QtCore.Qt.Key_A:
                 ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_N:
-                ui.mpvplayer_val.write(b'\n playlist_next \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_L:
-                ui.tab_5.setFocus()
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_End:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n seek 99 1 \n')
                 else:
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek 100 absolute-percent \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_P:
-                if ui.frame1.isHidden():
-                    ui.gridLayout.setSpacing(0)
-                    ui.frame1.show()
-                else:
-                    ui.gridLayout.setSpacing(5)
-                    ui.frame1.hide()
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Space:
                 buffering_mplayer = "no"
                 ui.set_parameters_value(bufm=buffering_mplayer)
@@ -339,9 +330,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.seek_timer.start(500)
                         self.frameShowHide()
                 else:
-                    txt = '\n set osd-level 1 \n'
-                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek +60 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Down:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
@@ -359,9 +348,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.seek_timer.start(500)
                         self.frameShowHide()
                 else:
-                    txt = '\n set osd-level 1 \n'
-                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek -60 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_PageUp:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
@@ -379,9 +366,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.seek_timer.start(500)
                         self.frameShowHide()
                 else:
-                    txt = '\n set osd-level 1 \n'
-                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek +300 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_PageDown:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
@@ -399,21 +384,19 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.seek_timer.start(500)
                         self.frameShowHide()
                 else:
-                    txt = '\n set osd-level 1 \n'
-                    ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
-                    ui.mpvplayer_val.write(b'\n osd-msg-bar seek -300 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_O:
                 if ui.player_val == 'mplayer':
                     ui.mpvplayer_val.write(b'\n osd \n')
                 else:
-                    ui.mpvplayer_val.write(b'\n cycle osd-level \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_M:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n osd_show_property_text ${filename} \n')
                 else:
-                    ui.mpvplayer_val.write(b'\n show-text "${filename}" \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_I:
-                ui.mpvplayer_val.write(b'\n show_text ${file-size} \n')
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_E:
                 if ui.mpvplayer_val.processId() > 0:
                     w=self.width()
@@ -434,16 +417,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n sub_pos -1 \n')
                 else:
-                    ui.mpvplayer_val.write(b'\n add sub-pos -1 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_T:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n sub_pos +1 \n')
                 else:
-                    ui.mpvplayer_val.write(b'\n add sub-pos +1 \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif (event.modifiers() == QtCore.Qt.ShiftModifier 
                 and event.key() == QtCore.Qt.Key_J):
-                #self.ui.load_external_sub()
-                ui.tab_5.load_external_sub()
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_J:
                 if ui.player_val == "mplayer":
                     if not self.mplayer_OsdTimer.isActive():
@@ -454,9 +436,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.mpvplayer_val.write(b'\n get_property sub \n')
                     self.mplayer_OsdTimer.start(5000)
                 else:
-                    ui.mpvplayer_val.write(b'\n cycle sub \n')
-                    ui.mpvplayer_val.write(b'\n print-text "SUB_ID=${sid}" \n')
-                    ui.mpvplayer_val.write(b'\n show-text "${sid}" \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_K:
                 if ui.player_val == "mplayer":
                     if not self.mplayer_OsdTimer.isActive():
@@ -467,25 +447,19 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.mpvplayer_val.write(b'\n switch_audio \n')
                     self.mplayer_OsdTimer.start(5000)
                 else:
-                    ui.mpvplayer_val.write(b'\n cycle audio \n')
-                    ui.mpvplayer_val.write(b'\n print-text "Audio_ID=${aid}" \n')
-                    ui.mpvplayer_val.write(b'\n show-text "${aid}" \n')
+                    ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Period:
-                ui.mpvNextEpnList()
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Comma:
-                ui.mpvPrevEpnList()
+                ui.tab_5.keyPressEvent(event=event)
             elif (event.modifiers() == QtCore.Qt.ControlModifier
                 and event.key() == QtCore.Qt.Key_Q):
-                ui.quit_really = "yes"
-                msg = '"Stop After current file"'
-                msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
-                ui.mpvplayer_val.write(msg_byt)
+                ui.tab_5.keyPressEvent(event=event)
             elif (event.modifiers() == QtCore.Qt.ShiftModifier
-                and event.key() == QtCore.Qt.Key_Q):
-                ui.quit_really = "yes"
-                ui.playerStop(msg='remember quit')
+                    and event.key() == QtCore.Qt.Key_Q):
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Q:
-                ui.player_stop.clicked.emit()
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_F:
                 mode = None
                 if ui.video_mode_index == 1:
