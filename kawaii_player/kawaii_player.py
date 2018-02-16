@@ -1521,6 +1521,7 @@ watch/unwatch status")
         self.video_outputs = ''
         self.cache_pause_seconds = 4
         self.player_volume = 'auto'
+        self.volume_type = 'ao-volume'
         self.use_custom_config_file = False
         self.browser_backend = BROWSER_BACKEND
         self.settings_tab_index = 0
@@ -2947,7 +2948,10 @@ watch/unwatch status")
             self.mpvplayer_val.write(b'\n print-text "SUB_ID=${sid}" \n')
         elif val == 'vol':
             if value is not None:
-                txt = '\n set ao-volume {0} \n'.format(value)
+                if self.volume_type == 'ao-volume':
+                    txt = '\n set ao-volume {0} \n'.format(value)
+                else:
+                    txt = '\n set volume {0} \n'.format(value)
                 logger.debug(txt)
                 txt = bytes(txt, 'utf-8')
                 self.mpvplayer_val.write(txt)
@@ -9944,7 +9948,10 @@ watch/unwatch status")
                     else:
                         logger.error('error getting proper sub id')
                 elif 'volume-print=' in a:
-                    print('----------------------')
+                    if 'ao-volume-print=' in a:
+                        self.volume_type = 'ao-volume'
+                    else:
+                        self.volume_type = 'volume'
                     player_vol = re.search('volume-print=[0-9]+', a)
                     print(player_vol)
                     if player_vol:
@@ -9952,6 +9959,7 @@ watch/unwatch status")
                         self.player_volume = player_vol.split('=')[1]
                         self.change_sid_aid_video(vol=self.player_volume)
                         logger.debug('set volume={0}'.format(self.player_volume))
+                    
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
                     if a.startswith(r"b'"):
@@ -12612,6 +12620,13 @@ def main():
                     sub_id = re.sub('\n', '', j)
                 elif "AUDIO_ID" in i:
                     audio_id = re.sub('\n', '', j)
+                elif i.startswith('VOLUME_TYPE='):
+                    try:
+                        j = j.strip()
+                        if j and j in ['ao-volume', 'volume']:
+                            ui.volume_type = j
+                    except Exception as err:
+                        logger.error(err)
                 elif "Option_SiteName" in i:
                     option_sitename = re.sub('\n', '', j)
                     if option_sitename:
@@ -13637,6 +13652,7 @@ def main():
             f.write("\nUpload_Speed="+str(ui.setuploadspeed))
             f.write("\nForce_FS={0}".format(ui.force_fs))
             f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
+            f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
     if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
             ui.queue_url_list.insert(0, ui.queue_item)
