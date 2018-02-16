@@ -1,5 +1,6 @@
 import os
 import re
+from collections import OrderedDict
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import ccurl, open_files
 
@@ -1109,88 +1110,88 @@ class KeyBoardShortcuts:
         self.parent = parent
         
     def get_default_keys(self):
-        default_key_map = {
-            'f': 'function_toggle_fullscreen',
-            '.':'function_get_next_playlist_entry', 
-            ',': 'function_get_prev_playlist_entry',
-            'q': 'function_quit',
-            'ctrl+q': 'function_stop_after_current_file',
-            'Q':'function_remember_and_quit',
-            'l': 'function_player_loop',
-            'p': 'function_show_hide_status_frame',
-            'space': 'function_play_pause',
-            'a': 'function_cycle_aspect_ratio',
-            'J': 'function_load_external_sub',
-            'ctrl+j':'function_load_network_sub',
+        default_key_map = OrderedDict()
+        
+        default_key_map['f'] = 'function_toggle_fullscreen'
+        default_key_map['.'] = 'function_get_next_playlist_entry'
+        default_key_map[','] = 'function_get_prev_playlist_entry'
+        default_key_map['q'] = 'function_quit'
+        default_key_map['ctrl+q'] = 'function_stop_after_current_file'
+        default_key_map['Q'] ='function_remember_and_quit'
+        default_key_map['l'] = 'function_player_loop'
+        default_key_map['p'] = 'function_show_hide_status_frame'
+        default_key_map['space'] = 'function_play_pause'
+        default_key_map['a'] = 'function_cycle_aspect_ratio'
+        default_key_map['J'] = 'function_load_external_sub'
+        default_key_map['ctrl+j'] ='function_load_network_sub'
+        
+        default_key_map['right'] = 'set osd-level 1::osd-msg-bar seek +10'
+        default_key_map['left'] = 'set osd-level 1::osd-msg-bar seek -10'
+        default_key_map['up'] = 'set osd-level 1::osd-msg-bar seek +60'
+        default_key_map['down'] = 'set osd-level 1::osd-msg-bar seek -60'
+        default_key_map['pgup'] = 'set osd-level 1::osd-msg-bar seek +300'
+        default_key_map['pgdwn'] = 'set osd-level 1::osd-msg-bar seek -300'
+        default_key_map[']'] = 'osd-msg-bar seek +90'
+        default_key_map['['] = 'osd-msg-bar seek -5'
+        default_key_map['R'] = 'vf add flip'
+        
+        default_key_map['0'] = 'add ao-volume +5::print-text volume-print=${ao-volume}'
+        default_key_map['9'] = 'add ao-volume -5::print-text volume-print=${ao-volume}'
+        default_key_map['j'] = 'cycle sub::print-text "SUB_KEY_ID=${sid}"::show-text "${sid}"'
+        default_key_map['k'] = 'cycle audio::print-text "AUDIO_KEY_ID=${aid}"::show-text "${aid}"'
+        default_key_map['$'] = 'cycle ass-style-override'
+        default_key_map['V'] ='cycle ass-vsfilter-aspect-compat'
+        default_key_map['v'] = 'cycle sub-visibility'
+        
+        default_key_map['end'] = 'osd-msg-bar seek 100 absolute-percent'
+        default_key_map['o'] = 'cycle osd-level'
+        default_key_map['i'] = 'show_text ${file-size}'
+        default_key_map['e'] = 'add video-zoom +0.01'
+        default_key_map['w'] = 'add video-zoom -0.01'
+        default_key_map['r'] = 'add sub-pos -1'
+        default_key_map['t'] = 'add sub-pos +1'
+        default_key_map['M'] = 'osd_show_property_text ${filename}'
+        
+        default_key_map['shift+right'] = 'no-osd seek  1 exact'
+        default_key_map['shift+left'] = 'no-osd seek -1 exact'
+        default_key_map['shift+up'] = 'no-osd seek  5 exact'
+        default_key_map['shift+down'] = 'no-osd seek -5 exact'
+        
+        default_key_map['ctrl+left'] = 'no-osd sub-seek -1'
+        default_key_map['ctrl+right'] = 'no-osd sub-seek  1'
+        default_key_map['{'] = 'multiply speed 0.5'
+        default_key_map['}'] = 'multiply speed 2.0'
+        default_key_map['bs'] = 'set speed 1.0'
+        default_key_map['I'] = 'script-binding stats/display-stats-toggle'
+        default_key_map['z'] = 'add sub-delay -0.1'
+        default_key_map['x'] = 'add sub-delay +0.1'
+        default_key_map['ctrl++'] = 'add audio-delay 0.100'
+        default_key_map['ctrl+-'] = 'add audio-delay -0.100'
+        default_key_map['m'] = 'cycle mute'
+        default_key_map['d'] = 'cycle deinterlace'
+        default_key_map['u'] = 'cycle-values sub-ass-override "force" "no"'
+        default_key_map['sharp'] = 'cycle audio'
+        default_key_map['_'] = 'cycle video'
+        default_key_map['T'] = 'cycle ontop'
+        default_key_map['s'] = 'async screenshot'
+        default_key_map['S'] = 'async screenshot video'
+        default_key_map['ctrl+s'] = 'async screenshot window'
+        default_key_map['alt+s'] = 'screenshot each-frame'
+        default_key_map['!'] = 'add chapter -1'
+        default_key_map['@'] = 'add chapter 1'
+        default_key_map['1'] = 'add contrast -1'
+        default_key_map['2'] = 'add contrast 1'
+        default_key_map['3'] = 'add brightness -1'
+        default_key_map['4'] = 'add brightness 1'
+        default_key_map['5'] = 'add gamma -1'
+        default_key_map['6'] = 'add gamma 1'
+        default_key_map['7'] = 'add saturation -1'
+        default_key_map['8'] = 'add saturation 1'
             
-            'right':'set osd-level 1::osd-msg-bar seek +10',
-            'left':'set osd-level 1::osd-msg-bar seek -10',
-            'up': 'set osd-level 1::osd-msg-bar seek +60',
-            'down': 'set osd-level 1::osd-msg-bar seek -60',
-            'pgup':'set osd-level 1::osd-msg-bar seek +300',
-            'pgdwn': 'set osd-level 1::osd-msg-bar seek -300',
-            ']':'osd-msg-bar seek +90',
-            '[':'osd-msg-bar seek -5',
-            'R':'vf add flip',
-            
-            '0': 'add ao-volume +5::print-text volume-print=${ao-volume}',
-            '9': 'add ao-volume -5::print-text volume-print=${ao-volume}',
-            'j': 'cycle sub::print-text "SUB_KEY_ID=${sid}"::show-text "${sid}"',
-            'k': 'cycle audio::print-text "AUDIO_KEY_ID=${aid}"::show-text "${aid}"',
-            '$':'cycle ass-style-override',
-            'V':'cycle ass-vsfilter-aspect-compat',
-            'v' :'cycle sub-visibility',
-            
-            'end': 'osd-msg-bar seek 100 absolute-percent',
-            'o':'cycle osd-level',
-            'i':'show_text ${file-size}',
-            'e':'add video-zoom +0.01', 
-            'w':'add video-zoom -0.01',
-            'r':'add sub-pos -1',
-            't': 'add sub-pos +1',
-            'M':'osd_show_property_text ${filename}',
-            
-            'shift+right': 'no-osd seek  1 exact',
-            'shift+left': 'no-osd seek -1 exact',
-            'shift+up': 'no-osd seek  5 exact',
-            'shift+down': 'no-osd seek -5 exact',
-            
-            'ctrl+left': 'no-osd sub-seek -1',
-            'ctrl+right': 'no-osd sub-seek  1',
-            '{': 'multiply speed 0.5',
-            '}': 'multiply speed 2.0',
-            'bs': 'set speed 1.0',
-            'I': 'script-binding stats/display-stats-toggle',
-            'z': 'add sub-delay -0.1',
-            'x': 'add sub-delay +0.1',
-            'ctrl++': 'add audio-delay 0.100',
-            'ctrl+-': 'add audio-delay -0.100',
-            'm': 'cycle mute',
-            'd': 'cycle deinterlace',
-            'u' :'cycle-values sub-ass-override "force" "no"',
-            'sharp': 'cycle audio',
-            '_' :'cycle video',
-            'T': 'cycle ontop',
-            's': 'async screenshot',
-            'S': 'async screenshot video', 
-            'ctrl+s': 'async screenshot window',
-            'alt+s': 'screenshot each-frame', 
-            '!' :'add chapter -1',
-            '@': 'add chapter 1',
-            '1': 'add contrast -1',
-            '2': 'add contrast 1',
-            '3': 'add brightness -1',
-            '4': 'add brightness 1',
-            '5': 'add gamma -1',
-            '6': 'add gamma 1',
-            '7': 'add saturation -1',
-            '8': 'add saturation 1',
-            
-        } 
         return default_key_map
         
     def get_custom_keys(self, input_conf):
-        custom_key_map = {}
+        custom_key_map = OrderedDict()
         lines_arr = []
         if os.path.isfile(input_conf):
             lines = open_files(input_conf, True)
