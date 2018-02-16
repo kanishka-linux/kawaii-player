@@ -1016,7 +1016,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
     
     def configsettings(self):
         self.line501 = QtWidgets.QTextEdit()
-        self.gl7.addWidget(self.line501, 0, 0, 1, 2)
+        self.gl7.addWidget(self.line501, 0, 0, 1, 3)
         msg = '<html>Use this config file, otherwise global config file will be used</html>'
         self.checkbox = QtWidgets.QCheckBox("Use This Config File")
         self.checkbox.stateChanged.connect(self.use_config_file)
@@ -1024,12 +1024,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.gl7.addWidget(self.checkbox, 1, 0, 1, 1)
         if ui.use_custom_config_file:
             self.checkbox.setChecked(True)
-        mpvlist = self.basic_params('mpv')
+        mpvlist = self.basic_params(player='mpv')
         mpvstr = '\n'.join(mpvlist)
         self.line501.setText(mpvstr) 
         
+        self.btn_default_settings = QtWidgets.QPushButton('Default Settings')
+        self.gl7.addWidget(self.btn_default_settings, 1, 1, 1, 1)
+        self.btn_default_settings.clicked.connect(self.get_default_config_settings)
+        
         self.btn_confirm = QtWidgets.QPushButton('Save Changes')
-        self.gl7.addWidget(self.btn_confirm, 1, 1, 1, 1)
+        self.gl7.addWidget(self.btn_confirm, 1, 2, 1, 1)
         self.btn_confirm.clicked.connect(self.save_config_settings)
         
     def apply_tab_shortcuts(self):
@@ -1051,6 +1055,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.btn_shortcut_confirm = QtWidgets.QPushButton('Save Changes')
         self.gl8.addWidget(self.btn_shortcut_confirm, 1, 1, 1, 1)
         self.btn_shortcut_confirm.clicked.connect(self.save_shortcut_settings)
+    
+    def get_default_config_settings(self):
+        mpvlist = self.basic_params(player='mpv', mode='default')
+        mpvstr = '\n'.join(mpvlist)
+        self.line501.setText(mpvstr)
     
     def get_default_shortcuts_settings(self):
         mpv_default = ui.tab_5.key_map.get_default_keys()
@@ -1120,15 +1129,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         change_opt_file(self.option_file, 'USE_CUSTOM_CONFIG_FILE=',
                         'USE_CUSTOM_CONFIG_FILE={}'.format(ui.use_custom_config_file))
         
-    def basic_params(self, player):
+    def basic_params(self, player=None, mode=None):
         mpv_cmd = []
-        try:
-            if os.path.isfile(self.config_file_name):
-                with open(self.config_file_name, 'rb') as config_file:
-                    mpv_cmd_dict = pickle.load(config_file)
-                    mpv_cmd = mpv_cmd_dict['file']
-        except Exception as err:
-            logger.error(err)
+        if mode is None:
+            try:
+                if os.path.isfile(self.config_file_name):
+                    with open(self.config_file_name, 'rb') as config_file:
+                        mpv_cmd_dict = pickle.load(config_file)
+                        mpv_cmd = mpv_cmd_dict['file']
+            except Exception as err:
+                logger.error(err)
             
         if not mpv_cmd:
             mpv_cmd = [
