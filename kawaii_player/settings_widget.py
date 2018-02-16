@@ -1017,9 +1017,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
     def configsettings(self):
         self.line501 = QtWidgets.QTextEdit()
         self.gl7.addWidget(self.line501, 0, 0, 1, 2)
-        
+        msg = '<html>Use this config file, otherwise global config file will be used</html>'
         self.checkbox = QtWidgets.QCheckBox("Use This Config File")
         self.checkbox.stateChanged.connect(self.use_config_file)
+        self.checkbox.setToolTip(msg)
         self.gl7.addWidget(self.checkbox, 1, 0, 1, 1)
         if ui.use_custom_config_file:
             self.checkbox.setChecked(True)
@@ -1058,7 +1059,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line601.setText(text) 
     
     def get_default_shortcuts_in_text(self, mpv_default, input_conf_list):
-        text = ''
+        text = '#shortcut_key command. For executing multiple commands per key separate them with double colon "::"'
         for key in mpv_default:
             if not text:
                 text = key + ' ' + mpv_default[key]
@@ -1095,6 +1096,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             i = i.strip()
             mpv_cmd.append(i)
             if i and not i.startswith('#'):
+                i = re.sub('#[^\n]*', '', i)
                 if '=' in i:
                     j = i.split('=')[1]
                     if not j:
@@ -1130,14 +1132,24 @@ class OptionsSettings(QtWidgets.QTabWidget):
             
         if not mpv_cmd:
             mpv_cmd = [
-                "#Define Custom Settings Here for mpv",
-                "vo=gpu", "ao=pulse", "cache=auto", 'cache-secs=120',
+                "#Define Custom Settings Here for mpv. Comment out lines as per need",
+                '#Write string with space in double quotes',
+                "#Video Output","vo=gpu",
+                "#Audio Output", "ao=pulse",
+                "#Cache Settings", "cache=auto", 'cache-secs=120',
                 "cache-default=100000", "cache-initial=0", "cache-seek-min=100",
-                "cache-pause", "video-aspect=-1", "alang=", "slang=",
-                "video-sync=display-resample",
-                "interpolation=yes", "tscale=oversample",
-                'input-conf="{}"'.format(ui.mpv_input_conf),
-                '#blend-subtitle=yes'
+                "cache-pause",
+                "#Set Video Aspect", "video-aspect=-1",
+                "#Set Audio and Subtitle language options",
+                "#alang=", "#slang=",
+                "#For Smooth Playback",
+                "#video-sync=display-resample",
+                "#interpolation=yes", "#tscale=oversample",
+                '#Subtitle Options', '#sub-font=', '#sub-font-size=', '#sub-color=',
+                '#sub-border-color=', '#sub-border-size=', '#sub-shadow-offset=',
+                '#sub-shadow-offset=', '#sub-shadow-color', '#sub-spacing',
+                '#blend-subtitle=yes',
+                '#user-agent="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0"'
                 ]
         return mpv_cmd
         
