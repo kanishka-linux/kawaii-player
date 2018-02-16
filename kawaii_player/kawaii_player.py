@@ -3403,6 +3403,8 @@ watch/unwatch status")
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((''))
         self.idw = str(int(self.tab_5.winId()))
+        if self.video_mode_index in [6, 7]:
+            self.set_video_mode()
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
