@@ -269,6 +269,19 @@ class WidgetStyleSheet:
                     QTextEdit{{color:{color};background:rgba(0,0,0,10%);
                     border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                     
+                    QScrollBar{{ background: rgba(0,0,0,30%);
+                    }}
+                    
+                    QScrollBar::handle{{ background: rgba(0,0,0, {btn});
+                    border-radius:4px;
+                    }}
+                    
+                    QScrollBar::add-line{{ background: rgba(0,0,0,0%);
+                    }}
+                    
+                    QScrollBar::sub-line{{ background: rgba(0,0,0,0%);
+                    }}
+                    
                     QCheckBox{{color:{color};background:rgba(0,0,0,10%);
                         border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                     
@@ -686,6 +699,19 @@ class WidgetStyleSheet:
                         
                         QCheckBox{{color:{color};background:rgba(0,0,0,10%);
                         border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                        
+                        QScrollBar{{ background: rgba(0,0,0,30%);
+                        }}
+                        
+                        QScrollBar::handle{{ background: rgba(54,60,74,30%);
+                        border-radius:4px;
+                        }}
+                        
+                        QScrollBar::add-line{{ background: rgba(0,0,0,0%);
+                        }}
+                        
+                        QScrollBar::sub-line{{ background: rgba(0,0,0,0%);
+                        }}
                         
                         QLabel{{color:{color};background:rgba(0,0,0,0%);
                         max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
