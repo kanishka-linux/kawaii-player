@@ -1043,6 +1043,7 @@ watch/unwatch status")
         
         #self.frame.setMaximumWidth(300)
         #self.tabWidget1.addTab(self.tab_2, _fromUtf8(""))
+        self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
         self.tab_5 = PlayerWidget(MainWindow, ui=self, logr= logger, tmp=TMPDIR)
         #self.tab_5 = tab5(None)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
@@ -1508,7 +1509,7 @@ watch/unwatch status")
         self.current_background = os.path.join(home, 'default.jpg')
         self.default_background = os.path.join(home, 'default.jpg')
         self.yt_sub_folder = os.path.join(home, 'External-Subtitle')
-        self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
+        
         self.playing_history_file = os.path.join(self.video_db_location, 'historydata')
         self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
         self.torrent_type = 'file'
