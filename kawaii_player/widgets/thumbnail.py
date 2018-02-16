@@ -1128,17 +1128,16 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.list2.setCurrentRow(num)
                 if label_name == 'label':
                     ui.video_mode_index = 6
-                    p1 = "ui.label.winId()"
+                    mn = ui.label.winId()
                 else:
                     self.msg_counter = 101
                     ui.video_mode_index = 7
-                    p1 = "ui.label_new.winId()"
+                    mn = ui.label_new.winId()
                 if ui.player_theme == 'default':
                     ui.label_new.setMinimumHeight(2.5*ui.height_allowed)
                     ui.video_mode_index = 7
-                    p1 = "ui.label_new.winId()"
-                mn = int(eval(p1))
-                tmp_idw = str(mn)
+                    mn = ui.label_new.winId()
+                tmp_idw = str(int(mn))
                 label_watch = True
             else:
                 label_num = re.sub('label_epn_', '', label_name)
