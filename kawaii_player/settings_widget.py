@@ -336,6 +336,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.gl6 = QtWidgets.QGridLayout(self.tab_player)
         self.tab_config = QtWidgets.QWidget(self)
         self.gl7 = QtWidgets.QGridLayout(self.tab_config)
+        self.tab_shortcuts = QtWidgets.QWidget(self)
+        self.gl8 = QtWidgets.QGridLayout(self.tab_shortcuts)
         self.addTab(self.tab_app, 'Appearance')
         self.addTab(self.tab_library, ' Library ')
         self.addTab(self.tab_server, 'Media Server')
@@ -343,6 +345,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.addTab(self.tab_player, ' Player ')
         self.addTab(self.tab_meta, ' Other ')
         self.addTab(self.tab_config, ' Config ')
+        self.addTab(self.tab_shortcuts, 'Shortcuts')
         self.addTab(self.tab_close, ' Close ')
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
         self.torrent_config = os.path.join(ui.home_folder, 'torrent_config.txt')
@@ -390,6 +393,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.library()
                 self.player_settings()
                 self.configsettings()
+                self.apply_tab_shortcuts()
                 self.tabs_present = True
             if not ui.label.isHidden():
                 ui.label_new.hide()
@@ -1029,7 +1033,61 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.btn_confirm = QtWidgets.QPushButton('Save Changes')
         self.gl7.addWidget(self.btn_confirm, 1, 1, 1, 1)
         self.btn_confirm.clicked.connect(self.save_config_settings)
+        
+    def apply_tab_shortcuts(self):
+        self.line601 = QtWidgets.QTextEdit()
+        self.gl8.addWidget(self.line601, 0, 0, 1, 2)
+        
+        if os.path.isfile(ui.custom_key_file) and os.stat(ui.custom_key_file).st_size:
+            lines = open_files(ui.mpv_input_conf, True)
+            lines = [i.strip() for i in lines if i.strip()]
+            text = self.get_default_shortcuts_in_text(ui.tab_5.mpv_default, lines)
+            self.line601.setText(text) 
+        else:
+            self.get_default_shortcuts_settings()
+        
+        self.btn_shortcut_default = QtWidgets.QPushButton('Default Settings')
+        self.gl8.addWidget(self.btn_shortcut_default, 1, 0, 1, 1)
+        self.btn_shortcut_default.clicked.connect(self.get_default_shortcuts_settings)
+        
+        self.btn_shortcut_confirm = QtWidgets.QPushButton('Save Changes')
+        self.gl8.addWidget(self.btn_shortcut_confirm, 1, 1, 1, 1)
+        self.btn_shortcut_confirm.clicked.connect(self.save_shortcut_settings)
     
+    def get_default_shortcuts_settings(self):
+        mpv_default = ui.tab_5.key_map.get_default_keys()
+        _, input_conf_list = ui.tab_5.key_map.get_custom_keys(ui.mpv_input_conf)
+        text = self.get_default_shortcuts_in_text(mpv_default, input_conf_list)
+        self.line601.setText(text) 
+    
+    def get_default_shortcuts_in_text(self, mpv_default, input_conf_list):
+        text = ''
+        for key in mpv_default:
+            if not text:
+                text = key + ' ' + mpv_default[key]
+            else:
+                text = text + '\n' + key + ' ' + mpv_default[key]
+                
+        text = text.replace('\n', '\n\n')
+        for i in input_conf_list:
+            if i.startswith('#'):
+                text = text + '\n' + i
+            else:
+                text = text + '\n#' + i
+        return text
+        
+    def save_shortcut_settings(self):
+        text = self.line601.toPlainText()
+        text_lines = text.split('\n')
+        new_lines = []
+        for i in text_lines:
+            i = i.strip()
+            if i and not i.startswith('#'):
+                new_lines.append(i)
+        write_files(ui.custom_key_file, new_lines, line_by_line=True)
+        new_dict, _ = ui.tab_5.key_map.get_custom_keys(ui.custom_key_file)
+        ui.tab_5.mpv_default = new_dict.copy()
+        
     def save_config_settings(self):
         txt = self.line501.toPlainText()
         txt_list = txt.split('\n')
