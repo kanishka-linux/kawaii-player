@@ -1518,6 +1518,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.clicked_label_new = False
         self.audio_outputs = ''
         self.video_outputs = ''
         self.cache_pause_seconds = 4
@@ -12634,6 +12635,13 @@ def main():
                             ui.volume_type = j
                     except Exception as err:
                         logger.error(err)
+                elif i.startswith('CLICKED_LABEL_NEW='):
+                    try:
+                        j = j.strip()
+                        if j.lower() == 'true':
+                            ui.clicked_label_new = True
+                    except Exception as err:
+                        logger.error(err)
                 elif "Option_SiteName" in i:
                     option_sitename = re.sub('\n', '', j)
                     if option_sitename:
@@ -13660,6 +13668,7 @@ def main():
             f.write("\nForce_FS={0}".format(ui.force_fs))
             f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
             f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
+            f.write("\nCLICKED_LABEL_NEW={0}".format(ui.clicked_label_new))
     if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
             ui.queue_url_list.insert(0, ui.queue_item)
