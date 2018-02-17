@@ -338,15 +338,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.gl7 = QtWidgets.QGridLayout(self.tab_config)
         self.tab_shortcuts = QtWidgets.QWidget(self)
         self.gl8 = QtWidgets.QGridLayout(self.tab_shortcuts)
+        self.addTab(self.tab_close, 'X')
         self.addTab(self.tab_app, 'Appearance')
-        self.addTab(self.tab_library, ' Library ')
+        self.addTab(self.tab_library, 'Library')
         self.addTab(self.tab_server, 'Media Server')
-        self.addTab(self.tab_torrent, ' Torrent ')
-        self.addTab(self.tab_player, ' Player ')
-        self.addTab(self.tab_meta, ' Other ')
-        self.addTab(self.tab_config, ' Config ')
+        self.addTab(self.tab_torrent, 'Torrent')
+        self.addTab(self.tab_player, 'Player')
+        self.addTab(self.tab_meta, 'Other')
+        self.addTab(self.tab_config, 'Config')
         self.addTab(self.tab_shortcuts, 'Shortcuts')
-        self.addTab(self.tab_close, ' Close ')
+        
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
         self.torrent_config = os.path.join(ui.home_folder, 'torrent_config.txt')
         self.library_file_name = os.path.join(ui.home_folder, 'local.txt')
@@ -364,7 +365,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
     
     def tab_changed(self):
         index = self.currentIndex()
-        if self.tabText(index) == ' Close ':
+        if self.tabText(index) == 'X':
             self.hide()
             if self.hide_label:
                 ui.label.show()
@@ -411,7 +412,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.label_new.show()
                 self.hide_label = False
         if index:
-            self.setCurrentIndex(1)
+            self.setCurrentIndex(2)
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()    
     
