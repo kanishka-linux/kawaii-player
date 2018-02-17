@@ -83,7 +83,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
         self.fs_timer_focus.setSingleShot(True)
         self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
         self.rect = None
-        self.msg_counter = 0
         
         if obj_name is not None:
             self.setObjectName(_fromUtf8(obj_name))
@@ -608,10 +607,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
             else:
                 if self.rect is None:
                     self.rect = QtCore.QRect(self.x()+20, self.y()+20, self.width()-40, self.height()-40)
-                if self.rect.contains(event.pos()) and self.msg_counter < 100:
+                if self.rect.contains(event.pos()) and not ui.clicked_label_new:
                     ui.progressEpn.setValue(0)
                     ui.progressEpn.setFormat((self.tooltip))
-                    self.msg_counter += 1
                 else:
                     ui.progressEpn.setValue(0)
                     ui.progressEpn.setFormat((''))
@@ -1130,7 +1128,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.video_mode_index = 6
                     mn = ui.label.winId()
                 else:
-                    self.msg_counter = 101
+                    if num >= 0:
+                        ui.clicked_label_new = True
                     ui.video_mode_index = 7
                     mn = ui.label_new.winId()
                 if ui.player_theme == 'default':
