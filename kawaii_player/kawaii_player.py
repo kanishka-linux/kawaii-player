@@ -59,6 +59,7 @@ import uuid
 import platform
 import logging
 import pickle
+from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 import pycurl
@@ -1683,9 +1684,14 @@ watch/unwatch status")
                 screen_width, screen_height
                 )
         self.list_poster.hide()
+        #self.settings_close_btn = QtWidgets.QPushButton(MainWindow)
+        #self.settings_close_btn.hide()
         self.settings_box = OptionsSettings(MainWindow, self, TMPDIR)
-        self.settings_box.setMaximumWidth(screen_width-2*self.width_allowed-35)
+        self.settings_box.setMaximumWidth(screen_width-self.width_allowed-35)
+        #self.settings_box.setElideMode(QtCore.Qt.ElideRight)
         self.vertical_layout_new.insertWidget(0, self.settings_box)
+        #self.settings_box.setTabPosition(QtWidgets.QTabWidget.West)
+        self.settings_box.setUsesScrollButtons(False)
         self.settings_box.hide()
         self.widget_dict = {
             'list1':self.list1, 'list2':self.list2, 'frame1':self.frame1,
@@ -1938,7 +1944,8 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-            
+        
+        
     def experiment_list(self, mode=None):
         global screen_width, screen_height
         self.view_mode = 'thumbnail_light'
