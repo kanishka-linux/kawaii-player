@@ -1736,53 +1736,36 @@ watch/unwatch status")
         self.comboBoxMode.addItem(_fromUtf8(""))
         self.comboBoxMode.addItem(_fromUtf8(""))
         self.comboBoxMode.addItem(_fromUtf8(""))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+F"), 
-                            MainWindow, self.fullscreenToggle)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+L"), 
-                            MainWindow, self.setPlayerFocus)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+G"), 
-                            MainWindow, self.dockShowHide)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+H"), 
-                            MainWindow, self.show_hide_progressbar)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+F"), MainWindow, 
-                            self.show_hide_filter_toolbar)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+P"), MainWindow, 
-                            self.settings_box.start)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Z"), MainWindow, 
-                            self.IconView)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Shift+Z"), MainWindow, 
-                            partial(self.IconViewEpn, mode=3))
-        QtWidgets.QShortcut(QtGui.QKeySequence("F1"), MainWindow, 
-                            partial(self.experiment_list, 'show'))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+X"), MainWindow, 
-                            self.webHide)
-        QtWidgets.QShortcut(QtGui.QKeySequence("ESC"), MainWindow, 
-                            self.HideEveryThing)
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+1"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(1))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+2"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(2))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+3"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(3))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+4"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(4))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+5"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(5))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+6"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(6))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+7"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(7))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+8"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(8))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+9"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(9))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+0"), MainWindow, 
-                            lambda x=1:self.change_fanart_aspect(10))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Right"), MainWindow, 
-                            lambda x=1:self.direct_web('right'))
-        QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Left"), MainWindow, 
-                            lambda x=1:self.direct_web('left'))
-        
+        self.global_shortcut_keys = {
+            'Shift+F':self.fullscreenToggle,
+            'Shift+L':self.setPlayerFocus,
+            'Shift+G':self.dockShowHide,
+            'Shift+H':self.show_hide_progressbar,
+            'Ctrl+F':self.show_hide_filter_toolbar,
+            'Ctrl+P':self.settings_box.start,
+            'Ctrl+Z':self.IconView,
+            'Shift+Z':(self.IconViewEpn, 3),
+            'F1': (self.experiment_list, 'show'),
+            'Ctrl+X':self.webHide,
+            'ESC':self.HideEveryThing,
+            'Alt+Right': (self.direct_web, 'right'),
+            'Alt+Left': (self.direct_web, 'left'),
+            'Ctrl+0': (self.change_fanart_aspect, 0),
+            'Ctrl+1': (self.change_fanart_aspect, 1),
+            'Ctrl+2': (self.change_fanart_aspect, 2),
+            'Ctrl+3': (self.change_fanart_aspect, 3),
+            'Ctrl+4': (self.change_fanart_aspect, 4),
+            'Ctrl+5': (self.change_fanart_aspect, 5),
+            'Ctrl+6': (self.change_fanart_aspect, 6),
+            'Ctrl+7': (self.change_fanart_aspect, 7),
+            'Ctrl+8': (self.change_fanart_aspect, 8),
+            'Ctrl+9': (self.change_fanart_aspect, 9),
+            }
+        for i in self.global_shortcut_keys:
+            QtWidgets.QShortcut(
+                QtGui.QKeySequence(i), MainWindow,
+                partial(self.global_shortcuts, i ,self.global_shortcut_keys[i])
+                )
         self.list1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.list1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.list2.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -1945,8 +1928,71 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-        
-        
+    
+    def global_shortcuts(self, val, val_function):
+        if self.mpvplayer_val.processId() > 0:
+            modifier = None
+            modifier_event = None
+            value = None
+            if '+' in val:
+                modifier, value = val.split('+', 1)
+            else:
+                value = val
+            if modifier == 'Shift':
+                modifier_event = QtGui.QKeyEvent(
+                    QtCore.QEvent.KeyPress, QtCore.Qt.Key_Shift,
+                    QtCore.Qt.ShiftModifier, None, False, 1
+                )
+            elif modifier == 'Ctrl':
+                modifier_event = QtGui.QKeyEvent(
+                    QtCore.QEvent.KeyPress, QtCore.Qt.Key_Control,
+                    QtCore.Qt.ControlModifier, 'control', False, 1
+                )
+            elif modifier == 'Alt':
+                modifier_event = QtGui.QKeyEvent(
+                    QtCore.QEvent.KeyPress, QtCore.Qt.Key_Control,
+                    QtCore.Qt.AltModifier, 'alt', False, 1
+                )
+            if modifier_event:
+                self.tab_5.keyPressEvent(modifier_event)
+                
+            if value:
+                key = None
+                val_string = ''
+                if value == 'F1':
+                    key = QtCore.Qt.Key_F1
+                elif value == 'ESC':
+                    key = QtCore.Qt.Key_Escape
+                else:
+                    try:
+                        key = eval('QtCore.Qt.Key_{}'.format(value))
+                    except Exception as err:
+                        logger.error(err)
+                logger.debug(key)
+                if key:
+                    key_event =  QtGui.QKeyEvent(
+                        QtCore.QEvent.KeyPress, key,
+                        QtCore.Qt.NoModifier, value.lower(), False, 1
+                        )
+                    self.tab_5.keyPressEvent(key_event)
+                else:
+                    self.process_regular_shortcuts(val, val_function)
+            else:
+                self.process_regular_shortcuts(val, val_function)
+        else:
+            self.process_regular_shortcuts(val, val_function)
+                
+    def process_regular_shortcuts(self, val, val_function):
+        if not isinstance(val_function, tuple):
+            val_function()
+        else: 
+            function_map = val_function[0]
+            function_arg = val_function[1]
+            if val == 'Shift+Z':
+                function_map(mode=function_arg)
+            else:
+                function_map(function_arg)
+            
     def experiment_list(self, mode=None):
         global screen_width, screen_height
         self.view_mode = 'thumbnail_light'
