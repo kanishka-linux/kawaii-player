@@ -66,11 +66,14 @@ class PlayerWidget(QtWidgets.QWidget):
             self.ui.total_seek = 0
 
     def osd_hide(self):
+        pass
+        """
         if self.player_val == 'mplayer':
             self.mpvplayer.write(b'\n osd 0 \n')
         else:
             self.mpvplayer.write(b'\n set osd-level 0 \n')
-
+        """
+        
     def arrow_hide(self):
         if self.player_val == "mplayer" or self.player_val == "mpv":
             self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
