@@ -34,7 +34,7 @@ class PlayerWidget(QtWidgets.QWidget):
         screen_width = self.ui.screen_size[0]
         screen_height = self.ui.screen_size[1]
         self.custom_keys = {}
-        
+        self.event_dict = {'ctrl':False, 'alt':False, 'shift':False}
         self.key_map = KeyBoardShortcuts(ui, self)
         self.mpv_default = self.key_map.get_default_keys()
         self.mpv_custom, self.input_conf_list = self.key_map.get_custom_keys(self.ui.mpv_input_conf)
@@ -87,8 +87,18 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.ui.frame_timer.stop()
                 self.ui.frame_timer.start(2000)
     
+    def check_double_click(self):
+        if not self.dblclk:
+            if self.mpvplayer.processId() > 0:
+                self.ui.playerPlayPause()
+        self.dblclk = False
+                
     def mouseReleaseEvent(self, event):
-        pass
+        if not self.dblclk:
+            self.dblclk = False
+            QtCore.QTimer.singleShot(500, self.check_double_click)
+        for i in self.event_dict:
+            self.event_dict[i] = False
         """
         if event.button() == QtCore.Qt.LeftButton and not self.dblclk:
             if self.mpvplayer.processId() > 0:
@@ -100,6 +110,7 @@ class PlayerWidget(QtWidgets.QWidget):
         """
         
     def mouseDoubleClickEvent(self, event):
+        self.dblclk = True
         if not self.ui.force_fs:
             self.player_fs()
         else:
@@ -109,6 +120,8 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.player_fs()
             else:
                 self.player_fs(mode='fs')
+        for i in self.event_dict:
+            self.event_dict[i] = False
         
     def mouseMoveEvent(self, event):
         self.setFocus()
@@ -139,7 +152,8 @@ class PlayerWidget(QtWidgets.QWidget):
             elif pos.y() <= ht-32 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
-                if site != "Music" and self.ui.tab_6.isHidden() and self.ui.list2.isHidden() and self.ui.tab_2.isHidden():
+                if (site != "Music" and self.ui.tab_6.isHidden()
+                        and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                     self.ui.frame1.hide()
                     self.ui.gridLayout.setSpacing(5)
 
@@ -535,32 +549,74 @@ class PlayerWidget(QtWidgets.QWidget):
                     else:
                         self.ui.float_window.showNormal()
     
+    def keyReleaseEvent(self, event):
+        if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
+            self.event_dict['ctrl'] = False
+        elif event.modifiers() == QtCore.Qt.AltModifier or event.key() == QtCore.Qt.Key_Alt:
+            self.event_dict['alt'] = False
+        elif event.modifiers() == QtCore.Qt.ShiftModifier or event.key() == QtCore.Qt.Key_Shift:
+            self.event_dict['shift'] = False
+        logger.debug('release'.format(event.key()))
+        
     def keyPressEvent(self, event):
         if self.player_val.lower() == 'mpv':
             key = None
-            if event.modifiers() == QtCore.Qt.ControlModifier:
+            modifier = None
+            no_modifier = False
+            logger.debug('press {}'.format(event.key()))
+            event_text = event.text()
+            if event.modifiers() == QtCore.Qt.ControlModifier or self.event_dict['ctrl']:
+                modifier = 'ctrl+'
+                if event.key() == QtCore.Qt.Key_Alt:
+                    self.event_dict['alt'] = True
+                if event.key() == QtCore.Qt.Key_Shift:
+                    self.event_dict['shift'] = True
+                if self.event_dict['ctrl'] and self.event_dict['alt']:
+                    modifier = 'ctrl+alt+'
                 if event.key() in self.alphanumeric_keys:
-                    key = 'ctrl+'+ self.alphanumeric_keys.get(event.key())
+                    keysym = self.alphanumeric_keys.get(event.key())
+                    if self.event_dict['shift']:
+                        keysym = keysym.upper()
+                    key = modifier + keysym
                 elif event.key() in self.non_alphanumeric_keys:
-                    key = 'ctrl+' + self.non_alphanumeric_keys.get(event.key())
-            elif event.modifiers() == QtCore.Qt.AltModifier:
+                    key = self.non_alphanumeric_keys.get(event.key())
+                    if self.event_dict['shift'] and key not in self.shift_keys:
+                        modifier = modifier + 'shift+'
+                    key = modifier + key
+                else:
+                    self.event_dict['ctrl'] = True
+            elif event.modifiers() == QtCore.Qt.AltModifier or self.event_dict['alt']:
+                self.event_dict['ctrl'] = False
+                if event.key() == QtCore.Qt.Key_Shift:
+                    self.event_dict['shift'] = True
                 if event.key() in self.alphanumeric_keys:
-                    key = 'alt+'+ self.alphanumeric_keys.get(event.key())
+                    keysym = self.alphanumeric_keys.get(event.key())
+                    if self.event_dict['shift']:
+                        keysym = keysym.upper()
+                    key = 'alt+'+ keysym
                 elif event.key() in self.non_alphanumeric_keys:
                     key = 'alt+' + self.non_alphanumeric_keys.get(event.key())
-            elif event.modifiers() == QtCore.Qt.ShiftModifier:
+                else:
+                    self.event_dict['alt'] = True
+            elif event.modifiers() == QtCore.Qt.ShiftModifier or self.event_dict['shift']:
+                self.event_dict['ctrl'] = False
+                self.event_dict['alt'] = False
                 if event.text().isalnum():
                     key = event.text().upper()
                 elif event.key() in self.non_alphanumeric_keys:
                     key = self.non_alphanumeric_keys.get(event.key())
                     if key not in self.shift_keys:
                         key = 'shift+' + key
+                else:
+                    self.event_dict['shift'] = True
             elif event.text().isalnum():
                 key = event.text()
+                no_modifier = True
             else:
                 key = self.non_alphanumeric_keys.get(event.key())
+                no_modifier = True
+            logger.debug('modifier: {} key: {}'.format(modifier, key))
             if key is not None:
-                logger.debug(key)
                 command = self.mpv_default.get(key)
                 logger.debug(command)
                 if not command:
@@ -581,6 +637,9 @@ class PlayerWidget(QtWidgets.QWidget):
                             command_string = bytes(cmd, 'utf-8')
                             logger.debug(command_string)
                             self.mpvplayer.write(command_string)
+            if no_modifier:
+                for i in self.event_dict:
+                    self.event_dict[i] = False
         elif self.player_val.lower() == 'mplayer':
             self.keyPressEventOld(event)
             
@@ -1291,18 +1350,18 @@ class KeyBoardShortcuts:
             QtCore.Qt.Key_Escape: 'esc',
             QtCore.Qt.Key_Delete: 'del',
             QtCore.Qt.Key_Insert: 'ins',
-            QtCore.Qt.Key_F1: 'F1',
-            QtCore.Qt.Key_F2: 'F2',
-            QtCore.Qt.Key_F3: 'F3',
-            QtCore.Qt.Key_F4: 'F4',
-            QtCore.Qt.Key_F5: 'F5',
-            QtCore.Qt.Key_F6: 'F6',
-            QtCore.Qt.Key_F7: 'F7',
-            QtCore.Qt.Key_F8: 'F8',
-            QtCore.Qt.Key_F9: 'F9',
-            QtCore.Qt.Key_F10: 'F10',
-            QtCore.Qt.Key_F11: 'F11',
-            QtCore.Qt.Key_F12: 'F12',
+            QtCore.Qt.Key_F1: 'f1',
+            QtCore.Qt.Key_F2: 'f2',
+            QtCore.Qt.Key_F3: 'f3',
+            QtCore.Qt.Key_F4: 'f4',
+            QtCore.Qt.Key_F5: 'f5',
+            QtCore.Qt.Key_F6: 'f6',
+            QtCore.Qt.Key_F7: 'f7',
+            QtCore.Qt.Key_F8: 'f8',
+            QtCore.Qt.Key_F9: 'f9',
+            QtCore.Qt.Key_F10: 'f10',
+            QtCore.Qt.Key_F11: 'f11',
+            QtCore.Qt.Key_F12: 'f12',
             QtCore.Qt.Key_Exclam: '!',
             QtCore.Qt.Key_QuoteDbl: '""',
             QtCore.Qt.Key_NumberSign: 'sharp',
