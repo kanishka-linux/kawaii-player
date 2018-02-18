@@ -2439,7 +2439,7 @@ watch/unwatch status")
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} absolute \n'.format(val)
             print(txt)
-        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        #self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def seek_to_val(self, val):
@@ -2450,7 +2450,7 @@ watch/unwatch status")
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} relative+exact \n'.format(val)
             print(txt)
-        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        #self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         
     def seek_to_vol_val(self, val):
@@ -2461,7 +2461,7 @@ watch/unwatch status")
         else:
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar add ao-volume {0} \n'.format(val)
-        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        #self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def float_activity(self):
@@ -3062,10 +3062,13 @@ watch/unwatch status")
             
             
     def osd_hide(self):
+        pass
+        """
         if self.player_val == 'mplayer':
             self.mpvplayer_val.write(b'\n osd 0 \n')
         else:
             self.mpvplayer_val.write(b'\n set osd-level 0 \n')
+        """
         
     def mirrorChange(self):
         global mirrorNo
@@ -3526,7 +3529,7 @@ watch/unwatch status")
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == "mpv":
                     txt_osd = '\n set osd-level 1 \n'
-                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                    #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause no \n')
                     self.player_play_pause.setText(self.player_buttons['pause'])
                 else:
@@ -3548,7 +3551,7 @@ watch/unwatch status")
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == "mpv":
                     txt_osd = '\n set osd-level 3 \n'
-                    self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                    #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause yes \n')
                     self.player_play_pause.setText(self.player_buttons['play'])
                 else:
@@ -3563,7 +3566,7 @@ watch/unwatch status")
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == "mpv":
                 txt_osd = '\n set osd-level 1 \n'
-                self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+                #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                 self.mpvplayer_val.write(b'\n set pause no \n')
                 self.player_play_pause.setText(self.player_buttons['pause'])
             else:
@@ -3573,7 +3576,7 @@ watch/unwatch status")
         global cur_label_num
         if self.player_val == "mpv":
             txt_osd = '\n set osd-level 3 \n'
-            self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
+            #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
             self.mpvplayer_val.write(b'\n set pause yes \n')
             self.player_play_pause.setText(self.player_buttons['play'])
         else:
