@@ -797,7 +797,7 @@ class ServerLib:
         name = ''
         if not os.path.exists(hist_folder):
             os.makedirs(hist_folder)
-        if (item.startswith('http')):
+        if item.startswith('http') or os.path.isfile(item):
             home = hist_folder
             name1 = os.path.basename(item).replace('.torrent', '')
             torrent_dest1 = os.path.join(tmp_dir, name1+'.torrent')
