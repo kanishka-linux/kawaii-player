@@ -139,6 +139,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
         t = t+val
         ui.slider.setValue(t)
         
+    def keyReleaseEvent(self, event):
+        if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
+            ui.tab_5.event_dict['ctrl'] = False
+            ui.tab_5.event_dict['alt'] = False
+            ui.tab_5.event_dict['shift'] = False
+        elif event.modifiers() == QtCore.Qt.AltModifier or event.key() == QtCore.Qt.Key_Alt:
+            ui.tab_5.event_dict['alt'] = False
+            ui.tab_5.event_dict['shift'] = False
+        elif event.modifiers() == QtCore.Qt.ShiftModifier or event.key() == QtCore.Qt.Key_Shift:
+            ui.tab_5.event_dict['shift'] = False
+    
     def keyPressEvent(self, event):
         if ui.player_val == 'mplayer':
             site = ui.get_parameters_value(s='site')['site']
@@ -154,54 +165,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     self.seek_timer = QtCore.QTimer()
                     self.seek_timer.timeout.connect(self.seek_mplayer)
                     self.seek_timer.setSingleShot(True)
-                    
+        
         if ui.mpvplayer_val.processId() > 0:
             if ui.tab_6_size_indicator:
                 ui.tab_6_size_indicator.pop()
             ui.tab_6_size_indicator.append(ui.tab_6.width())
             if event.key() == QtCore.Qt.Key_Equal:
-                param_dict = ui.get_parameters_value(
-                    i='iconv_r', ir='iconv_r_indicator'
-                    )
-                iconv_r = param_dict['iconv_r']
-                iconv_r_indicator = param_dict['iconv_r_indicator']
-                if iconv_r > 1:
-                    iconv_r = iconv_r-1
-                    if iconv_r_indicator:
-                        iconv_r_indicator.pop()
-                    iconv_r_indicator.append(iconv_r)
-                ui.set_parameters_value(iconv=iconv_r, iconvr=iconv_r_indicator)
-                if not ui.scrollArea.isHidden():
-                    ui.next_page('not_deleted')
-                elif not ui.scrollArea1.isHidden():
-                    ui.thumbnail_label_update_epn()
-                if iconv_r > 1:
-                    w = float((ui.tab_6.width()-60)/iconv_r)
-                    h = int(w/ui.image_aspect_allowed)
-                    width=str(int(w))
-                    height=str(int(h))
-                    ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Minus:
-                param_dict = ui.get_parameters_value(
-                    i='iconv_r', ir='iconv_r_indicator'
-                    )
-                iconv_r = param_dict['iconv_r']
-                iconv_r_indicator = param_dict['iconv_r_indicator']
-                iconv_r = iconv_r+1
-                if iconv_r_indicator:
-                    iconv_r_indicator.pop()
-                iconv_r_indicator.append(iconv_r)
-                ui.set_parameters_value(iconv=iconv_r, iconvr=iconv_r_indicator)
-                if not ui.scrollArea.isHidden():
-                    ui.next_page('not_deleted')
-                elif not ui.scrollArea1.isHidden():
-                    ui.thumbnail_label_update_epn()
-                if iconv_r > 1:
-                    w = float((ui.tab_6.width()-60)/iconv_r)
-                    h = int(w/ui.image_aspect_allowed)
-                    width=str(int(w))
-                    height=str(int(h))
-                    ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
+                ui.tab_5.keyPressEvent(event=event)
             elif event.key() == QtCore.Qt.Key_Right:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
@@ -1119,6 +1091,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.labelFrame2.setText(msg)
     
     def mouseReleaseEvent(self, ev):
+        for i in ui.tab_5.event_dict:
+            ui.tab_5.event_dict[i] = False
         if ev.button() == QtCore.Qt.LeftButton:
             self.setFocus()
             ui.quit_really = "no"
