@@ -262,7 +262,25 @@ class MainWindowWidget(QtWidgets.QWidget):
 
     def __init__(self):
         super(MainWindowWidget, self).__init__()
-
+        self.setAcceptDrops(True)
+        
+    def dragEnterEvent(self, event):
+        data = event.mimeData()
+        if data.hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+        
+    def dropEvent(self, event):
+        global ui, logger
+        urls = event.mimeData().urls()
+        for i in urls:
+            i = i.toString()
+            logger.debug(i)
+            if i.startswith('file://'):
+                i = i.replace('file://', '', 1)
+            ui.watch_external_video('{}'.format(i), start_now=True)
+    
     def mouseMoveEvent(self, event):
         global site, ui
         pos = event.pos()
@@ -9369,7 +9387,7 @@ watch/unwatch status")
         if not self.thread_server.isRunning():
             self.thread_server = ThreadServer(
                 ip, port, self.media_server_key, self.client_auth_arr, 
-                self.https_media_server, self.https_cert_file)
+                self.https_media_server, self.https_cert_file, ui=self)
             self.thread_server.start()
         logger.info(tmp)
         tmp = str(tmp)
@@ -12081,7 +12099,7 @@ watch/unwatch status")
             #self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
     def watch_external_video(self, var, mode=None, start_now=None):
-        global site, home
+        global site, home, local_torrent_file_path
         t = var
         logger.info(t)
         file_exists = False
@@ -12246,10 +12264,12 @@ watch/unwatch status")
                         self.list1.addItem('TMP_PLAYLIST')
                         self.list1.hide()
             else:
+                if not os.path.isfile(t):
+                    t = urllib.parse.unquote(t)
                 if os.path.isfile(t):
                     new_epn = os.path.basename(t)
                     self.epn_name_in_list = urllib.parse.unquote(new_epn)
-                    self.watchDirectly(urllib.parse.unquote('"'+t+'"'), '', 'no')
+                    self.watchDirectly(urllib.parse.unquote('"'+t+'"'), self.epn_name_in_list, 'no')
                     self.dockWidget_3.hide()
                     site = "PlayLists"
                     self.btn1.setCurrentIndex(self.btn1.findText(site))
@@ -12271,7 +12291,7 @@ watch/unwatch status")
                         path_Local_Dir = t
                         list_dir = os.listdir(path_Local_Dir)
                     except Exception as e:
-                        print(e)
+                        logger.error(e)
                         return 0
                 for z in list_dir:
                     if ('.mkv' in z or '.mp4' in z or '.avi' in z or '.mp3' in z 
@@ -12306,8 +12326,10 @@ watch/unwatch status")
                     write_files(file_name, self.epn_arr_list, True)
                     self.list1.clear()
                     self.list1.addItem('TMP_PLAYLIST')
+                    self.list1.setCurrentRow(0)
+                self.list2.setFocus()
         elif t.endswith('.torrent'):
-            if t.startswith('http'):
+            if t.startswith('http') or os.path.isfile(t):
                 self.quick_torrent_play_method(url=t)
             else:
                 self.torrent_type = 'file'
@@ -12342,6 +12364,7 @@ watch/unwatch status")
             site = 'None'
             self.watchDirectly(urllib.parse.unquote(t), '', 'no')
             self.dockWidget_3.hide()
+        #self.update_list2()
 
     def apply_new_font(self):
         global app
