@@ -18,6 +18,7 @@ class PlayerWidget(QtWidgets.QWidget):
         self.player_val = None
         self.ui.total_seek = 0
         self.dblclk = False
+        self.setAcceptDrops(True)
         self.arrow_timer = QtCore.QTimer()
         self.arrow_timer.timeout.connect(self.arrow_hide)
         self.arrow_timer.setSingleShot(True)
@@ -48,7 +49,24 @@ class PlayerWidget(QtWidgets.QWidget):
             '?', '>', '<', '"', ':', '}', '{', '|', '+', '_', 'sharp',
             ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
             ]
-            
+    
+    def dragEnterEvent(self, event):
+        data = event.mimeData()
+        if data.hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+        
+        
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        for i in urls:
+            i = i.toString()
+            logger.debug(i)
+            if i.endswith('.srt') or i.endswith('.ass'):
+                self.load_external_sub(mode='drop', subtitle=i)
+                logger.debug(i)
+    
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
             self.mpvplayer = mpvplayer
@@ -370,7 +388,7 @@ class PlayerWidget(QtWidgets.QWidget):
     def player_quit(self, msg=None):
         self.ui.player_stop.clicked.emit()
         
-    def load_external_sub(self, mode=None):
+    def load_external_sub(self, mode=None, subtitle=None):
         if mode is None:
             fname = QtWidgets.QFileDialog.getOpenFileNames(
                     MainWindow, 'Select Subtitle file', self.ui.last_dir)
@@ -406,6 +424,20 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.mpvplayer.write(txt_b)
             else:
                 logger.warn('Not Allowed')
+        elif mode == 'drop':
+            title_sub = subtitle
+            logger.debug(title_sub)
+            if self.player_val == "mplayer":
+                txt = '\nsub_load '+'"'+title_sub+'"\n'
+                txt_b = bytes(txt, 'utf-8')
+                logger.info("{0} - {1}".format(txt_b, txt))
+                self.mpvplayer.write(txt_b)
+            else:
+                txt = '\nsub_add '+'"'+title_sub+'" select\n'
+                txt_b = bytes(txt, 'utf-8')
+                logger.info("{0} - {1}".format(txt_b, txt))
+                self.mpvplayer.write(txt_b)
+            
                 
     def player_quit_old(self, msg=None):
         self.ui.quit_really = "yes"
