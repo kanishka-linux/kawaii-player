@@ -3468,6 +3468,8 @@ watch/unwatch status")
         self.idw = str(int(self.tab_5.winId()))
         if self.video_mode_index in [6, 7]:
             self.set_video_mode()
+        if self.orientation_dock == 'right':
+            self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 2, 1)
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
