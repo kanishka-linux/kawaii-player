@@ -504,6 +504,29 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 pass
             elif ui.video_mode_index == 7:
                 pass
+            elif ui.video_mode_index == 1:
+                if ui.tab_6.isHidden():
+                    ui.gridLayout.setSpacing(5)
+                    ui.superGridLayout.setSpacing(0)
+                    ui.gridLayout.setContentsMargins(5, 5, 5, 5)
+                    ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                    ui.tab_6.show()
+                    ui.list2.hide()
+                    ui.goto_epn.hide()
+                    if ui.orientation_dock == 'right':
+                        ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 5, 2, 1)
+                else:
+                    ui.tab_6.hide()
+                    ui.frame1.hide()
+                    ui.gridLayout.setSpacing(0)
+                    ui.superGridLayout.setSpacing(0)
+                    ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                    ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                    ui.fullscreen_mode = 1
+                    if ui.orientation_dock == 'right':
+                        ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 1, 1, 1)
+                    ui.tab_5.show()
+                    ui.tab_5.setFocus()
             else:
                 if iconv_r_indicator:
                     iconv_r = iconv_r_indicator[0]
