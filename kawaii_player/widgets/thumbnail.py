@@ -494,6 +494,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.superGridLayout.setSpacing(0)
                         ui.gridLayout.setContentsMargins(0, 0, 0, 0)
                         ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                        if ui.orientation_dock == 'right':
+                            ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 1, 1, 1)
                         MainWindow.showFullScreen()
                         self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
                         self.setMaximumSize(QtCore.QSize(screen_width, screen_height))
@@ -504,6 +506,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.superGridLayout.setSpacing(0)
                         ui.gridLayout.setContentsMargins(5, 5, 5, 5)
                         ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
+                        if ui.orientation_dock == 'right':
+                            ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 5, 2, 1)
                         ui.vertical_layout_new.insertWidget(0, self)
                         if not ui.force_fs:
                             MainWindow.showNormal()
@@ -556,6 +560,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.gridLayout1.setSpacing(0)
                         ui.gridLayout2.setSpacing(0)
                         ui.superGridLayout.setSpacing(0)
+                    if ui.orientation_dock == 'right':
+                        ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 1, 1, 1)
                     MainWindow.showFullScreen()
                 else:
                     w = float((ui.tab_6.width()-60)/iconv_r)
@@ -584,6 +590,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.gridLayout1.setSpacing(5)
                     ui.gridLayout2.setSpacing(5)
                     ui.superGridLayout.setSpacing(5)
+                    if ui.orientation_dock == 'right':
+                        ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 5, 2, 1)
                     ui.tab_6.show()
                     QtWidgets.QApplication.processEvents()
                     p1="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setFocus()"

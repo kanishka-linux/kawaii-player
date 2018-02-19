@@ -232,6 +232,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.list1.hide()
                         self.ui.frame.hide()
                         self.ui.dockWidget_3.hide()
+                        if self.ui.orientation_dock == 'right':
+                            self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
                         self.show()
                         self.setFocus()
                         if not self.ui.tab_2.isHidden():
@@ -264,6 +266,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.list2.hide()
                         self.ui.goto_epn.hide()
                         self.ui.tab_2.show()
+                    if self.ui.orientation_dock == 'right':
+                        self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
             else:
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
@@ -314,6 +318,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.gridLayout1.setSpacing(0)
                         self.ui.gridLayout2.setSpacing(0)
                         self.ui.superGridLayout.setSpacing(0)
+                        if self.ui.orientation_dock == 'right':
+                            self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
                         MainWindow.showFullScreen()
                     else:
                         w = float((self.ui.tab_6.width()-60)/iconv_r)
@@ -343,6 +349,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.gridLayout2.setSpacing(5)
                         self.ui.superGridLayout.setSpacing(5)
                         self.ui.tab_6.show()
+                        if self.ui.orientation_dock == 'right':
+                            self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                         QtWidgets.QApplication.processEvents()
                         p1="self.ui.label_epn_"+str(cur_label_num)+".setFocus()"
                         exec(p1)
