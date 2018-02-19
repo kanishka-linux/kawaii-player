@@ -563,8 +563,11 @@ class PlayerWidget(QtWidgets.QWidget):
     def keyReleaseEvent(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
             self.event_dict['ctrl'] = False
+            self.event_dict['alt'] = False
+            self.event_dict['shift'] = False
         elif event.modifiers() == QtCore.Qt.AltModifier or event.key() == QtCore.Qt.Key_Alt:
             self.event_dict['alt'] = False
+            self.event_dict['shift'] = False
         elif event.modifiers() == QtCore.Qt.ShiftModifier or event.key() == QtCore.Qt.Key_Shift:
             self.event_dict['shift'] = False
         logger.debug('release'.format(event.key()))
