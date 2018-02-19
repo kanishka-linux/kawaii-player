@@ -277,8 +277,11 @@ class MainWindowWidget(QtWidgets.QWidget):
         for i in urls:
             i = i.toString()
             logger.debug(i)
-            if i.startswith('file://'):
-                i = i.replace('file://', '', 1)
+            if i.startswith('file:///'):
+                if OSNAME == 'posix':
+                    i = i.replace('file://', '', 1)
+                else:
+                    i = i.replace('file:///', '', 1)
             ui.watch_external_video('{}'.format(i), start_now=True)
     
     def mouseMoveEvent(self, event):
@@ -12335,7 +12338,10 @@ watch/unwatch status")
                 self.torrent_type = 'file'
                 self.video_local_stream = True
                 site = 'None'
-                t = t.replace('file:///', '/')
+                if OSNAME == 'posix':
+                    t = t.replace('file:///', '/', 1)
+                else:
+                    t = t.replace('file:///', '', 1)
                 t=urllib.parse.unquote(t)
                 logger.info(t)
                 local_torrent_file_path = t
