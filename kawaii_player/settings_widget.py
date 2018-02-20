@@ -917,7 +917,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line43 = QtWidgets.QLineEdit()
         self.line43.setPlaceholderText(str(ui.cache_pause_seconds) + ' (In Seconds)')
-        msg = '<html>Stop for this many seconds before starting out again when run\
+        msg = '<html>Stop this many seconds before starting out again when run\
                 out of cache</html>'
         self.line43.setToolTip(msg)
         self.text43 = QtWidgets.QLabel()
@@ -1162,7 +1162,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 "#interpolation=yes", "#tscale=oversample",
                 '##Subtitle Options', '#sub-font=', '#sub-font-size=', '#sub-color=',
                 '#sub-border-color=', '#sub-border-size=', '#sub-shadow-offset=',
-                '#sub-shadow-offset=', '#sub-shadow-color', '#sub-spacing',
+                '#sub-shadow-offset=', '#sub-shadow-color=', '#sub-spacing=',
                 '#blend-subtitle=yes',
                 '##Setup screenshot directory. Take screenshot using keys s, S',
                 '#screenshot-directory="{}"'.format(ui.tmp_download_folder),
