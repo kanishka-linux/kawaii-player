@@ -2460,7 +2460,7 @@ watch/unwatch status")
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} absolute \n'.format(val)
             print(txt)
-        #self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def seek_to_val(self, val):
@@ -2471,7 +2471,7 @@ watch/unwatch status")
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} relative+exact \n'.format(val)
             print(txt)
-        #self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         
     def seek_to_vol_val(self, val):
@@ -2482,7 +2482,7 @@ watch/unwatch status")
         else:
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar add ao-volume {0} \n'.format(val)
-        #self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
     
     def float_activity(self):
