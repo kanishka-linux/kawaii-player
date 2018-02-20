@@ -917,7 +917,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line43 = QtWidgets.QLineEdit()
         self.line43.setPlaceholderText(str(ui.cache_pause_seconds) + ' (In Seconds)')
-        msg = '<html>Stop This many before starting out again seconds when run\
+        msg = '<html>Stop for this many seconds before starting out again when run\
                 out of cache</html>'
         self.line43.setToolTip(msg)
         self.text43 = QtWidgets.QLabel()
