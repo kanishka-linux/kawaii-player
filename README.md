@@ -290,7 +290,7 @@ On Android: vlc,kodi
 		
 		$ curl -L 'http://192.168.3.2:9001/site=music&opt=artist&s=yuki+kajiura' -o playlist.m3u && mplayer -playlist playlist.m3u
 
-Playlist generated using curl can be opened with most of the desktop media players.
+Playlist generated using curl (or from web interface) can be opened with most of the desktop media players.
 
 On Android devices, user should use vlc latest nightly build. vlc available in fdroid is very old, and it's current stable android version is also far behind desktop version when it comes to playing network streams of all audio/video format. But it's latest nightly build version starting with 2.1, can play most of the video formats including **mkv/mp4** streams streamed by kawaii-player media server. It can also play streaming **flac** audio files. Currently it is the best **open and free** option available for Android for playing audio/video media server files without transcoding. Sometimes if it fails to play streaming files, then user can easily download those files on their Android device using web interface. and can play the files natively.
 
@@ -488,7 +488,7 @@ In this mode, video will be detached from the main application window and can fl
 
 ###### [Index](#index)
 
-In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player. Addons are needed to copy into folder *'~/.config/kawaii-player/src/Plugins'*, which are loaded automatically when player starts. Tutorial for writing addons will be available soon (hopefully).
+In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player. Addons are needed to copy into folder *'~/.config/kawaii-player/src/Plugins'*, which are loaded automatically when player starts.
 
 
 ## Dependencies and Installation
@@ -711,7 +711,7 @@ Last Column to the extreme right, is the “Playlist column”, which will conta
 
 Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, it's volume will be in sync with global volume. So global volume key will work. If user has setup d-bus shortcut keys for play/pause/next/previous then they will also work.
 
-There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen).
+There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen) or double click.
 
 From version 2.4 onwards, the application can accept keyboard shortcuts as defined in mpv's input.conf file. By default it will read input.conf file located at **'~/.config/kawaii-player/src/input.conf'**. Users can customize this file as per their preferences. If the file is deleted or some shortcuts are not defined there then it will try to behave as per input.conf located at **'~/.config/mpv/input.conf'** or will start accepting mpv's default keybindings. In order to use this feature, users need to enter **'MPV_INPUT_CONF=True'**, in the file **'~/.config/kawaii-player/other_options.txt'**. Once MPV_INPUT_CONF is set to True, the application will respect mpv's input.conf and its default keybindings. This feature will work with latest version of mpv (most probably version 0.23+).
 
