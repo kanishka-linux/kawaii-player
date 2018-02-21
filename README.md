@@ -106,7 +106,7 @@ The built-in portable media server of this application can have many use cases. 
 
 20. [Youtube wrapper using qtwebengine/qtwebkit](#youtube-support)
 
-21. [Detached Video Mode](#detached-video-mode)
+21. [Detached Video (Picture in Picture) Mode](#detached-video-mode)
 
 22. [Universal Playlist Generation](#universal-playlist-generation)
 
@@ -476,7 +476,7 @@ It is not very powerful music organizer, but provide certain decent functionalit
 
 In Music mode only audio will be played and video will be suppressed.
 
-## Detached Video Mode (or Picture in Picture mode)
+## Detached Video Mode
 
 ###### [Index](#index)
 
