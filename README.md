@@ -33,7 +33,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Minimal Music Player](#minimal-music-player)
 
-- [Detached Video Mode](#detached-video-mode)
+- [Detached Video (Picture in Picture) Mode](#detached-video-mode)
 
 - [Addons (Plugins) Structure](#addon-structure)
 
@@ -44,8 +44,6 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 - [Brief Documentation](#documentation)
 
 - [Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
-
-- [Beta Release](https://github.com/kanishka-linux/kawaii-player/releases/tag/v2.9.9-0)
 
 - [Contacts](#contacts)
 
