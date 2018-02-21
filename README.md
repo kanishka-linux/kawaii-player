@@ -118,12 +118,14 @@ The built-in portable media server of this application can have many use cases. 
 
 26. [Peer to Peer Mode](#peer-to-peer-mode)
 
-
+27. Available in three themes including dark and system theme (from v3.1 onwards).
 
 
 ## Playing Mode
 
 ###### [Index](#index)
+
+From v3.1 onwards, the application has undergone many changes. Some of its latest screenshots are available [here](https://github.com/kanishka-linux/kawaii-player/releases/tag/v3.1.1-0)
 
 ![kawaii-player](/Images/Watch.png)
 
@@ -133,7 +135,7 @@ The built-in portable media server of this application can have many use cases. 
 
 ![kawaii-player](/Images/Thumbnail.png)
 
-Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 2 to 4**. In thumbnail mode users have option to change default generated thumbnail. 
+Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 2 to 5**. In thumbnail mode users have option to change default generated thumbnail. 
 Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. 
 
 
@@ -143,7 +145,7 @@ Thumbnails of local video files are automatically generated with the help of 'ff
 
 
 
-The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Settings->Check'** menu. **After changing the address user needs to restart the player**. 
+The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Preferences->Media Server'**. 
 
 ![kawaii-player](/Images/Web_New.png)
 
@@ -206,6 +208,8 @@ Once https enabled, users will find that many media players might not play playl
 
 Note: Users need to use separate port number for media server and torrent streaming feature. Port number along with local IP for torrent streaming feature needs to be set in 'torrent_config.txt' (TORRENT_STREAM_IP field) and that of media server in 'other_options.txt' (LOCAL_STREAM_IP field). Default Settings: 'TORRENT_STREAM_IP=127.0.0.1:8001' and 'LOCAL_STREAM_IP=127.0.0.1:9001'. In default settings one can't access local media from another computer. Users need to change default loopback address to local ip address. Users have to set local IP address and port once only. If local IP address of the media server changes dynamically next time, then the kawaii-player application will try to find out new address automatically. If the application can't find new address then users have to manually change the config files again.
 
+**From v3.1 onwards all of these settings can be set from settings/preferene box of the application. There is no need to fiddle with any of config files manually**
+
 ## Peer to Peer Mode
 
 ###### [Index](#index)
@@ -222,7 +226,7 @@ Steps Inovolved in P2P mode for two computers:
 
 4. Goto Addons->MyServer->Login
 
-5. Login requires at least IP address of the server that needs to be connected with (in the form http://192.168.2.3/ , if https is enabled for the server then write address accordingly). It will also ask for username and password. Users can leave username/password field blank if it has been not set for the server. Once the login is successful message is displayed, click on the login again to navigate through library of server. 
+5. Login requires IP address of the server that needs to be connected with (in the form http://192.168.2.3/ , if https is enabled for the server then write address accordingly). It will also ask for username and password. Users can leave username/password field blank if it has been not set for the server. Once the login is successful message is displayed, click on the login again to navigate through library of server. 
 
 6. It is possible for Media servers to broadcast themselves(Option is available in **more** menu), so that other clients can discover it automatically by switching on their discover functionality (Addons->MyServer->Discover: on client side). In this case users don't have to remember the IP address of the server. Server can also send custom broadcast message which can help clients to identify it properly - if there are multiple servers running. Clients can get list of servers in the application itself along with broadcast message, after that they will have to choose which server to connect to. For security reasons server is allowed to broadcast itself only in the local network.
 
@@ -303,7 +307,7 @@ Note: Once user logs out from cookie and password enabled session, he/she can't 
 
 ###### [Index](#index)
 
-It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at *'http://127.0.0.1:8001'*, which is loop-back address of your local machine. User can change this default streaming IP address to local ip address of your machine which normally starts with something like *192.168.x.y*, by manually editing *'torrent_config.txt'* file located in *'~/.config/kawaii-player'*, if they want to access the torrent stream remotely.
+It is possible to play audio/video torrent directly with this player similar to any streaming media. By default the torrent will stream at *'http://127.0.0.1:8001'*, which is loop-back address of your local machine. User can change this default streaming IP address to local ip address of their machine which normally starts with something like *192.168.x.y*, (from settings/preference box), if they want to access the torrent stream remotely.
 
 In 'torrent_config.txt' you can set some other fields like upload , download rate in (KBps) and default download location.
 
@@ -472,15 +476,16 @@ It is not very powerful music organizer, but provide certain decent functionalit
 
 In Music mode only audio will be played and video will be suppressed.
 
-## Detached Video Mode
+## Detached Video Mode (or Picture in Picture mode)
 
 ###### [Index](#index)
 
 ![kawaii-player](/Images/Detached_Mode.png)
 
 The Player contains Detached video mode, which can be activated by right clicking tray icon and selecting appropriate entry.
-In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows. In lightweight desktop sessions like LXDE there is very simple sound menu applet which does not integrate music and any other extra functionalities. By using this mode, it is possible to use it as a system tray widget with many advance features with which you can quickly control your media (both audio and video) which is being played in the player, similar to sound menu applet of GNOME or KDE.
+In this mode, video will be detached from the main application window and can float anywhere on the desktop. By default it has titlebar, which users can remove by activating frameless mode from system tray context menu. Users can make this detached video of any size and can position it anywhere on the desktop which will remain above all the windows.
 
+**Fun-Fact:** When I was implementing detached video mode, I had no idea that I was basically implementing picture-in-picture mode. I was initially inspired by an amazing tooltip widget available in gmusicbrowser from which we can control media player. But such type of tooltip widgets became difficult to implement as many gnu/linux desktops stopped supporting old style tray widgets with tooltip in favour of app-indicators. So reluctantly, I developed detached video mode that will work on every desktop which later on I came to know that, is called as picture-in-picture mode.
 
 ## Addon Structure
 
@@ -711,66 +716,7 @@ Once video is opened, if it not focussed then take mouse pointer over the video.
 
 There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen) or double click.
 
-From version 2.4 onwards, the application can accept keyboard shortcuts as defined in mpv's input.conf file. By default it will read input.conf file located at **'~/.config/kawaii-player/src/input.conf'**. Users can customize this file as per their preferences. If the file is deleted or some shortcuts are not defined there then it will try to behave as per input.conf located at **'~/.config/mpv/input.conf'** or will start accepting mpv's default keybindings. In order to use this feature, users need to enter **'MPV_INPUT_CONF=True'**, in the file **'~/.config/kawaii-player/other_options.txt'**. Once MPV_INPUT_CONF is set to True, the application will respect mpv's input.conf and its default keybindings. This feature will work with latest version of mpv (most probably version 0.23+).
-
-### Player Shortcuts(once video is focussed, if it's not focussed take mouse pointer over the playing video):
-
-(When MPV_INPUT_CONF is set to False)
-
-* q : quit
-
-* Shift+q: remember position before quitting
-
-* spacebar: play/pause
-
-* f : fullscreen
-
-* w : decrease size
-
-* e : increase size
-
-* r : move subtitle up
-
-* t : move subtitle down
-
-* i : show file size
-
-* j : toggle Subtitle
-
-* Shift+j: If available, Load external subtitles from folder '~/.config/kawaii-player/External-Subtitle'. (Staring name of external-subtitle file should match name in the playlist entry)
-
-* k : toggle audio
-
-* L : Show/Hide Player Controls
-
-* m : show video file name
-
-* . (remember '>' key) : next file in the playlist or queue
-
-* , (remember '<' key) : previous file in the playlist
-
-* right : 10s+
-
-* left  : 10s-
-
-* Up    : 60s+
-
-* Down  : 60s-
-
-* PgUp  : 300s+
-
-* PgDown : 300s-
-
-* ] : 90s+
-
-* [ : 5s-
-
-* 0 : volume up
-
-* 9 : volume down 
-
-* a : change aspect ratio (works with mpv)
-
+kawaii-player from v3.1 onwards almost fully supports all of mpv's default keybindings. Users can also change keybindings from settings/preference box of the application.
 
 for mplayer set aspect in ~/.mplayer/config, all the properties of the mplayer global config file will be taken by the internal mplayer.
 
