@@ -229,9 +229,9 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
             palette	= QtGui.QPalette()
             palette.setColor(MainWindow.backgroundRole(), QtGui.QColor(56,60,74))
             MainWindow.setPalette(palette)
-        if os.path.isfile(fanart):
+        if os.path.isfile(fanart) and ui.layout_mode != 'Music':
             ui.current_background = fanart
-            if '.' in fanart and ui.layout_mode != 'Music':
+            if '.' in fanart:
                 fanart_name, ext = fanart.rsplit('.', 1)
                 if not fanart_name.endswith('default'):
                     fanart_new = fanart_name + '-new.' + ext
