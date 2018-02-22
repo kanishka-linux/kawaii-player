@@ -210,8 +210,12 @@ class FloatWindowWidget(QtWidgets.QWidget):
             ui.new_tray_widget.show()
             self.cover_mode.setText(ui.player_buttons['down'])
             self.cover_mode.setToolTip('Restore Default')
-            if not ui.idw or str(ui.idw) == str(int(ui.tab_5.winId())) or str(ui.idw) == str(int(ui.label.winId())):
+            if (not ui.idw or str(ui.idw) == str(int(ui.tab_5.winId()))
+                    or str(ui.idw) == str(int(ui.label.winId()))):
                 self.hide_video_window = False
+            elif str(ui.idw) == str(int(ui.label_new.winId())):
+                ui.label_new.hide()
+                self.hide_video_window = True
             else:
                 p1 = "ui.label_epn_{0}.hide()".format(cur_label_num)
                 exec(p1)
@@ -223,8 +227,11 @@ class FloatWindowWidget(QtWidgets.QWidget):
             self.cover_mode.setText(ui.player_buttons['up'])
             self.cover_mode.setToolTip('Cover Entire Frame')
             if self.hide_video_window:
-                p1 = "ui.label_epn_{0}.show()".format(cur_label_num)
-                exec(p1)
+                if str(ui.idw) == str(int(ui.label_new.winId())):
+                    ui.label_new.show()
+                else:
+                    p1 = "ui.label_epn_{0}.show()".format(cur_label_num)
+                    exec(p1)
                 self.hide_video_window = False
 
     def lock_toolbar(self):
@@ -431,6 +438,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                 ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
             elif str(ui.idw) == str(int(ui.label_new.winId())):
                 ui.vertical_layout_new.insertWidget(0, ui.label_new)
+                ui.label_new.show()
             else:
                 r = ui.current_thumbnail_position[0]
                 c = ui.current_thumbnail_position[1]
