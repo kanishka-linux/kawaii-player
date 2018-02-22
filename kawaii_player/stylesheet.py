@@ -58,6 +58,7 @@ class WidgetStyleSheet:
             gui.list2.setStyleSheet("""
                 QListWidget{{
                 color:{1};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                font: {bold} {font};
                 }}
                 QListWidget:item {{
                 height: {0};
@@ -72,15 +73,18 @@ class WidgetStyleSheet:
                 padding: 2px;
                 }}
                 QMenu::item{{
-                color: white;
+                color: {1};
+                font: {font};
                 background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                 padding: 4px; margin: 2px 2px 2px 10px;
                 }}
                 QMenu::item:selected{{
-                color: white;
+                color: {2};
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
-                """.format(height, gui.list_text_color, gui.list_text_color_focus))
+                """.format(height, gui.list_text_color, gui.list_text_color_focus,
+                           bold=font_bold, font=gui.global_font)
+                        )
                 
     def qmenu_style(self, widget):
         widget.setStyleSheet("""
@@ -571,6 +575,7 @@ class WidgetStyleSheet:
                 padding: 2px;
                 }}
                 QMenu::item{{
+                font: {font};
                 color: {1};
                 background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                 padding: 4px; margin: 2px 2px 2px 10px;
@@ -579,7 +584,9 @@ class WidgetStyleSheet:
                 color: {2};
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
-                """.format(height, gui.list_text_color, gui.list_text_color_focus, bold=font_bold))
+                """.format(height, gui.list_text_color, gui.list_text_color_focus,
+                           bold=font_bold, font=gui.global_font)
+                        )
             if widget != gui.list2:
                 for widget_item in ([gui.line, gui.text, gui.frame1, gui.frame,
                                 gui.torrent_frame, gui.float_window,
@@ -835,11 +842,12 @@ class WidgetStyleSheet:
                     color: {1};
                     }}
                     QMenu{{
-                    color: white;
+                    color: {1};
                     background: rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 2px;
                     }}
                     QMenu::item{{
+                    font: {font};
                     color: {0};
                     background:rgb(56,60,74);border: rgba(0,0,0, 30%);
                     padding: 4px; margin: 2px 2px 2px 10px;
@@ -848,4 +856,6 @@ class WidgetStyleSheet:
                     color: {1};
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                     }}
-                    """.format(gui.list_text_color, gui.list_text_color_focus, bold=font_bold))
+                    """.format(gui.list_text_color, gui.list_text_color_focus,
+                               bold=font_bold, font=gui.global_font)
+                            )
