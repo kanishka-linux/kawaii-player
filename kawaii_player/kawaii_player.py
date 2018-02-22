@@ -231,7 +231,7 @@ def set_mainwindow_palette(fanart, first_time=None, theme=None):
             MainWindow.setPalette(palette)
         if os.path.isfile(fanart):
             ui.current_background = fanart
-            if '.' in fanart:
+            if '.' in fanart and ui.layout_mode != 'Music':
                 fanart_name, ext = fanart.rsplit('.', 1)
                 if not fanart_name.endswith('default'):
                     fanart_new = fanart_name + '-new.' + ext
