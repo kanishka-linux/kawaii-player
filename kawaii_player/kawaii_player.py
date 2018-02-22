@@ -13601,7 +13601,7 @@ def main():
         MainWindow.setGeometry(
             ui.music_mode_dim[0], ui.music_mode_dim[1], 
             ui.music_mode_dim[2], ui.music_mode_dim[3])
-        ui.image_fit_option_val = 4
+        ui.image_fit_option_val = 3
     else:
         ui.sd_hd.show()
         ui.audio_track.show()
