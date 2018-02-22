@@ -3334,7 +3334,7 @@ watch/unwatch status")
         global thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, show_hide_cover
         global show_hide_playlist, show_hide_titlelist
-        global new_tray_widget, sub_id, audio_id
+        global new_tray_widget, sub_id, audio_id, layout_mode
         
         if self.mpvplayer_val.processId() > 0 or msg:
             logger.warn(self.progress_counter)
@@ -3390,7 +3390,8 @@ watch/unwatch status")
                                 self.list1.show()
                             if show_hide_cover == 1:
                                 self.label.show()
-                                self.label_new.show()
+                                if layout_mode != 'Music':
+                                    self.label_new.show()
                                 self.text.show()
                             if show_hide_titlelist == 1:
                                 self.list2.show()
@@ -11960,27 +11961,33 @@ watch/unwatch status")
         global show_hide_playlist, show_hide_titlelist, music_arr_setting
         global opt, new_tray_widget, tray
         #ui.VerticalLayoutLabel.takeAt(2)
+        if self.player_theme in ['dark', 'system']:
+            self.label_new.hide()
         if not self.float_window.isHidden():
             tray.right_menu._detach_video()
             
         self.music_mode_dim_show = True
-        self.list_with_thumbnail = False
+        #self.list_with_thumbnail = False
         self.image_fit_option_val = 3
         
         print('Music Mode')
         layout_mode = "Music"
         print(self.music_mode_dim, '--music--mode--')
         MainWindow.showNormal()
+        MainWindow.hide()
         MainWindow.setGeometry(
             ui.music_mode_dim[0], ui.music_mode_dim[1], 
             ui.music_mode_dim[2], ui.music_mode_dim[3]
             )
-        #MainWindow.showMaximized()
         MainWindow.hide()
+        MainWindow.setMaximumWidth(ui.music_mode_dim[2])
+        MainWindow.setMaximumHeight(ui.music_mode_dim[3])
+        #MainWindow.showMaximized()
+        #MainWindow.hide()
         MainWindow.show()
         self.text.show()
         self.label.show()
-        self.label_new.show()
+        #self.label_new.show()
         show_hide_cover = 1
         self.tab_5.hide()
         show_hide_player = 0
@@ -12003,7 +12010,8 @@ watch/unwatch status")
             #ui.goto_epn.show()
             show_hide_playlist = 1
             self.list2.setFocus()
-        self.widget_style.apply_stylesheet(widget=self.list2, theme=self.player_theme)
+        self.widget_style.change_list2_style()
+        self.apply_new_font()
         
     def video_mode_layout(self):
         global layout_mode, default_arr_setting, opt, new_tray_widget, tray
@@ -12011,14 +12019,19 @@ watch/unwatch status")
         if not self.float_window.isHidden():
             tray.right_menu._detach_video()
         print('default Mode')
+        if MainWindow.pos().y() < 0:
+            yc = 0
+        else:
+            yc = MainWindow.pos().y()
         if self.music_mode_dim_show:
             self.music_mode_dim = [
-                MainWindow.pos().x(), MainWindow.pos().y(), 
+                MainWindow.pos().x(), yc, 
                 MainWindow.width(), MainWindow.height()
                 ]
         print(self.music_mode_dim, '--video--mode--')
         self.music_mode_dim_show = False
-        
+        if self.player_theme in ['dark', 'system']:
+            self.label_new.show()
         layout_mode = "Default"
         self.sd_hd.show()
         self.audio_track.show()
@@ -12027,7 +12040,7 @@ watch/unwatch status")
         #ui.frame.show()
         self.list2.show()
         #ui.goto_epn.show()
-        
+        MainWindow.setMaximumSize(QtCore.QSize(16777215, 16777215))
         print(default_arr_setting, '--default-setting--')
         if default_arr_setting[0] > 0 and default_arr_setting[0] < self.btn1.count():
             self.btn1.setCurrentIndex(default_arr_setting[0])
@@ -12051,7 +12064,8 @@ watch/unwatch status")
             self.list2.setFocus()
             
         MainWindow.showMaximized()
-        self.widget_style.apply_stylesheet(widget=self.list2, theme=self.player_theme)
+        self.widget_style.change_list2_style()
+        self.apply_new_font()
         
     def _set_window_frame(self):
         global new_tray_widget
@@ -13589,6 +13603,8 @@ def main():
     if (ui.list1.isHidden() or ui.list2.isHidden()) and ui.view_mode == 'list':
         ui.text.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         ui.label_new.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
+        if layout_mode == 'Music':
+            ui.label_new.hide()
     if ui.access_from_outside_network:
         get_ip_thread = GetIpThread(ui, interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
         get_ip_thread.start()
