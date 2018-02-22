@@ -368,6 +368,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                 ui.float_window_layout.insertWidget(0, ui.tab_5, 0)
                 ui.float_window.show()
                 ui.tab_5.show()
+            elif str(ui.idw) == str(int(ui.label_new.winId())):
+                ui.float_window_layout.insertWidget(0, ui.label_new, 0)
+                ui.float_window.show()
+                ui.label_new.show()
             else:
                 row = ui.list2.currentRow()
                 if row >= 0:
@@ -425,6 +429,8 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             self.d_vid.setText('&Detach Video')
             if str(ui.idw) == str(int(ui.tab_5.winId())) or not ui.idw:
                 ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
+            elif str(ui.idw) == str(int(ui.label_new.winId())):
+                ui.vertical_layout_new.insertWidget(0, ui.label_new)
             else:
                 r = ui.current_thumbnail_position[0]
                 c = ui.current_thumbnail_position[1]
