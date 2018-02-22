@@ -1540,6 +1540,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.clicked_label_new = False
+        self.layout_mode = 'Default'
         self.audio_outputs = ''
         self.video_outputs = ''
         self.cache_pause_seconds = 4
@@ -3334,7 +3335,7 @@ watch/unwatch status")
         global thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, show_hide_cover
         global show_hide_playlist, show_hide_titlelist
-        global new_tray_widget, sub_id, audio_id, layout_mode
+        global new_tray_widget, sub_id, audio_id
         
         if self.mpvplayer_val.processId() > 0 or msg:
             logger.warn(self.progress_counter)
@@ -3390,7 +3391,7 @@ watch/unwatch status")
                                 self.list1.show()
                             if show_hide_cover == 1:
                                 self.label.show()
-                                if layout_mode != 'Music':
+                                if self.layout_mode != 'Music':
                                     self.label_new.show()
                                 self.text.show()
                             if show_hide_titlelist == 1:
@@ -9890,7 +9891,7 @@ watch/unwatch status")
     def dataReady(self, p):
         global new_epn, epn, opt, site
         global cache_empty, buffering_mplayer, slider_clicked
-        global artist_name_mplayer, layout_mode, server
+        global artist_name_mplayer, server
         global new_tray_widget, pause_indicator
         global mpv_indicator, mpv_start, cur_label_num
         global sub_id, audio_id, current_playing_file_path, desktop_session
@@ -10088,7 +10089,7 @@ watch/unwatch status")
                         self.player_play_pause.setText(self.player_buttons['play'])
                         if not pause_indicator:
                             pause_indicator.append('Pause')
-                        if MainWindow.isFullScreen() and layout_mode != "Music":
+                        if MainWindow.isFullScreen() and self.layout_mode != "Music":
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
                     timearr = re.findall("[0-9][0-9]+:[0-9][0-9]+:[0-9][0-9]+", a)
@@ -10333,7 +10334,7 @@ watch/unwatch status")
                     if buffering_mplayer != 'yes':
                         self.player_play_pause.setText(self.player_buttons['play'])
                         #print('set play button text = Play')
-                    if MainWindow.isFullScreen() and layout_mode != "Music":
+                    if MainWindow.isFullScreen() and self.layout_mode != "Music":
                         self.gridLayout.setSpacing(0)
                         self.frame1.show()
                         if (buffering_mplayer == "yes"):
@@ -10402,7 +10403,7 @@ watch/unwatch status")
                             self.mplayer_finished_counter = 0
                         except:
                             pass
-                        if (MainWindow.isFullScreen() and layout_mode != "Music"
+                        if (MainWindow.isFullScreen() and self.layout_mode != "Music"
                                 and self.list2.isHidden() and self.tab_2.isHidden()
                                 and self.tab_6.isHidden()):
                             self.gridLayout.setSpacing(0)
@@ -10530,7 +10531,7 @@ watch/unwatch status")
                 if 'http' in a:
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
-                    if MainWindow.isFullScreen() and layout_mode != "Music":
+                    if MainWindow.isFullScreen() and self.layout_mode != "Music":
                         self.gridLayout.setSpacing(0)
                         self.frame1.show()
                         if self.frame_timer.isActive():
@@ -11958,7 +11959,7 @@ watch/unwatch status")
                 show_hide_playlist = 1
         
     def music_mode_layout(self):
-        global layout_mode, screen_width, show_hide_cover, show_hide_player
+        global screen_width, show_hide_cover, show_hide_player
         global show_hide_playlist, show_hide_titlelist, music_arr_setting
         global opt, new_tray_widget, tray
         #ui.VerticalLayoutLabel.takeAt(2)
@@ -11972,7 +11973,7 @@ watch/unwatch status")
         self.image_fit_option_val = 3
         
         print('Music Mode')
-        layout_mode = "Music"
+        self.layout_mode = "Music"
         print(self.music_mode_dim, '--music--mode--')
         MainWindow.showNormal()
         MainWindow.hide()
@@ -12015,7 +12016,7 @@ watch/unwatch status")
         self.apply_new_font()
         
     def video_mode_layout(self):
-        global layout_mode, default_arr_setting, opt, new_tray_widget, tray
+        global default_arr_setting, opt, new_tray_widget, tray
         #ui.VerticalLayoutLabel.addStretch(1)
         if not self.float_window.isHidden():
             tray.right_menu._detach_video()
@@ -12033,7 +12034,7 @@ watch/unwatch status")
         self.music_mode_dim_show = False
         if self.player_theme in ['dark', 'system']:
             self.label_new.show()
-        layout_mode = "Default"
+        self.layout_mode = "Default"
         self.sd_hd.show()
         self.audio_track.show()
         self.subtitle_track.show()
@@ -12425,7 +12426,7 @@ def main():
     global update_start, screen_width, screen_height, total_till_epn
     global mpv_start
     global show_hide_cover, show_hide_playlist, show_hide_titlelist, server
-    global show_hide_player, layout_mode, current_playing_file_path
+    global show_hide_player, current_playing_file_path
     global music_arr_setting, default_arr_setting
     global local_torrent_file_path, wait_player, desktop_session
     global html_default_arr, app
@@ -12435,7 +12436,6 @@ def main():
     path_final_Url = ''
     default_arr_setting = [0, 0, 0, 0, 0]
     music_arr_setting = [0, 0, 0]
-    layout_mode = "Default"
     show_hide_player = 0
     show_hide_cover = 1
     show_hide_playlist = 1
@@ -12851,7 +12851,7 @@ def main():
                     elif view_mode == 'thumbnail_light':
                         ui.view_mode = 'thumbnail_light'
                 elif "Layout" in i:
-                    layout_mode = j.replace('\n', '')
+                    ui.layout_mode = j.replace('\n', '')
                 elif "POSX" in i:
                     posx = re.sub('\n', '', j)
                     if posx.isdigit():
@@ -13569,7 +13569,7 @@ def main():
     except Exception as e:
         print("can't open Mpris plugin, Exception raised: {0}".format(e))
     
-    if layout_mode == "Music":
+    if ui.layout_mode == "Music":
         try:
             t1 = tray.geometry().height()
         except:
@@ -13604,7 +13604,7 @@ def main():
     if (ui.list1.isHidden() or ui.list2.isHidden()) and ui.view_mode == 'list':
         ui.text.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         ui.label_new.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
-        if layout_mode == 'Music':
+        if ui.layout_mode == 'Music':
             ui.label_new.hide()
     if ui.access_from_outside_network:
         get_ip_thread = GetIpThread(ui, interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
@@ -13755,7 +13755,7 @@ def main():
             f.write("\nPOSY="+str(MainWindow.pos().y()))
             f.write("\nWHeight="+str(MainWindow.height()))
             f.write("\nWWidth="+str(MainWindow.width()))
-            f.write("\nLayout="+str(layout_mode))
+            f.write("\nLayout="+str(ui.layout_mode))
             f.write("\nDefault_Mode="+str(def_val))
             f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
             f.write("\nMusic_Mode="+str(music_val))
