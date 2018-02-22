@@ -318,7 +318,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     new_pos = (row, col)
                     print(new_pos)
                     if not MainWindow.isFullScreen():
-                        cur_label = self.ui.list2.currentRow()
+                        cur_label = cur_label_num
                         p1 = "self.ui.gridLayout2.indexOf(self.ui.label_epn_{0})".format(cur_label)
                         index = eval(p1)
                         print(index, '--index--')
@@ -346,7 +346,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         height=str(int(h))
                         r = self.ui.current_thumbnail_position[0]
                         c = self.ui.current_thumbnail_position[1]
-                        cur_label = self.ui.list2.currentRow()
+                        cur_label = cur_label_num
                         p6="self.ui.gridLayout2.addWidget(self.ui.label_epn_"+str(cur_label)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
                         exec(p6)
                         QtWidgets.QApplication.processEvents()
