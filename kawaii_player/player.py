@@ -312,33 +312,31 @@ class PlayerWidget(QtWidgets.QWidget):
                     if iconv_r_indicator:
                         iconv_r = iconv_r_indicator[0]
                     self.ui.set_parameters_value(iconv=iconv_r)
-                    widget = "self.ui.label_epn_"+str(cur_label_num)
+                    widget = eval("self.ui.label_epn_"+str(cur_label_num))
                     col = (cur_label_num%iconv_r)
                     row = 2*int(cur_label_num/iconv_r)
                     new_pos = (row, col)
                     print(new_pos)
                     if not MainWindow.isFullScreen():
                         cur_label = cur_label_num
-                        p1 = "self.ui.gridLayout2.indexOf(self.ui.label_epn_{0})".format(cur_label)
-                        index = eval(p1)
-                        print(index, '--index--')
-                        self.ui.current_thumbnail_position = self.ui.gridLayout2.getItemPosition(index)
-                        self.ui.tab_6.hide()
-                        p1 = "self.ui.gridLayout.addWidget({0}, 0, 1, 1, 1)".format(widget)
-                        exec(p1)
-                        p2="self.ui.label_epn_"+str(cur_label_num)+".setMaximumSize(QtCore.QSize("+str(screen_width)+", "+str(screen_height)+"))"
-                        exec(p2)
-                        self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                        self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                        self.ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
-                        self.ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
-                        self.ui.gridLayout.setSpacing(0)
-                        self.ui.gridLayout1.setSpacing(0)
-                        self.ui.gridLayout2.setSpacing(0)
-                        self.ui.superGridLayout.setSpacing(0)
-                        if self.ui.orientation_dock == 'right':
-                            self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
-                        MainWindow.showFullScreen()
+                        index = self.ui.gridLayout2.indexOf(widget)
+                        print(index, '--index--', 'hoho')
+                        if index >= 0:
+                            self.ui.current_thumbnail_position = self.ui.gridLayout2.getItemPosition(index)
+                            self.ui.tab_6.hide()
+                            self.ui.gridLayout.addWidget(widget, 0, 1, 1, 1)
+                            widget.setMaximumSize(QtCore.QSize(screen_width, screen_height))
+                            self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                            self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                            self.ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
+                            self.ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
+                            self.ui.gridLayout.setSpacing(0)
+                            self.ui.gridLayout1.setSpacing(0)
+                            self.ui.gridLayout2.setSpacing(0)
+                            self.ui.superGridLayout.setSpacing(0)
+                            if self.ui.orientation_dock == 'right':
+                                self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
+                            MainWindow.showFullScreen()
                     else:
                         w = float((self.ui.tab_6.width()-60)/iconv_r)
                         h = int(w/self.ui.image_aspect_allowed)
@@ -347,14 +345,11 @@ class PlayerWidget(QtWidgets.QWidget):
                         r = self.ui.current_thumbnail_position[0]
                         c = self.ui.current_thumbnail_position[1]
                         cur_label = cur_label_num
-                        p6="self.ui.gridLayout2.addWidget(self.ui.label_epn_"+str(cur_label)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
-                        exec(p6)
+                        self.ui.gridLayout2.addWidget(widget, r, c, 1, 1, QtCore.Qt.AlignCenter)
                         QtWidgets.QApplication.processEvents()
                         MainWindow.showNormal()
                         MainWindow.showMaximized()
-
-                        p1="self.ui.label_epn_"+str(cur_label_num)+".y()"
-                        yy=eval(p1)
+                        yy = widget.y()
                         self.ui.scrollArea1.verticalScrollBar().setValue(yy)
                         QtWidgets.QApplication.processEvents()
                         self.ui.frame1.show()
@@ -370,15 +365,13 @@ class PlayerWidget(QtWidgets.QWidget):
                         if self.ui.orientation_dock == 'right':
                             self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                         QtWidgets.QApplication.processEvents()
-                        p1="self.ui.label_epn_"+str(cur_label_num)+".setFocus()"
-                        exec(p1)
+                        widget.setFocus()
                         QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
             else:
                 if not self.ui.float_window.isHidden():
                     if not self.ui.float_window.isFullScreen():
-                        cur_label = self.ui.list2.currentRow()
-                        p1 = "self.ui.gridLayout2.indexOf(self.ui.label_epn_{0})".format(cur_label)
-                        index = eval(p1)
+                        widget = eval("self.ui.label_epn_"+str(cur_label_num))
+                        index = self.ui.gridLayout2.indexOf(widget)
                         print(index, '--index--')
                         self.ui.current_thumbnail_position = self.ui.gridLayout2.getItemPosition(index)
                         self.ui.float_window.showFullScreen()

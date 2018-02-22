@@ -531,30 +531,28 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if iconv_r_indicator:
                     iconv_r = iconv_r_indicator[0]
                 ui.set_parameters_value(iconv=iconv_r)
-                widget = "ui.label_epn_"+str(ui.thumbnail_label_number[0])
+                widget = eval("ui.label_epn_{}".format(ui.thumbnail_label_number[0]))
                 col = (ui.thumbnail_label_number[0]%iconv_r)
                 row = 2*int(ui.thumbnail_label_number[0]/iconv_r)
                 new_pos = (row, col)
                 print(new_pos)
                 if not MainWindow.isFullScreen() or mode == 'fs' or mode == 'fs_now':
                     if mode != 'fs':
-                        p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(ui.thumbnail_label_number[0])
-                        index = eval(p1)
+                        index = ui.gridLayout2.indexOf(widget)
                         print(index, '--index--')
-                        ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
-                        ui.tab_6.hide()
-                        p1 = "ui.gridLayout.addWidget({0}, 0, 1, 1, 1)".format(widget)
-                        exec(p1)
-                        p2= "ui.label_epn_{0}.setMaximumSize(QtCore.QSize({1}, {2}))".format(ui.thumbnail_label_number[0], screen_width, screen_height)
-                        exec (p2)
-                        ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                        ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                        ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
-                        ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
-                        ui.gridLayout.setSpacing(0)
-                        ui.gridLayout1.setSpacing(0)
-                        ui.gridLayout2.setSpacing(0)
-                        ui.superGridLayout.setSpacing(0)
+                        if index >= 0:
+                            ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
+                            ui.tab_6.hide()
+                            ui.gridLayout.addWidget(widget, 0, 1, 1, 1)
+                            widget.setMaximumSize(QtCore.QSize(screen_width, screen_height))
+                            ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                            ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                            ui.gridLayout1.setContentsMargins(0, 0, 0, 0)
+                            ui.gridLayout2.setContentsMargins(0, 0, 0, 0)
+                            ui.gridLayout.setSpacing(0)
+                            ui.gridLayout1.setSpacing(0)
+                            ui.gridLayout2.setSpacing(0)
+                            ui.superGridLayout.setSpacing(0)
                     if ui.orientation_dock == 'right':
                         ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 1, 1, 1)
                     MainWindow.showFullScreen()
@@ -565,15 +563,12 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     height=str(int(h))
                     r = ui.current_thumbnail_position[0]
                     c = ui.current_thumbnail_position[1]
-                    p6="ui.gridLayout2.addWidget(ui.label_epn_"+str(ui.thumbnail_label_number[0])+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
-                    exec(p6)
+                    ui.gridLayout2.addWidget(widget, r, c, 1, 1, QtCore.Qt.AlignCenter)
                     QtWidgets.QApplication.processEvents()
                     if not ui.force_fs:
                         MainWindow.showNormal()
                         MainWindow.showMaximized()
-
-                    p1="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".y()"
-                    yy=eval(p1)
+                    yy = widget.y()
                     ui.scrollArea1.verticalScrollBar().setValue(yy)
                     QtWidgets.QApplication.processEvents()
                     ui.frame1.show()
@@ -589,17 +584,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.superGridLayout.addWidget(ui.dockWidget_3, 0, 5, 2, 1)
                     ui.tab_6.show()
                     QtWidgets.QApplication.processEvents()
-                    p1="ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setFocus()"
-                    exec(p1)
+                    widget.setFocus()
                     QtCore.QTimer.singleShot(1000, ui.update_thumbnail_position)
         else:
             if not ui.float_window.isHidden():
                 if not ui.float_window.isFullScreen():
-                    p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(ui.thumbnail_label_number[0])
-                    index = eval(p1)
+                    widget = eval("ui.label_epn_{}".format(ui.thumbnail_label_number[0]))
+                    index = ui.gridLayout2.indexOf(widget)
                     print(index, '--index--')
-                    ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
-                    ui.float_window.showFullScreen()
+                    if index >= 0:
+                        ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
+                        ui.float_window.showFullScreen()
                 else:
                     ui.float_window.showNormal()
                     
