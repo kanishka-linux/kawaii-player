@@ -496,7 +496,9 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             ui.verticalLayout_50.insertWidget(0, ui.list2, 0)
             QtWidgets.QApplication.processEvents()
             MainWindow.show()
-
+            if ui.layout_mode == 'Default':
+                MainWindow.showMaximized()
+                
     def _hide_mode(self):
         txt = self.h_mode.text()
         if not ui.float_window.isHidden():
