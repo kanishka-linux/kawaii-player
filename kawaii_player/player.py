@@ -304,9 +304,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 cl='cur_label_num')
             iconv_r_indicator = param_dict['iconv_r_indicator']
             iconv_r = param_dict['iconv_r']
-            cur_label_num = param_dict['cur_label_num']
+            cur_label_num = self.ui.cur_row
             if not MainWindow.isHidden():
-                if self.ui.video_mode_index == 5:
+                if self.ui.video_mode_index in [5,6,7]:
                     pass
                 else:
                     if iconv_r_indicator:
@@ -521,7 +521,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 )
             iconv_r_indicator = param_dict['iconv_r_indicator']
             iconv_r = param_dict['iconv_r']
-            cur_label_num = param_dict['cur_label_num']
+            cur_label_num = self.ui.cur_row
             if not MainWindow.isHidden():
                 col = (cur_label_num%iconv_r)
                 row = 2*int(cur_label_num/iconv_r)
@@ -530,7 +530,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 if iconv_r_indicator:
                     iconv_r = iconv_r_indicator[0]
                     self.ui.set_parameters_value(iconv=iconv_r)
-                if self.ui.video_mode_index == 5:
+                if self.ui.video_mode_index in [5, 6, 7]:
                     pass
                 else:
                     if '	' in self.ui.epn_arr_list[cur_label_num]:
