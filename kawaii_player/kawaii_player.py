@@ -7935,11 +7935,20 @@ watch/unwatch status")
             if fit_size:
                 if (fit_size == 1 or fit_size == 2) or fit_size > 100:
                     if fit_size == 1 or fit_size == 2:
-                        basewidth = screen_width
+                        if widget:
+                            basewidth = widget.width()
+                        else:
+                            basewidth = screen_width
                     else:
                         basewidth = fit_size
                     try:
-                        img = Image.open(str(picn))
+                        if widget == self.float_window:
+                            if os.path.isfile(fanart):
+                                img = Image.open(str(fanart))
+                            else:
+                                img = Image.open(str(picn))
+                        else:
+                            img = Image.open(str(picn))
                     except Exception as e:
                         print(e, 'Error in opening image, videoImage, ---13238')
                         picn = os.path.join(home, 'default.jpg')
@@ -7950,13 +7959,24 @@ watch/unwatch status")
                         wpercent = (basewidth / float(img.size[0]))
                         hsize = int((float(img.size[1]) * float(wpercent)))
                     img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-                    bg = Image.new(color, (basewidth, hsize))
-                    bg.paste(img, (0, 0))
-                    try:
-                        bg.save(str(fanart), 'JPEG', quality=100)
-                    except Exception as err:
-                        print(err)
-                        self.handle_png_to_jpg(fanart, bg)
+                    if widget == self.float_window:
+                        bg = Image.new(color, (basewidth, widget.height()))
+                        bg.paste(img, (0, 0))
+                        tmp_img = (os.path.join(TMPDIR, 'tmp.jpg'))
+                        try:
+                            bg.save(str(tmp_img), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(tmp_img, bg)
+                        return tmp_img
+                    else:
+                        bg = Image.new(color, (basewidth, hsize))
+                        bg.paste(img, (0, 0))
+                        try:
+                            bg.save(str(fanart), 'JPEG', quality=100)
+                        except Exception as err:
+                            print(err)
+                            self.handle_png_to_jpg(fanart, bg)
                 elif fit_size == 3:
                     baseheight = screen_height
                     try:
@@ -8235,7 +8255,7 @@ watch/unwatch status")
                 self.label.setPixmap(QtGui.QPixmap(picn, "1"))
                 if not self.float_window.isHidden():
                     picn = self.image_fit_option(
-                        picn, fanart, fit_size=6, widget=self.float_window
+                        picn, fanart, fit_size=2, widget=self.float_window
                         )
                     self.float_window.setPixmap(QtGui.QPixmap(picn, "1"))
             else:
