@@ -12022,7 +12022,7 @@ watch/unwatch status")
             tray.right_menu._detach_video()
         print('default Mode')
         if MainWindow.pos().y() < 0:
-            yc = 0
+            yc = 32
         else:
             yc = MainWindow.pos().y()
         if self.music_mode_dim_show:
