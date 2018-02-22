@@ -179,7 +179,6 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.gridLayout.setSpacing(5)
 
     def ccurl_head(self, url, rfr_url):
-        print("------------ccurlHead------------")
         if rfr_url:
             content = ccurl(url+'#'+'-Ie'+'#'+rfr_url)
         else:
@@ -320,7 +319,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if not MainWindow.isFullScreen():
                         cur_label = cur_label_num
                         index = self.ui.gridLayout2.indexOf(widget)
-                        print(index, '--index--', 'hoho')
+                        logger.debug(index)
                         if index >= 0:
                             self.ui.current_thumbnail_position = self.ui.gridLayout2.getItemPosition(index)
                             self.ui.tab_6.hide()
@@ -430,160 +429,6 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt_b = bytes(txt, 'utf-8')
                 logger.info("{0} - {1}".format(txt_b, txt))
                 self.mpvplayer.write(txt_b)
-            
-                
-    def player_quit_old(self, msg=None):
-        self.ui.quit_really = "yes"
-        if not msg:
-            self.mpvplayer.write(b'\n quit \n')
-        if not self.ui.idw or self.ui.idw == str(int(self.winId())):
-            self.ui.player_play_pause.setText(self.ui.player_buttons['play'])
-            param_dict = self.ui.get_parameters_value(
-                sh='show_hide_titlelist',
-                sc='show_hide_cover', icn='iconv_r_indicator'
-                )
-            show_hide_titlelist = param_dict['show_hide_titlelist']
-            show_hide_cover = param_dict['show_hide_cover']
-            iconv_r_indicator = param_dict['iconv_r_indicator']
-            if self.ui.video_local_stream:
-                tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
-                f = open(tmp_pl, 'w')
-                f.close()
-            if not MainWindow.isHidden():
-                if self.ui.tab_6.isHidden() and self.ui.tab_2.isHidden():
-                    self.ui.tab_5.showNormal()
-                    self.ui.tab_5.hide()
-                    if show_hide_titlelist == 1:
-                        self.ui.list1.show()
-                    if show_hide_cover == 1:
-                        self.ui.label.show()
-                        self.ui.text.show()
-                    if show_hide_titlelist == 1:
-                        self.ui.list2.show()
-                    self.ui.list2.setFocus()
-                elif not self.ui.tab_6.isHidden():
-                    self.ui.gridLayout.addWidget(self.ui.tab_6, 0, 1, 1, 1)
-                    #self.ui.tab_5.setMinimumSize(0, 0)
-                    self.ui.gridLayout.setSpacing(5)
-                    self.ui.tab_6.setMaximumSize(10000, 10000)
-                    self.ui.tab_6_size_indicator.append(screen_width-40)
-                    #self.ui.frame1.hide()
-                    self.ui.tab_5.hide()
-                    if iconv_r_indicator:
-                        iconv_r = iconv_r_indicator[0]
-                    else:
-                        iconv_r = 5
-                    self.ui.set_parameters_value(thumb_indicator='empty',
-                                                 iconv=iconv_r)
-                    QtWidgets.QApplication.processEvents()
-                    #num = self.ui.list2.currentRow()
-                    ##self.ui.thumbnail_label_update_epn()
-                    self.ui.scrollArea1.verticalScrollBar().setValue(0)
-                    self.ui.frame2.show()
-                    self.ui.frame1.show()
-                    self.ui.labelFrame2.show()
-                    self.ui.thumbnail_label_update_epn()
-                    QtWidgets.QApplication.processEvents()
-                    QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
-                if self.ui.wget.processId() > 0:
-                    self.ui.progress.show()
-                if MainWindow.isFullScreen():
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    self.ui.frame1.show()
-                    MainWindow.showNormal()
-                    MainWindow.showMaximized()
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    self.ui.gridLayout.setSpacing(5)
-                    self.ui.superGridLayout.setSpacing(0)
-                    self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                if not self.ui.tab_2.isHidden():
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                    self.ui.list2.hide()
-                    self.ui.goto_epn.hide()
-                    self.ui.list1.hide()
-                    self.ui.frame.hide()
-            else:
-                if not self.ui.float_window.isHidden():
-                    if self.ui.float_window.isFullScreen():
-                        self.ui.float_window.showNormal()
-        else:
-            self.ui.tab_6_size_indicator.append(self.ui.tab_6.width())
-            param_dict = self.ui.get_parameters_value(
-                i='iconv_r', cl='cur_label_num'
-                )
-            iconv_r_indicator = param_dict['iconv_r_indicator']
-            iconv_r = param_dict['iconv_r']
-            cur_label_num = self.ui.cur_row
-            if not MainWindow.isHidden():
-                col = (cur_label_num%iconv_r)
-                row = 2*int(cur_label_num/iconv_r)
-                new_pos = (row, col)
-                print(new_pos)
-                if iconv_r_indicator:
-                    iconv_r = iconv_r_indicator[0]
-                    self.ui.set_parameters_value(iconv=iconv_r)
-                if self.ui.video_mode_index in [5, 6, 7]:
-                    pass
-                else:
-                    if '	' in self.ui.epn_arr_list[cur_label_num]:
-                        nameEpn = (str(self.ui.epn_arr_list[cur_label_num])).split('	')[0]
-                    else:
-                        nameEpn = os.path.basename(self.ui.epn_arr_list[cur_label_num])
-                    if nameEpn.startswith('#'):
-                        nameEpn = nameEpn.replace('#', ui.check_symbol, 1)
-                    length_1 = self.ui.list2.count()
-                    q3="self.ui.label_epn_"+str(length_1+cur_label_num)+".setText(nameEpn)"
-                    exec (q3)
-                    q3="self.ui.label_epn_"+str(length_1+cur_label_num)+".setAlignment(QtCore.Qt.AlignCenter)"
-                    exec(q3)
-                    if MainWindow.isFullScreen():
-                        w = float((self.ui.tab_6.width()-60)/iconv_r)
-                        h = int(w/self.ui.image_aspect_allowed)
-                        width=str(int(w))
-                        height=str(int(h))
-                        r = self.ui.current_thumbnail_position[0]
-                        c = self.ui.current_thumbnail_position[1]
-                        p6="self.ui.gridLayout2.addWidget(self.ui.label_epn_"+str(cur_label_num)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
-                        exec(p6)
-                        QtWidgets.QApplication.processEvents()
-                        p2="self.ui.label_epn_"+str(cur_label_num)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
-                        p3="self.ui.label_epn_"+str(cur_label_num)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
-                        exec(p2)
-                        exec(p3)
-    
-                        self.ui.gridLayout.setSpacing(5)
-                        self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                        if self.ui.wget.processId() > 0:
-                            self.ui.goto_epn.hide()
-                            self.ui.progress.show()
-                        self.ui.frame2.show()
-                        MainWindow.showNormal()
-                        MainWindow.showMaximized()
-                        self.ui.frame1.show()
-                        self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
-                        self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
-                        self.ui.gridLayout1.setContentsMargins(5, 5, 5, 5)
-                        self.ui.gridLayout2.setContentsMargins(5, 5, 5, 5)
-                        self.ui.gridLayout.setSpacing(5)
-                        self.ui.gridLayout1.setSpacing(5)
-                        self.ui.gridLayout2.setSpacing(5)
-                        self.ui.superGridLayout.setSpacing(5)
-                        self.ui.tab_6.show()
-                        QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
-                    else:
-                        self.ui.thumbnail_label_update()
-                        QtWidgets.QApplication.processEvents()
-                        QtWidgets.QApplication.processEvents()
-                        p1="self.ui.label_epn_"+str(cur_label_num)+".y()"
-                        yy=eval(p1)
-                        self.ui.scrollArea1.verticalScrollBar().setValue(yy)
-            else:
-                if not self.ui.float_window.isHidden():
-                    if not self.ui.float_window.isFullScreen():
-                        pass
-                    else:
-                        self.ui.float_window.showNormal()
     
     def keyReleaseEvent(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
