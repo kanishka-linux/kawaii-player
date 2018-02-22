@@ -712,11 +712,11 @@ Last Column to the extreme right, is the “Playlist column”, which will conta
 
 ### KeyBoard Shortcuts:
 
-Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, it's volume will be in sync with global volume. So global volume key will work. If user has setup d-bus shortcut keys for play/pause/next/previous then they will also work.
+Once video is opened, if it not focussed then take mouse pointer over the video. It will set focus on the video. Once the video is focussed, most of the mpv and mplayer shortcuts will work. There is no volume slider, users have to use keys 0 and 9 or external global volume keys. If user has setup d-bus shortcut keys for play/pause/next/previous then they will also work.
 
 There is no fullscreen button. People have to use keyboard shortcut(f:fullscreen) or double click.
 
-kawaii-player from v3.1 onwards almost fully supports all of mpv's default keybindings. Users can also change keybindings from settings/preference box of the application.
+kawaii-player from v3.1 onwards almost fully supports all of mpv's default keybindings. Users can also change keybindings from settings/preference box of the application. 
 
 for mplayer set aspect in ~/.mplayer/config, all the properties of the mplayer global config file will be taken by the internal mplayer.
 
