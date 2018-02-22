@@ -7958,10 +7958,13 @@ watch/unwatch status")
                     else:
                         wpercent = (basewidth / float(img.size[0]))
                         hsize = int((float(img.size[1]) * float(wpercent)))
-                    img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                    
                     if widget == self.float_window:
+                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                         bg = Image.new(color, (basewidth, widget.height()))
                         bg.paste(img, (0, 0))
+                        if hsize < widget.height():
+                            bg.paste(img, (0, hsize))
                         tmp_img = (os.path.join(TMPDIR, 'tmp.jpg'))
                         try:
                             bg.save(str(tmp_img), 'JPEG', quality=100)
@@ -7970,6 +7973,7 @@ watch/unwatch status")
                             self.handle_png_to_jpg(tmp_img, bg)
                         return tmp_img
                     else:
+                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                         bg = Image.new(color, (basewidth, hsize))
                         bg.paste(img, (0, 0))
                         try:
