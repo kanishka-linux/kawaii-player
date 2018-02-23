@@ -1952,7 +1952,20 @@ watch/unwatch status")
         self.mpv_thumbnail_lock = False
     
     def global_shortcuts(self, val, val_function):
+        player_focus = False
         if self.mpvplayer_val.processId() > 0:
+            if self.idw == str(int(self.tab_5.winId())):
+                if self.tab_5.hasFocus():
+                    player_focus = True
+            elif self.idw == str(int(self.label_new.winId())):
+                if self.label_new.hasFocus():
+                    player_focus = True
+            elif self.idw == str(int(self.label.winId())):
+                if self.label.hasFocus():
+                    player_focus = True
+            else:
+                player_focus = True
+        if player_focus:
             modifier = None
             modifier_event = None
             value = None
