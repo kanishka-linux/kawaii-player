@@ -478,9 +478,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                     QtCore.QTimer.singleShot(1000, partial(ui.update_thumbnail_position, context='attach_video'))
                 else:
                     QtCore.QTimer.singleShot(1000, ui.update_thumbnail_position)
-            ui.float_window_dim = [
-                ui.float_window.pos().x(), ui.float_window.pos().y(), 
-                ui.float_window.width(), ui.float_window.height()
+            if ui.float_window.width() != screen_width and ui.float_window.height() != screen_height:
+                ui.float_window_dim = [
+                    ui.float_window.pos().x(), ui.float_window.pos().y(), 
+                    ui.float_window.width(), ui.float_window.height()
                 ]
             ui.float_window.hide()
             if self.status_playlist:

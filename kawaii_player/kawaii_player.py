@@ -13731,9 +13731,10 @@ def main():
     music_val = music_val[:-1]
     
     if ui.float_window_open:
-        ui.float_window_dim = [
-            ui.float_window.pos().x(), ui.float_window.pos().y(), 
-            ui.float_window.width(), ui.float_window.height()
+        if ui.float_window.width() != screen_width and ui.float_window.height() != screen_height:
+            ui.float_window_dim = [
+                ui.float_window.pos().x(), ui.float_window.pos().y(), 
+                ui.float_window.width(), ui.float_window.height()
             ]
     if ui.music_mode_dim_show:
         ui.music_mode_dim = [
