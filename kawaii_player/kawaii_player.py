@@ -12104,7 +12104,10 @@ watch/unwatch status")
                 else:
                     opt = option_val
                 self.setPreOpt(option_val=opt)
-            self.list1.setCurrentRow(default_arr_setting[2])
+            if site == 'Video' and opt == 'History':
+                self.list1.setCurrentRow(0)
+            else:
+                self.list1.setCurrentRow(default_arr_setting[2])
             self.list2.setCurrentRow(default_arr_setting[3])
             self.list2.setFocus()
             
