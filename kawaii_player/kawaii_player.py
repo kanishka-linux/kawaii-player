@@ -12057,7 +12057,8 @@ watch/unwatch status")
         self.apply_new_font()
         
     def video_mode_layout(self):
-        global default_arr_setting, opt, new_tray_widget, tray
+        global default_arr_setting, opt, new_tray_widget, tray, site
+        global show_hide_titlelist
         #ui.VerticalLayoutLabel.addStretch(1)
         if not self.float_window.isHidden():
             tray.right_menu._detach_video()
@@ -12080,6 +12081,7 @@ watch/unwatch status")
         self.audio_track.show()
         self.subtitle_track.show()
         self.list1.show()
+        show_hide_titlelist = 1
         #ui.frame.show()
         self.list2.show()
         #ui.goto_epn.show()
@@ -12095,13 +12097,13 @@ watch/unwatch status")
             except:
                 option_val = "History"
             if (option_val and (option_val == 'History' or option_val == 'Available' 
-                    or option_val == 'Directory')):
+                    or option_val == 'Directory') or site == 'Video'):
                 if option_val == 'History':
                     print('--setting-history-option--')
                     opt = 'History'
                 else:
                     opt = option_val
-                self.setPreOpt()
+                self.setPreOpt(option_val=opt)
             self.list1.setCurrentRow(default_arr_setting[2])
             self.list2.setCurrentRow(default_arr_setting[3])
             self.list2.setFocus()
