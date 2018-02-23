@@ -201,7 +201,9 @@ class MetaEngine:
                     name_srch = re.search('[0-9][0-9]+', lower_case)
                     if not name_srch:
                         if isinstance(index, int):
-                            name_srch_val = 'ep'+str(index+1)
+                            oped = re.search('op[0-9]*|ed[0-9]*', lower_case)
+                            if not oped:
+                                name_srch_val = 'ep'+str(index+1)
                     else:
                         name_srch_val = 'ep' + name_srch.group()
                 else:
