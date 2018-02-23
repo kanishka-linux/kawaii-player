@@ -67,6 +67,12 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 20%);
                 color: {2};
                 }}
+                
+                QListWidget:item:inactive {{
+                color:{1};background:rgba(0,0,0,0%);border:rgba(0,0,0,0%);
+                font: {bold} {font};
+                }}
+                
                 QMenu{{
                 color: white;
                 background: rgb(56,60,74);border: rgba(0,0,0, 30%);
@@ -569,6 +575,10 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 20%);
                 color: {2};
                 }}
+                QListWidget:item:inactive {{
+                    color:{1};background:rgba(0,0,0,0%);border:rgba(0,0,0,0%);
+                    font: {bold} ;
+                    }}
                 QMenu{{
                 color: white;
                 background: rgb(56,60,74);border: rgba(0,0,0, 30%);
@@ -808,6 +818,11 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 30%);
                     color: {1};
                     }}
+                    QListWidget:item:inactive {{
+                    color:{0};
+                    background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);
+                    font: {bold};
+                    }}
                     QMenu{{
                     color: white;
                     background: rgb(56,60,74);border: rgba(0,0,0, 30%);
@@ -837,9 +852,10 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 20%);
                     color: {1};
                     }}
-                    QListWidget:item:selected:focus {{
-                    background:rgba(0, 0, 0, 20%);
-                    color: {1};
+                    
+                    QListWidget:item:inactive {{
+                    color:{0};background:rgba(0,0,0,0%);border:rgba(0,0,0,0%);
+                    font: {bold};
                     }}
                     QMenu{{
                     color: {1};
