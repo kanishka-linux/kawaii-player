@@ -8523,6 +8523,9 @@ watch/unwatch status")
             self.mplayer_SubTimer.start(1000)
         if not self.external_SubTimer.isActive():
             self.external_SubTimer.start(3000)
+        MainWindow.setWindowTitle(self.epn_name_in_list)
+        if not self.float_window.isHidden():
+            self.float_window.setWindowTitle(self.epn_name_in_list)
             
     def is_artist_exists(self, row):
         try:
@@ -10104,6 +10107,9 @@ watch/unwatch status")
                         mpv_start.append("Start")
                         try:
                             npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
+                            MainWindow.setWindowTitle(self.epn_name_in_list)
+                            if not self.float_window.isHidden():
+                                self.float_window.setWindowTitle(self.epn_name_in_list)
                             npn1 = bytes('\n'+'show-text '+npn+' 2000'+'\n', 'utf-8')
                             self.mpvplayer_val.write(npn1)
                         except:
@@ -10440,6 +10446,9 @@ watch/unwatch status")
                             else:
                                 npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
                                 npn1 = bytes('\n'+'osd_show_text '+str(npn)+' 4000'+'\n', 'utf-8')
+                                MainWindow.setWindowTitle(self.epn_name_in_list)
+                                if not self.float_window.isHidden():
+                                    self.float_window.setWindowTitle(self.epn_name_in_list)
                                 self.mpvplayer_val.write(npn1)
                             self.mplayer_finished_counter = 0
                         except:
@@ -11063,6 +11072,9 @@ watch/unwatch status")
             current_playing_file_path = finalUrl
         self.final_playing_url = current_playing_file_path
         self.paste_background(row)
+        MainWindow.setWindowTitle(self.epn_name_in_list)
+        if not self.float_window.isHidden():
+            self.float_window.setWindowTitle(self.epn_name_in_list)
     
     def paste_background(self, row):
         global site, artist_name_mplayer
@@ -11224,6 +11236,9 @@ watch/unwatch status")
             current_playing_file_path = epnShow
         else:
             current_playing_file_path = '"'+epnShow+'"'
+        MainWindow.setWindowTitle(self.epn_name_in_list)
+        if not self.float_window.isHidden():
+            self.float_window.setWindowTitle(self.epn_name_in_list)
         
     def mplayermpv_command(self, idw, finalUrl, player, a_id=None, s_id=None,
                            rfr=None, a_url=None, s_url=None):
@@ -11499,6 +11514,9 @@ watch/unwatch status")
                 self.final_playing_url = finalUrl[0].replace('"', '')
                 if refererNeeded == True:
                     rfr_url = finalUrl[1].replace('"', '')
+        MainWindow.setWindowTitle(self.epn_name_in_list)
+        if not self.float_window.isHidden():
+            self.float_window.setWindowTitle(self.epn_name_in_list)
             
     def update_playlist_original(self, pls):
         self.list2.clear()
