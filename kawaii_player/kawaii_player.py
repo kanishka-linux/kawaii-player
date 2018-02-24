@@ -1975,6 +1975,7 @@ watch/unwatch status")
             self.slider_volume.show()
             self.slider_volume.setFocus()
         else:
+            self.slider_volume.pressed = False
             self.slider_volume.hide()
         
     def global_shortcuts(self, val, val_function):
@@ -2514,7 +2515,7 @@ watch/unwatch status")
         self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         
-    def seek_to_vol_val(self, val, gui=None):
+    def seek_to_vol_val(self, val, action=None):
         msg = None
         if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
@@ -2523,20 +2524,21 @@ watch/unwatch status")
         else:
             txt1 = '\n set osd-level 1 \n'
             if self.volume_type == 'ao-volume':
-                if gui:
+                if action:
                     txt = '\n osd-msg-bar set ao-volume {0} \n'.format(val)
                 else:
                     txt = '\n osd-msg-bar add ao-volume {0} \n'.format(val)
                 msg = '\n print-text ao-volume-print=${ao-volume} \n'
             else:
-                if gui:
+                if action:
                     txt = '\n osd-msg-bar set volume {0} \n'.format(val)
                 else:
                     txt = '\n osd-msg-bar add volume {0} \n'.format(val)
                 msg = '\n print-text volume-print=${volume} \n'
-        self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
+        #if action is None:
+        #    self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
-        if msg:
+        if msg and (action is None or action == 'pressed'):
             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
     
     def float_activity(self):
@@ -10128,6 +10130,13 @@ watch/unwatch status")
                         self.change_sid_aid_video(vol=self.player_volume)
                         logger.debug('set volume={0}'.format(self.player_volume))
                         if self.player_volume.isnumeric():
+                            if self.volume_type == 'ao-volume':
+                                msg_str = 'AO Volume'
+                            else:
+                                msg_str = 'Volume'
+                            msg = '\n show-text "{}: {}%" \n'.format(msg_str, self.player_volume)
+                            self.mpvplayer_val.write(bytes(msg, 'utf-8'))
+                            self.slider_volume.pressed = False
                             self.slider_volume.setValue(int(self.player_volume))
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
