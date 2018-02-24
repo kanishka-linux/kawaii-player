@@ -807,13 +807,13 @@ watch/unwatch status")
         self.player_prev.setObjectName(_fromUtf8("player_prev"))
         self.horizontalLayout_player_opt.insertWidget(7, self.player_prev, 0)
         self.player_prev.setText(self.player_buttons['prev'])
-        self.player_prev.setToolTip('Previous (,)')
+        self.player_prev.setToolTip('Previous (Comma)')
         
         self.player_next = QtWidgets.QPushButton(self.player_opt)
         self.player_next.setObjectName(_fromUtf8("player_next"))
         self.horizontalLayout_player_opt.insertWidget(8, self.player_next, 0)
         self.player_next.setText(self.player_buttons['next'])
-        self.player_next.setToolTip('Next (.)')
+        self.player_next.setToolTip('Next (Period)')
         
         
         
