@@ -3090,6 +3090,7 @@ watch/unwatch status")
                 logger.debug(txt)
                 txt = bytes(txt, 'utf-8')
                 self.mpvplayer_val.write(txt)
+        
                 
     def subMplayer(self):
         global audio_id, sub_id, site
@@ -8492,17 +8493,20 @@ watch/unwatch status")
         setinfo = False
         if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' and self.mpvplayer_started
                 and not finalUrl.startswith('http') and not self.external_audio_file):
-            epnShow = '"' + "Playing:  "+ self.epn_name_in_list + '"'
+            epnShow = "Playing: {0}".format(self.epn_name_in_list)
+            msg = None
+            cmd = None
             if self.player_val.lower() == "mplayer":
-                t1 = bytes('\n '+'show_text '+epnShow+' \n', 'utf-8')
-                t2 = bytes('\n '+"loadfile "+finalUrl+" replace "+'\n', 'utf-8')
+                msg = '\n show_text "{0}" \n'.format(epnShow)
+                cmd = '\n loadfile {0} replace \n'.format(finalUrl)
             elif self.player_val.lower() == 'mpv':
-                t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
-                t2 = bytes('\n '+"loadfile "+finalUrl+' replace \n', 'utf-8')
-            logger.info('{0}---hello-----'.format(t2))
-            self.mpvplayer_val.write(t1)
-            self.mpvplayer_val.write(t2)
-            logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
+                msg = '\n show-text "{0}" \n'.format(epnShow)
+                cmd = '\n loadfile {0} replace \n'.format(finalUrl)
+            logger.info('command---------{0}--------'.format(cmd))
+            if msg and cmd:
+                self.mpvplayer_val.write(bytes(msg, 'utf-8'))
+                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
             setinfo = True
         else:
             if self.mpvplayer_val.processId()>0:
@@ -9971,7 +9975,7 @@ watch/unwatch status")
                 {self.final_playing_url:[seek_time, time.time(), ssid, aaid, rem_quit, vvol, aasp]}
                 )
         logger.debug('sid={}::aid={}::vol={}::aspect={}::updating file info'.format(sid, aid, vol, aasp))
-        
+                                
     def dataReady(self, p):
         global new_epn, epn, opt, site
         global cache_empty, buffering_mplayer, slider_clicked
@@ -10066,8 +10070,6 @@ watch/unwatch status")
         except Exception as e:
             print(e)
             a = ""
-        #el = time.process_time() - tt
-        #print(el)
         try:
             if self.player_val.lower() == "mpv":
                 if "AUDIO_ID" in a or "AUDIO_KEY_ID" in a:
@@ -10127,7 +10129,6 @@ watch/unwatch status")
                         logger.debug('set volume={0}'.format(self.player_volume))
                         if self.player_volume.isnumeric():
                             self.slider_volume.setValue(int(self.player_volume))
-                    
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
                     if a.startswith(r"b'"):
@@ -10148,21 +10149,19 @@ watch/unwatch status")
                     if not mpv_start:
                         mpv_start.append("Start")
                         try:
-                            npn = '"'+"Playing: "+self.epn_name_in_list.replace('#', '', 1)+'"'
+                            msg = 'Playing: {0}'.format(self.epn_name_in_list.replace('#', '', 1))
                             MainWindow.setWindowTitle(self.epn_name_in_list)
                             if not self.float_window.isHidden():
                                 self.float_window.setWindowTitle(self.epn_name_in_list)
-                            npn1 = bytes('\n'+'show-text '+npn+' 2000'+'\n', 'utf-8')
-                            self.mpvplayer_val.write(npn1)
-                        except:
-                            pass
+                            msg = bytes('\n show-text "{0}" 2000 \n'.format(msg), 'utf-8')
+                            self.mpvplayer_val.write(msg)
+                        except Exception as err:
+                            logger.error(err)
                         self.mplayer_finished_counter = 0
                         if (MainWindow.isFullScreen() and site != "Music"
                                 and self.list2.isHidden() and self.tab_6.isHidden()
                                 and self.tab_2.isHidden()):
                             self.gridLayout.setSpacing(0)
-                            #if not self.frame1.isHidden():
-                            #    self.frame1.hide()
                             if self.frame_timer.isActive():
                                 self.frame_timer.stop()
                             if self.tab_6.isHidden():
