@@ -352,16 +352,33 @@ class VolumeSlider(QtWidgets.QSlider):
         self.setMouseTracking(True)
         self.hide()
         self.valueChanged.connect(self.adjust_volume)
+        self.pressed = False
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
     def mouseMoveEvent(self, event):
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
+    def mousePressEvent(self, event):
+        self.pressed = True
+        self.setValue(event.x())
+        
+    def keyPressEvent(self, event):
+        if event.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Left]:
+            self.pressed = False
+            if event.key() == QtCore.Qt.Key_Right:
+                self.setValue(self.value() + 2)
+            else:
+                self.setValue(self.value() - 2)
+            ui.seek_to_vol_val(self.value(), action='dragged')
+            ui.player_volume = str(self.value())
+            
     def adjust_volume(self, val):
-        ui.player_volume = str(val)
-        if ui.mpvplayer_val.processId() > 0:
-            ui.seek_to_vol_val(val, gui=True)
-
+        if self.pressed:
+            ui.player_volume = str(val)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.seek_to_vol_val(val, action='pressed')
+                ui.logger.debug(val)
+                
 class QProgressBarCustom(QtWidgets.QProgressBar):
     
     def __init__(self, parent, gui):
