@@ -340,6 +340,28 @@ class MySlider(QtWidgets.QSlider):
                 ui.mpvplayer_val.write(var)
 
 
+class VolumeSlider(QtWidgets.QSlider):
+
+    def __init__(self, parent, uiwidget):
+        super(VolumeSlider, self).__init__(parent)
+        global ui, MainWindow
+        MainWindow = parent
+        ui = uiwidget
+        self.setOrientation(QtCore.Qt.Horizontal)
+        self.setRange(0, 100)
+        self.setMouseTracking(True)
+        self.hide()
+        self.valueChanged.connect(self.adjust_volume)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        
+    def mouseMoveEvent(self, event):
+        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        
+    def adjust_volume(self, val):
+        ui.player_volume = str(val)
+        if ui.mpvplayer_val.processId() > 0:
+            ui.seek_to_vol_val(val, gui=True)
+
 class QProgressBarCustom(QtWidgets.QProgressBar):
     
     def __init__(self, parent, gui):
