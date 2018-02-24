@@ -871,7 +871,7 @@ watch/unwatch status")
         self.vol_manage.setToolTip('Player Volume 0-9')
         #self.queue_manage.setMinimumWidth(30)
         self.vol_manage.clicked.connect(self.player_volume_manager)
-        self.vol_manage.setStyleSheet("text-align: bottom;")
+        #self.vol_manage.setStyleSheet("text-align: bottom;")
         #self.vol_manage.hide()
         
         self.player_playlist = QtWidgets.QPushButton(self.player_opt)
