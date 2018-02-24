@@ -688,14 +688,8 @@ watch/unwatch status")
         self.slider.setRange(0, 100)
         self.slider.setMouseTracking(True)
         
-        self.slider_volume = QtWidgets.QSlider(MainWindow)
+        self.slider_volume = VolumeSlider(MainWindow, self)
         self.slider_volume.setObjectName(_fromUtf8("slider_volume"))
-        self.slider_volume.setOrientation(QtCore.Qt.Horizontal)
-        self.slider_volume.setRange(0, 100)
-        self.slider_volume.setMouseTracking(True)
-        self.slider_volume.hide()
-        self.slider_volume.valueChanged.connect(self.adjust_volume)
-        
         try:
             aspect = (screen_width/screen_height)
         except NameError:
@@ -1973,18 +1967,13 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-    
-    def adjust_volume(self, val):
-        print(val, '-----')
-        self.player_volume = str(val)
-        if self.mpvplayer_val.processId() > 0:
-            self.seek_to_vol_val(val, gui=True)
         
     def player_volume_manager(self):
         geom = self.vol_manage.geometry()
         if self.slider_volume.isHidden():
-            self.slider_volume.setGeometry(geom.x() - 32, self.frame1.y()-32, 100, 32)
+            self.slider_volume.setGeometry(geom.x() - 16, self.frame1.y()-16, 100, 10)
             self.slider_volume.show()
+            self.slider_volume.setFocus()
         else:
             self.slider_volume.hide()
         
