@@ -514,8 +514,8 @@ class PlayerWidget(QtWidgets.QWidget):
                             myfunction()
                         elif part.startswith('ignore'):
                             pass
-                        elif part.startswith('add volume') or part.startswith('add ao-volume'):
-                            self.change_volume(part)
+                        elif part.startswith('add'):
+                            self.add_parameter(part)
                         else:
                             cmd = '\n {} \n'.format(part)
                             command_string = bytes(cmd, 'utf-8')
@@ -526,7 +526,27 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.event_dict[i] = False
         elif self.player_val.lower() == 'mplayer':
             self.keyPressEventOld(event)
-            
+    
+    def add_parameter(self, cmd):
+        if ' ' in cmd:
+            cmd_list = cmd.split(' ')
+            cmd_name = cmd_list[1]
+            if cmd_name in ['volume', 'ao-volume']:
+                self.change_volume(cmd)
+            elif cmd_name in ['brightness', 'contrast', 'saturation', 'hue', 'gamma']:
+                cmd_val = cmd_list[-1]
+                try:
+                    cmd_val_int = int(cmd_val)
+                    slider = eval('self.ui.frame_extra_toolbar.{}_slider'.format(cmd_name))
+                    slider.setValue(slider.value() + cmd_val_int)
+                except Exception as err:
+                    logger.error(err)
+            else:
+                cmd = '\n {} \n'.format(cmd)
+                command_string = bytes(cmd, 'utf-8')
+                logger.debug(command_string)
+                self.mpvplayer.write(command_string)
+    
     def change_aspect_ratio(self):
         self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
         aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
