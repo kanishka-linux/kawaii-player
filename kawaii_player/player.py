@@ -547,8 +547,11 @@ class PlayerWidget(QtWidgets.QWidget):
                 logger.debug(command_string)
                 self.mpvplayer.write(command_string)
     
-    def change_aspect_ratio(self):
-        self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
+    def change_aspect_ratio(self, key=None):
+        if key is None:
+            self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
+        else:
+            self.ui.mpvplayer_aspect_cycle = int(key)
         aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
         logger.info('aspect:{0}::value:{1}'.format(self.ui.mpvplayer_aspect_cycle, aspect_val))
         if aspect_val == '-1':
