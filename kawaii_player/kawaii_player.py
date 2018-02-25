@@ -3551,6 +3551,9 @@ watch/unwatch status")
             self.set_video_mode()
         if self.orientation_dock == 'right':
             self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 2, 1)
+        MainWindow.setWindowTitle('Kawaii-Player')
+        if not self.float_window.isHidden():
+            self.float_window.setWindowTitle('Kawaii-Player')
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
