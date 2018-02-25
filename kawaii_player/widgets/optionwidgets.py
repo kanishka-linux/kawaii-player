@@ -356,21 +356,31 @@ class VolumeSlider(QtWidgets.QSlider):
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
     def mouseMoveEvent(self, event):
-        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        if ui.frame1.isHidden():
+            ui.frame1.show()
+        pos = int((event.x()/self.width())*100)
+        self.setToolTip('{}%'.format(pos))
         
     def mousePressEvent(self, event):
         self.pressed = True
-        self.setValue(event.x())
-        
+        pos = int((event.x()/self.width())*100)
+        self.setValue(pos)
+    
+    def mouseReleaseEvent(self, event):
+        self.pressed = True
+        pos = int((event.x()/self.width())*100)
+        self.setValue(pos)
+    
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Left]:
             self.pressed = False
             if event.key() == QtCore.Qt.Key_Right:
-                self.setValue(self.value() + 2)
+                self.setValue(self.value() + 1)
             else:
-                self.setValue(self.value() - 2)
+                self.setValue(self.value() - 1)
             ui.seek_to_vol_val(self.value(), action='dragged')
             ui.player_volume = str(self.value())
+            ui.vol_manage.setToolTip('Player Volume (keys 0, 9) ({}%)'.format(self.value()))
             
     def adjust_volume(self, val):
         if self.pressed:
@@ -378,6 +388,7 @@ class VolumeSlider(QtWidgets.QSlider):
             if ui.mpvplayer_val.processId() > 0:
                 ui.seek_to_vol_val(val, action='pressed')
                 ui.logger.debug(val)
+                ui.vol_manage.setToolTip('Player Volume (keys 0, 9) ({}%)'.format(val))
                 
 class QProgressBarCustom(QtWidgets.QProgressBar):
     
