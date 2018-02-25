@@ -690,6 +690,7 @@ watch/unwatch status")
         
         self.slider_volume = VolumeSlider(MainWindow, self)
         self.slider_volume.setObjectName(_fromUtf8("slider_volume"))
+        self.verticalLayout_50.insertWidget(5, self.slider_volume, 0)
         try:
             aspect = (screen_width/screen_height)
         except NameError:
@@ -713,6 +714,7 @@ watch/unwatch status")
         self.list5.setMaximumWidth(self.width_allowed)
         self.list6.setMaximumWidth(self.width_allowed)
         self.goto_epn.setMaximumWidth(self.width_allowed)
+        self.slider_volume.setMaximumWidth(self.width_allowed)
         self.text_width = screen_width-3*self.width_allowed-35
         self.text.setMaximumWidth(self.text_width)
         self.text.setMaximumHeight(self.height_allowed)
@@ -1971,7 +1973,7 @@ watch/unwatch status")
     def player_volume_manager(self):
         geom = self.vol_manage.geometry()
         if self.slider_volume.isHidden():
-            self.slider_volume.setGeometry(geom.x() - 16, self.frame1.y()-16, 100, 10)
+            #self.slider_volume.setGeometry(geom.x() - 16, self.frame1.y()-16, 100, 10)
             self.slider_volume.show()
             self.slider_volume.setFocus()
         else:
@@ -10138,6 +10140,7 @@ watch/unwatch status")
                             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                             self.slider_volume.pressed = False
                             self.slider_volume.setValue(int(self.player_volume))
+                            self.vol_manage.setToolTip('Player Volume (keys 0, 9) ({}%)'.format(self.player_volume))
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
                     if a.startswith(r"b'"):
@@ -12857,10 +12860,13 @@ def main():
                         if j:
                             if j.isnumeric():
                                 ui.player_volume = j
-                                ui.slider_volume.setValue(int(j))
                             else:
                                 ui.player_volume = '50'
-                                ui.slider_volume.setValue(50)
+                            if ui.player_volume.isnumeric():
+                                ui.slider_volume.setValue(int(ui.player_volume))
+                                ui.vol_manage.setToolTip(
+                                    'Player Volume (keys 0, 9) ({}%)'.format(ui.player_volume)
+                                    )
                     except Exception as err:
                         logger.error(err)
                 elif i.startswith('CLICKED_LABEL_NEW='):
