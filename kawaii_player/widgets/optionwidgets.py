@@ -1,5 +1,6 @@
 import os
 import datetime
+from functools import partial
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
 from thread_modules import DiscoverServer
@@ -342,15 +343,15 @@ class MySlider(QtWidgets.QSlider):
 
 class VolumeSlider(QtWidgets.QSlider):
 
-    def __init__(self, parent, uiwidget):
+    def __init__(self, parent, uiwidget, mainwidget):
         super(VolumeSlider, self).__init__(parent)
         global ui, MainWindow
-        MainWindow = parent
+        MainWindow = mainwidget
         ui = uiwidget
+        self.parent = parent
         self.setOrientation(QtCore.Qt.Horizontal)
         self.setRange(0, 100)
         self.setMouseTracking(True)
-        self.hide()
         self.valueChanged.connect(self.adjust_volume)
         self.pressed = False
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -359,7 +360,6 @@ class VolumeSlider(QtWidgets.QSlider):
         if ui.frame1.isHidden():
             ui.frame1.show()
         pos = int((event.x()/self.width())*100)
-        self.setToolTip('{}%'.format(pos))
         
     def mousePressEvent(self, event):
         self.pressed = True
@@ -380,15 +380,14 @@ class VolumeSlider(QtWidgets.QSlider):
                 self.setValue(self.value() - 1)
             ui.seek_to_vol_val(self.value(), action='dragged')
             ui.player_volume = str(self.value())
-            ui.vol_manage.setToolTip('Player Volume (keys 0, 9) ({}%)'.format(self.value()))
             
     def adjust_volume(self, val):
+        self.parent.volume_text.setPlaceholderText('{}'.format(val))
         if self.pressed:
             ui.player_volume = str(val)
             if ui.mpvplayer_val.processId() > 0:
                 ui.seek_to_vol_val(val, action='pressed')
                 ui.logger.debug(val)
-                ui.vol_manage.setToolTip('Player Volume (keys 0, 9) ({}%)'.format(val))
                 
 class QProgressBarCustom(QtWidgets.QProgressBar):
     
@@ -562,3 +561,126 @@ class SelectButton(QtWidgets.QComboBox):
                 ui.list3.setFocus()
         else:
             super(SelectButton, self).keyPressEvent(event)
+
+class GSBCSlider(QtWidgets.QSlider):
+
+    def __init__(self, parent, uiwidget, name):
+        super(GSBCSlider, self).__init__(parent)
+        global ui
+        self.parent = parent
+        ui = uiwidget
+        self.setObjectName(name)
+        self.setOrientation(QtCore.Qt.Horizontal)
+        self.setRange(-100, 100)
+        self.setTickInterval(5)
+        self.setValue(0)
+        self.setMouseTracking(True)
+        self.valueChanged.connect(self.adjust_gsbc_values)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.setTickPosition(QtWidgets.QSlider.TicksAbove)
+        
+    def adjust_gsbc_values(self, val):
+        name = self.objectName()
+        label_value = eval('self.parent.{}_value'.format(name))
+        label_value.setPlaceholderText(str(val))
+        cmd = '\n set {} {} \n'.format(name, val)
+        if ui.mpvplayer_val.processId() > 0:
+            ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        ui.gsbc_dict.update({name:val})
+        
+class ExtraToolBar(QtWidgets.QFrame):
+    
+    def __init__(self, parent, uiwidget):
+        super(ExtraToolBar, self).__init__(parent)
+        global ui, MainWindow
+        ui = uiwidget
+        MainWindow = parent
+        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.setObjectName("frame_extra_toolbar")
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.setObjectName("extra_toolbar_layout")
+        self.hide()
+        
+        self.gsbc_layout = QtWidgets.QGridLayout(self)
+        self.gsbc_layout.setObjectName('gsbc_layout')
+        self.layout.insertLayout(1, self.gsbc_layout)
+        self.brightness_slider = GSBCSlider(self, uiwidget, 'brightness')
+        self.contrast_slider = GSBCSlider(self, uiwidget, 'contrast')
+        self.saturation_slider = GSBCSlider(self, uiwidget, 'saturation')
+        self.gamma_slider = GSBCSlider(self, uiwidget, 'gamma')
+        self.hue_slider = GSBCSlider(self, uiwidget, 'hue')
+        
+        self.brightness_label = QtWidgets.QLabel(self)
+        self.brightness_label.setText('Brightness')
+        self.brightness_value = QtWidgets.QLineEdit(self)
+        
+        self.contrast_label = QtWidgets.QLabel(self)
+        self.contrast_label.setText('Contrast')
+        self.contrast_value = QtWidgets.QLineEdit(self)
+        
+        self.saturation_label = QtWidgets.QLabel(self)
+        self.saturation_label.setText('Saturation')
+        self.saturation_value = QtWidgets.QLineEdit(self)
+        
+        self.gamma_label = QtWidgets.QLabel(self)
+        self.gamma_label.setText('Gamma')
+        self.gamma_value = QtWidgets.QLineEdit(self)
+        
+        self.hue_label = QtWidgets.QLabel(self)
+        self.hue_label.setText('Hue')
+        self.hue_value = QtWidgets.QLineEdit(self)
+        
+        slider_list = [
+            self.contrast_slider, self.brightness_slider,
+            self.gamma_slider, self.saturation_slider, 
+            self.hue_slider
+            ]
+        for index, slider in enumerate(slider_list):
+            label = eval("self.{}_label".format(slider.objectName()))
+            label_value = eval("self.{}_value".format(slider.objectName()))
+            label_value.setMaximumWidth(32)
+            label_value.setPlaceholderText(str(slider.value()))
+            label_value.returnPressed.connect(partial(self.gsbc_entered, label_value, slider))
+            self.gsbc_layout.addWidget(label, index, 0, 1, 1)
+            self.gsbc_layout.addWidget(slider, index, 1, 1, 3)
+            self.gsbc_layout.addWidget(label_value, index, 5, 1, 1)
+        
+        self.buttons_layout = QtWidgets.QGridLayout(self)
+        self.buttons_layout.setObjectName('buttons_layout')
+        self.layout.insertLayout(2, self.buttons_layout)
+        
+        
+        self.volume_layout = QtWidgets.QGridLayout(self)
+        self.volume_layout.setObjectName('volume_layout')
+        self.layout.insertLayout(3, self.volume_layout)
+        
+        
+        self.volume_label = QtWidgets.QLabel(self)
+        self.volume_label.setText('Volume')
+        self.volume_layout.addWidget(self.volume_label, 0, 0, 1, 1)
+        self.slider_volume = VolumeSlider(self, uiwidget, MainWindow)
+        self.slider_volume.setObjectName("slider_volume")
+        self.volume_layout.addWidget(self.slider_volume, 0, 1, 1, 3)
+        self.volume_text = QtWidgets.QLineEdit(self)
+        self.volume_text.returnPressed.connect(self.volume_entered)
+        self.volume_layout.addWidget(self.volume_text, 0, 5, 1, 1)
+        self.volume_text.setMaximumWidth(32)
+    
+    def volume_entered(self):
+        txt = self.volume_text.text()
+        self.volume_text.clear()
+        if txt.isnumeric():
+            self.slider_volume.setValue(int(txt))
+        
+    def gsbc_entered(self, label, slider):
+        value = label.text()
+        label.clear()
+        try:
+            slider.setValue(int(value))
+            label.setPlaceholderText(value)
+        except Exception as err:
+            logger.error(err)
+            slider.setValue(0)
+            label.setPlaceholderText('0')
