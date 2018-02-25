@@ -571,7 +571,10 @@ class GSBCSlider(QtWidgets.QSlider):
         ui = uiwidget
         self.setObjectName(name)
         self.setOrientation(QtCore.Qt.Horizontal)
-        self.setRange(-100, 100)
+        if name == 'zoom':
+            self.setRange(-200, 200)
+        else:
+            self.setRange(-100, 100)
         self.setTickInterval(5)
         self.setValue(0)
         self.setMouseTracking(True)
@@ -581,12 +584,20 @@ class GSBCSlider(QtWidgets.QSlider):
         
     def adjust_gsbc_values(self, val):
         name = self.objectName()
-        label_value = eval('self.parent.{}_value'.format(name))
-        label_value.setPlaceholderText(str(val))
-        cmd = '\n set {} {} \n'.format(name, val)
-        if ui.mpvplayer_val.processId() > 0:
-            ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        ui.gsbc_dict.update({name:val})
+        if name == 'zoom':
+            label_value = eval('self.parent.{}_value'.format(name))
+            zoom_val = 0.01* val
+            label_value.setPlaceholderText(str(zoom_val))
+            cmd = '\n set video-zoom {} \n'.format(zoom_val)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        else:
+            label_value = eval('self.parent.{}_value'.format(name))
+            label_value.setPlaceholderText(str(val))
+            cmd = '\n set {} {} \n'.format(name, val)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            ui.gsbc_dict.update({name:val})
         
 class ExtraToolBar(QtWidgets.QFrame):
     
@@ -611,6 +622,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.saturation_slider = GSBCSlider(self, uiwidget, 'saturation')
         self.gamma_slider = GSBCSlider(self, uiwidget, 'gamma')
         self.hue_slider = GSBCSlider(self, uiwidget, 'hue')
+        self.zoom_slider = GSBCSlider(self, uiwidget, 'zoom')
         
         self.brightness_label = QtWidgets.QLabel(self)
         self.brightness_label.setText('Brightness')
@@ -632,10 +644,14 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.hue_label.setText('Hue')
         self.hue_value = QtWidgets.QLineEdit(self)
         
+        self.zoom_label = QtWidgets.QLabel(self)
+        self.zoom_label.setText('Zoom')
+        self.zoom_value = QtWidgets.QLineEdit(self)
+        
         slider_list = [
             self.contrast_slider, self.brightness_slider,
             self.gamma_slider, self.saturation_slider, 
-            self.hue_slider
+            self.hue_slider, self.zoom_slider
             ]
         for index, slider in enumerate(slider_list):
             label = eval("self.{}_label".format(slider.objectName()))
@@ -651,6 +667,91 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.buttons_layout.setObjectName('buttons_layout')
         self.layout.insertLayout(2, self.buttons_layout)
         
+        self.btn_aspect_label = QtWidgets.QLabel(self)
+        self.btn_aspect_label.setText('Aspect\nRatio')
+        self.buttons_layout.addWidget(self.btn_aspect_label, 0, 0, 2, 1)
+        
+        self.btn_aspect_original = QtWidgets.QPushButton(self)
+        self.btn_aspect_original.setText('Original')
+        self.btn_aspect_original.clicked.connect(partial(self.change_aspect, 'original'))
+        self.buttons_layout.addWidget(self.btn_aspect_original, 0, 1, 1, 2)
+        
+        self.btn_aspect_disable = QtWidgets.QPushButton(self)
+        self.btn_aspect_disable.setText('Disable')
+        self.btn_aspect_disable.clicked.connect(partial(self.change_aspect, 'disable'))
+        self.buttons_layout.addWidget(self.btn_aspect_disable, 0, 3, 1, 1)
+        
+        self.btn_aspect_4_3 = QtWidgets.QPushButton(self)
+        self.btn_aspect_4_3.setText('4:3')
+        self.btn_aspect_4_3.clicked.connect(partial(self.change_aspect, '4:3'))
+        self.buttons_layout.addWidget(self.btn_aspect_4_3, 1, 1, 1, 1)
+        
+        self.btn_aspect_16_9 = QtWidgets.QPushButton(self)
+        self.btn_aspect_16_9.setText('16:9')
+        self.btn_aspect_16_9.clicked.connect(partial(self.change_aspect, '16:9'))
+        self.buttons_layout.addWidget(self.btn_aspect_16_9, 1, 2, 1, 1)
+        
+        self.btn_aspect_235 = QtWidgets.QPushButton(self)
+        self.btn_aspect_235.setText('2.35:1')
+        self.btn_aspect_235.clicked.connect(partial(self.change_aspect, '2.35:1'))
+        self.buttons_layout.addWidget(self.btn_aspect_235, 1, 3, 1, 1)
+        
+        
+        self.btn_speed_half = QtWidgets.QPushButton(self)
+        self.btn_speed_half.setText('0.5x')
+        self.btn_speed_half.clicked.connect(partial(self.adjust_speed, '0.5'))
+        self.buttons_layout.addWidget(self.btn_speed_half, 2, 0, 1, 1)
+        
+        self.btn_speed_reset = QtWidgets.QPushButton(self)
+        self.btn_speed_reset.setText('1x')
+        self.btn_speed_reset.clicked.connect(partial(self.adjust_speed, '1.0'))
+        self.buttons_layout.addWidget(self.btn_speed_reset, 2, 1, 1, 1)
+        
+        self.btn_speed_did = QtWidgets.QPushButton(self)
+        self.btn_speed_did.setText('1.5x')
+        self.btn_speed_did.clicked.connect(partial(self.adjust_speed, '1.5'))
+        self.buttons_layout.addWidget(self.btn_speed_did, 2, 2, 1, 1)
+        
+        self.btn_speed_twice = QtWidgets.QPushButton(self)
+        self.btn_speed_twice.setText('2x')
+        self.btn_speed_twice.clicked.connect(partial(self.adjust_speed, '2.0'))
+        self.buttons_layout.addWidget(self.btn_speed_twice, 2, 3, 1, 1)
+        
+        self.btn_sub_minus = QtWidgets.QPushButton(self)
+        self.btn_sub_minus.setText('Sub-')
+        self.btn_sub_minus.clicked.connect(partial(self.add_delay, 'add sub-delay -0.1'))
+        self.buttons_layout.addWidget(self.btn_sub_minus, 3, 0, 1, 1)
+        self.btn_sub_minus.setToolTip('Add Subtitle Delay of -0.1s')
+        
+        self.btn_sub_plus = QtWidgets.QPushButton(self)
+        self.btn_sub_plus.setText('Sub+')
+        self.btn_sub_plus.clicked.connect(partial(self.add_delay, 'add sub-delay +0.1'))
+        self.buttons_layout.addWidget(self.btn_sub_plus, 3, 1, 1, 1)
+        self.btn_sub_plus.setToolTip('Add Subtitle Delay of +0.1s')
+        
+        self.btn_aud_minus = QtWidgets.QPushButton(self)
+        self.btn_aud_minus.setText('A-')
+        self.btn_aud_minus.clicked.connect(partial(self.add_delay, 'add audio-delay -0.1'))
+        self.buttons_layout.addWidget(self.btn_aud_minus, 3, 2, 1, 1)
+        self.btn_aud_minus.setToolTip('Add Audio Delay of -0.1s')
+        
+        self.btn_aud_plus = QtWidgets.QPushButton(self)
+        self.btn_aud_plus.setText('A+')
+        self.btn_aud_plus.clicked.connect(partial(self.add_delay, 'add audio-delay +0.1'))
+        self.buttons_layout.addWidget(self.btn_aud_plus, 3, 3, 1, 1)
+        self.btn_aud_plus.setToolTip('Add Audio Delay of +0.1s')
+        
+        
+        
+        self.btn_chapter_minus = QtWidgets.QPushButton(self)
+        self.btn_chapter_minus.setText('Chapter-')
+        self.btn_chapter_minus.clicked.connect(partial(self.add_chapter, '-'))
+        self.buttons_layout.addWidget(self.btn_chapter_minus, 4, 0, 1, 2)
+        
+        self.btn_chapter_plus = QtWidgets.QPushButton(self)
+        self.btn_chapter_plus.setText('Chapter+')
+        self.btn_chapter_plus.clicked.connect(partial(self.add_chapter, '+'))
+        self.buttons_layout.addWidget(self.btn_chapter_plus, 4, 2, 1, 2)
         
         self.volume_layout = QtWidgets.QGridLayout(self)
         self.volume_layout.setObjectName('volume_layout')
@@ -668,6 +769,39 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.volume_layout.addWidget(self.volume_text, 0, 5, 1, 1)
         self.volume_text.setMaximumWidth(32)
     
+    def change_aspect(self, val):
+        if val == '2.35:1':
+            key = '3'
+        elif val == 'disable':
+            key = '4'
+        elif val == '16:9':
+            key = '1'
+        elif val == '4:3':
+            key = '2'
+        else:
+            key = '0'
+        ui.tab_5.change_aspect_ratio(key=key)
+    
+    def add_delay(self, msg):
+        msg = bytes('\n {} \n'.format(msg), 'utf-8')
+        ui.mpvplayer_val.write(msg)
+        
+    def add_chapter(self, val):
+        if val == '-':
+            msg = bytes('\n add chapter -1 \n', 'utf-8')
+        else:
+            msg = bytes('\n add chapter 1 \n', 'utf-8')
+        ui.mpvplayer_val.write(msg)
+        
+    def adjust_speed(self, val):
+        msg = None
+        if val == '1.0':
+            msg = bytes('\n set speed 1.0 \n', 'utf-8')
+        else:
+            msg = bytes('\n multiply speed {} \n'.format(val), 'utf-8')
+        if msg:
+            ui.mpvplayer_val.write(msg)
+            
     def volume_entered(self):
         txt = self.volume_text.text()
         self.volume_text.clear()
@@ -678,8 +812,15 @@ class ExtraToolBar(QtWidgets.QFrame):
         value = label.text()
         label.clear()
         try:
-            slider.setValue(int(value))
-            label.setPlaceholderText(value)
+            if slider.objectName() == 'zoom':
+                print('-------------')
+                label.setPlaceholderText(value)
+                value = float(value)*100
+                print(value, '---------------------')
+                slider.setValue(int(value))
+            else:
+                slider.setValue(int(value))
+                label.setPlaceholderText(value)
         except Exception as err:
             logger.error(err)
             slider.setValue(0)
