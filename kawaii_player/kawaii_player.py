@@ -535,6 +535,7 @@ watch/unwatch status")
         self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
+        
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.frame)
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         
@@ -688,9 +689,9 @@ watch/unwatch status")
         self.slider.setRange(0, 100)
         self.slider.setMouseTracking(True)
         
-        self.slider_volume = VolumeSlider(MainWindow, self)
-        self.slider_volume.setObjectName(_fromUtf8("slider_volume"))
-        self.verticalLayout_50.insertWidget(5, self.slider_volume, 0)
+        self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
+        self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
+        
         try:
             aspect = (screen_width/screen_height)
         except NameError:
@@ -714,7 +715,7 @@ watch/unwatch status")
         self.list5.setMaximumWidth(self.width_allowed)
         self.list6.setMaximumWidth(self.width_allowed)
         self.goto_epn.setMaximumWidth(self.width_allowed)
-        self.slider_volume.setMaximumWidth(self.width_allowed)
+        
         self.text_width = screen_width-3*self.width_allowed-35
         self.text.setMaximumWidth(self.text_width)
         self.text.setMaximumHeight(self.height_allowed)
@@ -731,6 +732,7 @@ watch/unwatch status")
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
         self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
+        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
         #self.label.setMaximumSize(QtCore.QSize(280, 250))
         #self.label.setMinimumSize(QtCore.QSize(280, 250))
         
@@ -863,8 +865,8 @@ watch/unwatch status")
         self.vol_manage = QtWidgets.QPushButton(self.player_opt)
         self.vol_manage.setObjectName(_fromUtf8("vol_manage"))
         self.horizontalLayout_player_opt.insertWidget(14, self.vol_manage, 0)
-        self.vol_manage.setText(self.player_buttons['vol'])
-        self.vol_manage.setToolTip('Player Volume (keys 0, 9)')
+        self.vol_manage.setText('E')
+        self.vol_manage.setToolTip('Extra Toolbar')
         #self.queue_manage.setMinimumWidth(30)
         self.vol_manage.clicked.connect(self.player_volume_manager)
         #self.vol_manage.setStyleSheet("text-align: bottom;")
@@ -1558,6 +1560,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.gsbc_dict = {}
         self.clicked_label_new = False
         self.layout_mode = 'Default'
         self.audio_outputs = ''
@@ -1971,14 +1974,11 @@ watch/unwatch status")
         self.mpv_thumbnail_lock = False
         
     def player_volume_manager(self):
-        geom = self.vol_manage.geometry()
-        if self.slider_volume.isHidden():
-            #self.slider_volume.setGeometry(geom.x() - 16, self.frame1.y()-16, 100, 10)
-            self.slider_volume.show()
-            self.slider_volume.setFocus()
+        if self.frame_extra_toolbar.isHidden():
+            self.frame_extra_toolbar.show()
         else:
-            self.slider_volume.pressed = False
-            self.slider_volume.hide()
+            self.frame_extra_toolbar.slider_volume.pressed = False
+            self.frame_extra_toolbar.hide()
         
     def global_shortcuts(self, val, val_function):
         player_focus = False
@@ -10141,9 +10141,8 @@ watch/unwatch status")
                                 msg_str = 'Volume'
                             msg = '\n show-text "{}: {}%" \n'.format(msg_str, self.player_volume)
                             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
-                            self.slider_volume.pressed = False
-                            self.slider_volume.setValue(int(self.player_volume))
-                            self.vol_manage.setToolTip('Player Volume (keys 0, 9) ({}%)'.format(self.player_volume))
+                            self.frame_extra_toolbar.slider_volume.pressed = False
+                            self.frame_extra_toolbar.slider_volume.setValue(int(self.player_volume))
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
                     if a.startswith(r"b'"):
@@ -11359,6 +11358,9 @@ watch/unwatch status")
                 elif player == 'mpv':
                     if self.volume_type == 'volume':
                         command = command + " --volume={}".format(self.player_volume)
+        if self.gsbc_dict:
+            for i in self.gsbc_dict:
+                command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
         if s_url:
             s_url_arr = s_url.split('::')
             for i in s_url_arr:
@@ -12705,6 +12707,15 @@ def main():
     if os.path.isfile(ui.playing_history_file):
         with open(ui.playing_history_file, 'rb') as pls_file_read:
             ui.history_dict_obj = pickle.load(pls_file_read)
+            if '#GSBCH@DICT' in ui.history_dict_obj:
+                ui.gsbc_dict = ui.history_dict_obj['#GSBCH@DICT'][0].copy()
+                if ui.gsbc_dict:
+                    for i in ui.gsbc_dict:
+                        try:
+                            slider = eval('ui.frame_extra_toolbar.{}_slider'.format(i))
+                            slider.setValue(int(ui.gsbc_dict[i]))
+                        except Exception as err:
+                            logger.error(err)
     if os.path.isfile(ui.playing_queue_file):
         with open(ui.playing_queue_file, 'rb') as queue_file_read:
             ui.queue_url_list = pickle.load(queue_file_read)
@@ -12866,10 +12877,7 @@ def main():
                             else:
                                 ui.player_volume = '50'
                             if ui.player_volume.isnumeric():
-                                ui.slider_volume.setValue(int(ui.player_volume))
-                                ui.vol_manage.setToolTip(
-                                    'Player Volume (keys 0, 9) ({}%)'.format(ui.player_volume)
-                                    )
+                                ui.frame_extra_toolbar.slider_volume.setValue(int(ui.player_volume))
                     except Exception as err:
                         logger.error(err)
                 elif i.startswith('CLICKED_LABEL_NEW='):
@@ -13926,6 +13934,7 @@ def main():
                         ]
                 }
             )
+            ui.history_dict_obj.update({'#GSBCH@DICT':[ui.gsbc_dict]})
         pickle.dump(ui.history_dict_obj, pls_file)
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
