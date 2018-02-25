@@ -169,12 +169,15 @@ class WidgetStyleSheet:
                     """.format(alpha=alpha, bold=font_bold,
                                color=gui.list_text_color, font_size=font_size))
             for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3,
-                          gui.goto_epn, gui.btnWebReviews]:
+                          gui.goto_epn, gui.btnWebReviews, gui.frame_extra_toolbar]:
                 if frame == gui.dockWidget_3:
                     alpha = '40%'
                 else:
                     alpha = '30%'
-                print(alpha, '--alpha----')
+                if frame == gui.frame_extra_toolbar:
+                    label_alpha = '0%'
+                else:
+                    label_alpha = '30%'
                 frame.setStyleSheet("""
                     QFrame{{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}}
                     QPushButton{{background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, {alpha});color: {color}; font: {bold};}}
@@ -186,7 +189,10 @@ class WidgetStyleSheet:
                     QTextEdit{{
                         font:{bold};color:{color};background:rgba(0,0,0,30%);
                         border:rgba(0, 0, 0, 30%);}}
-                    QLabel{{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);color: {color}; font:{bold};}}
+                    QLabel{{
+                        background:rgba(0, 0, 0, {label_alpha});
+                        border:rgba(0, 0, 0, {label_alpha});color: {color}; font:{bold};
+                        }}
                     QComboBox {{
                     selection-color:yellow;
                     border: rgba(0, 0, 0, 30%);
@@ -220,9 +226,31 @@ class WidgetStyleSheet:
                     height: 2px;
                     background-color:violet;
                     }}
+                    
+                    QSlider:groove:horizontal {{
+                    height: 8px;
+                    border:rgba(0, 0, 0, 30%);
+                    background:rgba(0, 0, 0, 30%);
+                    margin: 2px 0;
+                    }}
+                    QSlider:handle:horizontal {{
+                    background: qlineargradient(
+                        x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+                    border: 1px solid #5c5c5c;
+                    width: 8px;
+                    margin: -2px 0; 
+                    border-radius: 3px;
+                    }}
+                    QToolTip {{
+                    font : {bold} {size}px {font};
+                    color: black;
+                    background:rgb(54, 60, 74);
+                    }}
+                    
                     """.format(
                         color=gui.list_text_color, focus=gui.list_text_color_focus,
-                        alpha=alpha, bold=font_bold
+                        alpha=alpha, bold=font_bold, font=gui.global_font,
+                        size=gui.global_font_size, label_alpha=label_alpha
                         )
                     )
             gui.player_opt.setStyleSheet("""
@@ -323,64 +351,38 @@ class WidgetStyleSheet:
                     QComboBox::down-arrow {{
                     width: 2px;
                     height: 2px;
-                    }}""".format(
+                    }}
+                    """.format(
                         alpha=alpha, btn=qbtn, color=gui.list_text_color,
                         focus=gui.list_text_color_focus, bold=font_bold,
                         size=gui.global_font_size, font=gui.global_font)
                     )
-            for slider in [gui.slider, gui.slider_volume]:
-                if slider == gui.slider_volume:
-                    slider.setStyleSheet("""
-                        QSlider:groove:horizontal {{
-                        height: 8px;
-                        border:rgba(0, 0, 0, 30%);
-                        background:rgba(0, 0, 0, 30%);
-                        margin: 2px 0;
-                        }}
-                        QSlider:handle:horizontal {{
-                        background: qlineargradient(
-                            x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-                        border: 1px solid #5c5c5c;
-                        width: 8px;
-                        margin: -2px 0; 
-                        border-radius: 3px;
-                        }}
-                        QToolTip {{
-                        font : {bold} {size}px {font};
-                        color: black;
-                        background:rgb(54, 60, 74);
-                        }}
-                        """.format(
-                                color=gui.list_text_color, bold=font_bold,
-                                size=gui.global_font_size+3, font=gui.global_font
-                                )
-                            )
-                else:
-                    slider.setStyleSheet("""
-                        QSlider:groove:horizontal {{
-                        height: 8px;
-                        border:rgba(0, 0, 0, 30%);
-                        background:rgba(0, 0, 0, 30%);
-                        margin: 2px 0;
-                        }}
-                        QSlider:handle:horizontal {{
-                        background: qlineargradient(
-                            x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-                        border: 1px solid #5c5c5c;
-                        width: 2px;
-                        margin: -2px 0; 
-                        border-radius: 3px;
-                        }}
-                        QToolTip {{
-                        font : {bold} {size}px {font};
-                        color: {color};
-                        background:rgb(54, 60, 74);
-                        }}
-                        """.format(
-                                color=gui.list_text_color, bold=font_bold,
-                                size=gui.global_font_size+3, font=gui.global_font
-                                )
-                            )
+            
+            gui.slider.setStyleSheet("""
+                QSlider:groove:horizontal {{
+                height: 8px;
+                border:rgba(0, 0, 0, 30%);
+                background:rgba(0, 0, 0, 30%);
+                margin: 2px 0;
+                }}
+                QSlider:handle:horizontal {{
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+                border: 1px solid #5c5c5c;
+                width: 2px;
+                margin: -2px 0; 
+                border-radius: 3px;
+                }}
+                QToolTip {{
+                font : {bold} {size}px {font};
+                color: {color};
+                background:rgb(54, 60, 74);
+                }}
+                """.format(
+                        color=gui.list_text_color, bold=font_bold,
+                        size=gui.global_font_size+3, font=gui.global_font
+                        )
+                    )
             gui.list_poster.setStyleSheet("""
                 QListWidget{{
                 font: {bold};color:{0};
@@ -643,12 +645,16 @@ class WidgetStyleSheet:
                         font: {bold} {size};
                         background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});
                         """.format(alpha=alpha, color=gui.list_text_color, bold=font_bold, size=font_size))
-                for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn]:
+                for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn, gui.frame_extra_toolbar]:
                     bg = '30%'
                     if frame == gui.dockWidget_3:
                         qbtn = '50%'
                     else:
                         qbtn = '10%'
+                    if frame == gui.frame_extra_toolbar:
+                        label_alpha = '0%'
+                    else:
+                        label_alpha = '10%'
                     frame.setStyleSheet("""
                         QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
@@ -657,8 +663,10 @@ class WidgetStyleSheet:
                         QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{color:white;background:rgba(0,0,0,10%);
                         max-height:30px;border:rgba(0, 0, 0, 10%); font: {bold}}}
-                        QLabel{{color:{color};background:rgba(0,0,0,10%);
-                        max-height:30px;border:rgba(0, 0, 0, 10%);font: {bold};}}
+                        QLabel{{
+                            color:{color};background:rgba(0,0,0,{label_alpha});
+                            max-height:30px;border:rgba(0, 0, 0, {label_alpha});font: {bold};
+                            }}
                         QComboBox {{
                         color: {color};
                         selection-color:yellow;background:rgba(0,0,0,{btn});
@@ -684,9 +692,35 @@ class WidgetStyleSheet:
                         QComboBox::down-arrow {{
                         width: 2px;
                         height: 2px;
-                        }}""".format(
+                        }}
+                        
+                        QSlider:groove:horizontal {{
+                            height: 8px;
+                            border:rgba(0, 0, 0, 30%);
+                            background:rgba(0, 0, 0, 30%);
+                            margin: 2px 0;
+                            }}
+                        QSlider:handle:horizontal {{
+                            background: qlineargradient(
+                                x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+                            border: 1px solid #5c5c5c;
+                            width: 8px;
+                            margin: -2px 0; 
+                            border-radius: 3px;
+                        }}
+                        QSlider:QToolTip {{
+                            font : {bold} {size}px {font};
+                            color: {color};
+                            background:rgb(56,60,74);
+                            padding: 1px 2px 1px 2px;
+                        }}
+                        
+                        """.format(
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
-                            focus=gui.list_text_color_focus, bold=font_bold)
+                            focus=gui.list_text_color_focus, bold=font_bold,
+                            size=gui.global_font_size, font=gui.global_font,
+                            label_alpha=label_alpha
+                            )
                         )
                 gui.player_opt.setStyleSheet("""
                     QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
@@ -805,62 +839,32 @@ class WidgetStyleSheet:
                     width: 10px;
                     margin: 0.5px;
                     }}""")
-                for slider in [gui.slider, gui.slider_volume]:
-                    if slider == gui.slider_volume:
-                        slider.setStyleSheet("""
-                            QSlider:groove:horizontal {{
-                            height: 8px;
-                            border:rgba(0, 0, 0, 30%);
-                            background:rgba(0, 0, 0, 30%);
-                            margin: 2px 0;
-                            }}
-                            QSlider:handle:horizontal {{
-                            background: qlineargradient(
-                                x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-                            border: 1px solid #5c5c5c;
-                            width: 8px;
-                            margin: -2px 0; 
-                            border-radius: 3px;
-                            }}
-                            QToolTip {{
-                            font : {bold} {size}px {font};
-                            color: black;
-                            background:rgb(56,60,74);
-                            padding: 1px 2px 1px 2px;
-                            }}
-                            """.format(
-                                    alpha=bg, color=gui.list_text_color,
-                                    bold=font_bold, size=gui.global_font_size+3,
-                                    font=gui.global_font
-                                    )
-                                )
-                    else:
-                        slider.setStyleSheet("""QSlider:groove:horizontal {{
-                            height: 8px;
-                            border:rgba(0, 0, 0, 30%);
-                            background:rgba(0, 0, 0, 30%);
-                            margin: 2px 0;
-                            }}
-                            QSlider:handle:horizontal {{
-                            background: qlineargradient(
-                                x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-                            border: 1px solid #5c5c5c;
-                            width: 2px;
-                            margin: -2px 0; 
-                            border-radius: 3px;
-                            }}
-                            QToolTip {{
-                            font : {bold} {size}px {font};
-                            color: {color};
-                            background:rgb(56,60,74);
-                            padding: 1px 2px 1px 2px;
-                            }}
-                            """.format(
-                                    alpha=bg, color=gui.list_text_color,
-                                    bold=font_bold, size=gui.global_font_size+3,
-                                    font=gui.global_font
-                                    )
-                                )
+                gui.slider.setStyleSheet("""QSlider:groove:horizontal {{
+                    height: 8px;
+                    border:rgba(0, 0, 0, 30%);
+                    background:rgba(0, 0, 0, 30%);
+                    margin: 2px 0;
+                    }}
+                    QSlider:handle:horizontal {{
+                    background: qlineargradient(
+                        x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+                    border: 1px solid #5c5c5c;
+                    width: 2px;
+                    margin: -2px 0; 
+                    border-radius: 3px;
+                    }}
+                    QToolTip {{
+                    font : {bold} {size}px {font};
+                    color: {color};
+                    background:rgb(56,60,74);
+                    padding: 1px 2px 1px 2px;
+                    }}
+                    """.format(
+                            alpha=bg, color=gui.list_text_color,
+                            bold=font_bold, size=gui.global_font_size+3,
+                            font=gui.global_font
+                            )
+                        )
                 gui.list_poster.setStyleSheet("""
                     QListWidget{{
                     color:{0};
