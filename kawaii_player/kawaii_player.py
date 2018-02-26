@@ -1560,6 +1560,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.screenshot_directory = TMPDIR
         self.gsbc_dict = {}
         self.clicked_label_new = False
         self.layout_mode = 'Default'
@@ -11324,8 +11325,9 @@ watch/unwatch status")
  --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no\
  --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
- --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"'.format(
-                aspect_value, idw, self.mpv_input_conf)
+ --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"\
+ --screenshot-directory="{3}"'.format(aspect_value, idw, self.mpv_input_conf,
+                                      self.screenshot_directory)
         else:
             command = self.player_val
         if a_id:
@@ -13378,6 +13380,12 @@ def main():
                         global_font_size = j.lower()
                         if global_font_size.isnumeric():
                             ui.global_font_size = int(global_font_size)
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('SCREENSHOT_DIRECTORY='):
+                    try:
+                        if os.path.exists(j):
+                            ui.screenshot_directory = j
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('REMEMBER_VOLUME_PER_VIDEO='):
