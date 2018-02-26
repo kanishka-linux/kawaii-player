@@ -944,7 +944,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text44.setText("Extra Players")
         self.player_list.append('playback_engine')
         
-        self.line45 = QtWidgets.QTextEdit()
+        self.line45 = QtWidgets.QLineEdit()
+        self.line45.setPlaceholderText("{}".format(ui.screenshot_directory))
+        self.text45 = QtWidgets.QLabel()
+        self.text45.setText("Screenshot Directory")
+        self.player_list.append('screenshot_directory')
+        self.btn45 = QtWidgets.QPushButton()
+        self.btn45.setText('  Set  ')
+        self.btn45.clicked.connect(partial(self.set_folder, self.line45, 'screenshot_directory'))
+        
+        self.line46 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
               It also remembers last quit position for every video in the History\
@@ -997,14 +1006,20 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg1 = re.sub('  +', ' ', msg1)
         msg = msg + '\n\n' + msg1
         
-        self.line45.setText(msg)
-        self.line45.setMaximumHeight(ui.height_allowed)
+        self.line46.setText(msg)
+        self.line46.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
             text = eval('self.text4{}'.format(index))
             line = eval('self.line4{}'.format(index))
-            self.gl6.addWidget(text, index, 0, 1, 1)
-            self.gl6.addWidget(line, index, 1, 1, 1)
+            if j == 'screenshot_directory':
+                self.gl6.addWidget(text, index, 0, 1, 1)
+                self.gl6.addWidget(line, index, 1, 1, 1)
+                btn = eval('self.btn4{}'.format(index))
+                self.gl6.addWidget(btn, index, 2, 1, 1)
+            else:
+                self.gl6.addWidget(text, index, 0, 1, 1)
+                self.gl6.addWidget(line, index, 1, 1, 2)
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
@@ -1012,7 +1027,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
-        self.gl6.addWidget(self.line45, index+1, 0, 1, 2)
+        self.gl6.addWidget(self.line46, index+1, 0, 1, 3)
         
     
     def configsettings(self):
