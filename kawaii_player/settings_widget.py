@@ -1168,6 +1168,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 "vo=gpu",
                 "##Available Audio Outputs (ao): {}".format(ui.audio_outputs),
                 "ao=pulse",
+                '##Set OSD level',
+                '#osd-level=1',
                 "#Cache Settings",
                 "cache=auto",
                 'cache-secs=120',
