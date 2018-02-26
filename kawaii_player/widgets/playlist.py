@@ -40,6 +40,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.setDragEnabled(True)
         self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         self.downloadWget = []
         self.downloadWget_cnt = 0
         MainWindow = parent
