@@ -837,15 +837,25 @@ class ExtraToolBar(QtWidgets.QFrame):
         if msg == 'external-subtitle':
             ui.tab_5.load_external_sub()
         else:
-            msg = bytes('\n {} \n'.format(msg), 'utf-8')
-            ui.mpvplayer_val.write(msg)
-        
+            bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
+            ui.mpvplayer_val.write(bmsg)
+            pmsg = None
+            if 'sub-delay' in msg:
+                pmsg = '\n show-text "Sub delay: ${sub-delay}" \n'
+            elif 'audio-delay' in msg:
+                pmsg = '\n show-text "A-V delay: ${audio-delay}" \n'
+            if pmsg:
+                pmsg = bytes(pmsg, 'utf-8')
+                ui.mpvplayer_val.write(pmsg)
+                
     def add_chapter(self, val):
         if val == '-':
             msg = bytes('\n add chapter -1 \n', 'utf-8')
         else:
             msg = bytes('\n add chapter 1 \n', 'utf-8')
         ui.mpvplayer_val.write(msg)
+        pmsg = bytes('\n show-text "Chapter: ${chapter}" \n', 'utf-8')
+        ui.mpvplayer_val.write(pmsg)
         
     def adjust_speed(self, val):
         msg = None
