@@ -612,6 +612,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.setObjectName("frame_extra_toolbar")
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setObjectName("extra_toolbar_layout")
+        self.playlist_hide = False
         self.hide()
         
         self.gsbc_layout = QtWidgets.QGridLayout(self)
