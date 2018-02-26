@@ -1976,9 +1976,15 @@ watch/unwatch status")
     def player_volume_manager(self):
         if self.frame_extra_toolbar.isHidden():
             self.frame_extra_toolbar.show()
+            if self.list2.isHidden():
+                self.list2.show()
+                self.frame_extra_toolbar.playlist_hide = True
         else:
             self.frame_extra_toolbar.slider_volume.pressed = False
             self.frame_extra_toolbar.hide()
+            if self.frame_extra_toolbar.playlist_hide:
+                self.list2.hide()
+            self.frame_extra_toolbar.playlist_hide = False
         
     def global_shortcuts(self, val, val_function):
         player_focus = False
