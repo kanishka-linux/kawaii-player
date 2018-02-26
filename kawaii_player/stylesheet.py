@@ -176,22 +176,29 @@ class WidgetStyleSheet:
                     alpha = '30%'
                 if frame == gui.frame_extra_toolbar:
                     label_alpha = '0%'
+                    min_height = 'height: 32px'
                 else:
                     label_alpha = '30%'
+                    min_height = ''
                 frame.setStyleSheet("""
                     QFrame{{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}}
-                    QPushButton{{background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, {alpha});color: {color}; font: {bold};}}
+                    QPushButton{{
+                        background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, {alpha});
+                        color: {color}; font: {bold};
+                        {min_height};
+                        }}
                     QPushButton::hover{{background-color: yellow;color: black;}}
                     QPushButton:pressed{{background-color: violet;}}
                     QLineEdit{{
                         font:{bold};color:white;background:rgba(0,0,0,30%);
-                        max-height:30px;border:rgba(0, 0, 0, 30%);}}
+                        {min_height};border:rgba(0, 0, 0, 30%);}}
                     QTextEdit{{
                         font:{bold};color:{color};background:rgba(0,0,0,30%);
                         border:rgba(0, 0, 0, 30%);}}
                     QLabel{{
                         background:rgba(0, 0, 0, {label_alpha});
                         border:rgba(0, 0, 0, {label_alpha});color: {color}; font:{bold};
+                        {min_height};
                         }}
                     QComboBox {{
                     selection-color:yellow;
@@ -250,7 +257,8 @@ class WidgetStyleSheet:
                     """.format(
                         color=gui.list_text_color, focus=gui.list_text_color_focus,
                         alpha=alpha, bold=font_bold, font=gui.global_font,
-                        size=gui.global_font_size, label_alpha=label_alpha
+                        size=gui.global_font_size, label_alpha=label_alpha,
+                        min_height=min_height
                         )
                     )
             gui.player_opt.setStyleSheet("""
@@ -653,19 +661,24 @@ class WidgetStyleSheet:
                         qbtn = '10%'
                     if frame == gui.frame_extra_toolbar:
                         label_alpha = '0%'
+                        min_height = '32px'
                     else:
                         label_alpha = '10%'
+                        min_height = '30px'
+                        
                     frame.setStyleSheet("""
                         QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
-                        max-height:30px; font: {bold};}}
+                        height:{min_height}; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QPushButton:pressed{{background-color: violet;}}
-                        QLineEdit{{color:white;background:rgba(0,0,0,10%);
-                        max-height:30px;border:rgba(0, 0, 0, 10%); font: {bold}}}
+                        QLineEdit{{
+                            color:white;background:rgba(0,0,0,10%);
+                            height:{min_height};border:rgba(0, 0, 0, 10%); font: {bold}
+                            }}
                         QLabel{{
                             color:{color};background:rgba(0,0,0,{label_alpha});
-                            max-height:30px;border:rgba(0, 0, 0, {label_alpha});font: {bold};
+                            height:{min_height};border:rgba(0, 0, 0, {label_alpha});font: {bold};
                             }}
                         QComboBox {{
                         color: {color};
@@ -719,7 +732,7 @@ class WidgetStyleSheet:
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
                             focus=gui.list_text_color_focus, bold=font_bold,
                             size=gui.global_font_size, font=gui.global_font,
-                            label_alpha=label_alpha
+                            label_alpha=label_alpha, min_height=min_height
                             )
                         )
                 gui.player_opt.setStyleSheet("""
