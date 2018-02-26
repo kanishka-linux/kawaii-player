@@ -574,7 +574,7 @@ class GSBCSlider(QtWidgets.QSlider):
         if name == 'zoom':
             self.setRange(-200, 200)
         elif name == 'speed':
-            self.setRange(-400, 400)
+            self.setRange(-100, 400)
         else:
             self.setRange(-100, 100)
         self.setTickInterval(5)
@@ -662,6 +662,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.speed_label = QtWidgets.QLabel(self)
         self.speed_label.setText('Speed')
         self.speed_value = QtWidgets.QLineEdit(self)
+        self.speed_value.setPlaceholderText('1.0')
         
         slider_list = [
             self.contrast_slider, self.brightness_slider,
@@ -815,6 +816,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.volume_text.returnPressed.connect(self.volume_entered)
         self.volume_layout.addWidget(self.volume_text, 0, 5, 1, 1)
         self.volume_text.setMaximumWidth(32)
+        
+        self.speed_value.setPlaceholderText('1.0')
+        self.speed_value.setToolTip('Default Original Speed 1.0')
     
     def change_aspect(self, val):
         if val == '2.35:1':
