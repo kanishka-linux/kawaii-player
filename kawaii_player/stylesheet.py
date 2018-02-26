@@ -661,24 +661,26 @@ class WidgetStyleSheet:
                         qbtn = '10%'
                     if frame == gui.frame_extra_toolbar:
                         label_alpha = '0%'
-                        min_height = '32px'
+                        new_height = int(gui.frame_height/2.2)
+                        min_height = 'height: {}px'.format(new_height)
+                        gui.logger.debug('min-height-box={}'.format(min_height))
                     else:
                         label_alpha = '10%'
-                        min_height = '30px'
+                        min_height = 'max-height: 30px'
                         
                     frame.setStyleSheet("""
                         QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
-                        height:{min_height}; font: {bold};}}
+                        {min_height}; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{
                             color:white;background:rgba(0,0,0,10%);
-                            height:{min_height};border:rgba(0, 0, 0, 10%); font: {bold}
+                            {min_height};border:rgba(0, 0, 0, 10%); font: {bold}
                             }}
                         QLabel{{
                             color:{color};background:rgba(0,0,0,{label_alpha});
-                            height:{min_height};border:rgba(0, 0, 0, {label_alpha});font: {bold};
+                            {min_height};border:rgba(0, 0, 0, {label_alpha});font: {bold};
                             }}
                         QComboBox {{
                         color: {color};
