@@ -573,6 +573,8 @@ class GSBCSlider(QtWidgets.QSlider):
         self.setOrientation(QtCore.Qt.Horizontal)
         if name == 'zoom':
             self.setRange(-200, 200)
+        elif name == 'speed':
+            self.setRange(-400, 400)
         else:
             self.setRange(-100, 100)
         self.setTickInterval(5)
@@ -589,6 +591,13 @@ class GSBCSlider(QtWidgets.QSlider):
             zoom_val = 0.01* val
             label_value.setPlaceholderText(str(zoom_val))
             cmd = '\n set video-zoom {} \n'.format(zoom_val)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'speed':
+            label_value = eval('self.parent.{}_value'.format(name))
+            speed_val = 1 + 0.01* val
+            label_value.setPlaceholderText(str(speed_val))
+            cmd = '\n set speed {} \n'.format(speed_val)
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
         else:
@@ -624,6 +633,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.gamma_slider = GSBCSlider(self, uiwidget, 'gamma')
         self.hue_slider = GSBCSlider(self, uiwidget, 'hue')
         self.zoom_slider = GSBCSlider(self, uiwidget, 'zoom')
+        self.speed_slider = GSBCSlider(self, uiwidget, 'speed')
         
         self.brightness_label = QtWidgets.QLabel(self)
         self.brightness_label.setText('Brightness')
@@ -649,10 +659,14 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.zoom_label.setText('Zoom')
         self.zoom_value = QtWidgets.QLineEdit(self)
         
+        self.speed_label = QtWidgets.QLabel(self)
+        self.speed_label.setText('Speed')
+        self.speed_value = QtWidgets.QLineEdit(self)
+        
         slider_list = [
             self.contrast_slider, self.brightness_slider,
             self.gamma_slider, self.saturation_slider, 
-            self.hue_slider, self.zoom_slider
+            self.hue_slider, self.zoom_slider, self.speed_slider
             ]
         for index, slider in enumerate(slider_list):
             label = eval("self.{}_label".format(slider.objectName()))
@@ -718,7 +732,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.btn_scr_3.clicked.connect(partial(self.execute_command, 'async screenshot window'))
         self.buttons_layout.addWidget(self.btn_scr_3, 2, 3, 1, 1)
         self.btn_scr_3.setToolTip("Take Screenshot with window")
-        
+        """
         self.btn_speed_half = QtWidgets.QPushButton(self)
         self.btn_speed_half.setText('0.5x')
         self.btn_speed_half.clicked.connect(partial(self.adjust_speed, '0.5'))
@@ -742,7 +756,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.btn_speed_twice.clicked.connect(partial(self.adjust_speed, '2.0'))
         self.buttons_layout.addWidget(self.btn_speed_twice, 3, 3, 1, 1)
         self.btn_speed_twice.setToolTip('Multiply speed by 2')
-        
+        """
         self.btn_sub_minus = QtWidgets.QPushButton(self)
         self.btn_sub_minus.setText('Sub-')
         self.btn_sub_minus.clicked.connect(partial(self.execute_command, 'add sub-delay -0.1'))
@@ -849,10 +863,12 @@ class ExtraToolBar(QtWidgets.QFrame):
         label.clear()
         try:
             if slider.objectName() == 'zoom':
-                print('-------------')
                 label.setPlaceholderText(value)
                 value = float(value)*100
-                print(value, '---------------------')
+                slider.setValue(int(value))
+            if slider.objectName() == 'speed':
+                label.setPlaceholderText(value)
+                value = float(value)*100 - 100
                 slider.setValue(int(value))
             else:
                 slider.setValue(int(value))
