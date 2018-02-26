@@ -245,6 +245,8 @@ class PlayerWidget(QtWidgets.QWidget):
                             if not self.ui.torrent_frame.isHidden():
                                 self.ui.torrent_frame.hide()
                         self.ui.list2.hide()
+                        self.ui.frame_extra_toolbar.hide()
+                        self.ui.frame_extra_toolbar.playlist_hide = False
                         self.ui.list6.hide()
                         self.ui.list1.hide()
                         self.ui.frame.hide()
@@ -278,9 +280,13 @@ class PlayerWidget(QtWidgets.QWidget):
                     if total_till != 0 or self.ui.fullscreen_mode == 1:
                         self.ui.tab_6.show()
                         self.ui.list2.hide()
+                        self.ui.frame_extra_toolbar.hide()
+                        self.ui.frame_extra_toolbar.playlist_hide = False
                         self.ui.goto_epn.hide()
                     if self.ui.btn1.currentText().lower() == 'youtube':
                         self.ui.list2.hide()
+                        self.ui.frame_extra_toolbar.hide()
+                        self.ui.frame_extra_toolbar.playlist_hide = False
                         self.ui.goto_epn.hide()
                         self.ui.tab_2.show()
                     if self.ui.orientation_dock == 'right':
