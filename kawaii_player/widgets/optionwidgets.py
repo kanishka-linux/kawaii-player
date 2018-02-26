@@ -696,67 +696,99 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.btn_aspect_235.clicked.connect(partial(self.change_aspect, '2.35:1'))
         self.buttons_layout.addWidget(self.btn_aspect_235, 1, 3, 1, 1)
         
+        self.btn_scr_label = QtWidgets.QLabel(self)
+        self.btn_scr_label.setText('Screenshot')
+        self.buttons_layout.addWidget(self.btn_scr_label, 2, 0, 1, 1)
+        
+        self.btn_scr_1 = QtWidgets.QPushButton(self)
+        self.btn_scr_1.setText('1')
+        self.btn_scr_1.clicked.connect(partial(self.execute_command, 'async screenshot'))
+        self.buttons_layout.addWidget(self.btn_scr_1, 2, 1, 1, 1)
+        self.btn_scr_1.setToolTip("Take Screenshot with subtitle")
+        
+        self.btn_scr_2 = QtWidgets.QPushButton(self)
+        self.btn_scr_2.setText('2')
+        self.btn_scr_2.clicked.connect(partial(self.execute_command, 'async screenshot video'))
+        self.buttons_layout.addWidget(self.btn_scr_2, 2, 2, 1, 1)
+        self.btn_scr_2.setToolTip("Take Screenshot without subtitle")
+        
+        self.btn_scr_3 = QtWidgets.QPushButton(self)
+        self.btn_scr_3.setText('3')
+        self.btn_scr_3.clicked.connect(partial(self.execute_command, 'async screenshot window'))
+        self.buttons_layout.addWidget(self.btn_scr_3, 2, 3, 1, 1)
+        self.btn_scr_3.setToolTip("Take Screenshot with window")
         
         self.btn_speed_half = QtWidgets.QPushButton(self)
         self.btn_speed_half.setText('0.5x')
         self.btn_speed_half.clicked.connect(partial(self.adjust_speed, '0.5'))
-        self.buttons_layout.addWidget(self.btn_speed_half, 2, 0, 1, 1)
+        self.buttons_layout.addWidget(self.btn_speed_half, 3, 0, 1, 1)
+        self.btn_speed_half.setToolTip('Half Speed')
         
         self.btn_speed_reset = QtWidgets.QPushButton(self)
         self.btn_speed_reset.setText('1x')
         self.btn_speed_reset.clicked.connect(partial(self.adjust_speed, '1.0'))
-        self.buttons_layout.addWidget(self.btn_speed_reset, 2, 1, 1, 1)
+        self.buttons_layout.addWidget(self.btn_speed_reset, 3, 1, 1, 1)
+        self.btn_speed_reset.setToolTip('Original Speed')
         
         self.btn_speed_did = QtWidgets.QPushButton(self)
         self.btn_speed_did.setText('1.5x')
         self.btn_speed_did.clicked.connect(partial(self.adjust_speed, '1.5'))
-        self.buttons_layout.addWidget(self.btn_speed_did, 2, 2, 1, 1)
+        self.buttons_layout.addWidget(self.btn_speed_did, 3, 2, 1, 1)
+        self.btn_speed_did.setToolTip('Multiply speed by 1.5')
         
         self.btn_speed_twice = QtWidgets.QPushButton(self)
         self.btn_speed_twice.setText('2x')
         self.btn_speed_twice.clicked.connect(partial(self.adjust_speed, '2.0'))
-        self.buttons_layout.addWidget(self.btn_speed_twice, 2, 3, 1, 1)
+        self.buttons_layout.addWidget(self.btn_speed_twice, 3, 3, 1, 1)
+        self.btn_speed_twice.setToolTip('Multiply speed by 2')
         
         self.btn_sub_minus = QtWidgets.QPushButton(self)
         self.btn_sub_minus.setText('Sub-')
-        self.btn_sub_minus.clicked.connect(partial(self.add_delay, 'add sub-delay -0.1'))
-        self.buttons_layout.addWidget(self.btn_sub_minus, 3, 0, 1, 1)
+        self.btn_sub_minus.clicked.connect(partial(self.execute_command, 'add sub-delay -0.1'))
+        self.buttons_layout.addWidget(self.btn_sub_minus, 4, 0, 1, 1)
         self.btn_sub_minus.setToolTip('Add Subtitle Delay of -0.1s')
         
         self.btn_sub_plus = QtWidgets.QPushButton(self)
         self.btn_sub_plus.setText('Sub+')
-        self.btn_sub_plus.clicked.connect(partial(self.add_delay, 'add sub-delay +0.1'))
-        self.buttons_layout.addWidget(self.btn_sub_plus, 3, 1, 1, 1)
+        self.btn_sub_plus.clicked.connect(partial(self.execute_command, 'add sub-delay +0.1'))
+        self.buttons_layout.addWidget(self.btn_sub_plus, 4, 1, 1, 1)
         self.btn_sub_plus.setToolTip('Add Subtitle Delay of +0.1s')
         
         self.btn_aud_minus = QtWidgets.QPushButton(self)
         self.btn_aud_minus.setText('A-')
-        self.btn_aud_minus.clicked.connect(partial(self.add_delay, 'add audio-delay -0.1'))
-        self.buttons_layout.addWidget(self.btn_aud_minus, 3, 2, 1, 1)
+        self.btn_aud_minus.clicked.connect(partial(self.execute_command, 'add audio-delay -0.1'))
+        self.buttons_layout.addWidget(self.btn_aud_minus, 4, 2, 1, 1)
         self.btn_aud_minus.setToolTip('Add Audio Delay of -0.1s')
         
         self.btn_aud_plus = QtWidgets.QPushButton(self)
         self.btn_aud_plus.setText('A+')
-        self.btn_aud_plus.clicked.connect(partial(self.add_delay, 'add audio-delay +0.1'))
-        self.buttons_layout.addWidget(self.btn_aud_plus, 3, 3, 1, 1)
+        self.btn_aud_plus.clicked.connect(partial(self.execute_command, 'add audio-delay +0.1'))
+        self.buttons_layout.addWidget(self.btn_aud_plus, 4, 3, 1, 1)
         self.btn_aud_plus.setToolTip('Add Audio Delay of +0.1s')
-        
-        
         
         self.btn_chapter_minus = QtWidgets.QPushButton(self)
         self.btn_chapter_minus.setText('Chapter-')
         self.btn_chapter_minus.clicked.connect(partial(self.add_chapter, '-'))
-        self.buttons_layout.addWidget(self.btn_chapter_minus, 4, 0, 1, 2)
+        self.buttons_layout.addWidget(self.btn_chapter_minus, 5, 0, 1, 2)
         
         self.btn_chapter_plus = QtWidgets.QPushButton(self)
         self.btn_chapter_plus.setText('Chapter+')
         self.btn_chapter_plus.clicked.connect(partial(self.add_chapter, '+'))
-        self.buttons_layout.addWidget(self.btn_chapter_plus, 4, 2, 1, 2)
+        self.buttons_layout.addWidget(self.btn_chapter_plus, 5, 2, 1, 2)
+        
+        self.btn_show_stat = QtWidgets.QPushButton(self)
+        self.btn_show_stat.setText('Show Stats')
+        self.btn_show_stat.clicked.connect(partial(self.execute_command, 'script-binding stats/display-stats-toggle'))
+        self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 2)
+        
+        self.btn_external_sub = QtWidgets.QPushButton(self)
+        self.btn_external_sub.setText('External Subtitle')
+        self.btn_external_sub.clicked.connect(partial(self.execute_command, 'external-subtitle'))
+        self.buttons_layout.addWidget(self.btn_external_sub, 6, 2, 1, 2)
         
         self.volume_layout = QtWidgets.QGridLayout(self)
         self.volume_layout.setObjectName('volume_layout')
         self.layout.insertLayout(3, self.volume_layout)
-        
         
         self.volume_label = QtWidgets.QLabel(self)
         self.volume_label.setText('Volume')
@@ -782,9 +814,12 @@ class ExtraToolBar(QtWidgets.QFrame):
             key = '0'
         ui.tab_5.change_aspect_ratio(key=key)
     
-    def add_delay(self, msg):
-        msg = bytes('\n {} \n'.format(msg), 'utf-8')
-        ui.mpvplayer_val.write(msg)
+    def execute_command(self, msg):
+        if msg == 'external-subtitle':
+            ui.tab_5.load_external_sub()
+        else:
+            msg = bytes('\n {} \n'.format(msg), 'utf-8')
+            ui.mpvplayer_val.write(msg)
         
     def add_chapter(self, val):
         if val == '-':
