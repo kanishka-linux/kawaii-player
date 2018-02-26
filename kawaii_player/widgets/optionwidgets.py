@@ -562,6 +562,17 @@ class SelectButton(QtWidgets.QComboBox):
         else:
             super(SelectButton, self).keyPressEvent(event)
 
+class SmallLabel(QtWidgets.QLabel):
+
+    def __init(self, parent):
+        super(SmallLabel, self).__init__(parent)
+    
+    def set_param(self, parent):
+        self.parent = parent
+        
+    def mousePressEvent(self, event):
+        self.parent.speed_slider.setValue(0)
+
 class GSBCSlider(QtWidgets.QSlider):
 
     def __init__(self, parent, uiwidget, name):
@@ -572,23 +583,29 @@ class GSBCSlider(QtWidgets.QSlider):
         self.setObjectName(name)
         self.setOrientation(QtCore.Qt.Horizontal)
         if name == 'zoom':
-            self.setRange(-200, 200)
+            self.setRange(-2000, 2000)
+            self.setSingleStep(10)
+            self.setPageStep(10)
         elif name == 'speed':
-            self.setRange(-100, 400)
+            self.setRange(-100, 900)
+            self.setSingleStep(10)
+            self.setPageStep(10)
         else:
             self.setRange(-100, 100)
-        self.setTickInterval(5)
+            self.setSingleStep(1)
+            self.setPageStep(1)
+        #self.setTickInterval(5)
         self.setValue(0)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_gsbc_values)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.setTickPosition(QtWidgets.QSlider.TicksAbove)
+        #self.setTickPosition(QtWidgets.QSlider.TicksAbove)
         
     def adjust_gsbc_values(self, val):
         name = self.objectName()
         if name == 'zoom':
             label_value = eval('self.parent.{}_value'.format(name))
-            zoom_val = 0.01* val
+            zoom_val = 0.001* val
             label_value.setPlaceholderText(str(zoom_val))
             cmd = '\n set video-zoom {} \n'.format(zoom_val)
             if ui.mpvplayer_val.processId() > 0:
@@ -659,10 +676,13 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.zoom_label.setText('Zoom')
         self.zoom_value = QtWidgets.QLineEdit(self)
         
-        self.speed_label = QtWidgets.QLabel(self)
+        self.speed_label = SmallLabel(self)
+        self.speed_label.set_param(self)
         self.speed_label.setText('Speed')
         self.speed_value = QtWidgets.QLineEdit(self)
         self.speed_value.setPlaceholderText('1.0')
+        self.speed_label.setStyleSheet("""text-align:left;background:rgba(0,0,0,0)""")
+        self.speed_label.setToolTip('Click for original speed')
         
         slider_list = [
             self.contrast_slider, self.brightness_slider,
@@ -672,7 +692,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         for index, slider in enumerate(slider_list):
             label = eval("self.{}_label".format(slider.objectName()))
             label_value = eval("self.{}_value".format(slider.objectName()))
-            label_value.setMaximumWidth(32)
+            label_value.setMaximumWidth(42)
             label_value.setPlaceholderText(str(slider.value()))
             label_value.returnPressed.connect(partial(self.gsbc_entered, label_value, slider))
             self.gsbc_layout.addWidget(label, index, 0, 1, 1)
@@ -820,6 +840,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.speed_value.setPlaceholderText('1.0')
         self.speed_value.setToolTip('Default Original Speed 1.0')
     
+    def mouseMoveEvent(self, event):
+        self.setFocus()
+        
     def change_aspect(self, val):
         if val == '2.35:1':
             key = '3'
