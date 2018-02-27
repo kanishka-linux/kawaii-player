@@ -638,6 +638,84 @@ class GSBCSlider(QtWidgets.QSlider):
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             ui.gsbc_dict.update({name:val})
+
+class SubtitleSlider(QtWidgets.QSlider):
+
+    def __init__(self, parent, uiwidget, name):
+        super(SubtitleSlider, self).__init__(parent)
+        global ui
+        self.parent = parent
+        ui = uiwidget
+        self.setObjectName(name)
+        self.setOrientation(QtCore.Qt.Horizontal)
+        if name == 'text':
+            self.setRange(0, 100)
+            self.setSingleStep(1)
+            self.setPageStep(1)
+            self.setValue(55)
+        elif name == 'border':
+            self.setRange(0, 100)
+            self.setSingleStep(1)
+            self.setPageStep(1)
+            self.setValue(30)
+        elif name == 'shadow':
+            self.setRange(0, 100)
+            self.setSingleStep(1)
+            self.setPageStep(1)
+            self.setValue(0)
+        elif name == 'blur':
+            self.setRange(0, 2000)
+            self.setSingleStep(10)
+            self.setPageStep(10)
+            self.setValue(0)
+        self.setMouseTracking(True)
+        self.valueChanged.connect(self.adjust_sub_size)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        
+    def adjust_sub_size(self, val):
+        name = self.objectName()
+        if name == 'text':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            label_value.setPlaceholderText(str(val))
+            cmd = '\n set sub-font-size {} \n'.format(val)
+            ui.subtitle_dict.update({'sub-font-size':str(val)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'border':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            value = val * 0.1
+            label_value.setPlaceholderText(str(value))
+            cmd = '\n set sub-border-size {} \n'.format(value)
+            ui.subtitle_dict.update({'sub-border-size':str(value)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'shadow':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            value = val * 0.1
+            label_value.setPlaceholderText(str(value))
+            cmd = '\n set sub-shadow-offset {} \n'.format(value)
+            ui.subtitle_dict.update({'sub-shadow-offset':str(value)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'blur':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            value = val * 0.01
+            label_value.setPlaceholderText(str(value))
+            cmd = '\n set sub-blur {} \n'.format(value)
+            ui.subtitle_dict.update({'sub-blur':str(value)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+
+class QLineCustomFont(QtWidgets.QLineEdit):
+    
+    def __init__(self, parent, ui_widget):
+        super(QLineCustomFont, self).__init__(parent)
+        global ui
+        ui = ui_widget
+        self.setMouseTracking(True)
+        
+    def mouseMoveEvent(self, event):
+        self.setFocus()
         
 class ExtraToolBar(QtWidgets.QFrame):
     
@@ -650,7 +728,34 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.setFrameShadow(QtWidgets.QFrame.Raised)
         self.setObjectName("frame_extra_toolbar")
-        self.layout = QtWidgets.QVBoxLayout(self)
+        self.super_layout = QtWidgets.QVBoxLayout(self)
+        self.super_layout.setContentsMargins(0, 0, 0, 0)
+        self.super_layout.setSpacing(0)
+        self.tab_frame = QtWidgets.QFrame(self)
+        self.tab_frame.setStyleSheet('background:rgba(0,0,0,0)')
+        self.tab_frame_layout = QtWidgets.QHBoxLayout(self.tab_frame)
+        self.tab_frame_layout.setSpacing(5)
+        self.tab_frame_layout.setContentsMargins(5,5,5,5)
+        
+        self.general_tab_btn = QtWidgets.QPushButton(self.tab_frame)
+        self.tab_frame_layout.insertWidget(0, self.general_tab_btn, 0)
+        self.general_tab_btn.setText('General')
+        self.general_tab_btn.clicked.connect(self.general_tab_show)
+        
+        self.subtitle_tab_btn = QtWidgets.QPushButton(self.tab_frame)
+        self.tab_frame_layout.insertWidget(1, self.subtitle_tab_btn, 0)
+        self.subtitle_tab_btn.setText('Subtitle')
+        self.subtitle_tab_btn.clicked.connect(self.subtitle_tab_show)
+        
+        self.child_frame = QtWidgets.QFrame(self)
+        self.subtitle_frame = QtWidgets.QFrame(self)
+        self.super_layout.insertWidget(0, self.tab_frame, 0)
+        self.super_layout.insertWidget(1, self.child_frame, 0)
+        self.super_layout.insertWidget(2, self.subtitle_frame, 0)
+        self.subtitle_frame.hide()
+        self.sub_layout = QtWidgets.QVBoxLayout(self.subtitle_frame)
+        
+        self.layout = QtWidgets.QVBoxLayout(self.child_frame)
         self.layout.setObjectName("extra_toolbar_layout")
         self.playlist_hide = False
         self.hide()
@@ -860,9 +965,169 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.speed_value.setPlaceholderText('1.0')
         self.speed_value.setToolTip('Default Original Speed 1.0')
+        
+        self.generate_subtitle_frame()
     
+    def generate_subtitle_frame(self):
+        try:
+            self.font_families = [i for i in QtGui.QFontDatabase().families()]
+        except Exception as err:
+            ui.logger.error(err)
+            self.font_families = [ui.global_font]
+        self.sub_grid = QtWidgets.QGridLayout(self)
+        self.sub_layout.insertLayout(0, self.sub_grid)
+        self.completer = QtWidgets.QCompleter(self.font_families)
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.font_label = QtWidgets.QLabel(self)
+        self.font_label.setText('Subtitle Font')
+        self.sub_grid.addWidget(self.font_label, 0, 0, 1, 1)
+        self.font_value = QLineCustomFont(self, ui)
+        self.font_value.setCompleter(self.completer)
+        self.sub_grid.addWidget(self.font_value, 0, 1, 1, 3)
+        self.font_value.setPlaceholderText(ui.global_font)
+        self.font_value.returnPressed.connect(partial(self.change_sub_font, self.font_value))
+        self.font_value.textChanged['QString'].connect(self.font_value_changed)
+        
+        self.font_color_label = QtWidgets.QLabel(self)
+        self.font_color_label.setText('Text Color')
+        self.sub_grid.addWidget(self.font_color_label, 1, 0, 1, 1)
+        self.font_color_value = QtWidgets.QPushButton(self)
+        self.font_color_value.clicked.connect(partial(self.choose_color, self.font_color_value, 'text'))
+        self.sub_grid.addWidget(self.font_color_value, 1, 1, 1, 3)
+        
+        self.border_color_label = QtWidgets.QLabel(self)
+        self.border_color_label.setText('Border Color')
+        self.sub_grid.addWidget(self.border_color_label, 2, 0, 1, 1)
+        self.border_color_value = QtWidgets.QPushButton(self)
+        self.border_color_value.clicked.connect(partial(self.choose_color, self.border_color_value, 'border'))
+        self.sub_grid.addWidget(self.border_color_value, 2, 1, 1, 3)
+        
+        self.shadow_color_label = QtWidgets.QLabel(self)
+        self.shadow_color_label.setText('Shadow Color')
+        self.sub_grid.addWidget(self.shadow_color_label, 3, 0, 1, 1)
+        self.shadow_color_value = QtWidgets.QPushButton(self)
+        self.shadow_color_value.clicked.connect(partial(self.choose_color, self.shadow_color_value, 'shadow'))
+        self.sub_grid.addWidget(self.shadow_color_value, 3, 1, 1, 3)
+        
+        self.checkbox_bold = QtWidgets.QCheckBox("Bold")
+        self.checkbox_bold.stateChanged.connect(partial(self.checkbox_options, self.checkbox_bold, 'bold'))
+        self.sub_grid.addWidget(self.checkbox_bold, 4, 0, 1, 2)
+        
+        self.checkbox_italic = QtWidgets.QCheckBox("Italic")
+        self.checkbox_italic.stateChanged.connect(partial(self.checkbox_options, self.checkbox_italic, 'italic'))
+        self.sub_grid.addWidget(self.checkbox_italic, 4, 2, 1, 2)
+        
+        self.subtitle_text_label = QtWidgets.QLabel(self)
+        self.subtitle_text_label.setText('Text Size')
+        self.sub_grid.addWidget(self.subtitle_text_label, 5, 0, 1, 1)
+        self.subtitle_text_slider = SubtitleSlider(self, ui, 'text')
+        self.sub_grid.addWidget(self.subtitle_text_slider, 5, 1, 1, 2)
+        self.subtitle_text_value = QtWidgets.QLineEdit(self)
+        self.subtitle_text_value.setPlaceholderText('55')
+        self.sub_grid.addWidget(self.subtitle_text_value, 5, 3, 1, 1)
+        self.subtitle_text_value.setMaximumWidth(42)
+        
+        self.subtitle_border_label = QtWidgets.QLabel(self)
+        self.subtitle_border_label.setText('Border Size')
+        self.sub_grid.addWidget(self.subtitle_border_label, 6, 0, 1, 1)
+        self.subtitle_border_slider = SubtitleSlider(self, ui, 'border')
+        self.sub_grid.addWidget(self.subtitle_border_slider, 6, 1, 1, 2)
+        self.subtitle_border_value = QtWidgets.QLineEdit(self)
+        self.subtitle_border_value.setPlaceholderText('3')
+        self.sub_grid.addWidget(self.subtitle_border_value, 6, 3, 1, 1)
+        self.subtitle_border_value.setMaximumWidth(42)
+        
+        self.subtitle_shadow_label = QtWidgets.QLabel(self)
+        self.subtitle_shadow_label.setText('Shadow Size')
+        self.sub_grid.addWidget(self.subtitle_shadow_label, 7, 0, 1, 1)
+        self.subtitle_shadow_slider = SubtitleSlider(self, ui, 'shadow')
+        self.sub_grid.addWidget(self.subtitle_shadow_slider, 7, 1, 1, 2)
+        self.subtitle_shadow_value = QtWidgets.QLineEdit(self)
+        self.subtitle_shadow_value.setPlaceholderText('0')
+        self.sub_grid.addWidget(self.subtitle_shadow_value, 7, 3, 1, 1)
+        self.subtitle_shadow_value.setMaximumWidth(42)
+        
+        self.subtitle_blur_label = QtWidgets.QLabel(self)
+        self.subtitle_blur_label.setText('Blur Effect')
+        self.sub_grid.addWidget(self.subtitle_blur_label, 8, 0, 1, 1)
+        self.subtitle_blur_slider = SubtitleSlider(self, ui, 'blur')
+        self.sub_grid.addWidget(self.subtitle_blur_slider, 8, 1, 1, 2)
+        self.subtitle_blur_value = QtWidgets.QLineEdit(self)
+        self.subtitle_blur_value.setPlaceholderText('0')
+        self.sub_grid.addWidget(self.subtitle_blur_value, 8, 3, 1, 1)
+        self.subtitle_blur_value.setMaximumWidth(42)
+        
+        self.ass_override_label = QtWidgets.QLabel(self)
+        self.ass_override_label.setText('Sub ASS Override')
+        self.sub_grid.addWidget(self.ass_override_label, 9, 0, 1, 2)
+        
+        self.ass_override_value = QtWidgets.QComboBox(self)
+        for i in ['yes', 'no', 'force', 'scale', 'strip']:
+            self.ass_override_value.addItem(i)
+        self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
+        self.ass_override_value.setCurrentIndex(0)
+        self.sub_grid.addWidget(self.ass_override_value, 9, 2, 1, 2)
+    
+    def font_value_changed(self):
+        self.font_value.setFocus()
+        
+    def ass_override_function(self):
+        txt = self.ass_override_value.currentText()
+        ui.subtitle_dict.update({'sub-ass-override':txt})
+        self.execute_command('set sub-ass-override={}'.format(txt))
+        ui.playerStop(msg='remember quit', restart=True)
+        #self.execute_command('print-text "${property-list}"')
+        
+    def change_sub_font(self, widget):
+        txt = widget.text()
+        widget.clear()
+        widget.setPlaceholderText(txt)
+        ui.subtitle_dict.update({'sub-font':txt})
+        ui.playerStop(msg='remember quit', restart=True)
+            
+    def checkbox_options(self, widget, value):
+        cmd = None
+        if value == 'bold':
+            if widget.isChecked():
+                ui.subtitle_dict.update({'sub-bold':'yes'})
+            else:
+                ui.subtitle_dict.update({'sub-bold':'no'})
+        elif value == 'italic':
+            if widget.isChecked():
+                ui.subtitle_dict.update({'sub-italic':'yes'})
+            else:
+                ui.subtitle_dict.update({'sub-italic':'no'})
+        ui.playerStop(msg='remember quit', restart=True)
+            
+    def general_tab_show(self):
+        self.subtitle_frame.hide()
+        self.child_frame.show()
+        
+    def choose_color(self, widget, name):
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+            color_name = color.name().upper()
+            widget.setStyleSheet('background:{};'.format(color_name))
+            cmd = None
+            if name == 'text':
+                ui.subtitle_dict.update({'sub-color':color_name})
+            elif name == 'border':
+                ui.subtitle_dict.update({'sub-border-color':color_name})
+            elif name == 'shadow':
+                ui.subtitle_dict.update({'sub-shadow-color':color_name})
+            ui.playerStop(msg='remember quit', restart=True)
+                
+    def subtitle_tab_show(self):
+        self.subtitle_frame.setMinimumHeight(self.child_frame.height())
+        self.child_frame.hide()
+        self.subtitle_frame.show()
+        
     def mouseMoveEvent(self, event):
         self.setFocus()
+        if not self.subtitle_frame.isHidden():
+            self.subtitle_frame.setFocus()
+        elif not self.child_frame.isHidden():
+            self.child_frame.setFocus()
         
     def change_aspect(self, val):
         if val == '2.35:1':
@@ -882,6 +1147,7 @@ class ExtraToolBar(QtWidgets.QFrame):
             ui.tab_5.load_external_sub()
         else:
             bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
+            print(bmsg)
             ui.mpvplayer_val.write(bmsg)
             pmsg = None
             if 'sub-delay' in msg:
@@ -932,6 +1198,6 @@ class ExtraToolBar(QtWidgets.QFrame):
                 slider.setValue(int(value))
                 label.setPlaceholderText(value)
         except Exception as err:
-            logger.error(err)
+            ui.logger.error(err)
             slider.setValue(0)
             label.setPlaceholderText('0')
