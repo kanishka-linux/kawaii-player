@@ -668,14 +668,16 @@ class SubtitleSlider(QtWidgets.QSlider):
             self.setSingleStep(10)
             self.setPageStep(10)
             self.setValue(0)
-        elif name in ['xmargin', 'ymargin']:
+        elif name in ['xmargin', 'ymargin', 'xymargin']:
             self.setRange(0, 100)
             self.setSingleStep(1)
             self.setPageStep(1)
             if name == 'xmargin':
                 self.setValue(25)
-            else:
+            elif name == 'ymargin':
                 self.setValue(22)
+            else:
+                self.setValue(0)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_sub_size)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -725,6 +727,14 @@ class SubtitleSlider(QtWidgets.QSlider):
             label_value.setPlaceholderText(str(val))
             cmd = '\n set sub-margin-y {} \n'.format(val)
             ui.subtitle_dict.update({'sub-margin-y':str(val)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'xymargin':
+            val = 100 - val
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            label_value.setPlaceholderText(str(val))
+            cmd = '\n set sub-pos {} \n'.format(val)
+            ui.subtitle_dict.update({'sub-pos':str(val)})
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
 
@@ -1033,11 +1043,15 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.checkbox_bold = QtWidgets.QCheckBox("Bold")
         self.checkbox_bold.stateChanged.connect(partial(self.checkbox_options, self.checkbox_bold, 'bold'))
-        self.sub_grid.addWidget(self.checkbox_bold, 4, 0, 1, 2)
+        self.sub_grid.addWidget(self.checkbox_bold, 4, 0, 1, 1)
         
         self.checkbox_italic = QtWidgets.QCheckBox("Italic")
         self.checkbox_italic.stateChanged.connect(partial(self.checkbox_options, self.checkbox_italic, 'italic'))
-        self.sub_grid.addWidget(self.checkbox_italic, 4, 2, 1, 2)
+        self.sub_grid.addWidget(self.checkbox_italic, 4, 1, 1, 1)
+        
+        self.checkbox_gray = QtWidgets.QCheckBox("GrayScale")
+        self.checkbox_gray.stateChanged.connect(partial(self.checkbox_options, self.checkbox_gray, 'grayscale'))
+        self.sub_grid.addWidget(self.checkbox_gray, 4, 2, 1, 2)
         
         self.subtitle_text_label = QtWidgets.QLabel(self)
         self.subtitle_text_label.setText('Text Size')
@@ -1079,16 +1093,46 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_blur_value, 8, 3, 1, 1)
         self.subtitle_blur_value.setMaximumWidth(42)
         
+        self.subtitle_xmargin_label = QtWidgets.QLabel(self)
+        self.subtitle_xmargin_label.setText('X-Margin')
+        self.sub_grid.addWidget(self.subtitle_xmargin_label, 9, 0, 1, 1)
+        self.subtitle_xmargin_slider = SubtitleSlider(self, ui, 'xmargin')
+        self.sub_grid.addWidget(self.subtitle_xmargin_slider, 9, 1, 1, 2)
+        self.subtitle_xmargin_value = QtWidgets.QLineEdit(self)
+        self.subtitle_xmargin_value.setPlaceholderText('25')
+        self.sub_grid.addWidget(self.subtitle_xmargin_value, 9, 3, 1, 1)
+        self.subtitle_xmargin_value.setMaximumWidth(42)
+        
+        self.subtitle_ymargin_label = QtWidgets.QLabel(self)
+        self.subtitle_ymargin_label.setText('Y-Margin')
+        self.sub_grid.addWidget(self.subtitle_ymargin_label, 10, 0, 1, 1)
+        self.subtitle_ymargin_slider = SubtitleSlider(self, ui, 'ymargin')
+        self.sub_grid.addWidget(self.subtitle_ymargin_slider, 10, 1, 1, 2)
+        self.subtitle_ymargin_value = QtWidgets.QLineEdit(self)
+        self.subtitle_ymargin_value.setPlaceholderText('22')
+        self.sub_grid.addWidget(self.subtitle_ymargin_value, 10, 3, 1, 1)
+        self.subtitle_ymargin_value.setMaximumWidth(42)
+        
+        self.subtitle_xymargin_label = QtWidgets.QLabel(self)
+        self.subtitle_xymargin_label.setText('Raise Vertical')
+        self.sub_grid.addWidget(self.subtitle_xymargin_label, 11, 0, 1, 1)
+        self.subtitle_xymargin_slider = SubtitleSlider(self, ui, 'xymargin')
+        self.sub_grid.addWidget(self.subtitle_xymargin_slider, 11, 1, 1, 2)
+        self.subtitle_xymargin_value = QtWidgets.QLineEdit(self)
+        self.subtitle_xymargin_value.setPlaceholderText('100')
+        self.sub_grid.addWidget(self.subtitle_xymargin_value, 11, 3, 1, 1)
+        self.subtitle_xymargin_value.setMaximumWidth(42)
+        
         self.ass_override_label = QtWidgets.QLabel(self)
         self.ass_override_label.setText('Sub ASS Override')
-        self.sub_grid.addWidget(self.ass_override_label, 9, 0, 1, 2)
+        self.sub_grid.addWidget(self.ass_override_label, 12, 0, 1, 2)
         
         self.ass_override_value = QtWidgets.QComboBox(self)
         for i in ['yes', 'no', 'force', 'scale', 'strip']:
             self.ass_override_value.addItem(i)
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
-        self.sub_grid.addWidget(self.ass_override_value, 9, 2, 1, 2)
+        self.sub_grid.addWidget(self.ass_override_value, 12, 2, 1, 2)
     
     def font_value_changed(self):
         self.font_value.setFocus()
@@ -1122,6 +1166,13 @@ class ExtraToolBar(QtWidgets.QFrame):
             else:
                 ui.subtitle_dict.update({'sub-italic':'no'})
                 cmd = 'set sub-italic no'
+        elif value == 'grayscale':
+            if widget.isChecked():
+                ui.subtitle_dict.update({'sub-gray':'yes'})
+                cmd = 'set sub-gray yes'
+            else:
+                ui.subtitle_dict.update({'sub-gray':'no'})
+                cmd = 'set sub-gray no'
         if cmd:
             self.execute_command(cmd)
             
