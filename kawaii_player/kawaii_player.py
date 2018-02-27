@@ -689,8 +689,7 @@ watch/unwatch status")
         self.slider.setRange(0, 100)
         self.slider.setMouseTracking(True)
         
-        self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
-        self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
+        
         
         try:
             aspect = (screen_width/screen_height)
@@ -732,7 +731,7 @@ watch/unwatch status")
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
         self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
-        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
+        
         #self.label.setMaximumSize(QtCore.QSize(280, 250))
         #self.label.setMinimumSize(QtCore.QSize(280, 250))
         
@@ -1560,6 +1559,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.subtitle_dict = {}
         self.screenshot_directory = TMPDIR
         self.gsbc_dict = {}
         self.clicked_label_new = False
@@ -1747,6 +1747,10 @@ watch/unwatch status")
             'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
             'tab_6':self.tab_6
             }
+        self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
+        self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
+        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
+        
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
         self.btn30.addItem(_fromUtf8(""))
@@ -3396,7 +3400,7 @@ watch/unwatch status")
             self.thumbnail_label_update_epn()
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
             
-    def playerStop(self, msg=None):
+    def playerStop(self, msg=None, restart=None):
         global thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, show_hide_cover
         global show_hide_playlist, show_hide_titlelist
@@ -3432,7 +3436,10 @@ watch/unwatch status")
                     )
                 logger.debug(self.history_dict_obj[self.final_playing_url])
                 logger.debug(self.video_parameters)
-            self.quit_really = "yes"
+            if restart:
+                self.quit_really = 'no'
+            else:
+                self.quit_really = "yes"
             if msg:
                 if msg.lower() == 'already quit':
                     logger.debug(msg)
@@ -11369,6 +11376,9 @@ watch/unwatch status")
         if self.gsbc_dict:
             for i in self.gsbc_dict:
                 command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
+        if self.subtitle_dict:
+            for i in self.subtitle_dict:
+                command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
         if s_url:
             s_url_arr = s_url.split('::')
             for i in s_url_arr:
