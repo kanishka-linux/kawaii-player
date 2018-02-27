@@ -1,5 +1,6 @@
 import os
 import datetime
+import time
 from functools import partial
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
@@ -351,25 +352,37 @@ class VolumeSlider(QtWidgets.QSlider):
         self.parent = parent
         self.setOrientation(QtCore.Qt.Horizontal)
         self.setRange(0, 100)
+        self.setPageStep(2)
+        self.setSingleStep(2)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_volume)
         self.pressed = False
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        
+        self.release = False
+    """
     def mouseMoveEvent(self, event):
         if ui.frame1.isHidden():
             ui.frame1.show()
         pos = int((event.x()/self.width())*100)
-        
+    
     def mousePressEvent(self, event):
         self.pressed = True
+        self.release = False
         pos = int((event.x()/self.width())*100)
-        self.setValue(pos)
+        while not self.release:
+            print(pos, self.value())
+            if pos > self.value():
+                self.setValue(self.value() + 1)
+            else:
+                self.setValue(self.value() - 1)
+            if self.value() >= 100 or self.value() <=0:
+                break
+            if pos == self.value():
+                break
     
     def mouseReleaseEvent(self, event):
         self.pressed = True
-        pos = int((event.x()/self.width())*100)
-        self.setValue(pos)
+        self.release = True
     
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Left]:
@@ -380,14 +393,13 @@ class VolumeSlider(QtWidgets.QSlider):
                 self.setValue(self.value() - 1)
             ui.seek_to_vol_val(self.value(), action='dragged')
             ui.player_volume = str(self.value())
-            
+    """
     def adjust_volume(self, val):
         self.parent.volume_text.setPlaceholderText('{}'.format(val))
-        if self.pressed:
-            ui.player_volume = str(val)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.seek_to_vol_val(val, action='pressed')
-                ui.logger.debug(val)
+        ui.player_volume = str(val)
+        if ui.mpvplayer_val.processId() > 0:
+            ui.seek_to_vol_val(val, action='pressed')
+            ui.logger.debug(val)
                 
 class QProgressBarCustom(QtWidgets.QProgressBar):
     
@@ -571,7 +583,9 @@ class SmallLabel(QtWidgets.QLabel):
         self.parent = parent
         
     def mousePressEvent(self, event):
-        self.parent.speed_slider.setValue(0)
+        label_txt = self.text().lower()
+        widget = eval('self.parent.{}_slider'.format(label_txt))
+        widget.setValue(0)
 
 class GSBCSlider(QtWidgets.QSlider):
 
@@ -652,37 +666,44 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.zoom_slider = GSBCSlider(self, uiwidget, 'zoom')
         self.speed_slider = GSBCSlider(self, uiwidget, 'speed')
         
-        self.brightness_label = QtWidgets.QLabel(self)
+        self.brightness_label = SmallLabel(self)
         self.brightness_label.setText('Brightness')
         self.brightness_value = QtWidgets.QLineEdit(self)
         
-        self.contrast_label = QtWidgets.QLabel(self)
+        self.contrast_label = SmallLabel(self)
         self.contrast_label.setText('Contrast')
         self.contrast_value = QtWidgets.QLineEdit(self)
         
-        self.saturation_label = QtWidgets.QLabel(self)
+        self.saturation_label = SmallLabel(self)
         self.saturation_label.setText('Saturation')
         self.saturation_value = QtWidgets.QLineEdit(self)
         
-        self.gamma_label = QtWidgets.QLabel(self)
+        self.gamma_label = SmallLabel(self)
         self.gamma_label.setText('Gamma')
         self.gamma_value = QtWidgets.QLineEdit(self)
         
-        self.hue_label = QtWidgets.QLabel(self)
+        self.hue_label = SmallLabel(self)
         self.hue_label.setText('Hue')
         self.hue_value = QtWidgets.QLineEdit(self)
         
-        self.zoom_label = QtWidgets.QLabel(self)
+        self.zoom_label = SmallLabel(self)
         self.zoom_label.setText('Zoom')
         self.zoom_value = QtWidgets.QLineEdit(self)
         
         self.speed_label = SmallLabel(self)
-        self.speed_label.set_param(self)
         self.speed_label.setText('Speed')
         self.speed_value = QtWidgets.QLineEdit(self)
         self.speed_value.setPlaceholderText('1.0')
-        self.speed_label.setStyleSheet("""text-align:left;background:rgba(0,0,0,0)""")
-        self.speed_label.setToolTip('Click for original speed')
+        label_list = [
+            self.brightness_label, self.contrast_label, self.saturation_label,
+            self.gamma_label, self.hue_label, self.zoom_label, self.speed_label
+            ]
+        for label in label_list:
+            label.set_param(self)
+            label.setStyleSheet("""
+                text-align:left;background:rgba(0,0,0,0);
+                """)
+            label.setToolTip('Click on Text To Reset')
         
         slider_list = [
             self.contrast_slider, self.brightness_slider,
