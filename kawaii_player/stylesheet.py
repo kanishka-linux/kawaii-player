@@ -653,15 +653,19 @@ class WidgetStyleSheet:
                         font: {bold} {size};
                         background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});
                         """.format(alpha=alpha, color=gui.list_text_color, bold=font_bold, size=font_size))
-                for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn, gui.frame_extra_toolbar]:
+                for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn,
+                        gui.frame_extra_toolbar.child_frame, gui.frame_extra_toolbar.tab_frame,
+                        gui.frame_extra_toolbar.subtitle_frame]:
                     bg = '30%'
                     if frame == gui.dockWidget_3:
                         qbtn = '50%'
                     else:
                         qbtn = '10%'
-                    if frame == gui.frame_extra_toolbar:
+                    if frame in [gui.frame_extra_toolbar.child_frame,
+                                 gui.frame_extra_toolbar.tab_frame,
+                                 gui.frame_extra_toolbar.subtitle_frame]:
                         label_alpha = '0%'
-                        new_height = int(gui.frame_height/2.2)
+                        new_height = int(gui.frame_height/2.4)
                         min_height = 'height: {}px'.format(new_height)
                         gui.logger.debug('min-height-box={}'.format(min_height))
                     else:
