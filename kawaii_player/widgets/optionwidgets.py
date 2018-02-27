@@ -668,6 +668,14 @@ class SubtitleSlider(QtWidgets.QSlider):
             self.setSingleStep(10)
             self.setPageStep(10)
             self.setValue(0)
+        elif name in ['xmargin', 'ymargin']:
+            self.setRange(0, 100)
+            self.setSingleStep(1)
+            self.setPageStep(1)
+            if name == 'xmargin':
+                self.setValue(25)
+            else:
+                self.setValue(22)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_sub_size)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -703,6 +711,20 @@ class SubtitleSlider(QtWidgets.QSlider):
             label_value.setPlaceholderText(str(value))
             cmd = '\n set sub-blur {} \n'.format(value)
             ui.subtitle_dict.update({'sub-blur':str(value)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'xmargin':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            label_value.setPlaceholderText(str(val))
+            cmd = '\n set sub-margin-x {} \n'.format(val)
+            ui.subtitle_dict.update({'sub-margin-x':str(val)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'ymargin':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            label_value.setPlaceholderText(str(val))
+            cmd = '\n set sub-margin-y {} \n'.format(val)
+            ui.subtitle_dict.update({'sub-margin-y':str(val)})
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
 
@@ -1074,8 +1096,7 @@ class ExtraToolBar(QtWidgets.QFrame):
     def ass_override_function(self):
         txt = self.ass_override_value.currentText()
         ui.subtitle_dict.update({'sub-ass-override':txt})
-        self.execute_command('set sub-ass-override={}'.format(txt))
-        ui.playerStop(msg='remember quit', restart=True)
+        self.execute_command('set sub-ass-override {}'.format(txt))
         #self.execute_command('print-text "${property-list}"')
         
     def change_sub_font(self, widget):
@@ -1083,21 +1104,26 @@ class ExtraToolBar(QtWidgets.QFrame):
         widget.clear()
         widget.setPlaceholderText(txt)
         ui.subtitle_dict.update({'sub-font':txt})
-        ui.playerStop(msg='remember quit', restart=True)
+        self.execute_command('set sub-font "{}"'.format(txt))
             
     def checkbox_options(self, widget, value):
         cmd = None
         if value == 'bold':
             if widget.isChecked():
                 ui.subtitle_dict.update({'sub-bold':'yes'})
+                cmd = 'set sub-bold yes'
             else:
                 ui.subtitle_dict.update({'sub-bold':'no'})
+                cmd = 'set sub-bold no'
         elif value == 'italic':
             if widget.isChecked():
                 ui.subtitle_dict.update({'sub-italic':'yes'})
+                cmd = 'set sub-italic yes'
             else:
                 ui.subtitle_dict.update({'sub-italic':'no'})
-        ui.playerStop(msg='remember quit', restart=True)
+                cmd = 'set sub-italic no'
+        if cmd:
+            self.execute_command(cmd)
             
     def general_tab_show(self):
         self.subtitle_frame.hide()
@@ -1111,11 +1137,15 @@ class ExtraToolBar(QtWidgets.QFrame):
             cmd = None
             if name == 'text':
                 ui.subtitle_dict.update({'sub-color':color_name})
+                cmd = 'set sub-color "{}"'.format(color_name)
             elif name == 'border':
                 ui.subtitle_dict.update({'sub-border-color':color_name})
+                cmd = 'set sub-border-color "{}"'.format(color_name)
             elif name == 'shadow':
                 ui.subtitle_dict.update({'sub-shadow-color':color_name})
-            ui.playerStop(msg='remember quit', restart=True)
+                cmd = 'set sub-shadow-color "{}"'.format(color_name)
+            if cmd:
+                self.execute_command(cmd)
                 
     def subtitle_tab_show(self):
         self.subtitle_frame.setMinimumHeight(self.child_frame.height())
