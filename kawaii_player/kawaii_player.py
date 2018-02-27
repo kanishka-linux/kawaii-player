@@ -10148,8 +10148,8 @@ watch/unwatch status")
                                 msg_str = 'Volume'
                             msg = '\n show-text "{}: {}%" \n'.format(msg_str, self.player_volume)
                             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
-                            self.frame_extra_toolbar.slider_volume.pressed = False
-                            self.frame_extra_toolbar.slider_volume.setValue(int(self.player_volume))
+                            #self.frame_extra_toolbar.slider_volume.pressed = False
+                            #self.frame_extra_toolbar.slider_volume.setValue(int(self.player_volume))
                 elif ("Length_Seconds=" in a and not self.mplayerLength 
                         and 'args=' not in a and not self.eof_reached):
                     if a.startswith(r"b'"):
