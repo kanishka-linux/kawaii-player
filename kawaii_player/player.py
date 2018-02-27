@@ -589,6 +589,7 @@ class PlayerWidget(QtWidgets.QWidget):
         vol = None
         volume = False
         msg = None
+        new_command = None
         if ' ' in command:
             vol_int = command.split(' ')[-1]
             if vol_int.startswith('-') or vol_int.startswith('+'):
@@ -597,15 +598,23 @@ class PlayerWidget(QtWidgets.QWidget):
                 vol = vol_int
             if vol.isnumeric():
                 volume = True
+        slider = self.ui.frame_extra_toolbar.slider_volume
         if command.startswith('add volume') and volume:
-            command = '\n add volume {} \n'.format(vol_int)
-            msg = '\n print-text volume-print=${volume} \n'
+            value = slider.value() + int(vol_int)
+            if self.ui.volume_type == 'ao-volume':
+                msg = '\n print-text volume-print=${volume} \n'
+            if value <= 100:
+                slider.setValue(value)
+            else:
+                new_command = '\n add volume {} \n'.format(vol_int)
+                msg = '\n print-text volume-print=${volume} \n'
         elif command.startswith('add ao-volume') and volume:
-            command = '\n add ao-volume {} \n'.format(vol_int)
-            msg = '\n print-text ao-volume-print=${ao-volume} \n'
+            slider.setValue(slider.value() + int(vol_int))
+            if self.ui.volume_type == 'volume':
+                msg = '\n print-text ao-volume-print=${ao-volume} \n'
         if msg:
-            new_command = bytes(command, 'utf8')
-            self.mpvplayer.write(new_command)
+            if new_command:
+                self.mpvplayer.write(bytes(new_command, 'utf-8'))
             msg = bytes(msg, 'utf-8')
             self.mpvplayer.write(msg)
             
