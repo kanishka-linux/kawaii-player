@@ -169,14 +169,22 @@ class WidgetStyleSheet:
                     """.format(alpha=alpha, bold=font_bold,
                                color=gui.list_text_color, font_size=font_size))
             for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3,
-                          gui.goto_epn, gui.btnWebReviews, gui.frame_extra_toolbar]:
+                          gui.goto_epn, gui.btnWebReviews,
+                          gui.frame_extra_toolbar.child_frame,
+                          gui.frame_extra_toolbar.tab_frame,
+                          gui.frame_extra_toolbar.subtitle_frame]:
                 if frame == gui.dockWidget_3:
                     alpha = '40%'
                 else:
                     alpha = '30%'
-                if frame == gui.frame_extra_toolbar:
+                if frame in [gui.frame_extra_toolbar.child_frame,
+                            gui.frame_extra_toolbar.tab_frame,
+                            gui.frame_extra_toolbar.subtitle_frame]:
                     label_alpha = '0%'
-                    min_height = 'height: 32px'
+                    #min_height = 'height: 32px'
+                    new_height = int(gui.frame_height/2.4)
+                    min_height = 'height: {}px'.format(new_height)
+                    gui.logger.debug('min-height-box={}'.format(min_height))
                 else:
                     label_alpha = '30%'
                     min_height = ''
@@ -231,7 +239,6 @@ class WidgetStyleSheet:
                     QComboBox::down-arrow {{
                     width: 2px;
                     height: 2px;
-                    background-color:violet;
                     }}
                     
                     QSlider:groove:horizontal {{
@@ -252,6 +259,12 @@ class WidgetStyleSheet:
                     font : {bold} {size}px {font};
                     color: black;
                     background:rgb(54, 60, 74);
+                    }}
+                    
+                    QCheckBox{{
+                    color:{color};background:rgba(0,0,0,0%);
+                    border:rgba(0, 0, 0, 10%); font: {bold} {font};
+                    {min_height};
                     }}
                     
                     """.format(
@@ -733,7 +746,11 @@ class WidgetStyleSheet:
                             background:rgb(56,60,74);
                             padding: 1px 2px 1px 2px;
                         }}
-                        
+                        QCheckBox{{
+                            color:{color};background:rgba(0,0,0,0%);
+                            border:rgba(0, 0, 0, 10%); font: {bold} {font};
+                            {min_height};
+                            }}
                         """.format(
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
                             focus=gui.list_text_color_focus, bold=font_bold,
