@@ -1066,6 +1066,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_text_value, 5, 3, 1, 1)
         self.subtitle_text_value.setMaximumWidth(42)
         self.subtitle_text_value.setToolTip('Default, 55')
+        self.subtitle_text_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_text_value, self.subtitle_text_slider))
         
         self.subtitle_border_label = QtWidgets.QLabel(self)
         self.subtitle_border_label.setText('Border Size')
@@ -1077,6 +1078,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_border_value, 6, 3, 1, 1)
         self.subtitle_border_value.setMaximumWidth(42)
         self.subtitle_border_value.setToolTip('Default, 3')
+        self.subtitle_border_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_border_value, self.subtitle_border_slider))
         
         self.subtitle_shadow_label = QtWidgets.QLabel(self)
         self.subtitle_shadow_label.setText('Shadow Size')
@@ -1088,6 +1090,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_shadow_value, 7, 3, 1, 1)
         self.subtitle_shadow_value.setMaximumWidth(42)
         self.subtitle_shadow_value.setToolTip('Default, 0')
+        self.subtitle_shadow_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_shadow_value, self.subtitle_shadow_slider))
         
         self.subtitle_blur_label = QtWidgets.QLabel(self)
         self.subtitle_blur_label.setText('Blur Effect')
@@ -1099,6 +1102,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_blur_value, 8, 3, 1, 1)
         self.subtitle_blur_value.setMaximumWidth(42)
         self.subtitle_blur_value.setToolTip('Default, 0')
+        self.subtitle_blur_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_blur_value, self.subtitle_blur_slider))
         
         self.subtitle_xmargin_label = QtWidgets.QLabel(self)
         self.subtitle_xmargin_label.setText('X-Margin')
@@ -1110,6 +1114,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_xmargin_value, 9, 3, 1, 1)
         self.subtitle_xmargin_value.setMaximumWidth(42)
         self.subtitle_xmargin_value.setToolTip('Default, 25')
+        self.subtitle_xmargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_xmargin_value, self.subtitle_xmargin_slider))
         
         self.subtitle_ymargin_label = QtWidgets.QLabel(self)
         self.subtitle_ymargin_label.setText('Y-Margin')
@@ -1121,6 +1126,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_ymargin_value, 10, 3, 1, 1)
         self.subtitle_ymargin_value.setMaximumWidth(42)
         self.subtitle_ymargin_value.setToolTip('Default, 22')
+        self.subtitle_ymargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_ymargin_value, self.subtitle_ymargin_slider))
         
         self.subtitle_xymargin_label = QtWidgets.QLabel(self)
         self.subtitle_xymargin_label.setText('Raise Vertical')
@@ -1132,6 +1138,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.subtitle_xymargin_value, 11, 3, 1, 1)
         self.subtitle_xymargin_value.setMaximumWidth(42)
         self.subtitle_xymargin_value.setToolTip('Default, 100')
+        self.subtitle_xymargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_xymargin_value, self.subtitle_xymargin_slider))
         
         self.ass_override_label = QtWidgets.QLabel(self)
         self.ass_override_label.setText('Sub ASS Override')
@@ -1310,10 +1317,22 @@ class ExtraToolBar(QtWidgets.QFrame):
                 label.setPlaceholderText(value)
                 value = float(value)*100
                 slider.setValue(int(value))
-            if slider.objectName() == 'speed':
+            elif slider.objectName() == 'speed':
                 label.setPlaceholderText(value)
                 value = float(value)*100 - 100
                 slider.setValue(int(value))
+            elif slider.objectName() in ['border', 'shadow']:
+                label.setPlaceholderText(value)
+                value = float(value)*10
+                slider.setValue(int(value))
+            elif slider.objectName() == 'blur':
+                label.setPlaceholderText(value)
+                value = float(value)*100
+                slider.setValue(int(value))
+            elif slider.objectName() == 'xymargin':
+                label.setPlaceholderText(value)
+                value = 100 - int(value)
+                slider.setValue(value)
             else:
                 slider.setValue(int(value))
                 label.setPlaceholderText(value)
