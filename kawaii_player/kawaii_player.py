@@ -12735,6 +12735,9 @@ def main():
                             slider.setValue(int(ui.gsbc_dict[i]))
                         except Exception as err:
                             logger.error(err)
+            if '#SUBTITLE@DICT' in ui.history_dict_obj:
+                ui.subtitle_dict = ui.history_dict_obj['#SUBTITLE@DICT'][0].copy()
+                
     if os.path.isfile(ui.playing_queue_file):
         with open(ui.playing_queue_file, 'rb') as queue_file_read:
             ui.queue_url_list = pickle.load(queue_file_read)
@@ -12904,6 +12907,14 @@ def main():
                         j = j.strip()
                         if j.lower() == 'true':
                             ui.clicked_label_new = True
+                    except Exception as err:
+                        logger.error(err)
+                elif i.startswith('APPLY_SUBTITLE_SETTINGS='):
+                    try:
+                        j = j.strip()
+                        if j.lower() == 'false':
+                            ui.apply_subtitle_settings = False
+                            ui.frame_extra_toolbar.checkbox_dont.setChecked(True)
                     except Exception as err:
                         logger.error(err)
                 elif "Option_SiteName" in i:
@@ -13942,6 +13953,7 @@ def main():
             f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
             f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
             f.write("\nVOLUME_VALUE={0}".format(ui.player_volume))
+            f.write("\nAPPLY_SUBTITLE_SETTINGS={0}".format(ui.apply_subtitle_settings))
             f.write("\nCLICKED_LABEL_NEW={0}".format(ui.clicked_label_new))
     if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
@@ -13960,6 +13972,7 @@ def main():
                 }
             )
             ui.history_dict_obj.update({'#GSBCH@DICT':[ui.gsbc_dict]})
+            ui.history_dict_obj.update({'#SUBTITLE@DICT':[ui.subtitle_dict]})
         pickle.dump(ui.history_dict_obj, pls_file)
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()
