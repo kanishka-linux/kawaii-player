@@ -1001,7 +1001,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.speed_value.setToolTip('Default Original Speed 1.0')
         
         self.generate_subtitle_frame()
-    
+        self.subtitle_box_opened = False
+        
     def generate_subtitle_frame(self):
         try:
             self.font_families = [i for i in QtGui.QFontDatabase().families()]
@@ -1156,6 +1157,24 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
         self.sub_grid.addWidget(self.checkbox_dont, 13, 0, 1, 4)
         
+        self.subtitle_widgets = {
+            'sub-ass-override': self.ass_override_value,
+            'sub-font': self.font_value,
+            'sub-color': self.font_color_value,
+            'sub-border-color': self.border_color_value,
+            'sub-shadow-color': self.shadow_color_value,
+            'sub-bold': self.checkbox_bold,
+            'sub-italic': self.checkbox_italic,
+            'sub-gray': self.checkbox_gray,
+            'sub-font-size': self.subtitle_text_slider,
+            'sub-border-size': self.subtitle_border_slider,
+            'sub-shadow-offset': self.subtitle_shadow_slider,
+            'sub-blur': self.subtitle_blur_slider,
+            'sub-margin-x': self.subtitle_xmargin_slider,
+            'sub-margin-y': self.subtitle_ymargin_slider,
+            'sub-pos': self.subtitle_xymargin_slider
+        }
+        
     def font_value_changed(self):
         self.font_value.setFocus()
         
@@ -1229,7 +1248,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         default_color = self.get_default_color(widget, name)
         color = QtWidgets.QColorDialog.getColor(QtGui.QColor(default_color))
         if color.isValid():
-            color_name = color.name()
+            color_name = color.name().upper()
             widget.setStyleSheet('background:{};'.format(color_name))
             cmd = None
             if name == 'text':
@@ -1248,8 +1267,42 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_frame.setMinimumHeight(self.child_frame.height())
         self.child_frame.hide()
         self.subtitle_frame.show()
-        
-    def mouseMoveEvent(self, event):
+        if not self.subtitle_box_opened:
+            self.subtitle_box_opened = True
+            self.apply_initial_sub_settings()
+    
+    def apply_initial_sub_settings(self):
+        for property_name in ui.subtitle_dict:
+            property_value = ui.subtitle_dict.get(property_name)
+            widget = self.subtitle_widgets.get(property_name)
+            if widget and property_value:
+                if property_name == 'sub-font':
+                    widget.clear()
+                    widget.setPlaceholderText(property_value)
+                elif property_name in ['sub-color', 'sub-border-color', 'sub-shadow-color']:
+                    widget.setStyleSheet("background:{};".format(property_value))
+                elif property_name in ['sub-bold', 'sub-italic', 'sub-gray']:
+                    if property_value == 'yes':
+                        widget.setChecked(True)
+                    else:
+                        widget.setChecked(False)
+                elif property_name in ['sub-font-size', 'sub-margin-x', 'sub-margin-y']:
+                    if property_value.isnumeric():
+                        widget.setValue(int(property_value))
+                elif property_name == 'sub-pos':
+                    if property_value.isnumeric():
+                        widget.setValue(100 - int(property_value))
+                elif property_name in ['sub-border-size', 'sub-shadow-offset']:
+                    new_val = float(property_value) * 10
+                    widget.setValue(new_val)
+                elif property_name == 'sub-blur':
+                    new_val = float(property_value) * 100
+                    widget.setValue(new_val)
+                elif property_name == 'sub-ass-override':
+                    index = widget.findText(property_value)
+                    widget.setCurrentIndex(index)
+                    
+    def mouseMoveEvent(self, event):    
         self.setFocus()
         if not self.subtitle_frame.isHidden():
             self.subtitle_frame.setFocus()
