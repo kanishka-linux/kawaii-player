@@ -747,6 +747,8 @@ class QLineCustomFont(QtWidgets.QLineEdit):
         self.setMouseTracking(True)
         
     def mouseMoveEvent(self, event):
+        if ui.tab_5.arrow_timer.isActive():
+            ui.tab_5.arrow_timer.stop()
         self.setFocus()
         
 class ExtraToolBar(QtWidgets.QFrame):
@@ -1052,6 +1054,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.checkbox_gray = QtWidgets.QCheckBox("GrayScale")
         self.checkbox_gray.stateChanged.connect(partial(self.checkbox_options, self.checkbox_gray, 'grayscale'))
         self.sub_grid.addWidget(self.checkbox_gray, 4, 2, 1, 2)
+        self.checkbox_gray.setToolTip('Useful only for yellow DVD/Vobsubs')
         
         self.subtitle_text_label = QtWidgets.QLabel(self)
         self.subtitle_text_label.setText('Text Size')
@@ -1062,6 +1065,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_text_value.setPlaceholderText('55')
         self.sub_grid.addWidget(self.subtitle_text_value, 5, 3, 1, 1)
         self.subtitle_text_value.setMaximumWidth(42)
+        self.subtitle_text_value.setToolTip('Default, 55')
         
         self.subtitle_border_label = QtWidgets.QLabel(self)
         self.subtitle_border_label.setText('Border Size')
@@ -1072,6 +1076,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_border_value.setPlaceholderText('3')
         self.sub_grid.addWidget(self.subtitle_border_value, 6, 3, 1, 1)
         self.subtitle_border_value.setMaximumWidth(42)
+        self.subtitle_border_value.setToolTip('Default, 3')
         
         self.subtitle_shadow_label = QtWidgets.QLabel(self)
         self.subtitle_shadow_label.setText('Shadow Size')
@@ -1082,6 +1087,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_shadow_value.setPlaceholderText('0')
         self.sub_grid.addWidget(self.subtitle_shadow_value, 7, 3, 1, 1)
         self.subtitle_shadow_value.setMaximumWidth(42)
+        self.subtitle_shadow_value.setToolTip('Default, 0')
         
         self.subtitle_blur_label = QtWidgets.QLabel(self)
         self.subtitle_blur_label.setText('Blur Effect')
@@ -1092,6 +1098,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_blur_value.setPlaceholderText('0')
         self.sub_grid.addWidget(self.subtitle_blur_value, 8, 3, 1, 1)
         self.subtitle_blur_value.setMaximumWidth(42)
+        self.subtitle_blur_value.setToolTip('Default, 0')
         
         self.subtitle_xmargin_label = QtWidgets.QLabel(self)
         self.subtitle_xmargin_label.setText('X-Margin')
@@ -1102,6 +1109,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_xmargin_value.setPlaceholderText('25')
         self.sub_grid.addWidget(self.subtitle_xmargin_value, 9, 3, 1, 1)
         self.subtitle_xmargin_value.setMaximumWidth(42)
+        self.subtitle_xmargin_value.setToolTip('Default, 25')
         
         self.subtitle_ymargin_label = QtWidgets.QLabel(self)
         self.subtitle_ymargin_label.setText('Y-Margin')
@@ -1112,6 +1120,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_ymargin_value.setPlaceholderText('22')
         self.sub_grid.addWidget(self.subtitle_ymargin_value, 10, 3, 1, 1)
         self.subtitle_ymargin_value.setMaximumWidth(42)
+        self.subtitle_ymargin_value.setToolTip('Default, 22')
         
         self.subtitle_xymargin_label = QtWidgets.QLabel(self)
         self.subtitle_xymargin_label.setText('Raise Vertical')
@@ -1122,6 +1131,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_xymargin_value.setPlaceholderText('100')
         self.sub_grid.addWidget(self.subtitle_xymargin_value, 11, 3, 1, 1)
         self.subtitle_xymargin_value.setMaximumWidth(42)
+        self.subtitle_xymargin_value.setToolTip('Default, 100')
         
         self.ass_override_label = QtWidgets.QLabel(self)
         self.ass_override_label.setText('Sub ASS Override')
@@ -1133,7 +1143,12 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
         self.sub_grid.addWidget(self.ass_override_value, 12, 2, 1, 2)
-    
+        self.ass_override_value.setToolTip('Default, yes')
+        
+        self.checkbox_dont = QtWidgets.QCheckBox("Do not Apply Above Settings")
+        self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
+        self.sub_grid.addWidget(self.checkbox_dont, 13, 0, 1, 4)
+        
     def font_value_changed(self):
         self.font_value.setFocus()
         
@@ -1173,17 +1188,41 @@ class ExtraToolBar(QtWidgets.QFrame):
             else:
                 ui.subtitle_dict.update({'sub-gray':'no'})
                 cmd = 'set sub-gray no'
+            ui.playerStop(msg='remember_quit', restart=True)
+        elif value == 'dont':
+            if widget.isChecked():
+                ui.apply_subtitle_settings = False
+            else:
+                ui.apply_subtitle_settings = True
+            ui.playerStop(msg='remember_quit', restart=True)
         if cmd:
             self.execute_command(cmd)
             
     def general_tab_show(self):
         self.subtitle_frame.hide()
         self.child_frame.show()
+    
+    def get_default_color(self, widget, name):
+        color_name = None
+        if name == 'text':
+            color_name = ui.subtitle_dict.get('sub-color')
+            if not color_name:
+                color_name = '#FFFFFF'
+        elif name == 'border':
+            color_name = ui.subtitle_dict.get('sub-border-color')
+            if not color_name:
+                color_name = '#000000'
+        elif name == 'shadow':
+            color_name = ui.subtitle_dict.get('sub-shadow-color')
+        if not color_name:
+            color_name = '#FFFFFF'
+        return color_name
         
     def choose_color(self, widget, name):
-        color = QtWidgets.QColorDialog.getColor()
+        default_color = self.get_default_color(widget, name)
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(default_color))
         if color.isValid():
-            color_name = color.name().upper()
+            color_name = color.name()
             widget.setStyleSheet('background:{};'.format(color_name))
             cmd = None
             if name == 'text':
