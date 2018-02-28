@@ -1560,6 +1560,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.subtitle_dict = {}
+        self.apply_subtitle_settings = True
         self.screenshot_directory = TMPDIR
         self.gsbc_dict = {}
         self.clicked_label_new = False
@@ -11376,7 +11377,7 @@ watch/unwatch status")
         if self.gsbc_dict:
             for i in self.gsbc_dict:
                 command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
-        if self.subtitle_dict:
+        if self.subtitle_dict and self.apply_subtitle_settings:
             for i in self.subtitle_dict:
                 command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
         if s_url:
