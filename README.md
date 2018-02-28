@@ -125,7 +125,7 @@ The built-in portable media server of this application can have many use cases. 
 
 ###### [Index](#index)
 
-From v3.1 onwards, the application has undergone many changes. Some of its latest screenshots are available [here](https://github.com/kanishka-linux/kawaii-player/releases/tag/v3.1.1-0)
+From v3.1 onwards, the application has undergone many changes. Most of the GUI screenshots shown below have become obsolete now. Some of its latest screenshots are available [here](https://github.com/kanishka-linux/kawaii-player/releases)
 
 ![kawaii-player](/Images/Watch.png)
 
