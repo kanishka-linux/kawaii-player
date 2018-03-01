@@ -63,9 +63,14 @@ class PlayerWidget(QtWidgets.QWidget):
         for i in urls:
             i = i.toString()
             logger.debug(i)
-            if i.endswith('.srt') or i.endswith('.ass'):
-                self.load_external_sub(mode='drop', subtitle=i)
-                logger.debug(i)
+            ext = None
+            if '.' in i:
+                ext = i.split('.')[-1]
+            if ext:
+                ext = ext.lower()
+                if ext in ['srt', 'ass', 'vtt']:
+                    self.load_external_sub(mode='drop', subtitle=i)
+                    logger.debug(i)
     
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
