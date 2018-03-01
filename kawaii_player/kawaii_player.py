@@ -1559,6 +1559,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.title_list_changed = False
         self.fullscreen_video = False
         self.subtitle_dict = {}
         self.apply_subtitle_settings = True
@@ -1989,6 +1990,12 @@ watch/unwatch status")
             if self.list2.isHidden():
                 self.list2.show()
                 self.frame_extra_toolbar.playlist_hide = True
+                if self.list_with_thumbnail:
+                    if self.title_list_changed:
+                        self.update_list2()
+                    if self.cur_row < self.list2.count():
+                        self.list2.setCurrentRow(self.cur_row)
+                    self.title_list_changed = False
         else:
             if self.fullscreen_video:
                 self.gridLayout.setSpacing(0)
@@ -3500,6 +3507,7 @@ watch/unwatch status")
                     self.gridLayout.setContentsMargins(5, 5, 5, 5)
                     self.gridLayout.setSpacing(5)
                     self.frame1.show()
+                    self.superGridLayout.setContentsMargins(5, 5, 5, 5)
             else:
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
@@ -3782,6 +3790,12 @@ watch/unwatch status")
                 show_hide_playlist = 1
                 if MainWindow.isFullScreen():
                     MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                if self.list_with_thumbnail:
+                    if self.title_list_changed:
+                        self.update_list2()
+                    if self.cur_row < self.list2.count():
+                        self.list2.setCurrentRow(self.cur_row)
+                    self.title_list_changed = False
         elif val == "Show/Hide Title List":
             if self.view_mode == 'thumbnail' and thumbnail_indicator:
                 pass
@@ -6213,6 +6227,7 @@ watch/unwatch status")
         global category, audio_id, sub_id
         audio_id = 'auto'
         sub_id = 'auto'
+        self.title_list_changed = True
         if site!= "Music":
             self.subtitle_track.setText("SUB")
             self.audio_track.setText("A/V")
