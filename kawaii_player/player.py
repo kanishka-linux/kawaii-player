@@ -266,6 +266,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         if (self.player_val == "mplayer" or self.player_val == "mpv"):
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
                         MainWindow.showFullScreen()
+                        self.ui.fullscreen_video = True
                 else:
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(0)
@@ -297,6 +298,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.tab_2.show()
                     if self.ui.orientation_dock == 'right':
                         self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
+                    self.ui.fullscreen_video = False
             else:
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
@@ -348,6 +350,7 @@ class PlayerWidget(QtWidgets.QWidget):
                             if self.ui.orientation_dock == 'right':
                                 self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
                             MainWindow.showFullScreen()
+                            self.ui.fullscreen_video = True
                     else:
                         w = float((self.ui.tab_6.width()-60)/iconv_r)
                         h = int(w/self.ui.image_aspect_allowed)
@@ -378,6 +381,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         QtWidgets.QApplication.processEvents()
                         widget.setFocus()
                         QtCore.QTimer.singleShot(1000, self.ui.update_thumbnail_position)
+                        self.ui.fullscreen_video = False
             else:
                 if not self.ui.float_window.isHidden():
                     if not self.ui.float_window.isFullScreen():
