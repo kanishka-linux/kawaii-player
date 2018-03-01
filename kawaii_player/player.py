@@ -99,9 +99,10 @@ class PlayerWidget(QtWidgets.QWidget):
         
     def arrow_hide(self):
         if self.player_val == "mplayer" or self.player_val == "mpv":
-            self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-            self.setFocus()
-        print("arrow hide")
+            if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
+                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                self.setFocus()
+                print("arrow hide")
 
     def frameShowHide(self):
         if MainWindow.isFullScreen() and self.ui.tab_6.isHidden():
