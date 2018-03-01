@@ -1325,7 +1325,7 @@ class ExtraToolBar(QtWidgets.QFrame):
     def execute_command(self, msg):
         if msg == 'external-subtitle':
             ui.tab_5.load_external_sub()
-        else:
+        elif ui.mpvplayer_val.processId() > 0:
             bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
             print(bmsg)
             ui.mpvplayer_val.write(bmsg)
