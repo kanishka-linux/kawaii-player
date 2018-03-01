@@ -1559,6 +1559,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.fullscreen_video = False
         self.subtitle_dict = {}
         self.apply_subtitle_settings = True
         self.screenshot_directory = TMPDIR
@@ -1981,11 +1982,17 @@ watch/unwatch status")
         
     def player_volume_manager(self):
         if self.frame_extra_toolbar.isHidden():
+            if self.fullscreen_video:
+                self.gridLayout.setSpacing(5)
+                self.superGridLayout.setSpacing(5)
             self.frame_extra_toolbar.show()
             if self.list2.isHidden():
                 self.list2.show()
                 self.frame_extra_toolbar.playlist_hide = True
         else:
+            if self.fullscreen_video:
+                self.gridLayout.setSpacing(0)
+                self.superGridLayout.setSpacing(0)
             self.frame_extra_toolbar.slider_volume.pressed = False
             self.frame_extra_toolbar.hide()
             if self.frame_extra_toolbar.playlist_hide:
@@ -3406,7 +3413,7 @@ watch/unwatch status")
         global iconv_r_indicator, iconv_r, show_hide_cover
         global show_hide_playlist, show_hide_titlelist
         global new_tray_widget, sub_id, audio_id
-        
+        change_spacing = False
         if self.mpvplayer_val.processId() > 0 or msg:
             logger.warn(self.progress_counter)
             if self.player_val == 'mpv':
@@ -3450,6 +3457,7 @@ watch/unwatch status")
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
             if self.tab_6.isHidden() and (str(self.idw) == str(int(self.tab_5.winId()))):
+                change_spacing = True
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
                         self.float_window.showNormal()
@@ -3569,6 +3577,12 @@ watch/unwatch status")
         MainWindow.setWindowTitle('Kawaii-Player')
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle('Kawaii-Player')
+        self.fullscreen_video = False
+        #if change_spacing:
+        #    self.gridLayout.setSpacing(5)
+        #    self.superGridLayout.setSpacing(5)
+        #    self.gridLayout.setContentsMargins(5, 5, 5, 5)
+        #    self.superGridLayout.setContentsMargins(5, 5, 5, 5)
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -3746,6 +3760,9 @@ watch/unwatch status")
                 show_hide_player = 1
         elif val == "Show/Hide Playlist":
             if not self.list2.isHidden():
+                if self.fullscreen_video:
+                    self.gridLayout.setSpacing(0)
+                    self.superGridLayout.setSpacing(0)
                 ht = self.list2.height()
                 self.list2.hide()
                 self.goto_epn.hide()
@@ -3758,6 +3775,9 @@ watch/unwatch status")
                     self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                     self.label_new.setMaximumHeight(ht - self.height_allowed)
             else:
+                if self.fullscreen_video:
+                    self.gridLayout.setSpacing(5)
+                    self.superGridLayout.setSpacing(5)
                 self.list2.show()
                 show_hide_playlist = 1
                 if MainWindow.isFullScreen():
