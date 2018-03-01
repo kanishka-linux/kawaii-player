@@ -1116,6 +1116,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_xmargin_value.setMaximumWidth(42)
         self.subtitle_xmargin_value.setToolTip('Default, 25')
         self.subtitle_xmargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_xmargin_value, self.subtitle_xmargin_slider))
+        #self.subtitle_xmargin_value.hide()
         
         self.subtitle_ymargin_label = QtWidgets.QLabel(self)
         self.subtitle_ymargin_label.setText('Y-Margin')
@@ -1128,6 +1129,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_ymargin_value.setMaximumWidth(42)
         self.subtitle_ymargin_value.setToolTip('Default, 22')
         self.subtitle_ymargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_ymargin_value, self.subtitle_ymargin_slider))
+        #self.subtitle_ymargin_slider.hide()
+        
+        
         
         self.subtitle_xymargin_label = QtWidgets.QLabel(self)
         self.subtitle_xymargin_label.setText('Raise Vertical')
@@ -1141,21 +1145,42 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_xymargin_value.setToolTip('Default, 100')
         self.subtitle_xymargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_xymargin_value, self.subtitle_xymargin_slider))
         
-        self.ass_override_label = QtWidgets.QLabel(self)
-        self.ass_override_label.setText('Sub ASS Override')
-        self.sub_grid.addWidget(self.ass_override_label, 12, 0, 1, 2)
+        self.subtitle_align_label = QtWidgets.QLabel(self)
+        self.subtitle_align_label.setText('Alignment')
+        self.sub_grid.addWidget(self.subtitle_align_label, 12, 0, 1, 1)
+        self.subtitle_horiz_align = QtWidgets.QComboBox(self)
+        self.sub_grid.addWidget(self.subtitle_horiz_align, 12, 1, 1, 1)
+        for  i in ['Center', 'Left', 'Right']:
+            self.subtitle_horiz_align.addItem(i)
+        self.subtitle_horiz_align.currentIndexChanged['int'].connect(
+            partial(self.change_alignment, self.subtitle_horiz_align, 'x')
+            )
         
+        self.subtitle_vertical_align = QtWidgets.QComboBox(self)
+        self.sub_grid.addWidget(self.subtitle_vertical_align, 12, 2, 1, 1)
+        for  i in ['Bottom', 'Middle', 'Top']:
+            self.subtitle_vertical_align.addItem(i)
+        self.subtitle_vertical_align.currentIndexChanged['int'].connect(
+            partial(self.change_alignment, self.subtitle_vertical_align, 'y')
+            )
+        
+        
+        
+        self.ass_override_label = QtWidgets.QLabel(self)
+        self.ass_override_label.setText('ASS Override')
+        self.sub_grid.addWidget(self.ass_override_label, 13, 0, 1, 1)
+        self.ass_override_label.setToolTip('Apply Above Style to ASS files.')
         self.ass_override_value = QtWidgets.QComboBox(self)
-        for i in ['yes', 'no', 'force', 'scale', 'strip']:
+        for i in ['Yes', 'No', 'Force', 'Scale', 'Strip']:
             self.ass_override_value.addItem(i)
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
-        self.sub_grid.addWidget(self.ass_override_value, 12, 2, 1, 2)
-        self.ass_override_value.setToolTip('Default, yes')
+        self.sub_grid.addWidget(self.ass_override_value, 13, 1, 1, 1)
+        self.ass_override_value.setToolTip('Default, Yes')
         
-        self.checkbox_dont = QtWidgets.QCheckBox("Do not Apply Above Settings")
+        self.checkbox_dont = QtWidgets.QCheckBox("Don't Apply Above Settings")
         self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
-        self.sub_grid.addWidget(self.checkbox_dont, 13, 0, 1, 4)
+        self.sub_grid.addWidget(self.checkbox_dont, 14, 0, 1, 3)
         
         self.subtitle_widgets = {
             'sub-ass-override': self.ass_override_value,
@@ -1172,14 +1197,30 @@ class ExtraToolBar(QtWidgets.QFrame):
             'sub-blur': self.subtitle_blur_slider,
             'sub-margin-x': self.subtitle_xmargin_slider,
             'sub-margin-y': self.subtitle_ymargin_slider,
-            'sub-pos': self.subtitle_xymargin_slider
+            'sub-pos': self.subtitle_xymargin_slider,
+            'sub-align-x': self.subtitle_horiz_align,
+            'sub-align-y': self.subtitle_vertical_align
         }
-        
+    
+    def change_alignment(self, widget, val):
+        txt = widget.currentText().lower()
+        if txt == 'middle':
+            txt = 'center'
+        cmd = None
+        if val == 'x':
+            cmd = 'set sub-align-x "{}"'.format(txt)
+            ui.subtitle_dict.update({'sub-align-x':txt})
+        elif val == 'y':
+            cmd = 'set sub-align-y "{}"'.format(txt)
+            ui.subtitle_dict.update({'sub-align-y':txt})
+        if cmd:
+            self.execute_command(cmd)
+            
     def font_value_changed(self):
         self.font_value.setFocus()
         
     def ass_override_function(self):
-        txt = self.ass_override_value.currentText()
+        txt = self.ass_override_value.currentText().lower()
         ui.subtitle_dict.update({'sub-ass-override':txt})
         self.execute_command('set sub-ass-override {}'.format(txt))
         #self.execute_command('print-text "${property-list}"')
@@ -1214,13 +1255,12 @@ class ExtraToolBar(QtWidgets.QFrame):
             else:
                 ui.subtitle_dict.update({'sub-gray':'no'})
                 cmd = 'set sub-gray no'
-            ui.playerStop(msg='remember_quit', restart=True)
         elif value == 'dont':
             if widget.isChecked():
                 ui.apply_subtitle_settings = False
             else:
                 ui.apply_subtitle_settings = True
-            ui.playerStop(msg='remember_quit', restart=True)
+            ui.playerStop(msg='remember quit', restart=True)
         if cmd:
             self.execute_command(cmd)
             
@@ -1298,7 +1338,10 @@ class ExtraToolBar(QtWidgets.QFrame):
                 elif property_name == 'sub-blur':
                     new_val = float(property_value) * 100
                     widget.setValue(new_val)
-                elif property_name == 'sub-ass-override':
+                elif property_name in ['sub-ass-override', 'sub-align-x', 'sub-align-y']:
+                    if property_name == 'sub-align-y' and property_value == 'center':
+                        property_value = 'Middle'
+                    property_value = property_value.title()
                     index = widget.findText(property_value)
                     widget.setCurrentIndex(index)
                     
