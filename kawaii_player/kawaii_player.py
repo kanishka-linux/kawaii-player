@@ -10821,6 +10821,7 @@ watch/unwatch status")
             if ((self.view_mode == 'thumbnail' and self.idw != str(int(self.tab_5.winId()))
                     and thumbnail_indicator) or self.fullscreen_mode == 1
                     or self.idw == str(int(self.label_new.winId()))):
+                logger.debug('playback inside thumbnails')
                 finalUrl = self.epn_return(num)
                 if finalUrl.startswith('"'):
                     finalUrl = finalUrl.replace('"', '')
@@ -10837,6 +10838,7 @@ watch/unwatch status")
                     logger.info(command)
                     self.infoPlay(command)
             else:
+                logger.debug('main player widget')
                 self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 
     def infoPlay(self, command):
