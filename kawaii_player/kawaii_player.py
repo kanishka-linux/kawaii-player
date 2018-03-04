@@ -11417,6 +11417,10 @@ watch/unwatch status")
         if self.subtitle_dict and self.apply_subtitle_settings:
             for i in self.subtitle_dict:
                 command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
+        elif self.subtitle_dict and not self.apply_subtitle_settings:
+            scale = self.subtitle_dict.get('sub-scale')
+            if scale:
+                command = command + ' --sub-scale={}'.format(scale)
         if s_url:
             s_url_arr = s_url.split('::')
             for i in s_url_arr:
