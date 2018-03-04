@@ -266,7 +266,11 @@ class WidgetStyleSheet:
                     border:rgba(0, 0, 0, 10%); font: {bold} {font};
                     {min_height};
                     }}
-                    
+                    QDoubleSpinBox{{
+                    color:{color};background:rgba(0,0,0,{alpha});
+                    border:rgba(0, 0, 0, 10%); font: {bold} {font};
+                    {min_height};
+                    }}
                     """.format(
                         color=gui.list_text_color, focus=gui.list_text_color_focus,
                         alpha=alpha, bold=font_bold, font=gui.global_font,
