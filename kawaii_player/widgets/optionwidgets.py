@@ -1014,7 +1014,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.completer = QtWidgets.QCompleter(self.font_families)
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.font_label = QtWidgets.QLabel(self)
-        self.font_label.setText('Subtitle Font')
+        self.font_label.setText('Font')
         self.sub_grid.addWidget(self.font_label, 0, 0, 1, 1)
         self.font_value = QLineCustomFont(self, ui)
         self.font_value.setCompleter(self.completer)
@@ -1129,12 +1129,12 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_ymargin_value.setMaximumWidth(42)
         self.subtitle_ymargin_value.setToolTip('Default, 22')
         self.subtitle_ymargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_ymargin_value, self.subtitle_ymargin_slider))
-        #self.subtitle_ymargin_slider.hide()
+        #self.subtitle_ymargin_value.hide()
         
         
         
         self.subtitle_xymargin_label = QtWidgets.QLabel(self)
-        self.subtitle_xymargin_label.setText('Raise Vertical')
+        self.subtitle_xymargin_label.setText('Vertical')
         self.sub_grid.addWidget(self.subtitle_xymargin_label, 11, 0, 1, 1)
         self.subtitle_xymargin_slider = SubtitleSlider(self, ui, 'xymargin')
         self.sub_grid.addWidget(self.subtitle_xymargin_slider, 11, 1, 1, 2)
@@ -1168,7 +1168,6 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.spinbox_scale_label = QtWidgets.QLabel(self)
         self.spinbox_scale_label.setText('Scale')
         self.sub_grid.addWidget(self.spinbox_scale_label, 13, 0, 1, 1)
-        
         self.spinbox_scale = QtWidgets.QDoubleSpinBox(self)
         self.sub_grid.addWidget(self.spinbox_scale, 13, 1, 1, 1)
         self.spinbox_scale.setRange(0.00, 10.00)
@@ -1196,7 +1195,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.checkbox_dont = QtWidgets.QCheckBox("Don't Apply Above Settings")
         self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
         self.sub_grid.addWidget(self.checkbox_dont, 15, 0, 1, 3)
-        self.checkbox_dont.setToolTip('<html>Do not apply above custom settings (except for scale factor)</html>')
+        self.checkbox_dont.setToolTip('<html>Do not apply above custom settings (except scale factor)</html>')
         
         self.subtitle_widgets = {
             'sub-ass-override': self.ass_override_value,
@@ -1328,6 +1327,7 @@ class ExtraToolBar(QtWidgets.QFrame):
                 
     def subtitle_tab_show(self):
         self.subtitle_frame.setMinimumHeight(self.child_frame.height())
+        self.subtitle_frame.setMaximumHeight(self.child_frame.height())
         self.child_frame.hide()
         self.subtitle_frame.show()
         if not self.subtitle_box_opened:
@@ -1350,8 +1350,11 @@ class ExtraToolBar(QtWidgets.QFrame):
                     else:
                         widget.setChecked(False)
                 elif property_name in ['sub-font-size', 'sub-margin-x', 'sub-margin-y']:
-                    if property_value.isnumeric():
-                        widget.setValue(int(property_value))
+                    if isinstance(property_value, int):
+                        widget.setValue(property_value)
+                    elif isinstance(property_value, str):
+                        if property_value.isnumeric():
+                            widget.setValue(int(property_value))
                 elif property_name == 'sub-pos':
                     if property_value.isnumeric():
                         widget.setValue(100 - int(property_value))
