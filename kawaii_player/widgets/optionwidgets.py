@@ -1165,22 +1165,38 @@ class ExtraToolBar(QtWidgets.QFrame):
             )
         
         
+        self.spinbox_scale_label = QtWidgets.QLabel(self)
+        self.spinbox_scale_label.setText('Scale')
+        self.sub_grid.addWidget(self.spinbox_scale_label, 13, 0, 1, 1)
+        
+        self.spinbox_scale = QtWidgets.QDoubleSpinBox(self)
+        self.sub_grid.addWidget(self.spinbox_scale, 13, 1, 1, 1)
+        self.spinbox_scale.setRange(0.00, 10.00)
+        self.spinbox_scale.setValue(1.00)
+        self.spinbox_scale.setSingleStep(0.1)
+        self.spinbox_scale.setToolTip('<html>Scale factor for subtitle. Default 1.0.\
+        This affects ASS subtitles as well, and may lead to incorrect subtitle rendering.\
+        Use with care, or use Text size from above instead.</html>')
+        self.spinbox_scale.valueChanged.connect(partial(self.spinbox_changed, self.spinbox_scale, 'scale'))
         
         self.ass_override_label = QtWidgets.QLabel(self)
         self.ass_override_label.setText('ASS Override')
-        self.sub_grid.addWidget(self.ass_override_label, 13, 0, 1, 1)
+        self.sub_grid.addWidget(self.ass_override_label, 14, 0, 1, 1)
         self.ass_override_label.setToolTip('Apply Above Style to ASS files.')
         self.ass_override_value = QtWidgets.QComboBox(self)
         for i in ['Yes', 'No', 'Force', 'Scale', 'Strip']:
             self.ass_override_value.addItem(i)
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
-        self.sub_grid.addWidget(self.ass_override_value, 13, 1, 1, 1)
+        self.sub_grid.addWidget(self.ass_override_value, 14, 1, 1, 1)
         self.ass_override_value.setToolTip('Default, Yes')
+        
+        
         
         self.checkbox_dont = QtWidgets.QCheckBox("Don't Apply Above Settings")
         self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
-        self.sub_grid.addWidget(self.checkbox_dont, 14, 0, 1, 3)
+        self.sub_grid.addWidget(self.checkbox_dont, 15, 0, 1, 3)
+        self.checkbox_dont.setToolTip('<html>Do not apply above custom settings (except for scale factor)</html>')
         
         self.subtitle_widgets = {
             'sub-ass-override': self.ass_override_value,
@@ -1199,7 +1215,8 @@ class ExtraToolBar(QtWidgets.QFrame):
             'sub-margin-y': self.subtitle_ymargin_slider,
             'sub-pos': self.subtitle_xymargin_slider,
             'sub-align-x': self.subtitle_horiz_align,
-            'sub-align-y': self.subtitle_vertical_align
+            'sub-align-y': self.subtitle_vertical_align,
+            'sub-scale': self.spinbox_scale
         }
     
     def change_alignment(self, widget, val):
@@ -1215,6 +1232,12 @@ class ExtraToolBar(QtWidgets.QFrame):
             ui.subtitle_dict.update({'sub-align-y':txt})
         if cmd:
             self.execute_command(cmd)
+            
+    def spinbox_changed(self, widget, val):
+        flval = widget.value()
+        if val == 'scale':
+            self.execute_command('set sub-scale {}'.format(flval))
+            ui.subtitle_dict.update({'sub-scale':flval})
             
     def font_value_changed(self):
         self.font_value.setFocus()
@@ -1337,6 +1360,9 @@ class ExtraToolBar(QtWidgets.QFrame):
                     widget.setValue(new_val)
                 elif property_name == 'sub-blur':
                     new_val = float(property_value) * 100
+                    widget.setValue(new_val)
+                elif property_name == 'sub-scale':
+                    new_val = float(property_value)
                     widget.setValue(new_val)
                 elif property_name in ['sub-ass-override', 'sub-align-x', 'sub-align-y']:
                     if property_name == 'sub-align-y' and property_value == 'center':
