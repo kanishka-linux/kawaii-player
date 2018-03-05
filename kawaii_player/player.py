@@ -660,7 +660,7 @@ class PlayerWidget(QtWidgets.QWidget):
         site = param_dict['site']
         if not pause_indicator:
             self.mpvplayer.write(b'\n set pause yes \n')
-            if MainWindow.isFullScreen():
+            if MainWindow.isFullScreen() and self.ui.fullscreen_video:
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
             pause_indicator.append("Pause")
