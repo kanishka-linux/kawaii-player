@@ -11414,7 +11414,7 @@ watch/unwatch status")
         if self.gsbc_dict:
             for i in self.gsbc_dict:
                 if i == 'subscale':
-                    del self.gsbc_dict[i]
+                    pass
                 else:
                     command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
         if self.subtitle_dict and self.apply_subtitle_settings:
