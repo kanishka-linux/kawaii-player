@@ -1046,6 +1046,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.font_label = QtWidgets.QLabel(self)
         self.font_label.setText('Font')
+        self.font_label.setToolTip('<html>Set Subtitle Font. Start typing\
+         in text box to see available fonts starting with an entered letter.</html>')
         self.sub_grid.addWidget(self.font_label, 0, 0, 1, 1)
         self.font_value = QLineCustomFont(self, ui)
         self.font_value.setCompleter(self.completer)
@@ -1056,6 +1058,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.font_color_label = QtWidgets.QLabel(self)
         self.font_color_label.setText('Text Color')
+        self.font_color_label.setToolTip('<html>Set Subtitle Text Color</html>')
         self.font_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.font_color_label, 1, 0, 1, 1)
         self.font_color_value = QtWidgets.QPushButton(self)
@@ -1063,7 +1066,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.font_color_value, 1, 1, 1, 3)
         
         self.border_color_label = QtWidgets.QLabel(self)
-        self.border_color_label.setText('Border Color')
+        self.border_color_label.setText('Border')
+        self.border_color_label.setToolTip('<html>Set Subtitle Border Color</html>')
         self.border_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.border_color_label, 2, 0, 1, 1)
         self.border_color_value = QtWidgets.QPushButton(self)
@@ -1071,7 +1075,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.sub_grid.addWidget(self.border_color_value, 2, 1, 1, 3)
         
         self.shadow_color_label = QtWidgets.QLabel(self)
-        self.shadow_color_label.setText('Shadow Color')
+        self.shadow_color_label.setText('Shadow')
+        self.shadow_color_label.setToolTip('<html>Set Subtitle Shadow Color</html>')
         self.shadow_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.shadow_color_label, 3, 0, 1, 1)
         self.shadow_color_value = QtWidgets.QPushButton(self)
@@ -1093,6 +1098,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.subtitle_text_label = QtWidgets.QLabel(self)
         self.subtitle_text_label.setText('Text Size')
+        self.subtitle_text_label.setToolTip('<html>Set Subtitle Text Size. Default, 55</html>')
         self.subtitle_text_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_text_label, 5, 0, 1, 1)
         self.subtitle_text_slider = SubtitleSlider(self, ui, 'text')
@@ -1105,7 +1111,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_text_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_text_value, self.subtitle_text_slider))
         
         self.subtitle_border_label = QtWidgets.QLabel(self)
-        self.subtitle_border_label.setText('Border Size')
+        self.subtitle_border_label.setText('Border')
+        self.subtitle_border_label.setToolTip('<html>Set Subtitle Border Size. Default, 3</html>')
         self.subtitle_border_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_border_label, 6, 0, 1, 1)
         self.subtitle_border_slider = SubtitleSlider(self, ui, 'border')
@@ -1118,7 +1125,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_border_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_border_value, self.subtitle_border_slider))
         
         self.subtitle_shadow_label = QtWidgets.QLabel(self)
-        self.subtitle_shadow_label.setText('Shadow Size')
+        self.subtitle_shadow_label.setText('Shadow')
+        self.subtitle_shadow_label.setToolTip('<html>Set Subtitle Shadow Size. Default, 0</html>')
         self.subtitle_shadow_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_shadow_label, 7, 0, 1, 1)
         self.subtitle_shadow_slider = SubtitleSlider(self, ui, 'shadow')
@@ -1131,7 +1139,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_shadow_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_shadow_value, self.subtitle_shadow_slider))
         
         self.subtitle_blur_label = QtWidgets.QLabel(self)
-        self.subtitle_blur_label.setText('Blur Effect')
+        self.subtitle_blur_label.setText('Blur')
+        self.subtitle_blur_label.setToolTip('<html>Set Gaussian Blur Factor. Default, 0</html>')
         self.subtitle_blur_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_blur_label, 8, 0, 1, 1)
         self.subtitle_blur_slider = SubtitleSlider(self, ui, 'blur')
@@ -1173,6 +1182,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.subtitle_xymargin_label = QtWidgets.QLabel(self)
         self.subtitle_xymargin_label.setText('Vertical')
+        self.subtitle_xymargin_label.setToolTip('<html>Move Subtitle Vertically</html>')
         self.sub_grid.addWidget(self.subtitle_xymargin_label, 11, 0, 1, 1)
         self.subtitle_xymargin_slider = SubtitleSlider(self, ui, 'xymargin')
         self.sub_grid.addWidget(self.subtitle_xymargin_slider, 11, 1, 1, 2)
@@ -1220,16 +1230,16 @@ class ExtraToolBar(QtWidgets.QFrame):
         """
         
         self.ass_override_label = QtWidgets.QLabel(self)
-        self.ass_override_label.setText('ASS Override')
+        self.ass_override_label.setText('Sub ASS Override')
         self.ass_override_label.setWordWrap(True)
-        self.sub_grid.addWidget(self.ass_override_label, 13, 0, 1, 1)
+        self.sub_grid.addWidget(self.ass_override_label, 13, 0, 1, 2)
         self.ass_override_label.setToolTip('Apply Above Style to ASS files.')
         self.ass_override_value = QtWidgets.QComboBox(self)
         for i in ['Yes', 'No', 'Force', 'Scale', 'Strip']:
             self.ass_override_value.addItem(i)
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
-        self.sub_grid.addWidget(self.ass_override_value, 13, 1, 1, 1)
+        self.sub_grid.addWidget(self.ass_override_value, 13, 2, 1, 1)
         self.ass_override_value.setToolTip('Default, Yes')
         
         
