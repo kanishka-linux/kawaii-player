@@ -1012,6 +1012,7 @@ class ExtraToolBar(QtWidgets.QFrame):
             )
         self.volume_layout.addWidget(self.subtitle_subscale_value, 0, 5, 1, 1)
         self.subtitle_subscale_value.setMaximumWidth(32)
+        self.subtitle_subscale_value.setPlaceholderText('1.0')
         self.scale_label.setToolTip('<html>Scale factor for subtitle. Default 1.0.\
         This affects ASS subtitles as well, and may lead to incorrect subtitle rendering.\
         Use with care, or use Text size from Subtitle Section instead.</html>')
