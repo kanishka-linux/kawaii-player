@@ -1752,7 +1752,7 @@ watch/unwatch status")
             }
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
-        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
+        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, int(screen_height/1.5)))
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
