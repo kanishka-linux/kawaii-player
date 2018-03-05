@@ -638,7 +638,7 @@ class GSBCSlider(QtWidgets.QSlider):
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             ui.gsbc_dict.update({name:val})
-
+        
 class SubtitleSlider(QtWidgets.QSlider):
 
     def __init__(self, parent, uiwidget, name):
@@ -668,6 +668,11 @@ class SubtitleSlider(QtWidgets.QSlider):
             self.setSingleStep(10)
             self.setPageStep(10)
             self.setValue(0)
+        elif name == 'subscale':
+            self.setRange(0, 1000)
+            self.setSingleStep(100)
+            self.setPageStep(10)
+            self.setValue(100)
         elif name in ['xmargin', 'ymargin', 'xymargin']:
             self.setRange(0, 100)
             self.setSingleStep(1)
@@ -715,6 +720,14 @@ class SubtitleSlider(QtWidgets.QSlider):
             ui.subtitle_dict.update({'sub-blur':str(value)})
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'subscale':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            value = val * 0.01
+            label_value.setPlaceholderText(str(value))
+            cmd = '\n set sub-scale {} \n'.format(value)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            ui.subtitle_dict.update({'sub-scale':value})
         elif name == 'xmargin':
             label_value = eval('self.parent.subtitle_{}_value'.format(name))
             label_value.setPlaceholderText(str(val))
@@ -974,11 +987,12 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.btn_show_stat = QtWidgets.QPushButton(self)
         self.btn_show_stat.setText('Show Stats')
+        self.btn_show_stat.setToolTip('Applicable only for mpv v2.8+')
         self.btn_show_stat.clicked.connect(partial(self.execute_command, 'script-binding stats/display-stats-toggle'))
         self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 2)
         
         self.btn_external_sub = QtWidgets.QPushButton(self)
-        self.btn_external_sub.setText('External Subtitle')
+        self.btn_external_sub.setText('External Sub')
         self.btn_external_sub.clicked.connect(partial(self.execute_command, 'external-subtitle'))
         self.buttons_layout.addWidget(self.btn_external_sub, 6, 2, 1, 2)
         
@@ -986,15 +1000,31 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.volume_layout.setObjectName('volume_layout')
         self.layout.insertLayout(3, self.volume_layout)
         
+        self.scale_label = QtWidgets.QLabel(self)
+        self.scale_label.setText('Sub Scale')
+        self.volume_layout.addWidget(self.scale_label, 0, 0, 1, 1)
+        self.subscale_slider = SubtitleSlider(self, uiwidget, 'subscale')
+        self.subscale_slider.setObjectName("subscale")
+        self.volume_layout.addWidget(self.subscale_slider, 0, 1, 1, 3)
+        self.subtitle_subscale_value = QtWidgets.QLineEdit(self)
+        self.subtitle_subscale_value.returnPressed.connect(
+            partial(self.gsbc_entered, self.subtitle_subscale_value, self.subscale_slider)
+            )
+        self.volume_layout.addWidget(self.subtitle_subscale_value, 0, 5, 1, 1)
+        self.subtitle_subscale_value.setMaximumWidth(32)
+        self.scale_label.setToolTip('<html>Scale factor for subtitle. Default 1.0.\
+        This affects ASS subtitles as well, and may lead to incorrect subtitle rendering.\
+        Use with care, or use Text size from Subtitle Section instead.</html>')
+        
         self.volume_label = QtWidgets.QLabel(self)
         self.volume_label.setText('Volume')
-        self.volume_layout.addWidget(self.volume_label, 0, 0, 1, 1)
+        self.volume_layout.addWidget(self.volume_label, 1, 0, 1, 1)
         self.slider_volume = VolumeSlider(self, uiwidget, MainWindow)
         self.slider_volume.setObjectName("slider_volume")
-        self.volume_layout.addWidget(self.slider_volume, 0, 1, 1, 3)
+        self.volume_layout.addWidget(self.slider_volume, 1, 1, 1, 3)
         self.volume_text = QtWidgets.QLineEdit(self)
         self.volume_text.returnPressed.connect(self.volume_entered)
-        self.volume_layout.addWidget(self.volume_text, 0, 5, 1, 1)
+        self.volume_layout.addWidget(self.volume_text, 1, 5, 1, 1)
         self.volume_text.setMaximumWidth(32)
         
         self.speed_value.setPlaceholderText('1.0')
@@ -1025,6 +1055,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.font_color_label = QtWidgets.QLabel(self)
         self.font_color_label.setText('Text Color')
+        self.font_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.font_color_label, 1, 0, 1, 1)
         self.font_color_value = QtWidgets.QPushButton(self)
         self.font_color_value.clicked.connect(partial(self.choose_color, self.font_color_value, 'text'))
@@ -1032,6 +1063,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.border_color_label = QtWidgets.QLabel(self)
         self.border_color_label.setText('Border Color')
+        self.border_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.border_color_label, 2, 0, 1, 1)
         self.border_color_value = QtWidgets.QPushButton(self)
         self.border_color_value.clicked.connect(partial(self.choose_color, self.border_color_value, 'border'))
@@ -1039,6 +1071,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.shadow_color_label = QtWidgets.QLabel(self)
         self.shadow_color_label.setText('Shadow Color')
+        self.shadow_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.shadow_color_label, 3, 0, 1, 1)
         self.shadow_color_value = QtWidgets.QPushButton(self)
         self.shadow_color_value.clicked.connect(partial(self.choose_color, self.shadow_color_value, 'shadow'))
@@ -1059,6 +1092,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.subtitle_text_label = QtWidgets.QLabel(self)
         self.subtitle_text_label.setText('Text Size')
+        self.subtitle_text_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_text_label, 5, 0, 1, 1)
         self.subtitle_text_slider = SubtitleSlider(self, ui, 'text')
         self.sub_grid.addWidget(self.subtitle_text_slider, 5, 1, 1, 2)
@@ -1071,6 +1105,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.subtitle_border_label = QtWidgets.QLabel(self)
         self.subtitle_border_label.setText('Border Size')
+        self.subtitle_border_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_border_label, 6, 0, 1, 1)
         self.subtitle_border_slider = SubtitleSlider(self, ui, 'border')
         self.sub_grid.addWidget(self.subtitle_border_slider, 6, 1, 1, 2)
@@ -1083,6 +1118,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.subtitle_shadow_label = QtWidgets.QLabel(self)
         self.subtitle_shadow_label.setText('Shadow Size')
+        self.subtitle_shadow_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_shadow_label, 7, 0, 1, 1)
         self.subtitle_shadow_slider = SubtitleSlider(self, ui, 'shadow')
         self.sub_grid.addWidget(self.subtitle_shadow_slider, 7, 1, 1, 2)
@@ -1164,7 +1200,7 @@ class ExtraToolBar(QtWidgets.QFrame):
             partial(self.change_alignment, self.subtitle_vertical_align, 'y')
             )
         
-        
+        """
         self.spinbox_scale_label = QtWidgets.QLabel(self)
         self.spinbox_scale_label.setText('Scale')
         self.sub_grid.addWidget(self.spinbox_scale_label, 13, 0, 1, 1)
@@ -1177,25 +1213,29 @@ class ExtraToolBar(QtWidgets.QFrame):
         This affects ASS subtitles as well, and may lead to incorrect subtitle rendering.\
         Use with care, or use Text size from above instead.</html>')
         self.spinbox_scale.valueChanged.connect(partial(self.spinbox_changed, self.spinbox_scale, 'scale'))
+        self.spinbox_scale.hide()
+        self.spinbox_scale_label.hide()
+        """
         
         self.ass_override_label = QtWidgets.QLabel(self)
         self.ass_override_label.setText('ASS Override')
-        self.sub_grid.addWidget(self.ass_override_label, 14, 0, 1, 1)
+        self.ass_override_label.setWordWrap(True)
+        self.sub_grid.addWidget(self.ass_override_label, 13, 0, 1, 1)
         self.ass_override_label.setToolTip('Apply Above Style to ASS files.')
         self.ass_override_value = QtWidgets.QComboBox(self)
         for i in ['Yes', 'No', 'Force', 'Scale', 'Strip']:
             self.ass_override_value.addItem(i)
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
-        self.sub_grid.addWidget(self.ass_override_value, 14, 1, 1, 1)
+        self.sub_grid.addWidget(self.ass_override_value, 13, 1, 1, 1)
         self.ass_override_value.setToolTip('Default, Yes')
         
         
         
         self.checkbox_dont = QtWidgets.QCheckBox("Don't Apply Above Settings")
         self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
-        self.sub_grid.addWidget(self.checkbox_dont, 15, 0, 1, 3)
-        self.checkbox_dont.setToolTip('<html>Do not apply above custom settings (except scale factor)</html>')
+        self.sub_grid.addWidget(self.checkbox_dont, 14, 0, 1, 3)
+        self.checkbox_dont.setToolTip('<html>Do not apply above custom settings</html>')
         
         self.subtitle_widgets = {
             'sub-ass-override': self.ass_override_value,
@@ -1215,7 +1255,6 @@ class ExtraToolBar(QtWidgets.QFrame):
             'sub-pos': self.subtitle_xymargin_slider,
             'sub-align-x': self.subtitle_horiz_align,
             'sub-align-y': self.subtitle_vertical_align,
-            'sub-scale': self.spinbox_scale
         }
     
     def change_alignment(self, widget, val):
@@ -1327,13 +1366,16 @@ class ExtraToolBar(QtWidgets.QFrame):
                 
     def subtitle_tab_show(self):
         self.subtitle_frame.setMinimumHeight(self.child_frame.height())
-        self.subtitle_frame.setMaximumHeight(self.child_frame.height())
+        #self.subtitle_frame.setMaximumHeight(self.child_frame.height())
         self.child_frame.hide()
         self.subtitle_frame.show()
         if not self.subtitle_box_opened:
             self.subtitle_box_opened = True
             self.apply_initial_sub_settings()
-    
+        print(self.subtitle_frame.height(), self.child_frame.height())
+        if self.subtitle_frame.height() > self.child_frame.height():
+            self.child_frame.setMinimumHeight(self.subtitle_frame.height())
+            
     def apply_initial_sub_settings(self):
         for property_name in ui.subtitle_dict:
             property_value = ui.subtitle_dict.get(property_name)
@@ -1451,6 +1493,10 @@ class ExtraToolBar(QtWidgets.QFrame):
                 value = float(value)*10
                 slider.setValue(int(value))
             elif slider.objectName() == 'blur':
+                label.setPlaceholderText(value)
+                value = float(value)*100
+                slider.setValue(int(value))
+            elif slider.objectName() == 'subscale':
                 label.setPlaceholderText(value)
                 value = float(value)*100
                 slider.setValue(int(value))
