@@ -102,7 +102,12 @@ class PlayerWidget(QtWidgets.QWidget):
             if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
                 self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
                 self.setFocus()
-                print("arrow hide")
+                logger.debug("arrow hide")
+            elif self.hasFocus():
+                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                logger.debug('player has focus')
+            else:
+                logger.debug('player not focussed')
 
     def frameShowHide(self):
         if MainWindow.isFullScreen() and self.ui.tab_6.isHidden():
