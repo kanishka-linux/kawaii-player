@@ -11413,14 +11413,17 @@ watch/unwatch status")
                         command = command + " --volume={}".format(self.player_volume)
         if self.gsbc_dict:
             for i in self.gsbc_dict:
-                command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
+                if i == 'subscale':
+                    del self.gsbc_dict[i]
+                else:
+                    command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
         if self.subtitle_dict and self.apply_subtitle_settings:
             for i in self.subtitle_dict:
                 command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
         elif self.subtitle_dict and not self.apply_subtitle_settings:
             scale = self.subtitle_dict.get('sub-scale')
             if scale:
-                command = command + ' --sub-scale={}'.format(scale)
+                command = command + ' --sub-scale="{}"'.format(scale)
         if s_url:
             s_url_arr = s_url.split('::')
             for i in s_url_arr:
@@ -12774,10 +12777,15 @@ def main():
                         try:
                             slider = eval('ui.frame_extra_toolbar.{}_slider'.format(i))
                             slider.setValue(int(ui.gsbc_dict[i]))
+                            logger.debug(i)
                         except Exception as err:
                             logger.error(err)
             if '#SUBTITLE@DICT' in ui.history_dict_obj:
                 ui.subtitle_dict = ui.history_dict_obj['#SUBTITLE@DICT'][0].copy()
+                scale = ui.subtitle_dict.get('sub-scale')
+                if scale:
+                    scale = 100 * float(scale)
+                    ui.frame_extra_toolbar.subscale_slider.setValue(scale)
                 
     if os.path.isfile(ui.playing_queue_file):
         with open(ui.playing_queue_file, 'rb') as queue_file_read:
