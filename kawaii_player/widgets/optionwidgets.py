@@ -1131,6 +1131,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.subtitle_blur_label = QtWidgets.QLabel(self)
         self.subtitle_blur_label.setText('Blur Effect')
+        self.subtitle_blur_label.setWordWrap(True)
         self.sub_grid.addWidget(self.subtitle_blur_label, 8, 0, 1, 1)
         self.subtitle_blur_slider = SubtitleSlider(self, ui, 'blur')
         self.sub_grid.addWidget(self.subtitle_blur_slider, 8, 1, 1, 2)
