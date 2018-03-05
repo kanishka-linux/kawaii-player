@@ -271,6 +271,12 @@ class WidgetStyleSheet:
                     border:rgba(0, 0, 0, 10%); font: {bold} {font};
                     {min_height};
                     }}
+                    QDoubleSpinBox::up-button{{
+                            max-height:32px;
+                        }}
+                    QDoubleSpinBox::down-button{{
+                        max-height:32px;
+                        }}
                     """.format(
                         color=gui.list_text_color, focus=gui.list_text_color_focus,
                         alpha=alpha, bold=font_bold, font=gui.global_font,
@@ -759,6 +765,12 @@ class WidgetStyleSheet:
                             color:{color};background:rgba(0,0,0,{btn});
                             border:rgba(0, 0, 0, 10%); font: {bold} {font};
                             {min_height};
+                            }}
+                        QDoubleSpinBox::up-button{{
+                            max-height:32px;
+                            }}
+                        QDoubleSpinBox::down-button{{
+                            max-height:32px;
                             }}
                         """.format(
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
