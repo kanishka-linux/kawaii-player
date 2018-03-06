@@ -19,7 +19,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
-OSNAME=os.name
+OSNAME = os.name
 
 import sys
 if getattr(sys, 'frozen', False):
@@ -1562,10 +1562,12 @@ watch/unwatch status")
         
         self.playing_history_file = os.path.join(self.video_db_location, 'historydata')
         self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
+        self.tmp_pls_file = os.path.join(TMPDIR, 'tmp_playlist.m3u')
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.gapless_playback = False
         self.title_list_changed = False
         self.fullscreen_video = False
         self.subtitle_dict = {}
@@ -1585,6 +1587,7 @@ watch/unwatch status")
         #video_parameters=[url, seek_time, cur_time, sub, aid, rem_quit, vol, asp]
         self.theme_list = ['Default', 'Dark', 'System']
         self.video_parameters = ['none', 0, 0, 'auto', 'auto', 0, 'auto', '-1']
+        self.local_site_list = ['Video', 'Music', 'PlayLists', 'None', 'MyServer', 'NONE']
         self.quit_really = 'no'
         self.restore_volume = False
         self.restore_aspect = True
@@ -7283,6 +7286,8 @@ watch/unwatch status")
                     except:
                         self.epn_arr_list.append(j)
                 self.update_list2()
+                if self.gapless_playback:
+                    self.use_playlist_method()
         elif site == "Video":
             self.show_search_thumbnail = True
             self.mirror_change.hide()
@@ -7317,6 +7322,8 @@ watch/unwatch status")
                     except:
                         self.epn_arr_list.append(j)
                 self.update_list2()
+                if self.gapless_playback:
+                    self.use_playlist_method()
         elif ((site == "None" and self.btn1.currentText().lower() == 'youtube') or not self.tab_2.isHidden()):
             self.video_local_stream = False
             self.mirror_change.hide()
@@ -7463,6 +7470,8 @@ watch/unwatch status")
                 self.epn_arr_list.clear()
                 for i in m:
                     self.epn_arr_list.append(i)
+                if self.gapless_playback:
+                    self.use_playlist_method()
             if from_cache:
                 if siteName:
                     hist_path = os.path.join(home, 'History', site, siteName, 'history.txt')
@@ -7900,7 +7909,21 @@ watch/unwatch status")
                 self.IconViewEpn(mode=1)
             elif self.view_mode == 'thumbnail_light':
                 self.IconViewEpn(mode=2)
-
+        if self.gapless_playback:
+            self.use_playlist_method()
+    
+    def use_playlist_method(self):
+        global site
+        if site in self.local_site_list:
+            lines = []
+            for i in self.epn_arr_list:
+                item = i.split('\t')[1].strip()
+                item = item.replace('"', '')
+                if item.startswith('abs_path=') or item.startswith('relative_path='):
+                    item = self.if_path_is_rel(item)
+                lines.append(item)
+            write_files(self.tmp_pls_file, lines, line_by_line=True)
+    
     def set_list_thumbnail(self, k):
         if self.list_with_thumbnail:
             icon_name = self.get_thumbnail_image_path(k, self.epn_arr_list[k])
@@ -8555,21 +8578,28 @@ watch/unwatch status")
         else:
             current_playing_file_path = finalUrl
         setinfo = False
-        if (self.mpvplayer_val.processId() > 0 and OSNAME == 'posix' and self.mpvplayer_started
-                and not finalUrl.startswith('http') and not self.external_audio_file):
+        if (self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
+                and not finalUrl.startswith('http') and not self.external_audio_file
+                and (OSNAME == 'posix' or self.gapless_playback)):
             epnShow = "Playing: {0}".format(self.epn_name_in_list)
             msg = None
             cmd = None
-            if self.player_val.lower() == "mplayer":
-                msg = '\n show_text "{0}" \n'.format(epnShow)
-                cmd = '\n loadfile {0} replace \n'.format(finalUrl)
-            elif self.player_val.lower() == 'mpv':
-                msg = '\n show-text "{0}" \n'.format(epnShow)
-                cmd = '\n loadfile {0} replace \n'.format(finalUrl)
-            logger.info('command---------{0}--------'.format(cmd))
-            if msg and cmd:
-                self.mpvplayer_val.write(bytes(msg, 'utf-8'))
-                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            if not self.gapless_playback:
+                if self.player_val.lower() == "mplayer":
+                    msg = '\n show_text "{0}" \n'.format(epnShow)
+                    cmd = '\n loadfile {0} replace \n'.format(finalUrl)
+                elif self.player_val.lower() == 'mpv':
+                    msg = '\n show-text "{0}" \n'.format(epnShow)
+                    cmd = '\n loadfile {0} replace \n'.format(finalUrl)
+                logger.info('command---------{0}--------'.format(cmd))
+                if msg and cmd:
+                    self.mpvplayer_val.write(bytes(msg, 'utf-8'))
+                    self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                    logger.info('..function play_file_now non-gapless mode::::{0}'.format(finalUrl))
+            else:
+                cmd = 'set playlist-pos {}'.format(self.cur_row)
+                self.frame_extra_toolbar.execute_command(cmd)
+                logger.debug(cmd)
                 logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
             setinfo = True
         else:
@@ -10109,10 +10139,12 @@ watch/unwatch status")
                     #logger.debug('-->{0}<--'.format(a))
                     pass
             if (self.player_val.lower() == 'mpv' and self.mplayerLength
-                    and ("EOF code: 1" in a 
+                    and ("EOF code: 1" in a
+                    or "EOF code: 3" in a 
                     or "HTTP error 403 Forbidden" in a 
                     or self.progress_counter > self.mplayerLength + 1
-                    or 'finished playback, success (reason 0)' in a)):
+                    or 'finished playback, success (reason 0)' in a
+                    or 'finished playback, success (reason 2)' in a)):
                 if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
                     self.eof_lock = True
@@ -11467,7 +11499,10 @@ watch/unwatch status")
                 command = command + ' ' + finalUrl
             else:
                 finalUrl = '"'+ finalUrl + '"'
-                command = command + ' ' + finalUrl
+                if self.gapless_playback and site in self.local_site_list:
+                    command = '{} "{}" --playlist-start={}'.format(command, self.tmp_pls_file, self.cur_row)
+                else:
+                    command = command + ' ' + finalUrl
         else:
             command = ''
         return command
@@ -11694,7 +11729,9 @@ watch/unwatch status")
                 if new_epn_title.startswith('#'):
                     new_epn_title = new_epn_title.replace('#', self.check_symbol, 1)
                 self.list2.addItem(new_epn_title)
-                
+        if self.gapless_playback:
+            self.use_playlist_method()
+            
     def newoptions(self, val=None):
         self.show_search_thumbnail = False
         if self.options_mode == 'legacy':
@@ -11861,6 +11898,8 @@ watch/unwatch status")
                     self.epn_arr_list.append(i)
                 self.forward.hide()
                 self.backward.hide()
+                if self.gapless_playback:
+                    self.use_playlist_method()
         
     def options(self, val=None):
         global opt, pgn, genre_num, site, name
@@ -12151,6 +12190,8 @@ watch/unwatch status")
                 show_hide_titlelist = 0
                 self.list2.show()
                 show_hide_playlist = 1
+        if self.gapless_playback:
+            self.use_playlist_method()
         
     def music_mode_layout(self):
         global screen_width, show_hide_cover, show_hide_player
@@ -12586,6 +12627,8 @@ watch/unwatch status")
             self.watchDirectly(urllib.parse.unquote(t), '', 'no')
             self.dockWidget_3.hide()
         #self.update_list2()
+        if self.gapless_playback:
+            self.use_playlist_method()
 
     def apply_new_font(self):
         global app
@@ -12745,6 +12788,7 @@ def main():
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
     ui.screen_size = (screen_width, screen_height)
+    ui.gapless_playback = True
     if not os.path.exists(home):
         os.makedirs(home)
     if not os.path.exists(os.path.join(home, 'src')):
