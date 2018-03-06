@@ -986,10 +986,16 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.buttons_layout.addWidget(self.btn_chapter_plus, 5, 2, 1, 2)
         
         self.btn_show_stat = QtWidgets.QPushButton(self)
-        self.btn_show_stat.setText('Show Stats')
-        self.btn_show_stat.setToolTip('Applicable only for mpv v2.8+')
+        self.btn_show_stat.setText('Stats')
+        self.btn_show_stat.setToolTip('<html>Show Some Statistics on Video. Applicable only for mpv v2.8+</html>')
         self.btn_show_stat.clicked.connect(partial(self.execute_command, 'script-binding stats/display-stats-toggle'))
-        self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 2)
+        self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 1)
+        
+        self.btn_fs_window = QtWidgets.QPushButton(self)
+        self.btn_fs_window.setText('FS')
+        self.btn_fs_window.setToolTip('Toggle Application Fullscreen')
+        self.btn_fs_window.clicked.connect(ui.fullscreenToggle)
+        self.buttons_layout.addWidget(self.btn_fs_window, 6, 1, 1, 1)
         
         self.btn_external_sub = QtWidgets.QPushButton(self)
         self.btn_external_sub.setText('External Sub')
