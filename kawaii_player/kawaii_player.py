@@ -8597,8 +8597,8 @@ watch/unwatch status")
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                     logger.info('..function play_file_now non-gapless mode::::{0}'.format(finalUrl))
             else:
-                cmd = 'set playlist-pos {}'.format(self.cur_row)
-                self.frame_extra_toolbar.execute_command(cmd)
+                cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
+                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 logger.debug(cmd)
                 logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
             setinfo = True
@@ -10140,11 +10140,9 @@ watch/unwatch status")
                     pass
             if (self.player_val.lower() == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a
-                    or "EOF code: 3" in a 
                     or "HTTP error 403 Forbidden" in a 
                     or self.progress_counter > self.mplayerLength + 1
-                    or 'finished playback, success (reason 0)' in a
-                    or 'finished playback, success (reason 2)' in a)):
+                    or 'finished playback, success (reason 0)' in a)):
                 if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
                     self.eof_lock = True
@@ -10232,21 +10230,21 @@ watch/unwatch status")
                             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                             #self.frame_extra_toolbar.slider_volume.pressed = False
                             #self.frame_extra_toolbar.slider_volume.setValue(int(self.player_volume))
-                elif ("Length_Seconds=" in a and not self.mplayerLength 
-                        and 'args=' not in a and not self.eof_reached):
-                    if a.startswith(r"b'"):
-                        mpl = re.sub('[^"]*Length_Seconds=', '', a)
-                        mpl = mpl.replace(r"\n'", '')
-                    else:
-                        mpl = re.sub('[^"]*Length_Seconds=', '', a)
-                    o = mpl.split(':')
-                    if o and len(o) == 3:
-                        if o[0].isdigit() and (o[1]).isdigit() and (o[2]).isdigit():
+                elif "LENGTH_SECONDS=" in a:
+                    mpl = re.search('LENGTH_SECONDS=[0-9]+[:][0-9]+[:][0-9]+', a)
+                    if not mpl:
+                        mpl = re.search('LENGTH_SECONDS=[0-9]+', a)
+                    logger.debug('{} {}'.format(mpl, a))
+                    if mpl:
+                        mpl = mpl.group()
+                        logger.debug(mpl)
+                        if ':' in mpl:
+                            n = mpl.split('=')[1]
+                            o = n.split(':')
                             self.mplayerLength = int(o[0])*3600+int(o[1])*60+int(o[2])
+                            self.mpv_playback_duration = n
                         else:
-                            self.mplayerLength = 0
-                        print(mpl)
-                        print(self.mplayerLength)
+                            self.mplayerLength = int(mpl.split('=')[1])
                         self.slider.setRange(0, int(self.mplayerLength))
                 elif ("AV:" in a or "A:" in a) and not self.eof_reached:
                     if not mpv_start:
@@ -10381,15 +10379,19 @@ watch/unwatch status")
                                         self.mplayerLength = 1
                                         self.mpv_length_find_attempt = 0
                                         logger.warn('No Suitable length detected')
+                                        msg = '\n print-text "LENGTH_SECONDS=${duration}" \n'
+                                        self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                                     else:
                                         self.mpv_cnt = 0
                                         self.mpv_length_find_attempt += 1
                                         logger.warn(self.mpv_length_find_attempt)
+                                        msg = '\n print-text "LENGTH_SECONDS=${duration}" \n'
+                                        self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                                 self.mpv_playback_duration = n
                                 self.progressEpn.setMaximum(int(self.mplayerLength))
                                 self.slider.setRange(0, int(self.mplayerLength))
                                 self.mpv_cnt = 0
-                            print(self.mplayerLength)
+                            logger.debug(self.mplayerLength)
                             self.mpv_cnt = self.mpv_cnt + 1
                             if (MainWindow.isFullScreen() and site != 'Music'
                                     and self.list2.isHidden() and self.tab_6.isHidden()
@@ -10442,6 +10444,7 @@ watch/unwatch status")
                 elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
                     self.eof_lock = False
+                    self.eof_reached = False
                     if "EOF code: 1" in a:
                         reason_end = 'EOF code: 1'
                     else:
