@@ -766,7 +766,7 @@ watch/unwatch status")
         self.player_opt_toolbar= QtWidgets.QPushButton(self.player_opt)
         self.player_opt_toolbar.setObjectName(_fromUtf8("player_opt_toolbar"))
         self.horizontalLayout_player_opt.insertWidget(0, self.player_opt_toolbar, 0)
-        self.player_opt_toolbar.setText("Options")
+        self.player_opt_toolbar.setText("Menu")
         self.player_opt_toolbar.setToolTip('Shift+G')
         
         self.sd_hd = QtWidgets.QPushButton(self.player_opt)
