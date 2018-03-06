@@ -369,6 +369,8 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         cur_label_num = ui.thumbnail_label_number[0]
         txt = self.d_vid.text()
         ui.float_window_open = True
+        if ui.mpvplayer_val.processId() > 0:
+            ui.float_window.setWindowTitle(ui.epn_name_in_list)
         if txt.lower() == '&detach video':
             self.d_vid.setText('&Attach Video')
             if str(ui.idw) == str(int(ui.tab_5.winId())) or not ui.idw:
