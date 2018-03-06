@@ -597,6 +597,15 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text111.setText("List With Thumbnail")
         self.param_list.append('list_with_thumbnail')
         
+        self.line112 = QtWidgets.QComboBox()
+        self.line112.addItem("True")
+        self.line112.addItem("False")
+        index = self.line112.findText(str(ui.window_frame.title()))
+        self.line112.setCurrentIndex(index)
+        self.text112 = QtWidgets.QLabel()
+        self.text112.setText("Allow Window Titlebar")
+        self.param_list.append('window_frame')
+        
         for i, j in enumerate(self.param_list):
             index = i+1
             if index < 10:
@@ -1293,9 +1302,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         param_value = param + obj_value
         logger.debug('{}::{}::{}::{}'.format(param, param_value, var_name, obj_value))
         if obj_value.lower() in ['true', 'false']:
-            exec('ui.{} = {}'.format(var_name, obj_value.title()))
-            if var_name == 'list_with_thumbnail':
-                self.change_playlist_viewmode()
+            if var_name == 'window_frame':
+                ui.tray_widget.right_menu._remove_frame()
+            else:
+                exec('ui.{} = {}'.format(var_name, obj_value.title()))
+                if var_name == 'list_with_thumbnail':
+                    self.change_playlist_viewmode()
         else:
             if var_name == 'keep_background_constant':
                 if obj_value.lower() == 'yes':
