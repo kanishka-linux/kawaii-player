@@ -958,7 +958,7 @@ class WidgetStyleSheet:
                     """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus, bold=font_bold))
                 #gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
-                for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
+                for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6, gui.player_menu]:
                     widget.setStyleSheet("""QListWidget{{
                     color:{0};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                     font: {bold};
