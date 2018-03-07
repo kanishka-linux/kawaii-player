@@ -5178,22 +5178,22 @@ watch/unwatch status")
                         self.mpvplayer_started = False
                 if len(self.queue_url_list)>0:
                     if isinstance(self.queue_url_list[0], tuple):
-                        self.localGetInList()
+                        self.localGetInList(eofcode='next')
                     else:
-                        self.getQueueInList()
+                        self.getQueueInList(eofcode='next')
                 else:
-                    self.localGetInList()
+                    self.localGetInList(eofcode='next')
             else:
                 if self.player_val == "mpv":
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
-                    self.getNextInList()
+                    self.getNextInList(eofcode='next')
                 else:
                     print(self.mpvplayer_val.state())
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
                     print(self.mpvplayer_val.processId(), '--mpvnext---')
-                    self.getNextInList()
+                    self.getNextInList(eofcode='next')
     
     def mpvPrevEpnList(self):
         global epn, site
@@ -8558,7 +8558,7 @@ watch/unwatch status")
         logger.info('function---15025--{0}-{1}'.format(file_name_mkv, file_name_mp4))
         return file_name_mp4, file_name_mkv
 
-    def play_file_now(self, file_name, win_id=None):
+    def play_file_now(self, file_name, win_id=None, eofcode=None):
         global current_playing_file_path, cur_label_num, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
@@ -8595,12 +8595,13 @@ watch/unwatch status")
                 if msg and cmd:
                     self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-                    logger.info('..function play_file_now non-gapless mode::::{0}'.format(finalUrl))
             else:
-                cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
-                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-                logger.debug(cmd)
-                logger.info('..function play_file_now gapless mode::::{0}'.format(finalUrl))
+                if eofcode == 'next' or eofcode is None:
+                    cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
+                    self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                    logger.debug(cmd)
+                elif eofcode == 'end':
+                    logger.debug('.....Continue.....Playlist.....')
             setinfo = True
         else:
             if self.mpvplayer_val.processId()>0:
@@ -8684,7 +8685,7 @@ watch/unwatch status")
         else:
             return False
 
-    def if_file_path_exists_then_play(self, row, list_widget, play_now=None):
+    def if_file_path_exists_then_play(self, row, list_widget, play_now=None, eofcode=None):
         global site, artist_name_mplayer
         
         file_path_name_mp4, file_path_name_mkv = self.get_file_name(row, list_widget)
@@ -8698,10 +8699,10 @@ watch/unwatch status")
                 if self.epn_name_in_list.startswith(self.check_symbol):
                     self.epn_name_in_list = self.epn_name_in_list[1:]
                 if os.path.exists(file_path_name_mp4):
-                    self.play_file_now(file_path_name_mp4)
+                    self.play_file_now(file_path_name_mp4, eofcode=eofcode)
                     finalUrl = file_path_name_mp4
                 else:
-                    self.play_file_now(file_path_name_mkv)
+                    self.play_file_now(file_path_name_mkv, eofcode=eofcode)
                     finalUrl = file_path_name_mkv
                 finalUrl = '"'+finalUrl+'"'
                 if (site.lower() == 'playlists'):
@@ -8734,10 +8735,10 @@ watch/unwatch status")
                     if self.epn_name_in_list.startswith(self.check_symbol):
                         self.epn_name_in_list = self.epn_name_in_list[1:]
                     if os.path.exists(file_path_name_mp4):
-                        self.play_file_now(file_path_name_mp4)
+                        self.play_file_now(file_path_name_mp4, eofcode=eofcode)
                         finalUrl = file_path_name_mp4
                     else:
-                        self.play_file_now(file_path_name_mkv)
+                        self.play_file_now(file_path_name_mkv, eofcode=eofcode)
                         finalUrl = file_path_name_mkv
                     if list_widget == self.list6:
                         txt = self.list6.item(0).text()
@@ -8771,10 +8772,10 @@ watch/unwatch status")
                 if self.epn_name_in_list.startswith(self.check_symbol):
                     self.epn_name_in_list = self.epn_name_in_list[1:]
                 if os.path.exists(file_path_name_mp4):
-                    self.play_file_now(file_path_name_mp4)
+                    self.play_file_now(file_path_name_mp4, eofcode=eofcode)
                     finalUrl = file_path_name_mp4
                 else:
-                    self.play_file_now(file_path_name_mkv)
+                    self.play_file_now(file_path_name_mkv, eofcode=eofcode)
                     finalUrl = file_path_name_mkv
                 list_widget_row = None
                 if list_widget == self.list6:
@@ -9837,7 +9838,6 @@ watch/unwatch status")
     
     def start_offline_mode(self, row, extra=None):
         global site, name, hdr
-        #if not self.if_file_path_exists_then_play(row, self.list2, False):
         self.queue_stop = False
         if not self.epn_wait_thread.isRunning():
             if site not in ['Video', 'Music', 'PlayLists', 'None'] and extra:
@@ -10512,14 +10512,14 @@ watch/unwatch status")
                             exec(q3)
                         if site in ["Video", "Music", "PlayLists", "None", "MyServer"]:
                             if queue_item is None or isinstance(queue_item, tuple):
-                                self.localGetInList()
+                                self.localGetInList(eofcode='end')
                             else:
-                                self.getQueueInList()
+                                self.getQueueInList(eofcode='end')
                         else:
                             if queue_item is None or isinstance(queue_item, tuple):
-                                self.getNextInList()
+                                self.getNextInList(eofcode='end')
                             else:
-                                self.getQueueInList()
+                                self.getQueueInList(eofcode='end')
                     elif self.quit_really == "yes": 
                         self.player_stop.clicked.emit()
                         self.list2.setFocus()
@@ -10782,19 +10782,19 @@ watch/unwatch status")
                                 or site == "None" or site == 'MyServer'):
                             if self.queue_url_list:
                                 if isinstance(self.queue_url_list[0], tuple):
-                                    self.localGetInList()
+                                    self.localGetInList(eofcode='end')
                                 else:
-                                    self.getQueueInList()
+                                    self.getQueueInList(eofcode='end')
                             else:
-                                self.localGetInList()
+                                self.localGetInList(eofcode='end')
                         else:
                             if self.queue_url_list:
                                 if isinstance(self.queue_url_list[0], tuple):
-                                    self.getNextInList()
+                                    self.getNextInList(eofcode='end')
                                 else:
-                                    self.getQueueInList()
+                                    self.getQueueInList(eofcode='end')
                             else:
-                                self.getNextInList()
+                                self.getNextInList(eofcode='end')
                         if self.tab_5.isHidden() and thumbnail_indicator:
                             length_1 = self.list2.count()
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
@@ -11043,7 +11043,7 @@ watch/unwatch status")
                 except Exception as e:
                     print(e)
     
-    def localGetInList(self):
+    def localGetInList(self, eofcode=None):
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
@@ -11069,7 +11069,7 @@ watch/unwatch status")
         self.mplayerLength = 0
         buffering_mplayer = "no"
         
-        if self.if_file_path_exists_then_play(row, self.list2, True):
+        if self.if_file_path_exists_then_play(row, self.list2, True, eofcode=eofcode):
             self.adjust_thumbnail_window(row)
             return 0
                     
@@ -11120,8 +11120,7 @@ watch/unwatch status")
         
         self.adjust_thumbnail_window(row)
             
-        if site == "None" or site == "Music" or site == "Video" or site == 'MyServer':
-            
+        if site in self.local_site_list:
             if '	' in self.epn_arr_list[row]:
                     finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
             else:
@@ -11159,7 +11158,7 @@ watch/unwatch status")
         except:
             finalUrl = finalUrl
             
-        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning():
+        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning() and not self.gapless_playback:
             if self.player_val.lower() == "mplayer":
                 command = self.mplayermpv_command(
                     self.idw, finalUrl, self.player_val, a_id=audio_id,
@@ -11204,9 +11203,8 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.debug('mpv-restart{0}'.format(command))
-            
             print("mpv=" + str(self.mpvplayer_val.processId()))
-        elif not self.epn_wait_thread.isRunning():
+        elif not self.epn_wait_thread.isRunning() and not self.gapless_playback:
             command = self.mplayermpv_command(
                 self.idw, finalUrl, self.player_val, a_id=audio_id,
                 s_id=sub_id
@@ -11214,6 +11212,13 @@ watch/unwatch status")
             self.infoPlay(command)
         
             print("mpv=" + str(self.mpvplayer_val.processId()))
+        elif self.gapless_playback and site in self.local_site_list:
+            if self.cur_row == 0 or eofcode == 'next':
+                cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
+                if self.mpvplayer_val.processId() > 0:
+                    self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            else:
+                pass
             
         if finalUrl.startswith('"'):
             current_playing_file_path = finalUrl.replace('"', '')
@@ -11268,7 +11273,7 @@ watch/unwatch status")
         except Exception as e:
             print(e, '--14180--')
         
-    def getQueueInList(self):
+    def getQueueInList(self, eofcode=None):
         global site, artist_name_mplayer
         global sub_id, audio_id, server, current_playing_file_path
         try:
@@ -11282,15 +11287,14 @@ watch/unwatch status")
             old_txt = self.list6.item(0).text()
             if old_txt.lower().startswith('queue empty:'):
                 self.list6.clear()
-        if self.list6.item(0):
-            if self.if_file_path_exists_then_play(0, self.list6, True):
+        if self.list6.item(0) and not self.gapless_playback:
+            if self.if_file_path_exists_then_play(0, self.list6, True, eofcode=eofcode):
                 del self.queue_url_list[0]
                 self.list6.takeItem(0)
                 del t1
                 return 0
         
-        if (site == "Local" or site == "Video" or site == "Music" 
-                or site == "PlayLists" or site == "None" or site == 'MyServer'):
+        if site in self.local_site_list and not self.gapless_playback:
             t = self.queue_url_list[0]
             epnShow = t.split('	')[1]
             epnShow = epnShow.replace('"', '')
@@ -11324,6 +11328,34 @@ watch/unwatch status")
                         self.ytdl_path, self.epn_name_in_list)
                     self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(epnShow)
+        elif self.gapless_playback and site in self.local_site_list:
+            item = self.queue_url_list[0]
+            epnShow = item.split('	')[1]
+            epnShow = epnShow.replace('"', '')
+            if epnShow.startswith('abs_path=') or epnShow.startswith('relative_path='):
+                epnShow = self.if_path_is_rel(epnShow)
+            epnShow = '"'+epnShow+'"'
+            try:
+                index = self.epn_arr_list.index(item)
+            except AttributeError as err:
+                logger.error(err)
+                index = 0
+            self.epn_name_in_list = item.split('	')[0]
+            if self.epn_name_in_list.startswith('#'):
+                self.epn_name_in_list = self.epn_name_in_list[1:]
+            if site == "Music":
+                artist_name_mplayer = item.split('	')[2]
+                if artist_name_mplayer == "None":
+                    artist_name_mplayer = ""
+            del self.queue_url_list[0]
+            t1 = self.list6.item(0)
+            if t1:
+                self.list6.takeItem(0)
+                del t1
+            if not self.idw:
+                self.idw = str(int(self.tab_5.winId()))
+            cmd = '\n set playlist-pos {} \n'.format(index)
+            self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
         else:
             epnShow = self.queue_url_list.pop()
             self.cur_row -= 1
@@ -11335,10 +11367,10 @@ watch/unwatch status")
             self.idw, epnShowN, self.player_val, a_id=audio_id,
             s_id=sub_id
             )
-        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning() and OSNAME == 'posix':
+        if (self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning()
+                and OSNAME == 'posix' and not self.gapless_playback):
             epnShow = '"'+epnShow.replace('"', '')+'"'
             t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
-            
             if self.player_val.lower() == 'mpv':
                 if not self.external_url and not self.external_audio_file:
                     self.mpvplayer_val.write(t2)
@@ -11363,7 +11395,7 @@ watch/unwatch status")
                     self.infoPlay(command)
                     #self.external_url = False
                     logger.info(command)
-        elif not self.epn_wait_thread.isRunning():
+        elif not self.epn_wait_thread.isRunning() and not self.gapless_playback:
             self.infoPlay(command)
             logger.info(command)
             self.list1.hide()
@@ -11498,19 +11530,17 @@ watch/unwatch status")
                     command = command.replace('ytdl=no', 'ytdl=yes')
                 elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
-            if finalUrl.startswith('http'):
-                command = command + ' ' + finalUrl
+            if self.gapless_playback and site in self.local_site_list:
+                command = '{} "{}" --playlist-start={} --prefetch-playlist=yes --gapless-audio=yes'.format(
+                    command, self.tmp_pls_file, self.cur_row
+                    )
             else:
-                finalUrl = '"'+ finalUrl + '"'
-                if self.gapless_playback and site in self.local_site_list:
-                    command = '{} "{}" --playlist-start={}'.format(command, self.tmp_pls_file, self.cur_row)
-                else:
-                    command = command + ' ' + finalUrl
+                command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
         else:
             command = ''
         return command
         
-    def getNextInList(self):
+    def getNextInList(self, eofcode=None):
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
@@ -11532,7 +11562,7 @@ watch/unwatch status")
         except:
             pass
         
-        if self.if_file_path_exists_then_play(row, self.list2, True):
+        if self.if_file_path_exists_then_play(row, self.list2, True, eofcode=eofcode):
             self.adjust_thumbnail_window(row)
             return 0
         
@@ -11562,7 +11592,6 @@ watch/unwatch status")
                     self.list2.item(row).setText(self.check_symbol+i)
                 else:
                     self.list2.item(row).setText(i)
-                #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
                 self.list2.setCurrentRow(row)
                 
             if site != "Local":
@@ -11881,14 +11910,17 @@ watch/unwatch status")
                 self.list1.clear()
                 self.original_path_name[:] = []
                 for i in m:
-                    i = i.strip()
-                    if '	' in i:
-                        j = i.split('	')[0]
+                    if isinstance(i ,int):
+                        pass
                     else:
-                        j = i
-                    if j:
-                        self.list1.addItem(j)
-                        self.original_path_name.append(i)
+                        i = i.strip()
+                        if '	' in i:
+                            j = i.split('	')[0]
+                        else:
+                            j = i
+                        if j:
+                            self.list1.addItem(j)
+                            self.original_path_name.append(i)
                 self.forward.show()
                 self.backward.show()
             elif list_2:
@@ -12791,7 +12823,6 @@ def main():
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
     ui.screen_size = (screen_width, screen_height)
-    ui.gapless_playback = True
     if not os.path.exists(home):
         os.makedirs(home)
     if not os.path.exists(os.path.join(home, 'src')):
@@ -13323,6 +13354,14 @@ def main():
                     except Exception as e:
                         print(e)
                         ui.keep_background_constant = False
+                elif i.startswith('GAPLESS_PLAYBACK='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.gapless_playback = True
+                    except Exception as e:
+                        print(e)
                 elif i.startswith('HTTPS_ON='):
                     try:
                         k = j.lower()
