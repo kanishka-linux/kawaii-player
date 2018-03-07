@@ -135,7 +135,7 @@ class FloatWindowWidget(QtWidgets.QWidget):
 
         self.h_mode = QtWidgets.QPushButton(self)
         self.h_mode.setText('--')
-        self.h_mode.setToolTip('Keep Toolbar')
+        self.h_mode.setToolTip('<html>Turn on/off auto hide behaviour of toolbar. Use ESC key, to show/hide toolbar</html>')
         self.h_mode.clicked.connect(self.lock_toolbar)
 
         self.cover_mode = QtWidgets.QPushButton(self)
@@ -238,13 +238,13 @@ class FloatWindowWidget(QtWidgets.QWidget):
         txt = self.h_mode.text()
         if txt == '--':
             self.h_mode.setText('+')
-            self.h_mode.setToolTip('Remove Toolbar')
+            #self.h_mode.setToolTip('Remove Toolbar')
             self.remove_toolbar = False
             if ui.float_timer.isActive():
                 ui.float_timer.stop()
         else:
             self.h_mode.setText('--')
-            self.h_mode.setToolTip('Keep Toolbar')
+            #self.h_mode.setToolTip('Keep Toolbar')
             self.remove_toolbar = True
             ui.float_timer.start(1000)
 
