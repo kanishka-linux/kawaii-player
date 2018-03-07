@@ -7921,6 +7921,8 @@ watch/unwatch status")
                 item = item.replace('"', '')
                 if item.startswith('abs_path=') or item.startswith('relative_path='):
                     item = self.if_path_is_rel(item)
+                if item.startswith('ytdl:'):
+                    item = item.replace('ytdl:', '', 1)
                 lines.append(item)
             write_files(self.tmp_pls_file, lines, line_by_line=True)
     
@@ -8972,7 +8974,7 @@ watch/unwatch status")
             finalUrl = finalUrl[0]
             
         finalUrl = finalUrl.replace('"', '')
-        
+        finalUrl = finalUrl.strip()
         finalUrl = '"'+finalUrl+'"'
         try:
             finalUrl = str(finalUrl)
@@ -8987,7 +8989,7 @@ watch/unwatch status")
             if not referer:
                 command = self.mplayermpv_command(
                     self.idw, finalUrl, self.player_val, a_url=aurl,
-                    s_url=surl)
+                    s_url=surl, from_function='now_start')
             else:
                 command = self.mplayermpv_command(
                     self.idw, finalUrl, self.player_val,
@@ -11210,7 +11212,6 @@ watch/unwatch status")
                 s_id=sub_id
                 )
             self.infoPlay(command)
-        
             print("mpv=" + str(self.mpvplayer_val.processId()))
         elif self.gapless_playback and site in self.local_site_list:
             if self.cur_row == 0 or eofcode == 'next':
@@ -11354,8 +11355,26 @@ watch/unwatch status")
                 del t1
             if not self.idw:
                 self.idw = str(int(self.tab_5.winId()))
-            cmd = '\n set playlist-pos {} \n'.format(index)
-            self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            if 'youtube.com' in epnShow.lower():
+                finalUrl = epnShow.replace('"', '')
+                epnShow = finalUrl
+                if self.music_playlist:
+                    yt_mode = 'yt_music'
+                else:
+                    yt_mode = 'yt'
+                if not self.epn_wait_thread.isRunning():
+                    self.epn_wait_thread = PlayerGetEpn(
+                        self, logger, yt_mode, finalUrl, self.quality_val,
+                        self.ytdl_path, self.epn_name_in_list)
+                    self.epn_wait_thread.start()
+            else:
+                finalUrl = epnShow.replace('"', '')
+            self.external_url = self.get_external_url_status(epnShow)
+            if site != 'MyServer' and finalUrl.startswith('http'):
+                pass
+            else:
+                cmd = '\n set playlist-pos {} \n'.format(index)
+                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
         else:
             epnShow = self.queue_url_list.pop()
             self.cur_row -= 1
@@ -11422,7 +11441,7 @@ watch/unwatch status")
             self.float_window.setWindowTitle(self.epn_name_in_list)
         
     def mplayermpv_command(self, idw, finalUrl, player, a_id=None, s_id=None,
-                           rfr=None, a_url=None, s_url=None):
+                           rfr=None, a_url=None, s_url=None, from_function=None):
         global site
         finalUrl = finalUrl.replace('"', '')
         aspect_value = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
@@ -11523,6 +11542,7 @@ watch/unwatch status")
             command = command + ' ' + ' '.join(self.mpvplayer_string_list)
         logger.debug(finalUrl)
         if finalUrl:
+            finalUrl = finalUrl.strip()
             if self.quality_val == 'best' and self.ytdl_path == 'default':
                 if ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mpv':
                     if finalUrl.startswith('ytdl:'):
@@ -11530,7 +11550,7 @@ watch/unwatch status")
                     command = command.replace('ytdl=no', 'ytdl=yes')
                 elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
-            if self.gapless_playback and site in self.local_site_list:
+            if self.gapless_playback and site in self.local_site_list and from_function != 'now_start':
                 command = '{} "{}" --playlist-start={} --prefetch-playlist=yes --gapless-audio=yes'.format(
                     command, self.tmp_pls_file, self.cur_row
                     )
@@ -11539,7 +11559,14 @@ watch/unwatch status")
         else:
             command = ''
         return command
-        
+    
+    def replace_line_in_file(self, file_name, lineno, content):
+        lines = open_files(file_name, True)
+        lines = [i.strip() for i in lines if i.strip()]
+        if lineno < len(lines):
+            lines[lineno] = content
+            write_files(file_name, lines, line_by_line=True)
+    
     def getNextInList(self, eofcode=None):
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
@@ -11696,9 +11723,6 @@ watch/unwatch status")
                     self.idw, finalUrl, self.player_val, a_id=audio_id,
                     s_id=sub_id
                     )
-                
-                print("mpv=" + str(self.mpvplayer_val.processId()))
-                print(self.player_val, '---------state----'+str(self.mpvplayer_val.state()))
                 
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
