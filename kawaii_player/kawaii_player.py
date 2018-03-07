@@ -11550,10 +11550,13 @@ watch/unwatch status")
                     command = command.replace('ytdl=no', 'ytdl=yes')
                 elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
-            if self.gapless_playback and site in self.local_site_list and from_function != 'now_start':
-                command = '{} "{}" --playlist-start={} --prefetch-playlist=yes --gapless-audio=yes'.format(
-                    command, self.tmp_pls_file, self.cur_row
-                    )
+            if self.gapless_playback and site in self.local_site_list:
+                if site != 'MyServer' and from_function == 'now_start':
+                    command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
+                else:
+                    command = '{} "{}" --playlist-start={} --prefetch-playlist=yes --gapless-audio=yes'.format(
+                        command, self.tmp_pls_file, self.cur_row
+                        )
             else:
                 command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
         else:
