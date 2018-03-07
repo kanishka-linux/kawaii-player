@@ -962,7 +962,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.btn45.setText('  Set  ')
         self.btn45.clicked.connect(partial(self.set_folder, self.line45, 'screenshot_directory'))
         
-        self.line46 = QtWidgets.QTextEdit()
+        self.line46 = QtWidgets.QComboBox()
+        self.line46.addItem("False")
+        self.line46.addItem("True")
+        index = self.line46.findText(str(ui.gapless_playback))
+        self.line46.setCurrentIndex(index)
+        self.text46 = QtWidgets.QLabel()
+        self.text46.setText("Gapless Playback")
+        self.player_list.append('gapless_playback')
+        
+        self.line47 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
               It also remembers last quit position for every video in the History\
@@ -1015,8 +1024,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg1 = re.sub('  +', ' ', msg1)
         msg = msg + '\n\n' + msg1
         
-        self.line46.setText(msg)
-        self.line46.setMaximumHeight(ui.height_allowed)
+        self.line47.setText(msg)
+        self.line47.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
             text = eval('self.text4{}'.format(index))
@@ -1036,7 +1045,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
-        self.gl6.addWidget(self.line46, index+1, 0, 1, 3)
+        self.gl6.addWidget(self.line47, index+1, 0, 1, 3)
         
     
     def configsettings(self):
