@@ -970,7 +970,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text46 = QtWidgets.QLabel()
         self.text46.setText("Gapless Playback")
         self.player_list.append('gapless_playback')
-        
+        msg = 'Experimental. Useful for playlist containing local files and for \
+               aceesing media server library in p2p mode. Do not use it on playlist\
+               with mix of local files and network streams'
+        self.text46.setToolTip('<html>{}</html>'.format(msg))
         self.line47 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
