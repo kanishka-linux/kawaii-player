@@ -405,8 +405,11 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             ui.new_tray_widget.lay.insertWidget(2, ui.list2, 0)
             MainWindow.hide()
             self.h_mode.setText('&Hide')
+            ycord = ui.float_window_dim[1]
+            if ycord < 0:
+                ycord = 32
             ui.float_window.setGeometry(
-                ui.float_window_dim[0], ui.float_window_dim[1], 
+                ui.float_window_dim[0], ycord, 
                 ui.float_window_dim[2], ui.float_window_dim[3]
                 )
             ui.list2.setFlow(QtWidgets.QListWidget.LeftToRight)
