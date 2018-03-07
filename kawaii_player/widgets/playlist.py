@@ -727,6 +727,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     write_files(file_path, lines, line_by_line=True)
                     ui.update_list2()
                     self.setCurrentRow(nRow)
+                if ui.gapless_playback:
+                    ui.use_playlist_method()
             elif site == "Video":
                 r = self.currentRow()
                 item = self.item(r)
@@ -779,6 +781,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         dir_path, file_path = os.path.split(txt)
                         if dir_path in ui.video_dict:
                             del ui.video_dict[dir_path]
+                        if ui.gapless_playback:
+                            ui.use_playlist_method()
         elif event.key() == QtCore.Qt.Key_PageDown:
             row = self.currentRow()
             nRow = self.currentRow()+1
@@ -828,6 +832,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     write_files(file_path, lines, line_by_line=True)
                     ui.update_list2()
                     self.setCurrentRow(nRow)
+                    if ui.gapless_playback:
+                        ui.use_playlist_method()
             elif site == "Video":
                 r = self.currentRow()
                 item = self.item(r)
@@ -882,6 +888,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         dir_path, file_path = os.path.split(txt)
                         if dir_path in ui.video_dict:
                             del ui.video_dict[dir_path]
+                        if ui.gapless_playback:
+                            ui.use_playlist_method()
         elif event.key() == QtCore.Qt.Key_Left:
             if ui.float_window.isHidden():
                 if ui.list1.isHidden():
