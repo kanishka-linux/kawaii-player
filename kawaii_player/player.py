@@ -522,6 +522,12 @@ class PlayerWidget(QtWidgets.QWidget):
                 no_modifier = True
             logger.debug('modifier: {} key: {}'.format(modifier, key))
             if key is not None:
+                if key == 'esc':
+                    if not self.ui.float_window.isHidden():
+                        if self.ui.new_tray_widget.isHidden():
+                            self.ui.new_tray_widget.show()
+                        else:
+                            self.ui.new_tray_widget.hide()
                 command = self.mpv_default.get(key)
                 logger.debug(command)
                 if not command:
