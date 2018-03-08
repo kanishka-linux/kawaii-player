@@ -33,7 +33,7 @@ from PyQt5 import QtCore
 from player_functions import send_notification, ccurl, get_home_dir
 
 
-def get_yt_url(url, quality, ytdl_path, logger, mode=None):
+def get_yt_url(url, quality, ytdl_path, logger, mode=None, reqfrom=None):
     final_url = ''
     url = url.replace('"', '')
     m = []
@@ -108,7 +108,8 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None):
                 res = 480
             else:
                 res = 4000
-            if quality == 'best' and ytdl_path == 'default':
+            if (quality == 'best' and ytdl_path == 'default'
+                    and (reqfrom is None or reqfrom == 'desktop')):
                 if ytdl_extra:
                     final_url = 'ytdl:' + url
                 else:
