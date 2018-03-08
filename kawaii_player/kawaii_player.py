@@ -1567,6 +1567,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.playback_mode = 'single'
         self.gapless_playback = False
         self.title_list_changed = False
         self.fullscreen_video = False
@@ -8598,12 +8599,37 @@ watch/unwatch status")
                     self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             else:
-                if eofcode == 'next' or eofcode is None:
+                if (eofcode == 'next' or eofcode is None) and self.playback_mode == 'playlist':
                     cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                     logger.debug(cmd)
-                elif eofcode == 'end':
+                elif eofcode == 'end' and self.playback_mode == 'playlist':
                     logger.debug('.....Continue.....Playlist.....')
+                elif self.playback_mode == 'single':
+                    if self.mpvplayer_val.processId()>0:
+                        self.mpvplayer_val.kill()
+                        self.mpvplayer_started = False
+                        self.external_audio_file = False
+                    if OSNAME == 'posix':
+                        if not win_id:
+                            self.idw = str(int(self.tab_5.winId()))
+                        else:
+                            self.idw = str(win_id)
+                    elif OSNAME == 'nt':
+                        if win_id:
+                            self.idw = str(win_id)
+                        elif thumbnail_indicator and self.video_mode_index not in [1, 2]:
+                            try:
+                                p1 = 'self.label_epn_{0}.winId()'.format(str(self.thumbnail_label_number[0]))
+                                self.idw = str(int(eval(p1)))
+                            except Exception as e:
+                                print(e)
+                                self.idw = str(int(self.tab_5.winId()))
+                        else:
+                            self.idw = str(int(self.tab_5.winId()))
+                    command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
+                    logger.info('command: function_play_file_now = {0}'.format(command))
+                    self.infoPlay(command)
             setinfo = True
         else:
             if self.mpvplayer_val.processId()>0:
@@ -11122,7 +11148,7 @@ watch/unwatch status")
         
         self.adjust_thumbnail_window(row)
             
-        if site in self.local_site_list:
+        if site in ['Video', 'Music', 'None', 'MyServer']:
             if '	' in self.epn_arr_list[row]:
                     finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
             else:
@@ -11214,12 +11240,12 @@ watch/unwatch status")
             self.infoPlay(command)
             print("mpv=" + str(self.mpvplayer_val.processId()))
         elif self.gapless_playback and site in self.local_site_list:
-            if self.cur_row == 0 or eofcode == 'next':
+            if (self.cur_row == 0 or eofcode == 'next') and self.playback_mode == 'playlist':
                 cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-            else:
-                pass
+            elif self.playback_mode == 'single':
+                self.play_file_now(finalUrl)
             
         if finalUrl.startswith('"'):
             current_playing_file_path = finalUrl.replace('"', '')
@@ -11553,12 +11579,15 @@ watch/unwatch status")
             if self.gapless_playback and site in self.local_site_list:
                 if site != 'MyServer' and from_function == 'now_start':
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
+                    self.playback_mode = 'single'
                 else:
                     command = '{} "{}" --playlist-start={} --prefetch-playlist=yes --gapless-audio=yes'.format(
                         command, self.tmp_pls_file, self.cur_row
                         )
+                    self.playback_mode = 'playlist'
             else:
                 command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
+                self.playback_mode = 'single'
         else:
             command = ''
         return command
