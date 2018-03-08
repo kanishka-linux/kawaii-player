@@ -673,6 +673,11 @@ class SubtitleSlider(QtWidgets.QSlider):
             self.setSingleStep(100)
             self.setPageStep(10)
             self.setValue(100)
+        elif name == 'space':
+            self.setRange(-1000, 1000)
+            self.setSingleStep(10)
+            self.setPageStep(10)
+            self.setValue(0)
         elif name in ['xmargin', 'ymargin', 'xymargin']:
             self.setRange(0, 100)
             self.setSingleStep(1)
@@ -750,6 +755,15 @@ class SubtitleSlider(QtWidgets.QSlider):
             ui.subtitle_dict.update({'sub-pos':str(val)})
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        elif name == 'space':
+            label_value = eval('self.parent.subtitle_{}_value'.format(name))
+            value = val * 0.01
+            label_value.setPlaceholderText(str(value))
+            cmd = '\n set sub-spacing {} \n'.format(value)
+            ui.subtitle_dict.update({'sub-spacing':str(value)})
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                
 
 class QLineCustomFont(QtWidgets.QLineEdit):
     
@@ -1199,11 +1213,27 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.subtitle_xymargin_value.setToolTip('Default, 100')
         self.subtitle_xymargin_value.returnPressed.connect(partial(self.gsbc_entered, self.subtitle_xymargin_value, self.subtitle_xymargin_slider))
         
+        
+        self.subtitle_space_label = QtWidgets.QLabel(self)
+        self.subtitle_space_label.setText('Spacing')
+        self.subtitle_space_label.setToolTip('<html>Set Spacing</html>')
+        self.sub_grid.addWidget(self.subtitle_space_label, 12, 0, 1, 1)
+        self.subtitle_space_slider = SubtitleSlider(self, ui, 'space')
+        self.sub_grid.addWidget(self.subtitle_space_slider, 12, 1, 1, 2)
+        self.subtitle_space_value = QtWidgets.QLineEdit(self)
+        self.subtitle_space_value.setPlaceholderText('0')
+        self.sub_grid.addWidget(self.subtitle_space_value, 12, 3, 1, 1)
+        self.subtitle_space_value.setMaximumWidth(42)
+        self.subtitle_space_value.setToolTip('Default, 0')
+        self.subtitle_space_value.returnPressed.connect(
+            partial(self.gsbc_entered, self.subtitle_space_value, self.subtitle_space_slider)
+            )
+        
         self.subtitle_align_label = QtWidgets.QLabel(self)
         self.subtitle_align_label.setText('Alignment')
-        self.sub_grid.addWidget(self.subtitle_align_label, 12, 0, 1, 1)
+        self.sub_grid.addWidget(self.subtitle_align_label, 13, 0, 1, 1)
         self.subtitle_horiz_align = QtWidgets.QComboBox(self)
-        self.sub_grid.addWidget(self.subtitle_horiz_align, 12, 1, 1, 1)
+        self.sub_grid.addWidget(self.subtitle_horiz_align, 13, 1, 1, 1)
         for  i in ['Center', 'Left', 'Right']:
             self.subtitle_horiz_align.addItem(i)
         self.subtitle_horiz_align.currentIndexChanged['int'].connect(
@@ -1211,14 +1241,22 @@ class ExtraToolBar(QtWidgets.QFrame):
             )
         
         self.subtitle_vertical_align = QtWidgets.QComboBox(self)
-        self.sub_grid.addWidget(self.subtitle_vertical_align, 12, 2, 1, 1)
+        self.sub_grid.addWidget(self.subtitle_vertical_align, 13, 2, 1, 1)
         for  i in ['Bottom', 'Middle', 'Top']:
             self.subtitle_vertical_align.addItem(i)
         self.subtitle_vertical_align.currentIndexChanged['int'].connect(
             partial(self.change_alignment, self.subtitle_vertical_align, 'y')
             )
-        
         """
+        self.spinbox_space = QtWidgets.QDoubleSpinBox(self)
+        self.sub_grid.addWidget(self.spinbox_space, 12, 3, 1, 1)
+        self.spinbox_space.setRange(-50.0, 50.0)
+        self.spinbox_space.setValue(0)
+        self.spinbox_space.setSingleStep(0.1)
+        self.spinbox_space.valueChanged.connect(partial(self.spinbox_changed, self.spinbox_space, 'space'))
+        self.spinbox_space.setMaximumWidth(42)
+        self.spinbox_space.setDecimals(1)
+        
         self.spinbox_scale_label = QtWidgets.QLabel(self)
         self.spinbox_scale_label.setText('Scale')
         self.sub_grid.addWidget(self.spinbox_scale_label, 13, 0, 1, 1)
@@ -1238,21 +1276,21 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.ass_override_label = QtWidgets.QLabel(self)
         self.ass_override_label.setText('Sub ASS Override')
         self.ass_override_label.setWordWrap(True)
-        self.sub_grid.addWidget(self.ass_override_label, 13, 0, 1, 2)
+        self.sub_grid.addWidget(self.ass_override_label, 14, 0, 1, 2)
         self.ass_override_label.setToolTip('Apply Above Style to ASS files.')
         self.ass_override_value = QtWidgets.QComboBox(self)
         for i in ['Yes', 'No', 'Force', 'Scale', 'Strip']:
             self.ass_override_value.addItem(i)
         self.ass_override_value.currentIndexChanged['int'].connect(self.ass_override_function)
         self.ass_override_value.setCurrentIndex(0)
-        self.sub_grid.addWidget(self.ass_override_value, 13, 2, 1, 1)
+        self.sub_grid.addWidget(self.ass_override_value, 14, 2, 1, 1)
         self.ass_override_value.setToolTip('Default, Yes')
         
         
         
         self.checkbox_dont = QtWidgets.QCheckBox("Don't Apply Above Settings")
         self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
-        self.sub_grid.addWidget(self.checkbox_dont, 14, 0, 1, 3)
+        self.sub_grid.addWidget(self.checkbox_dont, 15, 0, 1, 3)
         self.checkbox_dont.setToolTip('<html>Do not apply above custom settings</html>')
         
         self.subtitle_widgets = {
@@ -1273,6 +1311,7 @@ class ExtraToolBar(QtWidgets.QFrame):
             'sub-pos': self.subtitle_xymargin_slider,
             'sub-align-x': self.subtitle_horiz_align,
             'sub-align-y': self.subtitle_vertical_align,
+            'sub-spacing': self.subtitle_space_slider
         }
     
     def change_alignment(self, widget, val):
@@ -1294,6 +1333,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         if val == 'scale':
             self.execute_command('set sub-scale {}'.format(flval))
             ui.subtitle_dict.update({'sub-scale':flval})
+        elif val == 'space':
+            self.execute_command('set sub-spacing {}'.format(flval))
             
     def font_value_changed(self):
         self.font_value.setFocus()
@@ -1421,7 +1462,7 @@ class ExtraToolBar(QtWidgets.QFrame):
                 elif property_name in ['sub-border-size', 'sub-shadow-offset']:
                     new_val = float(property_value) * 10
                     widget.setValue(new_val)
-                elif property_name == 'sub-blur':
+                elif property_name in ['sub-blur', 'sub-spacing']:
                     new_val = float(property_value) * 100
                     widget.setValue(new_val)
                 elif property_name == 'sub-scale':
@@ -1510,7 +1551,7 @@ class ExtraToolBar(QtWidgets.QFrame):
                 label.setPlaceholderText(value)
                 value = float(value)*10
                 slider.setValue(int(value))
-            elif slider.objectName() == 'blur':
+            elif slider.objectName() in ['blur', 'space']:
                 label.setPlaceholderText(value)
                 value = float(value)*100
                 slider.setValue(int(value))
