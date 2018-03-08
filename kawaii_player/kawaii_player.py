@@ -2534,7 +2534,7 @@ watch/unwatch status")
                         self.float_window.showFullScreen()
                     else:
                         self.float_window.showNormal()
-                    
+        
     def seek_to_val_abs(self):
         val = self.client_seek_val
         if self.player_val == "mplayer":
@@ -7922,13 +7922,17 @@ watch/unwatch status")
         if site in self.local_site_list:
             lines = []
             for i in self.epn_arr_list:
-                item = i.split('\t')[1].strip()
-                item = item.replace('"', '')
-                if item.startswith('abs_path=') or item.startswith('relative_path='):
-                    item = self.if_path_is_rel(item)
-                if item.startswith('ytdl:'):
-                    item = item.replace('ytdl:', '', 1)
-                lines.append(item)
+                if '\t' in i:
+                    item = i.split('\t')[1].strip()
+                else:
+                    item = i.strip()
+                if item:
+                    item = item.replace('"', '')
+                    if item.startswith('abs_path=') or item.startswith('relative_path='):
+                        item = self.if_path_is_rel(item)
+                    if item.startswith('ytdl:'):
+                        item = item.replace('ytdl:', '', 1)
+                    lines.append(item)
             write_files(self.tmp_pls_file, lines, line_by_line=True)
     
     def set_list_thumbnail(self, k):
