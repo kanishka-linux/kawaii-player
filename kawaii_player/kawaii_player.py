@@ -1569,6 +1569,7 @@ watch/unwatch status")
         self.mpvplayer_val = QtCore.QProcess()
         self.playback_mode = 'single'
         self.gapless_playback = False
+        self.gapless_playback_disabled = False
         self.title_list_changed = False
         self.fullscreen_video = False
         self.subtitle_dict = {}
@@ -2260,6 +2261,9 @@ watch/unwatch status")
         self.progress.show()
             
     def quick_url_play_method(self):
+        if self.gapless_playback:
+            self.gapless_playback = False
+            self.gapless_playback_disabled = True
         if self.quick_url_play.startswith('magnet'):
             self.quick_torrent_play_method(url=self.quick_url_play)
         else:
@@ -11594,6 +11598,9 @@ watch/unwatch status")
                 self.playback_mode = 'single'
         else:
             command = ''
+        if self.gapless_playback_disabled:
+            self.gapless_playback = True
+            self.gapless_playback_disabled = False
         return command
     
     def replace_line_in_file(self, file_name, lineno, content):
