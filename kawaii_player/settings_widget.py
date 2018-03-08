@@ -819,6 +819,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
             )
         self.text33 = QtWidgets.QLabel()
         self.text33.setText("YTDL Path")
+        self.text33.setToolTip("<html>default, automatic or complete path.\
+         1. default: it will look for executable in system path. \
+         2. automatic: it will grab ytdl executable automatically\
+         from official website and set path accordingly.\
+         3. or enter complete path of executable</html>")
         self.other_settings.append('ytdl_path')
         
         self.line34 = QtWidgets.QComboBox()
