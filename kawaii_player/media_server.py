@@ -1617,11 +1617,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             nm = nm.replace('"', '')
                     elif (('youtube.com' in nm or nm.startswith('ytdl:')) and not self.path.endswith('.subtitle') 
                             and not self.path.endswith('.getsub') and not self.path.endswith('.image')):
-                        nm = get_yt_url(nm, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
+                        nm = get_yt_url(
+                                nm, ui.client_quality_val, ui.ytdl_path, logger,
+                                mode=ui.client_yt_mode, reqfrom='client'
+                                )
+                        nm = nm.strip()
                         if '::' in nm:
-                            vid, aud = nm.split('::')
-                            if ui.client_yt_mode == 'music':
+                            nm_arr = nm.split('::')
+                            vid = nm_arr[0]
+                            aud = nm_arr[1]
+                            if ui.client_yt_mode == 'music' and not aud.endswith('.vtt'):
                                 nm = aud
+                            elif aud.endswith('.vtt'):
+                                nm = vid
                 if self.path.endswith('.subtitle'):
                     new_path = self.path.rsplit('.', 1)[0]
                     if new_path.endswith('.reload'):
@@ -2650,11 +2658,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             write_files(pls_path, lines, line_by_line=True)
                             op_success = True
                 if mode == 'offline':
-                    nm = get_yt_url(url, ui.client_quality_val, ui.ytdl_path, logger, mode=ui.client_yt_mode).strip()
+                    nm = get_yt_url(
+                            url, ui.client_quality_val, ui.ytdl_path,
+                            logger, mode=ui.client_yt_mode, reqfrom='client'
+                            )
+                    nm = nm.strip()
                     if '::' in nm:
-                        vid, aud = nm.split('::')
-                        if ui.client_yt_mode == 'music':
+                        nm_arr = nm.split('::')
+                        vid = nm_arr[0]
+                        aud = nm_arr[1]
+                        if ui.client_yt_mode == 'music' and not aud.endswith('.vtt'):
                             nm = aud
+                        elif aud.endswith('.vtt'):
+                            nm = vid
                     self.process_offline_mode(nm, pls, title, msg=False, captions=sub_title, url=url)
             else:
                 try:
