@@ -11372,9 +11372,9 @@ watch/unwatch status")
             epnShow = '"'+epnShow+'"'
             try:
                 index = self.epn_arr_list.index(item)
-            except AttributeError as err:
+            except Exception as err:
                 logger.error(err)
-                index = 0
+                index = -1
             self.epn_name_in_list = item.split('	')[0]
             if self.epn_name_in_list.startswith('#'):
                 self.epn_name_in_list = self.epn_name_in_list[1:]
@@ -11404,14 +11404,19 @@ watch/unwatch status")
             else:
                 finalUrl = epnShow.replace('"', '')
             self.external_url = self.get_external_url_status(epnShow)
+            logger.debug('code={}::mode={}::index={}::final={}'.format(
+                eofcode, self.playback_mode, index, finalUrl)
+                )
             if eofcode == 'end' and self.playback_mode == 'playlist':
                 cmd = '\n set playlist-pos {} \n'.format(index)
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             elif self.playback_mode == 'single':
-                if index < self.list2.count():
+                if index >= 0:
                     self.cur_row = index
                     self.list2.setCurrentRow(index)
+                self.play_file_now(finalUrl)
+            else:
                 self.play_file_now(finalUrl)
         else:
             epnShow = self.queue_url_list.pop()
