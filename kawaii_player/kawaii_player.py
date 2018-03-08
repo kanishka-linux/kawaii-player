@@ -11535,6 +11535,8 @@ watch/unwatch status")
                 command = command+" -audiofile {0}".format(a_url)
             elif player == 'mpv':
                 command = command+" --audio-file={0}".format(a_url)
+        if self.gapless_playback:
+            command = command + " --gapless-audio=yes"
         if self.player_volume:
             if self.player_volume.isnumeric():
                 if player == 'mplayer':
@@ -11593,7 +11595,7 @@ watch/unwatch status")
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
                     self.playback_mode = 'single'
                 else:
-                    command = '{} "{}" --playlist-start={} --prefetch-playlist=yes --gapless-audio=yes'.format(
+                    command = '{} "{}" --playlist-start={} --prefetch-playlist=yes'.format(
                         command, self.tmp_pls_file, self.cur_row
                         )
                     self.playback_mode = 'playlist'
