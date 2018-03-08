@@ -11396,11 +11396,15 @@ watch/unwatch status")
             else:
                 finalUrl = epnShow.replace('"', '')
             self.external_url = self.get_external_url_status(epnShow)
-            if site != 'MyServer' and finalUrl.startswith('http'):
-                pass
-            else:
+            if eofcode == 'end' and self.playback_mode == 'playlist':
                 cmd = '\n set playlist-pos {} \n'.format(index)
-                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                if self.mpvplayer_val.processId() > 0:
+                    self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif self.playback_mode == 'single':
+                if index < self.list2.count():
+                    self.cur_row = index
+                    self.list2.setCurrentRow(index)
+                self.play_file_now(finalUrl)
         else:
             epnShow = self.queue_url_list.pop()
             self.cur_row -= 1
