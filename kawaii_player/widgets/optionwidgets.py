@@ -670,7 +670,7 @@ class SubtitleSlider(QtWidgets.QSlider):
             self.setValue(0)
         elif name == 'subscale':
             self.setRange(0, 1000)
-            self.setSingleStep(100)
+            self.setSingleStep(10)
             self.setPageStep(10)
             self.setValue(100)
         elif name == 'space':
@@ -704,7 +704,8 @@ class SubtitleSlider(QtWidgets.QSlider):
         elif name == 'border':
             label_value = eval('self.parent.subtitle_{}_value'.format(name))
             value = val * 0.1
-            label_value.setPlaceholderText(str(value))
+            value_str = str(value)
+            label_value.setPlaceholderText(value_str[:4])
             cmd = '\n set sub-border-size {} \n'.format(value)
             ui.subtitle_dict.update({'sub-border-size':str(value)})
             if ui.mpvplayer_val.processId() > 0:
@@ -712,7 +713,8 @@ class SubtitleSlider(QtWidgets.QSlider):
         elif name == 'shadow':
             label_value = eval('self.parent.subtitle_{}_value'.format(name))
             value = val * 0.1
-            label_value.setPlaceholderText(str(value))
+            value_str = str(value)
+            label_value.setPlaceholderText(value_str[:4])
             cmd = '\n set sub-shadow-offset {} \n'.format(value)
             ui.subtitle_dict.update({'sub-shadow-offset':str(value)})
             if ui.mpvplayer_val.processId() > 0:
@@ -720,7 +722,8 @@ class SubtitleSlider(QtWidgets.QSlider):
         elif name == 'blur':
             label_value = eval('self.parent.subtitle_{}_value'.format(name))
             value = val * 0.01
-            label_value.setPlaceholderText(str(value))
+            value_str = str(value)
+            label_value.setPlaceholderText(value_str[:4])
             cmd = '\n set sub-blur {} \n'.format(value)
             ui.subtitle_dict.update({'sub-blur':str(value)})
             if ui.mpvplayer_val.processId() > 0:
@@ -728,7 +731,8 @@ class SubtitleSlider(QtWidgets.QSlider):
         elif name == 'subscale':
             label_value = eval('self.parent.subtitle_{}_value'.format(name))
             value = val * 0.01
-            label_value.setPlaceholderText(str(value))
+            value_str = str(value)
+            label_value.setPlaceholderText(value_str[:4])
             cmd = '\n set sub-scale {} \n'.format(value)
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
@@ -758,7 +762,8 @@ class SubtitleSlider(QtWidgets.QSlider):
         elif name == 'space':
             label_value = eval('self.parent.subtitle_{}_value'.format(name))
             value = val * 0.01
-            label_value.setPlaceholderText(str(value))
+            value_str = str(value)
+            label_value.setPlaceholderText(value_str[:4])
             cmd = '\n set sub-spacing {} \n'.format(value)
             ui.subtitle_dict.update({'sub-spacing':str(value)})
             if ui.mpvplayer_val.processId() > 0:
