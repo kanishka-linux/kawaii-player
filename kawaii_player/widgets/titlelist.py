@@ -143,7 +143,8 @@ class TitleListWidget(QtWidgets.QListWidget):
             self.set_search_backend(use_search='tmdb', get_thumb=False)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_A):
-            self.get_all_information()
+            #self.get_all_information()
+            super(TitleListWidget, self).keyPressEvent(event)
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_C):
             ui.copyFanart()
@@ -481,28 +482,70 @@ class TitleListWidget(QtWidgets.QListWidget):
                 ui.search_on_type_btn.setText(new_txt)
         else:
             super(TitleListWidget, self).keyPressEvent(event)
+    
+    def sanitize_title(self, name):
+        nam = re.sub('_|\.', ' ', name)
+        nam = re.sub('[ ]*-[ ]*', ' - ', nam)
+        nam = re.sub('\[[^\]]*\]|\([^\)]*\)|\{[^\}]*\}', '', nam)
+        nam_reduced = nam
+        nam = nam.lower()
+        nam = re.sub('720p|1080p|480p|\.mkv|\.mp4|\.avi', '', nam)
+        nam = re.sub('xvid|bdrip|brrip|ac3|hdtv|dvdrip|x264|x265|h264|h265', '', nam)
+        nam = nam.strip()
+        nam_arr = []
+        for i in nam.split(' '):
+            if len(i) != 2:
+                i = i.title()
+            else:
+                try:
+                    namt = nam_reduced.lower()
+                    try:
+                        index = namt.index(' {} '.format(i))
+                        substr = 4
+                    except Exception as err:
+                        logger.error(err)
+                        index = namt.index('{} '.format(i))
+                        substr = 3
+                    namt = nam_reduced[index:]
+                    index = len(namt) - substr
+                    namt = namt[:-index]
+                    i = namt.strip()
+                except Exception as err:
+                    logger.error(err)
+            nam_arr.append(i)
+        nam = ' '.join(nam_arr)
+        dt = re.search('[1-2][0-9][0-9][0-9]', name)
+        if dt:
+            nam = re.sub(dt.group(), '', nam)
+            nam = nam.strip()
+            nam = '{} ({})'.format(nam, dt.group())
+        nam.strip()
+        nam = re.sub('[ ]+', ' ', nam)
+        return nam
             
     def set_search_backend(self, use_search=None, get_thumb=None):
-        if use_search is None:
-            use_search = False
-        try:
-            site = ui.get_parameters_value(s='site')['site']
-            nm = ui.get_title_name(self.currentRow())
-            video_dir = None
-            if site.lower() == 'video':
-                video_dir = ui.original_path_name[self.currentRow()].split('\t')[-1]
-            elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
-                pass
-            else:
-                video_dir = ui.original_path_name[self.currentRow()]
-            if get_thumb is False:
+        for item in self.selectedItems():
+            row = self.row(item)
+            if use_search is None:
+                use_search = False
+            try:
+                site = ui.get_parameters_value(s='site')['site']
+                nm = ui.get_title_name(row)
                 video_dir = None
-            ui.posterfound_new(
-                name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                copy_summary=True, direct_url=False, use_search=use_search,
-                video_dir=video_dir)
-        except Exception as e:
-            print(e)
+                if site.lower() == 'video':
+                    video_dir = ui.original_path_name[row].split('\t')[-1]
+                elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
+                    pass
+                else:
+                    video_dir = ui.original_path_name[row]
+                if get_thumb is False:
+                    video_dir = None
+                ui.posterfound_new(
+                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
+                    copy_summary=True, direct_url=False, use_search=use_search,
+                    video_dir=video_dir)
+            except Exception as e:
+                print(e)
             
     def get_all_information(self):
         backend = ['duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
@@ -714,7 +757,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         else:
             send_notification('Wrong Parameters')
             
-    def edit_name_list1(self, row):
+    def edit_name_list1(self, row, sanitize=None):
         site = ui.get_parameters_value(s='site')['site']
         if '	' in ui.original_path_name[row]:
             default_text = ui.original_path_name[row].split('	')[0]
@@ -722,10 +765,15 @@ class TitleListWidget(QtWidgets.QListWidget):
             default_basename = os.path.basename(default_path_name)
         else:
             default_text = ui.original_path_name[row]
-        default_display = 'Enter Title Name Manually\nCurrent Title:\n{0}'.format(default_text)
-        item, ok = QtWidgets.QInputDialog.getText(
-            MainWindow, 'Input Dialog', default_display, 
-            QtWidgets.QLineEdit.Normal, default_text)
+        if not sanitize:
+            default_display = 'Enter Title Name Manually\nCurrent Title:\n{0}'.format(default_text)
+            item, ok = QtWidgets.QInputDialog.getText(
+                MainWindow, 'Input Dialog', default_display, 
+                QtWidgets.QLineEdit.Normal, default_text
+                )
+        else:
+            item = self.sanitize_title(default_text)
+            ok = True
         if ok and item:
             nm = item
             #row = self.currentRow()
@@ -990,14 +1038,14 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_search.setTitle('Poster Options')
             menu.addMenu(menu_search)
             
-            menu_theme = QtWidgets.QMenu(menu)
-            menu_theme.setTitle('Select Theme')
-            menu.addMenu(menu_theme)
+            menu_sanitize = QtWidgets.QMenu(menu)
+            menu_sanitize.setTitle('Sanitize Title')
+            menu.addMenu(menu_sanitize)
             
-            menu_theme_arr = ['Default', 'Dark', 'System']
-            menu_theme_act = []
-            for i in menu_theme_arr:
-                menu_theme_act.append(menu_theme.addAction(i))
+            menu_sanitize_arr = ['Sanitize Selected', 'Sanitize All']
+            menu_sanitize_act = []
+            for i in menu_sanitize_arr:
+                menu_sanitize_act.append(menu_sanitize.addAction(i))
             
             reviews = []
             for i in ui.browser_bookmark:
@@ -1037,7 +1085,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             glinks_tvdb = menu_search.addAction("Find Poster(g+tvdb) (Ctrl+Up)")
             glinks_tmdb = menu_search.addAction("Find Poster(g+tmdb) (Ctrl+Down)")
             menu_search.addSeparator()
-            poster_all = menu_search.addAction("Find Posters for All (Ctrl+A)")
+            poster_all = menu_search.addAction("Find Posters for All")
             
             menu_clear = QtWidgets.QMenu(menu)
             menu_clear.setTitle('Clear')
@@ -1054,13 +1102,24 @@ class TitleListWidget(QtWidgets.QListWidget):
             if action in item_m:
                 item_index = item_m.index(action)
                 self.triggerBookmark(item_m[item_index].text())
-            elif action in menu_theme_act:
-                item_index = menu_theme_act.index(action)
-                theme_name = menu_theme_act[item_index].text()
-                if theme_name.startswith('&'):
-                    theme_name = theme_name[1:]
-                ui.player_theme = theme_name.lower()
-                ui.apply_new_style()
+            elif action in menu_sanitize_act:
+                item_index = menu_sanitize_act.index(action)
+                sanitize_name = menu_sanitize_act[item_index].text()
+                if sanitize_name.startswith('&'):
+                    sanitize_name = sanitize_name[1:]
+                if sanitize_name == 'Sanitize Selected':
+                    for item in self.selectedItems():
+                        r = self.row(item)
+                        self.edit_name_list1(r, sanitize=True)
+                else:
+                    msg = ('Do You Want To Sanitize All Titles?')
+                    msgreply = QtWidgets.QMessageBox.question(
+                        MainWindow, 'Sanitize All', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
+                        QtWidgets.QMessageBox.No
+                        )
+                    if msgreply == QtWidgets.QMessageBox.Yes:
+                        for row_index in range(0, self.count()):
+                            self.edit_name_list1(row_index, sanitize=True)
             elif action in reviews:
                 item_index = reviews.index(action)
                 new_review = reviews[item_index].text()
