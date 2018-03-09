@@ -499,16 +499,18 @@ class TitleListWidget(QtWidgets.QListWidget):
             else:
                 try:
                     namt = nam_reduced.lower()
-                    try:
-                        index = namt.index(' {} '.format(i))
-                        substr = 4
-                    except Exception as err:
-                        logger.error(err)
-                        index = namt.index('{} '.format(i))
+                    index = namt.find(' {} '.format(i))
+                    substr = 4
+                    if index < 0:
                         substr = 3
+                        index = namt.find('{} '.format(i))
+                        if index < 0:
+                            index = namt.find(' {}'.format(i))
+                            substr = -1
                     namt = nam_reduced[index:]
-                    index = len(namt) - substr
-                    namt = namt[:-index]
+                    if substr >= 0:
+                        index = len(namt) - substr
+                        namt = namt[:-index]
                     i = namt.strip()
                 except Exception as err:
                     logger.error(err)
@@ -782,7 +784,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             if site == "Video":
                 itemlist = ui.list1.item(row)
                 if itemlist:
-                    if itemlist.text() == item:
+                    if itemlist.text() == item and not sanitize:
                         msg = 'name already exists'
                         send_notification(msg)
                     else:
@@ -817,7 +819,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         if os.path.isfile(old_pls_name) and not os.path.isfile(new_pls_name):
                             shutil.move(old_pls_name, new_pls_name)
                             itemlist.setText(item)
-                else:
+                elif not sanitize:
                     msg = 'file already exists'
                     send_notification(msg)
             elif site.lower() == 'music' or site.lower() == 'none':
