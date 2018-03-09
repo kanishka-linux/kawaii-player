@@ -34,6 +34,11 @@ class MetaEngine:
         nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
         nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
         nam = nam.strip()
+        dt = re.search('[1-2][0-9][0-9][0-9]', name)
+        if dt:
+            nam = re.sub(dt.group(), '', nam)
+            nam = nam.strip()
+            nam = '{}+({})'.format(nam, dt.group())
         return nam
     
     def ddg_search(self, nam, src, direct_search=None):
