@@ -844,6 +844,7 @@ class PlayerGetEpn(QtCore.QThread):
     get_title_signal = pyqtSignal(str, str)
     get_offline_signal_type_three = pyqtSignal(str, int, str, str)
     get_offline_signal_list_type_three = pyqtSignal(list, int, str, str)
+    final_epn_prefetch_signal = pyqtSignal(str, int, str)
     
     def __init__(self, ui_widget, logr, epn_type, *args):
         QtCore.QThread.__init__(self)
@@ -854,8 +855,8 @@ class PlayerGetEpn(QtCore.QThread):
         self.site_var = None
         param_dict = ui.get_parameters_value(s='site')
         self.site_name = param_dict['site']
-        if (self.epn_type == 'yt' or self.epn_type == 'yt_title' 
-                or self.epn_type == 'yt+title' or self.epn_type == 'yt_music'):
+        if self.epn_type in ['yt', 'yt_title', 'yt+title', 'yt_music',
+                             'yt_prefetch_av', 'yt_prefetch_a']:
             self.final = args[0]
             self.quality = args[1]
             self.yt_path = args[2]
@@ -906,6 +907,7 @@ class PlayerGetEpn(QtCore.QThread):
         
         self.get_listfound_signal.connect(connect_to_listfound_signal)
         self.get_title_signal.connect(connect_post_title)
+        self.final_epn_prefetch_signal.connect(connect_prefetch_slot)
         
     def __del__(self):
         self.wait()                        
@@ -919,6 +921,12 @@ class PlayerGetEpn(QtCore.QThread):
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='a+v')
             elif self.epn_type == 'yt_music':
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='music')
+            elif self.epn_type == 'yt_prefetch_av':
+                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
+                                      logger, mode='offline')
+            elif self.epn_type == 'yt_prefetch_a':
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='music')
             elif self.epn_type == 'yt_title':
@@ -995,6 +1003,8 @@ class PlayerGetEpn(QtCore.QThread):
                     self.get_listfound_signal.emit(mylist)
                 elif self.epn_type == 'yt_title':
                     self.get_title_signal.emit(finalUrl, self.final)
+                elif self.epn_type in ['yt_prefetch_av', 'yt_prefetch_a']:
+                    self.final_epn_prefetch_signal.emit(finalUrl, self.row, self.epn_type)
                 else:
                     self.get_epn_signal.emit(finalUrl, str(self.row))
             else:
@@ -1035,16 +1045,16 @@ def connect_to_offline_mode_list_type_three(url, row, name, epn):
     global ui
     ui.start_offline_mode_post(url, row, name, epn)
 
-
-
 @pyqtSlot(list, str)
 def connect_to_epn_generator_list(url, row):
     global ui
-    print('<<<<<<<<<<<<<\n\n{0}\n\n>>>>>>>>>'.format(url))
-    ui.epnfound_now_start_player(url, row)
-    
+    ui.epnfound_now_start_player(url, row)    
 
-    
+@pyqtSlot(str, int, str)
+def connect_prefetch_slot(url, row, mode):
+    global ui
+    ui.epnfound_now_start_prefetch(url, row, mode)
+
 @pyqtSlot(list)
 def connect_to_listfound_signal(mylist):
     global ui
