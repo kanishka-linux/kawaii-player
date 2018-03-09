@@ -1563,6 +1563,7 @@ watch/unwatch status")
         self.playing_history_file = os.path.join(self.video_db_location, 'historydata')
         self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
         self.tmp_pls_file = os.path.join(TMPDIR, 'tmp_playlist.m3u')
+        self.tmp_pls_file_lines = []
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = False
@@ -7919,8 +7920,8 @@ watch/unwatch status")
     
     def use_playlist_method(self):
         global site
+        self.tmp_pls_file_lines.clear()
         if site in self.local_site_list:
-            lines = []
             for i in self.epn_arr_list:
                 if '\t' in i:
                     item = i.split('\t')[1].strip()
@@ -7929,11 +7930,10 @@ watch/unwatch status")
                 if item:
                     item = item.replace('"', '')
                     if item.startswith('abs_path=') or item.startswith('relative_path='):
-                        item = self.if_path_is_rel(item)
+                        item = self.if_path_is_rel(item, thumbnail=True)
                     if item.startswith('ytdl:'):
                         item = item.replace('ytdl:', '', 1)
-                    lines.append(item)
-            write_files(self.tmp_pls_file, lines, line_by_line=True)
+                    self.tmp_pls_file_lines.append(item)
     
     def set_list_thumbnail(self, k):
         if self.list_with_thumbnail:
@@ -11600,10 +11600,12 @@ watch/unwatch status")
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
                     self.playback_mode = 'single'
                 else:
-                    command = '{} "{}" --playlist-start={} --prefetch-playlist=yes'.format(
-                        command, self.tmp_pls_file, self.cur_row
-                        )
-                    self.playback_mode = 'playlist'
+                    if self.tmp_pls_file_lines:
+                        write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
+                        command = '{} "{}" --playlist-start={} --prefetch-playlist=yes'.format(
+                            command, self.tmp_pls_file, self.cur_row
+                            )
+                        self.playback_mode = 'playlist'
             else:
                 command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
                 self.playback_mode = 'single'
