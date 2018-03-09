@@ -1564,13 +1564,18 @@ watch/unwatch status")
         self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
         self.tmp_pls_file = os.path.join(TMPDIR, 'tmp_playlist.m3u')
         self.tmp_pls_file_lines = []
+        self.tmp_pls_file_dict = {}
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.playback_mode = 'single'
         self.gapless_playback = False
+        self.gapless_network_stream = True
+        self.gapless_network_stream_disabled = False
         self.gapless_playback_disabled = False
+        self.mpv_prefetch_url_started = False
+        self.mpv_prefetch_url_thread = QtCore.QThread()
         self.title_list_changed = False
         self.fullscreen_video = False
         self.subtitle_dict = {}
@@ -5182,13 +5187,32 @@ watch/unwatch status")
                     else:
                         self.mpvplayer_val.kill()
                         self.mpvplayer_started = False
+                        
+                move_ahead = True
+                if self.gapless_network_stream:
+                    if self.tmp_pls_file_dict.get(self.cur_row):
+                        if self.tmp_pls_file_lines[self.cur_row].startswith('http'):
+                            move_ahead = False
+                            tname = self.epn_arr_list[self.cur_row]
+                            if tname.startswith('#'):
+                                tname = tname.replace('#', '', 1)
+                            if '\t' in tname:
+                                self.epn_name_in_list = tname.split('\t')[0]
+                            else:
+                                self.epn_name_in_list = tname
+                            MainWindow.setWindowTitle(self.epn_name_in_list)
+                            self.float_window.setWindowTitle(self.epn_name_in_list)
+                            server._emitMeta("Next", site, self.epn_arr_list)
+                            self.mpv_execute_command('set playlist-pos {}'.format(self.cur_row), self.cur_row)
                 if len(self.queue_url_list)>0:
                     if isinstance(self.queue_url_list[0], tuple):
-                        self.localGetInList(eofcode='next')
+                        if move_ahead:
+                            self.localGetInList(eofcode='next')
                     else:
                         self.getQueueInList(eofcode='next')
                 else:
-                    self.localGetInList(eofcode='next')
+                    if move_ahead:
+                        self.localGetInList(eofcode='next')
             else:
                 if self.player_val == "mpv":
                     self.mpvplayer_val.kill()
@@ -7921,8 +7945,9 @@ watch/unwatch status")
     def use_playlist_method(self):
         global site
         self.tmp_pls_file_lines.clear()
+        self.tmp_pls_file_dict.clear()
         if site in self.local_site_list:
-            for i in self.epn_arr_list:
+            for j, i in enumerate(self.epn_arr_list):
                 if '\t' in i:
                     item = i.split('\t')[1].strip()
                 else:
@@ -7934,6 +7959,8 @@ watch/unwatch status")
                     if item.startswith('ytdl:'):
                         item = item.replace('ytdl:', '', 1)
                     self.tmp_pls_file_lines.append(item)
+                    if self.gapless_network_stream:
+                        self.tmp_pls_file_dict.update({j:False})
     
     def set_list_thumbnail(self, k):
         if self.list_with_thumbnail:
@@ -8973,6 +9000,51 @@ watch/unwatch status")
                 nm = self.getdb.epn_return_from_bookmark(nm, from_client=True)
         return nm
     
+    def start_gapless_stream_process(self, row):
+        if  (self.tmp_pls_file_dict.get(row) is False
+                and not self.mpv_prefetch_url_started
+                and not self.mpv_prefetch_url_thread.isRunning()):
+            self.mpv_prefetch_url_started = True
+            if row >= self.list2.count():
+                row = 0
+            print(row)
+            if self.tmp_pls_file_lines and row < len(self.tmp_pls_file_lines):
+                turl = self.tmp_pls_file_lines[row]
+                if turl.startswith('http'):
+                    if site == 'Music':
+                        yt_mode = 'yt_prefetch_a'
+                    else:
+                        yt_mode = 'yt_prefetch_av'
+                    self.mpv_prefetch_url_thread = PlayerGetEpn(
+                        self, logger, yt_mode, turl,
+                        self.quality_val, self.ytdl_path, row
+                        )
+                    self.mpv_prefetch_url_thread.start()
+                else:
+                    self.tmp_pls_file_dict.update({row:True})
+                    self.mpv_prefetch_url_started = False
+                    
+    def epnfound_now_start_prefetch(self, url_lnk, row_val, mode):
+        if self.mpv_prefetch_url_started:
+            url_lnk = url_lnk.strip()
+            cmd1 = 'loadfile "{}" append'.format(url_lnk)
+            cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
+            cmd3 = 'playlist-remove {}'.format(row_val+1)
+            counter = 500
+            for cmd in [cmd1, cmd2, cmd3]:
+                QtCore.QTimer.singleShot(
+                    counter, partial(self.mpv_execute_command, cmd, row_val)
+                    )
+                counter += 500
+    
+    def mpv_execute_command(self, cmd, row):
+        cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
+        self.mpvplayer_val.write(cmdb)
+        if cmd.startswith('playlist-remove'):
+            self.mpv_prefetch_url_started = False
+            self.tmp_pls_file_dict.update({row:True})
+        logger.debug(cmd)
+        
     def epnfound_now_start_player(self, url_link, row_val):
         global site, refererNeeded, current_playing_file_path
         global refererNeeded, finalUrlFound, rfr_url
@@ -10450,6 +10522,11 @@ watch/unwatch status")
                             logger.debug(self.progress_counter)
                         else:
                             self.progress_counter = val
+                            if (self.gapless_network_stream and not self.queue_url_list
+                                    and site not in ['Video', 'MyServer']): 
+                                if self.progress_counter > int(self.mplayerLength/2):
+                                    if self.tmp_pls_file_dict.get(self.cur_row+1) is False:
+                                        self.start_gapless_stream_process(self.cur_row+1)
                         if not new_tray_widget.isHidden():
                             new_tray_widget.update_signal.emit(out, val)
                         if cache_empty == 'yes':
@@ -10548,7 +10625,24 @@ watch/unwatch status")
                             exec(q3)
                         if site in ["Video", "Music", "PlayLists", "None", "MyServer"]:
                             if queue_item is None or isinstance(queue_item, tuple):
-                                self.localGetInList(eofcode='end')
+                                move_ahead = True
+                                if self.gapless_network_stream:
+                                    if self.tmp_pls_file_dict.get(self.cur_row):
+                                        if self.tmp_pls_file_lines[self.cur_row].startswith('http'):
+                                            move_ahead = False
+                                            tname = self.epn_arr_list[self.cur_row]
+                                            if tname.startswith('#'):
+                                                tname = tname.replace('#', '', 1)
+                                            if '\t' in tname:
+                                                self.epn_name_in_list = tname.split('\t')[0]
+                                            else:
+                                                self.epn_name_in_list = tname
+                                            MainWindow.setWindowTitle(self.epn_name_in_list)
+                                            self.float_window.setWindowTitle(self.epn_name_in_list)
+                                            server._emitMeta("Next", site, self.epn_arr_list)
+                                        self.tmp_pls_file_dict.update({self.cur_row:False})
+                                if move_ahead:
+                                    self.localGetInList(eofcode='end')
                             else:
                                 self.getQueueInList(eofcode='end')
                         else:
