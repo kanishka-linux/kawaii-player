@@ -507,7 +507,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                         if index < 0:
                             index = namt.find(' {}'.format(i))
                             substr = -1
-                    namt = nam_reduced[index:]
+                    if index >= 0:
+                        namt = nam_reduced[index:]
+                    else:
+                        namt = nam_reduced
+                        logger.debug('Nothing Changed')
                     if substr >= 0:
                         index = len(namt) - substr
                         namt = namt[:-index]
@@ -784,9 +788,12 @@ class TitleListWidget(QtWidgets.QListWidget):
             if site == "Video":
                 itemlist = ui.list1.item(row)
                 if itemlist:
-                    if itemlist.text() == item and not sanitize:
+                    if itemlist.text() == item:
                         msg = 'name already exists'
-                        send_notification(msg)
+                        if not sanitize:
+                            send_notification(msg)
+                        else:
+                            logger.debug(msg)
                     else:
                         home_dir_new = os.path.join(home, 'Local', item)
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
@@ -819,9 +826,12 @@ class TitleListWidget(QtWidgets.QListWidget):
                         if os.path.isfile(old_pls_name) and not os.path.isfile(new_pls_name):
                             shutil.move(old_pls_name, new_pls_name)
                             itemlist.setText(item)
-                elif not sanitize:
+                else:
                     msg = 'file already exists'
-                    send_notification(msg)
+                    if not sanitize:
+                        send_notification(msg)
+                    else:
+                        logger.debug(msg)
             elif site.lower() == 'music' or site.lower() == 'none':
                 pass
             else:
@@ -1119,9 +1129,14 @@ class TitleListWidget(QtWidgets.QListWidget):
                         MainWindow, 'Sanitize All', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
                         QtWidgets.QMessageBox.No
                         )
+                    ui.progressEpn.setValue(0)
+                    ui.progressEpn.setFormat(('Wait!'))
+                    QtWidgets.QApplication.processEvents()
                     if msgreply == QtWidgets.QMessageBox.Yes:
                         for row_index in range(0, self.count()):
                             self.edit_name_list1(row_index, sanitize=True)
+                    ui.progressEpn.setValue(0)
+                    ui.progressEpn.setFormat(('Ok! Done'))
             elif action in reviews:
                 item_index = reviews.index(action)
                 new_review = reviews[item_index].text()
