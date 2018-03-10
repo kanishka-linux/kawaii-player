@@ -277,7 +277,7 @@ class MainWindowWidget(QtWidgets.QWidget):
         for i in urls:
             i = i.toString()
             logger.debug(i)
-            if i.startswith('file:///'):
+            if i.startswith('file:///') or i.startswith('http') or i.startswith('magnet:'):
                 if OSNAME == 'posix':
                     i = i.replace('file://', '', 1)
                 else:
@@ -9004,16 +9004,19 @@ watch/unwatch status")
                 nm = self.getdb.epn_return_from_bookmark(nm, from_client=True)
         return nm
     
-    def start_gapless_stream_process(self, row):
-        if  (self.tmp_pls_file_dict.get(row) is False
+    def start_gapless_stream_process(self, row, link=None):
+        if  ((self.tmp_pls_file_dict.get(row) is False
                 and not self.mpv_prefetch_url_started
-                and not self.mpv_prefetch_url_thread.isRunning()):
+                and not self.mpv_prefetch_url_thread.isRunning()) or link):
             self.mpv_prefetch_url_started = True
-            if row >= self.list2.count():
+            if row >= self.list2.count() and link is None:
                 row = 0
             print(row)
-            if self.tmp_pls_file_lines and row < len(self.tmp_pls_file_lines):
-                turl = self.tmp_pls_file_lines[row]
+            if (self.tmp_pls_file_lines and row < len(self.tmp_pls_file_lines)) or link is not None:
+                if link is not None:
+                    turl = link
+                else:
+                    turl = self.tmp_pls_file_lines[row]
                 if turl.startswith('http'):
                     if site == 'Music':
                         yt_mode = 'yt_prefetch_a'
@@ -9030,22 +9033,31 @@ watch/unwatch status")
                     
     def epnfound_now_start_prefetch(self, url_lnk, row_val, mode):
         url_lnk = url_lnk.strip()
-        if self.mpv_prefetch_url_started and self.playback_mode == 'playlist':
-            cmd1 = 'loadfile "{}" append'.format(url_lnk)
-            cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
-            cmd3 = 'playlist-remove {}'.format(row_val+1)
-            counter = 500
-            for cmd in [cmd1, cmd2, cmd3]:
-                QtCore.QTimer.singleShot(
-                    counter, partial(self.mpv_execute_command, cmd, row_val)
-                    )
-                counter += 500
-        elif self.mpv_prefetch_url_started and self.playback_mode == 'single':
-            cmd = 'loadfile "{}" append'.format(url_lnk)
-            self.mpv_execute_command(cmd, row_val)
-            self.mpv_prefetch_url_started = False
-            self.tmp_pls_file_dict.update({row_val:True})
-            
+        if '::' in url_lnk:
+            url_lnk = url_lnk.split('::')[0].strip()
+        if self.mpvplayer_val.processId() > 0:
+            if self.mpv_prefetch_url_started and self.playback_mode == 'playlist':
+                cmd1 = 'loadfile "{}" append'.format(url_lnk)
+                cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
+                cmd3 = 'playlist-remove {}'.format(row_val+1)
+                counter = 500
+                for cmd in [cmd1, cmd2, cmd3]:
+                    QtCore.QTimer.singleShot(
+                        counter, partial(self.mpv_execute_command, cmd, row_val)
+                        )
+                    counter += 500
+            elif self.mpv_prefetch_url_started and self.playback_mode == 'single':
+                cmd = 'loadfile "{}" append'.format(url_lnk)
+                self.mpv_execute_command(cmd, row_val)
+                self.mpv_prefetch_url_started = False
+                self.tmp_pls_file_dict.update({row_val:True})
+        else:
+            command = self.mplayermpv_command(self.idw, url_lnk, self.player_val, from_function='now_start')
+            self.infoPlay(command)
+            if row_val < self.list2.count():
+                self.list2.setCurrentRow(row_val)
+                self.cur_row = row_val
+                
     def mpv_execute_command(self, cmd, row):
         cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
         self.mpvplayer_val.write(cmdb)
@@ -9921,7 +9933,7 @@ watch/unwatch status")
                 self.external_audio_file = True
         command = self.mplayermpv_command(
             self.idw, finalUrl, self.player_val, a_url=a_url,
-            s_url=s_url
+            s_url=s_url, from_function='now_start'
             )
         if os.path.exists(title_sub_path):
             if self.player_val == 'mpv':
@@ -12335,7 +12347,8 @@ watch/unwatch status")
                         self.list2.clear()
                         self.list1.clear()
                         if item.startswith('http'):
-                            self.progressEpn.setFormat('Wait! Trying to get final link.')
+                            if not self.gapless_network_stream:
+                                self.progressEpn.setFormat('Wait! Trying to get final link.')
                             QtWidgets.QApplication.processEvents()
                             self.watch_external_video(item, mode='open url')
                 elif txt == 'open directory':
@@ -12719,10 +12732,17 @@ watch/unwatch status")
                         title_url = t
                     else:
                         title_url = 'ytdl:' + t
+                    tmp_file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
+                    lines = open_files(tmp_file_name, True)
+                    length = len(lines)
+                    if self.gapless_network_stream: 
+                        yt_mode = 'yt_title'
+                    else:
+                        yt_mode = 'yt+title'
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
-                            self, logger, 'yt+title', title_url, self.quality_val,
-                            self.ytdl_path, 0)
+                            self, logger, yt_mode, title_url, self.quality_val,
+                            self.ytdl_path, length)
                         self.epn_wait_thread.start()
                         self.yt_title_thread = True
                     else:
@@ -12732,17 +12752,22 @@ watch/unwatch status")
                             self.yt_title_thread = False
                             if not self.epn_wait_thread.isRunning():
                                 self.epn_wait_thread = PlayerGetEpn(
-                                    self, logger, 'yt+title', title_url, self.quality_val,
-                                    self.ytdl_path, 0)
+                                    self, logger, yt_mode, title_url, self.quality_val,
+                                    self.ytdl_path, length)
                                 self.epn_wait_thread.start()
                                 self.yt_title_thread = True
+                    if self.gapless_network_stream:
+                        self.start_gapless_stream_process(length, link=title_url.replace('ytdl:', '', 1))
                     if mode == 'open url':
                         file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
                         if not os.path.exists(file_name):
                             f = open(file_name, 'w').close()
                         self.list1.clear()
                         self.list1.addItem('TMP_PLAYLIST')
-                        self.list1.hide()
+                        #self.list1.hide()
+                        self.list1.show()
+                        self.list1.setFocus()
+                        self.list1.setCurrentRow(0)
             else:
                 if not os.path.isfile(t):
                     t = urllib.parse.unquote(t)
@@ -12808,8 +12833,8 @@ watch/unwatch status")
                     self.list1.addItem('TMP_PLAYLIST')
                     self.list1.setCurrentRow(0)
                 self.list2.setFocus()
-        elif t.endswith('.torrent'):
-            if t.startswith('http') or os.path.isfile(t):
+        elif t.endswith('.torrent') or 'magnet:' in t:
+            if t.startswith('http') or os.path.isfile(t) or 'magnet:' in t:
                 self.quick_torrent_play_method(url=t)
             else:
                 self.torrent_type = 'file'
@@ -12850,7 +12875,7 @@ watch/unwatch status")
         #self.update_list2()
         if self.gapless_playback:
             self.use_playlist_method()
-
+        
     def apply_new_font(self):
         global app
         try:
