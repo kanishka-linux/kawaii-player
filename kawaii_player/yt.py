@@ -229,11 +229,11 @@ def get_final_for_resolution(url, youtube_dl, logger, ytdl_extra,
                 final_url = subprocess.check_output(ytdl_list, shell=True)
             final_url_aud = str(final_url, 'utf-8')
         if final_url_vid and final_url_aud:
-            final_url = final_url_vid + '::' + final_url_aud
+            final_url = final_url_vid.strip() + '::' + final_url_aud.strip()
         elif final_url_vid:
-            final_url = final_url_vid
+            final_url = final_url_vid.strip()
         if mode == 'music':
-            final_url = final_url_aud
+            final_url = final_url_aud.strip()
             logger.debug('\nonly audio required since music mode has been selected\n')
         logger.debug('vid_id={0}::aud_id={1}::req_res={2}'.format(req_id_vid, req_id_aud, resolution))
         logger.debug(final_url)
