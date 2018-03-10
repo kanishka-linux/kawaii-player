@@ -9034,28 +9034,72 @@ watch/unwatch status")
     def epnfound_now_start_prefetch(self, url_lnk, row_val, mode):
         url_lnk = url_lnk.strip()
         surl = None
+        aurl = None
+        nsurl = None
         if '::' in url_lnk:
-            url_lnk, surl = url_lnk.split('::', 1)
+            if url_lnk.count('::') == 1:
+                url_lnk, aurl = url_lnk.split('::', 1)
+            else:
+                url_lnk, aurl, surl = url_lnk.split('::', 2)
             url_lnk = url_lnk.strip()
+            if aurl.endswith('.vtt'):
+                if surl:
+                    surl = aurl+'::'+surl
+                else:
+                    surl = aurl
+                aurl = None
+            if surl:
+                if '::' in surl:
+                    for i, j in enumerate(surl.split('::')):
+                        if i == 0:
+                            nsurl = 'sub-file="{}"'.format(j)
+                        else:
+                            if OSNAME == 'posix':
+                                nsurl = nsurl + ':' + 'sub-file="{}"'.format(j)
+                            else:
+                                nsurl = nsurl + ';' + 'sub-file="{}"'.format(j)
+                else:
+                    nsurl = 'sub-file="{}"'.format(surl)
+        logger.debug('{}::{}'.format(aurl, nsurl))
         if self.mpvplayer_val.processId() > 0:
-            if self.mpv_prefetch_url_started and self.playback_mode == 'playlist':
-                cmd1 = 'loadfile "{}" append'.format(url_lnk)
-                cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
-                cmd3 = 'playlist-remove {}'.format(row_val+1)
+            if self.mpv_prefetch_url_started:
+                cmd_arr = []
+                append_audio = False
+                if aurl:
+                    cmd1 = 'loadfile "{}" append audio-file="{}"'.format(url_lnk, aurl)
+                    append_audio = True
+                else:
+                    cmd1 = 'loadfile "{}" append'.format(url_lnk)
+                if nsurl:
+                    if OSNAME == 'posix':
+                        if append_audio:
+                            cmd1 = cmd1 + ':' + nsurl
+                        else:
+                            cmd1 = cmd1 + ' ' + nsurl
+                    else:
+                        if append_audio:
+                            cmd1 = cmd1 + ';' + nsurl
+                        else:
+                            cmd1 = cmd1 + ' ' + nsurl
+                cmd_arr.append(cmd1)
+                if self.playback_mode == 'playlist':
+                    cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
+                    cmd3 = 'playlist-remove {}'.format(row_val+1)
+                    cmd_arr.append(cmd2)
+                    cmd_arr.append(cmd3)
+                cmd4 = 'set prefetch-playlist=yes'
+                cmd_arr.append(cmd4)
                 counter = 500
-                for cmd in [cmd1, cmd2, cmd3]:
+                for cmd in cmd_arr:
                     QtCore.QTimer.singleShot(
                         counter, partial(self.mpv_execute_command, cmd, row_val)
                         )
                     counter += 500
-            elif self.mpv_prefetch_url_started and self.playback_mode == 'single':
-                cmd = 'loadfile "{}" append'.format(url_lnk)
-                self.mpv_execute_command(cmd, row_val)
-                self.mpv_prefetch_url_started = False
-                self.tmp_pls_file_dict.update({row_val:True})
         else:
-            command = self.mplayermpv_command(self.idw, url_lnk, self.player_val,
-                                              s_url=surl, from_function='now_start')
+            command = self.mplayermpv_command(
+                self.idw, url_lnk, self.player_val,
+                s_url=surl, a_url=aurl, from_function='now_start'
+                )
             self.infoPlay(command)
             if row_val < self.list2.count():
                 self.list2.setCurrentRow(row_val)
@@ -9064,7 +9108,7 @@ watch/unwatch status")
     def mpv_execute_command(self, cmd, row):
         cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
         self.mpvplayer_val.write(cmdb)
-        if cmd.startswith('playlist-remove'):
+        if cmd.startswith('set prefetch-playlist'):
             self.mpv_prefetch_url_started = False
             self.tmp_pls_file_dict.update({row:True})
         logger.debug(cmd)
