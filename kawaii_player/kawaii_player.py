@@ -5190,7 +5190,7 @@ watch/unwatch status")
                         
                 move_ahead = True
                 if self.gapless_network_stream:
-                    if self.tmp_pls_file_dict.get(self.cur_row):
+                    if self.tmp_pls_file_dict.get(self.cur_row) and self.playback_mode == 'playlist':
                         if self.tmp_pls_file_lines[self.cur_row].startswith('http'):
                             move_ahead = False
                             tname = self.epn_arr_list[self.cur_row]
@@ -5204,6 +5204,7 @@ watch/unwatch status")
                             self.float_window.setWindowTitle(self.epn_name_in_list)
                             server._emitMeta("Next", site, self.epn_arr_list)
                             self.mpv_execute_command('set playlist-pos {}'.format(self.cur_row), self.cur_row)
+                        
                 if len(self.queue_url_list)>0:
                     if isinstance(self.queue_url_list[0], tuple):
                         if move_ahead:
@@ -9025,8 +9026,8 @@ watch/unwatch status")
                     self.mpv_prefetch_url_started = False
                     
     def epnfound_now_start_prefetch(self, url_lnk, row_val, mode):
-        if self.mpv_prefetch_url_started:
-            url_lnk = url_lnk.strip()
+        url_lnk = url_lnk.strip()
+        if self.mpv_prefetch_url_started and self.playback_mode == 'playlist':
             cmd1 = 'loadfile "{}" append'.format(url_lnk)
             cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
             cmd3 = 'playlist-remove {}'.format(row_val+1)
@@ -9036,7 +9037,12 @@ watch/unwatch status")
                     counter, partial(self.mpv_execute_command, cmd, row_val)
                     )
                 counter += 500
-    
+        elif self.mpv_prefetch_url_started and self.playback_mode == 'single':
+            cmd = 'loadfile "{}" append'.format(url_lnk)
+            self.mpv_execute_command(cmd, row_val)
+            self.mpv_prefetch_url_started = False
+            self.tmp_pls_file_dict.update({row_val:True})
+            
     def mpv_execute_command(self, cmd, row):
         cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
         self.mpvplayer_val.write(cmdb)
