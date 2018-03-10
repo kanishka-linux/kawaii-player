@@ -10613,6 +10613,13 @@ watch/unwatch status")
                     self.eof_lock = False
                     QtCore.QTimer.singleShot(1000, partial(self.set_sub_audio_text, 'aid'))
                     QtCore.QTimer.singleShot(1500, partial(self.set_sub_audio_text, 'sid'))
+                    if OSNAME == 'nt':
+                        sub_spacing = self.subtitle_dict.get('sub-spacing')
+                        if sub_spacing:
+                            cmd = 'set sub-spacing {}'.format(sub_spacing)
+                        QtCore.QTimer.singleShot(
+                            2000, partial(self.mpv_execute_command, cmd, self.cur_row)
+                            )
                 elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
                     self.eof_lock = False
