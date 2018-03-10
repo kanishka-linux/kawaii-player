@@ -79,6 +79,7 @@ class FloatWindowWidget(QtWidgets.QWidget):
             return None
         logger = logr
         self.update_signal.connect(self.update_progress)
+        self.setAcceptDrops(True)
         self.remove_toolbar = True
         self.lay = QtWidgets.QVBoxLayout(self)
 
@@ -192,7 +193,26 @@ class FloatWindowWidget(QtWidgets.QWidget):
             width: 5px;
             margin: 0.5px;
             }}""")
-
+            
+    def dragEnterEvent(self, event):
+        data = event.mimeData()
+        if data.hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+        
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        for i in urls:
+            i = i.toString()
+            logger.debug(i)
+            if i.startswith('file:///'):
+                if os.name == 'posix':
+                    i = i.replace('file://', '', 1)
+                else:
+                    i = i.replace('file:///', '', 1)
+            ui.watch_external_video('{}'.format(i), start_now=True)
+            
     def mouseMoveEvent(self, event):
         if ui.float_timer.isActive():
             ui.float_timer.stop()
