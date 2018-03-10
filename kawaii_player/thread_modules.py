@@ -1073,6 +1073,9 @@ def connect_post_title(epn_title, tpath):
     if not os.path.exists(file_name):
         f = open(file_name, 'w').close()
     write_files(file_name, file_entry, True)
+    item = ui.list1.item(0)
+    if item:
+        ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
 
 class GetIpThread(QtCore.QThread):
     
