@@ -66,11 +66,21 @@ class PlayerWidget(QtWidgets.QWidget):
             ext = None
             if '.' in i:
                 ext = i.split('.')[-1]
+            ok = False
             if ext:
                 ext = ext.lower()
                 if ext in ['srt', 'ass', 'vtt']:
                     self.load_external_sub(mode='drop', subtitle=i)
                     logger.debug(i)
+                    ok = True
+            if not ok:
+                logger.debug(i)
+                if i.startswith('file:///') or i.startswith('http') or i.startswith('magnet:'):
+                    if os.name == 'posix':
+                        i = i.replace('file://', '', 1)
+                    else:
+                        i = i.replace('file:///', '', 1)
+                    self.ui.watch_external_video('{}'.format(i), start_now=True)
     
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
