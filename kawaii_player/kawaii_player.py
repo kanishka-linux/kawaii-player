@@ -1571,7 +1571,7 @@ watch/unwatch status")
         self.mpvplayer_val = QtCore.QProcess()
         self.playback_mode = 'single'
         self.gapless_playback = False
-        self.gapless_network_stream = True
+        self.gapless_network_stream = False
         self.gapless_network_stream_disabled = False
         self.gapless_playback_disabled = False
         self.mpv_prefetch_url_started = False
@@ -2270,6 +2270,9 @@ watch/unwatch status")
         if self.gapless_playback:
             self.gapless_playback = False
             self.gapless_playback_disabled = True
+        if self.gapless_network_stream:
+            self.gapless_network_stream = False
+            self.gapless_network_stream_disabled = True
         if self.quick_url_play.startswith('magnet'):
             self.quick_torrent_play_method(url=self.quick_url_play)
         else:
@@ -10529,7 +10532,7 @@ watch/unwatch status")
                         else:
                             self.progress_counter = val
                             if (self.gapless_network_stream and not self.queue_url_list
-                                    and site not in ['Video', 'MyServer']): 
+                                    and site in ['Music', 'PlayLists', 'None', 'NONE']): 
                                 if self.progress_counter > int(self.mplayerLength/2):
                                     if self.tmp_pls_file_dict.get(self.cur_row+1) is False:
                                         self.start_gapless_stream_process(self.cur_row+1)
@@ -11640,8 +11643,8 @@ watch/unwatch status")
                 command = command+" -audiofile {0}".format(a_url)
             elif player == 'mpv':
                 command = command+" --audio-file={0}".format(a_url)
-        if self.gapless_playback:
-            command = command + " --gapless-audio=yes"
+        if self.gapless_playback or self.gapless_network_stream:
+            command = command + " --gapless-audio=yes --prefetch-playlist=yes"
         if self.player_volume:
             if self.player_volume.isnumeric():
                 if player == 'mplayer':
@@ -11702,7 +11705,7 @@ watch/unwatch status")
                 else:
                     if self.tmp_pls_file_lines:
                         write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
-                        command = '{} "{}" --playlist-start={} --prefetch-playlist=yes'.format(
+                        command = '{} "{}" --playlist-start={}'.format(
                             command, self.tmp_pls_file, self.cur_row
                             )
                         self.playback_mode = 'playlist'
@@ -11714,6 +11717,9 @@ watch/unwatch status")
         if self.gapless_playback_disabled:
             self.gapless_playback = True
             self.gapless_playback_disabled = False
+        if self.gapless_network_stream_disabled:
+            self.gapless_network_stream = True
+            self.gapless_network_stream_disabled = False
         return command
     
     def replace_line_in_file(self, file_name, lineno, content):
@@ -13540,6 +13546,14 @@ def main():
                         if k:
                             if k == 'yes' or k == 'true' or k == '1':
                                 ui.gapless_playback = True
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('GAPLESS_NETWORK_STREAM='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.gapless_network_stream = True
                     except Exception as e:
                         print(e)
                 elif i.startswith('HTTPS_ON='):
