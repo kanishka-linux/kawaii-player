@@ -9033,8 +9033,10 @@ watch/unwatch status")
                     
     def epnfound_now_start_prefetch(self, url_lnk, row_val, mode):
         url_lnk = url_lnk.strip()
+        surl = None
         if '::' in url_lnk:
-            url_lnk = url_lnk.split('::')[0].strip()
+            url_lnk, surl = url_lnk.split('::', 1)
+            url_lnk = url_lnk.strip()
         if self.mpvplayer_val.processId() > 0:
             if self.mpv_prefetch_url_started and self.playback_mode == 'playlist':
                 cmd1 = 'loadfile "{}" append'.format(url_lnk)
@@ -9052,7 +9054,8 @@ watch/unwatch status")
                 self.mpv_prefetch_url_started = False
                 self.tmp_pls_file_dict.update({row_val:True})
         else:
-            command = self.mplayermpv_command(self.idw, url_lnk, self.player_val, from_function='now_start')
+            command = self.mplayermpv_command(self.idw, url_lnk, self.player_val,
+                                              s_url=surl, from_function='now_start')
             self.infoPlay(command)
             if row_val < self.list2.count():
                 self.list2.setCurrentRow(row_val)
