@@ -9054,10 +9054,7 @@ watch/unwatch status")
                         if i == 0:
                             nsurl = 'sub-file="{}"'.format(j)
                         else:
-                            if OSNAME == 'posix':
-                                nsurl = nsurl + ':' + 'sub-file="{}"'.format(j)
-                            else:
-                                nsurl = nsurl + ';' + 'sub-file="{}"'.format(j)
+                            nsurl = nsurl + ':' + 'sub-file="{}"'.format(j)
                 else:
                     nsurl = 'sub-file="{}"'.format(surl)
         logger.debug('{}::{}'.format(aurl, nsurl))
@@ -9071,16 +9068,10 @@ watch/unwatch status")
                 else:
                     cmd1 = 'loadfile "{}" append'.format(url_lnk)
                 if nsurl:
-                    if OSNAME == 'posix':
-                        if append_audio:
-                            cmd1 = cmd1 + ':' + nsurl
-                        else:
-                            cmd1 = cmd1 + ' ' + nsurl
+                    if append_audio:
+                        cmd1 = cmd1 + ':' + nsurl
                     else:
-                        if append_audio:
-                            cmd1 = cmd1 + ';' + nsurl
-                        else:
-                            cmd1 = cmd1 + ' ' + nsurl
+                        cmd1 = cmd1 + ' ' + nsurl
                 cmd_arr.append(cmd1)
                 if self.playback_mode == 'playlist':
                     cmd2 = 'playlist-move {} {}'.format(self.list2.count(), row_val)
