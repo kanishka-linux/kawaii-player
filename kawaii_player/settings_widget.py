@@ -979,7 +979,19 @@ class OptionsSettings(QtWidgets.QTabWidget):
                aceesing media server library in p2p mode. Do not use it on playlist\
                with mix of local files and network streams'
         self.text46.setToolTip('<html>{}</html>'.format(msg))
-        self.line47 = QtWidgets.QTextEdit()
+        
+        self.line47 = QtWidgets.QComboBox()
+        self.line47.addItem("False")
+        self.line47.addItem("True")
+        index = self.line47.findText(str(ui.gapless_network_stream))
+        self.line47.setCurrentIndex(index)
+        self.text47 = QtWidgets.QLabel()
+        self.text47.setText("Gapless Network Stream")
+        self.player_list.append('gapless_network_stream')
+        msg = 'Experimental. Gapless Playback of Network streams'
+        self.text47.setToolTip('<html>{}</html>'.format(msg))
+        
+        self.line48 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
               It also remembers last quit position for every video in the History\
@@ -1032,8 +1044,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg1 = re.sub('  +', ' ', msg1)
         msg = msg + '\n\n' + msg1
         
-        self.line47.setText(msg)
-        self.line47.setMaximumHeight(ui.height_allowed)
+        self.line48.setText(msg)
+        self.line48.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
             text = eval('self.text4{}'.format(index))
@@ -1053,7 +1065,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
-        self.gl6.addWidget(self.line47, index+1, 0, 1, 3)
+        self.gl6.addWidget(self.line48, index+1, 0, 1, 3)
         
     
     def configsettings(self):
