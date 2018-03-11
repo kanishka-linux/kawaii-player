@@ -505,7 +505,9 @@ In this player, a weak addon structure has been created, so that one can write a
 		1. First install pytaglib from AUR
 		2. Create package from PKGBUILD using command 'makepkg -s' and then install using 'sudo pacman -U'.
 
-2. For Ubuntu or Debian based distro.
+2. Arch Users can also get package from AUR. [Latest release](https://aur.archlinux.org/packages/kawaii-player/), thanks to **Nocipher** and [git-version](https://aur.archlinux.org/packages/kawaii-player-git/), thanks to **SolarAquarion**.
+
+3. For Ubuntu or Debian based distro.
 	
 	- Users can directly go to Release section and download appropriate .deb package and install it using
  
