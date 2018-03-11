@@ -9362,11 +9362,15 @@ watch/unwatch status")
                 self.epn_name_in_list = arr[0]
                 epn = self.epn_name_in_list
                 self.playlistUpdate()
+                if self.gapless_network_stream:
+                    yt_mode = 'yt_prefetch_av'
+                else:
+                    yt_mode = 'yt'
                 if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
                     print(self.epn_wait_thread.isRunning())
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
-                            self, logger, 'yt', finalUrl, self.quality_val,
+                            self, logger, yt_mode, finalUrl, self.quality_val,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
         elif site == "None" or site == "Music" or site == "Video" or site == "Local":
@@ -9390,10 +9394,13 @@ watch/unwatch status")
                 self.list2.item(row).setText(i)
             #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
             self.list2.setCurrentRow(row)
-            if self.music_playlist:
-                yt_mode = 'yt_music'
+            if self.gapless_network_stream:
+                yt_mode = 'yt_prefetch_a'
             else:
-                yt_mode = 'yt'
+                if self.music_playlist:
+                    yt_mode = 'yt_music'
+                else:
+                    yt_mode = 'yt'
             if site == 'None' and self.video_local_stream:
                     finalUrl = self.local_torrent_open(local_torrent_file_path)
             elif site == 'None' and self.btn1.currentText().lower() == 'youtube':
