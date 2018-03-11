@@ -5127,7 +5127,7 @@ watch/unwatch status")
                 self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None):
-        global epn, site, current_playing_file_path
+        global epn, site
         print(play_row, '--play_row--', mode)
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
@@ -5165,9 +5165,7 @@ watch/unwatch status")
                     pass
             
             if site in ["Music", "Video", "None", "PlayLists", 'MyServer']:
-                logger.info('--mpv--nextepn--{0}'.format(current_playing_file_path))
                 self.external_url = self.get_external_url_status(self.final_playing_url)
-                
                 if self.player_val == 'mpv':
                     seek_time = self.progress_counter
                 else:
