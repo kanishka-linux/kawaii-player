@@ -1575,6 +1575,7 @@ watch/unwatch status")
         self.gapless_network_stream_disabled = False
         self.gapless_playback_disabled = False
         self.mpv_prefetch_url_started = False
+        self.use_single_network_stream = True
         self.mpv_prefetch_url_thread = QtCore.QThread()
         self.title_list_changed = False
         self.fullscreen_video = False
@@ -13624,6 +13625,14 @@ def main():
                         if k:
                             if k == 'yes' or k == 'true' or k == '1':
                                 ui.gapless_network_stream = True
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('USE_SINGLE_NETWORK_STREAM='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'no' or k == 'false' or k == '0':
+                                ui.use_single_network_stream = False
                     except Exception as e:
                         print(e)
                 elif i.startswith('HTTPS_ON='):
