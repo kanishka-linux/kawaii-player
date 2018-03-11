@@ -924,8 +924,12 @@ class PlayerGetEpn(QtCore.QThread):
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='music')
             elif self.epn_type == 'yt_prefetch_av':
+                if ui.use_single_network_stream:
+                    ytmode = 'offline'
+                else:
+                    ytmode = 'a+v'
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='a+v')
+                                      logger, mode=ytmode)
             elif self.epn_type == 'yt_prefetch_a':
                 finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
                                       logger, mode='music')
