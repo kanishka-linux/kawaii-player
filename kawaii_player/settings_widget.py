@@ -933,9 +933,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line43.setPlaceholderText(str(ui.cache_pause_seconds) + ' (In Seconds)')
         msg = '<html>Stop this many seconds before starting out again when run\
                 out of cache</html>'
-        self.line43.setToolTip(msg)
         self.text43 = QtWidgets.QLabel()
         self.text43.setText("Cache Pause Seconds")
+        self.text43.setToolTip(msg)
         self.player_list.append('cache_pause_seconds')
         
         self.line44 = QtWidgets.QLineEdit()
@@ -953,9 +953,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 Users can also write MPV, MPLAYER in capital letters here,\
                 which will open videos in cli versions of mpv and mplayer.\
                 The list will be available in sidebar.</html>")
-        self.line44.setToolTip(msg)
         self.text44 = QtWidgets.QLabel()
         self.text44.setText("Extra Players")
+        self.text44.setToolTip(msg)
         self.player_list.append('playback_engine')
         
         self.line45 = QtWidgets.QLineEdit()
@@ -991,7 +991,22 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg = 'Experimental. Gapless Playback of Network streams'
         self.text47.setToolTip('<html>{}</html>'.format(msg))
         
-        self.line48 = QtWidgets.QTextEdit()
+        self.line48 = QtWidgets.QComboBox()
+        self.line48.addItem("False")
+        self.line48.addItem("True")
+        index = self.line48.findText(str(ui.use_single_network_stream))
+        self.line48.setCurrentIndex(index)
+        self.text48 = QtWidgets.QLabel()
+        self.text48.setText("Use Single Network Stream For\nGapless Playback")
+        self.text48.setWordWrap(True)
+        self.player_list.append('use_single_network_stream')
+        msg = 'Setting it True will Disable separate audio and video files.\
+        Useful for gapless playback and prefetching of network streams.\
+        For experiment, Try setting it to False and see what happens with gapless\
+        playback.'
+        self.text48.setToolTip('<html>{}</html>'.format(msg))
+        
+        self.line49 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
               It also remembers last quit position for every video in the History\
@@ -1044,8 +1059,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg1 = re.sub('  +', ' ', msg1)
         msg = msg + '\n\n' + msg1
         
-        self.line48.setText(msg)
-        self.line48.setMaximumHeight(ui.height_allowed)
+        self.line49.setText(msg)
+        self.line49.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
             text = eval('self.text4{}'.format(index))
@@ -1065,7 +1080,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
-        self.gl6.addWidget(self.line48, index+1, 0, 1, 3)
+        self.gl6.addWidget(self.line49, index+1, 0, 1, 3)
         
     
     def configsettings(self):
@@ -1327,7 +1342,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
     def combobox_changed(self, widget, var_name=None, option=None):
         obj_name = widget.objectName()
         obj_value = widget.currentText()
-        param = obj_name + '='
+        if var_name == 'use_single_network_stream':
+            param = 'USE_SINGLE_NETWORK_STREAM='
+        else:
+            param = obj_name + '='
         param_value = param + obj_value
         logger.debug('{}::{}::{}::{}'.format(param, param_value, var_name, obj_value))
         if obj_value.lower() in ['true', 'false']:
