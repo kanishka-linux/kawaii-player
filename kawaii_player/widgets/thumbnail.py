@@ -704,7 +704,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if num < ui.list2.count():
                     ui.list2.setCurrentRow(num)
                     ui.idw = str(int(ui.tab_5.winId()))
-                    ui.play_file_now(finalUrl)
+                    #ui.play_file_now(finalUrl)
+                    ui.epnfound_now_start_prefetch(finalUrl, num, '')
                     if var_mode == 1:
                         ui.tab_5.player_fs(mode='fs')
                     else:
@@ -865,14 +866,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
-                if ui.player_val == "mplayer":
-                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
-                    logger.info(command)
-                    ui.infoPlay(command)
-                elif ui.player_val == "mpv":
-                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
-                    logger.info(command)
-                    ui.infoPlay(command)	
+                ui.epnfound_now_start_prefetch(finalUrl, num, '')
+                #if ui.player_val == "mplayer":
+                #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
+                #    logger.info(command)
+                #    ui.infoPlay(command)
+                #elif ui.player_val == "mpv":
+                #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
+                #    logger.info(command)
+                #    ui.infoPlay(command)	
             ui.labelFrame2.setText(ui.epn_name_in_list)
             #Mode 2, 3 Ends Here#
             if var_mode == 1:
@@ -953,14 +955,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
-                if ui.player_val == "mplayer":
-                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
-                    logger.info(command)
-                    ui.infoPlay(command)
-                elif ui.player_val == "mpv":
-                    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
-                    logger.info(command)
-                    ui.infoPlay(command)	
+                ui.epnfound_now_start_prefetch(finalUrl, num, '')
+                #if ui.player_val == "mplayer":
+                #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
+                #    logger.info(command)
+                #    ui.infoPlay(command)
+                #elif ui.player_val == "mpv":
+                #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
+                #    logger.info(command)
+                #    ui.infoPlay(command)	
             ui.labelFrame2.setText(ui.epn_name_in_list)
         elif var_mode == 6 or var_mode == 7:
             ui.tab_6_player = False
@@ -1014,14 +1017,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.idw = str(mn)
                     ui.frame1.show()
                     finalUrl = str(finalUrl)
-                    if ui.player_val == "mplayer":
-                        command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
-                        logger.info(command)
-                        ui.infoPlay(command)
-                    elif ui.player_val == "mpv":
-                        command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
-                        logger.info(command)
-                        ui.infoPlay(command)
+                    ui.epnfound_now_start_prefetch(finalUrl, num, '')
+                    #if ui.player_val == "mplayer":
+                    #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
+                    #    logger.info(command)
+                    #    ui.infoPlay(command)
+                    #elif ui.player_val == "mpv":
+                    #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mpv')
+                    #    logger.info(command)
+                    #    ui.infoPlay(command)
             #Mode 2 Ends Here#
 
         current_playing_file_path = finalUrl

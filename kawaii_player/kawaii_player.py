@@ -9870,13 +9870,15 @@ watch/unwatch status")
                     finalUrl = arr[1]
                     refererNeeded = False
                 epn = arr[0]
-                if 'youtube.com' in finalUrl:
-                    if mode == 'offline':
-                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode='offline').strip()
-                        if '::' in finalUrl:
-                            finalUrl = finalUrl.split('::')[0]
+                if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
+                    if self.gapless_network_stream:
+                        yt_mode = 'yt_prefetch_a'
                     else:
-                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger).strip()
+                        if self.music_playlist:
+                            yt_mode = 'yt_music'
+                        else:
+                            yt_mode = 'yt'
+                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode=yt_mode).strip()
                     
         
         if (site!="PlayLists" and site!= "None" and site != "Music" 
@@ -9924,12 +9926,14 @@ watch/unwatch status")
                     finalUrl = '"'+finalUrl+'"'
             if 'youtube.com' in finalUrl.lower():
                 finalUrl = finalUrl.replace('"', '')
-                if mode == 'offline':
-                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode='offline').strip()
-                    if '::' in finalUrl:
-                        finalUrl = finalUrl.split('::')[0]
+                if self.gapless_network_stream:
+                    yt_mode = 'yt_prefetch_a'
                 else:
-                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger).strip()
+                    if self.music_playlist:
+                        yt_mode = 'yt_music'
+                    else:
+                        yt_mode = 'yt'
+                finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode=yt_mode).strip()
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
