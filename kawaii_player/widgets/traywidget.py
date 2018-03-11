@@ -401,6 +401,8 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                 ui.float_window_layout.insertWidget(0, ui.label_new, 0)
                 ui.float_window.show()
                 ui.label_new.show()
+            elif str(ui.idw) == str(int(ui.label.winId())):
+                pass
             else:
                 row = ui.list2.currentRow()
                 if row >= 0:
@@ -464,6 +466,8 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             elif str(ui.idw) == str(int(ui.label_new.winId())):
                 ui.vertical_layout_new.insertWidget(0, ui.label_new)
                 ui.label_new.show()
+            elif str(ui.idw) == str(int(ui.label.winId())):
+                pass
             else:
                 r = ui.current_thumbnail_position[0]
                 c = ui.current_thumbnail_position[1]
