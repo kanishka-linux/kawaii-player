@@ -1000,10 +1000,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text48.setText("Use Single Network Stream For\nGapless Playback")
         self.text48.setWordWrap(True)
         self.player_list.append('use_single_network_stream')
-        msg = 'Setting it True will Disable separate audio and video files.\
-        Useful for gapless playback and prefetching of network streams.\
+        msg = "Setting it True (Default) will Disable separate audio and video files.\
+        Useful only for gapless playback and prefetching of network streams.\
+        This option won't be of any use if gapless playback of network stream is disabled.\
         For experiment, Try setting it to False and see what happens with gapless\
-        playback.'
+        playback, if ytdl fetches separate audio and video streams."
         self.text48.setToolTip('<html>{}</html>'.format(msg))
         
         self.line49 = QtWidgets.QTextEdit()
