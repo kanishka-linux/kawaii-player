@@ -9419,18 +9419,14 @@ watch/unwatch status")
         self.idw = str(int(self.tab_5.winId()))
         if site != "Music":
             self.tab_5.show()
-            
-        #logger.info(finalUrl)
-        print("***********", self.epn_wait_thread.isRunning())
-        if (site == "Local" or site == "Video" or site == "Music" or site == "None" 
-                or site == "PlayLists" and (not type(finalUrl) is list 
+        thread_running = self.epn_wait_thread.isRunning()
+        logger.debug(thread_running)
+        if (site in self.local_site_list and (not type(finalUrl) is list
                 or (type(finalUrl) is list and len(finalUrl) == 1)) 
-                and self.download_video == 0 and not self.epn_wait_thread.isRunning()):
+                and self.download_video == 0 and not thread_running):
             if type(finalUrl) is list:
                 finalUrl = finalUrl[0]
-                
             finalUrl = finalUrl.replace('"', '')
-            
             finalUrl = '"'+finalUrl+'"'
             try:
                 finalUrl = str(finalUrl)
@@ -9442,11 +9438,10 @@ watch/unwatch status")
             if self.player_val == "mpv":
                 command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                 logger.info(command)
-                logger.debug('**********************8808-----')
+                logger.debug('********8808**********')
                 self.infoPlay(command)
             elif self.player_val == "mplayer":
                 self.quit_really = "no"
-                
                 self.idw = str(int(self.tab_5.winId()))
                 if site != "Music":
                     self.tab_5.show()
@@ -9459,7 +9454,7 @@ watch/unwatch status")
                     subprocess.Popen([self.player_val.lower(), finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 else:
                     subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        elif not self.epn_wait_thread.isRunning():
+        elif not thread_running:
             if self.download_video == 0 and self.player_val == "mpv":
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
@@ -9620,11 +9615,9 @@ watch/unwatch status")
                 logger.info(command)
                 self.infoWget(command, 0)
                 self.download_video = 0
-                
         if epn_goto == 0:
             self.list2.setCurrentRow(row)
         epn_goto = 0
-        
         if not self.epn_wait_thread.isRunning():
             if not isinstance(finalUrl, list):
                 self.final_playing_url = finalUrl.replace('"', '')
