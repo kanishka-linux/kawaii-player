@@ -1570,6 +1570,8 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.playback_mode = 'single'
+        self.append_audio_start = False
+        self.append_audio_gapless = False
         self.gapless_playback = False
         self.gapless_network_stream = False
         self.gapless_network_stream_disabled = False
@@ -9064,8 +9066,10 @@ watch/unwatch status")
                 if aurl:
                     cmd1 = 'loadfile "{}" append audio-file="{}"'.format(url_lnk, aurl)
                     append_audio = True
+                    self.append_audio_gapless = True
                 else:
                     cmd1 = 'loadfile "{}" append'.format(url_lnk)
+                    self.append_audio_gapless = False
                 if nsurl:
                     if append_audio:
                         cmd1 = cmd1 + ':' + nsurl
@@ -10344,11 +10348,12 @@ watch/unwatch status")
                             a_id = i.split('=')[-1]
                             break
                     if a_id is not None:
-                        audio_s = (re.search('[(][^)]*', a_id))
+                        audio_s = (re.search('[(][0-9]+[)]', a_id))
                         if audio_s:
-                            audio_id = (audio_s.group()).replace('(', '')
+                            audio_id = audio_s.group()
+                            audio_id = re.sub('\)|\(', '', audio_id).strip()
                         else:
-                            audio_id="no"
+                            audio_id="auto"
                         self.audio_track.setText("A:"+str(a_id[:8]))
                         if 'AUDIO_KEY_ID' in a:
                             self.change_sid_aid_video(aid=audio_id)
@@ -10625,6 +10630,12 @@ watch/unwatch status")
                             )
                 elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
+                    if self.gapless_network_stream:
+                        if self.append_audio_start:
+                            if self.append_audio_gapless:
+                                self.mpv_execute_command('set aid 2', self.cur_row)
+                            else:
+                                self.mpv_execute_command('set aid 1', self.cur_row)
                     self.eof_lock = False
                     self.eof_reached = False
                     if "EOF code: 1" in a:
@@ -11703,6 +11714,9 @@ watch/unwatch status")
                 command = command+" -audiofile {0}".format(a_url)
             elif player == 'mpv':
                 command = command+" --audio-file={0}".format(a_url)
+            self.append_audio_start = True
+        else:
+            self.append_audio_start = False
         if self.gapless_playback or self.gapless_network_stream:
             command = command + " --gapless-audio=yes --prefetch-playlist=yes"
         if self.player_volume:
