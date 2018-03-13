@@ -8693,7 +8693,7 @@ watch/unwatch status")
                         self.idw = str(int(self.tab_5.winId()))
                 else:
                     self.idw = str(int(self.tab_5.winId()))
-            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
+            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val, from_function='now_start')
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
         seek_time = 0
