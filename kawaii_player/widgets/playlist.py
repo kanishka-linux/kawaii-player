@@ -51,7 +51,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.upcount = 0
         self.downcount = 0
         self.count_limit = 1
-
+    
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
             ui.dockWidget_3.hide()
@@ -487,7 +487,144 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         if new_row > range_end:
                             break
                     write_files(file_path, ui.epn_arr_list, line_by_line=True)
-                    
+    
+    def move_playlist_items(self, src_row, dest_row, action=None):
+        row = src_row
+        nrow = dest_row
+        param_dict = ui.get_parameters_value(s='site', o='opt', b='bookmark')
+        site = param_dict['site']
+        opt = param_dict['opt']
+        bookmark = param_dict['bookmark']
+        update_pls = False
+        item = None
+        logger.debug('{}::{}::{}'.format(opt, row, site))
+        if ((site == "PlayLists" or ui.music_playlist or opt == 'History')
+                and site != "Video" and row in range(0, self.count())):
+            file_path = ""
+            param_dict = ui.get_parameters_value(sn='siteName', nm='name')
+            siteName = param_dict['siteName']
+            name = param_dict['name']
+            if site == "SubbedAnime" or site == "DubbedAnime":
+                if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
+                    file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
+            elif site == "PlayLists" or ui.music_playlist:
+                pls = ''
+                if ui.list1.currentItem():
+                    pls = ui.list1.currentItem().text()
+                if pls:
+                    file_path = os.path.join(home, 'Playlists', pls)
+            else:
+                if os.path.exists(os.path.join(home, 'History', site, name, 'Ep.txt')):
+                    file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+            if os.path.exists(file_path):
+                lines = open_files(file_path, True)
+                length = len(lines)
+                if ((row > 0 and action == 'pgup') or (row < length -1 and action == 'pgdown')):
+                    if row == length - 1:
+                        t = lines[row].replace('\n', '')+'\n'
+                        lines[row] = lines[nrow].replace('\n', '')
+                        lines[nrow] = t
+                    else:
+                        t = lines[row]
+                        lines[row] = lines[nrow]
+                        lines[nrow] = t
+                elif row == 0 and action == 'pgup':
+                    rowitem = lines[0].strip()
+                    del lines[0]
+                    lines.append(rowitem)
+                else:
+                    rowitem = lines.pop().strip()
+                    lines.insert(0, rowitem)
+                ui.epn_arr_list = [i.strip() for i in lines if i.strip()]
+                write_files(file_path, lines, line_by_line=True)
+                update_pls = True
+                item = self.item(row)
+            if ui.gapless_playback:
+                ui.use_playlist_method()
+        elif site == "Video":
+            item = self.item(row)
+            bookmark = ui.get_parameters_value(b='bookmark')['bookmark']
+            if item:
+                if not bookmark:
+                    video_db = os.path.join(home, 'VideoDB', 'Video.db')
+                    conn = sqlite3.connect(video_db)
+                    cur = conn.cursor()
+                    if ((row > 0 and action == 'pgup') or (row < len(ui.epn_arr_list) - 1
+                            and action == 'pgdown')):
+                        txt = ui.epn_arr_list[row].split('	')[1]
+                        cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
+                        rows = cur.fetchall()
+                        num1 = int(rows[0][0])
+                        txt1 = ui.epn_arr_list[nrow].split('	')[1]
+                        ui.epn_arr_list[row], ui.epn_arr_list[nrow] = ui.epn_arr_list[nrow], ui.epn_arr_list[row]
+                        cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
+                        rows = cur.fetchall()
+                        num2 = int(rows[0][0])
+                        logger.debug('num2={}'.format(num2))
+                        qr = 'Update Video Set EPN=? Where Path=?'
+                        cur.execute(qr, (num2, txt))
+                        qr = 'Update Video Set EPN=? Where Path=?'
+                        cur.execute(qr, (num1, txt1))
+                        update_pls = True
+                        conn.commit()
+                        conn.close()
+                    elif row == 0 and action == 'pgup':
+                        txt = ui.epn_arr_list[-1].split('	')[1]
+                        length = len(ui.epn_arr_list)
+                        for rowint, row_item in enumerate(ui.epn_arr_list):
+                            txt = row_item.split('\t')[1]
+                            num = rowint - 1
+                            if num < 0:
+                                num = num % length
+                            print(num, '---num2')
+                            qr = 'Update Video Set EPN=? Where Path=?'
+                            cur.execute(qr, (num, txt))
+                        first_txt = ui.epn_arr_list[0]
+                        del ui.epn_arr_list[0]
+                        ui.epn_arr_list.append(first_txt)
+                        conn.commit()
+                        conn.close()
+                        update_pls = True
+                    else:
+                        length = len(ui.epn_arr_list)
+                        txt = ui.epn_arr_list[0].split('\t')[1]
+                        for rowint, row_item in enumerate(ui.epn_arr_list):
+                            txt = row_item.split('\t')[1]
+                            num = rowint + 1
+                            if num >= length:
+                                num = num % length
+                            logger.debug('num2={}'.format(num))
+                            qr = 'Update Video Set EPN=? Where Path=?'
+                            cur.execute(qr, (num, txt))
+                        last_txt = ui.epn_arr_list[-1]
+                        del ui.epn_arr_list[-1]
+                        ui.epn_arr_list.insert(0, last_txt)
+                        update_pls = True
+                        conn.commit()
+                        conn.close()
+                    dir_path, file_path = os.path.split(txt)
+                    if dir_path in ui.video_dict:
+                        del ui.video_dict[dir_path]
+                    if ui.gapless_playback:
+                        ui.use_playlist_method()
+        if update_pls and item:
+            row_n = None
+            if ((row > 0 and action == 'pgup') or (row < len(ui.epn_arr_list) - 1
+                    and action == 'pgdown')):
+                self.takeItem(row)
+                self.insertItem(nrow, item)
+                row_n = nrow
+            elif row == 0 and action == 'pgup':
+                self.takeItem(row)
+                self.addItem(item)
+                row_n = len(ui.epn_arr_list) - 1
+            else:
+                self.takeItem(row)
+                self.insertItem(0, item)
+                row_n = 0
+            if row_n is not None:
+                self.setCurrentRow(row_n)
+                
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Left):
@@ -674,219 +811,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(row_val)
         elif event.key() == QtCore.Qt.Key_PageUp:
             row = self.currentRow()
-            nRow = self.currentRow()-1
-            param_dict = ui.get_parameters_value(s='site', o='opt', b='bookmark')
-            site = param_dict['site']
-            opt = param_dict['opt']
-            bookmark = param_dict['bookmark']
-            if site == 'Music':
-                if ui.list3.currentItem():
-                    if ui.list3.currentItem().text() == 'Playlist':
-                        opt = 'History'
-                        ui.set_parameters_value(op=opt)
-            print(opt, row, site)
-            if (opt == "History" or site == "PlayLists") and row > 0 and site != "Video":
-                file_path = ""
-                param_dict = ui.get_parameters_value(sn='siteName', nm='name')
-                siteName = param_dict['siteName']
-                name = param_dict['name']
-                if site == "SubbedAnime" or site == "DubbedAnime":
-                    if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
-                        file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
-                elif site == "PlayLists" or site == "Music":
-                    pls = ''
-                    if site == "PlayLists":
-                        if ui.list1.currentItem():
-                            pls = ui.list1.currentItem().text()
-                    else:
-                        if ui.list1.currentItem():
-                            pls = ui.list1.currentItem().text()
-                    if pls:
-                        file_path = os.path.join(home, 'Playlists', pls)
-                else:
-                    if os.path.exists(os.path.join(home, 'History', site, name, 'Ep.txt')):
-                        file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
-                if os.path.exists(file_path):
-                    lines = open_files(file_path, True)
-                    length = len(lines)
-                    if row == length - 1:
-                        t = lines[row].replace('\n', '')+'\n'
-                        lines[row] = lines[nRow].replace('\n', '')
-                        lines[nRow] = t
-                    else:
-                        t = lines[row]
-                        lines[row] = lines[nRow]
-                        lines[nRow] = t
-                    ui.epn_arr_list[:] = []
-                    for i in lines:
-                        j = i.strip()
-                        ui.epn_arr_list.append(j)
-                    write_files(file_path, lines, line_by_line=True)
-                    ui.update_list2()
-                    self.setCurrentRow(nRow)
-                if ui.gapless_playback:
-                    ui.use_playlist_method()
-            elif site == "Video":
-                r = self.currentRow()
-                item = self.item(r)
-                bookmark = ui.get_parameters_value(b='bookmark')['bookmark']
-                if item:
-                    if not bookmark:
-                        video_db = os.path.join(home, 'VideoDB', 'Video.db')
-                        conn = sqlite3.connect(video_db)
-                        cur = conn.cursor()
-                        if r > 0:
-                            txt = ui.epn_arr_list[r].split('	')[1]
-                            cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
-                            rows = cur.fetchall()
-                            num1 = int(rows[0][0])
-                            txt1 = ui.epn_arr_list[r-1].split('	')[1]
-                            ui.epn_arr_list[r], ui.epn_arr_list[r-1] = ui.epn_arr_list[r-1], ui.epn_arr_list[r]
-                            cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
-                            rows = cur.fetchall()
-                            num2 = int(rows[0][0])
-                            print(num2, '---num2')
-                            qr = 'Update Video Set EPN=? Where Path=?'
-                            cur.execute(qr, (num2, txt))
-                            qr = 'Update Video Set EPN=? Where Path=?'
-                            cur.execute(qr, (num1, txt1))
-                            conn.commit()
-                            conn.close()
-                            self.takeItem(r)
-                            self.insertItem(r-1, item)
-                            row_n = r-1
-                        else:
-                            txt = ui.epn_arr_list[-1].split('	')[1]
-                            length = len(ui.epn_arr_list)
-                            for row, row_item in enumerate(ui.epn_arr_list):
-                                txt = row_item.split('\t')[1]
-                                num = row - 1
-                                if num < 0:
-                                    num = num % length
-                                print(num, '---num2')
-                                qr = 'Update Video Set EPN=? Where Path=?'
-                                cur.execute(qr, (num, txt))
-                            first_txt = ui.epn_arr_list[0]
-                            del ui.epn_arr_list[0]
-                            ui.epn_arr_list.append(first_txt)
-                            conn.commit()
-                            conn.close()
-                            self.takeItem(r)
-                            self.addItem(item)
-                            row_n = len(ui.epn_arr_list)-1
-                        self.setCurrentRow(row_n)
-                        dir_path, file_path = os.path.split(txt)
-                        if dir_path in ui.video_dict:
-                            del ui.video_dict[dir_path]
-                        if ui.gapless_playback:
-                            ui.use_playlist_method()
+            nrow = row - 1
+            self.move_playlist_items(row, nrow, action='pgup')
         elif event.key() == QtCore.Qt.Key_PageDown:
             row = self.currentRow()
-            nRow = self.currentRow()+1
-            param_dict = ui.get_parameters_value(s='site', o='opt', b='bookmark')
-            site = param_dict['site']
-            opt = param_dict['opt']
-            bookmark = param_dict['bookmark']
-            if site == 'Music':
-                if ui.list3.currentItem():
-                    if ui.list3.currentItem().text() == 'Playlist':
-                        opt = 'History'
-                        ui.set_parameters_value(op=opt)
-            print(opt, row, site)
-            if ((opt == "History" or site == "PlayLists") 
-                    and row < self.count()-1 and site != "Video"):
-                file_path = ""
-                param_dict = ui.get_parameters_value(s='siteName', n='name')
-                siteName = param_dict['siteName']
-                name = param_dict['name']
-                if site == "SubbedAnime" or site == "DubbedAnime":
-                    if os.path.exists(os.path.join(home, 'History', site, siteName, name, 'Ep.txt')):
-                        file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
-                elif site == "PlayLists" or site == "Music":
-                    if site == "PlayLists":
-                        pls = ui.list1.currentItem().text()
-                    else:
-                        pls = ui.list1.currentItem().text()
-                    file_path = os.path.join(home, 'Playlists', pls)
-                else:
-                    if os.path.exists(os.path.join(home, 'History', site, name, 'Ep.txt')):
-                        file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
-                if os.path.exists(file_path):
-                    lines = open_files(file_path, True)
-                    length = len(lines)
-                    if nRow == length - 1:
-                        t = lines[row].replace('\n', '')
-                        lines[row] = lines[nRow].replace('\n', '')+'\n'
-                        lines[nRow] = t
-                    else:
-                        t = lines[row]
-                        lines[row] = lines[nRow]
-                        lines[nRow] = t
-                    ui.epn_arr_list[:] = []
-                    for i in lines:
-                        j = i.strip()
-                        ui.epn_arr_list.append(j)
-                    write_files(file_path, lines, line_by_line=True)
-                    ui.update_list2()
-                    self.setCurrentRow(nRow)
-                    if ui.gapless_playback:
-                        ui.use_playlist_method()
-            elif site == "Video":
-                r = self.currentRow()
-                item = self.item(r)
-                if item:
-                    if not bookmark:
-                        video_db = os.path.join(home, 'VideoDB', 'Video.db')
-                        conn = sqlite3.connect(video_db)
-                        cur = conn.cursor()
-                        if r < len(ui.epn_arr_list) - 1:
-                            txt = ui.epn_arr_list[r].split('	')[1]
-                            cur.execute('Select EPN FROM Video Where Path=?', (txt, ))
-                            rows = cur.fetchall()
-                            num1 = int(rows[0][0])
-                            print(num1, '--num1')
-                            print(self.count()-1, '--cnt-1')
-                            txt1 = ui.epn_arr_list[r+1].split('	')[1]
-                            ui.epn_arr_list[r], ui.epn_arr_list[r+1] = ui.epn_arr_list[r+1], ui.epn_arr_list[r]
-                            cur.execute('Select EPN FROM Video Where Path=?', (txt1, ))
-                            rows = cur.fetchall()
-                            num2 = int(rows[0][0])
-                            print(num2, '---num2')
-                            qr = 'Update Video Set EPN=? Where Path=?'
-                            cur.execute(qr, (num2, txt))
-                            qr = 'Update Video Set EPN=? Where Path=?'
-                            cur.execute(qr, (num1, txt1))
-                            conn.commit()
-                            conn.close()
-                            self.takeItem(r)
-                            self.insertItem(r+1, item)
-                            row_n = r+1
-                        else:
-                            length = len(ui.epn_arr_list)
-                            txt = ui.epn_arr_list[0].split('\t')[1]
-                            for row, row_item in enumerate(ui.epn_arr_list):
-                                txt = row_item.split('\t')[1]
-                                num = row+1
-                                if num >= length:
-                                    num = num % length
-                                print(num, '---num2')
-                                qr = 'Update Video Set EPN=? Where Path=?'
-                                cur.execute(qr, (num, txt))
-                            last_txt = ui.epn_arr_list[-1]
-                            del ui.epn_arr_list[-1]
-                            ui.epn_arr_list.insert(0, last_txt)
-                            self.takeItem(r)
-                            self.insertItem(0, item)
-                            conn.commit()
-                            conn.close()
-                            #ui.update_list2()
-                            row_n = 0
-                        self.setCurrentRow(row_n)
-                        dir_path, file_path = os.path.split(txt)
-                        if dir_path in ui.video_dict:
-                            del ui.video_dict[dir_path]
-                        if ui.gapless_playback:
-                            ui.use_playlist_method()
+            nrow = row + 1
+            self.move_playlist_items(row, nrow, action='pgdown')
         elif event.key() == QtCore.Qt.Key_Left:
             if ui.float_window.isHidden():
                 if ui.list1.isHidden():
