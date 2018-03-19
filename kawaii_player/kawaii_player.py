@@ -10592,8 +10592,12 @@ watch/unwatch status")
                             if (self.gapless_network_stream and not self.queue_url_list
                                     and site in ['Music', 'PlayLists', 'None', 'NONE']): 
                                 if self.progress_counter > int(self.mplayerLength/2):
-                                    if self.tmp_pls_file_dict.get(self.cur_row+1) is False:
-                                        self.start_gapless_stream_process(self.cur_row+1)
+                                    if (self.cur_row + 1) < self.list2.count():
+                                        item_index = self.cur_row + 1
+                                    else:
+                                        item_index = 0
+                                    if self.tmp_pls_file_dict.get(item_index) is False:
+                                        self.start_gapless_stream_process(item_index)
                         if not new_tray_widget.isHidden():
                             new_tray_widget.update_signal.emit(out, val)
                         if cache_empty == 'yes':
