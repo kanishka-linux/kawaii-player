@@ -9238,8 +9238,8 @@ watch/unwatch status")
             if os.path.exists(tmp_pl):
                 os.remove(tmp_pl)
 
-        if (self.mpvplayer_val.processId() > 0 and (current_playing_file_path.startswith('http') 
-                or current_playing_file_path.startswith('"http'))):
+        if (self.mpvplayer_val.processId() > 0 and (self.final_playing_url.startswith('http') 
+                or self.final_playing_url.startswith('"http'))):
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
 
