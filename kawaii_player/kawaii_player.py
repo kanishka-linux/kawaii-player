@@ -3882,6 +3882,8 @@ watch/unwatch status")
         elif val == "Shuffle":
             self.epn_arr_list = random.sample(self.epn_arr_list, len(self.epn_arr_list))
             self.update_list2()
+            if self.gapless_playback:
+                self.use_playlist_method()
         elif val == "Show/Hide Video":
             if self.tab_5.isHidden():
                 self.tab_5.show()
