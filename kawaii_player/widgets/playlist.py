@@ -626,6 +626,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         dir_path, file_path = os.path.split(txt)
                         if dir_path in ui.video_dict:
                             del ui.video_dict[dir_path]
+                        if ui.gapless_playback:
+                            ui.use_playlist_method()
             elif (site != "PlayLists" and site != "Video" and site != "Music" 
                     and opt == "History"):
                 row = self.currentRow()
@@ -648,31 +650,26 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     ui.update_list2()
                 else:
                     pass
-            elif site == "PlayLists" or (site == "Music" and ui.list3.currentItem()):
-                go_next = True
-                if site == 'Music' and ui.list3.currentItem():
-                    if ui.list3.currentItem().text() == "Playlist":
-                        go_next = True
-                    else:
-                        go_next = False
-                if go_next:
-                    pls = ''
-                    if site == "Music":
-                        r = ui.list1.currentRow()
-                        if ui.list1.item(r):
-                            pls = str(ui.list1.item(r).text())
-                    else:
-                        if ui.list1.currentItem():
-                            pls = ui.list1.currentItem().text()
-                    if pls:
-                        file_path = os.path.join(home, 'Playlists', pls)
-                        row = self.currentRow()
-                        item = self.item(row)
-                        if item and os.path.exists(file_path):
-                            self.takeItem(row)
-                            del item
-                            del ui.epn_arr_list[row]
-                            write_files(file_path, ui.epn_arr_list, line_by_line=True)
+            elif site == "PlayLists" or ui.music_playlist:
+                pls = ''
+                if site == "Music":
+                    r = ui.list1.currentRow()
+                    if ui.list1.item(r):
+                        pls = str(ui.list1.item(r).text())
+                else:
+                    if ui.list1.currentItem():
+                        pls = ui.list1.currentItem().text()
+                if pls:
+                    file_path = os.path.join(home, 'Playlists', pls)
+                    row = self.currentRow()
+                    item = self.item(row)
+                    if item and os.path.exists(file_path):
+                        self.takeItem(row)
+                        del item
+                        del ui.epn_arr_list[row]
+                        write_files(file_path, ui.epn_arr_list, line_by_line=True)
+                        if ui.gapless_playback:
+                            ui.use_playlist_method()
             if row_val < self.count():
                 self.setCurrentRow(row_val)
         elif event.key() == QtCore.Qt.Key_PageUp:
