@@ -866,7 +866,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
-                ui.epnfound_now_start_prefetch(finalUrl, num, '')
+                if ui.gapless_playback:
+                    ui.epnfound_now_start_prefetch(finalUrl, num, 'gapless')
+                else:
+                    ui.epnfound_now_start_prefetch(finalUrl, num, '')
                 #if ui.player_val == "mplayer":
                 #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                 #    logger.info(command)
@@ -955,7 +958,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
-                ui.epnfound_now_start_prefetch(finalUrl, num, '')
+                if ui.gapless_playback:
+                    ui.epnfound_now_start_prefetch(finalUrl, num, 'gapless')
+                else:
+                    ui.epnfound_now_start_prefetch(finalUrl, num, '')
                 #if ui.player_val == "mplayer":
                 #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                 #    logger.info(command)
@@ -1017,7 +1023,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.idw = str(mn)
                     ui.frame1.show()
                     finalUrl = str(finalUrl)
-                    ui.epnfound_now_start_prefetch(finalUrl, num, '')
+                    if ui.gapless_playback:
+                        ui.epnfound_now_start_prefetch(finalUrl, num, 'gapless')
+                    else:
+                        ui.epnfound_now_start_prefetch(finalUrl, num, '')
                     #if ui.player_val == "mplayer":
                     #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                     #    logger.info(command)
