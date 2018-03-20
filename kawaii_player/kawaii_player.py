@@ -9060,8 +9060,8 @@ watch/unwatch status")
                             nsurl = nsurl + ':' + 'sub-file="{}"'.format(j)
                 else:
                     nsurl = 'sub-file="{}"'.format(surl)
-        logger.debug('{}::{}'.format(aurl, nsurl))
-        if self.mpvplayer_val.processId() > 0:
+        logger.debug('{}::{}::{}'.format(aurl, nsurl, mode))
+        if self.mpvplayer_val.processId() > 0 and mode not in ['thumbnail', 'thumbnail_gapless']:
             if self.mpv_prefetch_url_started:
                 cmd_arr = []
                 append_audio = False
@@ -9092,7 +9092,7 @@ watch/unwatch status")
                         )
                     counter += 500
         else:
-            if mode == 'gapless':
+            if mode == 'thumbnail_gapless' and not url_lnk.startswith('http'):
                 from_function = None
             else:
                 from_function = 'now_start'
