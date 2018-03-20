@@ -9092,9 +9092,13 @@ watch/unwatch status")
                         )
                     counter += 500
         else:
+            if mode == 'gapless':
+                from_function = None
+            else:
+                from_function = 'now_start'
             command = self.mplayermpv_command(
                 self.idw, url_lnk, self.player_val,
-                s_url=surl, a_url=aurl, from_function='now_start'
+                s_url=surl, a_url=aurl, from_function=from_function
                 )
             self.infoPlay(command)
             if row_val < self.list2.count():
@@ -11426,7 +11430,6 @@ watch/unwatch status")
                 s_id=sub_id
                 )
             self.infoPlay(command)
-            print("mpv=" + str(self.mpvplayer_val.processId()))
         elif self.gapless_playback and site in self.local_site_list:
             if (self.cur_row == 0 or eofcode == 'next') and self.playback_mode == 'playlist':
                 cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
@@ -11434,7 +11437,7 @@ watch/unwatch status")
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             elif self.playback_mode == 'single':
                 self.play_file_now(finalUrl)
-            
+            logger.debug(self.playback_mode)
         if finalUrl.startswith('"'):
             current_playing_file_path = finalUrl.replace('"', '')
         else:
