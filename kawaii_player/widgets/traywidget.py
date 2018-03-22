@@ -513,10 +513,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                     ui.float_window.width(), ui.float_window.height()
                 ]
             ui.float_window.hide()
-            if self.status_playlist:
-                ui.list2.show()
-            else:
-                ui.list2.hide()
+            #if self.status_playlist:
+            #    ui.list2.show()
+            #else:
+            #    ui.list2.hide()
             self.h_mode.setText('&Hide')
             ui.list2.setFlow(QtWidgets.QListWidget.TopToBottom)
             ui.list2.setMaximumWidth(ui.width_allowed)
@@ -528,6 +528,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             MainWindow.show()
             if ui.layout_mode == 'Default':
                 MainWindow.showMaximized()
+        ui.widget_style.change_list2_style()
+        if ui.cur_row < ui.list2.count():
+            ui.list2.setFocus()
+            ui.list2.setCurrentRow(ui.cur_row)
                 
     def _hide_mode(self):
         txt = self.h_mode.text()
