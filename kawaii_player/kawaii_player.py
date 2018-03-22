@@ -9374,6 +9374,8 @@ watch/unwatch status")
                     finalUrl = arr[1]
                     refererNeeded = False
                 self.epn_name_in_list = arr[0]
+                if self.epn_name_in_list.startswith('#'):
+                    self.epn_name_in_list = self.epn_name_in_list[1:]
                 epn = self.epn_name_in_list
                 self.playlistUpdate()
                 if self.gapless_network_stream:
