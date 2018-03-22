@@ -1570,6 +1570,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.playback_mode = 'single'
+        self.append_counter = 0
         self.append_audio_start = False
         self.append_audio_gapless = False
         self.gapless_playback = False
@@ -9105,13 +9106,18 @@ watch/unwatch status")
                 self.list2.setCurrentRow(row_val)
                 self.cur_row = row_val
                 
-    def mpv_execute_command(self, cmd, row):
-        cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
-        self.mpvplayer_val.write(cmdb)
-        if cmd.startswith('set prefetch-playlist'):
-            self.mpv_prefetch_url_started = False
-            self.tmp_pls_file_dict.update({row:True})
-        logger.debug(cmd)
+    def mpv_execute_command(self, cmd, row, timer=None):
+        if timer:
+            QtCore.QTimer.singleShot(
+                timer, partial(self.mpv_execute_command, cmd, row)
+                )
+        else:
+            cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
+            self.mpvplayer_val.write(cmdb)
+            if cmd.startswith('set prefetch-playlist'):
+                self.mpv_prefetch_url_started = False
+                self.tmp_pls_file_dict.update({row:True})
+            logger.debug(cmd)
         
     def epnfound_now_start_player(self, url_link, row_val):
         global site, refererNeeded, current_playing_file_path
@@ -10643,9 +10649,14 @@ watch/unwatch status")
                     if self.gapless_network_stream:
                         if self.append_audio_start:
                             if self.append_audio_gapless:
-                                self.mpv_execute_command('set aid 2', self.cur_row)
+                                if self.append_counter > 0:
+                                    self.append_counter = 0
+                                    self.mpv_execute_command('set aid 2', self.cur_row, timer=2000)
+                                else:
+                                    self.mpv_execute_command('set aid 2', self.cur_row)
                             else:
                                 self.mpv_execute_command('set aid 1', self.cur_row)
+                                self.append_counter += 1
                     self.eof_lock = False
                     self.eof_reached = False
                     if "EOF code: 1" in a:
