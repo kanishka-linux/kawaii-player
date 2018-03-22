@@ -12827,7 +12827,7 @@ watch/unwatch status")
                                     self.ytdl_path, length)
                                 self.epn_wait_thread.start()
                                 self.yt_title_thread = True
-                    if self.gapless_network_stream:
+                    if self.gapless_network_stream and self.mpvplayer_val.processId() == 0:
                         self.start_gapless_stream_process(length, link=title_url.replace('ytdl:', '', 1))
                     if mode == 'open url':
                         file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
