@@ -1073,11 +1073,27 @@ def connect_post_title(epn_title, tpath):
     else:
         ui.epn_name_in_list = 'No Title'
         file_entry = tpath.split('/')[-1]+'	'+tpath+'	'+'NONE'
-    file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
+    if ui.list1.currentItem():
+        pls_name = ui.list1.currentItem().text()
+    else:
+        pls_name = 'TMP_PLAYLIST'
+    file_name = os.path.join(ui.home_folder, 'Playlists', pls_name)
     if not os.path.exists(file_name):
-        f = open(file_name, 'w').close()
+        pls_name = 'TMP_PLAYLIST'
+        file_name = os.path.join(ui.home_folder, 'Playlists', pls_name)
+        if not os.path.exists(file_name):
+            f = open(file_name, 'w').close()
     write_files(file_name, file_entry, True)
-    item = ui.list1.item(0)
+    list_item = ui.list1.findItems(pls_name, QtCore.Qt.MatchExactly)
+    item = None
+    if len(list_item) > 0:
+        for i in list_item:
+            row = ui.list1.row(i)
+            ui.list1.setFocus()
+            ui.list1.setCurrentRow(row)
+            item = ui.list1.item(row)
+    else:
+        item = ui.list1.item(0)
     if item:
         ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
 
