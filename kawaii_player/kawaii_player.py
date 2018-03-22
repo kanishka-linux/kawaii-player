@@ -14168,6 +14168,7 @@ def main():
     if episode_index >=0 and episode_index < ui.list2.count():
         ui.list2.setCurrentRow(episode_index)
         ui.list2.setFocus()
+        ui.cur_row = episode_index
     print(dock_opt, '--dock-option---')
     if ui.orientation_dock == 'left':
         ui.orient_dock('left')
