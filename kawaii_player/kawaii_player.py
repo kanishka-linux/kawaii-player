@@ -10646,19 +10646,13 @@ watch/unwatch status")
                         QtCore.QTimer.singleShot(
                             2000, partial(self.mpv_execute_command, cmd, self.cur_row)
                             )
-                    if self.gapless_network_stream and self.append_audio_start:
-                        if self.append_audio_gapless:
-                            if self.append_counter > 0:
-                                self.append_counter = 0
-                                self.mpv_execute_command('set aid 2', self.cur_row, timer=500)
-                                logger.debug('trying to set correct aid')
                 elif (self.eof_reached and self.eof_lock 
                         and not self.epn_wait_thread.isRunning()):
                     if self.gapless_network_stream:
                         if self.append_audio_start:
                             if self.append_audio_gapless:
                                 if self.append_counter > 0:
-                                    #self.append_counter = 0
+                                    self.append_counter = 0
                                     self.mpv_execute_command('set aid 2', self.cur_row, timer=2000)
                                 else:
                                     self.mpv_execute_command('set aid 2', self.cur_row)
