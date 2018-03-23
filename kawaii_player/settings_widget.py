@@ -1089,6 +1089,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.gl7.addWidget(self.line501, 0, 0, 1, 3)
         msg = '<html>Use this config file, otherwise global config file will be used</html>'
         self.checkbox = QtWidgets.QCheckBox("Use This Config File")
+        self.checkbox.setMinimumHeight(30)
         self.checkbox.stateChanged.connect(self.use_config_file)
         self.checkbox.setToolTip(msg)
         self.gl7.addWidget(self.checkbox, 1, 0, 1, 1)
@@ -1101,10 +1102,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.btn_default_settings = QtWidgets.QPushButton('Default Settings')
         self.gl7.addWidget(self.btn_default_settings, 1, 1, 1, 1)
         self.btn_default_settings.clicked.connect(self.get_default_config_settings)
+        self.btn_default_settings.setMinimumHeight(30)
         
         self.btn_confirm = QtWidgets.QPushButton('Save Changes')
         self.gl7.addWidget(self.btn_confirm, 1, 2, 1, 1)
         self.btn_confirm.clicked.connect(self.save_config_settings)
+        self.btn_confirm.setMinimumHeight(30)
         
     def apply_tab_shortcuts(self):
         self.line601 = QtWidgets.QTextEdit()
@@ -1121,10 +1124,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.btn_shortcut_default = QtWidgets.QPushButton('Default Settings')
         self.gl8.addWidget(self.btn_shortcut_default, 1, 0, 1, 1)
         self.btn_shortcut_default.clicked.connect(self.get_default_shortcuts_settings)
+        self.btn_shortcut_default.setMinimumHeight(30)
         
         self.btn_shortcut_confirm = QtWidgets.QPushButton('Save Changes')
         self.gl8.addWidget(self.btn_shortcut_confirm, 1, 1, 1, 1)
         self.btn_shortcut_confirm.clicked.connect(self.save_shortcut_settings)
+        self.btn_shortcut_confirm.setMinimumHeight(30)
     
     def get_default_config_settings(self):
         mpvlist = self.basic_params(player='mpv', mode='default')
