@@ -600,7 +600,6 @@ class WidgetStyleSheet:
                     color: {0};
                     }}
                     """.format(gui.list_text_color_focus))
-                gui.list2.setAlternatingRowColors(True)
                 if gui.list_with_thumbnail:
                     ht = '128px'
                 else:
