@@ -120,6 +120,7 @@ The built-in portable media server of this application can have many use cases. 
 
 27. Available in three themes including dark and system theme (from v3.1 onwards).
 
+28. [Gapless Playback of Network Streams](#gapless-playback)
 
 ## Playing Mode
 
@@ -493,6 +494,18 @@ In this mode, video will be detached from the main application window and can fl
 
 In this player, a weak addon structure has been created, so that one can write addon for viewing video contents of various sites directly on this player. Addons are needed to copy into folder *'~/.config/kawaii-player/src/Plugins'*, which are loaded automatically when player starts.
 
+
+## Gapless Playback
+
+###### [Index](#index)
+
+From v3.3+ onwards, kawaii-player supports gapless (or almost gapless) mode for playback of network (http) streams on experimental basis. In this mode kawaii-player will start process of fetching/buffering next network stream before playback of previous stream has ended. This mode is useful when media server of kawaii-player is being accessed by another kawaii-player client in p2p mode. It is also useful for prefetching and buffering ytdl supported links. At the moment, it is not applicable to addons.
+
+How to enable gapless mode?
+
+Goto **Preferences->Player**. There users will find three options on gapless playback. Enable them and read tooltips on them for more details.
+
+For using this feature with ytdl, set YTDL path to automatic or write full path of ytdl (in preferences->Other). By doing this application will disable internal ytdl hook of mpv. mpv allows prefetching of network streams in playlist, but it won't resolve and prefetch ytdl links beforehand. kawaii-player will try to resolve the link to the second url, with the help of ytdl, after half of first stream has played and then will give resolved link to mpv for prefetching and buffering.
 
 ## Dependencies and Installation
 
