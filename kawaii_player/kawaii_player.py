@@ -1569,6 +1569,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.live_preview = 'slow'
         self.playback_mode = 'single'
         self.append_counter = 0
         self.append_audio_start = False
