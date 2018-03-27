@@ -1,6 +1,9 @@
 import os
 import datetime
 import time
+import hashlib
+import shutil
+import subprocess
 from functools import partial
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
@@ -305,6 +308,10 @@ class MySlider(QtWidgets.QSlider):
         else:
             self.tooltip = None
         self.parent = parent
+        self.preview_process = QtCore.QProcess()
+        self.counter = 0
+        self.preview_pending = []
+        self.lock = False
         
     def mouseMoveEvent(self, event): 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
@@ -316,13 +323,54 @@ class MySlider(QtWidgets.QSlider):
             l = str(0)
         if '.' in l:
             l = l.split('.')[0]
-        if self.tooltip is None:
-            self.setToolTip(l)
+        change_aspect = False
+        if ui.live_preview == 'fast' and os.name == 'posix' and ui.mpvplayer_val.processId() > 0:
+            picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
+            command = 'ffmpegthumbnailer -i "{}" -o "{}" -t {} -q 10 -s 256'.format(ui.final_playing_url, picn, l)
+            #subprocess.call(['mpv', ui.final_playing_url, '--start='+str(t), '--frames=1', '-o', tmp])
+        elif (ui.live_preview == 'slow' or (ui.live_preview == 'fast' and os.name == 'nt')) and ui.mpvplayer_val.processId() > 0:
+            command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.tmp_download_folder, t, ui.final_playing_url)
+            picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
+            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
+            shutil.copy(picn, newpicn)
+            change_aspect = True
         else:
-            point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
-            rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
-            self.tooltip.showText(point, l, self, rect, 1000)
+            if self.tooltip is None:
+                self.setToolTip(l)
+            else:
+                point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
+                rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+                self.tooltip.showText(point, l, self, rect, 1000)
+        if ui.live_preview in ['slow', 'fast']:
+            if self.preview_process.processId() == 0:
+                self.info_preview(command, picn, l, change_aspect, t, lock=False)
+            else:
+                self.preview_pending.append((command, picn, l, change_aspect, t))
+            txt = '<html><img src="{}" width=256>{}<html>'.format(picn, l)
+            self.setToolTip(txt)
         
+    def info_preview(self, command, picn, length, change_aspect, tsec, lock=None):
+        if self.preview_process.processId() == 0 and lock is False:
+            self.preview_process = QtCore.QProcess()
+            self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec))
+            QtCore.QTimer.singleShot(0, partial(self.preview_process.start, command))
+    
+    def preview_generated(self, picn, length, change_aspect, tsec):
+        self.lock = True
+        picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(tsec))
+        if change_aspect:
+            ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
+        txt = '<html><img src="{}" width=256>{}<html>'.format(picn, length)
+        self.setToolTip(txt)
+        if self.preview_pending:
+            print(len(self.preview_pending))
+            args = self.preview_pending.pop()
+            print(args)
+            self.lock = False
+            self.preview_pending[:] = []
+            self.info_preview(args[0], args[1], args[2], args[3], args[4], lock=False)
+            
+            
     def mousePressEvent(self, event):
         old_val = int(self.value())
         t = ((event.x() - self.x())/self.width())
