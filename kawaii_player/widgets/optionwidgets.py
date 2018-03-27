@@ -328,12 +328,27 @@ class MySlider(QtWidgets.QSlider):
             picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
             command = 'ffmpegthumbnailer -i "{}" -o "{}" -t {} -q 10 -s 256'.format(ui.final_playing_url, picn, l)
             #subprocess.call(['mpv', ui.final_playing_url, '--start='+str(t), '--frames=1', '-o', tmp])
-        elif (ui.live_preview == 'slow' or (ui.live_preview == 'fast' and os.name == 'nt')) and ui.mpvplayer_val.processId() > 0:
+        elif ui.live_preview == 'fast' and os.name == 'nt' and ui.mpvplayer_val.processId() > 0:
             command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.tmp_download_folder, t, ui.final_playing_url)
             picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
             newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
             shutil.copy(picn, newpicn)
             change_aspect = True
+        elif ui.live_preview == 'slow' and ui.mpvplayer_val.processId() > 0:
+            command = ["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
+                       "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+ui.tmp_download_folder, 
+                       "--start="+str(t), "--frames=1", ui.final_playing_url]
+            if os.name == 'posix':
+                subprocess.call(command)
+            else:
+                subprocess.call(command, shell=True)
+            picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
+            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
+            shutil.copy(picn, newpicn)
+            change_aspect = True
+            ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
+            txt = '<html><img src="{}">{}<html>'.format(newpicn, l)
+            self.setToolTip(txt)
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -341,13 +356,14 @@ class MySlider(QtWidgets.QSlider):
                 point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
-        if ui.live_preview in ['slow', 'fast']:
+        if ui.live_preview == 'fast' and ui.mpvplayer_val.processId() > 0:
             if self.preview_process.processId() == 0:
                 self.info_preview(command, picn, l, change_aspect, t, lock=False)
             else:
                 self.preview_pending.append((command, picn, l, change_aspect, t))
-            txt = '<html><img src="{}" width=256>{}<html>'.format(picn, l)
-            self.setToolTip(txt)
+            if os.name == 'nt':
+                txt = '<html><img src="{}" width="256">{}<html>'.format(picn, l)
+                self.setToolTip(txt)
         
     def info_preview(self, command, picn, length, change_aspect, tsec, lock=None):
         if self.preview_process.processId() == 0 and lock is False:
@@ -360,7 +376,7 @@ class MySlider(QtWidgets.QSlider):
         picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(tsec))
         if change_aspect:
             ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
-        txt = '<html><img src="{}" width=256>{}<html>'.format(picn, length)
+        txt = '<html><img src="{}">{}<html>'.format(picn, length)
         self.setToolTip(txt)
         if self.preview_pending:
             print(len(self.preview_pending))
