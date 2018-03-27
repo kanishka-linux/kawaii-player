@@ -546,10 +546,9 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.setopt(c.HEADERFUNCTION, storage.write)
         elif curl_opt == '-e':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(pycurl.REFERER, rfr)
-            c.setopt(c.NOBODY, 1)
-            c.setopt(c.HEADERFUNCTION, storage.write)
+            c.setopt(c.USERAGENT, hdr)
+            c.setopt(c.WRITEDATA, storage)
         elif curl_opt == '-IA':
             c.setopt(c.FOLLOWLOCATION, True)
             c.setopt(c.NOBODY, 1)
