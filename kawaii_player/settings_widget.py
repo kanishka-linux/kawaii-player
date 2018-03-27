@@ -1007,7 +1007,20 @@ class OptionsSettings(QtWidgets.QTabWidget):
         playback, if ytdl fetches separate audio and video streams."
         self.text48.setToolTip('<html>{}</html>'.format(msg))
         
-        self.line49 = QtWidgets.QTextEdit()
+        self.line49 = QtWidgets.QComboBox()
+        self.line49.addItem("No")
+        self.line49.addItem("Slow")
+        self.line49.addItem("Fast")
+        index = self.line49.findText(ui.live_preview.title())
+        self.line49.setCurrentIndex(index)
+        self.text49 = QtWidgets.QLabel()
+        self.text49.setText("Live Preview")
+        self.text49.setWordWrap(True)
+        self.player_list.append('live_preview')
+        msg = "Live Preview: no, slow and accurate, fast and inaccurate"
+        self.text49.setToolTip('<html>{}</html>'.format(msg))
+        
+        self.line499 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
               It also remembers last quit position for every video in the History\
@@ -1060,8 +1073,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg1 = re.sub('  +', ' ', msg1)
         msg = msg + '\n\n' + msg1
         
-        self.line49.setText(msg)
-        self.line49.setMaximumHeight(ui.height_allowed)
+        self.line499.setText(msg)
+        self.line499.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
             text = eval('self.text4{}'.format(index))
@@ -1081,7 +1094,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'player_settings'))
                 
-        self.gl6.addWidget(self.line49, index+1, 0, 1, 3)
+        self.gl6.addWidget(self.line499, index+1, 0, 1, 3)
         
     
     def configsettings(self):
@@ -1380,6 +1393,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     self.appeareance_setdefault()
             else:
                 exec('ui.{} = "{}"'.format(var_name, obj_value))
+                if var_name == 'live_preview':
+                    ui.live_preview = ui.live_preview.lower()
         if option == 'torrent':
             change_opt_file(self.torrent_config, param, param_value)
         else:
