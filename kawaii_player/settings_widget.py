@@ -1017,7 +1017,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text49.setText("Live Preview")
         self.text49.setWordWrap(True)
         self.player_list.append('live_preview')
-        msg = "Live Preview: no, slow and accurate, fast and inaccurate"
+        msg = "Live Preview: 1. no, 2. slow and accurate, 3. fast and inaccurate. Hover mouse pointer over slider to see live preview"
         self.text49.setToolTip('<html>{}</html>'.format(msg))
         
         self.line499 = QtWidgets.QTextEdit()
