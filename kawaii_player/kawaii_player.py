@@ -1569,7 +1569,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
-        self.live_preview = 'slow'
+        self.live_preview = 'no'
         self.playback_mode = 'single'
         self.append_counter = 0
         self.append_audio_start = False
@@ -13678,6 +13678,14 @@ def main():
                         if k:
                             if k == 'no' or k == 'false' or k == '0':
                                 ui.use_single_network_stream = False
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('LIVE_PREVIEW='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k in ['no', 'slow', 'fast']:
+                                ui.live_preview = k
                     except Exception as e:
                         print(e)
                 elif i.startswith('HTTPS_ON='):
