@@ -449,11 +449,14 @@ class MySlider(QtWidgets.QSlider):
             if self.tooltip is None:
                 self.setToolTip(txt)
             else:
-                if ui.fullscreen_video:
-                    y_cord = self.parent.y() + self.parent.maximumHeight()
+                if ui.fullscreen_video or ui.force_fs:
+                    y_cord = self.parent.y() + self.parent.maximumHeight() - 10
                 else:
                     y_cord = self.parent.y() + self.parent.maximumHeight() + 25
-                point = QtCore.QPoint(self.parent.x() + x - 128, y_cord)
+                x_cord = self.parent.x() + x
+                if x_cord + 256 <= ui.screen_size[0]:
+                    x_cord = x_cord - 128
+                point = QtCore.QPoint(x_cord, y_cord)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, txt, self, rect, 3000)
         elif ui.live_preview_style == 'widget' and not resize:
@@ -464,8 +467,8 @@ class MySlider(QtWidgets.QSlider):
                 x_cord = x_cord - 256 
             else:
                 x_cord = x_cord - 128
-            if ui.fullscreen_video:
-                y_cord = self.parent.y()-self.parent.maximumHeight() - 100
+            if ui.fullscreen_video or ui.force_fs:
+                y_cord = self.parent.y() - self.parent.maximumHeight() - 100
             else:
                 y_cord = self.parent.y()-self.parent.maximumHeight() - 50
             self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
