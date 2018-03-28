@@ -292,6 +292,24 @@ class MyToolTip(QtWidgets.QToolTip):
         super(MyToolTip).__init__()
         global ui
         ui = uiwidget
+
+class ToolTipWidget(QtWidgets.QWidget):
+    def __init__(self, uiwidget):
+        QtWidgets.QWidget.__init__(self)
+        global ui
+        ui = uiwidget
+        self.v = QtWidgets.QVBoxLayout(self)
+        self.v.setContentsMargins(0, 0, 0, 5)
+        self.pic = QtWidgets.QLabel(self)
+        self.v.insertWidget(0, self.pic)
+        self.txt = QtWidgets.QLabel(self)
+        self.v.insertWidget(1, self.txt)
+        self.hide()
+        self.txt.setAlignment(QtCore.Qt.AlignCenter)
+        self.setWindowFlags(
+            QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
+            | QtCore.Qt.WindowStaysOnTopHint
+            )
         
 class MySlider(QtWidgets.QSlider):
 
@@ -312,8 +330,22 @@ class MySlider(QtWidgets.QSlider):
         self.counter = 0
         self.preview_pending = []
         self.lock = False
+        self.preview_counter = 0
+        self.mousemove = False
+        self.tooltip_widget = ToolTipWidget(ui)
         
-    def mouseMoveEvent(self, event): 
+        self.tooltip_timer = QtCore.QTimer()
+        self.tooltip_timer.timeout.connect(self.update_tooltip)
+        self.tooltip_timer.setSingleShot(True)
+        
+    def mouseMoveEvent(self, event):
+        if self.tooltip_timer.isActive():
+            self.tooltip_timer.stop()
+        if self.tooltip:
+            self.tooltip.hideText()
+        self.tooltip_widget.hide()
+        self.preview_counter += 1
+        #self.setToolTip('') 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
@@ -324,14 +356,14 @@ class MySlider(QtWidgets.QSlider):
         if '.' in l:
             l = l.split('.')[0]
         change_aspect = False
-        if ui.live_preview == 'fast' and os.name == 'posix' and ui.mpvplayer_val.processId() > 0:
-            picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
-            command = 'ffmpegthumbnailer -i "{}" -o "{}" -t {} -q 10 -s 256'.format(ui.final_playing_url, picn, l)
-            #subprocess.call(['mpv', ui.final_playing_url, '--start='+str(t), '--frames=1', '-o', tmp])
-        elif ui.live_preview == 'fast' and os.name == 'nt' and ui.mpvplayer_val.processId() > 0:
+        #if ui.live_preview == 'fast' and os.name == 'posix' and ui.mpvplayer_val.processId() > 0:
+        #    picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
+        #    command = 'ffmpegthumbnailer -i "{}" -o "{}" -t {} -q 10 -s 256'.format(ui.final_playing_url, picn, l)
+        #    #subprocess.call(['mpv', ui.final_playing_url, '--start='+str(t), '--frames=1', '-o', tmp])
+        if ui.live_preview == 'fast' and ui.mpvplayer_val.processId() > 0:
             command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.tmp_download_folder, t, ui.final_playing_url)
             picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
-            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
+            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(t)))
             shutil.copy(picn, newpicn)
             change_aspect = True
         elif ui.live_preview == 'slow' and ui.mpvplayer_val.processId() > 0:
@@ -343,12 +375,13 @@ class MySlider(QtWidgets.QSlider):
             else:
                 subprocess.call(command, shell=True)
             picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
-            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
+            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(t)))
             shutil.copy(picn, newpicn)
             change_aspect = True
             ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
-            txt = '<html><img src="{}">{}<html>'.format(newpicn, l)
-            self.setToolTip(txt)
+            #txt = '<html><img src="{}">{}<html>'.format(newpicn, l)
+            #self.setToolTip(txt)
+            self.apply_pic(newpicn, event.x(), l)
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -357,37 +390,93 @@ class MySlider(QtWidgets.QSlider):
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
         if ui.live_preview == 'fast' and ui.mpvplayer_val.processId() > 0:
+            self.setToolTip('')
             if self.preview_process.processId() == 0:
-                self.info_preview(command, picn, l, change_aspect, t, lock=False)
+                self.info_preview(command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y(), lock=False)
             else:
-                self.preview_pending.append((command, picn, l, change_aspect, t))
-            if os.name == 'nt':
-                txt = '<html><img src="{}" width="256">{}<html>'.format(picn, l)
-                self.setToolTip(txt)
-        
-    def info_preview(self, command, picn, length, change_aspect, tsec, lock=None):
+                self.preview_pending.append((command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y()))
+            #if os.name == 'nt':
+            #txt = '<html><img src="{}" width="256">{}<html>'.format(picn, l)
+            #self.setToolTip(txt)
+            self.apply_pic(picn, event.x(), l, resize=True)
+            
+    def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, lock=None):
+        if self.preview_process.processId() != 0:
+            self.preview_process.kill()
         if self.preview_process.processId() == 0 and lock is False:
+            print('preview_generating', length, tsec)
             self.preview_process = QtCore.QProcess()
-            self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec))
-            QtCore.QTimer.singleShot(0, partial(self.preview_process.start, command))
+            self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
+            QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
     
-    def preview_generated(self, picn, length, change_aspect, tsec):
+    def preview_generated(self, picn, length, change_aspect, tsec, counter, x, y):
+        self.tooltip_widget.hide()
+        self.preview_counter -= 1
         self.lock = True
-        picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(tsec))
+        picnew = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(tsec)))
+        shutil.copy(picn, picnew)
+        picn = picnew
         if change_aspect:
             ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
         txt = '<html><img src="{}">{}<html>'.format(picn, length)
-        self.setToolTip(txt)
+        print(txt, tsec)
+        point = None
+        rect = None
+        
+        self.apply_pic(picn, x, length)
+        
         if self.preview_pending:
-            print(len(self.preview_pending))
+            while self.preview_counter >= 0:
+                self.preview_counter -= 1
+            print(len(self.preview_pending), self.preview_counter)
             args = self.preview_pending.pop()
             print(args)
             self.lock = False
             self.preview_pending[:] = []
-            self.info_preview(args[0], args[1], args[2], args[3], args[4], lock=False)
-            
+            self.info_preview(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], lock=False)
+    
+    def apply_pic(self, picn, x, length, resize=None):
+        """
+        self.tooltip_widget.pic.clear()
+        self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
+        x_cord = self.parent.x()+x
+        if x_cord + 256 > ui.screen_size[0]:
+            x_cord = x_cord - 256 
+        self.tooltip_widget.setGeometry(x_cord, self.parent.y()-self.parent.height()-50, 256, 128)
+        self.tooltip_widget.show()
+        self.tooltip_widget.txt.setText(length)
+        if self.tooltip_timer.isActive():
+            self.tooltip_timer.stop()
+        self.tooltip_timer.start(3000)
+        """
+        if resize:
+            txt = '<html><img src="{}" width="256"><p>{}</p><html>'.format(picn, length)
+        else:
+            txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
+        if self.tooltip is None:
+            if not resize:
+                self.tooltip_widget.pic.clear()
+                self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
+                x_cord = self.parent.x()+x
+                if x_cord + 256 > ui.screen_size[0]:
+                    x_cord = x_cord - 256 
+                self.tooltip_widget.setGeometry(x_cord, self.parent.y()-self.parent.height()-50, 256, 128)
+                self.tooltip_widget.show()
+                self.tooltip_widget.txt.setText(length)
+                if self.tooltip_timer.isActive():
+                    self.tooltip_timer.stop()
+                self.tooltip_timer.start(3000)
+                #self.setToolTip(txt)
+        else:
+            point = QtCore.QPoint(self.parent.x()+x, self.parent.y()+self.parent.height())
+            rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+            self.tooltip.showText(point, txt, self, rect, 2000)
+        
+    def update_tooltip(self):
+        self.tooltip_widget.hide()
             
     def mousePressEvent(self, event):
+        self.preview_counter = 0
         old_val = int(self.value())
         t = ((event.x() - self.x())/self.width())
         t = int(t*ui.mplayerLength)
