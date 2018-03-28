@@ -364,7 +364,7 @@ class MySlider(QtWidgets.QSlider):
             command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.tmp_download_folder, t, ui.final_playing_url)
             picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
             newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(t)))
-            shutil.copy(picn, newpicn)
+            #shutil.copy(picn, newpicn)
             change_aspect = True
         elif ui.live_preview == 'slow' and ui.mpvplayer_val.processId() > 0:
             command = ["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
