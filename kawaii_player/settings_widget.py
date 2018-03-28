@@ -1020,6 +1020,19 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg = "Live Preview: 1. no, 2. slow and accurate, 3. fast and inaccurate. Hover mouse pointer over slider to see live preview"
         self.text49.setToolTip('<html>{}</html>'.format(msg))
         
+        self.line490 = QtWidgets.QComboBox()
+        self.line490.addItem("Tooltip")
+        self.line490.addItem("Widget")
+        index = self.line490.findText(ui.live_preview_style.title())
+        self.line490.setCurrentIndex(index)
+        self.text490 = QtWidgets.QLabel()
+        self.text490.setText("Live Preview Style")
+        self.text490.setWordWrap(True)
+        self.player_list.append('live_preview_style')
+        msg = "Set Live Preview Style: 1. ToolTip or 2. Float Window Widget"
+        self.text490.setToolTip('<html>{}</html>'.format(msg))
+        
+        
         self.line499 = QtWidgets.QTextEdit()
         msg = ("Few Tips:\n1. Apart from remembering volume and aspect ratio per video, \
               the application remembers audio and subtitle track by default. \
@@ -1077,8 +1090,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line499.setMaximumHeight(ui.height_allowed)
         for i, j in enumerate(self.player_list):
             index = i+1
-            text = eval('self.text4{}'.format(index))
-            line = eval('self.line4{}'.format(index))
+            if j == 'live_preview_style':
+                text = self.text490
+                line = self.line490
+            else:
+                text = eval('self.text4{}'.format(index))
+                line = eval('self.line4{}'.format(index))
             if j == 'screenshot_directory':
                 self.gl6.addWidget(text, index, 0, 1, 1)
                 self.gl6.addWidget(line, index, 1, 1, 1)
@@ -1395,6 +1412,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 exec('ui.{} = "{}"'.format(var_name, obj_value))
                 if var_name == 'live_preview':
                     ui.live_preview = ui.live_preview.lower()
+                elif var_name == 'live_preview_style':
+                    ui.live_preview_style = ui.live_preview_style.lower()
         if option == 'torrent':
             change_opt_file(self.torrent_config, param, param_value)
         else:
