@@ -294,6 +294,7 @@ class MyToolTip(QtWidgets.QToolTip):
         ui = uiwidget
 
 class ToolTipWidget(QtWidgets.QWidget):
+    
     def __init__(self, uiwidget, parent):
         QtWidgets.QWidget.__init__(self, parent)
         global ui
@@ -310,14 +311,18 @@ class ToolTipWidget(QtWidgets.QWidget):
             QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
             | QtCore.Qt.WindowStaysOnTopHint
             )
-        
+    
+    def mousePressEvent(self, event):
+        self.hide()
+    
 class MySlider(QtWidgets.QSlider):
 
-    def __init__(self, parent, uiwidget, home_dir):
+    def __init__(self, parent, uiwidget, home_dir, mw):
         super(MySlider, self).__init__(parent)
-        global home, ui
+        global home, ui, MainWindow
         ui = uiwidget
         home = home_dir
+        MainWindow = mw
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         version = QtCore.QT_VERSION_STR
         self.version = tuple([int(i) for i in version.split('.')])
@@ -381,7 +386,7 @@ class MySlider(QtWidgets.QSlider):
             ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
             #txt = '<html><img src="{}">{}<html>'.format(newpicn, l)
             #self.setToolTip(txt)
-            self.apply_pic(newpicn, event.x(), l)
+            self.apply_pic(newpicn, event.x(), event.y(), l)
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -398,7 +403,7 @@ class MySlider(QtWidgets.QSlider):
             #if os.name == 'nt':
             #txt = '<html><img src="{}" width="256">{}<html>'.format(picn, l)
             #self.setToolTip(txt)
-            self.apply_pic(picn, event.x(), l, resize=True)
+            self.apply_pic(picn, event.x(), event.y(), l, resize=True)
             
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, lock=None):
         if self.preview_process.processId() != 0:
@@ -422,9 +427,7 @@ class MySlider(QtWidgets.QSlider):
         print(txt, tsec)
         point = None
         rect = None
-        
-        self.apply_pic(picn, x, length)
-        
+        self.apply_pic(picn, x, y, length)
         if self.preview_pending:
             while self.preview_counter >= 0:
                 self.preview_counter -= 1
@@ -435,7 +438,7 @@ class MySlider(QtWidgets.QSlider):
             self.preview_pending[:] = []
             self.info_preview(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], lock=False)
     
-    def apply_pic(self, picn, x, length, resize=None):
+    def apply_pic(self, picn, x, y, length, resize=None):
         if resize:
             txt = '<html><img src="{}" width="256"><p>{}</p><html>'.format(picn, length)
         else:
@@ -444,7 +447,7 @@ class MySlider(QtWidgets.QSlider):
             if self.tooltip is None:
                 self.setToolTip(txt)
             else:
-                point = QtCore.QPoint(self.parent.x()+x, self.parent.y()+self.parent.height())
+                point = QtCore.QPoint(self.parent.x()+x-128, self.parent.y()+self.parent.maximumHeight() + 25)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, txt, self, rect, 2000)
         elif ui.live_preview_style == 'widget' and not resize:
@@ -453,7 +456,13 @@ class MySlider(QtWidgets.QSlider):
             x_cord = self.parent.x()+x
             if x_cord + 256 > ui.screen_size[0]:
                 x_cord = x_cord - 256 
-            self.tooltip_widget.setGeometry(x_cord, self.parent.y()-self.parent.height()-50, 128, 128)
+            else:
+                x_cord = x_cord - 128
+            if ui.fullscreen_video:
+                y_cord = self.parent.y()-self.parent.maximumHeight() - 100
+            else:
+                y_cord = self.parent.y()-self.parent.maximumHeight() - 50
+            self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
             self.tooltip_widget.show()
             self.tooltip_widget.txt.setText(length)
             self.tooltip_widget.setWindowTitle(length)
