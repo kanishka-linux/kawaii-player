@@ -294,8 +294,8 @@ class MyToolTip(QtWidgets.QToolTip):
         ui = uiwidget
 
 class ToolTipWidget(QtWidgets.QWidget):
-    def __init__(self, uiwidget):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self, uiwidget, parent):
+        QtWidgets.QWidget.__init__(self, parent)
         global ui
         ui = uiwidget
         self.v = QtWidgets.QVBoxLayout(self)
@@ -332,7 +332,7 @@ class MySlider(QtWidgets.QSlider):
         self.lock = False
         self.preview_counter = 0
         self.mousemove = False
-        self.tooltip_widget = ToolTipWidget(ui)
+        self.tooltip_widget = ToolTipWidget(ui, parent)
         
         self.tooltip_timer = QtCore.QTimer()
         self.tooltip_timer.timeout.connect(self.update_tooltip)
@@ -436,41 +436,30 @@ class MySlider(QtWidgets.QSlider):
             self.info_preview(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], lock=False)
     
     def apply_pic(self, picn, x, length, resize=None):
-        """
-        self.tooltip_widget.pic.clear()
-        self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
-        x_cord = self.parent.x()+x
-        if x_cord + 256 > ui.screen_size[0]:
-            x_cord = x_cord - 256 
-        self.tooltip_widget.setGeometry(x_cord, self.parent.y()-self.parent.height()-50, 256, 128)
-        self.tooltip_widget.show()
-        self.tooltip_widget.txt.setText(length)
-        if self.tooltip_timer.isActive():
-            self.tooltip_timer.stop()
-        self.tooltip_timer.start(3000)
-        """
         if resize:
             txt = '<html><img src="{}" width="256"><p>{}</p><html>'.format(picn, length)
         else:
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
-        if self.tooltip is None:
-            if not resize:
-                self.tooltip_widget.pic.clear()
-                self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
-                x_cord = self.parent.x()+x
-                if x_cord + 256 > ui.screen_size[0]:
-                    x_cord = x_cord - 256 
-                self.tooltip_widget.setGeometry(x_cord, self.parent.y()-self.parent.height()-50, 256, 128)
-                self.tooltip_widget.show()
-                self.tooltip_widget.txt.setText(length)
-                if self.tooltip_timer.isActive():
-                    self.tooltip_timer.stop()
-                self.tooltip_timer.start(3000)
-                #self.setToolTip(txt)
-        else:
-            point = QtCore.QPoint(self.parent.x()+x, self.parent.y()+self.parent.height())
-            rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
-            self.tooltip.showText(point, txt, self, rect, 2000)
+        if ui.live_preview_style == 'tooltip':
+            if self.tooltip is None:
+                self.setToolTip(txt)
+            else:
+                point = QtCore.QPoint(self.parent.x()+x, self.parent.y()+self.parent.height())
+                rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+                self.tooltip.showText(point, txt, self, rect, 2000)
+        elif ui.live_preview_style == 'widget' and not resize:
+            self.tooltip_widget.pic.clear()
+            self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
+            x_cord = self.parent.x()+x
+            if x_cord + 256 > ui.screen_size[0]:
+                x_cord = x_cord - 256 
+            self.tooltip_widget.setGeometry(x_cord, self.parent.y()-self.parent.height()-50, 128, 128)
+            self.tooltip_widget.show()
+            self.tooltip_widget.txt.setText(length)
+            self.tooltip_widget.setWindowTitle(length)
+            if self.tooltip_timer.isActive():
+                self.tooltip_timer.stop()
+            self.tooltip_timer.start(3000)
         
     def update_tooltip(self):
         self.tooltip_widget.hide()
