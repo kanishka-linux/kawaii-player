@@ -447,6 +447,7 @@ class MySlider(QtWidgets.QSlider):
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
         if ui.live_preview_style == 'tooltip':
             if self.tooltip is None:
+                self.setToolTip('')
                 self.setToolTip(txt)
             else:
                 if ui.fullscreen_video or ui.force_fs:
