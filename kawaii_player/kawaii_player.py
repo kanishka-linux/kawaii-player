@@ -682,7 +682,7 @@ watch/unwatch status")
         self.progressEpn.setMaximumSize(QtCore.QSize(16777215, 32))
         self.progressEpn.setTextVisible(True)
         
-        self.slider = MySlider(self.frame1, self, home)
+        self.slider = MySlider(self.frame1, self, home, MainWindow)
         self.slider.setObjectName(_fromUtf8("slider"))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
         
