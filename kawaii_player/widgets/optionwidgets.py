@@ -311,7 +311,11 @@ class ToolTipWidget(QtWidgets.QWidget):
             QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
             | QtCore.Qt.WindowStaysOnTopHint
             )
-    
+        self.setMouseTracking(True)
+        
+    def mouseMoveEvent(self, event):
+        self.hide()
+        
     def mousePressEvent(self, event):
         self.hide()
     
