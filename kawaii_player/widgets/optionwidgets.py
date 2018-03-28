@@ -350,8 +350,6 @@ class MySlider(QtWidgets.QSlider):
     def mouseMoveEvent(self, event):
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
-        if self.tooltip:
-            self.tooltip.hideText()
         self.tooltip_widget.hide()
         self.preview_counter += 1
         #self.setToolTip('') 
@@ -451,9 +449,13 @@ class MySlider(QtWidgets.QSlider):
             if self.tooltip is None:
                 self.setToolTip(txt)
             else:
-                point = QtCore.QPoint(self.parent.x()+x-128, self.parent.y()+self.parent.maximumHeight() + 25)
+                if ui.fullscreen_video:
+                    y_cord = self.parent.y() + self.parent.maximumHeight()
+                else:
+                    y_cord = self.parent.y() + self.parent.maximumHeight() + 25
+                point = QtCore.QPoint(self.parent.x() + x - 128, y_cord)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
-                self.tooltip.showText(point, txt, self, rect, 2000)
+                self.tooltip.showText(point, txt, self, rect, 3000)
         elif ui.live_preview_style == 'widget' and not resize:
             self.tooltip_widget.pic.clear()
             self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
