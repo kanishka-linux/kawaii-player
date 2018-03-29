@@ -350,7 +350,7 @@ class MySlider(QtWidgets.QSlider):
     def mouseMoveEvent(self, event):
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
-        self.tooltip_widget.hide()
+        #self.tooltip_widget.hide()
         self.preview_counter += 1
         #self.setToolTip('') 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
