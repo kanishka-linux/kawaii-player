@@ -5,6 +5,8 @@ import hashlib
 import shutil
 import subprocess
 from functools import partial
+import PIL
+from PIL import Image
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
 from thread_modules import DiscoverServer
@@ -341,16 +343,29 @@ class MySlider(QtWidgets.QSlider):
         self.lock = False
         self.preview_counter = 0
         self.mousemove = False
-        self.tooltip_widget = ToolTipWidget(ui, parent)
-        
+        #self.tooltip_widget = ToolTipWidget(ui, parent)
+        self.tooltip_widget = QtWidgets.QWidget(MainWindow)
+        self.v = QtWidgets.QVBoxLayout(self.tooltip_widget)
+        self.v.setContentsMargins(0, 0, 0, 5)
+        self.pic = QtWidgets.QLabel(self)
+        self.v.insertWidget(0, self.pic)
+        self.txt = QtWidgets.QLabel(self)
+        self.v.insertWidget(1, self.txt)
+        self.txt.setAlignment(QtCore.Qt.AlignCenter)
+        self.tooltip_widget.setMouseTracking(True)
+        self.tooltip_widget.hide()
+        self.txt.setStyleSheet('color:white;background:black;')
         self.tooltip_timer = QtCore.QTimer()
         self.tooltip_timer.timeout.connect(self.update_tooltip)
         self.tooltip_timer.setSingleShot(True)
-        
+        self.final_url = None
+        self.half_size = 100
+        self.upper_limit = self.parent.x() + self.parent.width()
+        self.lower_limit = self.parent.x()
+                    
     def mouseMoveEvent(self, event):
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
-        #self.tooltip_widget.hide()
         self.preview_counter += 1
         #self.setToolTip('') 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
@@ -440,21 +455,38 @@ class MySlider(QtWidgets.QSlider):
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, txt, self, rect, 3000)
         elif ui.live_preview_style == 'widget' and not resize:
-            self.tooltip_widget.pic.clear()
-            self.tooltip_widget.pic.setPixmap(QtGui.QPixmap(picn, "1"))
+            try:
+                if self.final_url != ui.final_playing_url:
+                    img = Image.open(picn)
+                    self.pic.setMaximumSize(QtCore.QSize(img.size[0], img.size[1]))
+                    self.pic.setMinimumSize(QtCore.QSize(img.size[0], img.size[1]))
+                    self.tooltip_widget.setMaximumSize(QtCore.QSize(img.size[0], img.size[1]+30))
+                    self.tooltip_widget.setMinimumSize(QtCore.QSize(img.size[0], img.size[1]+30))
+                    self.txt.setMaximumSize(QtCore.QSize(img.size[0], 30))
+                    self.txt.setMinimumSize(QtCore.QSize(img.size[0], 30))
+                    self.final_url = ui.final_playing_url
+                    self.half_size = int(self.tooltip_widget.width()/2)
+                    self.upper_limit = self.parent.x() + self.parent.width()
+                    self.lower_limit = self.parent.x()
+                    ui.logger.debug('------------change dimensions---------------')
+                else:
+                    ui.logger.debug('no-change-dimensions')
+            except Exception as err:
+                print(err)
+            #self.pic.clear()
+            self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
             x_cord = self.parent.x()+x
-            if x_cord + 256 > ui.screen_size[0]:
-                x_cord = x_cord - 256 
+            if x_cord + self.half_size > self.upper_limit:
+                x_cord = self.upper_limit - self.tooltip_widget.width()
+            elif x_cord - self.half_size < self.lower_limit:
+                x_cord = self.parent.x()
             else:
-                x_cord = x_cord - 128
-            if ui.fullscreen_video or ui.force_fs:
-                y_cord = self.parent.y() - self.parent.maximumHeight() - 100
-            else:
-                y_cord = self.parent.y()-self.parent.maximumHeight() - 50
+                x_cord = x_cord - self.half_size
+            y_cord = self.parent.y()-self.parent.maximumHeight() - 80
             self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
             self.tooltip_widget.show()
-            self.tooltip_widget.txt.setText(length)
-            self.tooltip_widget.setWindowTitle(length)
+            self.txt.setText(length)
+            #self.tooltip_widget.setWindowTitle(length)
             if self.tooltip_timer.isActive():
                 self.tooltip_timer.stop()
             self.tooltip_timer.start(3000)
