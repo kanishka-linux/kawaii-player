@@ -301,14 +301,6 @@ class ToolTipWidget(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent)
         global ui
         ui = uiwidget
-        self.v = QtWidgets.QVBoxLayout(self)
-        self.v.setContentsMargins(0, 0, 0, 5)
-        self.pic = QtWidgets.QLabel(self)
-        self.v.insertWidget(0, self.pic)
-        self.txt = QtWidgets.QLabel(self)
-        self.v.insertWidget(1, self.txt)
-        self.hide()
-        self.txt.setAlignment(QtCore.Qt.AlignCenter)
         self.setWindowFlags(
             QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
             | QtCore.Qt.WindowStaysOnTopHint
