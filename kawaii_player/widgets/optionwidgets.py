@@ -328,7 +328,8 @@ class QLabelPreview(QtWidgets.QLabel):
         
     def mousePressEvent(self, event):
         ui.slider.tooltip_widget.hide()
-
+        ui.slider.preview_pending[:] = []
+        
 class MySlider(QtWidgets.QSlider):
 
     def __init__(self, parent, uiwidget, home_dir, mw):
