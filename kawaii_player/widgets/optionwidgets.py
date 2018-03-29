@@ -426,16 +426,16 @@ class MySlider(QtWidgets.QSlider):
         if change_aspect:
             ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
         txt = '<html><img src="{}">{}<html>'.format(picn, length)
-        print(txt, tsec)
+        ui.logger.debug('{}::{}'.format(txt, tsec))
         point = None
         rect = None
         self.apply_pic(picn, x, y, length)
         if self.preview_pending:
             while self.preview_counter >= 0:
                 self.preview_counter -= 1
-            print(len(self.preview_pending), self.preview_counter)
+            ui.logger.debug('{}::{}'.format(len(self.preview_pending), self.preview_counter))
             args = self.preview_pending.pop()
-            print(args)
+            ui.logger.debug(args)
             self.lock = False
             self.preview_pending[:] = []
             self.info_preview(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], lock=False)
