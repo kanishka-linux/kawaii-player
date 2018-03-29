@@ -363,32 +363,11 @@ class MySlider(QtWidgets.QSlider):
         if '.' in l:
             l = l.split('.')[0]
         change_aspect = False
-        #if ui.live_preview == 'fast' and os.name == 'posix' and ui.mpvplayer_val.processId() > 0:
-        #    picn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(t))
-        #    command = 'ffmpegthumbnailer -i "{}" -o "{}" -t {} -q 10 -s 256'.format(ui.final_playing_url, picn, l)
-        #    #subprocess.call(['mpv', ui.final_playing_url, '--start='+str(t), '--frames=1', '-o', tmp])
-        if ui.live_preview == 'fast' and ui.mpvplayer_val.processId() > 0:
+        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
             command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.tmp_download_folder, t, ui.final_playing_url)
             picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
             newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(t)))
-            #shutil.copy(picn, newpicn)
             change_aspect = True
-        elif ui.live_preview == 'slow' and ui.mpvplayer_val.processId() > 0:
-            command = ["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
-                       "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+ui.tmp_download_folder, 
-                       "--start="+str(t), "--frames=1", ui.final_playing_url]
-            if os.name == 'posix':
-                subprocess.call(command)
-            else:
-                subprocess.call(command, shell=True)
-            picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
-            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(t)))
-            shutil.copy(picn, newpicn)
-            change_aspect = True
-            ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
-            #txt = '<html><img src="{}">{}<html>'.format(newpicn, l)
-            #self.setToolTip(txt)
-            self.apply_pic(newpicn, event.x(), event.y(), l)
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -396,22 +375,19 @@ class MySlider(QtWidgets.QSlider):
                 point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
-        if ui.live_preview == 'fast' and ui.mpvplayer_val.processId() > 0:
+        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
             self.setToolTip('')
             if self.preview_process.processId() == 0:
                 self.info_preview(command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y(), lock=False)
             else:
                 self.preview_pending.append((command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y()))
-            #if os.name == 'nt':
-            #txt = '<html><img src="{}" width="256">{}<html>'.format(picn, l)
-            #self.setToolTip(txt)
             self.apply_pic(picn, event.x(), event.y(), l, resize=True)
             
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, lock=None):
         if self.preview_process.processId() != 0:
             self.preview_process.kill()
         if self.preview_process.processId() == 0 and lock is False:
-            print('preview_generating', length, tsec)
+            ui.logger.debug('\npreview_generating - {} - {}\n'.format(length, tsec))
             self.preview_process = QtCore.QProcess()
             self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
             QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
@@ -426,18 +402,22 @@ class MySlider(QtWidgets.QSlider):
         if change_aspect:
             ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
         txt = '<html><img src="{}">{}<html>'.format(picn, length)
-        ui.logger.debug('{}::{}'.format(txt, tsec))
+        ui.logger.debug('\n{}::{}\n'.format(txt, tsec))
         point = None
         rect = None
         self.apply_pic(picn, x, y, length)
         if self.preview_pending:
             while self.preview_counter >= 0:
                 self.preview_counter -= 1
-            ui.logger.debug('{}::{}'.format(len(self.preview_pending), self.preview_counter))
-            args = self.preview_pending.pop()
+            ui.logger.debug('\n{}::{}\n'.format(len(self.preview_pending), self.preview_counter))
+            if ui.live_preview == 'slow':
+                args = self.preview_pending[0]
+                del self.preview_pending[0]
+            else:
+                args = self.preview_pending.pop()
+                self.preview_pending[:] = []
             ui.logger.debug(args)
             self.lock = False
-            self.preview_pending[:] = []
             self.info_preview(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], lock=False)
     
     def apply_pic(self, picn, x, y, length, resize=None):
