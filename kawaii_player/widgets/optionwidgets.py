@@ -320,7 +320,23 @@ class ToolTipWidget(QtWidgets.QWidget):
         
     def mousePressEvent(self, event):
         self.hide()
+
+class QLabelPreview(QtWidgets.QLabel):
+
+    def __init(self, parent=None):
+        QLabel.__init__(self, parent)
+        self.setMouseTracking(True)
+        
+    def set_globals(self, uiwidget):
+        global ui
+        ui = uiwidget
     
+    def mouseMoveEvent(self, event):
+        ui.slider.tooltip_widget.hide()
+        
+    def mousePressEvent(self, event):
+        ui.slider.tooltip_widget.hide()
+
 class MySlider(QtWidgets.QSlider):
 
     def __init__(self, parent, uiwidget, home_dir, mw):
@@ -346,8 +362,9 @@ class MySlider(QtWidgets.QSlider):
         #self.tooltip_widget = ToolTipWidget(ui, parent)
         self.tooltip_widget = QtWidgets.QWidget(MainWindow)
         self.v = QtWidgets.QVBoxLayout(self.tooltip_widget)
-        self.v.setContentsMargins(0, 0, 0, 5)
-        self.pic = QtWidgets.QLabel(self)
+        self.v.setContentsMargins(0, 0, 0, 0)
+        self.pic = QLabelPreview(self)
+        self.pic.set_globals(ui)
         self.v.insertWidget(0, self.pic)
         self.txt = QtWidgets.QLabel(self)
         self.v.insertWidget(1, self.txt)
@@ -482,7 +499,7 @@ class MySlider(QtWidgets.QSlider):
                 x_cord = self.parent.x()
             else:
                 x_cord = x_cord - self.half_size
-            y_cord = self.parent.y()-self.parent.maximumHeight() - 80
+            y_cord = self.parent.y()-self.parent.maximumHeight() - 100
             self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
             self.tooltip_widget.show()
             self.txt.setText(length)
@@ -493,7 +510,7 @@ class MySlider(QtWidgets.QSlider):
         
     def update_tooltip(self):
         self.tooltip_widget.hide()
-            
+        
     def mousePressEvent(self, event):
         self.preview_counter = 0
         old_val = int(self.value())
