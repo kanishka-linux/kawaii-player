@@ -381,7 +381,6 @@ class MySlider(QtWidgets.QSlider):
                 self.info_preview(command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y(), lock=False)
             else:
                 self.preview_pending.append((command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y()))
-            self.apply_pic(picn, event.x(), event.y(), l, resize=True)
             
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, lock=None):
         if self.preview_process.processId() != 0:
