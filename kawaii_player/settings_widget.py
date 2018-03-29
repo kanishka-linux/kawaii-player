@@ -1017,7 +1017,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text49.setText("Live Preview")
         self.text49.setWordWrap(True)
         self.player_list.append('live_preview')
-        msg = "Live Preview: 1. No, 2. Slow and accurate, 3. Fast but less accurate. Hover mouse pointer over slider to see live preview"
+        msg = "Live Preview: 1. No, 2. Slow and accurate, 3. Fast but less accurate. Hover mouse pointer over seekbar slider to see live thumbnail preview"
         self.text49.setToolTip('<html>{}</html>'.format(msg))
         
         self.line490 = QtWidgets.QComboBox()
