@@ -372,10 +372,19 @@ class MySlider(QtWidgets.QSlider):
         self.half_size = int(ui.label.maximumWidth()/2)
         self.upper_limit = self.parent.x() + self.parent.width()
         self.lower_limit = self.parent.x()
-                    
+        self.file_type = 'video'
+        
     def mouseMoveEvent(self, event):
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
+        if self.final_url != ui.final_playing_url:
+            if '.' in ui.final_playing_url:
+                ext = ui.final_playing_url.rsplit('.', 1)[1]
+                if ext in ui.music_type_arr:
+                    self.file_type = 'music'
+                    self.final_url = ui.final_playing_url
+                else:
+                    self.file_type = 'video'
         self.preview_counter += 1
         #self.setToolTip('') 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
@@ -390,7 +399,7 @@ class MySlider(QtWidgets.QSlider):
         change_aspect = False
         if not os.path.exists(ui.preview_download_folder):
             os.makedirs(ui.preview_download_folder)
-        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
+        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
             command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.preview_download_folder, int(t), ui.final_playing_url)
             picn = os.path.join(ui.preview_download_folder, '00000001.jpg')
             newpicn = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(t)))
@@ -402,7 +411,7 @@ class MySlider(QtWidgets.QSlider):
                 point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
-        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
+        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
             self.setToolTip('')
             if self.preview_process.processId() == 0:
                 self.info_preview(
@@ -461,6 +470,7 @@ class MySlider(QtWidgets.QSlider):
                     )
     
     def apply_pic(self, picn, x, y, length, resize=None):
+        print(self.file_type, ui.final_playing_url)
         if resize:
             txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, ui.label.maximumWidth())
         else:
@@ -468,8 +478,8 @@ class MySlider(QtWidgets.QSlider):
         if ui.live_preview_style == 'tooltip':
             try:
                 if self.final_url != ui.final_playing_url and not resize:
-                    img = Image.open(picn)
                     self.final_url = ui.final_playing_url
+                    img = Image.open(picn)
                     self.half_size = int(img.size[0]/2)
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
