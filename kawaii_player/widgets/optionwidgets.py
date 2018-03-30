@@ -472,7 +472,7 @@ class MySlider(QtWidgets.QSlider):
     def apply_pic(self, picn, x, y, length, resize=None):
         print(self.file_type, ui.final_playing_url)
         if resize:
-            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, ui.label.maximumWidth())
+            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, 2*self.half_size)
         else:
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
         if ui.live_preview_style == 'tooltip':
