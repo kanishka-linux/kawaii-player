@@ -1414,6 +1414,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.live_preview = ui.live_preview.lower()
                 elif var_name == 'live_preview_style':
                     ui.live_preview_style = ui.live_preview_style.lower()
+                    ui.slider.final_url = None
         if option == 'torrent':
             change_opt_file(self.torrent_config, param, param_value)
         else:
