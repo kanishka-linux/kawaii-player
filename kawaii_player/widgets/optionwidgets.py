@@ -450,17 +450,33 @@ class MySlider(QtWidgets.QSlider):
         else:
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
         if ui.live_preview_style == 'tooltip':
+            try:
+                if self.final_url != ui.final_playing_url:
+                    img = Image.open(picn)
+                    self.final_url = ui.final_playing_url
+                    self.half_size = int(img.size[0]/2)
+                    self.upper_limit = self.parent.x() + self.parent.width()
+                    self.lower_limit = self.parent.x()
+                    ui.logger.debug('------------change dimensions---------------')
+                else:
+                    ui.logger.debug('no-change-dimensions')
+            except Exception as err:
+                print(err)
             if self.tooltip is None:
                 self.setToolTip('')
                 self.setToolTip(txt)
             else:
                 if ui.fullscreen_video or ui.force_fs:
-                    y_cord = self.parent.y() + self.parent.maximumHeight() - 10
+                    y_cord = self.parent.y() + self.parent.maximumHeight() - 25
                 else:
                     y_cord = self.parent.y() + self.parent.maximumHeight() + 25
                 x_cord = self.parent.x() + x
-                if x_cord + 256 <= ui.screen_size[0]:
-                    x_cord = x_cord - 128
+                if x_cord + self.half_size > self.upper_limit:
+                    x_cord = self.upper_limit
+                elif x_cord - self.half_size < self.lower_limit:
+                    x_cord = self.parent.x()
+                else:
+                    x_cord = x_cord - self.half_size
                 point = QtCore.QPoint(x_cord, y_cord)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, txt, self, rect, 3000)
