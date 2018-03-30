@@ -369,7 +369,7 @@ class MySlider(QtWidgets.QSlider):
         self.tooltip_timer.timeout.connect(self.update_tooltip)
         self.tooltip_timer.setSingleShot(True)
         self.final_url = None
-        self.half_size = 100
+        self.half_size = int(ui.label.maximumWidth()/2)
         self.upper_limit = self.parent.x() + self.parent.width()
         self.lower_limit = self.parent.x()
                     
@@ -389,9 +389,9 @@ class MySlider(QtWidgets.QSlider):
             l = l.split('.')[0]
         change_aspect = False
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
-            command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.tmp_download_folder, t, ui.final_playing_url)
-            picn = os.path.join(ui.tmp_download_folder, '00000001.jpg')
-            newpicn = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(t)))
+            command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.preview_download_folder, t, ui.final_playing_url)
+            picn = os.path.join(ui.preview_download_folder, '00000001.jpg')
+            newpicn = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(t)))
             change_aspect = True
         else:
             if self.tooltip is None:
@@ -403,10 +403,20 @@ class MySlider(QtWidgets.QSlider):
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
             self.setToolTip('')
             if self.preview_process.processId() == 0:
-                self.info_preview(command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y(), lock=False)
+                self.info_preview(
+                    command, picn, l, change_aspect, t, self.preview_counter,
+                    event.x(), event.y(), lock=False
+                )
             else:
-                self.preview_pending.append((command, picn, l, change_aspect, t, self.preview_counter, event.x(), event.y()))
-            
+                self.preview_pending.append(
+                        (command, picn, l, change_aspect, t, self.preview_counter,
+                         event.x(), event.y())
+                    )
+                if os.path.isfile(newpicn):
+                    self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
+                else:
+                    self.apply_pic(picn, event.x(), event.y(), l, resize=True)
+                
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, lock=None):
         if self.preview_process.processId() != 0:
             self.preview_process.kill()
@@ -420,44 +430,51 @@ class MySlider(QtWidgets.QSlider):
         self.tooltip_widget.hide()
         self.preview_counter -= 1
         self.lock = True
-        picnew = os.path.join(ui.tmp_download_folder, "{}.jpg".format(int(tsec)))
-        shutil.copy(picn, picnew)
-        picn = picnew
-        if change_aspect:
-            ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
-        txt = '<html><img src="{}">{}<html>'.format(picn, length)
-        ui.logger.debug('\n{}::{}\n'.format(txt, tsec))
-        point = None
-        rect = None
-        self.apply_pic(picn, x, y, length)
-        if self.preview_pending:
-            while self.preview_counter >= 0:
-                self.preview_counter -= 1
-            ui.logger.debug('\n{}::{}\n'.format(len(self.preview_pending), self.preview_counter))
-            if ui.live_preview == 'slow':
-                args = self.preview_pending[0]
-                del self.preview_pending[0]
-            else:
-                args = self.preview_pending.pop()
-                self.preview_pending[:] = []
-            ui.logger.debug(args)
-            self.lock = False
-            self.info_preview(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], lock=False)
+        picnew = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(tsec)))
+        if os.path.isfile(picn):
+            shutil.copy(picn, picnew)
+            picn = picnew
+            if change_aspect:
+                ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
+            txt = '<html><img src="{}">{}<html>'.format(picn, length)
+            ui.logger.debug('\n{}::{}\n'.format(txt, tsec))
+            point = None
+            rect = None
+            self.apply_pic(picn, x, y, length)
+            if self.preview_pending:
+                while self.preview_counter >= 0:
+                    self.preview_counter -= 1
+                ui.logger.debug('\n{}::{}\n'.format(len(self.preview_pending), self.preview_counter))
+                if ui.live_preview == 'slow':
+                    args = self.preview_pending[0]
+                    del self.preview_pending[0]
+                else:
+                    args = self.preview_pending.pop()
+                    self.preview_pending[:] = []
+                ui.logger.debug(args)
+                self.lock = False
+                self.info_preview(
+                    args[0], args[1], args[2], args[3], args[4], args[5],
+                    args[6], args[7], lock=False
+                    )
     
     def apply_pic(self, picn, x, y, length, resize=None):
         if resize:
-            txt = '<html><img src="{}" width="256"><p>{}</p><html>'.format(picn, length)
+            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, ui.label.maximumWidth())
         else:
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
         if ui.live_preview_style == 'tooltip':
             try:
-                if self.final_url != ui.final_playing_url:
+                if self.final_url != ui.final_playing_url and not resize:
                     img = Image.open(picn)
                     self.final_url = ui.final_playing_url
                     self.half_size = int(img.size[0]/2)
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
                     ui.logger.debug('------------change dimensions---------------')
+                    for pfile in os.listdir(ui.preview_download_folder):
+                        pfile_new = os.path.join(ui.preview_download_folder, pfile)
+                        os.remove(pfile_new)
                 else:
                     ui.logger.debug('no-change-dimensions')
             except Exception as err:
@@ -479,10 +496,11 @@ class MySlider(QtWidgets.QSlider):
                     x_cord = x_cord - self.half_size
                 point = QtCore.QPoint(x_cord, y_cord)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
-                self.tooltip.showText(point, txt, self, rect, 3000)
+                if not self.preview_pending or resize or ui.live_preview == 'slow':
+                    self.tooltip.showText(point, txt, self, rect, 3000)
         elif ui.live_preview_style == 'widget' and not resize:
             try:
-                if self.final_url != ui.final_playing_url:
+                if self.final_url != ui.final_playing_url and not resize:
                     img = Image.open(picn)
                     self.pic.setMaximumSize(QtCore.QSize(img.size[0], img.size[1]))
                     self.pic.setMinimumSize(QtCore.QSize(img.size[0], img.size[1]))
@@ -495,6 +513,9 @@ class MySlider(QtWidgets.QSlider):
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
                     ui.logger.debug('------------change dimensions---------------')
+                    for pfile in os.listdir(ui.preview_download_folder):
+                        pfile_new = os.path.join(ui.preview_download_folder, pfile)
+                        os.remove(pfile_new)
                 else:
                     ui.logger.debug('no-change-dimensions')
             except Exception as err:
@@ -516,7 +537,7 @@ class MySlider(QtWidgets.QSlider):
             if self.tooltip_timer.isActive():
                 self.tooltip_timer.stop()
             self.tooltip_timer.start(3000)
-        
+            
     def update_tooltip(self):
         self.tooltip_widget.hide()
         
