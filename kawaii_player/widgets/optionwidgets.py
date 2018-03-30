@@ -388,6 +388,8 @@ class MySlider(QtWidgets.QSlider):
         if '.' in l:
             l = l.split('.')[0]
         change_aspect = False
+        if not os.path.exists(ui.preview_download_folder):
+            os.makedirs(ui.preview_download_folder)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0:
             command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.preview_download_folder, int(t), ui.final_playing_url)
             picn = os.path.join(ui.preview_download_folder, '00000001.jpg')
