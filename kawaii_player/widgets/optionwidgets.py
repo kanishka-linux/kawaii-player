@@ -23,7 +23,7 @@ class SidebarWidget(QtWidgets.QListWidget):
 
     def mouseMoveEvent(self, event): 
         self.setFocus()
-        
+            
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_O:
             ui.setPreOpt()
@@ -373,8 +373,38 @@ class MySlider(QtWidgets.QSlider):
         self.upper_limit = self.parent.x() + self.parent.width()
         self.lower_limit = self.parent.x()
         self.file_type = 'video'
-        
+    
+    def keyPressEvent(self, event):
+        if (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_Right):
+            pos = self.cursor().pos()
+            self.cursor().setPos(pos.x()+5, pos.y())
+        elif (event.modifiers() == QtCore.Qt.ControlModifier 
+                and event.key() == QtCore.Qt.Key_Left):
+            pos = self.cursor().pos()
+            self.cursor().setPos(pos.x()-1, pos.y())
+        elif event.key() == QtCore.Qt.Key_Right:
+            ui.mpv_execute_command('seek 5', ui.cur_row)
+        elif event.key() == QtCore.Qt.Key_Left:
+            ui.mpv_execute_command('seek -5', ui.cur_row)
+        elif event.key() == QtCore.Qt.Key_Return:
+            pos = self.cursor().pos()
+            t = ((pos.x() - self.x())/self.width())
+            t = int(t*ui.mplayerLength)
+            ui.mpv_execute_command('seek {} absolute'.format(int(t)), ui.cur_row)
+        else:
+            super(MySlider, self).keyPressEvent(event)
+    
+    def leaveEvent(self, event):
+        if self.tooltip_timer.isActive():
+            self.tooltip_timer.stop()
+        self.preview_pending[:] = []
+        self.tooltip_widget.hide()
+        if self.tooltip:
+            self.tooltip.hideText()
+            
     def mouseMoveEvent(self, event):
+        self.setFocus()
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
         if self.final_url != ui.final_playing_url:
