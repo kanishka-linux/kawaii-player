@@ -471,14 +471,12 @@ class MySlider(QtWidgets.QSlider):
                     self.half_size = int(img.size[0]/2)
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
-                    ui.logger.debug('------------change dimensions---------------')
+                    ui.logger.debug('\n change dimensions \n')
                     for pfile in os.listdir(ui.preview_download_folder):
                         pfile_new = os.path.join(ui.preview_download_folder, pfile)
                         os.remove(pfile_new)
-                else:
-                    ui.logger.debug('no-change-dimensions')
             except Exception as err:
-                print(err)
+                ui.logger.error(err)
             if self.tooltip is None:
                 self.setToolTip('')
                 self.setToolTip(txt)
@@ -512,14 +510,12 @@ class MySlider(QtWidgets.QSlider):
                     self.half_size = int(self.tooltip_widget.width()/2)
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
-                    ui.logger.debug('------------change dimensions---------------')
+                    ui.logger.debug('\nchange dimensions\n')
                     for pfile in os.listdir(ui.preview_download_folder):
                         pfile_new = os.path.join(ui.preview_download_folder, pfile)
                         os.remove(pfile_new)
-                else:
-                    ui.logger.debug('no-change-dimensions')
             except Exception as err:
-                print(err)
+                ui.logger.error(err)
             #self.pic.clear()
             self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
             x_cord = self.parent.x()+x
