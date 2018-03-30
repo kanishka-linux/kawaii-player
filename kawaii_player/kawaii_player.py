@@ -681,7 +681,10 @@ watch/unwatch status")
         self.progressEpn.setMaximum(100)
         self.progressEpn.setMaximumSize(QtCore.QSize(16777215, 32))
         self.progressEpn.setTextVisible(True)
-        
+        self.tmp_download_folder = TMPDIR
+        self.preview_download_folder = os.path.join(TMPDIR, 'preview')
+        if not os.path.exists(self.preview_download_folder):
+            os.makedirs(self.preview_download_folder)
         self.slider = MySlider(self.frame1, self, home, MainWindow)
         self.slider.setObjectName(_fromUtf8("slider"))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
@@ -1701,7 +1704,6 @@ watch/unwatch status")
         self.torrent_download_limit = 0
         self.torrent_download_folder = TMPDIR
         self.default_download_location = TMPDIR
-        self.tmp_download_folder = TMPDIR
         self.logger = logger
         self.home_folder = home
         self.last_dir = os.path.expanduser("~")
