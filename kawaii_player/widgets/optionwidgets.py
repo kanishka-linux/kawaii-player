@@ -402,7 +402,10 @@ class MySlider(QtWidgets.QSlider):
         self.tooltip_widget.hide()
         if self.tooltip:
             self.tooltip.hideText()
-            
+    
+    def enterEvent(self, event):
+        self.mouseMoveEvent(event)
+        
     def mouseMoveEvent(self, event):
         self.setFocus()
         if self.tooltip_timer.isActive():
