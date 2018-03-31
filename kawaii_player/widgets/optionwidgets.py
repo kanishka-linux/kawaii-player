@@ -358,6 +358,7 @@ class MySlider(QtWidgets.QSlider):
         self.v.setContentsMargins(0, 0, 0, 0)
         self.pic = QLabelPreview(self)
         self.pic.set_globals(ui)
+        self.pic.setScaledContents(True)
         self.v.insertWidget(0, self.pic)
         self.txt = QtWidgets.QLabel(self)
         self.v.insertWidget(1, self.txt)
@@ -373,7 +374,10 @@ class MySlider(QtWidgets.QSlider):
         self.upper_limit = self.parent.x() + self.parent.width()
         self.lower_limit = self.parent.x()
         self.file_type = 'video'
-    
+        self.enter = False
+        self.empty_preview_dir = False
+        self.check_dimension_again = False
+        
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Right):
@@ -402,15 +406,26 @@ class MySlider(QtWidgets.QSlider):
         self.tooltip_widget.hide()
         if self.tooltip:
             self.tooltip.hideText()
-    
-    def enterEvent(self, event):
-        self.mouseMoveEvent(event)
+        self.enter = False
         
+    def enterEvent(self, event):
+        self.enter = True
+        #if (ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0
+        #        and self.file_type == 'video' and self.final_url != ui.final_playing_url):
+        #    self.empty_preview_diectory()
+        self.mouseMoveEvent(event)
+    
+    def empty_preview_diectory(self):
+        for pfile in os.listdir(ui.preview_download_folder):
+            pfile_new = os.path.join(ui.preview_download_folder, pfile)
+            os.remove(pfile_new)
+    
     def mouseMoveEvent(self, event):
         self.setFocus()
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
         if self.final_url != ui.final_playing_url:
+            ui.logger.debug('\nempty-preview-dir = {}\n'.format(self.empty_preview_dir))
             if '.' in ui.final_playing_url:
                 ext = ui.final_playing_url.rsplit('.', 1)[1]
                 if ext in ui.music_type_arr:
@@ -446,7 +461,7 @@ class MySlider(QtWidgets.QSlider):
                 self.tooltip.showText(point, l, self, rect, 1000)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
             self.setToolTip('')
-            if os.path.isfile(newpicn):
+            if os.path.isfile(newpicn) and self.final_url == ui.final_playing_url:
                 use_existing = True
             else:
                 use_existing = False
@@ -468,7 +483,7 @@ class MySlider(QtWidgets.QSlider):
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, use_existing=None, lock=None):
         if self.preview_process.processId() != 0:
             self.preview_process.kill()
-        if self.preview_process.processId() == 0 and lock is False and use_existing is False:
+        if self.preview_process.processId() == 0 and lock is False and not use_existing:
             ui.logger.debug('\npreview_generating - {} - {}\n'.format(length, tsec))
             self.preview_process = QtCore.QProcess()
             self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
@@ -479,7 +494,7 @@ class MySlider(QtWidgets.QSlider):
             ui.logger.debug('\n use existing preview image \n')
             
     def preview_generated(self, picn, length, change_aspect, tsec, counter, x, y):
-        self.tooltip_widget.hide()
+        #self.tooltip_widget.hide()
         self.preview_counter -= 1
         self.lock = True
         picnew = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(tsec)))
@@ -527,9 +542,7 @@ class MySlider(QtWidgets.QSlider):
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
                     ui.logger.debug('\n change dimensions \n')
-                    for pfile in os.listdir(ui.preview_download_folder):
-                        pfile_new = os.path.join(ui.preview_download_folder, pfile)
-                        os.remove(pfile_new)
+                    self.empty_preview_diectory()
             except Exception as err:
                 ui.logger.error(err)
             if self.tooltip is None:
@@ -549,11 +562,24 @@ class MySlider(QtWidgets.QSlider):
                     x_cord = x_cord - self.half_size
                 point = QtCore.QPoint(x_cord, y_cord)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
-                if not self.preview_pending or resize or ui.live_preview == 'slow':
+                if (not self.preview_pending or resize or ui.live_preview == 'slow') and self.enter:
                     self.tooltip.showText(point, txt, self, rect, 3000)
-        elif ui.live_preview_style == 'widget' and not resize:
+        elif ui.live_preview_style == 'widget':
             try:
-                if self.final_url != ui.final_playing_url and not resize:
+                if self.check_dimension_again and not resize:
+                    img = Image.open(picn)
+                    self.pic.setMaximumSize(QtCore.QSize(img.size[0], img.size[1]))
+                    self.pic.setMinimumSize(QtCore.QSize(img.size[0], img.size[1]))
+                    self.tooltip_widget.setMaximumSize(QtCore.QSize(img.size[0], img.size[1]+30))
+                    self.tooltip_widget.setMinimumSize(QtCore.QSize(img.size[0], img.size[1]+30))
+                    self.txt.setMaximumSize(QtCore.QSize(img.size[0], 30))
+                    self.txt.setMinimumSize(QtCore.QSize(img.size[0], 30))
+                    self.half_size = int(self.tooltip_widget.width()/2)
+                    self.upper_limit = self.parent.x() + self.parent.width()
+                    self.lower_limit = self.parent.x()
+                    ui.logger.debug('\nchange dimensions\n')
+                    self.check_dimension_again = False
+                if self.final_url != ui.final_playing_url:
                     img = Image.open(picn)
                     self.pic.setMaximumSize(QtCore.QSize(img.size[0], img.size[1]))
                     self.pic.setMinimumSize(QtCore.QSize(img.size[0], img.size[1]))
@@ -566,29 +592,27 @@ class MySlider(QtWidgets.QSlider):
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
                     ui.logger.debug('\nchange dimensions\n')
-                    for pfile in os.listdir(ui.preview_download_folder):
-                        pfile_new = os.path.join(ui.preview_download_folder, pfile)
-                        os.remove(pfile_new)
+                    self.empty_preview_diectory()
+                    self.check_dimension_again = True
             except Exception as err:
                 ui.logger.error(err)
             #self.pic.clear()
-            self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
-            x_cord = self.parent.x()+x
-            if x_cord + self.half_size > self.upper_limit:
-                x_cord = self.upper_limit - self.tooltip_widget.width()
-            elif x_cord - self.half_size < self.lower_limit:
-                x_cord = self.parent.x()
-            else:
-                x_cord = x_cord - self.half_size
-            y_cord = self.parent.y()-self.parent.maximumHeight() - 100
-            self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
-            self.tooltip_widget.show()
-            self.txt.setText(length)
-            #self.tooltip_widget.setWindowTitle(length)
-            if self.tooltip_timer.isActive():
-                self.tooltip_timer.stop()
-            self.tooltip_timer.start(3000)
-            
+            #if not resize:
+            if os.path.isfile(picn):
+                self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
+                x_cord = self.parent.x()+x
+                if x_cord + self.half_size > self.upper_limit:
+                    x_cord = self.upper_limit - self.tooltip_widget.width()
+                elif x_cord - self.half_size < self.lower_limit:
+                    x_cord = self.parent.x()
+                else:
+                    x_cord = x_cord - self.half_size
+                y_cord = self.parent.y()-self.parent.maximumHeight() - 100
+                if (not self.preview_pending or resize or ui.live_preview == 'slow') and self.enter:
+                    self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
+                    self.tooltip_widget.show()
+                    self.txt.setText(length)
+                
     def update_tooltip(self):
         self.tooltip_widget.hide()
         
