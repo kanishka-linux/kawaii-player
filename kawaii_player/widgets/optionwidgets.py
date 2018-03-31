@@ -377,6 +377,7 @@ class MySlider(QtWidgets.QSlider):
         self.enter = False
         self.empty_preview_dir = False
         self.check_dimension_again = False
+        self.preview_dir = None
         
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -410,16 +411,20 @@ class MySlider(QtWidgets.QSlider):
         
     def enterEvent(self, event):
         self.enter = True
-        #if (ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0
-        #        and self.file_type == 'video' and self.final_url != ui.final_playing_url):
-        #    self.empty_preview_diectory()
+        if (ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0
+                and self.file_type == 'video' and self.final_url != ui.final_playing_url):
+            self.create_preview_dir()
         self.mouseMoveEvent(event)
     
-    def empty_preview_diectory(self):
-        for pfile in os.listdir(ui.preview_download_folder):
-            pfile_new = os.path.join(ui.preview_download_folder, pfile)
-            os.remove(pfile_new)
-    
+    def create_preview_dir(self):
+        file_name_bytes = bytes(ui.final_playing_url, 'utf-8')
+        h = hashlib.sha256(file_name_bytes)
+        file_digest = h.hexdigest()
+        self.preview_dir = os.path.join(ui.preview_download_folder, file_digest)
+        if not os.path.exists(self.preview_dir):
+            os.makedirs(self.preview_dir)
+        ui.logger.debug(self.preview_dir)
+        
     def mouseMoveEvent(self, event):
         self.setFocus()
         if self.tooltip_timer.isActive():
@@ -433,6 +438,10 @@ class MySlider(QtWidgets.QSlider):
                     self.final_url = ui.final_playing_url
                 else:
                     self.file_type = 'video'
+            if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
+                    and ui.live_preview in ['slow', 'fast']):
+                self.create_preview_dir()
+                
         self.preview_counter += 1
         #self.setToolTip('') 
         t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
@@ -448,9 +457,11 @@ class MySlider(QtWidgets.QSlider):
         if not os.path.exists(ui.preview_download_folder):
             os.makedirs(ui.preview_download_folder)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
-            command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.preview_download_folder, int(t), ui.final_playing_url)
-            picn = os.path.join(ui.preview_download_folder, '00000001.jpg')
-            newpicn = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(t)))
+            if self.preview_dir is None:
+                self.create_preview_dir()
+            command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(self.preview_dir, int(t), ui.final_playing_url)
+            picn = os.path.join(self.preview_dir, '00000001.jpg')
+            newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
         else:
             if self.tooltip is None:
@@ -465,13 +476,14 @@ class MySlider(QtWidgets.QSlider):
                 use_existing = True
             else:
                 use_existing = False
-            if self.preview_process.processId() == 0:
+            if self.preview_process.processId() == 0 and not use_existing:
                 self.info_preview(
                     command, picn, l, change_aspect, t, self.preview_counter,
                     event.x(), event.y(), use_existing, lock=False
                 )
             else:
-                self.preview_pending.append(
+                if self.preview_process.processId() > 0:
+                    self.preview_pending.append(
                         (command, picn, l, change_aspect, t, self.preview_counter,
                          event.x(), event.y(), use_existing)
                     )
@@ -489,7 +501,7 @@ class MySlider(QtWidgets.QSlider):
             self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
             QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
         elif use_existing:
-            newpicn = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(tsec)))
+            newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(tsec)))
             self.apply_pic(newpicn, x, y, length)
             ui.logger.debug('\n use existing preview image \n')
             
@@ -497,7 +509,9 @@ class MySlider(QtWidgets.QSlider):
         #self.tooltip_widget.hide()
         self.preview_counter -= 1
         self.lock = True
-        picnew = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(tsec)))
+        if not self.preview_dir:
+            self.create_preview_dir()
+        picnew = os.path.join(self.preview_dir, "{}.jpg".format(int(tsec)))
         if os.path.isfile(picn):
             if not os.path.isfile(picnew):
                 shutil.copy(picn, picnew)
@@ -542,7 +556,6 @@ class MySlider(QtWidgets.QSlider):
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
                     ui.logger.debug('\n change dimensions \n')
-                    self.empty_preview_diectory()
             except Exception as err:
                 ui.logger.error(err)
             if self.tooltip is None:
@@ -592,7 +605,6 @@ class MySlider(QtWidgets.QSlider):
                     self.upper_limit = self.parent.x() + self.parent.width()
                     self.lower_limit = self.parent.x()
                     ui.logger.debug('\nchange dimensions\n')
-                    self.empty_preview_diectory()
                     self.check_dimension_again = True
             except Exception as err:
                 ui.logger.error(err)
