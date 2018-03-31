@@ -444,7 +444,9 @@ class MySlider(QtWidgets.QSlider):
                 
         self.preview_counter += 1
         #self.setToolTip('') 
-        t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
+        t = ((event.x() - self.x())/self.width())
+        t = int(t*ui.mplayerLength)
+        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
         elif ui.player_val == "mpv":
