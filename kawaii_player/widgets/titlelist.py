@@ -1208,10 +1208,13 @@ class TitleListWidget(QtWidgets.QListWidget):
                 m = os.listdir(TMPDIR)
                 for i in m:
                     file_name = os.path.join(TMPDIR, i)
-                    if os.path.isfile(file_name):
-                        os.remove(file_name)
-                    if os.path.isdir(file_name):
-                        shutil.rmtree(file_name)
+                    try:
+                        if os.path.isfile(file_name):
+                            os.remove(file_name)
+                        if os.path.isdir(file_name):
+                            shutil.rmtree(file_name)
+                    except Exception as err:
+                        logger.error(err)
             elif action == tvdb:
                 self.set_search_backend(use_search=False)
             elif action == tmdb:
