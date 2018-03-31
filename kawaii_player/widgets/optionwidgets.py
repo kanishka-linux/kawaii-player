@@ -476,10 +476,13 @@ class MySlider(QtWidgets.QSlider):
         self.lock = True
         picnew = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(tsec)))
         if os.path.isfile(picn):
-            shutil.copy(picn, picnew)
-            picn = picnew
-            if change_aspect:
-                ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
+            if not os.path.isfile(picnew):
+                shutil.copy(picn, picnew)
+                picn = picnew
+                if change_aspect:
+                    ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
+            else:
+                picn = picnew
             txt = '<html><img src="{}">{}<html>'.format(picn, length)
             ui.logger.debug('\n{}::{}\n'.format(txt, tsec))
             point = None
@@ -503,7 +506,6 @@ class MySlider(QtWidgets.QSlider):
                     )
     
     def apply_pic(self, picn, x, y, length, resize=None):
-        print(self.file_type, ui.final_playing_url)
         if resize:
             txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, 2*self.half_size)
         else:
