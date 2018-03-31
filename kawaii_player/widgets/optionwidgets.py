@@ -446,30 +446,38 @@ class MySlider(QtWidgets.QSlider):
                 self.tooltip.showText(point, l, self, rect, 1000)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
             self.setToolTip('')
+            if os.path.isfile(newpicn):
+                use_existing = True
+            else:
+                use_existing = False
             if self.preview_process.processId() == 0:
                 self.info_preview(
                     command, picn, l, change_aspect, t, self.preview_counter,
-                    event.x(), event.y(), lock=False
+                    event.x(), event.y(), use_existing, lock=False
                 )
             else:
                 self.preview_pending.append(
                         (command, picn, l, change_aspect, t, self.preview_counter,
-                         event.x(), event.y())
+                         event.x(), event.y(), use_existing)
                     )
                 if os.path.isfile(newpicn):
                     self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
                 else:
                     self.apply_pic(picn, event.x(), event.y(), l, resize=True)
                 
-    def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, lock=None):
+    def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, use_existing=None, lock=None):
         if self.preview_process.processId() != 0:
             self.preview_process.kill()
-        if self.preview_process.processId() == 0 and lock is False:
+        if self.preview_process.processId() == 0 and lock is False and use_existing is False:
             ui.logger.debug('\npreview_generating - {} - {}\n'.format(length, tsec))
             self.preview_process = QtCore.QProcess()
             self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
             QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
-    
+        elif use_existing:
+            newpicn = os.path.join(ui.preview_download_folder, "{}.jpg".format(int(tsec)))
+            self.apply_pic(newpicn, x, y, length)
+            ui.logger.debug('\n use existing preview image \n')
+            
     def preview_generated(self, picn, length, change_aspect, tsec, counter, x, y):
         self.tooltip_widget.hide()
         self.preview_counter -= 1
@@ -502,7 +510,7 @@ class MySlider(QtWidgets.QSlider):
                 self.lock = False
                 self.info_preview(
                     args[0], args[1], args[2], args[3], args[4], args[5],
-                    args[6], args[7], lock=False
+                    args[6], args[7], args[8], lock=False
                     )
     
     def apply_pic(self, picn, x, y, length, resize=None):
