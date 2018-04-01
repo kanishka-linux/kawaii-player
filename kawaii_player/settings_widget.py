@@ -1017,7 +1017,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text49.setText("Live Preview")
         self.text49.setWordWrap(True)
         self.player_list.append('live_preview')
-        msg = "Live Preview: 1. No, 2. Slow and accurate, 3. Fast but less accurate. Hover mouse pointer over seekbar slider to see live thumbnail preview"
+        msg = "Live Seekbar Preview Options: 1. No, 2. Slow and accurate, 3. Fast but less accurate. Hover mouse pointer over seekbar slider to see live thumbnail preview"
         self.text49.setToolTip('<html>{}</html>'.format(msg))
         
         self.line490 = QtWidgets.QComboBox()
@@ -1029,7 +1029,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text490.setText("Live Preview Style")
         self.text490.setWordWrap(True)
         self.player_list.append('live_preview_style')
-        msg = "Set Live Preview Style: 1. ToolTip or 2. Float Window Widget"
+        msg = "Set Live Seekbar Preview Style: 1. ToolTip or 2. Float Window Widget. In old qt versions ToolTip style won't show correct preview."
         self.text490.setToolTip('<html>{}</html>'.format(msg))
         
         
