@@ -382,6 +382,7 @@ class MySlider(QtWidgets.QSlider):
         self.lock_screen = False
         self.screenshot_lock = False
         self.event_dict = {}
+        self.image_dict = {}
         
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -465,7 +466,7 @@ class MySlider(QtWidgets.QSlider):
             self.preview_process = QtCore.QProcess()
             if self.preview_dir is None:
                 self.create_preview_dir()
-            command = 'mpv --pause -msg-level=all=v --input-terminal=no --input-vo-keyboard=no --idle --input-file=/dev/stdin --keep-open --vo=image --no-sub --ytdl=no -aid=no -sid=no --vo-image-outdir="{}" --start={} "{}"'.format(self.preview_dir, int(t), ui.final_playing_url)
+            command = 'mpv --pause -msg-level=all=v --input-terminal=no --keep-open --input-vo-keyboard=no --idle --input-file=/dev/stdin --vo=null --screenshot-jpeg-quality=40 --no-sub --ytdl=no -aid=no -sid=no --screenshot-directory="{0}" --screenshot-template="%ws" --start={1} "{2}"'.format(self.preview_dir, int(t), ui.final_playing_url)
             picn = os.path.join(self.preview_dir, '00000001.jpg')
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
@@ -486,33 +487,21 @@ class MySlider(QtWidgets.QSlider):
                 else:
                     continue
             newpicn = os.path.join(self.preview_dir, '{}.jpg'.format(int(t)))
-            if not os.path.isfile(newpicn) and not self.lock_screen:
+            self.event_dict.update({int(t):[newpicn, event.x(), event.y(), l, self.preview_counter]})
+            if not os.path.isfile(newpicn):
                 self.lock_screen = True
                 cmd = '\n seek {} absolute \n'.format(int(t))
-                #print(cmd)
-                #cmd = '\n loadfile "{}" replace start={}\n'.format(ui.final_playing_url, int(t))
                 self.preview_process.write(bytes(cmd, 'utf-8'))
                 self.preview_counter += 1
-                #preview_image = str(self.preview_counter).zfill(8)
-                #picn = os.path.join(self.preview_dir, '{}.jpg'.format(preview_image))
-                #newpicn = os.path.join(self.preview_dir, "{}.jpg".format(str(int(t)).zfill(8)))
-                #for i in range(0, 100):
-                #    pass
-                #cmd = '\n print-text "PREVIEW-NUMBER={}" \n'.format(int(t))
-                for i in range(0, 1000):
-                    pass
-                cmd = '\n screenshot-to-file "{}" \n'.format(newpicn)
+                cmd = '\n screenshot video \n'.format(newpicn)
                 self.preview_process.write(bytes(cmd, 'utf-8'))
-                #change_aspect = True
-                #picn = newpicn
-                self.event_dict.update({int(t):[newpicn, event.x(), event.y(), l, self.preview_counter]})
             else:
-                ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
+                #if not self.image_dict.get(newpicn):
+                #    ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
+                #    self.image_dict.update({newpicn:True})
                 self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
         elif self.lock_screen:
-            cmd = '\n print-text "PREVIEW-NUMBER-LOCK={}" \n'.format(int(t))
-            #cmd = '\n screenshot-to-file "{}" \n'.format(newpicn)
-            self.preview_process.write(bytes(cmd, 'utf-8'))
+            self.lock_screen = False
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -547,77 +536,26 @@ class MySlider(QtWidgets.QSlider):
                 
     def data_ready(self, p):
         out = str(p.readAllStandardOutput(), 'utf-8').strip()
-        print('\n:::::::::::::::::::::::::::::::\n')
-        print(out)
-        print('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n')
-        """
-        if 'Paused' in out:
-            tmp = re.search('[0-9]+[^/]*', out)
-            tmp = tmp.group()
-            tmp = tmp.strip()
-            print(tmp)
-            if tmp.startswith('00'):
-                tmp = tmp[1:]
-            dict_val = self.event_dict.get(tmp)
-            print(dict_val, tmp)
-            if dict_val:
-                newpicn, x, y, t, preview_counter = dict_val
-                preview_image = str(preview_counter).zfill(8)
-                picn = os.path.join(self.preview_dir, '{}.jpg'.format(preview_image))
-                print(picn)
-                if os.path.isfile(picn):
-                    shutil.copy(picn, newpicn)
-                    os.remove(picn)
-                    ui.image_fit_option(newpicn, newpicn, fit_size=6, widget=ui.label)
-                    self.apply_pic(newpicn, x, y, tmp)
-        
-        if 'PREVIEW-NUMBER=' in out:
-            preview_time = re.search('PREVIEW-NUMBER=[0-9]+', out).group()
-            preview_time = int(preview_time.split('=')[1])
-            dict_val = self.event_dict.get(preview_time)
-            print(dict_val)
-            if dict_val:
-                newpicn, x, y, l, preview_counter = dict_val
-                preview_image = str(preview_counter).zfill(8)
-                picn = os.path.join(self.preview_dir, '{}.jpg'.format(preview_image))
-                print(picn)
-                if os.path.isfile(picn):
-                    ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
-                    shutil.move(picn, newpicn)
-                    self.apply_pic(newpicn, x, y, l)
-                    self.lock_screen = False
-            print(out, '????????????????????????????????????')
-        """
-        if 'PREVIEW-NUMBER-LOCK=' in out and not self.screenshot_lock:
-            self.lock_screen = False
-        if 'screenshot-to-file' in out:
+        if 'Screenshot:' in out:
             print(out)
-            self.screenshot_lock = True
-            tmp = re.search('screenshot-to-file,[^\]]*', out).group()
-            tmp = re.search('args=\[[^\,]*', tmp).group()
-            print(tmp)
-            tmp = re.sub('args=\[', '', tmp)
-            print(tmp, '>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            i = 0
+            tmp = re.search('Screenshot: [^"]*.jpg', out).group()
+            tmp = re.sub("Screenshot: '", '', tmp)
+            print(tmp, '------scr-------')
             while not os.path.isfile(tmp):
                 print('no')
-                i += 1
-                if i > 100:
-                    break
+                time.sleep(1)
             if os.path.isfile(tmp) and tmp.endswith('.jpg'):
                 di, fi = os.path.split(tmp)
                 num = fi.split('.')[0]
                 num = int(num)
-                print(self.event_dict)
                 dict_val = self.event_dict.get(num)
                 print(dict_val)
                 if dict_val:
                     picn, x, y, l, preview_counter = dict_val
-                    ui.image_fit_option(picn, picn, fit_size=6, widget=ui.label)
-                    self.apply_pic(picn, x, y, l)
+                    ui.image_fit_option(tmp, tmp, fit_size=6, widget=ui.label)
+                    self.apply_pic(tmp, x, y, l+':'+str(num))
                     self.lock_screen = False
-            self.screenshot_lock = False
-                
+            
     def preview_started(self):
         print('started')
         
