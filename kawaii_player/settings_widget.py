@@ -1029,7 +1029,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text490.setText("Live Preview Style")
         self.text490.setWordWrap(True)
         self.player_list.append('live_preview_style')
-        msg = "Set Live Seekbar Preview Style: 1. ToolTip or 2. Float Window Widget. In old qt versions ToolTip style won't show correct preview."
+        msg = "Set Live Seekbar Preview Style: 1. ToolTip or 2. Float Window Widget. In old qt versions ToolTip style won't show correct preview. Use ctrl+right and ctrl+left on seekbar to move preview by +/- 5 seconds."
         self.text490.setToolTip('<html>{}</html>'.format(msg))
         
         
