@@ -387,7 +387,7 @@ class MySlider(QtWidgets.QSlider):
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Left):
             pos = self.cursor().pos()
-            self.cursor().setPos(pos.x()-1, pos.y())
+            self.cursor().setPos(pos.x()-5, pos.y())
         elif event.key() == QtCore.Qt.Key_Right:
             ui.mpv_execute_command('seek 5', ui.cur_row)
         elif event.key() == QtCore.Qt.Key_Left:
