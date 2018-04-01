@@ -461,7 +461,7 @@ class MySlider(QtWidgets.QSlider):
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
             if self.preview_dir is None:
                 self.create_preview_dir()
-            command = 'mpv --vo=image --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(self.preview_dir, int(t), ui.final_playing_url)
+            command = 'mpv --vo=image --vo-image-jpeg-quality=40 --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(self.preview_dir, int(t), ui.final_playing_url)
             picn = os.path.join(self.preview_dir, '00000001.jpg')
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
