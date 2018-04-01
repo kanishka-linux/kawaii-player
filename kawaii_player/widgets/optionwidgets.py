@@ -432,7 +432,9 @@ class MySlider(QtWidgets.QSlider):
             self.tooltip_timer.stop()
         if self.final_url != ui.final_playing_url:
             ui.logger.debug('\nempty-preview-dir = {}\n'.format(self.empty_preview_dir))
-            if '.' in ui.final_playing_url:
+            if ui.final_playing_url.startswith('http'):
+                self.file_type = 'network'
+            elif '.' in ui.final_playing_url:
                 ext = ui.final_playing_url.rsplit('.', 1)[1]
                 if ext in ui.music_type_arr:
                     self.file_type = 'music'
