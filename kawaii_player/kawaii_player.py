@@ -8652,6 +8652,9 @@ watch/unwatch status")
                     logger.debug(cmd)
                 elif eofcode == 'end' and self.playback_mode == 'playlist':
                     logger.debug('.....Continue.....Playlist.....')
+                    if self.cur_row == 0:
+                        cmd = 'set playlist-pos {}'.format(self.cur_row)
+                        self.mpv_execute_command(cmd, self.cur_row)
                 elif self.playback_mode == 'single':
                     if self.mpvplayer_val.processId()>0:
                         self.mpvplayer_val.kill()
