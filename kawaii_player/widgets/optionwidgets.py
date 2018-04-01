@@ -408,6 +408,7 @@ class MySlider(QtWidgets.QSlider):
         if self.tooltip:
             self.tooltip.hideText()
         self.enter = False
+        self.check_dimension_again = True
         
     def enterEvent(self, event):
         self.enter = True
@@ -484,15 +485,16 @@ class MySlider(QtWidgets.QSlider):
                     event.x(), event.y(), use_existing, lock=False
                 )
             else:
-                if self.preview_process.processId() > 0:
+                if self.preview_process.processId() > 0 or ui.live_preview == 'slow':
                     self.preview_pending.append(
                         (command, picn, l, change_aspect, t, self.preview_counter,
                          event.x(), event.y(), use_existing)
                     )
-                if os.path.isfile(newpicn):
-                    self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
-                else:
-                    self.apply_pic(picn, event.x(), event.y(), l, resize=True)
+                if ui.live_preview == 'fast':
+                    if os.path.isfile(newpicn):
+                        self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
+                    else:
+                        self.apply_pic(picn, event.x(), event.y(), l, resize=True)
                 
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, use_existing=None, lock=None):
         if self.preview_process.processId() != 0:
@@ -504,8 +506,14 @@ class MySlider(QtWidgets.QSlider):
             QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
         elif use_existing:
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(tsec)))
-            self.apply_pic(newpicn, x, y, length)
-            ui.logger.debug('\n use existing preview image \n')
+            if ui.live_preview == 'fast':
+                self.apply_pic(newpicn, x, y, length)
+                ui.logger.debug('\n use existing preview image \n')
+            else:
+                self.preview_process = QtCore.QProcess()
+                command = 'echo "hello"'
+                self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
+                QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
             
     def preview_generated(self, picn, length, change_aspect, tsec, counter, x, y):
         #self.tooltip_widget.hide()
