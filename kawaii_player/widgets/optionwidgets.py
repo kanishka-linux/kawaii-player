@@ -431,7 +431,6 @@ class MySlider(QtWidgets.QSlider):
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
         if self.final_url != ui.final_playing_url:
-            ui.logger.debug('\nempty-preview-dir = {}\n'.format(self.empty_preview_dir))
             if ui.final_playing_url.startswith('http'):
                 self.file_type = 'network'
             elif '.' in ui.final_playing_url:
