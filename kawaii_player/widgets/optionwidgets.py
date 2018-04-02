@@ -443,7 +443,9 @@ class MySlider(QtWidgets.QSlider):
             else:
                 self.file_type = 'unknown'
         ui.logger.debug('{}::{}'.format(self.file_type, ui.final_playing_url))
-        
+        if self.file_type in ['network', 'music', 'unknown']:
+            self.final_url = ui.final_playing_url
+            
     def mouseMoveEvent(self, event):
         self.setFocus()
         if self.tooltip_timer.isActive():
