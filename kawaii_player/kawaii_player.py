@@ -1735,7 +1735,8 @@ watch/unwatch status")
             'm4a', 'm4b', 'opus', 'webm'
             ]
         self.video_type_arr = [
-            'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv', 'webm'
+            'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv', 'webm',
+            'mpg', 'mpeg', 'mov'
             ]
         self.video_dict = {}
         self.music_dict = {}
