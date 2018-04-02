@@ -10747,6 +10747,7 @@ watch/unwatch status")
                                     if self.tmp_pls_file_dict.get(self.cur_row):
                                         if self.tmp_pls_file_lines[self.cur_row].startswith('http'):
                                             move_ahead = False
+                                            self.final_playing_url = self.tmp_pls_file_lines[self.cur_row]
                                             tname = self.epn_arr_list[self.cur_row]
                                             if tname.startswith('#'):
                                                 tname = tname.replace('#', '', 1)
