@@ -412,10 +412,12 @@ class MySlider(QtWidgets.QSlider):
         
     def enterEvent(self, event):
         self.enter = True
-        if (ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0
-                and self.file_type == 'video' and self.final_url != ui.final_playing_url):
-            self.create_preview_dir()
-        self.mouseMoveEvent(event)
+        if self.final_url != ui.final_playing_url:
+            self.check_and_set_file_type()
+            if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
+                    and ui.live_preview in ['slow', 'fast']):
+                self.create_preview_dir()
+        #self.mouseMoveEvent(event)
     
     def create_preview_dir(self):
         file_name_bytes = bytes(ui.final_playing_url, 'utf-8')
@@ -424,24 +426,27 @@ class MySlider(QtWidgets.QSlider):
         self.preview_dir = os.path.join(ui.preview_download_folder, file_digest)
         if not os.path.exists(self.preview_dir):
             os.makedirs(self.preview_dir)
-        ui.logger.debug(self.preview_dir)
-        
+        ui.logger.debug('\n{}::{}\n'.format(self.preview_dir, ui.final_playing_url))
+    
+    def check_and_set_file_type(self):
+        if ui.final_playing_url.startswith('http'):
+            self.file_type = 'network'
+        elif '.' in ui.final_playing_url:
+            ext = ui.final_playing_url.rsplit('.', 1)[1]
+            if ext in ui.music_type_arr:
+                self.file_type = 'music'
+                self.final_url = ui.final_playing_url
+            elif ext in ui.video_type_arr:
+                self.file_type = 'video'
+            else:
+                self.file_type = 'unknown'
+                
     def mouseMoveEvent(self, event):
         self.setFocus()
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
         if self.final_url != ui.final_playing_url:
-            if ui.final_playing_url.startswith('http'):
-                self.file_type = 'network'
-            elif '.' in ui.final_playing_url:
-                ext = ui.final_playing_url.rsplit('.', 1)[1]
-                if ext in ui.music_type_arr:
-                    self.file_type = 'music'
-                    self.final_url = ui.final_playing_url
-                elif ext in ui.video_type_arr:
-                    self.file_type = 'video'
-                else:
-                    self.file_type = 'unknown'
+            self.check_and_set_file_type()
             if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
                     and ui.live_preview in ['slow', 'fast']):
                 self.create_preview_dir()
