@@ -439,8 +439,10 @@ class MySlider(QtWidgets.QSlider):
                 if ext in ui.music_type_arr:
                     self.file_type = 'music'
                     self.final_url = ui.final_playing_url
-                else:
+                elif ext in ui.video_type_arr:
                     self.file_type = 'video'
+                else:
+                    self.file_type = 'unknown'
             if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
                     and ui.live_preview in ['slow', 'fast']):
                 self.create_preview_dir()
