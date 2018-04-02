@@ -417,7 +417,7 @@ class MySlider(QtWidgets.QSlider):
             if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
                     and ui.live_preview in ['slow', 'fast']):
                 self.create_preview_dir()
-        #self.mouseMoveEvent(event)
+        self.mouseMoveEvent(event)
     
     def create_preview_dir(self):
         file_name_bytes = bytes(ui.final_playing_url, 'utf-8')
@@ -429,6 +429,8 @@ class MySlider(QtWidgets.QSlider):
         ui.logger.debug('\n{}::{}\n'.format(self.preview_dir, ui.final_playing_url))
     
     def check_and_set_file_type(self):
+        if ui.final_playing_url.startswith('abs_path=') or ui.final_playing_url.startswith('relative_path='):
+            ui.final_playing_url = ui.if_path_is_rel(ui.final_playing_url)
         if ui.final_playing_url.startswith('http'):
             self.file_type = 'network'
         elif '.' in ui.final_playing_url:
@@ -440,7 +442,8 @@ class MySlider(QtWidgets.QSlider):
                 self.file_type = 'video'
             else:
                 self.file_type = 'unknown'
-                
+        ui.logger.debug('{}::{}'.format(self.file_type, ui.final_playing_url))
+        
     def mouseMoveEvent(self, event):
         self.setFocus()
         if self.tooltip_timer.isActive():
