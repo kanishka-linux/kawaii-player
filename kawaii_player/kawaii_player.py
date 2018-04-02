@@ -11812,6 +11812,7 @@ watch/unwatch status")
                 if site != 'MyServer' and from_function == 'now_start':
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
                     self.playback_mode = 'single'
+                    self.final_playing_url = finalUrl.replace('"', '')
                 else:
                     if self.tmp_pls_file_lines:
                         write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
