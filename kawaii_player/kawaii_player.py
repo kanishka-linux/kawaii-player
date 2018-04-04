@@ -1573,7 +1573,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.live_preview = 'no'
-        self.live_preview_quality = '40'
+        self.live_preview_quality = '90'
         self.live_preview_style = 'tooltip'
         self.playback_mode = 'single'
         self.append_counter = 0
