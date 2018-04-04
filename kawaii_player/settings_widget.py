@@ -1023,7 +1023,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.line49_2.setPlaceholderText("{}".format(ui.live_preview_quality))
         self.line49_2.setObjectName('LIVE_PREVIEW_QUALITY')
         self.line49_2.returnPressed.connect(partial(self.line_entered, self.line49_2, 'live_preview_quality', 'player_settings'))
-        self.line49_2.setToolTip('<html>Set Seekbar Live preview thumbnail image quality (0-100). Default is 40. Lower quality will generate faster preview at the expense of image quality. Higher value (i.e. Higher quality) will generate preview images slowly depending upon cpu speed</html>')
+        self.line49_2.setToolTip('<html>Set Seekbar Live preview thumbnail image quality (0-100). Default is 90. Lower quality will generate faster preview at the expense of image quality. Higher value (i.e. Higher quality) will generate preview images slowly depending upon cpu speed</html>')
         
         self.line490 = QtWidgets.QComboBox()
         self.line490.addItem("Tooltip")
