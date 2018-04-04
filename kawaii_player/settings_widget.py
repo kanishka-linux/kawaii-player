@@ -1019,6 +1019,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.player_list.append('live_preview')
         msg = "Live Seekbar Preview Options: 1. No, 2. Slow and accurate, 3. Fast but less accurate. Hover mouse pointer over seekbar slider to see live thumbnail preview"
         self.text49.setToolTip('<html>{}</html>'.format(msg))
+        self.line49_2 = QtWidgets.QLineEdit()
+        self.line49_2.setPlaceholderText("{}".format(ui.live_preview_quality))
+        self.line49_2.setObjectName('LIVE_PREVIEW_QUALITY')
+        self.line49_2.returnPressed.connect(partial(self.line_entered, self.line49_2, 'live_preview_quality', 'player_settings'))
+        self.line49_2.setToolTip('<html>Set Seekbar Live preview thumbnail image quality (0-100). Default is 40. Lower quality will generate faster preview at the expense of image quality. Higher value (i.e. Higher quality) will generate preview images slowly depending upon cpu speed</html>')
         
         self.line490 = QtWidgets.QComboBox()
         self.line490.addItem("Tooltip")
@@ -1101,6 +1106,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.gl6.addWidget(line, index, 1, 1, 1)
                 btn = eval('self.btn4{}'.format(index))
                 self.gl6.addWidget(btn, index, 2, 1, 1)
+            elif j == 'live_preview':
+                self.gl6.addWidget(text, index, 0, 1, 1)
+                self.gl6.addWidget(line, index, 1, 1, 1)
+                self.gl6.addWidget(self.line49_2, index, 2, 1, 1)
             else:
                 self.gl6.addWidget(text, index, 0, 1, 1)
                 self.gl6.addWidget(line, index, 1, 1, 2)
@@ -1452,6 +1461,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
             ui.setuploadspeed = int(obj_value)
         elif var_name == 'global_font_size' and obj_value.isnumeric():
             ui.global_font_size = int(obj_value)
+        elif var_name == 'live_preview_quality' and obj_value.isnumeric():
+            ui.live_preview_quality = obj_value
         elif var_name == 'playback_engine':
             extra_players = obj_value.split(',')
             for extra_player in extra_players:
