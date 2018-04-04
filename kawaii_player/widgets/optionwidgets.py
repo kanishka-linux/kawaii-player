@@ -642,7 +642,7 @@ class MySlider(QtWidgets.QSlider):
                     x_cord = self.parent.x()
                 else:
                     x_cord = x_cord - self.half_size
-                y_cord = self.parent.y()-self.parent.maximumHeight() - 100
+                y_cord = self.parent.y() - self.tooltip_widget.height() + ui.player_opt.height()
                 if (not self.preview_pending or resize or ui.live_preview == 'slow') and self.enter:
                     self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
                     self.tooltip_widget.show()
