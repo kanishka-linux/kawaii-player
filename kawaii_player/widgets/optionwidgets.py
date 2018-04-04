@@ -503,11 +503,14 @@ class MySlider(QtWidgets.QSlider):
                         (command, picn, l, change_aspect, t, self.preview_counter,
                          event.x(), event.y(), use_existing)
                     )
-                if ui.live_preview == 'fast':
+                if ui.live_preview == 'fast' and self.preview_process.processId() == 0:
                     if os.path.isfile(newpicn):
                         self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
                     else:
                         self.apply_pic(picn, event.x(), event.y(), l, resize=True)
+                elif ui.live_preview == 'fast' and self.preview_process.processId() > 0:
+                    self.apply_pic(picn, event.x(), event.y(), l, resize=True, only_text=True)
+                    
                 
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, use_existing=None, lock=None):
         if self.preview_process.processId() != 0:
@@ -565,7 +568,7 @@ class MySlider(QtWidgets.QSlider):
                     args[6], args[7], args[8], lock=False
                     )
     
-    def apply_pic(self, picn, x, y, length, resize=None):
+    def apply_pic(self, picn, x, y, length, resize=None, only_text=None):
         if resize:
             txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, 2*self.half_size)
         else:
@@ -634,7 +637,8 @@ class MySlider(QtWidgets.QSlider):
             #self.pic.clear()
             #if not resize:
             if os.path.isfile(picn):
-                self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
+                if not only_text:
+                    self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
                 x_cord = self.parent.x()+x
                 if x_cord + self.half_size > self.upper_limit:
                     x_cord = self.upper_limit - self.tooltip_widget.width()
