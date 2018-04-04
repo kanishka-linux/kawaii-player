@@ -8640,7 +8640,16 @@ watch/unwatch status")
                         self.idw = str(int(self.tab_5.winId()))
                 else:
                     self.idw = str(int(self.tab_5.winId()))
-            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
+            from_function = None
+            turl = finalUrl.replace('"', '')
+            if self.gapless_playback and site in ['Video', 'Music', 'None', 'MyServer', 'PlayLists']:
+                if self.music_playlist or site == 'PlayLists':
+                    if (self.tmp_pls_file_lines[self.cur_row].startswith('http')
+                            and (os.path.isfile(turl) or turl.startswith('http'))):
+                        from_function = 'now_start'
+            else:
+                from_function = 'now_start'
+            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val, from_function=from_function)
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
             
@@ -8706,10 +8715,16 @@ watch/unwatch status")
                         self.idw = str(int(self.tab_5.winId()))
                 else:
                     self.idw = str(int(self.tab_5.winId()))
-            if self.gapless_playback:
-                command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
+            turl = finalUrl.replace('"', '')
+            from_function = None
+            if self.gapless_playback and site in ['Video', 'Music', 'None', 'MyServer', 'PlayLists']:
+                if self.music_playlist or site == 'PlayLists':
+                    if (self.tmp_pls_file_lines[self.cur_row].startswith('http')
+                            and (os.path.isfile(turl) or turl.startswith('http'))):
+                        from_function = 'now_start'
             else:
-                command = self.mplayermpv_command(self.idw, finalUrl, self.player_val, from_function='now_start')
+                from_function = 'now_start'
+            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val, from_function=from_function)
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
         seek_time = 0
