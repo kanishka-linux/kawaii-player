@@ -8605,11 +8605,45 @@ watch/unwatch status")
                         if st.startswith('abs_path=') or st.startswith('relative_path='):
                             st = self.if_path_is_rel(st)
                         file_name_mkv = file_name_mp4 = st
-                        
-                
         logger.info('function---15025--{0}-{1}'.format(file_name_mkv, file_name_mp4))
         return file_name_mp4, file_name_mkv
-
+        
+    def gapless_play_now(self, win_id, eofcode, finalUrl):
+        if (eofcode == 'next' or eofcode is None) and self.playback_mode == 'playlist':
+            cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
+            self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            logger.debug(cmd)
+        elif eofcode == 'end' and self.playback_mode == 'playlist':
+            logger.debug('.....Continue.....Playlist.....')
+            if self.cur_row == 0:
+                cmd = 'set playlist-pos {}'.format(self.cur_row)
+                self.mpv_execute_command(cmd, self.cur_row)
+        elif self.playback_mode == 'single':
+            if self.mpvplayer_val.processId()>0:
+                self.mpvplayer_val.kill()
+                self.mpvplayer_started = False
+                self.external_audio_file = False
+            if OSNAME == 'posix':
+                if not win_id:
+                    self.idw = str(int(self.tab_5.winId()))
+                else:
+                    self.idw = str(win_id)
+            elif OSNAME == 'nt':
+                if win_id:
+                    self.idw = str(win_id)
+                elif thumbnail_indicator and self.video_mode_index not in [1, 2]:
+                    try:
+                        p1 = 'self.label_epn_{0}.winId()'.format(str(self.thumbnail_label_number[0]))
+                        self.idw = str(int(eval(p1)))
+                    except Exception as e:
+                        print(e)
+                        self.idw = str(int(self.tab_5.winId()))
+                else:
+                    self.idw = str(int(self.tab_5.winId()))
+            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
+            logger.info('command: function_play_file_now = {0}'.format(command))
+            self.infoPlay(command)
+            
     def play_file_now(self, file_name, win_id=None, eofcode=None):
         global current_playing_file_path, cur_label_num, sub_id, audio_id
         
@@ -8648,40 +8682,7 @@ watch/unwatch status")
                     self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             else:
-                if (eofcode == 'next' or eofcode is None) and self.playback_mode == 'playlist':
-                    cmd = '\n set playlist-pos {} \n'.format(self.cur_row)
-                    self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-                    logger.debug(cmd)
-                elif eofcode == 'end' and self.playback_mode == 'playlist':
-                    logger.debug('.....Continue.....Playlist.....')
-                    if self.cur_row == 0:
-                        cmd = 'set playlist-pos {}'.format(self.cur_row)
-                        self.mpv_execute_command(cmd, self.cur_row)
-                elif self.playback_mode == 'single':
-                    if self.mpvplayer_val.processId()>0:
-                        self.mpvplayer_val.kill()
-                        self.mpvplayer_started = False
-                        self.external_audio_file = False
-                    if OSNAME == 'posix':
-                        if not win_id:
-                            self.idw = str(int(self.tab_5.winId()))
-                        else:
-                            self.idw = str(win_id)
-                    elif OSNAME == 'nt':
-                        if win_id:
-                            self.idw = str(win_id)
-                        elif thumbnail_indicator and self.video_mode_index not in [1, 2]:
-                            try:
-                                p1 = 'self.label_epn_{0}.winId()'.format(str(self.thumbnail_label_number[0]))
-                                self.idw = str(int(eval(p1)))
-                            except Exception as e:
-                                print(e)
-                                self.idw = str(int(self.tab_5.winId()))
-                        else:
-                            self.idw = str(int(self.tab_5.winId()))
-                    command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
-                    logger.info('command: function_play_file_now = {0}'.format(command))
-                    self.infoPlay(command)
+                self.gapless_play_now(win_id, eofcode, finalUrl)
             setinfo = True
         else:
             if self.mpvplayer_val.processId()>0:
@@ -8705,7 +8706,10 @@ watch/unwatch status")
                         self.idw = str(int(self.tab_5.winId()))
                 else:
                     self.idw = str(int(self.tab_5.winId()))
-            command = self.mplayermpv_command(self.idw, finalUrl, self.player_val, from_function='now_start')
+            if self.gapless_playback:
+                command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
+            else:
+                command = self.mplayermpv_command(self.idw, finalUrl, self.player_val, from_function='now_start')
             logger.info('command: function_play_file_now = {0}'.format(command))
             self.infoPlay(command)
         seek_time = 0
