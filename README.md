@@ -1,6 +1,6 @@
 # Kawaii-Player
 
-Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server and torrent streaming server. It can be simply used as normal multimedia frontend for mpv/mplayer with remote control and limited casting support, or it can be turned into portable media server on the fly. 
+Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server and torrent streaming server. 
 
 ![kawaii-player](/Images/Video.png)
 
@@ -121,6 +121,8 @@ The built-in portable media server of this application can have many use cases. 
 27. Available in three themes including dark and system theme (from v3.1 onwards).
 
 28. [Gapless Playback of Network Streams](#gapless-playback)
+
+29. [Live Seekbar Preview](#live-seekbar-preview)
 
 ## Playing Mode
 
@@ -506,6 +508,25 @@ How to enable gapless mode?
 Goto **Preferences->Player**. There users will find three options on gapless playback. Enable them and read tooltips on them for more details.
 
 For using this feature with ytdl, set YTDL path to automatic or write full path of ytdl (in preferences->Other). By doing this application will disable internal ytdl hook of mpv. mpv allows prefetching of network streams in playlist, but it won't resolve and prefetch ytdl links beforehand. kawaii-player will try to resolve the link to the second url, with the help of ytdl, after half of first stream has played and then will give resolved link to mpv for prefetching and buffering.
+
+## Live Seekbar Preview
+
+###### [Index](#index)
+
+![preview](https://user-images.githubusercontent.com/17716871/38348503-d3f7647a-38bf-11e8-818b-8642d509e2f2.png)
+
+1. Live seekbar preview is available from v3.4.0+ onwards.
+    * Two Modes: slow and fast
+        * slow mode will try to show preview in stop-motion manner.
+        * fast mode will generate faster thumbnail preview by skipping some intermediate previews.
+    * Available in two styles: tooltip and float widget
+        * Tooltip style is available only in higher qt version (may be in v5.7+). It has somewhat fluctuating performance depending on window manager and system theme.
+        * Float widget style has consistent performance on every platform and window manager, on which it has been tested. So, float widget style is recommanded for preview.
+    * Once seekbar is focused, users can use keyboard shortcuts ctrl+right and ctrl+left to seek preview +/- 5 seconds, without changing current seek position of video.
+    
+    How to enable this feature?
+    
+    Go to Preferences->Player. There users will find options related to live preview. Select options, then start video and after that hover mouse pointer over seekbar to see live preview. If there are some problems in displayed preview images, consider clearing cache folder (option available in Title List ContextMenu).
 
 ## Dependencies and Installation
 
