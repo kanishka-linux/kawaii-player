@@ -138,7 +138,7 @@ Few more latest screenshots are available in release notes of [v3.1.1](https://g
 
 ![kawaii-player](/Images/thumbnail.jpg)
 
-Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 2 to 5**. In thumbnail mode users have option to change default generated thumbnail. 
+Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 3 to 5**. In thumbnail mode users have option to change default generated thumbnail. 
 Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. 
 
 
