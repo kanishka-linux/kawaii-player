@@ -130,13 +130,13 @@ The built-in portable media server of this application can have many use cases. 
 
 From v3.1 onwards, the application has undergone many changes. Most of the GUI screenshots shown below have become obsolete now. Some of its latest screenshots are available in release notes of [v3.1.1](https://github.com/kanishka-linux/kawaii-player/releases/tag/v3.1.1-0) and [v3.3.0](https://github.com/kanishka-linux/kawaii-player/releases/tag/v3.3.0-0)
 
-![kawaii-player](/Images/Watch.png)
+![kawaii-player](/Images/watch.jpg)
 
 ## Thumbnail Mode
 
 ###### [Index](#index)
 
-![kawaii-player](/Images/Thumbnail.png)
+![kawaii-player](/Images/thumbnail.jpg)
 
 Thumbnail Mode of the application is unique in the sense that users can directly watch video within the thumbnail itself by selecting **appropriate mode from 2 to 5**. In thumbnail mode users have option to change default generated thumbnail. 
 Thumbnails of local video files are automatically generated with the help of 'ffmpegthumbnailer'. 
@@ -459,7 +459,7 @@ For using remote control, see the following section.
 
 ###### [Index](#index)
 
-![kawaii-player](/Images/YT.png)
+![kawaii-player](/Images/yt.jpg)
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
