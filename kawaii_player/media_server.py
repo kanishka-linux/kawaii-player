@@ -268,12 +268,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             lines = []
             for i in new_dict:
                 val = new_dict[i]
-                lines.append('{}\t{}\t{}'.format(k['title'], k['url'], k['artist']))
+                lines.append('{}\t{}\t{}'.format(val['title'], val['url'], val['artist']))
             file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
             f = open(file_name, 'w').close()
             write_files(file_name, lines, line_by_line=True)
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.kill()
+                ui.mpvplayer_started = False
             ui.instant_cast_play = True
             nav_remote = doGETSignal()
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
@@ -490,7 +491,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if (ui.remote_control and ui.remote_control_field
                 and (self.path.startswith('/sending_playlist'))):
             path = self.path.replace('/', '', 1)
-            self.get_the_content(path, 0)
+            self.process_POST()
         else:
             self.do_init_function(type_request='post')
 
