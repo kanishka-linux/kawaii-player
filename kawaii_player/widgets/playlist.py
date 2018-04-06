@@ -1107,7 +1107,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 title = title.split(',', 1)[-1].strip()
                 url = new_lines[row+1]
                 url = url.replace('abs_path=', 'master_abs_path=', 1)
-                new_dict.update({row:{'url':url, 'title':title, 'artist': 'None', 'play_now':True}})
+                new_dict.update({str(row):{'url':url, 'title':title, 'artist': 'None', 'play_now':True}})
             pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
             with open(pls_file, 'w') as f:
                 json.dump(new_dict, f)
