@@ -692,8 +692,6 @@ watch/unwatch status")
         self.slider.setRange(0, 100)
         self.slider.setMouseTracking(True)
         
-        
-        
         try:
             aspect = (screen_width/screen_height)
         except NameError:
@@ -1572,6 +1570,8 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.pc_to_pc_casting = 'master'
+        self.instant_cast_play = False
         self.live_preview = 'no'
         self.live_preview_quality = '90'
         self.live_preview_style = 'tooltip'
