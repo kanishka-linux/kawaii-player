@@ -257,7 +257,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.playlist_m3u_dict.update({str(dict_pls_len):pls_txt})
             url_response = 'm3u_playlist_{0}.m3u'.format(dict_pls_len)
             self.final_message(bytes(url_response, 'utf-8'))
-            
+        elif self.path.startswith('/sending_playlist'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
+            with open(file_name, 'w') as f:
+                f.write(content)
+            ui.instant_cast_play = True
+            nav_remote = doGETSignal()
+            nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
+            self.final_message(bytes('OK', 'utf-8'))
 
     def do_init_function(self, type_request=None):
         global ui, logger
@@ -457,7 +467,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.do_init_function(type_request='head')
 
     def do_GET(self):
-        if ui.remote_control and ui.remote_control_field and self.path.startswith('/youtube_quick='):
+        if (ui.remote_control and ui.remote_control_field
+                and (self.path.startswith('/youtube_quick=')
+                or self.path.startswith('/master_abs_path='))):
             logger.debug('using youtube_quick mode')
             path = self.path.replace('/', '', 1)
             self.get_the_content(path, 0)
@@ -465,7 +477,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.do_init_function(type_request='get')
 
     def do_POST(self):
-        self.do_init_function(type_request='post')
+        if (ui.remote_control and ui.remote_control_field
+                and (self.path.startswith('/sending_playlist'))):
+            path = self.path.replace('/', '', 1)
+            self.get_the_content(path, 0)
+        else:
+            self.do_init_function(type_request='post')
 
     def process_url(self, nm, get_bytes, status=None):
         global ui, logger
@@ -1585,10 +1602,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as err:
                 print(err, '--1488--')
                 self.final_message(b'error')
-        elif path.startswith('abs_path='):
+        elif path.startswith('abs_path=') or path.startswith('master_abs_path='):
             try:
                 process_url = False
-                path = path.split('abs_path=', 1)[1]
+                if path.startswith('abs_path='):
+                    path = path.split('abs_path=', 1)[1]
+                else:
+                    path = path.split('master_abs_path=', 1)[1]
                 nm = path
                 nm = str(base64.b64decode(nm).decode('utf-8'))
                 logger.info(nm)
@@ -2953,6 +2973,13 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                         logger.debug(':::::row:::{0}::::::::'.format(row))
                         if item:
                             ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            time.sleep(0.5)
+                            if ui.instant_cast_play and srch.lower() == 'tmp_playlist':
+                                ui.list2.setCurrentRow(0)
+                                item = ui.list2.item(0)
+                                if item:
+                                    ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                                    ui.instant_cast_play = False
         elif st.lower() == 'bookmark':
             index = ui.btn1.findText('Bookmark')
             if index >= 0 and ui.btn1.currentText().lower() != 'bookmark':
