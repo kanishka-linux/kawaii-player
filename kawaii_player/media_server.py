@@ -261,9 +261,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
+                if 'Content-Type' in content:
+                    content = re.search('\{[^\n]*', content).group()
+                    content = content.strip()
+            new_dict = json.loads(content)
+            lines = []
+            for i in new_dict:
+                val = new_dict[i]
+                lines.append('{}\t{}\t{}'.format(k['title'], k['url'], k['artist']))
             file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
-            with open(file_name, 'w') as f:
-                f.write(content)
+            f = open(file_name, 'w').close()
+            write_files(file_name, lines, line_by_line=True)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.mpvplayer_val.kill()
             ui.instant_cast_play = True
             nav_remote = doGETSignal()
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
