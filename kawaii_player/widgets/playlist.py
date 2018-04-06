@@ -25,6 +25,8 @@ import hashlib
 import subprocess
 import base64
 import urllib.parse
+import json
+from collections import OrderedDict
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files, open_files, ccurl, send_notification
@@ -1072,7 +1074,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     writing_failed = False
                     if os.path.exists(file_path):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
-    
+        
     def start_pc_to_pc_casting(self, mode, row):
         file_path = os.path.join(ui.tmp_download_folder, 'slave.txt')
         if os.path.isfile(file_path):
@@ -1084,28 +1086,37 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if ok and item:
             with open(file_path, 'w') as f:
                 f.write(item)
-        if mode == 'single' and item:
-            http_val = "http"
-            if ui.https_media_server:
-                http_val = "https" 
-            ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
-            content = ccurl(ip)
-            lines = content.split('\n')
-            line0 = lines[0]
-            line1 = lines[2*row+1]
-            line2 = lines[2*row+2]
-            line2 = line2.replace('abs_path=', 'master_abs_path=', 1)
-            new_lines = [line0, line1, line2]
-            print(new_lines)
-            line1 = line1.split(',', 1)[-1].strip()
-            new_line = '{}\t{}\tNone'.format(line1, line2)
-            pls_file = os.path.join(ui.tmp_download_folder, 'playlist.txt')
-            write_files(pls_file, new_line, line_by_line=True)
+        http_val = "http"
+        if ui.https_media_server:
+            http_val = "https" 
+        ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
+        content = ccurl(ip)
+        lines = content.split('\n')
+        new_dict = OrderedDict()
+        new_lines = []
+        if mode in ['single', 'playlist'] and item:
+            if mode == 'single':
+                line1 = lines[2*row+1]
+                line2 = lines[2*row+2]
+                new_lines = ['', line1, line2]
+            else:
+                new_lines = [i for in lines]
+            limit = int(len(new_lines)/2)
+            for row, value in enumerate(new_lines):
+                if row > limit:
+                    break
+                else:
+                    line1 = lines[2*row+1]
+                    line1 = line1.split(',', 1)[-1].strip()
+                    line2 = lines[2*row+2]
+                    line2 = line2.replace('abs_path=', 'master_abs_path=', 1)
+                    new_dict.update({row:{'url':line2, 'title':line1, 'artist': 'None', 'play_now':True}})
+            pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
+            with open(pls_file, 'w') as f:
+                json.dump(new_dict, f)
             if not item.startswith('http') and not item.startswith('https'):
                 item = 'http://{}/sending_playlist'.format(item)
             ccurl(item, curl_opt='-postfile', post_data=pls_file)
-        elif mode == 'playlist' and item:
-            pass
     
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
