@@ -587,6 +587,11 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
             c.setopt(c.POSTFIELDS, postfield)
+        elif curl_opt == '-postfile':
+            c.setopt(c.USERAGENT, hdr)
+            c.setopt(c.POST, 1)
+            c.setopt(c.HTTPPOST, [("parameters",(c.FORM_FILE, post_data))])
+            c.setopt(c.WRITEDATA, storage)
         elif curl_opt == '-b':
             c.setopt(c.FOLLOWLOCATION, True)
             c.setopt(c.USERAGENT, hdr)
