@@ -271,7 +271,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             lines = []
             odict = OrderedDict()
             for i in sort_key_arr:
-                odict.update({i:new_dict.get(i)})
+                odict.update({str(i):new_dict.get(str(i))})
             for i in odict:
                 val = odict[i]
                 lines.append('{}\t{}\t{}'.format(val['title'], val['url'], val['artist']))
