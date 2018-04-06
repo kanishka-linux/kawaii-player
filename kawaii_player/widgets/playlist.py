@@ -1098,19 +1098,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if mode == 'single':
                 line1 = lines[2*row+1]
                 line2 = lines[2*row+2]
-                new_lines = ['', line1, line2]
+                new_lines = [line1, line2]
             else:
-                new_lines = [i for in lines]
-            limit = int(len(new_lines)/2)
-            for row, value in enumerate(new_lines):
-                if row > limit:
-                    break
-                else:
-                    line1 = lines[2*row+1]
-                    line1 = line1.split(',', 1)[-1].strip()
-                    line2 = lines[2*row+2]
-                    line2 = line2.replace('abs_path=', 'master_abs_path=', 1)
-                    new_dict.update({row:{'url':line2, 'title':line1, 'artist': 'None', 'play_now':True}})
+                lines = lines[1:]
+                new_lines = [i.strip() for i in lines if i.strip()]
+            for row in range(0, len(new_lines), 2):
+                title = new_lines[row]
+                title = title.split(',', 1)[-1].strip()
+                url = new_lines[row+1]
+                url = url.replace('abs_path=', 'master_abs_path=', 1)
+                new_dict.update({row:{'url':url, 'title':title, 'artist': 'None', 'play_now':True}})
             pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
             with open(pls_file, 'w') as f:
                 json.dump(new_dict, f)
