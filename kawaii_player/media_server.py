@@ -35,6 +35,7 @@ import imp
 import subprocess
 import urllib.parse
 import urllib.request
+from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 from bs4 import BeautifulSoup
@@ -265,9 +266,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     content = re.search('\{[^\n]*', content).group()
                     content = content.strip()
             new_dict = json.loads(content)
+            sort_key_arr = [int(i) for i in new_dict]
+            sort_key_arr.sort()
             lines = []
-            for i in new_dict:
-                val = new_dict[i]
+            odict = OrderedDict()
+            for i in sort_key_arr:
+                odict.update({i:new_dict.get(i)})
+            for i in odict:
+                val = odict[i]
                 lines.append('{}\t{}\t{}'.format(val['title'], val['url'], val['artist']))
             file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
             f = open(file_name, 'w').close()
