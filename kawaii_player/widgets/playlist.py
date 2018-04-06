@@ -1073,6 +1073,40 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if os.path.exists(file_path):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
     
+    def start_pc_to_pc_casting(self, mode, row):
+        file_path = os.path.join(ui.tmp_download_folder, 'slave.txt')
+        if os.path.isfile(file_path):
+            ip_addr = open_files(file_path, False)
+        item, ok = QtWidgets.QInputDialog.getText(
+            MainWindow, 'Input Dialog', 'Enter IP Address of Slave',
+            QtWidgets.QLineEdit.Normal, ip_addr
+            )
+        if ok and item:
+            with open(file_path, 'w') as f:
+                f.write(item)
+        if mode == 'single' and item:
+            http_val = "http"
+            if ui.https_media_server:
+                http_val = "https" 
+            ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
+            content = ccurl(ip)
+            lines = content.split('\n')
+            line0 = lines[0]
+            line1 = lines[2*row+1]
+            line2 = lines[2*row+2]
+            line2 = line2.replace('abs_path=', 'master_abs_path=', 1)
+            new_lines = [line0, line1, line2]
+            print(new_lines)
+            line1 = line1.split(',', 1)[-1].strip()
+            new_line = '{}\t{}\tNone'.format(line1, line2)
+            pls_file = os.path.join(ui.tmp_download_folder, 'playlist.txt')
+            write_files(pls_file, new_line, line_by_line=True)
+            if not item.startswith('http') and not item.startswith('https'):
+                item = 'http://{}/sending_playlist'.format(item)
+            ccurl(item, curl_opt='-postfile', post_data=pls_file)
+        elif mode == 'playlist' and item:
+            pass
+    
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
         if os.path.exists(dest) and remove_summary is None:
@@ -1307,6 +1341,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
             view_menu = QtWidgets.QMenu(menu)
             view_menu.setTitle("View Mode")
             menu.addMenu(view_menu)
+            if ui.pc_to_pc_casting == 'master':
+                cast_menu = QtWidgets.QMenu(menu)
+                cast_menu.setTitle("PC To PC Casting")
+                cast_menu_file = cast_menu.addAction("Cast this Item")
+                cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                menu.addMenu(cast_menu)
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
             thumb = view_menu.addAction("Thumbnail Grid Mode (Shift+Z)")
@@ -1407,6 +1447,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if goto_web_mode:
                 if action == goto_web:
                     ui.reviewsWeb(srch_txt=url_web, review_site='YouTube', action='open')
+            if ui.pc_to_pc_casting:
+                if action == cast_menu_file:
+                    self.start_pc_to_pc_casting('single', self.currentRow())
+                elif action == cast_menu_playlist:
+                    self.start_pc_to_pc_casting('playlist', self.currentRow())
             if save_pls_entry:
                 if action == save_pls:
                     print("creating")
