@@ -484,12 +484,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.do_init_function(type_request='head')
 
     def do_GET(self):
-        if ((ui.remote_control and ui.remote_control_field
-                and (self.path.startswith('/youtube_quick=')))
-                or self.path.startswith('/master_abs_path=')):
+        if (ui.remote_control and ui.remote_control_field
+                and self.path.startswith('/youtube_quick=')):
             logger.debug('using quick mode')
             path = self.path.replace('/', '', 1)
             self.get_the_content(path, 0)
+        elif self.path.startswith('/master_abs_path='):
+            path = self.path.replace('/', '', 1)
+            if '/' in path:
+                path = path.rsplit('/', 1)[0]
+            try:
+                get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
+            except Exception as e:
+                get_bytes = 0
+            self.get_the_content(path, get_bytes)
         else:
             self.do_init_function(type_request='get')
 
