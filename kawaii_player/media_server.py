@@ -272,16 +272,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             odict = OrderedDict()
             for i in sort_key_arr:
                 odict.update({str(i):new_dict.get(str(i))})
+            play_row = -1
             for i in odict:
                 val = odict[i]
                 lines.append('{}\t{}\t{}'.format(val['title'], val['url'], val['artist']))
+                play_row = val['play_now']
             file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
             f = open(file_name, 'w').close()
             write_files(file_name, lines, line_by_line=True)
             if ui.mpvplayer_val.processId() > 0:
                 ui.mpvplayer_val.kill()
                 ui.mpvplayer_started = False
-            ui.instant_cast_play = True
+            ui.instant_cast_play = int(play_row)
             nav_remote = doGETSignal()
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
             self.final_message(bytes('OK', 'utf-8'))
@@ -3006,15 +3008,12 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                         if item:
                             ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
                             time.sleep(0.5)
-                            if ui.instant_cast_play and srch.lower() == 'tmp_playlist':
-                                ui.list2.setCurrentRow(0)
-                                item = ui.list2.item(0)
+                            if ui.instant_cast_play in range(0, ui.list2.count()) and srch.lower() == 'tmp_playlist':
+                                ui.list2.setCurrentRow(ui.instant_cast_play)
+                                item = ui.list2.item(ui.instant_cast_play)
                                 if item:
                                     ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                                    ui.instant_cast_play = False
-                                    #ui.quick_url_play = 'tmp_playlist'
-                                    #time.sleep(2)
-                                    #ui.quick_url_play_btn.clicked.emit()
+                                    ui.instant_cast_play = -1
         elif st.lower() == 'bookmark':
             index = ui.btn1.findText('Bookmark')
             if index >= 0 and ui.btn1.currentText().lower() != 'bookmark':
