@@ -2285,7 +2285,7 @@ watch/unwatch status")
                 url = j.split('\t')[1] + '.image'
                 picn = os.path.join(TMPDIR, '{}.jpg'.format(i))
                 ccurl(url, curl_opt='-o', out_file=picn)
-                self.list2.item(j).setIcon(QtGui.QIcon(picn))
+                self.list2.item(i).setIcon(QtGui.QIcon(picn))
                 
     def quick_url_play_method(self):
         if self.quick_url_play != 'tmp_playlist':
