@@ -2997,6 +2997,9 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                                 if item:
                                     ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                                     ui.instant_cast_play = False
+                                    ui.quick_url_play = 'tmp_playlist'
+                                    time.sleep(2)
+                                    ui.quick_url_play_btn.clicked.emit()
         elif st.lower() == 'bookmark':
             index = ui.btn1.findText('Bookmark')
             if index >= 0 and ui.btn1.currentText().lower() != 'bookmark':

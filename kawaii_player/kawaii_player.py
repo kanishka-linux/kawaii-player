@@ -2275,16 +2275,31 @@ watch/unwatch status")
         self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         #self.torrent_frame.show()
         self.progress.show()
-            
+    
+    def apply_temp_thumbnail(self):
+        file_path = os.path.join(TMPDIR, 'Playlists', 'TMP_PLAYLIST')
+        lines = open_files(file_path, True)
+        print(lines)
+        for i, j in enumerate(lines):
+            j = j.strip()
+            if j:
+                url = j.split('\t')[1] + '.image'
+                picn = os.path.join(TMPDIR, '{}.jpg'.format(i))
+                ccurl(url, curl_opt='-o', out_file=picn)
+                self.list2.item(j).setIcon(QtGui.QIcon(picn))
+                
     def quick_url_play_method(self):
-        if self.gapless_playback:
-            self.gapless_playback = False
-            self.gapless_playback_disabled = True
-        if self.gapless_network_stream:
-            self.gapless_network_stream = False
-            self.gapless_network_stream_disabled = True
+        if self.quick_url_play != 'tmp_playlist':
+            if self.gapless_playback:
+                self.gapless_playback = False
+                self.gapless_playback_disabled = True
+            if self.gapless_network_stream:
+                self.gapless_network_stream = False
+                self.gapless_network_stream_disabled = True
         if self.quick_url_play.startswith('magnet'):
             self.quick_torrent_play_method(url=self.quick_url_play)
+        elif self.quick_url_play == 'tmp_playlist':
+            QtCore.QTimer.singleShot(5000, self.apply_temp_thumbnail)
         else:
             self.watch_external_video(self.quick_url_play, start_now=True)
             self.btn1.setCurrentIndex(0)
