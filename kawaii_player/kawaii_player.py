@@ -1570,7 +1570,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
-        self.pc_to_pc_casting = 'master'
+        self.pc_to_pc_casting = 'no'
         self.instant_cast_play = False
         self.live_preview = 'no'
         self.live_preview_quality = '90'
@@ -10652,7 +10652,7 @@ watch/unwatch status")
                                         item_index = self.cur_row + 1
                                     else:
                                         item_index = 0
-                                    if self.tmp_pls_file_dict.get(item_index) is False:
+                                    if self.tmp_pls_file_dict.get(item_index) is False and self.list2.count() > 1:
                                         self.start_gapless_stream_process(item_index)
                         if not new_tray_widget.isHidden():
                             new_tray_widget.update_signal.emit(out, val)
@@ -13729,6 +13729,14 @@ def main():
                         if k:
                             if k in ['no', 'slow', 'fast']:
                                 ui.live_preview = k
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('PC_TO_PC_CASTING='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k in ['no', 'master', 'slave']:
+                                ui.pc_to_pc_casting = k
                     except Exception as e:
                         print(e)
                 elif i.startswith('LIVE_PREVIEW_QUALITY='):
