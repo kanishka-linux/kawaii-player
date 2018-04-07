@@ -9063,7 +9063,7 @@ watch/unwatch status")
                     turl = link
                 else:
                     turl = self.tmp_pls_file_lines[row]
-                if turl.startswith('http'):
+                if turl.startswith('http') and 'master_abs_path=' not in turl:
                     if site == 'Music':
                         yt_mode = 'yt_prefetch_a'
                     else:
