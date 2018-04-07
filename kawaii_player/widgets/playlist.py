@@ -1079,6 +1079,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
         file_path = os.path.join(ui.tmp_download_folder, 'slave.txt')
         if os.path.isfile(file_path):
             ip_addr = open_files(file_path, False)
+        else:
+            ip_addr = ''
         item, ok = QtWidgets.QInputDialog.getText(
             MainWindow, 'Input Dialog', 'Enter IP Address of Slave',
             QtWidgets.QLineEdit.Normal, ip_addr
