@@ -258,7 +258,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.playlist_m3u_dict.update({str(dict_pls_len):pls_txt})
             url_response = 'm3u_playlist_{0}.m3u'.format(dict_pls_len)
             self.final_message(bytes(url_response, 'utf-8'))
-        elif self.path.startswith('/sending_playlist'):
+        elif self.path.startswith('/sending_playlist') and ui.pc_to_pc_casting == 'slave':
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
@@ -285,6 +285,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             nav_remote = doGETSignal()
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
             self.final_message(bytes('OK', 'utf-8'))
+        else:
+            self.final_message(bytes('Nothing Available', 'utf-8'))
 
     def do_init_function(self, type_request=None):
         global ui, logger
@@ -490,22 +492,27 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             path = self.path.replace('/', '', 1)
             self.get_the_content(path, 0)
         elif self.path.startswith('/master_abs_path='):
-            path = self.path.replace('/', '', 1)
-            if '/' in path:
-                path = path.rsplit('/', 1)[0]
-            try:
-                get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
-            except Exception as e:
-                get_bytes = 0
-            self.get_the_content(path, get_bytes)
+            if ui.pc_to_pc_casting == 'master':
+                path = self.path.replace('/', '', 1)
+                if '/' in path:
+                    path = path.rsplit('/', 1)[0]
+                try:
+                    get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
+                except Exception as e:
+                    get_bytes = 0
+                self.get_the_content(path, get_bytes)
+            else:
+                self.final_message(b'Not Allowed')
         else:
             self.do_init_function(type_request='get')
 
     def do_POST(self):
-        if (ui.remote_control and ui.remote_control_field
-                and (self.path.startswith('/sending_playlist'))):
-            path = self.path.replace('/', '', 1)
-            self.process_POST()
+        if self.path.startswith('/sending_playlist') :
+            if ui.remote_control and ui.remote_control_field:
+                path = self.path.replace('/', '', 1)
+                self.process_POST()
+            else:
+                self.do_init_function(type_request='post')
         else:
             self.do_init_function(type_request='post')
 
