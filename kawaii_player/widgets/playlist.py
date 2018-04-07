@@ -1202,6 +1202,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
             thumb = view_menu.addAction("Thumbnail Grid Mode (Shift+Z)")
+            if ui.pc_to_pc_casting == 'master':
+                cast_menu = QtWidgets.QMenu(menu)
+                cast_menu.setTitle("PC To PC Casting")
+                cast_menu_file = cast_menu.addAction("Cast this Item")
+                cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                menu.addMenu(cast_menu)
             save_pls = menu.addAction('Save Current Playlist')
             go_to = menu.addAction("Go To Last.fm")
             qitem = menu.addAction("Queue Item (Ctrl+Q)")
@@ -1231,6 +1237,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
             for i in range(len(item_m)):
                 if action == item_m[i]:
                     self.triggerPlaylist(pls[i])
+            if ui.pc_to_pc_casting == 'master':
+                if action == cast_menu_file:
+                    self.start_pc_to_pc_casting('single', self.currentRow())
+                elif action == cast_menu_playlist:
+                    self.start_pc_to_pc_casting('playlist', self.currentRow())
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
@@ -1457,7 +1468,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if goto_web_mode:
                 if action == goto_web:
                     ui.reviewsWeb(srch_txt=url_web, review_site='YouTube', action='open')
-            if ui.pc_to_pc_casting:
+            if ui.pc_to_pc_casting == 'master':
                 if action == cast_menu_file:
                     self.start_pc_to_pc_casting('single', self.currentRow())
                 elif action == cast_menu_playlist:
