@@ -870,6 +870,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text37.setText("Get Music Metadata")
         self.other_settings.append('get_artist_metadata')
         
+        self.line38 = QtWidgets.QComboBox()
+        self.line38.addItem('No')
+        self.line38.addItem('Master')
+        self.line38.addItem('Slave')
+        index = self.line38.findText(ui.pc_to_pc_casting.title())
+        self.line38.setCurrentIndex(index)
+        self.text38 = QtWidgets.QLabel()
+        self.text38.setText("PC To PC Casting")
+        self.other_settings.append('pc_to_pc_casting')
+        
         for index, j in enumerate(self.other_settings):
             i = index + 1
             text = eval('self.text3{}'.format(i))
@@ -1427,6 +1437,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 elif var_name == 'live_preview_style':
                     ui.live_preview_style = ui.live_preview_style.lower()
                     ui.slider.final_url = None
+                elif var_name == 'pc_to_pc_casting':
+                    ui.pc_to_pc_casting = ui.pc_to_pc_casting.lower()
         if option == 'torrent':
             change_opt_file(self.torrent_config, param, param_value)
         else:
