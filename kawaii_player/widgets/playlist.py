@@ -1093,30 +1093,36 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if ui.https_media_server:
             http_val = "https" 
         ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
-        content = ccurl(ip)
-        lines = content.split('\n')
-        new_dict = OrderedDict()
-        new_lines = []
-        if mode in ['single', 'playlist'] and item:
-            if mode == 'single':
-                line1 = lines[2*row+1]
-                line2 = lines[2*row+2]
-                new_lines = [line1, line2]
-            else:
-                lines = lines[1:]
-                new_lines = [i.strip() for i in lines if i.strip()]
-            for row in range(0, len(new_lines), 2):
-                title = new_lines[row]
-                title = title.split(',', 1)[-1].strip()
-                url = new_lines[row+1]
-                url = url.replace('abs_path=', 'master_abs_path=', 1)
-                new_dict.update({str(row):{'url':url, 'title':title, 'artist': 'None', 'play_now':cur_row}})
-            pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
-            with open(pls_file, 'w') as f:
-                json.dump(new_dict, f)
-            if not item.startswith('http') and not item.startswith('https'):
-                item = 'http://{}/sending_playlist'.format(item)
-            ccurl(item, curl_opt='-postfile', post_data=pls_file)
+        try:
+            content = ccurl(ip)
+        except Exception as err:
+            logger.error(err)
+            content = None
+            send_notification('Most Probably Media Server not started on Master')
+        if content:
+            lines = content.split('\n')
+            new_dict = OrderedDict()
+            new_lines = []
+            if mode in ['single', 'playlist'] and item:
+                if mode == 'single':
+                    line1 = lines[2*row+1]
+                    line2 = lines[2*row+2]
+                    new_lines = [line1, line2]
+                else:
+                    lines = lines[1:]
+                    new_lines = [i.strip() for i in lines if i.strip()]
+                for row in range(0, len(new_lines), 2):
+                    title = new_lines[row]
+                    title = title.split(',', 1)[-1].strip()
+                    url = new_lines[row+1]
+                    url = url.replace('abs_path=', 'master_abs_path=', 1)
+                    new_dict.update({str(row):{'url':url, 'title':title, 'artist': 'None', 'play_now':cur_row}})
+                pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
+                with open(pls_file, 'w') as f:
+                    json.dump(new_dict, f)
+                if not item.startswith('http') and not item.startswith('https'):
+                    item = 'http://{}/sending_playlist'.format(item)
+                ccurl(item, curl_opt='-postfile', post_data=pls_file)
     
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
