@@ -1076,6 +1076,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
         
     def start_pc_to_pc_casting(self, mode, row):
+        cur_row = str(row)
         file_path = os.path.join(ui.tmp_download_folder, 'slave.txt')
         if os.path.isfile(file_path):
             ip_addr = open_files(file_path, False)
@@ -1109,7 +1110,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 title = title.split(',', 1)[-1].strip()
                 url = new_lines[row+1]
                 url = url.replace('abs_path=', 'master_abs_path=', 1)
-                new_dict.update({str(row):{'url':url, 'title':title, 'artist': 'None', 'play_now':True}})
+                new_dict.update({str(row):{'url':url, 'title':title, 'artist': 'None', 'play_now':cur_row}})
             pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
             with open(pls_file, 'w') as f:
                 json.dump(new_dict, f)
