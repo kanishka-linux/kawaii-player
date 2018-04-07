@@ -4818,11 +4818,11 @@ watch/unwatch status")
         if ((picn and not os.path.exists(picn) and 'http' not in path) 
                 or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
                 or (picn and 'http' in path and site.lower() == 'myserver' and not os.path.exists(picn))
-                or start_async):
+                or start_async or ('master_abs_path=' in path and not os.path.exists(picn))):
             path = path.replace('"', '')
             if (('http' in path and 'youtube.com' in path and '/watch?' in path) or
-                    ('http' in path and site.lower() == 'myserver')):
-                if site.lower() == 'myserver':
+                    ('http' in path and site.lower() == 'myserver') or 'master_abs_path=' in path):
+                if site.lower() == 'myserver' or 'master_abs_path=' in path:
                     path = path + '.image'
                 else:
                     path = self.create_img_url(path)
