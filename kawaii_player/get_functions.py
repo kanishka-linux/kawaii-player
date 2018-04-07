@@ -91,6 +91,8 @@ def ccurl_string_get(url, opt, extra, download_manager=None):
         command = ["curl", '-L', "-I", "-A", hdr, '-b', extra, url]
     elif opt == '-d':
         command = ["curl", '-L', "-A", hdr, '-d', extra, url]
+    elif opt == '-postfile':
+        command = ["curl", '-X', 'POST', '-d', '@{}'.format(extra), '-A', hdr, url]
     ver_peer = url.split('/')
     if len(ver_peer) > 3:
         ver_peer_get = ver_peer[3]
@@ -244,7 +246,7 @@ def ccurlCmd(url, external_cookie=None, user_auth=None, verify_peer=None,
                 cookie_file = extra = external_cookie
             else:
                 wrong_param = True
-        elif curl_opt == '-d':
+        elif curl_opt == '-d' or curl_opt == '-postfile':
             if post_data:
                 post = extra = post_data
             else:
