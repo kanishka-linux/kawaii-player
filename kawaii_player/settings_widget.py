@@ -271,7 +271,10 @@ class LoginAuth(QtWidgets.QDialog):
         #print(new_txt_bytes)
         h = hashlib.sha256(new_txt_bytes)
         h_digest = h.hexdigest()
-        new_pass = 'AUTH='+h_digest
+        if not text_val and not pass_val:
+            new_pass = 'AUTH=none'
+        else:
+            new_pass = 'AUTH='+h_digest
         config_file = os.path.join(self.ui.home_folder, 'other_options.txt')
         content = open_files(config_file, lines_read=False)
         content = re.sub('AUTH=[^\n]*', new_pass, content)
