@@ -120,8 +120,10 @@ def get_yt_url(url, quality, ytdl_path, logger, mode=None, reqfrom=None):
                     url, youtube_dl, logger, ytdl_extra, resolution=res,
                     mode=mode, sub_folder=yt_sub_folder
                     )
+                if not final_url:
+                    final_url = url
     except Exception as e:
-        logger.info('--error in processing youtube url--{0}'.format(e))
+        logger.error('--error in processing youtube url--{0}'.format(e))
         txt = 'Please Update youtube-dl'
         send_notification(txt)
         final_url = ''
