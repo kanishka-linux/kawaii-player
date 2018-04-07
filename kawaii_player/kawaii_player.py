@@ -2277,9 +2277,8 @@ watch/unwatch status")
         self.progress.show()
     
     def apply_temp_thumbnail(self):
-        file_path = os.path.join(TMPDIR, 'Playlists', 'TMP_PLAYLIST')
+        file_path = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
         lines = open_files(file_path, True)
-        print(lines)
         for i, j in enumerate(lines):
             j = j.strip()
             if j:
