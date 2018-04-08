@@ -1100,6 +1100,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             item = self.setup_slave_address()
         else:
             item = open_files(file_path, False)
+        ipval = item
         http_val = "http"
         if ui.https_media_server:
             http_val = "https" 
@@ -1108,7 +1109,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             content = ccurl(ip)
         except Exception as err:
             logger.error(err)
-            content = None
+            content = ''
             send_notification('Most Probably Media Server not started on Master')
         if content:
             lines = content.split('\n')
@@ -1133,7 +1134,27 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     json.dump(new_dict, f)
                 if not item.startswith('http') and not item.startswith('https'):
                     item = 'http://{}/sending_playlist'.format(item)
-                ccurl(item, curl_opt='-postfile', post_data=pls_file)
+                elif item.endswith('/'):
+                    item = '{}sending_playlist'.format(item)
+                else:
+                    item = '{}/sending_playlist'.format(item)
+                try:
+                    content = ccurl(item, curl_opt='-postfile', post_data=pls_file)
+                except Exception as err:
+                    logger.error(err)
+                    content = ''
+                if not content:
+                    msg = 'Most Probably slave ip address is wrong or slave server is misconfigured. Try Setting Slave IP address with proper port number again'
+                    logger.error(msg)
+                    send_notification(msg)
+                elif 'Nothing' in content:
+                    msg = 'Maybe {} slave is asking for authentication. Authenticate via its web interface'.format(ipval)
+                    logger.error(msg)
+                    send_notification(msg)
+        else:
+            msg = 'Most Probably Media Server not started on Master.'
+            logger.error(msg)
+            send_notification(msg)
     
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
