@@ -284,6 +284,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.mpvplayer_val.kill()
                 ui.mpvplayer_started = False
             ui.instant_cast_play = int(play_row)
+            if ui.instant_cast_play > len(lines):
+                ui.instant_cast_play = 0
             nav_remote = doGETSignal()
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
             self.final_message(bytes('OK', 'utf-8'))
