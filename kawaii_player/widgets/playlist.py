@@ -1089,7 +1089,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if ok and item:
             with open(file_path, 'w') as f:
                 f.write(item)
-            msg = 'Address of Slave is set to {}. Now start casting single item or playlist'.format(item)
+            msg = 'Address of Slave is set to {}. Now start media server and cast single item or playlist'.format(item)
             send_notification(msg)
         return item
             
