@@ -1074,21 +1074,30 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     writing_failed = False
                     if os.path.exists(file_path):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
-        
-    def start_pc_to_pc_casting(self, mode, row):
-        cur_row = str(row)
-        file_path = os.path.join(ui.tmp_download_folder, 'slave.txt')
+    
+    def setup_slave_address(self):
+        item = '127.0.0.1:9001'
+        file_path = os.path.join(ui.home_folder, 'slave.txt')
         if os.path.isfile(file_path):
             ip_addr = open_files(file_path, False)
         else:
             ip_addr = ''
         item, ok = QtWidgets.QInputDialog.getText(
-            MainWindow, 'Input Dialog', 'Enter IP Address of Slave',
+            MainWindow, 'Input Dialog', 'Enter IP Address of Slave\nExample: 192.168.2.3:9001',
             QtWidgets.QLineEdit.Normal, ip_addr
             )
         if ok and item:
             with open(file_path, 'w') as f:
                 f.write(item)
+        return item
+            
+    def start_pc_to_pc_casting(self, mode, row):
+        cur_row = str(row)
+        file_path = os.path.join(ui.home_folder, 'slave.txt')
+        if not os.path.isfile(file_path):
+            item = self.setup_slave_address()
+        else:
+            item = open_files(file_path, False)
         http_val = "http"
         if ui.https_media_server:
             http_val = "https" 
@@ -1214,6 +1223,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.setTitle("PC To PC Casting")
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                cast_menu.addSeparator()
+                set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
             save_pls = menu.addAction('Save Current Playlist')
             go_to = menu.addAction("Go To Last.fm")
@@ -1249,6 +1260,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('single', self.currentRow())
                 elif action == cast_menu_playlist:
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
+                elif action == set_cast_slave:
+                    self.setup_slave_address()
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
@@ -1374,6 +1387,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.setTitle("PC To PC Casting")
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                cast_menu.addSeparator()
+                set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
@@ -1480,6 +1495,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('single', self.currentRow())
                 elif action == cast_menu_playlist:
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
+                elif action == set_cast_slave:
+                    self.setup_slave_address()
             if save_pls_entry:
                 if action == save_pls:
                     print("creating")
