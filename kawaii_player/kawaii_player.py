@@ -10792,6 +10792,8 @@ watch/unwatch status")
                                             MainWindow.setWindowTitle(self.epn_name_in_list)
                                             self.float_window.setWindowTitle(self.epn_name_in_list)
                                             server._emitMeta("Next", site, self.epn_arr_list)
+                                            if self.cur_row == 0 and 'master_abs_path=' in self.final_playing_url:
+                                                move_ahead = True
                                         self.tmp_pls_file_dict.update({self.cur_row:False})
                                 if move_ahead:
                                     self.localGetInList(eofcode='end')
