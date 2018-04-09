@@ -2546,121 +2546,139 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         logger.info('path={0}:sub={1}'.format(path, sub_path))
         check_local_sub = self.check_local_subtitle(path)
+        logger.debug('{}::{}'.format(check_local_sub, status))
+        if status == 'original' and check_local_sub:
+            content = open_files(check_local_sub, False)
+            c = bytes(content, 'utf-8')
+            self.send_response(200)
+            if check_local_sub.endswith('ass'):
+                self.send_header('Content-type', 'text/ass')
+            elif check_local_sub.endswith('srt'):
+                self.send_header('Content-type', 'text/srt')
+            else:
+                self.send_header('Content-type', 'text/vtt')
+            self.send_header('Content-Length', len(c))
+            self.send_header('Connection', 'close')
+            self.end_headers()
+            try:
+                self.wfile.write(c)
+            except Exception as e:
+                print(e)
+        else:
+            sub_srt = False
+            sub_ass = False
+            got_sub = False
 
-        sub_srt = False
-        sub_ass = False
-        got_sub = False
-
-        if check_local_sub is None:
-            check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv', external=True)
-
-        if path.startswith('http') and 'youtube.com' in path:
-            if status == 'getsub':
-                get_yt_sub_(path, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
+            if check_local_sub is None:
                 check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv', external=True)
 
-            if check_local_sub is not None and not os.path.exists(sub_path):
-                try:
-                    if OSNAME == 'posix':
-                        out = subprocess.check_output([
-                            'ffmpeg', '-y', '-i', check_local_sub, sub_path
-                            ])
-                    else:
-                        out = subprocess.check_output([
-                            'ffmpeg', '-y', '-i', check_local_sub, sub_path
-                            ], shell=True)
-                    got_sub = True
-                except Exception as e:
-                    print(e)
-                    got_sub = False
+            if path.startswith('http') and 'youtube.com' in path:
+                if status == 'getsub':
+                    get_yt_sub_(path, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
+                    check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv', external=True)
 
-            if status == 'getsub' and got_sub:
-                self.final_message(b'Got Subtitle')
-                return 0
-            elif status == 'getsub' and not got_sub:
-                self.final_message(b'No Subtitle')
-                return 0
-        elif os.path.exists(path) and not os.path.exists(sub_path):
-            if check_local_sub is not None and status != 'original':
-                try:
-                    if OSNAME == 'posix':
-                        out = subprocess.check_output([
-                            'ffmpeg', '-y', '-i', check_local_sub, sub_path])
-                    else:
-                        out = subprocess.check_output([
-                            'ffmpeg', '-y', '-i', check_local_sub, sub_path
-                            ], shell=True)
-                    got_sub = True
-                except Exception as e:
-                    print(e)
-                    got_sub = False
-            elif status == 'original' and check_local_sub:
-                sub_path = check_local_sub
-                got_sub = True
-            if not got_sub:
-                try:
-                    if OSNAME == 'posix':
-                        out = subprocess.check_output([
-                            'ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c',
-                            'copy', sub_name_srt])
-                    else:
-                        out = subprocess.check_output([
-                            'ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c',
-                            'copy', sub_name_srt], shell=True)
-                    sub_srt = True
-                except Exception as e:
-                    print(e, '--2105--')
-                    sub_srt = False
-                    if os.path.isfile(sub_name_srt):
-                        os.remove(sub_name_srt)
+                if check_local_sub is not None and not os.path.exists(sub_path):
                     try:
                         if OSNAME == 'posix':
                             out = subprocess.check_output([
-                                'ffmpeg', '-y', '-i', path, '-map', '0:s:0',
-                                '-c', 'copy', sub_name_ass])
+                                'ffmpeg', '-y', '-i', check_local_sub, sub_path
+                                ])
                         else:
                             out = subprocess.check_output([
-                                'ffmpeg', '-y', '-i', path, '-map', '0:s:0',
-                                '-c', 'copy', sub_name_ass], shell=True)
-                        sub_ass = True
-                    except Exception as e:
-                        print(e)
-                        sub_ass = False
-                        if os.path.isfile(sub_name_ass):
-                            os.remove(sub_name_ass)
-                if sub_srt or sub_ass:
-                    if sub_srt:
-                        ip_file = sub_name_srt
-                    else:
-                        ip_file = sub_name_ass
-                    try:
-                        if OSNAME == 'posix':
-                            out = subprocess.check_output([
-                                'ffmpeg', '-y', '-i', ip_file, sub_path])
-                        else:
-                            out = subprocess.check_output([
-                                'ffmpeg', '-y', '-i', ip_file, sub_path
+                                'ffmpeg', '-y', '-i', check_local_sub, sub_path
                                 ], shell=True)
                         got_sub = True
                     except Exception as e:
                         print(e)
                         got_sub = False
 
-        if os.path.exists(sub_path):
-            content = open(sub_path, 'r').read()
-            c = bytes(content, 'utf-8')
-        else:
-            logger.info('--2287---No--Subtitles--')
-            c = bytes('WEBVTT', 'utf-8')
-        self.send_response(200)
-        self.send_header('Content-type', 'text/vtt')
-        self.send_header('Content-Length', len(c))
-        self.send_header('Connection', 'close')
-        self.end_headers()
-        try:
-            self.wfile.write(c)
-        except Exception as e:
-            print(e)
+                if status == 'getsub' and got_sub:
+                    self.final_message(b'Got Subtitle')
+                    return 0
+                elif status == 'getsub' and not got_sub:
+                    self.final_message(b'No Subtitle')
+                    return 0
+            elif os.path.exists(path) and not os.path.exists(sub_path):
+                if check_local_sub is not None and status != 'original':
+                    try:
+                        if OSNAME == 'posix':
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', check_local_sub, sub_path])
+                        else:
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', check_local_sub, sub_path
+                                ], shell=True)
+                        got_sub = True
+                    except Exception as e:
+                        print(e)
+                        got_sub = False
+                elif status == 'original' and check_local_sub:
+                    sub_path = check_local_sub
+                    got_sub = True
+                if not got_sub:
+                    try:
+                        if OSNAME == 'posix':
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c',
+                                'copy', sub_name_srt])
+                        else:
+                            out = subprocess.check_output([
+                                'ffmpeg', '-y', '-i', path, '-map', '0:s:0', '-c',
+                                'copy', sub_name_srt], shell=True)
+                        sub_srt = True
+                    except Exception as e:
+                        print(e, '--2105--')
+                        sub_srt = False
+                        if os.path.isfile(sub_name_srt):
+                            os.remove(sub_name_srt)
+                        try:
+                            if OSNAME == 'posix':
+                                out = subprocess.check_output([
+                                    'ffmpeg', '-y', '-i', path, '-map', '0:s:0',
+                                    '-c', 'copy', sub_name_ass])
+                            else:
+                                out = subprocess.check_output([
+                                    'ffmpeg', '-y', '-i', path, '-map', '0:s:0',
+                                    '-c', 'copy', sub_name_ass], shell=True)
+                            sub_ass = True
+                        except Exception as e:
+                            print(e)
+                            sub_ass = False
+                            if os.path.isfile(sub_name_ass):
+                                os.remove(sub_name_ass)
+                    if sub_srt or sub_ass:
+                        if sub_srt:
+                            ip_file = sub_name_srt
+                        else:
+                            ip_file = sub_name_ass
+                        try:
+                            if OSNAME == 'posix':
+                                out = subprocess.check_output([
+                                    'ffmpeg', '-y', '-i', ip_file, sub_path])
+                            else:
+                                out = subprocess.check_output([
+                                    'ffmpeg', '-y', '-i', ip_file, sub_path
+                                    ], shell=True)
+                            got_sub = True
+                        except Exception as e:
+                            print(e)
+                            got_sub = False
+
+            if os.path.exists(sub_path):
+                content = open(sub_path, 'r').read()
+                c = bytes(content, 'utf-8')
+            else:
+                logger.info('--2287---No--Subtitles--')
+                c = bytes('WEBVTT', 'utf-8')
+            self.send_response(200)
+            self.send_header('Content-type', 'text/vtt')
+            self.send_header('Content-Length', len(c))
+            self.send_header('Connection', 'close')
+            self.end_headers()
+            try:
+                self.wfile.write(c)
+            except Exception as e:
+                print(e)
 
     def process_yt_playlist(self, url, pls, mode=None):
         global home, logger
