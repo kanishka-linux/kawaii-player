@@ -1573,6 +1573,7 @@ watch/unwatch status")
         self.pc_to_pc_casting = 'no'
         self.instant_cast_play = -1
         self.live_preview = 'no'
+        self.master_casting_subdict = {}
         self.live_preview_quality = '90'
         self.live_preview_style = 'tooltip'
         self.playback_mode = 'single'
@@ -10794,6 +10795,10 @@ watch/unwatch status")
                                             server._emitMeta("Next", site, self.epn_arr_list)
                                             if self.cur_row == 0 and 'master_abs_path=' in self.final_playing_url:
                                                 move_ahead = True
+                                            if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
+                                                subval = self.master_casting_subdict.get(self.final_playing_url)
+                                                if subval:
+                                                    self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 500)
                                         self.tmp_pls_file_dict.update({self.cur_row:False})
                                 if move_ahead:
                                     self.localGetInList(eofcode='end')
@@ -11213,6 +11218,10 @@ watch/unwatch status")
                 self.mpvplayer_started = True
                 if self.player_setLoop_var and self.player_val == 'mpv':
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
+                if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
+                    subval = self.master_casting_subdict.get(self.final_playing_url)
+                    if subval:
+                        self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 500)
                 
     def adjust_thumbnail_window(self, row):
         global thumbnail_indicator
@@ -11406,9 +11415,9 @@ watch/unwatch status")
             
         if site in ['Video', 'Music', 'None', 'MyServer']:
             if '	' in self.epn_arr_list[row]:
-                    finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
+                finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
             else:
-                    finalUrl = '"'+(self.epn_arr_list[row]).replace('#', '', 1)+'"'
+                finalUrl = '"'+(self.epn_arr_list[row]).replace('#', '', 1)+'"'
             if self.list3.currentItem():
                 if site.lower() == 'music' and self.list3.currentItem().text().lower() == 'playlist':
                     path_rel = finalUrl.replace('"', '')
@@ -11511,7 +11520,11 @@ watch/unwatch status")
         MainWindow.setWindowTitle(self.epn_name_in_list)
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle(self.epn_name_in_list)
-    
+        if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
+            subval = self.master_casting_subdict.get(self.final_playing_url)
+            if subval:
+                self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 500)
+                        
     def paste_background(self, row):
         global site, artist_name_mplayer
         

@@ -277,6 +277,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 val = odict[i]
                 lines.append('{}\t{}\t{}'.format(val['title'], val['url'], val['artist']))
                 play_row = val['play_now']
+                if val['sub'] != 'none':
+                    ui.master_casting_subdict.update({val['url']:val['sub']})
             file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
             f = open(file_name, 'w').close()
             write_files(file_name, lines, line_by_line=True)
@@ -1690,6 +1692,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     new_path = self.path.rsplit('.', 1)[0]
                     if new_path.endswith('.reload'):
                         self.process_subtitle_url(nm, status='reload')
+                    elif new_path.endswith('.original'):
+                        self.process_subtitle_url(nm, status='original')
                     else:
                         self.process_subtitle_url(nm)
                 elif self.path.endswith('.getsub'):
@@ -2576,7 +2580,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b'No Subtitle')
                 return 0
         elif os.path.exists(path) and not os.path.exists(sub_path):
-            if check_local_sub is not None:
+            if check_local_sub is not None and status != 'original':
                 try:
                     if OSNAME == 'posix':
                         out = subprocess.check_output([
@@ -2589,7 +2593,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(e)
                     got_sub = False
-                    
+            elif status == 'original' and check_local_sub:
+                sub_path = check_local_sub
+                got_sub = True
             if not got_sub:
                 try:
                     if OSNAME == 'posix':

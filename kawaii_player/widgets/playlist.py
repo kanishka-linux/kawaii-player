@@ -1092,7 +1092,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
             msg = 'Address of Slave is set to {}. Now start media server and cast single item or playlist'.format(item)
             send_notification(msg)
         return item
-            
+    
+    def check_local_subtitle(self, path, external=None):
+        result = None
+        ext = ['.srt', '.ass', '.en.srt', '.en.ass', '.en.vtt']
+        extension = None
+        if os.path.exists(path) or external:
+            if '.' in path:
+                nm = path.rsplit('.', 1)[0]
+                for i in ext:
+                    sub_name = nm + i
+                    if os.path.exists(sub_name):
+                        result = sub_name
+                        extension = i
+                        break
+        return (result, extension)
+    
     def start_pc_to_pc_casting(self, mode, row):
         cur_row = str(row)
         file_path = os.path.join(ui.home_folder, 'slave.txt')
@@ -1123,12 +1138,33 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 else:
                     lines = lines[1:]
                     new_lines = [i.strip() for i in lines if i.strip()]
+                i = 0
                 for row in range(0, len(new_lines), 2):
                     title = new_lines[row]
                     title = title.split(',', 1)[-1].strip()
                     url = new_lines[row+1]
                     url = url.replace('abs_path=', 'master_abs_path=', 1)
-                    new_dict.update({str(row):{'url':url, 'title':title, 'artist': 'None', 'play_now':cur_row}})
+                    local_path = None
+                    sub = 'none'
+                    ext = 'none'
+                    if '\t' in ui.epn_arr_list[i]:
+                        local_path = ui.epn_arr_list[i].split('\t')[1]
+                    if local_path:
+                        local_path = local_path.replace('"', '')
+                        if os.path.isfile(local_path):
+                            sub, ext = self.check_local_subtitle(local_path)
+                            if sub:
+                                sub = url + '.original.subtitle'
+                    new_dict.update(
+                            {
+                                str(row):{
+                                    'url':url, 'title':title,
+                                    'artist': 'None', 'play_now':cur_row,
+                                    'sub':sub, 'sub-ext':ext
+                                    }
+                            }
+                        )
+                    i += 1
                 pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
                 with open(pls_file, 'w') as f:
                     json.dump(new_dict, f)
