@@ -9696,7 +9696,10 @@ watch/unwatch status")
             self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
             
             self.paste_background(row)
-
+        if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
+            subval = self.master_casting_subdict.get(self.final_playing_url)
+            if subval:
+                self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 5000)
 
     def start_torrent_stream(
             self, name_file, epn_index, local_ip, status, path_folder, session, 
@@ -10798,7 +10801,7 @@ watch/unwatch status")
                                             if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
                                                 subval = self.master_casting_subdict.get(self.final_playing_url)
                                                 if subval:
-                                                    self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 500)
+                                                    self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 5000)
                                         self.tmp_pls_file_dict.update({self.cur_row:False})
                                 if move_ahead:
                                     self.localGetInList(eofcode='end')
@@ -11218,10 +11221,6 @@ watch/unwatch status")
                 self.mpvplayer_started = True
                 if self.player_setLoop_var and self.player_val == 'mpv':
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
-                if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
-                    subval = self.master_casting_subdict.get(self.final_playing_url)
-                    if subval:
-                        self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 500)
                 
     def adjust_thumbnail_window(self, row):
         global thumbnail_indicator
@@ -11521,9 +11520,9 @@ watch/unwatch status")
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle(self.epn_name_in_list)
         if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
-            subval = self.master_casting_subdict.get(self.final_playing_url)
+            subval = self.master_casting_subdict.get(self.cur_row)
             if subval:
-                self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 500)
+                self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 5000)
                         
     def paste_background(self, row):
         global site, artist_name_mplayer
