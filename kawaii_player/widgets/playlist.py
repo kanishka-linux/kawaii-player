@@ -1155,7 +1155,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             sub, ext = self.check_local_subtitle(local_path)
                             if sub:
                                 sub = url + '.original.subtitle'
-                    logger.debug(sub)
+                            else:
+                                sub = 'none'
                     new_dict.update(
                             {
                                 str(row):{
