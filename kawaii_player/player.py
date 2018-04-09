@@ -421,12 +421,12 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.ui.last_dir, file_choose = os.path.split(fname[0][0])
                     title_sub = fname[0][0]
                     if self.player_val == "mplayer":
-                        txt = '\nsub_load '+'"'+title_sub+'"\n'
+                        txt = '\n sub_load "{}" \n'.format(title_sub)
                         txt_b = bytes(txt, 'utf-8')
                         logger.info("{0} - {1}".format(txt_b, txt))
                         self.mpvplayer.write(txt_b)
                     else:
-                        txt = '\nsub_add '+'"'+title_sub+'" select\n'
+                        txt = '\n sub-add "{}" select \n'.format(title_sub)
                         txt_b = bytes(txt, 'utf-8')
                         logger.info("{0} - {1}".format(txt_b, txt))
                         self.mpvplayer.write(txt_b)
@@ -434,14 +434,14 @@ class PlayerWidget(QtWidgets.QWidget):
         elif mode == 'network':
             site = self.ui.get_parameters_value(st='site')['site']
             if site.lower() == 'myserver':
-                title_sub = self.ui.final_playing_url + '.subtitle'
+                title_sub = self.ui.final_playing_url + '.original.subtitle'
                 if self.player_val == "mplayer":
-                    txt = '\nsub_load '+'"'+title_sub+'"\n'
+                    txt = '\n sub_load "{}" \n'.format(title_sub)
                     txt_b = bytes(txt, 'utf-8')
                     logger.info("{0} - {1}".format(txt_b, txt))
                     self.mpvplayer.write(txt_b)
                 else:
-                    txt = '\nsub_add '+'"'+title_sub+'" select\n'
+                    txt = '\n sub-add "{}" select \n'.format(title_sub)
                     txt_b = bytes(txt, 'utf-8')
                     logger.info("{0} - {1}".format(txt_b, txt))
                     self.mpvplayer.write(txt_b)
@@ -451,12 +451,12 @@ class PlayerWidget(QtWidgets.QWidget):
             title_sub = subtitle
             logger.debug(title_sub)
             if self.player_val == "mplayer":
-                txt = '\nsub_load '+'"'+title_sub+'"\n'
+                txt = '\n sub_load "{}" \n'.format(title_sub)
                 txt_b = bytes(txt, 'utf-8')
                 logger.info("{0} - {1}".format(txt_b, txt))
                 self.mpvplayer.write(txt_b)
             else:
-                txt = '\nsub_add '+'"'+title_sub+'" select\n'
+                txt = '\n sub-add "{}" select \n'.format(title_sub)
                 txt_b = bytes(txt, 'utf-8')
                 logger.info("{0} - {1}".format(txt_b, txt))
                 self.mpvplayer.write(txt_b)
