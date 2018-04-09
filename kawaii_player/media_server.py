@@ -270,6 +270,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             sort_key_arr.sort()
             lines = []
             odict = OrderedDict()
+            ui.master_casting_subdict.clear()
             for i in sort_key_arr:
                 odict.update({str(i):new_dict.get(str(i))})
             play_row = -1
