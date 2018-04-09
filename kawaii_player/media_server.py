@@ -2547,8 +2547,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         logger.info('path={0}:sub={1}'.format(path, sub_path))
         check_local_sub = self.check_local_subtitle(path)
         logger.debug('{}::{}'.format(check_local_sub, status))
-        if status == 'original' and check_local_sub:
-            content = open_files(check_local_sub, False)
+        if status == 'original':
+            if check_local_sub:
+                content = open_files(check_local_sub, False)
+            else:
+                content = 'Not Found'
             c = bytes(content, 'utf-8')
             self.send_response(200)
             if check_local_sub.endswith('ass'):
