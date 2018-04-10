@@ -834,6 +834,65 @@ def start_new_player_instance(command):
     global ui
     ui.infoPlay(command)
 
+class GetSubThread(QtCore.QThread):
+
+    sub_signal = pyqtSignal(str)
+    
+    def __init__(self, ui_widget, url, wait_time=None):
+        QtCore.QThread.__init__(self)
+        global ui
+        ui = ui_widget
+        self.url = url
+        self.sub_signal.connect(load_external_sub_signal)
+        if wait_time:
+            if isinstance(wait_time, int):
+                self.wait_time = wait_time
+            else:
+                self.wait_time = 0
+        else:
+            self.wait_time = 2
+        
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        sub_name_bytes = bytes(self.url, 'utf-8')
+        h = hashlib.sha256(sub_name_bytes)
+        sub_name = h.hexdigest()
+        sub_name_path = os.path.join(ui.yt_sub_folder, sub_name)
+        try:
+            req = urllib.request.Request(self.url)
+            response = urllib.request.urlopen(req)
+            content = response.read().decode('utf-8')
+            content_type = response.info()['content-type']
+            if 'text/ass' in content_type:
+                ext = '.ass'
+            elif 'text/srt' in content_type:
+                ext = '.srt'
+            else:
+                ext = '.vtt'
+            subtitle_path = sub_name_path + ext
+            write_files(subtitle_path, content, line_by_line=False)
+        except Exception as err:
+            ui.logger.error(err)
+            ext = '.vtt'
+            subtitle_path = sub_name_path + ext
+            content = ccurl(self.url, curl_opt='-o', out_file=subtitle_path)
+        if os.name == 'nt':
+            subtitle_path = 'file:///' + subtitle_path.replace('\\', '/')
+        time.sleep(self.wait_time)
+        if ui.player_val.lower() == 'mplayer':
+            command = 'sub_load "{}"'.format(subtitle_path)
+        else:
+            command = 'sub-add "{}" select'.format(subtitle_path)
+        self.sub_signal.emit(command)
+
+
+@pyqtSlot(str)
+def load_external_sub_signal(command):
+    global ui
+    ui.mpv_execute_command(command, ui.cur_row)
+
 class PlayerGetEpn(QtCore.QThread):
 
     get_epn_signal = pyqtSignal(str, str)
