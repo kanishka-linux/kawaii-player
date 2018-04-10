@@ -2553,7 +2553,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     try:
                         content = open(check_local_sub, mode='r', encoding='utf-8-sig').read()
                     except Exception as err:
-                        ui.logger.error(err)
+                        logger.error(err)
                         content = open_files(check_local_sub, False)
                 else:
                     content = open_files(check_local_sub, False)
@@ -2620,7 +2620,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 ], shell=True)
                         got_sub = True
                     except Exception as e:
-                        print(e)
+                        logger.error(e)
                         got_sub = False
                 elif status == 'original' and check_local_sub:
                     sub_path = check_local_sub
@@ -2637,7 +2637,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 'copy', sub_name_srt], shell=True)
                         sub_srt = True
                     except Exception as e:
-                        print(e, '--2105--')
+                        logger.error(e)
                         sub_srt = False
                         if os.path.isfile(sub_name_srt):
                             os.remove(sub_name_srt)
@@ -2652,7 +2652,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                     '-c', 'copy', sub_name_ass], shell=True)
                             sub_ass = True
                         except Exception as e:
-                            print(e)
+                            logger.error(e)
                             sub_ass = False
                             if os.path.isfile(sub_name_ass):
                                 os.remove(sub_name_ass)
@@ -2671,7 +2671,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                     ], shell=True)
                             got_sub = True
                         except Exception as e:
-                            print(e)
+                            logger.error(e)
                             got_sub = False
 
             if os.path.exists(sub_path):
@@ -2688,7 +2688,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             try:
                 self.wfile.write(c)
             except Exception as e:
-                print(e)
+                logger.error(e)
 
     def process_yt_playlist(self, url, pls, mode=None):
         global home, logger
