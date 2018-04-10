@@ -9700,13 +9700,13 @@ watch/unwatch status")
         if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
             self.check_and_start_getsub_method()
                 
-    def check_and_start_getsub_method():
+    def check_and_start_getsub_method(self):
         subval = self.master_casting_subdict.get(self.final_playing_url)
         if subval:
             if self.player_val == 'mplayer':
                 cmd = 'sub_load "{}"'.format(subval)
             else:
-                cmd = 'add-sub "{}" select'.format(subval)
+                cmd = 'sub-add "{}" select'.format(subval)
             self.mpv_execute_command(cmd, self.cur_row, timer=5000)
             
     def start_torrent_stream(
