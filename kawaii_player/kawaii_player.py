@@ -197,7 +197,7 @@ from widgets.titlelist import TitleListWidget
 from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
 from widgets.optionwidgets import *
 from widgets.scrollwidgets import *
-from thread_modules import FindPosterThread, ThreadingThumbnail
+from thread_modules import FindPosterThread, ThreadingThumbnail, GetSubThread
 from thread_modules import ThreadingExample, DownloadThread, UpdateMusicThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
 from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
@@ -1571,6 +1571,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.pc_to_pc_casting = 'no'
+        self.subtitle_wait_thread = QtCore.QThread()
         self.instant_cast_play = -1
         self.live_preview = 'no'
         self.master_casting_subdict = {}
@@ -9697,10 +9698,17 @@ watch/unwatch status")
             
             self.paste_background(row)
         if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
-            subval = self.master_casting_subdict.get(self.final_playing_url)
-            if subval:
-                self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 5000)
-
+            self.check_and_start_getsub_method()
+                
+    def check_and_start_getsub_method():
+        subval = self.master_casting_subdict.get(self.final_playing_url)
+        if subval:
+            if self.player_val == 'mplayer':
+                cmd = 'sub_load "{}"'.format(subval)
+            else:
+                cmd = 'add-sub "{}" select'.format(subval)
+            self.mpv_execute_command(cmd, self.cur_row, timer=5000)
+            
     def start_torrent_stream(
             self, name_file, epn_index, local_ip, status, path_folder, session, 
             site_name=None, from_client=None):
@@ -10799,9 +10807,7 @@ watch/unwatch status")
                                             if self.cur_row == 0 and 'master_abs_path=' in self.final_playing_url:
                                                 move_ahead = True
                                             if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
-                                                subval = self.master_casting_subdict.get(self.final_playing_url)
-                                                if subval:
-                                                    self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 5000)
+                                                self.check_and_start_getsub_method()
                                         self.tmp_pls_file_dict.update({self.cur_row:False})
                                 if move_ahead:
                                     self.localGetInList(eofcode='end')
@@ -11520,9 +11526,7 @@ watch/unwatch status")
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle(self.epn_name_in_list)
         if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
-            subval = self.master_casting_subdict.get(self.cur_row)
-            if subval:
-                self.mpv_execute_command('sub-add "{}" select'.format(subval), self.cur_row, 5000)
+            self.check_and_start_getsub_method()
                         
     def paste_background(self, row):
         global site, artist_name_mplayer
