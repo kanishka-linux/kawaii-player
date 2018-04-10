@@ -2551,7 +2551,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if check_local_sub:
                 if os.name == 'nt':
                     try:
-                        content = open_files(check_local_sub, mode='r', encoding='utf-8-sig').read()
+                        content = open(check_local_sub, mode='r', encoding='utf-8-sig').read()
                     except Exception as err:
                         ui.logger.error(err)
                         content = open_files(check_local_sub, False)
