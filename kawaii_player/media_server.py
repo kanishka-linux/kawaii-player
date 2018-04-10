@@ -2549,7 +2549,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         logger.debug('{}::{}'.format(check_local_sub, status))
         if status == 'original':
             if check_local_sub:
-                content = open_files(check_local_sub, False)
+                if os.name == 'nt':
+                    try:
+                        content = open_files(check_local_sub, mode='r', encoding='utf-8-sig').read()
+                    except Exception as err:
+                        ui.logger.error(err)
+                        content = open_files(check_local_sub, False)
+                else:
+                    content = open_files(check_local_sub, False)
             else:
                 content = 'Not Found'
             c = bytes(content, 'utf-8')
