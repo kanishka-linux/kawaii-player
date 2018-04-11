@@ -293,6 +293,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
             self.final_message(bytes('OK', 'utf-8'))
         elif self.path.startswith('/sending_subtitle') and ui.pc_to_pc_casting == 'slave':
+            self.final_message(bytes('OK', 'utf-8'))
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
@@ -311,10 +312,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if os.name == 'nt':
                     subtitle_path = 'file:///{}'.format(subtitle_path.replace('\\', '/'))
                 ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
-                cmd = 'sub-add "{}" select'.format(subtitle_path)
-                if ui.mpvplayer_val.processId() > 0:
-                    ui.mpv_execute_command(cmd, ui.cur_row)
-            self.final_message(bytes('OK', 'utf-8'))
+                remote_signal = doGETSignal()
+                remote_signal.control_signal.emit(-1000, 'add_subtitle')
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
 
@@ -2952,6 +2951,8 @@ def start_player_remotely(nm, mode):
                     ui.subtitle_track.clicked.emit()
                 elif mode == 'toggle_audio':
                     ui.audio_track.clicked.emit()
+                elif mode == 'add_subtitle':
+                    ui.add_external_subtitle.clicked.emit()
 
 def find_and_set_index(st, st_o, srch):
     index = None
