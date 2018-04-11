@@ -270,7 +270,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             sort_key_arr.sort()
             lines = []
             odict = OrderedDict()
-            ui.master_casting_subdict.clear()
+            #ui.master_casting_subdict.clear()
             for i in sort_key_arr:
                 odict.update({str(i):new_dict.get(str(i))})
             play_row = -1
@@ -291,6 +291,29 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.instant_cast_play = 0
             nav_remote = doGETSignal()
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
+            self.final_message(bytes('OK', 'utf-8'))
+        elif self.path.startswith('/sending_subtitle') and ui.pc_to_pc_casting == 'slave':
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+                if 'Content-Type' in content:
+                    content = re.search('\{[^\n]*', content).group()
+                    content = content.strip()
+            sub_dict = json.loads(content)
+            sub_name_bytes = bytes(ui.final_playing_url, 'utf-8')
+            h = hashlib.sha256(sub_name_bytes)
+            sub_name = h.hexdigest()
+            sub_name_path = os.path.join(ui.yt_sub_folder, sub_name)
+            for i in sub_dict:
+                val = sub_dict[i]
+                subtitle_path = sub_name_path + '.' + i
+                write_files(subtitle_path, val, line_by_line=False)
+                if os.name == 'nt':
+                    subtitle_path = 'file:///{}'.format(subtitle_path.replace('\\', '/'))
+                ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
+                cmd = 'sub-add "{}" select'.format(subtitle_path)
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpv_execute_command(cmd, ui.cur_row)
             self.final_message(bytes('OK', 'utf-8'))
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
@@ -514,7 +537,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.do_init_function(type_request='get')
 
     def do_POST(self):
-        if self.path.startswith('/sending_playlist') :
+        if self.path.startswith('/sending_playlist')  or self.path.startswith('/sending_subtitle'):
             if ui.remote_control and ui.remote_control_field:
                 path = self.path.replace('/', '', 1)
                 self.process_POST()
