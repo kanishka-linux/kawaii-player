@@ -2233,6 +2233,14 @@ watch/unwatch status")
                     self.queue_url_list.append(self.epn_arr_list[r])
                     self.list6.addItem(self.epn_arr_list[r].split('	')[0])
             self.queue_item_external = -1
+        elif row == -100:
+            self.list6.clear()
+            for i in self.queue_url_list:
+                if '\t' in i:
+                    nm = i.split('\t')[0]
+                else:
+                    nm = i
+                self.list6.addItem(nm)
     
     def set_quality_server_btn_method(self):
         if self.quality_val in self.quality_dict:
