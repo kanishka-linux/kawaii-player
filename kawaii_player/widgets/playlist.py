@@ -1335,6 +1335,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.setTitle("PC To PC Casting")
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                cast_menu_queue = cast_menu.addAction("Queue this Item")
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
@@ -1372,6 +1373,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('single', self.currentRow())
                 elif action == cast_menu_playlist:
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
+                elif action == cast_menu_queue:
+                    self.start_pc_to_pc_casting('queue', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
             if action == new_pls:
