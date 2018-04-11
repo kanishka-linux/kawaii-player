@@ -310,9 +310,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 write_files(subtitle_path, val, line_by_line=False)
                 if os.name == 'nt':
                     subtitle_path = 'file:///{}'.format(subtitle_path.replace('\\', '/'))
-                ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'add_subtitle')
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
+                    remote_signal = doGETSignal()
+                    remote_signal.control_signal.emit(-1000, 'add_subtitle')
             self.final_message(bytes('Subtitle Recieved', 'utf-8'))
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
