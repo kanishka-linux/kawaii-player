@@ -258,7 +258,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.playlist_m3u_dict.update({str(dict_pls_len):pls_txt})
             url_response = 'm3u_playlist_{0}.m3u'.format(dict_pls_len)
             self.final_message(bytes(url_response, 'utf-8'))
-        elif self.path.startswith('/sending_playlist') and ui.pc_to_pc_casting == 'slave':
+        elif ((self.path.startswith('/sending_playlist')
+                or self.path.startswith('/sending_queueitem'))
+                and ui.pc_to_pc_casting == 'slave'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
@@ -280,17 +282,22 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 play_row = val['play_now']
                 if val['sub'] != 'none':
                     ui.master_casting_subdict.update({val['url']:val['sub']})
-            file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
-            f = open(file_name, 'w').close()
-            write_files(file_name, lines, line_by_line=True)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.kill()
-                ui.mpvplayer_started = False
-            ui.instant_cast_play = int(play_row)
-            if ui.instant_cast_play >= len(lines) or ui.instant_cast_play < 0:
-                ui.instant_cast_play = 0
-            nav_remote = doGETSignal()
-            nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
+            if self.path.startswith('/sending_playlist'):
+                file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
+                f = open(file_name, 'w').close()
+                write_files(file_name, lines, line_by_line=True)
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.kill()
+                    ui.mpvplayer_started = False
+                ui.instant_cast_play = int(play_row)
+                if ui.instant_cast_play >= len(lines) or ui.instant_cast_play < 0:
+                    ui.instant_cast_play = 0
+                nav_remote = doGETSignal()
+                nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
+            else:
+                ui.queue_url_list = ui.queue_url_list + lines
+                ui.queue_item_external = -100
+                ui.set_queue_item_btn.clicked.emit()
             self.final_message(bytes('OK', 'utf-8'))
         elif self.path.startswith('/sending_subtitle') and ui.pc_to_pc_casting == 'slave':
             content = self.rfile.read(int(self.headers['Content-Length']))
@@ -537,7 +544,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.do_init_function(type_request='get')
 
     def do_POST(self):
-        if self.path.startswith('/sending_playlist')  or self.path.startswith('/sending_subtitle'):
+        if (self.path.startswith('/sending_playlist')
+                or self.path.startswith('/sending_subtitle')
+                or self.path.startswith('/sending_queueitem')):
             if ui.remote_control and ui.remote_control_field:
                 path = self.path.replace('/', '', 1)
                 self.process_POST()
