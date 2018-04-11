@@ -293,7 +293,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
             self.final_message(bytes('OK', 'utf-8'))
         elif self.path.startswith('/sending_subtitle') and ui.pc_to_pc_casting == 'slave':
-            self.final_message(bytes('OK', 'utf-8'))
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
@@ -314,6 +313,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(-1000, 'add_subtitle')
+            self.final_message(bytes('Subtitle Recieved', 'utf-8'))
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
 
