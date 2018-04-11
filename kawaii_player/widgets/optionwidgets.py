@@ -1339,7 +1339,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.btn_show_stat = QtWidgets.QPushButton(self)
         self.btn_show_stat.setText('Stats')
-        self.btn_show_stat.setToolTip('<html>Show Some Statistics on Video. Applicable only for mpv v2.8+</html>')
+        self.btn_show_stat.setToolTip('<html>Show Some Statistics on Video. Applicable only for mpv v0.28+</html>')
         self.btn_show_stat.clicked.connect(partial(self.execute_command, 'script-binding stats/display-stats-toggle'))
         self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 1)
         
