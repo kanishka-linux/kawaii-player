@@ -1177,8 +1177,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             lines = content.split('\n')
             new_dict = OrderedDict()
             new_lines = []
-            if mode in ['single', 'playlist'] and item:
-                if mode == 'single':
+            if mode in ['single', 'playlist', 'queue'] and item:
+                if mode in ['single', 'queue']:
                     line1 = lines[2*row+1]
                     line2 = lines[2*row+2]
                     new_lines = [line1, line2]
@@ -1217,12 +1217,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 pls_file = os.path.join(ui.tmp_download_folder, 'playlist.json')
                 with open(pls_file, 'w') as f:
                     json.dump(new_dict, f)
-                if not item.startswith('http') and not item.startswith('https'):
-                    item = 'http://{}/sending_playlist'.format(item)
-                elif item.endswith('/'):
-                    item = '{}sending_playlist'.format(item)
+                if mode == 'queue':
+                    request_url = 'sending_queueitem'
                 else:
-                    item = '{}/sending_playlist'.format(item)
+                    request_url = 'sending_playlist'
+                if not item.startswith('http') and not item.startswith('https'):
+                    item = 'http://{}/{}'.format(item, request_url)
+                elif item.endswith('/'):
+                    item = '{}{}'.format(item, request_url)
+                else:
+                    item = '{}/{}'.format(item, request_url)
                 try:
                     content = ccurl(item, curl_opt='-postfile', post_data=pls_file)
                 except Exception as err:
@@ -1495,6 +1499,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.setTitle("PC To PC Casting")
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                cast_menu_queue = cast_menu.addAction("Queue this Item")
                 cast_menu_subtitle = cast_menu.addAction("Send Subtitle File")
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
@@ -1604,6 +1609,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('single', self.currentRow())
                 elif action == cast_menu_playlist:
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
+                elif action == cast_menu_queue:
+                    self.start_pc_to_pc_casting('queue', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
                 elif action == cast_menu_subtitle:
