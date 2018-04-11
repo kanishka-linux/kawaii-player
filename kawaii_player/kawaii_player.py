@@ -1034,6 +1034,13 @@ watch/unwatch status")
         self.remove_queue_item_btn.hide()
         self.queue_item_external_remove = -1
         
+        self.add_external_subtitle = QtWidgets.QPushButton(self.player_opt)
+        self.add_external_subtitle.setObjectName(_fromUtf8("add_external_subtitle"))
+        self.horizontalLayout_player_opt.insertWidget(36, self.add_external_subtitle, 0)
+        self.add_external_subtitle.setText('Add Sub')
+        self.add_external_subtitle.clicked.connect(self.check_and_start_getsub_method)
+        self.add_external_subtitle.hide()
+        
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
         
@@ -2010,7 +2017,7 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
-        
+    
     def player_volume_manager(self):
         if self.frame_extra_toolbar.isHidden():
             if self.fullscreen_video:
