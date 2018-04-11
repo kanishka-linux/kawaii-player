@@ -1108,6 +1108,53 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         break
         return (result, extension)
     
+    def send_subtitle_method(self):
+        fname = QtWidgets.QFileDialog.getOpenFileNames(
+                MainWindow, 'Select One or More Files', ui.last_dir)
+        sub_dict = {}
+        if fname:
+            logger.info(fname)
+            if fname[0]:
+                for i in fname[0]:
+                    ui.last_dir, file_choose = os.path.split(i)
+                    if '.' in i:
+                        ext = i.rsplit('.', 1)[1]
+                    else:
+                        ext = None
+                    check_local_sub = i
+                    if ext in ['srt', 'ass', 'vtt']:
+                        if os.name == 'nt':
+                            try:
+                                content = open(check_local_sub, mode='r', encoding='utf-8-sig').read()
+                            except Exception as err:
+                                logger.error(err)
+                                content = open_files(check_local_sub, False)
+                        else:
+                            content = open_files(check_local_sub, False)
+                        sub_dict.update({ext:content})
+                    logger.debug('{}::{}'.format(i, file_choose))
+                    sub_json = os.path.join(ui.tmp_download_folder, 'sub.json')
+                    if sub_dict:
+                        file_path = os.path.join(ui.home_folder, 'slave.txt')
+                        if os.path.isfile(file_path):
+                            item = open_files(file_path, False)
+                            with open(sub_json, 'w') as f:
+                                json.dump(sub_dict, f)
+                            if not item.startswith('http') and not item.startswith('https'):
+                                item = 'http://{}/sending_subtitle'.format(item)
+                            elif item.endswith('/'):
+                                item = '{}sending_subtitle'.format(item)
+                            else:
+                                item = '{}/sending_subtitle'.format(item)
+                            try:
+                                content = ccurl(item, curl_opt='-postfile', post_data=sub_json)
+                            except Exception as err:
+                                logger.error(err)
+                                content = ''
+                        else:
+                            send_notification('Slave IP Address not set')
+                       
+                            
     def start_pc_to_pc_casting(self, mode, row):
         cur_row = str(row)
         file_path = os.path.join(ui.home_folder, 'slave.txt')
@@ -1448,6 +1495,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.setTitle("PC To PC Casting")
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
+                cast_menu_subtitle = cast_menu.addAction("Send Subtitle File")
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
@@ -1558,6 +1606,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
+                elif action == cast_menu_subtitle:
+                    self.send_subtitle_method()
             if save_pls_entry:
                 if action == save_pls:
                     print("creating")
