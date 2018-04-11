@@ -1577,6 +1577,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.playlist_queue_used = False
         self.pc_to_pc_casting = 'no'
         self.subtitle_wait_thread = QtCore.QThread()
         self.instant_cast_play = -1
@@ -10758,6 +10759,14 @@ watch/unwatch status")
                     queue_item = None
                     if self.queue_url_list:
                         queue_item = self.queue_url_list[0]
+                    elif not self.queue_url_list and self.playlist_queue_used:
+                        self.playlist_queue_used = False
+                        pls_file = self.tmp_pls_file
+                        if OSNAME == 'nt':
+                            pls_file = 'file:///{}'.format(self.tmp_pls_file.replace('\\', '/'))
+                        cmd = 'loadlist "{}"'.format(pls_file)
+                        self.mpv_execute_command(cmd, self.cur_row)
+                        self.cur_row = -1
                     if self.player_setLoop_var:
                         pass
                     elif queue_item is None or isinstance(queue_item, tuple):
@@ -11193,6 +11202,7 @@ watch/unwatch status")
         self.eof_reached = False
         self.eof_lock = False
         self.mpv_playback_duration = None
+        self.playlist_queue_used = False
         logger.debug('Now Starting')
         if not command:
             t = "Loading Failed: No Url/File Found. Try Again"
@@ -11677,10 +11687,28 @@ watch/unwatch status")
             logger.debug('code={}::mode={}::index={}::final={}'.format(
                 eofcode, self.playback_mode, index, finalUrl)
                 )
-            if eofcode == 'end' and self.playback_mode == 'playlist':
+            self.final_playing_url = finalUrl
+            if eofcode == 'end' and self.playback_mode == 'playlist' and index != -1:
                 cmd = '\n set playlist-pos {} \n'.format(index)
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                    self.cur_row = index
+            elif eofcode == 'end' and self.playback_mode == 'playlist' and index == -1:
+                self.playlist_queue_used = True
+                finalUrl = finalUrl.replace('"', '')
+                pls_file = self.tmp_pls_file
+                if OSNAME == 'nt' and not finalUrl.startswith('http'):
+                    finalUrl = 'file:///{}'.format(finalUrl.replace('\\', '/'))
+                    pls_file = 'file:///{}'.format(self.tmp_pls_file.replace('\\', '/'))
+                cmd1 = 'loadfile "{}" replace'.format(finalUrl)
+                msg = 'print-text "LENGTH_SECONDS=${duration}"'
+                cmd_arr = [cmd1, msg, msg]
+                counter = 0
+                for cmd in cmd_arr:
+                    QtCore.QTimer.singleShot(
+                        counter, partial(self.mpv_execute_command, cmd, self.cur_row)
+                        )
+                    counter += 1000
             elif self.playback_mode == 'single':
                 if index >= 0:
                     self.cur_row = index
