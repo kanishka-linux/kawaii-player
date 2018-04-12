@@ -1357,6 +1357,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
                 cast_menu_queue = cast_menu.addAction("Queue this Item")
                 cast_menu.addSeparator()
+                cast_menu_web = cast_menu.addAction("Show More Controls")
+                cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
             save_pls = menu.addAction('Save Current Playlist')
@@ -1397,6 +1399,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('queue', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
+                elif action == cast_menu_web:
+                    self.show_web_menu()
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
@@ -1525,7 +1529,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_queue = cast_menu.addAction("Queue this Item")
                 cast_menu_subtitle = cast_menu.addAction("Send Subtitle File")
                 cast_menu.addSeparator()
-                cast_menu_web = cast_menu.addAction("Show More Slave Controls")
+                cast_menu_web = cast_menu.addAction("Show More Controls")
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
