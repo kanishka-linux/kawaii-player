@@ -856,7 +856,6 @@ watch/unwatch status")
         
         self.btnWebHide = QtWidgets.QPushButton(self.player_opt)
         self.btnWebHide.setObjectName(_fromUtf8("btnWebHide"))
-        
         self.horizontalLayout_player_opt.insertWidget(13, self.btnWebHide, 0)
         self.btnWebHide.setText(self.player_buttons['browser'])
         self.btnWebHide.clicked.connect(self.webHide)
@@ -1577,6 +1576,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.slave_address = '127.0.0.1:9001'
         self.playlist_queue_used = False
         self.pc_to_pc_casting = 'no'
         self.subtitle_wait_thread = QtCore.QThread()
@@ -14136,6 +14136,12 @@ def main():
     except Exception as err:
         logger.error(err)
     
+    slave_file = os.path.join(home, 'slave.txt')
+    if os.path.isfile(slave_file):
+        try:
+            ui.slave_address = open_files(slave_file, False)
+        except Exception as err:
+            logger.error(err)
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
