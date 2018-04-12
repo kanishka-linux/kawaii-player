@@ -1075,6 +1075,24 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     if os.path.exists(file_path):
                         write_files(file_path, ui.epn_arr_list, line_by_line=True)
     
+    def show_web_menu(self):
+        ip = ui.slave_address
+        request_url = 'stream_continue.htm'
+        addr = None
+        if '127.0.0.1' in ip:
+            send_notification('You have not setup slave address properly')
+        elif not ip.startswith('http') and not ip.startswith('https'):
+            addr = 'http://{}/{}'.format(ip, request_url)
+        elif item.endswith('/'):
+            addr = '{}{}'.format(ip, request_url)
+        else:
+            addr = '{}/{}'.format(ip, request_url)
+        print(addr, ip, request_url)
+        if addr:
+            ui.btnWebReviews_search.setText(addr)
+            ui.webHide()
+            ui.reviewsWeb(action='return_pressed')
+        
     def setup_slave_address(self):
         item = '127.0.0.1:9001'
         file_path = os.path.join(ui.home_folder, 'slave.txt')
@@ -1091,6 +1109,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 f.write(item)
             msg = 'Address of Slave is set to {}. Now start media server and cast single item or playlist'.format(item)
             send_notification(msg)
+        ui.slave_address = item
         return item
     
     def check_local_subtitle(self, path, external=None):
@@ -1162,6 +1181,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             item = self.setup_slave_address()
         else:
             item = open_files(file_path, False)
+            ui.slave_address = item
         ipval = item
         http_val = "http"
         if ui.https_media_server:
@@ -1505,6 +1525,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_queue = cast_menu.addAction("Queue this Item")
                 cast_menu_subtitle = cast_menu.addAction("Send Subtitle File")
                 cast_menu.addSeparator()
+                cast_menu_web = cast_menu.addAction("Show More Slave Controls")
+                cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 menu.addMenu(cast_menu)
             view_list = view_menu.addAction("List Mode (Default)")
@@ -1618,6 +1640,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.setup_slave_address()
                 elif action == cast_menu_subtitle:
                     self.send_subtitle_method()
+                elif action == cast_menu_web:
+                    self.show_web_menu()
             if save_pls_entry:
                 if action == save_pls:
                     print("creating")
