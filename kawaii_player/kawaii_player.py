@@ -5383,23 +5383,13 @@ watch/unwatch status")
         
     def webClose(self):
         global view_layout, desktop_session
-        
         #if not self.VerticalLayoutLabel.itemAt(2):
         #    self.VerticalLayoutLabel.addStretch(2)
         #    print('--stretch -- added--to --label and text widget--')
-        
         self.tmp_web_srch = ''
         if self.web:
-            self.web.setHtml('<html>Reviews:</html>')
-        if desktop_session == 'ubuntu':
-            print('--page--cleared--')
-        else:
-            try:
-                QtCore.QTimer.singleShot(2000, partial(self.delete_web_instance, self.web))
-            except Exception as e:
-                print(e)
-            print('--web closed--')
-            
+            self.web.setHtml('<html></html>')
+        logger.debug('--page--cleared--')
         self.tab_2.hide()
         self.list1.show()
         self.list2.show()
