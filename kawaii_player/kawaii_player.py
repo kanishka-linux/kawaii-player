@@ -10655,8 +10655,9 @@ watch/unwatch status")
                             if (MainWindow.isFullScreen() and site != 'Music'
                                     and self.list2.isHidden() and self.tab_6.isHidden()
                                     and self.tab_2.isHidden()):
-                                self.gridLayout.setSpacing(0)
-                                self.frame1.show()
+                                if not self.gapless_playback:
+                                    self.gridLayout.setSpacing(0)
+                                    self.frame1.show()
                                 if self.frame_timer.isActive():
                                     self.frame_timer.stop()
                                 if self.tab_6.isHidden():
