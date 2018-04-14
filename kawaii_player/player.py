@@ -317,6 +317,7 @@ class PlayerWidget(QtWidgets.QWidget):
             else:
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
+                    self.ui.float_window.showNormal()
                     self.ui.tray_widget.right_menu._detach_video()
                     self.ui.tab_5.setFocus()
                 else:

@@ -2577,6 +2577,7 @@ watch/unwatch status")
         else:
             if self.detach_fullscreen:
                 self.detach_fullscreen = False
+                self.float_window.showNormal()
                 self.tray_widget.right_menu._detach_video()
                 self.tab_5.setFocus()
             else:
