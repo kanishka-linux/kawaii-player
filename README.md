@@ -435,7 +435,7 @@ Explanation for some casting commands:
 
 #### PC To PC Casting
 
-kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended in v3.5.0 to include master-slave design in order to incorporate PC-To-PC casting. Following are some important aspects of this feature.
+kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended in v3.5.0 to include master-slave design in order to incorporate PC-To-PC casting feature. Following are some important aspects of this feature.
     
     * Casting of single file or entire playlist from one computer (Master) to another computer (Slave) running kawaii-player.
     * Automatic loading of subtitle (if subtitle name matches the file name)
@@ -443,13 +443,13 @@ kawaii-player can work as client as well as server at the same time. This featur
     * Ability to queue items
     * Ability to open web interface of slave from internal browser of master, which contains multiple other options to control playback activity on slave.
     
-    **How to enable PC-To-PC casting feature?**
+**How to enable PC-To-PC casting feature?**
 
-        * Install kawaii-player on two computers say master and slave.
-        * On master, enable master mode: Preferences->Other->PC To PC Casting->Master.
-        * On Slave, enable slave mode: Preferences->Other->PC To PC Casting->Slave
-        * Start media server on both.
-        * Select any playlist of master. From its contextmenu, start casting files or playlist from master to slave.
+    * Install kawaii-player on two computers say master and slave.
+    * On master, enable master mode: Preferences->Other->PC To PC Casting->Master.
+    * On Slave, enable slave mode: Preferences->Other->PC To PC Casting->Slave
+    * Start media server on both.
+    * Select any playlist of master. From its contextmenu, start casting files or playlist from master to slave.
     
 For details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
 
