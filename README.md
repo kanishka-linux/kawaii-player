@@ -1,6 +1,6 @@
 # Kawaii-Player
 
-Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer), along with functionalities of portable media server and torrent streaming server. 
+Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer) with PC-To-PC casting feature, along with functionalities of portable media server and torrent streaming server. 
 
 ![kawaii-player](/Images/Video.png)
 
@@ -112,7 +112,7 @@ The built-in portable media server of this application can have many use cases. 
 
 23. [Web Interface for accessing media server content](#using-web-interface)
 
-24. [Limited Casting Support](#casting)
+24. [Casting Support](#casting)
 
 25. [Remote Control using web interface](#remote-control)
 
@@ -432,6 +432,26 @@ Explanation for some casting commands:
 * **torrent:** command: First select Torrent section from web interface, then this command will send torrent http/magnet link to the application. Users then have to go to Torrent->History section and click on the required item to make it start playing.
 
 * **ytq:** command: (Available in version 2.8+ onwards) Users can send any ytdl supported link/direct link or torrent magnet/http link to the application, which will be then played instantly without asking anything.
+
+#### PC To PC Casting
+
+    kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended to include master-slave design in order to incorporate PC-To-PC casting. Following are some important aspects of this feature. (This feature is available from v3.5+ onwards)
+    
+    * Casting of single file or entire playlist from one computer (Master) to another computer (Slave) running kawaii-player.
+    * Automatic loading of subtitle (if subtitle name matches the file name)
+    * Ability to send external subtitle file from master to slave
+    * Ability to queue items
+    * Ability to open web interface of slave from internal browser of master, which contains multiple other options to control playback activity on slave.
+    
+    **How to enable PC-To-PC casting feature?**
+
+        * Install kawaii-player on two computers say master and slave.
+        * On master, enable master mode: Preferences->Other->PC To PC Casting->Master.
+        * On Slave, enable slave mode: Preferences->Other->PC To PC Casting->Slave
+        * Start media server on both.
+        * Select any playlist of master. From its contextmenu, start casting files or playlist from master to slave.
+    
+    For details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
 
 About casting extensions:
 
