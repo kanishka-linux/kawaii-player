@@ -435,7 +435,7 @@ Explanation for some casting commands:
 
 #### PC To PC Casting
 
-    kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended to include master-slave design in order to incorporate PC-To-PC casting. Following are some important aspects of this feature. (This feature is available from v3.5+ onwards)
+kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended to include master-slave design in order to incorporate PC-To-PC casting. Following are some important aspects of this feature. (This feature is available from v3.5+ onwards)
     
     * Casting of single file or entire playlist from one computer (Master) to another computer (Slave) running kawaii-player.
     * Automatic loading of subtitle (if subtitle name matches the file name)
