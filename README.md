@@ -25,7 +25,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Using Web Interface](#using-web-interface)
 
-- [Limited Casting Support](#casting)
+- [Casting Support](#casting)
 
 - [Remote Control](#remote-control)
 
@@ -451,7 +451,7 @@ Explanation for some casting commands:
         * Start media server on both.
         * Select any playlist of master. From its contextmenu, start casting files or playlist from master to slave.
     
-    For details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
+For details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
 
 About casting extensions:
 
