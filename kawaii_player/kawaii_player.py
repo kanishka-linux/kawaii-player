@@ -5561,7 +5561,7 @@ watch/unwatch status")
     
     
     def shuffleList(self):
-        global pre_opt, opt, hdr, site, embed
+        global pre_opt, opt, site, embed
         global finalUrlFound
         global total_till, browse_cnt
         global bookmark
@@ -5609,7 +5609,7 @@ watch/unwatch status")
         opt = "Random"
         
     def sortList(self):
-        global pre_opt, opt, hdr, site, embed
+        global pre_opt, opt, site, embed
         global finalUrlFound
         global total_till
         global browse_cnt, bookmark
@@ -5970,7 +5970,7 @@ watch/unwatch status")
             self.epnfound()
             
     def setPreOpt(self, option_val=None):
-        global pre_opt, opt, hdr, site, insidePreopt, home
+        global pre_opt, opt, site, insidePreopt, home
         global name, bookmark, status, total_till, browse_cnt
         global siteName
         
@@ -7154,7 +7154,7 @@ watch/unwatch status")
         
     def search(self):
         code = 1
-        global site, opt, mirrorNo, hdr
+        global site, opt, mirrorNo
         global site_arr, siteName, finalUrlFound
         global total_till, browse_cnt
         global bookmark, refererNeeded, name
@@ -9183,7 +9183,7 @@ watch/unwatch status")
         
     def epnfound(self):
         global site, epn, epn_goto, mirrorNo
-        global finalUrl, home, hdr, path_Local_Dir
+        global finalUrl, home, path_Local_Dir
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
         global new_epn, buffering_mplayer
@@ -9539,17 +9539,7 @@ watch/unwatch status")
                             subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             elif self.download_video == 1 and refererNeeded == False:
                 if type(finalUrl) is list:
-                    j = 0
-                    length = len(finalUrl)
-                    for i in finalUrl:
-                        if length == 1:
-                            nepn1 = new_epn
-                        else:
-                            nepn1 = new_epn + "-Part-" + str(j+1)
-                        subprocess.Popen(["uget-gtk", "--quiet=yes",
-                            "--http-user-agent="+hdr, finalUrl[j],
-                            "--filename="+nepn1+".mp4"])
-                        j = j+1
+                    pass
                 else:
                     finalUrl = finalUrl.replace('"', '')
                     self.list2.setFocus()
@@ -9810,7 +9800,7 @@ watch/unwatch status")
                 
     def epn_return(self, row, mode=None):
         global site, epn_goto, mirrorNo
-        global finalUrl, home, hdr, path_Local_Dir
+        global finalUrl, home, path_Local_Dir
         global new_epn, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
@@ -9993,7 +9983,7 @@ watch/unwatch status")
                 self.text.show()
     
     def start_offline_mode(self, row, extra=None):
-        global site, name, hdr
+        global site, name
         self.queue_stop = False
         if not self.epn_wait_thread.isRunning():
             if site not in ['Video', 'Music', 'PlayLists', 'None'] and extra:
@@ -10007,7 +9997,7 @@ watch/unwatch status")
                 self.epn_wait_thread.start()
                 
     def start_offline_mode_post(self, finalUrl, row, title=None, new_epn=None):
-        global site, name, hdr
+        global site, name
         referer = False
         if not isinstance(finalUrl, list):
             finalUrl = finalUrl.replace('"', '')
@@ -10134,7 +10124,7 @@ watch/unwatch status")
         print("Process Started")
         
     def finishedW(self, src):
-        global name, hdr, site
+        global name, site
         print("Process Ended")
         self.progress.setValue(100)
         self.progress.hide()
@@ -12989,7 +12979,7 @@ watch/unwatch status")
             logger.error(err)
             
 def main():
-    global ui, MainWindow, tray, hdr, name, pgn, genre_num, site, name, epn
+    global ui, MainWindow, tray, name, pgn, genre_num, site, name, epn
     global embed, epn_goto, opt, mirrorNo, queueNo
     global pre_opt, insidePreopt
     global new_tray_widget
