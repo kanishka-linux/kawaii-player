@@ -6082,7 +6082,7 @@ watch/unwatch status")
         
     def mark_addons_history_list(self, mark_val, row):
         global opt, site, home, site, name, siteName, finalUrlFound
-        global refererNeeded, path_Local_Dir
+        global refererNeeded
         
         if (opt == "History" and (site.lower() !="video" 
                 and site.lower()!= 'music' and site.lower()!= 'playlists' 
@@ -6142,7 +6142,7 @@ watch/unwatch status")
                 self.list2.setCurrentRow(row)
         
     def watchToggle(self):
-        global site, epn, epn_goto, pre_opt, home, path_Local_Dir
+        global site, epn, epn_goto, pre_opt, home
         global opt, siteName, finalUrlFound, refererNeeded
         if (opt == "History" and (site.lower() !="video" 
                     and site.lower()!= 'music' and site.lower()!= 'playlists' 
@@ -7060,10 +7060,9 @@ watch/unwatch status")
         
     def rawlist_highlight(self):
         global site, name, opt, pre_opt, mirrorNo
-        global row_history, home, epn, path_Local_Dir
+        global row_history, home, epn
         global bookmark, status, siteName
         global screen_height, screen_width
-        #print('========raw_list_highlight==========')
         if self.list1.currentItem():
             nm = self.original_path_name[self.list1.currentRow()].strip()
             if '	' in nm:
@@ -7077,7 +7076,6 @@ watch/unwatch status")
         thumbnail = os.path.join(TMPDIR, name+'-thumbnail.jpg')
         m = []
         self.epn_arr_list[:]=[]
-        #print('========raw_list_highlight==========')
         summary = 'Summary Not Available'
         picn = 'No.jpg'
         if siteName:
@@ -7480,7 +7478,7 @@ watch/unwatch status")
     
     def listfound(self, send_list=None, row_select=None, show_ep_thumbnail=None):
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
-        global row_history, home, epn, path_Local_Dir, bookmark
+        global row_history, home, epn, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
         global opt_movies_indicator, siteName
         global screen_height, screen_width
@@ -9183,7 +9181,7 @@ watch/unwatch status")
         
     def epnfound(self):
         global site, epn, epn_goto, mirrorNo
-        global finalUrl, home, path_Local_Dir
+        global finalUrl, home
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
         global new_epn, buffering_mplayer
@@ -9800,7 +9798,7 @@ watch/unwatch status")
                 
     def epn_return(self, row, mode=None):
         global site, epn_goto, mirrorNo
-        global finalUrl, home, path_Local_Dir
+        global finalUrl, home
         global new_epn, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
         
@@ -11259,7 +11257,7 @@ watch/unwatch status")
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
-        global new_epn, path_Local_Dir
+        global new_epn
         global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, music_arr_setting
         global default_arr_setting
@@ -11829,7 +11827,7 @@ watch/unwatch status")
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
         global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
-        global new_epn, path_Local_Dir
+        global new_epn
         global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, default_arr_setting
         global music_arr_setting, audio_id, sub_id
@@ -12865,8 +12863,8 @@ watch/unwatch status")
                     self.list2.clear()
                     m = []
                     try:
-                        path_Local_Dir, name = os.path.split(t)
-                        list_dir = os.listdir(path_Local_Dir)
+                        path_local_dir, name = os.path.split(t)
+                        list_dir = os.listdir(path_local_dir)
                     except Exception as e:
                         print(e)
                         return 0
@@ -12877,27 +12875,25 @@ watch/unwatch status")
                     self.list2.clear()
                     m = []
                     try:
-                        path_Local_Dir = t
-                        list_dir = os.listdir(path_Local_Dir)
+                        path_local_dir = t
+                        list_dir = os.listdir(path_local_dir)
                     except Exception as e:
                         logger.error(e)
                         return 0
                 for z in list_dir:
                     if ('.mkv' in z or '.mp4' in z or '.avi' in z or '.mp3' in z 
-                                or '.flv' in z or '.flac' in z or '.wma' in z
-                                or '.wmv' in z or '.ogg' in z or '.webm' in z
-                                or '.wma' in z):
-                            m.append(os.path.join(path_Local_Dir, z))
-                m=naturallysorted(m)
+                            or '.flv' in z or '.flac' in z or '.wma' in z
+                            or '.wmv' in z or '.ogg' in z or '.webm' in z
+                            or '.wma' in z or '.mpg' in z or '.mpeg' in z):
+                        m.append(os.path.join(path_local_dir, z))
+                m = naturallysorted(m)
                 #print m
-                self.epn_arr_list[:]=[]
+                self.epn_arr_list[:] = []
                 j = 0
                 row = 0
                 t = t.replace('"', '')
                 t=urllib.parse.unquote(t)
-                
                 e = os.path.basename(t)
-                
                 for i in m:
                     i1 = i
                     i = os.path.basename(i)
