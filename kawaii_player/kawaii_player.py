@@ -2423,7 +2423,7 @@ watch/unwatch status")
         global site, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator
-        global cur_label_num, path_final_Url, current_playing_file_path
+        global path_final_Url, current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval, memory_num_arr
         global show_hide_playlist, show_hide_titlelist, opt, mirrorNo
         global name, category, bookmark
@@ -2451,8 +2451,6 @@ watch/unwatch status")
             mpv_indicator = mpv_i
         if memory_num:
             memory_num_arr = memory_num
-        if cur_label:
-            cur_label_num = cur_label
         if show_hide_pl:
             show_hide_playlist = show_hide_pl
         if show_hide_tl:
@@ -2482,7 +2480,7 @@ watch/unwatch status")
         global name, html_default_arr
         global pause_indicator, mpv_indicator, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
-        global iconv_r, cur_label_num, tab_6_size_indicator
+        global iconv_r, tab_6_size_indicator
         global refererNeeded, server, memory_num_arr
         global finalUrlFound, interval, name, opt, bookmark, status
         global base_url, embed, mirrorNo, category, screen_width, screen_height
@@ -3619,8 +3617,6 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                 
     def playerPlayPause(self):
-        global cur_label_num
-        
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
             if self.mpvplayer_val.processId() > 0:
@@ -3659,7 +3655,6 @@ watch/unwatch status")
                     self.epnfound()
     
     def player_force_play(self):
-        global cur_label_num
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == "mpv":
                 txt_osd = '\n set osd-level 1 \n'
@@ -3670,7 +3665,6 @@ watch/unwatch status")
                 self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             
     def player_force_pause(self):
-        global cur_label_num
         if self.player_val == "mpv":
             txt_osd = '\n set osd-level 3 \n'
             #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
@@ -3699,7 +3693,7 @@ watch/unwatch status")
     def playerPlaylist(self, val):
         global playlist_show, site, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
-        global show_hide_player, httpd, cur_label_num
+        global show_hide_player, httpd
         
         self.player_menu_option = [
             'Show/Hide Video', 'Show/Hide Cover And Summary', 
@@ -8582,7 +8576,7 @@ watch/unwatch status")
             self.infoPlay(command)
             
     def play_file_now(self, file_name, win_id=None, eofcode=None):
-        global current_playing_file_path, cur_label_num, sub_id, audio_id
+        global current_playing_file_path, sub_id, audio_id
         
         if file_name.startswith('abs_path=') or file_name.startswith('relative_path='):
             file_name = self.if_path_is_rel(file_name)
@@ -10219,7 +10213,7 @@ watch/unwatch status")
         global cache_empty, buffering_mplayer, slider_clicked
         global artist_name_mplayer, server
         global new_tray_widget, pause_indicator
-        global mpv_indicator, mpv_start, cur_label_num
+        global mpv_indicator, mpv_start
         global sub_id, audio_id, current_playing_file_path, desktop_session
         
         try:
@@ -11019,7 +11013,7 @@ watch/unwatch status")
         
     def started(self):
         global epn, new_epn, mpv_start
-        global cur_label_num, site
+        global site
         if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
             length_1 = self.list2.count()
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
@@ -12988,7 +12982,7 @@ def main():
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator, opt_movies_indicator
-    global cur_label_num, iconv_r_indicator
+    global iconv_r_indicator
     global audio_id, sub_id, site_arr, siteName, finalUrlFound
     global refererNeeded
     global update_start, screen_width, screen_height, total_till_epn
@@ -13036,7 +13030,6 @@ def main():
     audio_id = "auto"
     sub_id = "auto"
     iconv_r_indicator = []
-    cur_label_num = 0
     opt_movies_indicator=[]
     thumbnail_indicator=[]
     pause_indicator = []
