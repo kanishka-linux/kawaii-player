@@ -328,9 +328,7 @@ class PlayerWidget(QtWidgets.QWidget):
                             self.ui.float_window.showNormal()
         else:
             self.ui.tab_6_size_indicator.append(self.ui.tab_6.width())
-            param_dict = self.ui.get_parameters_value(
-                icn='iconv_r_indicator', i='iconv_r',
-                cl='cur_label_num')
+            param_dict = self.ui.get_parameters_value(icn='iconv_r_indicator', i='iconv_r')
             iconv_r_indicator = param_dict['iconv_r_indicator']
             iconv_r = param_dict['iconv_r']
             cur_label_num = self.ui.cur_row
