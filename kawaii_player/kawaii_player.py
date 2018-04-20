@@ -3391,7 +3391,7 @@ watch/unwatch status")
         global thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, show_hide_cover
         global show_hide_playlist, show_hide_titlelist
-        global new_tray_widget, sub_id, audio_id
+        global sub_id, audio_id
         change_spacing = False
         if self.mpvplayer_val.processId() > 0 or msg:
             logger.warn(self.progress_counter)
@@ -3584,7 +3584,7 @@ watch/unwatch status")
             self.sortList()
             
     def set_playerLoopFile(self):
-        global tray, new_tray_widget
+        global tray
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == 'mpv':
                 self.mpvplayer_val.write(b'\n set loop-file inf \n')
@@ -3592,14 +3592,14 @@ watch/unwatch status")
                 self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                 
     def playerLoopFile(self, loop_widget):
-        global tray, new_tray_widget
+        global tray
         txt = loop_widget.text()
         #txt = self.player_loop_file.text()
         
         if txt == self.player_buttons['unlock']:
             self.player_setLoop_var = True
             self.player_loop_file.setText(self.player_buttons['lock'])
-            new_tray_widget.lock.setText(self.player_buttons['lock'])
+            self.new_tray_widget.lock.setText(self.player_buttons['lock'])
             self.quit_really = 'no'
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == 'mpv':
@@ -3609,7 +3609,7 @@ watch/unwatch status")
         else:
             self.player_setLoop_var = False
             self.player_loop_file.setText(self.player_buttons['unlock'])
-            new_tray_widget.lock.setText(self.player_buttons['unlock'])
+            self.new_tray_widget.lock.setText(self.player_buttons['unlock'])
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == 'mpv':
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
@@ -10212,7 +10212,7 @@ watch/unwatch status")
         global new_epn, epn, opt, site
         global cache_empty, buffering_mplayer, slider_clicked
         global artist_name_mplayer, server
-        global new_tray_widget, pause_indicator
+        global pause_indicator
         global mpv_indicator, mpv_start
         global sub_id, audio_id, current_playing_file_path, desktop_session
         
@@ -10563,8 +10563,8 @@ watch/unwatch status")
                                         item_index = 0
                                     if self.tmp_pls_file_dict.get(item_index) is False and self.list2.count() > 1:
                                         self.start_gapless_stream_process(item_index)
-                        if not new_tray_widget.isHidden():
-                            new_tray_widget.update_signal.emit(out, val)
+                        if not self.new_tray_widget.isHidden():
+                            self.new_tray_widget.update_signal.emit(out, val)
                         if cache_empty == 'yes':
                             try:
                                 if new_cache_val > self.cache_pause_seconds:
@@ -10902,8 +10902,8 @@ watch/unwatch status")
                             
                             out = out_time + " ["+self.epn_name_in_list+"]" +' Cache:'+c
                             
-                        if not new_tray_widget.isHidden():
-                            new_tray_widget.update_signal.emit(out_time, int(l))
+                        if not self.new_tray_widget.isHidden():
+                            self.new_tray_widget.update_signal.emit(out_time, int(l))
                         if self.video_local_stream:
                             if c == '0%' and not self.mplayer_pause_buffer and not self.mplayer_nop_error_pause:
                                 self.mpvplayer_val.write(b'\n pause \n')
@@ -12506,7 +12506,7 @@ watch/unwatch status")
     def music_mode_layout(self):
         global screen_width, show_hide_cover, show_hide_player
         global show_hide_playlist, show_hide_titlelist, music_arr_setting
-        global opt, new_tray_widget, tray
+        global opt, tray
         #ui.VerticalLayoutLabel.takeAt(2)
         if self.player_theme in ['dark', 'system']:
             self.label_new.hide()
@@ -12561,7 +12561,7 @@ watch/unwatch status")
         self.apply_new_font()
         
     def video_mode_layout(self):
-        global default_arr_setting, opt, new_tray_widget, tray, site
+        global default_arr_setting, opt, tray, site
         global show_hide_titlelist
         #ui.VerticalLayoutLabel.addStretch(1)
         if not self.float_window.isHidden():
@@ -12620,7 +12620,6 @@ watch/unwatch status")
         self.apply_new_font()
         
     def _set_window_frame(self):
-        global new_tray_widget
         txt = self.window_frame
         if txt.lower() == 'false':
             MainWindow.setWindowFlags(
@@ -12972,7 +12971,6 @@ def main():
     global ui, MainWindow, tray, name, pgn, genre_num, site, name, epn
     global embed, epn_goto, opt, mirrorNo, queueNo
     global pre_opt, insidePreopt
-    global new_tray_widget
     global rfr_url, category, home
     global player_focus, artist_name_mplayer
     global total_till, browse_cnt
@@ -14220,11 +14218,10 @@ def main():
         print('System Tray Failed with Exception: {0}'.format(e))
         tray = None
         
-    new_tray_widget = FloatWindowWidget(ui, tray, logger)
-    ui.new_tray_widget = new_tray_widget
+    ui.new_tray_widget = FloatWindowWidget(ui, tray, logger)
     try:
         m_event = EventFilterFloatWindow()
-        new_tray_widget.installEventFilter(m_event)
+        ui.new_tray_widget.installEventFilter(m_event)
         print('Event Filter Installed in new_tray_widget')
     except Exception as e:
         print("Error in Tray Widget Event Filter with error message {0}".format(e))
@@ -14233,7 +14230,7 @@ def main():
         ui._set_window_frame()
     
     try:
-        server = MprisServer(ui, home, tray, new_tray_widget)
+        server = MprisServer(ui, home, tray, ui.new_tray_widget)
     except Exception as e:
         print("can't open Mpris plugin, Exception raised: {0}".format(e))
     
