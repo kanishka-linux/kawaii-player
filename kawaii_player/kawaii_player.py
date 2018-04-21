@@ -2424,7 +2424,7 @@ watch/unwatch status")
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator
         global path_final_Url, current_playing_file_path
-        global artist_name_mplayer, tab_6_player, interval, memory_num_arr
+        global artist_name_mplayer, tab_6_player, interval
         global show_hide_playlist, show_hide_titlelist, opt, mirrorNo
         global name, category, bookmark
         if siteval:
@@ -2449,8 +2449,6 @@ watch/unwatch status")
             pause_indicator = pause_i
         if mpv_i:
             mpv_indicator = mpv_i
-        if memory_num:
-            memory_num_arr = memory_num
         if show_hide_pl:
             show_hide_playlist = show_hide_pl
         if show_hide_tl:
@@ -2481,7 +2479,7 @@ watch/unwatch status")
         global pause_indicator, mpv_indicator, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
         global iconv_r, tab_6_size_indicator
-        global refererNeeded, server, memory_num_arr
+        global refererNeeded, server
         global finalUrlFound, interval, name, opt, bookmark, status
         global base_url, embed, mirrorNo, category, screen_width, screen_height
         arg_dict = {}
@@ -5232,11 +5230,9 @@ watch/unwatch status")
         
     def thumbnailHide(self, context):
         global view_layout, total_till, browse_cnt, iconv_r
-        global memory_num_arr
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
         self.idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
-        memory_num_arr[:]=[]
         i = 0
         if context == "ExtendedQLabel":
             pass
@@ -12973,7 +12969,7 @@ def main():
     global view_layout
     global status, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
-    global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
+    global iconv_r, path_final_Url, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator
     global iconv_r_indicator
@@ -13027,7 +13023,6 @@ def main():
     thumbnail_indicator=[]
     pause_indicator = []
     mpv_indicator = []
-    memory_num_arr = []
     iconv_r = 6
     interval = 0
     slider_clicked = "no"
