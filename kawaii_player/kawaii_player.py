@@ -5016,9 +5016,8 @@ watch/unwatch status")
         return finalUrl
             
     def epnClicked(self, dock_check=None):
-        global queueNo, MainWindow
+        global MainWindow
         self.cur_row = self.list2.currentRow()
-        queueNo = queueNo + 1
         thumb_mode = False
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
@@ -12834,7 +12833,7 @@ watch/unwatch status")
             
 def main():
     global ui, MainWindow, tray, name, pgn, genre_num, site, epn
-    global embed, epn_goto, opt, mirrorNo, queueNo
+    global embed, epn_goto, opt, mirrorNo
     global pre_opt
     global rfr_url, category, home
     global player_focus, artist_name_mplayer
@@ -12909,7 +12908,6 @@ def main():
     category = "Animes"
     rfr_url = ""
     pre_opt = ""
-    queueNo = 0
     mirrorNo = 1
     epn_goto = 0
     epn = ""
