@@ -47,6 +47,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         super(ThumbnailWidget, self).__init__(parent)
         global MainWindow
         MainWindow = parent
+        self.memory_num_arr = []
     
     def setup_globals(
             self, parent, uiwidget=None, hm=None, tmp=None, logr=None,
@@ -1266,9 +1267,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(
-            m='memory_num_arr', f='finalUrlFound',
-            r='refererNeeded', i='interval', s='site', n='name')
-        memory_num_arr = param_dict['memory_num_arr']
+            f='finalUrlFound', r='refererNeeded', i='interval',
+            s='site', n='name'
+            )
         finalUrlFound = param_dict['finalUrlFound']
         refererNeeded = param_dict['refererNeeded']
         interval = param_dict['interval']
@@ -1365,8 +1366,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     or site =="PlayLists" or site == "Video" or site == "Music"
                     or site == "MyServer"):
                 ui.list2.setCurrentRow(num)
-                if memory_num_arr:
-                    t_num = memory_num_arr.pop()
+                if self.memory_num_arr:
+                    t_num = self.memory_num_arr.pop()
                 else:
                     t_num = -1
                 
@@ -1374,8 +1375,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     if site != "PlayLists":
                         path_final_Url = ui.epn_return(num)
                     interval = 10
-                memory_num_arr.append(num)
-                ui.set_parameters_value(inter=interval, memory_num=memory_num_arr)
+                self.memory_num_arr.append(num)
+                ui.set_parameters_value(inter=interval)
                 if '	' in ui.epn_arr_list[num]:
                     path = (ui.epn_arr_list[num]).split('	')[1]
                 else:	
@@ -1458,9 +1459,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 height = ui.label.height()
                 print("num="+str(num))
                 ui.list2.setCurrentRow(num)
-                print(memory_num_arr)
-                if memory_num_arr:
-                    t_num = memory_num_arr.pop()
+                print(self.memory_num_arr)
+                if self.memory_num_arr:
+                    t_num = self.memory_num_arr.pop()
                 else:
                     t_num = -1
             
@@ -1470,9 +1471,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     interval = 10
                 else:
                     path_final_Url = ui.get_parameters_value(path_final='path_final_Url')['path_final_Url']
-                memory_num_arr.append(num)
-                ui.set_parameters_value(inter=interval, path_final=path_final_Url,
-                                        memory_num=memory_num_arr)
+                self.memory_num_arr.append(num)
+                ui.set_parameters_value(inter=interval, path_final=path_final_Url)
                 if '	' in ui.epn_arr_list[num]:
                     a = (((ui.epn_arr_list[num])).split('	')[0])
                 else:			
