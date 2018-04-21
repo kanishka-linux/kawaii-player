@@ -5964,11 +5964,10 @@ watch/unwatch status")
             self.epnfound()
             
     def setPreOpt(self, option_val=None):
-        global pre_opt, opt, site, insidePreopt, home
+        global pre_opt, opt, site, home
         global name, bookmark, status, total_till, browse_cnt
         global siteName
         
-        insidePreopt = 1
         var = (self.btn1.currentText())
         if var == "Select":
             return 0
@@ -7474,10 +7473,9 @@ watch/unwatch status")
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
         global row_history, home, epn, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
-        global opt_movies_indicator, siteName
+        global siteName
         global screen_height, screen_width
         
-        opt_movies_indicator[:]=[]
         new_dir_path = None
         fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
         thumbnail = os.path.join(TMPDIR, name+'-thumbnail.jpg')
@@ -9179,7 +9177,6 @@ watch/unwatch status")
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
         global new_epn, buffering_mplayer
-        global opt_movies_indicator
         global name, artist_name_mplayer, rfr_url, server
         global current_playing_file_path
         global music_arr_setting, default_arr_setting, local_torrent_file_path
@@ -11250,7 +11247,7 @@ watch/unwatch status")
     def localGetInList(self, eofcode=None):
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
-        global opt_movies_indicator, audio_id, sub_id, siteName, artist_name_mplayer
+        global audio_id, sub_id, siteName, artist_name_mplayer
         global new_epn
         global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, music_arr_setting
@@ -11820,7 +11817,7 @@ watch/unwatch status")
     def getNextInList(self, eofcode=None):
         global site, epn, epn_goto, mirrorNo
         global finalUrl, home, buffering_mplayer
-        global opt_movies_indicator, audio_id, sub_id, siteName, rfr_url
+        global audio_id, sub_id, siteName, rfr_url
         global new_epn
         global thumbnail_indicator, category, finalUrlFound, refererNeeded
         global server, current_playing_file_path, default_arr_setting
@@ -12212,7 +12209,7 @@ watch/unwatch status")
         
     def options(self, val=None):
         global opt, pgn, genre_num, site, name
-        global pre_opt, mirrorNo, insidePreopt, home, siteName, finalUrlFound
+        global pre_opt, mirrorNo, home, siteName, finalUrlFound
         global show_hide_playlist, show_hide_titlelist, total_till_epn
         global total_till, browse_cnt
         global bookmark, status
@@ -12435,7 +12432,6 @@ watch/unwatch status")
                             self.last_dir = fname
                             self.watch_external_video(fname)
         self.page_number.setText(str(self.list1.count()))
-        insidePreopt = 0
         
         if ((self.view_mode in ["thumbnail", "thumbnail_light"] or not self.tab_6.isHidden()) 
                 and (opt == "History" or site=='Video' or bookmark
@@ -12968,9 +12964,9 @@ watch/unwatch status")
             logger.error(err)
             
 def main():
-    global ui, MainWindow, tray, name, pgn, genre_num, site, name, epn
+    global ui, MainWindow, tray, name, pgn, genre_num, site, epn
     global embed, epn_goto, opt, mirrorNo, queueNo
-    global pre_opt, insidePreopt
+    global pre_opt
     global rfr_url, category, home
     global player_focus, artist_name_mplayer
     global total_till, browse_cnt
@@ -12979,7 +12975,7 @@ def main():
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, memory_num_arr, mpv_indicator
     global pause_indicator, default_option_arr
-    global thumbnail_indicator, opt_movies_indicator
+    global thumbnail_indicator
     global iconv_r_indicator
     global audio_id, sub_id, site_arr, siteName, finalUrlFound
     global refererNeeded
@@ -13028,7 +13024,6 @@ def main():
     audio_id = "auto"
     sub_id = "auto"
     iconv_r_indicator = []
-    opt_movies_indicator=[]
     thumbnail_indicator=[]
     pause_indicator = []
     mpv_indicator = []
@@ -13039,7 +13034,6 @@ def main():
     buffering_mplayer = "no"
     cache_empty = "no"
     player_focus = 0
-        
     status = "bookmark"
     view_layout = "List"
     total_till = 0
@@ -13047,8 +13041,6 @@ def main():
     home = get_home_dir()
     category = "Animes"
     rfr_url = ""
-    
-    insidePreopt = 0
     pre_opt = ""
     queueNo = 0
     mirrorNo = 1
