@@ -9175,7 +9175,7 @@ watch/unwatch status")
         global new_epn, buffering_mplayer
         global name, artist_name_mplayer, rfr_url, server
         global current_playing_file_path
-        global music_arr_setting, default_arr_setting, local_torrent_file_path
+        global music_arr_setting, default_arr_setting
         buffering_mplayer="no"
         self.list4.hide()
         self.player_play_pause.setText(self.player_buttons['pause'])
@@ -9259,7 +9259,6 @@ watch/unwatch status")
                     self.list2.item(row).setText(self.check_symbol+i)
                 else:
                     self.list2.item(row).setText(i)
-                #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
                 self.list2.setCurrentRow(row)
 
             if site != "Local":
@@ -9351,7 +9350,6 @@ watch/unwatch status")
                 self.list2.item(row).setText(self.check_symbol+i)
             else:
                 self.list2.item(row).setText(i)
-            #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
             self.list2.setCurrentRow(row)
             if self.gapless_network_stream:
                 yt_mode = 'yt_prefetch_a'
@@ -9360,14 +9358,12 @@ watch/unwatch status")
                     yt_mode = 'yt_music'
                 else:
                     yt_mode = 'yt'
-            if site == 'None' and self.video_local_stream:
-                    finalUrl = self.local_torrent_open(local_torrent_file_path)
-            elif site == 'None' and self.btn1.currentText().lower() == 'youtube':
-                    if not self.epn_wait_thread.isRunning():
-                        self.epn_wait_thread = PlayerGetEpn(
-                            self, logger, yt_mode, finalUrl, self.quality_val,
-                            self.ytdl_path, row)
-                        self.epn_wait_thread.start()
+            if site == 'None' and self.btn1.currentText().lower() == 'youtube':
+                if not self.epn_wait_thread.isRunning():
+                    self.epn_wait_thread = PlayerGetEpn(
+                        self, logger, yt_mode, finalUrl, self.quality_val,
+                        self.ytdl_path, row)
+                    self.epn_wait_thread.start()
             if 'youtube.com' in finalUrl.lower() or finalUrl.startswith('ytdl:'):
                 if not self.epn_wait_thread.isRunning():
                     self.epn_wait_thread = PlayerGetEpn(
@@ -9689,99 +9685,6 @@ watch/unwatch status")
                 self.text.hide()
                 self.label.hide()
                 self.label_new.hide()
-            
-    def local_torrent_open(self, tmp, start_now=None):
-        global local_torrent_file_path, site
-        if not self.local_ip:
-            self.local_ip = get_lan_ip()
-        if not self.local_port:
-            self.local_port = 8001
-        
-        ip = self.local_ip
-        port = int(self.local_port)
-        if not self.thread_server.isRunning():
-            self.thread_server = ThreadServer(
-                ip, port, self.media_server_key, self.client_auth_arr, 
-                self.https_media_server, self.https_cert_file, ui=self)
-            self.thread_server.start()
-        logger.info(tmp)
-        tmp = str(tmp)
-        if self.torrent_type == 'magnet' or 'magnet:' in tmp:
-            
-            if tmp.startswith('magnet:'):
-                print('------------magnet-----------')
-                path = self.torrent_download_folder
-                torrent_dest = local_torrent_file_path
-                logger.info('torrent_dest={0};path={1}'.format(torrent_dest, path))
-                
-                self.torrent_handle, self.stream_session, info = get_torrent_info_magnet(
-                        tmp, path, self.list6, self.progress, self.tmp_download_folder)
-                #self.handle.pause()
-                file_arr = []
-                self.list2.clear()
-                self.epn_arr_list[:]=[]
-                mycopy = []
-                for f in info.files():
-                    file_path = f.path
-                    #if '/' in f.path:
-                    #	file_path = file_path.split('/')[-1]
-                    file_path = os.path.basename(file_path)
-                    ##Needs Verification
-                    self.epn_arr_list.append(file_path+'	'+path)
-                    self.list2.addItem((file_path))
-                mycopy = self.epn_arr_list.copy()
-                self.torrent_handle.pause()
-                self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
-                self.torrent_handle.set_download_limit(self.torrent_download_limit)
-                if start_now:
-                    pass
-            else:
-                index = int(self.list2.currentRow())
-                
-                cnt, cnt_limit = set_torrent_info(
-                    self.torrent_handle, index, self.torrent_download_folder, 
-                    self.stream_session, self.list6, self.progress, 
-                    self.tmp_download_folder, self.media_server_key, 
-                    self.client_auth_arr)
-                
-                self.do_get_thread = TorrentThread(
-                    self.torrent_handle, cnt, cnt_limit, self.stream_session)
-                self.do_get_thread.start()
-                if self.https_media_server:
-                    https_val = 'https'
-                else:
-                    https_val = 'http'
-                url = https_val+'://'+ip+':'+str(port)+'/'
-                print(url, '-local-ip-url')
-            
-                return url
-            
-        else:
-            index = int(self.list2.currentRow())
-            path = self.torrent_download_folder
-            
-            torrent_dest = local_torrent_file_path
-            logger.info('torrent_dest={0};index={1};path={2}'.format(torrent_dest, index, path))
-            
-            self.torrent_handle, self.stream_session, info, cnt, cnt_limit, file_name = get_torrent_info(
-                    torrent_dest, index, path, self.stream_session, self.list6, 
-                    self.progress, self.tmp_download_folder, self.media_server_key, 
-                    self.client_auth_arr)
-            
-            self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
-            self.torrent_handle.set_download_limit(self.torrent_download_limit)
-            
-            self.do_get_thread = TorrentThread(
-                self.torrent_handle, cnt, cnt_limit, self.stream_session)
-            self.do_get_thread.start()
-            if self.https_media_server:
-                https_val = 'https'
-            else:
-                https_val = 'http'
-            url = https_val+'://'+ip+':'+str(port)+'/'
-            print(url, '-local-ip-url', site)
-            
-            return url
                 
     def epn_return(self, row, mode=None):
         global site, epn_goto, mirrorNo
@@ -11333,7 +11236,6 @@ watch/unwatch status")
                 self.list2.item(row).setText(self.check_symbol+i)
             else:
                 self.list2.item(row).setText(i)
-            #self.list2.item(row).setFont(QtGui.QFont('SansSerif', 10, italic=True))
             self.list2.setCurrentRow(row)
             if self.music_playlist:
                 yt_mode = 'yt_music'
@@ -12659,7 +12561,7 @@ watch/unwatch status")
             #self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
     def watch_external_video(self, var, mode=None, start_now=None):
-        global site, home, local_torrent_file_path
+        global site, home
         t = var
         logger.info(t)
         file_exists = False
@@ -12901,34 +12803,6 @@ watch/unwatch status")
         elif t.endswith('.torrent') or 'magnet:' in t:
             if t.startswith('http') or os.path.isfile(t) or 'magnet:' in t:
                 self.quick_torrent_play_method(url=t)
-            else:
-                self.torrent_type = 'file'
-                self.video_local_stream = True
-                site = 'None'
-                if OSNAME == 'posix':
-                    t = t.replace('file:///', '/', 1)
-                else:
-                    t = t.replace('file:///', '', 1)
-                t=urllib.parse.unquote(t)
-                logger.info(t)
-                local_torrent_file_path = t
-                info = lt.torrent_info(t)
-                file_arr = []
-                self.list2.clear()
-                self.epn_arr_list[:]=[]
-                QtWidgets.QApplication.processEvents()
-                for f in info.files():
-                    file_path = f.path
-                    logger.info(file_path)
-                    file_path = os.path.basename(file_path)
-                    self.epn_arr_list.append(file_path+'	'+t)
-                    self.list2.addItem((file_path))
-        elif 'magnet:' in t:
-            t = re.search('magnet:[^"]*', t).group()
-            site = 'None'
-            self.torrent_type = 'magnet'
-            self.video_local_stream = True
-            self.local_torrent_open(t, start_now=start_now)
         else:
             self.quit_really = "yes"
             new_epn = os.path.basename(t)
@@ -12937,7 +12811,6 @@ watch/unwatch status")
             site = 'None'
             self.watchDirectly(urllib.parse.unquote(t), '', 'no')
             self.dockWidget_3.hide()
-        #self.update_list2()
         if self.gapless_playback:
             self.use_playlist_method()
         
@@ -12980,11 +12853,10 @@ def main():
     global show_hide_cover, show_hide_playlist, show_hide_titlelist, server
     global show_hide_player, current_playing_file_path
     global music_arr_setting, default_arr_setting
-    global local_torrent_file_path, wait_player, desktop_session
+    global wait_player, desktop_session
     global html_default_arr, app
     
     wait_player = False
-    local_torrent_file_path = ''
     path_final_Url = ''
     default_arr_setting = [0, 0, 0, 0, 0]
     music_arr_setting = [0, 0, 0]
@@ -13062,8 +12934,6 @@ def main():
     w_ht = 0
     w_wdt = 50
     old_version = (0, 0, 0, 0)
-    hdr = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0"
-    
     try:
         dbus.mainloop.pyqt5.DBusQtMainLoop(set_as_default=True)
     except:
