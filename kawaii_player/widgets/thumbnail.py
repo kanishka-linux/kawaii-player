@@ -47,7 +47,6 @@ class ThumbnailWidget(QtWidgets.QLabel):
         super(ThumbnailWidget, self).__init__(parent)
         global MainWindow
         MainWindow = parent
-        self.memory_num_arr = []
     
     def setup_globals(
             self, parent, uiwidget=None, hm=None, tmp=None, logr=None,
@@ -62,6 +61,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         screen_width = scw
         screen_height = sch
         ui.total_seek = 0
+        self.memory_num_arr = []
         
         self.arrow_timer = QtCore.QTimer()
         self.arrow_timer.timeout.connect(self.arrow_hide)
