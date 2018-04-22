@@ -4618,7 +4618,10 @@ watch/unwatch status")
                             picn = picn[1:]
                     
                     picn_old = picn
-                    picn = self.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
+                    if site == 'Video':
+                        picn = self.image_fit_option(picn_old, picn_old, fit_size=2, widget=label_epn)
+                    else:
+                        picn = self.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
                     img = QtGui.QPixmap(picn, "1")
                     q1="self.label_epn_"+str(counter)+".setPixmap(img)"
                     exec (q1)
@@ -4904,7 +4907,10 @@ watch/unwatch status")
                         
                 picn_old = picn
                 if not start_already:
-                    picn = ui.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
+                    if site == 'Video':
+                        picn = ui.image_fit_option(picn_old, picn_old, fit_size=2, widget=label_epn)
+                    else:
+                        picn = ui.image_fit_option(picn_old, '', fit_size=6, widget_size=(int(width), int(height)))
                     img = QtGui.QPixmap(picn, "1")
                     label_epn.setPixmap(img)
                 
@@ -8042,15 +8048,17 @@ watch/unwatch status")
         try:
             if fit_size:
                 if (fit_size == 1 or fit_size == 2) or fit_size > 100:
+                    alt_asp = False
                     if fit_size == 1 or fit_size == 2:
                         if widget:
                             basewidth = widget.width()
+                            alt_asp = True
                         else:
                             basewidth = screen_width
                     else:
                         basewidth = fit_size
                     try:
-                        if widget == self.float_window:
+                        if widget == self.float_window or alt_asp:
                             if os.path.isfile(fanart):
                                 img = Image.open(str(fanart))
                             else:
@@ -8067,7 +8075,7 @@ watch/unwatch status")
                         wpercent = (basewidth / float(img.size[0]))
                         hsize = int((float(img.size[1]) * float(wpercent)))
                     
-                    if widget == self.float_window:
+                    if widget == self.float_window or alt_asp:
                         img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
                         bg = Image.new(color, (basewidth, widget.height()))
                         if hsize < widget.height():
