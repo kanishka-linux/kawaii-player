@@ -128,7 +128,7 @@ The built-in portable media server of this application can have many use cases. 
 
 ###### [Index](#index)
 
-![kawaii-player](/Images/watch.jpg)
+![kawaii-player](/Images/playing.png)
 
 Few more latest screenshots are available in release notes of [v3.1.1](https://github.com/kanishka-linux/kawaii-player/releases/tag/v3.1.1-0) and [v3.3.0](https://github.com/kanishka-linux/kawaii-player/releases/tag/v3.3.0-0)
 
