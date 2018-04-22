@@ -1413,6 +1413,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 exec('ui.{} = {}'.format(var_name, obj_value.title()))
                 if var_name == 'list_with_thumbnail':
                     self.change_playlist_viewmode()
+                elif var_name == 'gapless_playback' and obj_value.lower() == 'true':
+                    ui.use_playlist_method()
         else:
             if var_name == 'keep_background_constant':
                 if obj_value.lower() == 'yes':
