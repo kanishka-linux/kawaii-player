@@ -8589,18 +8589,20 @@ watch/unwatch status")
             current_playing_file_path = finalUrl
         setinfo = False
         if (self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
-                and not finalUrl.startswith('http') and not self.external_audio_file
-                and (OSNAME == 'posix' or self.gapless_playback)):
+                and not finalUrl.startswith('http') and not self.external_audio_file):
             epnShow = "Playing: {0}".format(self.epn_name_in_list)
             msg = None
             cmd = None
             if not self.gapless_playback:
+                finalUrl = finalUrl.replace('"', '')
+                if OSNAME == 'nt':
+                    finalUrl = 'file:///{}'.format(finalUrl.replace('\\', '/'))
                 if self.player_val.lower() == "mplayer":
                     msg = '\n show_text "{0}" \n'.format(epnShow)
-                    cmd = '\n loadfile {0} replace \n'.format(finalUrl)
+                    cmd = '\n loadfile "{0}" replace \n'.format(finalUrl)
                 elif self.player_val.lower() == 'mpv':
                     msg = '\n show-text "{0}" \n'.format(epnShow)
-                    cmd = '\n loadfile {0} replace \n'.format(finalUrl)
+                    cmd = '\n loadfile "{0}" replace \n'.format(finalUrl)
                 logger.info('command---------{0}--------'.format(cmd))
                 if msg and cmd:
                     self.mpvplayer_val.write(bytes(msg, 'utf-8'))
@@ -10179,10 +10181,10 @@ watch/unwatch status")
                 if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
                     self.eof_lock = True
-                logger.debug('<<<<<<<<<<<< start <<<<>>>>>>>>>>>>>>>>>')
+                logger.debug('-- start --')
                 logger.debug(a)
                 logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
-                logger.debug('<<<<<<<<<<<<<<< end <<<<>>>>>>>>>>>>>>>')
+                logger.debug('-- end --')
             if 'icy info:' in a.lower() or 'icy-title:' in a.lower():
                 if 'icy info:' in a.lower():
                     song_title = re.search("'[^']*", a)
@@ -11152,9 +11154,7 @@ watch/unwatch status")
         global default_arr_setting
         
         self.external_url = False
-        print(self.player_setLoop_var)
         row = self.list2.currentRow()
-        print('--line--15677--')
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
         logger.debug('external-audio-file={0}'.format(self.external_audio_file))
@@ -11247,61 +11247,41 @@ watch/unwatch status")
                         self.ytdl_path, row)
                     self.epn_wait_thread.start()
             self.external_url = self.get_external_url_status(finalUrl)
+            
         new_epn = self.epn_name_in_list
-    
         finalUrl = finalUrl.replace('"', '')
         finalUrl = '"'+finalUrl+'"'
-        try:
-            finalUrl = str(finalUrl, 'utf-8')
-        except:
-            finalUrl = finalUrl
-            
-        if self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning() and not self.gapless_playback:
-            if self.player_val.lower() == "mplayer":
-                command = self.mplayermpv_command(
-                    self.idw, finalUrl, self.player_val, a_id=audio_id,
-                    s_id=sub_id
-                    )
-                if (not self.external_url and self.mpvplayer_started 
-                        and not self.external_audio_file and OSNAME == 'posix'):
-                    #try:
-                    epnShow = '"' + "Queued:  "+ new_epn + '"'
-                    t1 = bytes('\n '+'show_text '+(epnShow)+' \n', 'utf-8')
-                    t2 = bytes('\n '+"loadfile "+(finalUrl)+" replace"+' \n', 'utf-8')
-                    logger.info(t2)
-                    self.mpvplayer_val.write(t2)
-                    self.mpvplayer_val.write(t1)
+        if (self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning()
+                and not self.gapless_playback):
+            command = self.mplayermpv_command(
+                self.idw, finalUrl, self.player_val, a_id=audio_id,
+                s_id=sub_id
+                )
+            if (not self.external_url and self.mpvplayer_started 
+                    and not self.external_audio_file):
+                finalUrl = finalUrl.replace('"', '')
+                if OSNAME == 'nt' and os.path.isfile(finalUrl):
+                    finalUrl = 'file:///{}'.format(finalUrl)
+                epnShow = "Playing: {}".format(new_epn)
+                if self.player_val.lower() == 'mpv':
+                    cmd1 = bytes('\n show_text "{}" \n'.format(epnShow), 'utf-8')
+                else:
+                    cmd1 = bytes('\n show-text "{}" \n'.format(epnShow), 'utf-8')
+                cmd2 = bytes('\n loadfile "{}" replace \n'.format(finalUrl), 'utf-8')
+                self.mpvplayer_val.write(cmd2)
+                self.mpvplayer_val.write(cmd1)
+                if self.player_val.lower() == 'mplayer':
                     if self.mplayer_SubTimer.isActive():
                         self.mplayer_SubTimer.stop()
                     self.mplayer_SubTimer.start(2000)
-                else:
-                    self.mpvplayer_val.kill()
-                    self.mpvplayer_started = False
-                    self.external_audio_file = False
-                    self.infoPlay(command)
-                    #self.external_url = False
-                    logger.info(command)
-            elif self.player_val.lower() == "mpv":
-                command = self.mplayermpv_command(
-                    self.idw, finalUrl, self.player_val, a_id=audio_id,
-                    s_id=sub_id
-                    )
-                if (not self.external_url and self.mpvplayer_started 
-                        and not self.external_audio_file and OSNAME == 'posix'):
-                    epnShow = '"' + "Playing:  "+ new_epn + '"'
-                    t1 = bytes('\n '+'show-text '+epnShow+' \n', 'utf-8')
-                    t2 = bytes('\n '+"loadfile "+finalUrl+' \n', 'utf-8')
-                    self.mpvplayer_val.write(t2)
-                    self.mpvplayer_val.write(t1)
-                    logger.debug('mpv::{0}'.format(t2))
-                else:
-                    self.mpvplayer_val.kill()
-                    self.mpvplayer_started = False
-                    self.external_audio_file = False
-                    self.infoPlay(command)
-                    #self.external_url = False
-                    logger.debug('mpv-restart{0}'.format(command))
-            print("mpv=" + str(self.mpvplayer_val.processId()))
+                logger.debug('{}::{}'.format(self.player_val, cmd2))
+            else:
+                self.mpvplayer_val.kill()
+                self.mpvplayer_started = False
+                self.external_audio_file = False
+                self.infoPlay(command)
+                #self.external_url = False
+                logger.debug('{}-restart{}'.format(self.player_val, command))
         elif not self.epn_wait_thread.isRunning() and not self.gapless_playback:
             command = self.mplayermpv_command(
                 self.idw, finalUrl, self.player_val, a_id=audio_id,
@@ -11330,7 +11310,6 @@ watch/unwatch status")
                         
     def paste_background(self, row):
         global site, artist_name_mplayer
-        
         try:
             if site == "Music":
                 try:
@@ -11349,7 +11328,7 @@ watch/unwatch status")
                         if os.path.exists(thumb_path):
                             self.videoImage(thumb_path, thumb_path, thumb_path, '')
                     except Exception as e:
-                        logger.info('Error in getting Thumbnail: {0}'.format(e))
+                        logger.error('Error in getting Thumbnail: {0}'.format(e))
             elif site.lower() == 'video' or site.lower() == 'local' or site.lower() == 'playlists':
                 if site == "Video":
                     self.media_data.update_video_count('mark', finalUrl, rownum=row)
@@ -11359,7 +11338,7 @@ watch/unwatch status")
                     if os.path.exists(thumb_path):
                         self.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
-                    logger.info('Error in getting Thumbnail -14179- epnfound: {0}'.format(e))
+                    logger.error('Error in getting Thumbnail -14179- epnfound: {0}'.format(e))
             else:
                 try:
                     thumb_path = self.get_thumbnail_image_path(row, self.epn_arr_list[row])
@@ -11367,9 +11346,9 @@ watch/unwatch status")
                     if os.path.exists(thumb_path):
                         self.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
-                    logger.info('Error in getting Thumbnail: {0}'.format(e))
+                    logger.error('Error in getting Thumbnail: {0}'.format(e))
         except Exception as e:
-            print(e, '--14180--')
+            logger.error(e)
         
     def getQueueInList(self, eofcode=None):
         global site, artist_name_mplayer
@@ -11859,15 +11838,10 @@ watch/unwatch status")
             else:
                 finalUrl = finalUrl.replace('"', '')
                 self.external_url = self.get_external_url_status(finalUrl)
-                try:
-                    finalUrl = str(finalUrl)
-                except:
-                    finalUrl = finalUrl
                 command = self.mplayermpv_command(
                     self.idw, finalUrl, self.player_val, a_id=audio_id,
                     s_id=sub_id
                     )
-                
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
