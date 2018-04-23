@@ -9185,8 +9185,8 @@ watch/unwatch status")
         finalUrl = ''
         try:
             server._emitMeta("Play", site, self.epn_arr_list)
-        except:
-            pass
+        except Exception as err:
+            logger.error(err)
 
         if self.video_local_stream:
             tmp_pl = os.path.join(TMPDIR, 'player_stop.txt')
@@ -9222,8 +9222,7 @@ watch/unwatch status")
             self.initial_view_mode()
             return 0
 
-        if(site!="PlayLists" and site !="None" and site!= "Music" 
-                and site != "Video" and site!= "Local"):
+        if site not in ["PlayLists", "None", "Music", "Video"]:
             if siteName:
                 hist_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
             else:
@@ -9282,14 +9281,13 @@ watch/unwatch status")
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
-                        #finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, quality)
                         if not self.epn_wait_thread.isRunning():
                             self.epn_wait_thread = PlayerGetEpn(
                                 self, logger, 'addons', name, epn, mirrorNo,
                                 self.quality_val, row)
                             self.epn_wait_thread.start()
-                except Exception as e:
-                    print(e)
+                except Exception as err:
+                    logger.error(err)
                     self.progressEpn.setFormat('Load Failed!')
                     return 0
         elif site == "PlayLists":
@@ -9323,24 +9321,20 @@ watch/unwatch status")
                 else:
                     yt_mode = 'yt'
                 if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
-                    print(self.epn_wait_thread.isRunning())
                     if not self.epn_wait_thread.isRunning():
                         self.epn_wait_thread = PlayerGetEpn(
                             self, logger, yt_mode, finalUrl, self.quality_val,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
-        elif site == "None" or site == "Music" or site == "Video" or site == "Local":
-            if site == "Local" and opt == "History":
-                self.mark_History()
+        elif site in ["None", "Music", "Video"]:
             if '	' in self.epn_arr_list[row]:
-                    finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
+                finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
             else:
-                    finalUrl = '"'+(self.epn_arr_list[row]).replace('#', '', 1)+'"'
-            if self.list3.currentItem():
-                if site.lower() == 'music' and self.list3.currentItem().text().lower() == 'playlist':
-                    path_rel = finalUrl.replace('"', '')
-                    if path_rel.startswith('abs_path=') or path_rel.startswith('relative_path='):
-                        finalUrl = '"'+self.if_path_is_rel(path_rel)+'"'
+                finalUrl = '"'+(self.epn_arr_list[row]).replace('#', '', 1)+'"'
+            if self.list3.currentItem() and self.music_playlist:
+                path_rel = finalUrl.replace('"', '')
+                if path_rel.startswith('abs_path=') or path_rel.startswith('relative_path='):
+                    finalUrl = '"'+self.if_path_is_rel(path_rel)+'"'
             logger.info(finalUrl)
             i = str(self.list2.item(row).text())
             i = i.replace('_', ' ')
@@ -9370,7 +9364,6 @@ watch/unwatch status")
                     self.epn_wait_thread.start()
                 
         new_epn = self.epn_name_in_list
-        
         self.idw = str(int(self.tab_5.winId()))
         if site != "Music":
             self.tab_5.show()
@@ -9383,10 +9376,6 @@ watch/unwatch status")
                 finalUrl = finalUrl[0]
             finalUrl = finalUrl.replace('"', '')
             finalUrl = '"'+finalUrl+'"'
-            try:
-                finalUrl = str(finalUrl)
-            except:
-                finalUrl = finalUrl
             if self.mpvplayer_val.processId() > 0:
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
@@ -9420,7 +9409,7 @@ watch/unwatch status")
                     if rfr_exists == 'referer sent':
                         rfr_needed = True
                         finalUrl.pop()
-                    if finalUrlFound == True or refererNeeded == True or site=="PlayLists" or rfr_needed:
+                    if finalUrlFound == True or refererNeeded == True or site == "PlayLists" or rfr_needed:
                         if refererNeeded == True or rfr_needed:
                             rfr_url = finalUrl[1]
                             nepn = '"'+str(finalUrl[0])+'"'
@@ -9429,9 +9418,7 @@ watch/unwatch status")
                             nepn = str(finalUrl[0])
                             command = self.mplayermpv_command(self.idw, nepn, self.player_val)
                         logger.info(command)
-                    
                     else:
-                    
                         self.queue_url_list[:]=[]
                         epnShow = finalUrl[0]
                         for i in range(len(finalUrl)-1):
@@ -9442,10 +9429,6 @@ watch/unwatch status")
                 else:
                     if '""' in finalUrl:
                         finalUrl = finalUrl.replace('""', '"')
-                    try:
-                        finalUrl = str(finalUrl)
-                    except:
-                        finalUrl = finalUrl
                     command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                     self.infoPlay(command)
             elif self.download_video == 0 and self.player_val != "mpv":
@@ -9502,7 +9485,6 @@ watch/unwatch status")
                     logger.info("15712:Final Url mplayer = {0}".format(finalUrl))
                     if '""' in finalUrl:
                         finalUrl = finalUrl.replace('""', '"')
-                    finalUrl = str(finalUrl)
                     if self.player_val == "mplayer":
                         self.quit_really = "no"
                         self.idw = str(int(self.tab_5.winId()))
@@ -9543,7 +9525,6 @@ watch/unwatch status")
                     if not os.path.exists(folder_name):
                         os.makedirs(folder_name)
                     npn = os.path.join(folder_name, new_epn)
-                    
                     if finalUrl.startswith('http'):
                         command = wget_string(finalUrl, npn, self.get_fetch_library)
                         logger.info(command)
@@ -9560,7 +9541,9 @@ watch/unwatch status")
                 logger.info(command)
                 self.infoWget(command, 0)
                 self.download_video = 0
+                
         self.list2.setCurrentRow(row)
+        
         if not self.epn_wait_thread.isRunning():
             if not isinstance(finalUrl, list):
                 self.final_playing_url = finalUrl.replace('"', '')
@@ -9572,11 +9555,9 @@ watch/unwatch status")
                 self.final_playing_url = finalUrl[0].replace('"', '')
                 if refererNeeded == True:
                     rfr_url = finalUrl[1].replace('"', '')
-                    
             if self.download_video == 0:
                 self.initial_view_mode()
             self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
-            
             self.paste_background(row)
         if self.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.final_playing_url:
             self.check_and_start_getsub_method()
@@ -9730,10 +9711,8 @@ watch/unwatch status")
                         else:
                             yt_mode = 'yt'
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode=yt_mode).strip()
-                    
         
-        if (site!="PlayLists" and site!= "None" and site != "Music" 
-                and site != "Video" and site !="Local"):
+        if site not in ["PlayLists", "None", "Music", "Video"]:
             if site != "Local":
                 try:
                     if self.video_local_stream:
@@ -9760,10 +9739,9 @@ watch/unwatch status")
                         finalUrl = self.site_var.getFinalUrl(name, epn, mirrorNo, self.quality_val)
                 except:
                     return ''
-        elif site=="None" or site == "Music" or site == "Video" or site == "Local":
+        elif site in ["None", "Music", "Video"]:
             if '	' in self.epn_arr_list[row]:
                 finalUrl = '"'+(self.epn_arr_list[row]).split('	')[1]+'"'
-                
             else:
                 finalUrl = '"'+(self.epn_arr_list[row]).replace('#', '', 1)+'"'
             if site == 'None' and self.btn1.currentText().lower() == 'youtube':
@@ -9937,15 +9915,14 @@ watch/unwatch status")
     def dataReadyW(self, p, get_lib):
         global new_epn, epn, opt, site
         global sizeFile
-        #print('----------------', a)
         if not get_lib:
             get_fetch_lib = self.get_fetch_library.lower()
         else:
             get_fetch_lib = get_lib.lower()
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
-            #print(a)
-        except:
+        except Exception as err:
+            logger.error(err)
             a =''
         if get_fetch_lib == 'wget':
             if "Length:" in a:
@@ -9977,7 +9954,7 @@ watch/unwatch status")
             
             d = []
             for j in range(len(c)):
-                if j == 2 or j == 4 or j == 5 or j == 6 or j == 7 or j == 8 or j == 9:
+                if j in range(2, 10):
                     pass
                 else:
                     d.append(c[j])
@@ -10005,11 +9982,11 @@ watch/unwatch status")
         self.progress.setValue(0)
         if not MainWindow.isFullScreen():
             self.progress.show()
-        print("Process Started")
+        logger.info("Process Started")
         
     def finishedW(self, src):
         global name, site
-        print("Process Ended")
+        logger.info("Process Ended")
         self.progress.setValue(100)
         self.progress.hide()
         if self.tab_2.isHidden():
@@ -10021,7 +9998,6 @@ watch/unwatch status")
                 if isinstance(i, tuple):
                     type_tuple = True
                     break
-            
             if type_tuple:
                 n, e, m, q, r, s, sn, ep = self.queue_url_list[j]
                 self.queue_item = self.queue_url_list[j]
@@ -10191,8 +10167,8 @@ watch/unwatch status")
                 self.mplayerLength = 1
                 self.epn_name_in_list = self.epn_name_in_list.strip()
                 server._emitMeta('internet-radio#'+self.epn_name_in_list, site, self.epn_arr_list)
-        except Exception as e:
-            print(e)
+        except Exception as err:
+            logger.error(err)
             a = ""
         try:
             if self.player_val.lower() == "mpv":
@@ -10900,8 +10876,8 @@ watch/unwatch status")
                     elif self.quit_really == "yes":
                         self.player_stop.clicked.emit() 
                         self.list2.setFocus()
-        except Exception as e:
-            logger.error('{0}::dataready-exception'.format(e))
+        except Exception as err:
+            logger.error('{0}::dataready-exception'.format(err))
         
     def started(self):
         global epn, new_epn, mpv_start
@@ -10913,14 +10889,13 @@ watch/unwatch status")
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
             exec(q3)
             QtWidgets.QApplication.processEvents()
-        print("Process Started")
-        print(self.mpvplayer_val.processId())
+        logger.debug("Process Started")
+        logger.debug(self.mpvplayer_val.processId())
         mpv_start =[]
         mpv_start[:]=[]
-        t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
-        #print t
+        msg = "Loading: "+self.epn_name_in_list+" (Please Wait)"
         self.progressEpn.setValue(0)
-        self.progressEpn.setFormat((t))
+        self.progressEpn.setFormat((msg))
         if (MainWindow.isFullScreen() and site!="Music" and self.list2.isHidden()
                 and self.tab_2.isHidden() and self.tab_6.isHidden()):
             self.superGridLayout.setSpacing(0)
@@ -10937,12 +10912,12 @@ watch/unwatch status")
         self.mpv_playback_duration = None
         self.progressEpn.setMaximum(100)
         self.slider.setRange(0, 100)
-        print("Process Ended")
+        logger.debug("Process Ended")
         self.progressEpn.setValue(0)
         self.slider.setValue(0)
         self.progressEpn.setFormat("")
         self.mplayer_finished_counter += 1
-        print(self.mpvplayer_val.processId(), '--finished--id--')
+        logger.debug(self.mpvplayer_val.processId())
         logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
         if (self.quit_really == 'no' and self.mpvplayer_val.processId() == 0
                 and OSNAME == 'posix' and self.mpvplayer_started and self.mplayer_finished_counter == 1):
@@ -10986,8 +10961,8 @@ watch/unwatch status")
         self.playlist_queue_used = False
         logger.debug('Now Starting')
         if not command:
-            t = "Loading Failed: No Url/File Found. Try Again"
-            self.progressEpn.setFormat(t)
+            msg = "Loading Failed: No Url/File Found. Try Again"
+            self.progressEpn.setFormat(msg)
         else:
             if mpv_indicator:
                 mpv_indicator.pop()
@@ -10997,8 +10972,7 @@ watch/unwatch status")
             if self.player_setLoop_var:
                 if self.player_val == 'mplayer':
                     command = command+' -loop 0'
-                    
-            print('--line--15662--')
+            logger.debug('--line--10975--')
             if self.mpvplayer_val.processId()>0:
                 self.mpvplayer_val.kill()
                 self.mpvplayer_started = False
@@ -11008,8 +10982,8 @@ watch/unwatch status")
                         self.mplayer_status_thread.start()
                     else:
                         self.mpvplayer_command.append(command)
-                except Exception as e:
-                    print(e)
+                except Exception as err:
+                    logger.error(err)
             else:
                 if self.mpvplayer_command:
                     command = self.mpvplayer_command[-1]
@@ -11021,7 +10995,7 @@ watch/unwatch status")
                 self.mpvplayer_val.finished.connect(self.finished)
                 QtCore.QTimer.singleShot(100, partial(self.mpvplayer_val.start, command))
                 logger.info(command)
-                logger.info('infoplay--18165--')
+                logger.info('infoplay--10998--')
                 self.mpvplayer_started = True
                 if self.player_setLoop_var and self.player_val == 'mpv':
                     QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
@@ -11073,7 +11047,7 @@ watch/unwatch status")
                 exec(p1)
                 QtWidgets.QApplication.processEvents()
             except Exception as e:
-                print(e)
+                logger.error(e)
         else:
             if (self.idw and self.idw != str(int(self.tab_5.winId()))
                     and self.idw != str(int(self.label.winId())) 
@@ -11137,7 +11111,7 @@ watch/unwatch status")
                     p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(init_cnt)
                     exec(p1)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
     
     def localGetInList(self, eofcode=None):
         global site, epn, mirrorNo
@@ -11354,7 +11328,6 @@ watch/unwatch status")
         except:
             pass
         self.external_url = False
-        #print(self.list6.item(0).text(), self.queue_url_list)
         if self.list6.item(0):
             old_txt = self.list6.item(0).text()
             if old_txt.lower().startswith('queue empty:'):
@@ -11477,7 +11450,6 @@ watch/unwatch status")
             epnShow = self.queue_url_list.pop()
             self.cur_row -= 1
             self.list2.setCurrentRow(self.cur_row)
-            
         
         epnShowN = '"'+epnShow.replace('"', '')+'"'
         command = self.mplayermpv_command(
@@ -11485,23 +11457,26 @@ watch/unwatch status")
             s_id=sub_id
             )
         if (self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning()
-                and OSNAME == 'posix' and not self.gapless_playback):
-            epnShow = '"'+epnShow.replace('"', '')+'"'
-            t2 = bytes('\n '+"loadfile "+epnShow+" replace"+' \n', 'utf-8')
+                and not self.gapless_playback):
+            epnShow = epnShow.replace('"', '')
+            if OSNAME == 'nt' and os.path.isfile(epnShow):
+                finalUrl = 'file:///{}'.format(epnShow.replace('\\', '/'))
+            else:
+                finalUrl = epnShow
+            cmd = bytes('\n loadfile "{}" replace \n'.format(finalUrl), 'utf-8')
             if self.player_val.lower() == 'mpv':
                 if not self.external_url and not self.external_audio_file:
-                    self.mpvplayer_val.write(t2)
-                    logger.info(t2)
+                    self.mpvplayer_val.write(cmd)
+                    logger.info(cmd)
                 else:
                     self.mpvplayer_val.write(b'\n quit \n')
                     self.external_audio_file = False
                     self.infoPlay(command)
-                    #self.external_url = False
                     logger.info(command)
             elif self.player_val.lower() == "mplayer":
                 if not self.external_url and not self.external_audio_file:
-                    self.mpvplayer_val.write(t2)
-                    logger.info(t2)
+                    self.mpvplayer_val.write(cmd)
+                    logger.info(cmd)
                     if self.mplayer_SubTimer.isActive():
                         self.mplayer_SubTimer.stop()
                     self.mplayer_SubTimer.start(2000)
@@ -11510,7 +11485,6 @@ watch/unwatch status")
                     self.mpvplayer_started = False
                     self.external_audio_file = False
                     self.infoPlay(command)
-                    #self.external_url = False
                     logger.info(command)
         elif not self.epn_wait_thread.isRunning() and not self.gapless_playback:
             self.infoPlay(command)
@@ -11704,8 +11678,8 @@ watch/unwatch status")
         self.progressEpn.setFormat(('Wait...'))
         try:
             server._emitMeta("Next", site, self.epn_arr_list)
-        except:
-            pass
+        except Exception as err:
+            logger.error(err)
         
         if self.if_file_path_exists_then_play(row, self.list2, True, eofcode=eofcode):
             self.adjust_thumbnail_window(row)
@@ -11724,11 +11698,8 @@ watch/unwatch status")
             epn = epn.replace('#', '', 1)
         
         self.adjust_thumbnail_window(row)
-        
         self.set_init_settings()
-        
-        if (site!="PlayLists" and site!="None" and site!="Music" 
-                and site!= "Video" and site!="Local"):
+        if site not in ["PlayLists", "None", "Music", "Video"]:
             if opt == "History":
                 self.mark_History()
             else:
@@ -11740,10 +11711,6 @@ watch/unwatch status")
                 self.list2.setCurrentRow(row)
                 
             if site != "Local":
-                try:
-                    print(site)
-                except:
-                    return 0
                 self.progressEpn.setFormat('Wait..')
                 try:
                     if self.video_local_stream:
@@ -11773,10 +11740,10 @@ watch/unwatch status")
                                 self, logger, 'addons', name, epn, mirrorNo,
                                 self.quality_val, row)
                             self.epn_wait_thread.start()
-                except Exception as e:
-                    print(e)
+                except Exception as err:
+                    logger.error(err)
                     self.progressEpn.setFormat('Load Failed!')
-                    print('final url not found')
+                    logger.error('final url not found')
                     return 0
                 
         new_epn = self.epn_name_in_list
