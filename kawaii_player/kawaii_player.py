@@ -6136,7 +6136,7 @@ watch/unwatch status")
                 self.list2.setCurrentRow(row)
         
     def watchToggle(self):
-        global site, epn, epn_goto, pre_opt, home
+        global site, epn, pre_opt, home
         global opt, siteName, finalUrlFound, refererNeeded
         if (opt == "History" and (site.lower() !="video" 
                     and site.lower()!= 'music' and site.lower()!= 'playlists' 
@@ -6492,13 +6492,6 @@ watch/unwatch status")
         if length > 0:
             if not self.threadPoolthumb[0].isRunning():
                 self.threadPoolthumb[0].start()
-                
-    def directepn(self):
-        global epn, epn_goto
-        epn_goto = 1
-        epn = self.goto_epn.text()
-        epn = re.sub("#", "", str(epn))
-        self.epnfound()
     
     def preview(self):
         txt = str(self.chk.text())
@@ -9177,7 +9170,7 @@ watch/unwatch status")
             self.paste_background(row)
         
     def epnfound(self):
-        global site, epn, epn_goto, mirrorNo
+        global site, epn, mirrorNo
         global finalUrl, home
         global siteName, finalUrlFound, refererNeeded, show_hide_player
         global show_hide_cover
@@ -9205,7 +9198,7 @@ watch/unwatch status")
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
 
-        if epn_goto == 0 and site != "PlayLists" and self.download_video == 0:
+        if site != "PlayLists" and self.download_video == 0:
             if self.list2.currentItem():
                 epn = (self.list2.currentItem().text())
             else:
@@ -9213,9 +9206,7 @@ watch/unwatch status")
             self.epn_name_in_list = epn
             if not epn:
                 return 0
-
             row = self.list2.currentRow()
-
             if '	' in self.epn_arr_list[row]:
                 epn = (self.epn_arr_list[row]).split('	')[1]
             else:
@@ -9238,8 +9229,7 @@ watch/unwatch status")
             else:
                 hist_path = os.path.join(home, 'History', site, name, 'Ep.txt')
             logger.info('hist_path={0}'.format(hist_path))
-            if ((os.path.exists(hist_path) and (epn_goto == 0)) 
-                        or (os.path.exists(hist_path) and bookmark)):
+            if ((os.path.exists(hist_path)) or (os.path.exists(hist_path) and bookmark)):
                     if self.epn_arr_list[row].startswith('#'):
                         n_epn = self.epn_arr_list[row]
                         txt = n_epn.replace('#', self.check_symbol, 1)
@@ -9260,7 +9250,6 @@ watch/unwatch status")
                     if '	' in txt:
                         txt = txt.split('	')[0]
                     self.list2.item(row).setText(txt)
-
             else:
                 i = str(self.list2.item(row).text())
                 i = i.replace('_', ' ')
@@ -9571,9 +9560,7 @@ watch/unwatch status")
                 logger.info(command)
                 self.infoWget(command, 0)
                 self.download_video = 0
-        if epn_goto == 0:
-            self.list2.setCurrentRow(row)
-        epn_goto = 0
+        self.list2.setCurrentRow(row)
         if not self.epn_wait_thread.isRunning():
             if not isinstance(finalUrl, list):
                 self.final_playing_url = finalUrl.replace('"', '')
@@ -9696,7 +9683,7 @@ watch/unwatch status")
                 self.label_new.hide()
                 
     def epn_return(self, row, mode=None):
-        global site, epn_goto, mirrorNo
+        global site, mirrorNo
         global finalUrl, home
         global new_epn, buffering_mplayer
         global path_final_Url, siteName, finalUrlFound, refererNeeded, category
@@ -11153,7 +11140,7 @@ watch/unwatch status")
                     print(e)
     
     def localGetInList(self, eofcode=None):
-        global site, epn, epn_goto, mirrorNo
+        global site, epn, mirrorNo
         global finalUrl, home, buffering_mplayer
         global audio_id, sub_id, siteName, artist_name_mplayer
         global new_epn
@@ -11699,7 +11686,7 @@ watch/unwatch status")
             write_files(file_name, lines, line_by_line=True)
     
     def getNextInList(self, eofcode=None):
-        global site, epn, epn_goto, mirrorNo
+        global site, epn, mirrorNo
         global finalUrl, home, buffering_mplayer
         global audio_id, sub_id, siteName, rfr_url
         global new_epn
@@ -12815,7 +12802,7 @@ watch/unwatch status")
             
 def main():
     global ui, MainWindow, tray, name, pgn, genre_num, site, epn
-    global embed, epn_goto, opt, mirrorNo
+    global embed, opt, mirrorNo
     global pre_opt
     global rfr_url, category, home
     global player_focus, artist_name_mplayer
@@ -12891,7 +12878,6 @@ def main():
     rfr_url = ""
     pre_opt = ""
     mirrorNo = 1
-    epn_goto = 0
     epn = ""
     embed = 0
     epn = ''
