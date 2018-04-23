@@ -3737,7 +3737,7 @@ watch/unwatch status")
                 if self.fullscreen_video:
                     self.gridLayout.setSpacing(0)
                     self.superGridLayout.setSpacing(0)
-                ht = self.list2.height()
+                ht = self.list2.height() 
                 self.list2.hide()
                 self.goto_epn.hide()
                 show_hide_playlist = 0
@@ -3747,7 +3747,7 @@ watch/unwatch status")
                 if width != screen_width or height != screen_height:
                     self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                     self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
-                    self.label_new.setMaximumHeight(ht - self.height_allowed)
+                    self.label_new.setMaximumHeight(ht - self.height_allowed - 10)
             else:
                 if self.fullscreen_video:
                     self.gridLayout.setSpacing(5)
@@ -3776,7 +3776,7 @@ watch/unwatch status")
                     if width != screen_width or height != screen_height:
                         self.text.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                         self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
-                        self.label_new.setMaximumHeight(ht - self.height_allowed)
+                        self.label_new.setMaximumHeight(ht - self.height_allowed -10)
                 else:
                     width = self.label_new.maximumWidth()
                     height = self.label_new.maximumHeight()
@@ -12464,8 +12464,9 @@ watch/unwatch status")
                 | QtCore.Qt.WindowStaysOnTopHint)
         MainWindow.show()
         
-    def apply_new_style(self):
-        change_opt_file(HOME_OPT_FILE, 'THEME=', 'THEME={0}'.format(self.player_theme.upper()))
+    def apply_new_style(self, mode=None):
+        if mode is None:
+            change_opt_file(HOME_OPT_FILE, 'THEME=', 'THEME={0}'.format(self.player_theme.upper()))
         if self.player_theme == 'system':
             msg = 'Restart Application To Apply System Theme'
             send_notification(msg)
@@ -12487,11 +12488,12 @@ watch/unwatch status")
                         first_time=True, theme=self.player_theme
                         )
                     )
-            self.widget_style.apply_stylesheet(theme=self.player_theme)
-            self.list1.setAlternatingRowColors(False)
-            self.list2.setAlternatingRowColors(False)
-            self.list3.setAlternatingRowColors(False)
-            self.label_new.clear()
+            if mode is None:
+                self.widget_style.apply_stylesheet(theme=self.player_theme)
+                self.list1.setAlternatingRowColors(False)
+                self.list2.setAlternatingRowColors(False)
+                self.list3.setAlternatingRowColors(False)
+                self.label_new.clear()
             #self.VerticalLayoutLabel_Dock3.setSpacing(5)
             #self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
@@ -12748,6 +12750,20 @@ watch/unwatch status")
             self.dockWidget_3.hide()
         if self.gapless_playback:
             self.use_playlist_method()
+            
+    def adjust_fanart_widget(self):
+        wd = self.text.maximumWidth()+self.width_allowed
+        if not self.list2.isHidden():
+            ht = int(self.list2.height() - self.height_allowed - 10)
+        elif not self.list1.isHidden():
+            ht = int(self.list1.height() - self.height_allowed - 10)
+        else:
+            ht = int(2.5 * self.height_allowed)
+        self.label_new.setMaximumSize(QtCore.QSize(wd, ht))
+        #self.label_new.setMinimumSize(QtCore.QSize(wd, ht))
+        if ui.layout_mode == 'Music':
+            ui.label_new.hide()
+        self.apply_new_style(mode='dark')
         
     def apply_new_font(self):
         global app
@@ -14059,8 +14075,7 @@ def main():
     if (ui.list1.isHidden() or ui.list2.isHidden()) and ui.view_mode == 'list':
         ui.text.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         ui.label_new.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
-        if ui.layout_mode == 'Music':
-            ui.label_new.hide()
+        QtCore.QTimer.singleShot(1000, ui.adjust_fanart_widget)
     if ui.access_from_outside_network:
         get_ip_thread = GetIpThread(ui, interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
         get_ip_thread.start()
