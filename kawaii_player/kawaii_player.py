@@ -5200,7 +5200,6 @@ watch/unwatch status")
             self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
     
     def HideEveryThing(self, widget_except=None, mode=None):
-        global view_layout
         if not self.search_on_type_btn.isHidden():
             self.search_on_type_btn.hide()
         elif self.mpvplayer_val.processId() > 0 and mode != 'fs':
@@ -5234,7 +5233,7 @@ watch/unwatch status")
                 self.status_dict_widget.clear()
         
     def thumbnailHide(self, context):
-        global view_layout, total_till, browse_cnt, iconv_r
+        global total_till, browse_cnt, iconv_r
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
         self.idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
@@ -5273,7 +5272,6 @@ watch/unwatch status")
         if context == "ExtendedQLabel":
             pass
         else:
-            view_layout = "List"
             self.view_mode = "list"
         if self.mpvplayer_val.processId() > 0:
             self.text.hide()
@@ -5285,7 +5283,7 @@ watch/unwatch status")
         self.update_list2()
         
     def webClose(self):
-        global view_layout, desktop_session
+        global desktop_session
         #if not self.VerticalLayoutLabel.itemAt(2):
         #    self.VerticalLayoutLabel.addStretch(2)
         #    print('--stretch -- added--to --label and text widget--')
@@ -5348,7 +5346,6 @@ watch/unwatch status")
                 self.list1.setFocus()
         
     def showHideBrowser(self):
-        global view_layout
         if self.tab_2.isHidden():
             for widget in self.widget_dict:
                 self.browser_dict_widget.update(
@@ -5370,7 +5367,7 @@ watch/unwatch status")
             
     def IconView(self):
         global total_till, browse_cnt
-        global view_layout, thumbnail_indicator, total_till_epn
+        global thumbnail_indicator, total_till_epn
         
         if self.list_poster is not None:
             self.list_poster.title_clicked = False
@@ -5467,7 +5464,7 @@ watch/unwatch status")
     
     def IconViewEpn(self, start=None, mode=None):
         global total_till, browse_cnt
-        global view_layout, iconv_r, thumbnail_indicator
+        global iconv_r, thumbnail_indicator
         global site, total_till_epn
         if isinstance(mode, int):
             if mode == 3:
@@ -12790,7 +12787,6 @@ def main():
     global rfr_url, category, home
     global player_focus, artist_name_mplayer
     global total_till, browse_cnt
-    global view_layout
     global status, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
     global iconv_r, path_final_Url, mpv_indicator
@@ -12853,7 +12849,6 @@ def main():
     cache_empty = "no"
     player_focus = 0
     status = "bookmark"
-    view_layout = "List"
     total_till = 0
     browse_cnt = 0
     home = get_home_dir()
