@@ -12314,11 +12314,11 @@ watch/unwatch status")
                 
         if self.list1.isHidden() and not self.list2.isHidden():
             if self.list1.count() > 0:
-                self.list1.show()
-                show_hide_titlelist = 1
                 self.list2.hide()
                 self.goto_epn.hide()
                 show_hide_playlist = 0
+                self.list1.show()
+                show_hide_titlelist = 1
         elif not self.list1.isHidden() and self.list2.isHidden():
             if self.list1.count() == 0 and self.list2.count() > 0:
                 self.list1.hide()
