@@ -821,9 +821,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
             self.move_playlist_items(row, nrow, action='pgdown')
         elif event.key() == QtCore.Qt.Key_Left:
             if ui.float_window.isHidden():
-                if ui.list1.isHidden():
-                    ui.list1.show()
-                ui.list1.setFocus()
+                if not ui.list1.isHidden():
+                    ui.list1.setFocus()
+                else:
+                    ui.list1.keyPressEvent(event)
             else:
                 prev_r = self.currentRow() - 1
                 if self.currentRow() == 0:
