@@ -1215,6 +1215,16 @@ class TitleListWidget(QtWidgets.QListWidget):
                             shutil.rmtree(file_name)
                     except Exception as err:
                         logger.error(err)
+                tmpdict = {}
+                logger.debug(len(ui.history_dict_obj))
+                for i in ui.history_dict_obj:
+                    if i.startswith('#') or os.path.isfile(i):
+                        tmpdict.update({i:ui.history_dict_obj[i]})
+                    else:
+                        logger.debug('deleting history of: {}'.format(i))
+                ui.history_dict_obj.clear()
+                ui.history_dict_obj = tmpdict.copy()
+                logger.debug(len(ui.history_dict_obj))
             elif action == tvdb:
                 self.set_search_backend(use_search=False)
             elif action == tmdb:
