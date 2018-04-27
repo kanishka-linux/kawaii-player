@@ -65,10 +65,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     
     def process_HEAD(self):
         global ui, logger, getdb
-        global path_final_Url
 
-        arg_dict = ui.get_parameters_value(path='path_final_Url')
-        path_final_Url = arg_dict['path_final_Url']
         epnArrList = ui.epn_arr_list
 
         try:
@@ -96,7 +93,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if self.row < 0:
                 self.row = 0
             if ui.btn1.currentText().lower() == 'youtube':
-                nm = path_final_Url
+                nm = ui.final_playing_url
             else:
                 nm = ui.epn_return(self.row)
         elif path.startswith('abs_path='):
@@ -935,12 +932,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
         global ui, home, html_default_arr, logger, getdb
-        global path_final_Url, site
+        global site
 
-        arg_dict = ui.get_parameters_value(
-            path='path_final_Url', s='site'
-            )
-        path_final_Url = arg_dict['path_final_Url']
+        arg_dict = ui.get_parameters_value(s='site')
         epnArrList = ui.epn_arr_list.copy()
         site = arg_dict['site']
         self.playlist_shuffle_list[:] = []
@@ -1426,7 +1420,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if self.row < 0:
                 self.row = 0
             if ui.btn1.currentText().lower() == 'youtube':
-                nm = path_final_Url
+                nm = ui.final_playing_url
                 if not nm:
                     return 0
             else:
