@@ -2423,7 +2423,7 @@ watch/unwatch status")
         global site, iconv_r, thumbnail_indicator
         global buffering_mplayer, cache_empty, iconv_r_indicator
         global pause_indicator, mpv_indicator
-        global path_final_Url, current_playing_file_path
+        global current_playing_file_path
         global artist_name_mplayer, tab_6_player, interval
         global show_hide_playlist, show_hide_titlelist, opt, mirrorNo
         global name, category, bookmark
@@ -2461,8 +2461,6 @@ watch/unwatch status")
             current_playing_file_path = cur_ply
         if t6_ply:
             self.tab_6_player = t6_ply
-        if path_final:
-            path_final_Url = path_final
         if inter:
             interval = inter
         if thumb_indicator:
@@ -2474,7 +2472,7 @@ watch/unwatch status")
             cache_empty = cache_val
             
     def get_parameters_value(self, *arg, **kargs):
-        global path_final_Url, opt, site, siteName
+        global opt, site, siteName
         global name, html_default_arr
         global pause_indicator, mpv_indicator, rfr_url, total_till
         global show_hide_titlelist, show_hide_cover, iconv_r_indicator
@@ -9664,7 +9662,7 @@ watch/unwatch status")
         global site, mirrorNo
         global finalUrl, home
         global new_epn, buffering_mplayer
-        global path_final_Url, siteName, finalUrlFound, refererNeeded, category
+        global siteName, finalUrlFound, refererNeeded, category
         
         if self.if_file_path_exists_then_play(row, self.list2, False):
             finalUrl = self.if_file_path_exists_then_play(row, self.list2, False)
@@ -9764,7 +9762,7 @@ watch/unwatch status")
         
     def watchDirectly(self, finalUrl, title, quit_val):
         global site
-        global path_final_Url, current_playing_file_path
+        global current_playing_file_path
         self.cur_row = 0
         if title:
             self.epn_name_in_list = title
@@ -9796,7 +9794,6 @@ watch/unwatch status")
         self.tab_5.setFocus()
         
         finalUrl = str(finalUrl)
-        path_final_Url = finalUrl
         current_playing_file_path = finalUrl
         a_url = None
         s_url = None
@@ -12789,7 +12786,7 @@ def main():
     global total_till, browse_cnt
     global status, playlist_show
     global cache_empty, buffering_mplayer, slider_clicked, interval
-    global iconv_r, path_final_Url, mpv_indicator
+    global iconv_r, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator
     global iconv_r_indicator
@@ -12804,7 +12801,6 @@ def main():
     global html_default_arr, app
     
     wait_player = False
-    path_final_Url = ''
     default_arr_setting = [0, 0, 0, 0, 0]
     music_arr_setting = [0, 0, 0]
     show_hide_player = 0
