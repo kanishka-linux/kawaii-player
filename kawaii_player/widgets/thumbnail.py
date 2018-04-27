@@ -1203,36 +1203,32 @@ class ThumbnailWidget(QtWidgets.QLabel):
             self.change_video_mode(ui.video_mode_index, num)
                 
     def triggerPlaylist(self, val):
-        print('Menu Clicked')
-        print(val.text())
+        ui.logger.debug('Menu Clicked')
+        ui.logger.debug(val.text())
         value = str(val.text())
-        t=str(self.objectName())
+        t = str(self.objectName())
         t = re.sub('label_epn_', '', t)
         num = int(t)
         param_dict = ui.get_parameters_value(s='site', r='refererNeeded')
         site = param_dict['site']
         refererNeeded = param_dict['refererNeeded']
         file_path = os.path.join(home, 'Playlists', str(value))
-        if (site == "Music" or site == "Video" or site == "Local" or 
-            site == "None" or site == "PlayLists"):
-            if os.path.exists(file_path):
-                #i = ui.list2.currentRow()
-                i = num
-                sumr = ui.epn_arr_list[i].split('	')[0]
+        if site in ["Music", "Video", "None", "PlayLists"]:
+            if os.path.exists(file_path) and num < len(ui.epn_arr_list):
+                sumr = ui.epn_arr_list[num].split('	')[0]
                 try:
-                    rfr_url = ui.epn_arr_list[i].split('	')[2]
+                    rfr_url = ui.epn_arr_list[num].split('	')[2]
                 except:
                     rfr_url = "NONE"
-                sumry = ui.epn_arr_list[i].split('	')[1]
+                sumry = ui.epn_arr_list[num].split('	')[1]
                 sumry = sumry.replace('"', '')
                 if not sumry.startswith('http'):
                     sumry = '"'+sumry+'"'
-                t = sumr+'	'+sumry+'	'+rfr_url
-                write_files(file_path, t, line_by_line=True)
+                txt_line = sumr+'	'+sumry+'	'+rfr_url
+                write_files(file_path, txt_line, line_by_line=True)
         else:
-            path_final_Url = ui.epn_return(num)
-            ui.set_parameters_value(path_final=path_final_Url)
-            t = ''
+            playlist_add_url = ui.epn_return(num)
+            txt_line = ''
             try:
                 if '	' in ui.epn_arr_list[num]:
                     sumr = ui.epn_arr_list[num].split('	')[0]
@@ -1242,28 +1238,24 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 print(e)
                 sumr = 'NONE'
             if os.path.exists(file_path):
-                if isinstance(path_final_Url, list):
+                if isinstance(playlist_add_url, list):
                     if refererNeeded == True:
-                        rfr_url = path_final_Url[1]
-                        sumry = path_final_Url[0]
-                        t = sumr+'	'+sumry+'	'+rfr_url
+                        rfr_url = playlist_add_url[1]
+                        sumry = playlist_add_url[0]
+                        txt_line = sumr+'	'+sumry+'	'+rfr_url
                     else:
                         rfr_url = "NONE"
-                        j = 1
-                        t = ''
-                        for i in path_final_Url:
+                        for j, i in enumerate(playlist_add_url):
                             p = "-Part-"+str(j)
                             sumry = i
-                            if j == 1:
-                                t = sumr+p+'	'+sumry+'	'+rfr_url
+                            if j == 0:
+                                txt_line = sumr+p+'	'+sumry+'	'+rfr_url
                             else:
-                                t = t + '\n' + sumr+p+'	'+sumry+'	'+rfr_url
-                            j = j+1
+                                txt_line = txt_line + '\n' + sumr+p+'	'+sumry+'	'+rfr_url
                 else:
                     rfr_url = "NONE"
-                    sumry = path_final_Url
-                    t = sumr+'	'+sumry+'	'+rfr_url
-                write_files(file_path, t, line_by_line=True)
+                    txt_line = sumr+'	'+playlist_add_url+'	'+rfr_url
+                write_files(file_path, txt_line, line_by_line=True)
                 
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(
@@ -1373,7 +1365,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 
                 if t_num != num:
                     if site != "PlayLists":
-                        path_final_Url = ui.epn_return(num)
+                        ui.final_playing_url = ui.epn_return(num)
                     interval = 10
                 self.memory_num_arr.append(num)
                 ui.set_parameters_value(inter=interval)
@@ -1466,13 +1458,10 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     t_num = -1
             
                 if t_num != num:
-                    #ui.epnfound_return()
-                    path_final_Url = ui.epn_return(num)
+                    ui.final_playing_url = ui.epn_return(num)
                     interval = 10
-                else:
-                    path_final_Url = ui.get_parameters_value(path_final='path_final_Url')['path_final_Url']
                 self.memory_num_arr.append(num)
-                ui.set_parameters_value(inter=interval, path_final=path_final_Url)
+                ui.set_parameters_value(inter=interval)
                 if '	' in ui.epn_arr_list[num]:
                     a = (((ui.epn_arr_list[num])).split('	')[0])
                 else:			
@@ -1506,11 +1495,9 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 interval = (interval + 10)
                 ui.set_parameters_value(inter=interval)
                 inter = str(interval)+'s'
-                path_final_Url = str(path_final_Url)
-                path_final_Url = path_final_Url.replace('"', '')
-                ui.set_parameters_value(path_final=path_final_Url)
-                if not path_final_Url.startswith('http'):
-                    path_final_Url = '"'+path_final_Url+'"'
+                ui.final_playing_url = ui.final_playing_url.replace('"', '')
+                if not ui.final_playing_url.startswith('http'):
+                    path_final_Url = '"{}"'.format(ui.final_playing_url)
                 subprocess.call(
                     ["mpv", "--vo=image", "--no-sub", "--ytdl=no", "--quiet", "--no-audio", 
                     "--vo-image-outdir="+TMPDIR, "-aid=no", "-sid=no", 
