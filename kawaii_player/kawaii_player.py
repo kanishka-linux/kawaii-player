@@ -12797,10 +12797,9 @@ def main():
     global show_hide_cover, show_hide_playlist, show_hide_titlelist, server
     global show_hide_player, current_playing_file_path
     global music_arr_setting, default_arr_setting
-    global wait_player, desktop_session
+    global desktop_session
     global html_default_arr, app
     
-    wait_player = False
     default_arr_setting = [0, 0, 0, 0, 0]
     music_arr_setting = [0, 0, 0]
     show_hide_player = 0
