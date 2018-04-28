@@ -3687,7 +3687,7 @@ watch/unwatch status")
                         self.frame1.show()
         
     def playerPlaylist(self, val):
-        global playlist_show, site, thumbnail_indicator
+        global site, thumbnail_indicator
         global show_hide_cover, show_hide_playlist, show_hide_titlelist
         global show_hide_player, httpd
         
@@ -10072,7 +10072,7 @@ watch/unwatch status")
                                 
     def dataReady(self, p):
         global new_epn, epn, opt, site
-        global cache_empty, buffering_mplayer, slider_clicked
+        global cache_empty, buffering_mplayer
         global artist_name_mplayer, server
         global pause_indicator
         global mpv_indicator, mpv_start
@@ -12784,8 +12784,8 @@ def main():
     global rfr_url, category, home
     global player_focus, artist_name_mplayer
     global total_till, browse_cnt
-    global status, playlist_show
-    global cache_empty, buffering_mplayer, slider_clicked, interval
+    global status
+    global cache_empty, buffering_mplayer, interval
     global iconv_r, mpv_indicator
     global pause_indicator, default_option_arr
     global thumbnail_indicator
@@ -12810,7 +12810,6 @@ def main():
     total_till_epn = 0
     update_start = 0
     artist_name_mplayer =""
-    playlist_show = 1
     siteName = ""
     finalUrlFound = False
     refererNeeded = False
@@ -12839,7 +12838,6 @@ def main():
     mpv_indicator = []
     iconv_r = 6
     interval = 0
-    slider_clicked = "no"
     buffering_mplayer = "no"
     cache_empty = "no"
     player_focus = 0
