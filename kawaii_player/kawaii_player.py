@@ -1747,8 +1747,8 @@ watch/unwatch status")
             'm4a', 'm4b', 'opus', 'webm'
             ]
         self.video_type_arr = [
-            'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv', 'webm',
-            'mpg', 'mpeg', 'mov'
+            'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv',
+            'webm', 'mpg', 'mpeg', 'mov'
             ]
         self.video_dict = {}
         self.music_dict = {}
@@ -12819,14 +12819,6 @@ def main():
         "PlayLists", "YouTube", "Addons"
         ]
     html_default_arr = ["Select", "Video", "Music", "Bookmark", "PlayLists"]
-    MUSIC_EXT_LIST = [
-        'mp3', 'flac', 'ogg', 'wav', 'aac', 'wma',
-        'm4a', 'm4b', 'opus', 'webm'
-        ]
-    VIDEO_EXT_LIST = [
-        'mkv', 'mp4', 'avi', 'flv', 'ogg', 'wmv',
-        'webm', 'mpg', 'mpeg', 'mov'
-        ]
     audio_id = "auto"
     sub_id = "auto"
     iconv_r_indicator = []
@@ -12878,9 +12870,7 @@ def main():
         desktop_session = 'lxde'
     print(OSNAME, desktop_session)
     app = QtWidgets.QApplication(sys.argv)
-    media_data = MediaDatabase(
-        home=home, logger=logger,
-        music_ext=MUSIC_EXT_LIST, video_ext=VIDEO_EXT_LIST)
+    media_data = MediaDatabase(home=home, logger=logger)
     screen_resolution = app.desktop().screenGeometry()
     screen_width = screen_resolution.width()
     screen_height = screen_resolution.height()
