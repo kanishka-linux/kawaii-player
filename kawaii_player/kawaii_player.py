@@ -1578,6 +1578,7 @@ watch/unwatch status")
         self.mpvplayer_val = QtCore.QProcess()
         self.slave_address = '127.0.0.1:9001'
         self.playlist_queue_used = False
+        self.player_focus = False
         self.pc_to_pc_casting = 'no'
         self.subtitle_wait_thread = QtCore.QThread()
         self.instant_cast_play = -1
@@ -2045,20 +2046,20 @@ watch/unwatch status")
             self.frame_extra_toolbar.playlist_hide = False
         
     def global_shortcuts(self, val, val_function):
-        player_focus = False
+        self.player_focus = False
         if self.mpvplayer_val.processId() > 0:
             if self.idw == str(int(self.tab_5.winId())):
                 if self.tab_5.hasFocus():
-                    player_focus = True
+                    self.player_focus = True
             elif self.idw == str(int(self.label_new.winId())):
                 if self.label_new.hasFocus():
-                    player_focus = True
+                    self.player_focus = True
             elif self.idw == str(int(self.label.winId())):
                 if self.label.hasFocus():
-                    player_focus = True
+                    self.player_focus = True
             else:
-                player_focus = True
-        if player_focus:
+                self.player_focus = True
+        if self.player_focus:
             modifier = None
             modifier_event = None
             value = None
@@ -4093,13 +4094,9 @@ watch/unwatch status")
                 and self.list2.isHidden() and self.tab_2.isHidden()):
             self.frame1.hide()
             self.gridLayout.setSpacing(5)
-            
-    
 
     def setPlayerFocus(self):
-        global player_focus
-        player_focus = 1 - player_focus
-        if player_focus == 1:
+        if self.tab_5.isHidden():
             self.tab_5.show()
             self.tab_5.setFocus()
             self.list1.hide()
@@ -12782,7 +12779,7 @@ def main():
     global embed, opt, mirrorNo
     global pre_opt
     global rfr_url, category, home
-    global player_focus, artist_name_mplayer
+    global artist_name_mplayer
     global total_till, browse_cnt
     global status
     global cache_empty, buffering_mplayer, interval
@@ -12840,7 +12837,6 @@ def main():
     interval = 0
     buffering_mplayer = "no"
     cache_empty = "no"
-    player_focus = 0
     status = "bookmark"
     total_till = 0
     browse_cnt = 0
