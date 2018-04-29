@@ -40,11 +40,9 @@ print(SONG_TAGS, '--tagging-module--')
 
 class MediaDatabase():
 
-    def __init__(self, home=None, logger=None, music_ext=None, video_ext=None):
+    def __init__(self, home=None, logger=None):
         self.home = home
         self.logger = logger
-        self.music_ext = music_ext
-        self.video_ext = video_ext
         self.ui = None
         
     def set_ui(self, ui):
@@ -80,7 +78,7 @@ class MediaDatabase():
                         p[:] = []
                         for k in n:
                             file_ext = k.rsplit('.', 1)[-1]
-                            if file_ext.lower() in self.video_ext:
+                            if file_ext.lower() in self.ui.video_type_arr:
                                 p.append(os.path.join(i, k))
                         if p:
                             r = i
@@ -498,7 +496,7 @@ class MediaDatabase():
                                 p[:] = []
                                 for k in n:
                                     file_ext = k.rsplit('.', 1)[-1]
-                                    if file_ext.lower() in self.video_ext:
+                                    if file_ext.lower() in self.ui.video_type_arr:
                                         p.append(os.path.join(i, k))
                                         path = os.path.join(i, k)
                                         if os.path.isfile(path):
@@ -848,7 +846,7 @@ class MediaDatabase():
                             p[:] = []
                             for k in n:
                                 file_ext = k.rsplit('.', 1)[-1]
-                                if file_ext.lower() in self.music_ext:
+                                if file_ext.lower() in self.ui.music_type_arr:
                                     p.append(os.path.join(i, k))
                                     path = os.path.join(i, k)
                                     if os.path.isfile(path):
