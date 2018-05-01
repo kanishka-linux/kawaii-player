@@ -725,17 +725,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         return k
 
     def write_to_tmp_playlist(self, epnArrList, _new_epnArrList=None):
-        global home
-        if epnArrList:
-            ##file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
-            ##f = open(file_name, 'w').close()
-            ##if _new_epnArrList:
-            ##    write_files(file_name, _new_epnArrList, True)
-            ##else:
-            ##    write_files(file_name, epnArrList, True)
-            pass
-            #nav_signal = doGETSignal()
-            #nav_signal.nav_remote.emit('TMP_PLAYLIST')
+        pass
 
     def create_playlist(
             self, site, site_option, name, epnArrList, new_video_local_stream, 
