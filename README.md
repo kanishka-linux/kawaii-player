@@ -407,16 +407,6 @@ Web Interface, contains a search text box which can be used to send text command
 
 ###### [Index](#index)
 
-The computer running kawaii-player can be used as youtube-casting or torrent-casting device. Users can directly send youtube video/playlist links using web interface to the application with the help of text commands mentioned in the [Using Web Interface](#using-web-interface) section, which will be then played using mpv/mplayer and youtube-dl. If the computer running the application is connected to TV then user can directly view the content on TV. Same is with torrent http/magnet links. Users can preserve everything which has been played into local playlist. Users need to enable **remote-control** mode to use these features, without which everything you click might start playing in the browser if it's html5 compatible. The playing instance can be easily controlled using web-based remote.
-
-Explanation for some casting commands:
-
-* **yt:** command: First users have to select some playlist using web interface and then this command will send some url which will be then saved to that playlist. Users then have to click on the playlist entry manually to make it play on the server.
-
-* **torrent:** command: First select Torrent section from web interface, then this command will send torrent http/magnet link to the application. Users then have to go to Torrent->History section and click on the required item to make it start playing.
-
-* **ytq:** command: (Available in version 2.8+ onwards) Users can send any ytdl supported link/direct link or torrent magnet/http link to the application, which will be then played instantly without asking anything.
-
 #### PC To PC Casting
 
 kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended in v3.5.0 to include master-slave design in order to incorporate PC-To-PC casting feature. Following are some important aspects of this feature.
@@ -435,7 +425,27 @@ kawaii-player can work as client as well as server at the same time. This featur
     * Start media server on both.
     * Select any playlist of master. From its contextmenu, start casting files or playlist from master to slave.
     
-For details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
+After following above steps, on Master, users will find new contextmenu as shown below from which they can cast items to other Slave computers running kawaii-player.
+
+![casting-menu](https://user-images.githubusercontent.com/17716871/39094384-1d5fd91e-464c-11e8-892f-38e2aa540c54.png)
+
+Above contextmenu has 'Show More Controls' option. This option will open up web interface of slave within master using internal browser. It will allow master to control other playback activities on slave. Following is a screenshot with qtwebengine as browser backend. If internal browser is not working as expected (most probably with qtwebkit backend) then users can open up web interface of slave using any external browser of choice.
+
+![Remote-Control](https://user-images.githubusercontent.com/17716871/39094637-61d22e86-4650-11e8-902c-25f09b978283.png)
+    
+For more details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
+
+#### Browser to PC Casting
+
+The computer running kawaii-player can be used as youtube-casting or torrent-casting device. Users can directly send youtube video/playlist links using web interface to the application with the help of text commands mentioned in the [Using Web Interface](#using-web-interface) section, which will be then played using mpv/mplayer and youtube-dl. If the computer running the application is connected to TV then user can directly view the content on TV. Same is with torrent http/magnet links. Users can preserve everything which has been played into local playlist. Users need to enable **remote-control** mode to use these features, without which everything you click might start playing in the browser if it's html5 compatible. The playing instance can be easily controlled using web-based remote.
+
+Explanation for some casting commands:
+
+* **yt:** command: First users have to select some playlist using web interface and then this command will send some url which will be then saved to that playlist. Users then have to click on the playlist entry manually to make it play on the server.
+
+* **torrent:** command: First select Torrent section from web interface, then this command will send torrent http/magnet link to the application. Users then have to go to Torrent->History section and click on the required item to make it start playing.
+
+* **ytq:** command: (Available in version 2.8+ onwards) Users can send any ytdl supported link/direct link or torrent magnet/http link to the application, which will be then played instantly without asking anything.
 
 About casting extensions:
 
