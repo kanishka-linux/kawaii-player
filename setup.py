@@ -37,7 +37,7 @@ else:
         ]
 setup(
     name='kawaii-player', 
-    version='3.5.0', 
+    version='3.6.0', 
     license='GPLv3', 
     author='kanishka-linux', 
     author_email='kanishka.linux@gmail.com', 
@@ -45,7 +45,8 @@ setup(
     long_description="README.md", 
     packages=[
         'kawaii_player', 'kawaii_player.Plugins', 'kawaii_player.widgets',
-        'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit'
+        'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit',
+        'kawaii_player.vinanti', 'kawaii_player.tvdb_async',
         ], 
     include_package_data=True, 
     entry_points={
