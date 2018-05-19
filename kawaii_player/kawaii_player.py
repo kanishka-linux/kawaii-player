@@ -205,6 +205,40 @@ from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 
+from vinanti import Vinanti
+from tvdb_async import TVDB
+
+class GUISignals(QtCore.QObject):
+    
+    textsignal = pyqtSignal(str)
+    fanartsignal = pyqtSignal(str, str)
+    
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        self.text = ''
+        
+    def set_text(self, text):
+        self.text = text
+    
+    def set_fanart(self, fanart, theme):
+        self.fanart = fanart
+        self.theme = theme
+        
+    def text_changed(self):
+        self.textsignal.emit(self.text)
+        
+    def fanart_changed(self):
+        self.fanartsignal.emit(self.fanart, self.theme)
+
+@pyqtSlot(str)
+def apply_new_text(val):
+    global ui
+    ui.text.setText(val)
+
+@pyqtSlot(str, str)
+def apply_fanart_widget(fanart, theme):
+    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=theme))
+
 def set_mainwindow_palette(fanart, first_time=None, theme=None):
     if theme is None or theme == 'default':
         logger.info('\n{0}:  mainwindow background\n'.format(fanart))
@@ -1040,6 +1074,14 @@ watch/unwatch status")
         self.add_external_subtitle.clicked.connect(self.check_and_start_getsub_method)
         self.add_external_subtitle.hide()
         
+        self.text_change_button = QtWidgets.QPushButton(self.player_opt)
+        self.text_change_button.setObjectName(_fromUtf8("text_change_button"))
+        self.horizontalLayout_player_opt.insertWidget(37, self.text_change_button, 0)
+        self.text_change_button.setText('Text')
+        self.text_change_button.clicked.connect(self.apply_text_change)
+        self.text_change_button.hide()
+        self.text_change_content = ''
+        
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
         
@@ -1760,7 +1802,7 @@ watch/unwatch status")
             'MyAnimeList': 'http://myanimelist.net/anime.php?q=',
             'Anime-Planet': 'http://www.anime-planet.com/anime/all?name=',
             'Anime-Source': 'http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info=',
-            'TVDB': 'http://thetvdb.com/?searchseriesid=&tab=listseries&function=Search&string=',
+            'TVDB': 'https://www.thetvdb.com/search?q=',
             'TMDB': 'https://www.themoviedb.org/search?query=',
             'Google': 'https://www.google.com/search?q=',
             'YouTube': 'https://m.youtube.com/results?search_query=',
@@ -1789,9 +1831,15 @@ watch/unwatch status")
             'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
             'tab_6':self.tab_6
             }
+        self.user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:59.0) Gecko/20100101 Firefox/59.0'
+        self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent})
+        self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, int(screen_height/1.5)))
+        self.gui_signals = GUISignals()
+        self.gui_signals.textsignal.connect(apply_new_text)
+        self.gui_signals.fanartsignal.connect(apply_fanart_widget)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
@@ -5789,7 +5837,7 @@ watch/unwatch status")
         
         return (dir_path, thumbnail, picn, img_opt)
         
-    def copyImg(self, new_name=None):
+    def copyImg(self, new_name=None, *args):
         global name, site, opt, pre_opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
@@ -5799,7 +5847,7 @@ watch/unwatch status")
         if dir_path and os.path.exists(picn):
              self.metadata_copy(dir_path, picn, thumbnail, mode='img')
              
-    def copyFanart(self, new_name=None):
+    def copyFanart(self, new_name=None, *args):
         global name, site, opt, pre_opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
@@ -5824,7 +5872,8 @@ watch/unwatch status")
         if os.path.exists(sumry):
             txt = open_files(sumry, False)
             logger.info('{0}--copy-summary--'.format(txt))
-            self.text.setText(txt)
+            self.gui_signals.set_text(txt)
+            self.gui_signals.text_changed()
     
     def showImage(self):
         global name
@@ -5833,7 +5882,106 @@ watch/unwatch status")
         if os.path.exists(thumb):
             Image.open(thumb).show()
     
+    def metadata_fetched(self, *args):
+        nm, fan, po, sm, obj, val = args[0], args[1], args[2], args[3], args[4], args[5]
+        logger.debug(val)
+        fanart = os.path.join(TMPDIR, nm+'-fanart.jpg')
+        thumb = os.path.join(TMPDIR, nm+'.jpg')
+        if val == 'info':
+            aired = obj.info.get('first aired')
+            genres = obj.info.get('genres')
+            txt = '{} ({}) \n\nGenres: {} \n\n{}'.format(obj.title, aired, genres, obj.summary)
+            logger.debug(txt)
+            if obj.summary:
+                self.copySummary(new_name=nm, copy_sum=txt)
+        elif val == 'poster':
+            arr = random.sample(obj.poster, len(obj.poster))
+            if arr:
+                logger.debug(arr[0])
+                self.vnt.get(arr[0], out=thumb, onfinished=partial(self.copyImg, nm))
+        elif val == 'fanart':
+            arr = random.sample(obj.fanart, len(obj.fanart))
+            if arr:
+                logger.debug(arr[0])
+                self.vnt.get(arr[0], out=fanart, onfinished=partial(self.copyFanart, nm))
+        
     def posterfound_new(
+            self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
+            copy_summary=None, direct_url=None, use_search=None, get_all=None,
+            video_dir=None):
+        
+        logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
+        if use_search is True:
+            backend = 'ddg'
+        elif use_search == 'tvdb+g':
+            backend = 'g'
+        elif use_search in ['tmdb+g', 'tmdb+ddg', 'tmdb']:
+            backend = 'alter'
+        else:
+            backend = 'no'
+        if direct_url:
+            if 'tvdb' in url:
+                backend = 'no'
+            elif 'tmdb' in url:
+                backend = 'alter'
+        if backend == 'alter':
+            self.posterfound_arr.append(FindPosterThread(
+            self, logger, TMPDIR, name, url, direct_url, copy_fanart,
+            copy_poster, copy_summary, use_search, video_dir))
+            if get_all:
+                self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
+                    lambda x=0: self.posterfound_thread_all_finished(name, url,
+                        direct_url, copy_fanart, copy_poster, copy_summary, use_search))
+            else:
+                self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
+                    lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
+                    copy_poster, copy_summary))
+            
+            self.posterfound_arr[len(self.posterfound_arr)-1].start()
+        else:
+            if direct_url:
+                srch_term = url
+            else:
+                srch_term = name
+            if get_all:
+                total = self.list1.count()
+            else:
+                total = 1
+            for i in range(0, total):
+                if get_all:
+                    srch_term = self.list1.item(i).text()
+                    name = srch_term
+                if not srch_term.startswith('http'):
+                    srch_term = self.name_adjust(srch_term)
+                if direct_url and copy_poster and not copy_fanart:
+                    thumb = os.path.join(TMPDIR, name+'.jpg')
+                    self.vnt.get(srch_term, out=thumb, onfinished=partial(self.copyImg, name))
+                elif direct_url and copy_fanart and not copy_poster:
+                    fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
+                    self.vnt.get(srch_term, out=fanart, onfinished=partial(self.copyFanart, name))
+                else:
+                    self.tvdb.search(
+                            srch_term, backend=backend, onfinished=partial(
+                                self.metadata_fetched, name, copy_fanart,
+                                copy_poster, copy_summary
+                            )
+                        )
+                    
+    def name_adjust(self, name):
+        nam = re.sub('-|_| |\.', '+', name)
+        nam = nam.lower()
+        nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
+        nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
+        nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
+        nam = nam.strip()
+        dt = re.search('[1-2][0-9][0-9][0-9]', name)
+        if dt:
+            nam = re.sub(dt.group(), '', nam)
+            nam = nam.strip()
+            nam = '{}+({})'.format(nam, dt.group())
+        return nam
+        
+    def posterfound_new_old(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
             copy_summary=None, direct_url=None, use_search=None, get_all=None,
             video_dir=None):
@@ -8312,7 +8460,10 @@ watch/unwatch status")
         bg.save(str(tmp_img), 'JPEG', quality=100)
         #img.save(str(tmp_img), 'JPEG', quality=100)
         return tmp_img
-
+    
+    def apply_text_change(self):
+        self.text.setText(self.text_change_content)
+    
     def videoImage(self, picn, thumbnail, fanart, summary, mode=None):
         global screen_height, screen_width
         if self.image_fit_option_val in range(1, 11):
@@ -8340,7 +8491,6 @@ watch/unwatch status")
                         get_thumbnail = True
                 elif not os.path.isfile(thumbnail):
                     get_thumbnail = True
-                    #self.image_fit_option(picn, thumbnail, fit_size=450)
                 if get_thumbnail:
                     self.image_fit_option(picn, thumbnail, fit_size=6, widget=self.label)
                 poster = picn
@@ -8348,12 +8498,12 @@ watch/unwatch status")
                 if (picn == thumbnail == fanart):
                     pass
                 else:
-                    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=self.player_theme))
+                    self.gui_signals.set_fanart(fanart, self.player_theme)
+                    self.gui_signals.fanart_changed()
                 try:
                     poster_dir, _ = os.path.split(poster)
                     poster_picn = os.path.join(poster_dir, 'thumbnail.jpg')
                     if 'poster.jpg' in poster:
-                        #picn = self.change_aspect_only(poster)
                         if not os.path.exists(poster_picn):
                             self.image_fit_option(poster, poster_picn, fit_size=6, widget=self.label)
                         picn = poster_picn
@@ -8378,7 +8528,8 @@ watch/unwatch status")
         except Exception as e:
             print(e, '--error--in processing image--VideoImage 13432')
             if os.path.exists(self.default_background):
-                QtCore.QTimer.singleShot(10, partial(set_mainwindow_palette, self.default_background, theme=self.player_theme))
+                self.gui_signals.set_fanart(self.default_background, self.player_theme)
+                self.gui_signals.fanart_changed()
                 dir_n, p = os.path.split(self.default_background)
                 new_jpg =  os.path.join(dir_n, 'default_poster.jpg')
                 if not os.path.exists(new_jpg):
@@ -8388,7 +8539,8 @@ watch/unwatch status")
 
         if summary:
             self.text.clear()
-            self.text.setText(summary)
+            self.gui_signals.set_text(summary)
+            self.gui_signals.text_changed()
         elif mode is None or mode == 'no summary':
             txt_old = self.text.toPlainText()
             if self.list2.item(self.cur_row):
@@ -8400,7 +8552,8 @@ watch/unwatch status")
             if txt_old.startswith('Air Date:'):
                 pass
             else:
-                self.text.setText(txt)
+                self.gui_signals.set_text(txt)
+                self.gui_signals.text_changed()
             logger.debug(txt)
 
     def playlistUpdate(self):
