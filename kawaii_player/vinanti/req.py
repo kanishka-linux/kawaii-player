@@ -17,12 +17,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with vinanti.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import re
+import gzip
 import time
 import shutil
 import base64
 import urllib.parse
 import urllib.request
-#from urllib.parse import urlparse
+from io import StringIO, BytesIO
 try:
     from vinanti.log import log_function
     from vinanti.formdata import Formdata
@@ -50,6 +52,8 @@ class RequestObject:
         self.auth = kargs.get('auth')
         self.auth_digest = kargs.get('auth_digest')
         self.files = kargs.get('files')
+        self.binary = kargs.get('binary')
+        self.charset = kargs.get('charset')
         if not self.log:
             logger.disabled = True
         self.timeout = self.kargs.get('timeout')
@@ -148,34 +152,94 @@ class CreateReturnObject:
         self.method = parent.method
         self.error = parent.error
         self.session_cookies = None
+        self.charset = None
+        self.html = None
         if req:
             self.set_information(req, parent)
             self.set_session_cookies()
         else:
-            self.html = None
             self.info = None
             self.status = None
             self.url = parent.url
+            self.content_type = None
+            self.content_encoding = None
             
     def set_information(self, req, parent):
         self.info = req.info()
         self.url = req.geturl()
         self.status = req.getcode()
+        self.content_encoding = self.info.get('content-encoding')
+        self.content_type = self.info.get('content-type')
+        
+        if not self.content_type:
+            self.content_type = 'Not Available'
+        else:
+            charset_s = re.search('charset[^;]*', self.content_type.lower())
+            if charset_s:
+                charset_t = charset_s.group()
+                charset_t = charset_t.replace('charset=', '')
+                self.charset = charset_t.strip()
+        if parent.charset:
+            self.charset = parent.charset
+        
+        self.readable_format = [
+            'text/plain', 'text/html', 'text/css', 'text/javascript',
+            'application/xhtml+xml', 'application/xml', 'application/json',
+            'application/javascript', 'application/ecmascript'
+            ]
+        human_readable = False
+        for i in self.readable_format:
+            if i in self.content_type.lower():
+                human_readable = True
+                break
+                
+        dstorage = None
+        if self.content_encoding == 'gzip':
+            try:
+                storage = BytesIO(req.read())
+                dstorage = gzip.GzipFile(fileobj=storage)
+            except Exception as err:
+                logger.error(err)
+                
         if parent.method == 'HEAD':
             self.html = 'None'
         elif parent.out:
             with open(parent.out, 'wb') as out_file:
-                shutil.copyfileobj(req, out_file)
+                if dstorage is None:
+                    shutil.copyfileobj(req, out_file)
+                else:
+                    shutil.copyfileobj(dstorage, out_file)
             self.html = 'file saved to {}'.format(parent.out)
         else:
-            try:
-                self.html = req.read().decode('utf-8')
-            except Exception as err:
-                logger.error(err)
-                self.html = str(err)
+            self.read_html(parent, req, dstorage, human_readable)
+            
+    def read_html(self, parent, req, dstorage, human_readable):
+        try:
+            decoding_required = False
+            if dstorage is None and human_readable and not parent.binary:
+                self.html = req.read()
+                decoding_required = True
+            elif dstorage and human_readable and not parent.binary:
+                self.html = dstorage.read()
+                decoding_required = True
+            elif parent.binary:
+                self.html = req.read()
+            else:
+                self.html = 'not text file: content-type is {}'.format(self.content_type)
+            if decoding_required:
+                if self.charset:
+                    try:
+                        self.html = self.html.decode(self.charset)
+                    except Exception as err:
+                        logger.error(err)
+                        self.html = self.html.decode('utf-8')
+                else:
+                    self.html = self.html.decode('utf-8')
+        except Exception as err:
+            logger.error(err)
+            self.html = str(err)
             
     def set_session_cookies(self):
-        #o = urlparse(self.url)
         for i in self.info.walk():
             cookie_list = i.get_all('set-cookie')
             cookie_jar = []
