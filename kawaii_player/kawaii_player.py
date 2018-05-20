@@ -212,6 +212,7 @@ class GUISignals(QtCore.QObject):
     
     textsignal = pyqtSignal(str)
     fanartsignal = pyqtSignal(str, str)
+    epsum_signal = pyqtSignal(int, str, str, str)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -224,11 +225,14 @@ class GUISignals(QtCore.QObject):
         self.fanart = fanart
         self.theme = theme
         
-    def text_changed(self):
-        self.textsignal.emit(self.text)
+    def text_changed(self, txt):
+        self.textsignal.emit(txt)
         
-    def fanart_changed(self):
-        self.fanartsignal.emit(self.fanart, self.theme)
+    def fanart_changed(self, fanart, theme):
+        self.fanartsignal.emit(fanart, theme)
+        
+    def ep_changed(self, num, ep, sumr, path):
+        self.epsum_signal.emit(num, ep, sumr, path)
 
 @pyqtSlot(str)
 def apply_new_text(val):
@@ -238,6 +242,15 @@ def apply_new_text(val):
 @pyqtSlot(str, str)
 def apply_fanart_widget(fanart, theme):
     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=theme))
+    
+@pyqtSlot(int, str, str)
+def apply_episode_metadata(num, ep, sumr, path):
+    global ui
+    if num < ui.list2.count():
+        ui.list2.item(num).setText(ep)
+        ui.list2.item(num).setIcon(QtGui.QIcon(path))
+        ui.text.setText(sumr)
+        
 
 def set_mainwindow_palette(fanart, first_time=None, theme=None):
     if theme is None or theme == 'default':
@@ -1840,6 +1853,7 @@ watch/unwatch status")
         self.gui_signals = GUISignals()
         self.gui_signals.textsignal.connect(apply_new_text)
         self.gui_signals.fanartsignal.connect(apply_fanart_widget)
+        self.gui_signals.epsum_signal.connect(apply_episode_metadata)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
@@ -5872,8 +5886,7 @@ watch/unwatch status")
         if os.path.exists(sumry):
             txt = open_files(sumry, False)
             logger.info('{0}--copy-summary--'.format(txt))
-            self.gui_signals.set_text(txt)
-            self.gui_signals.text_changed()
+            self.gui_signals.text_changed(txt)
     
     def showImage(self):
         global name
@@ -5883,7 +5896,8 @@ watch/unwatch status")
             Image.open(thumb).show()
     
     def metadata_fetched(self, *args):
-        nm, fan, po, sm, obj, val = args[0], args[1], args[2], args[3], args[4], args[5]
+        nm, fan, po, sm, eps = args[0], args[1], args[2], args[3], args[4]
+        vd, st, epr, obj, val = args[5], args[6], args[7], args[8], args[9]
         logger.debug(val)
         fanart = os.path.join(TMPDIR, nm+'-fanart.jpg')
         thumb = os.path.join(TMPDIR, nm+'.jpg')
@@ -5892,23 +5906,28 @@ watch/unwatch status")
             genres = obj.info.get('genres')
             txt = '{} ({}) \n\nGenres: {} \n\n{}'.format(obj.title, aired, genres, obj.summary)
             logger.debug(txt)
-            if obj.summary:
+            if obj.summary and sm:
                 self.copySummary(new_name=nm, copy_sum=txt)
         elif val == 'poster':
             arr = random.sample(obj.poster, len(obj.poster))
-            if arr:
+            if arr and po:
                 logger.debug(arr[0])
                 self.vnt.get(arr[0], out=thumb, onfinished=partial(self.copyImg, nm))
         elif val == 'fanart':
             arr = random.sample(obj.fanart, len(obj.fanart))
-            if arr:
+            if arr and fan:
                 logger.debug(arr[0])
                 self.vnt.get(arr[0], out=fanart, onfinished=partial(self.copyFanart, nm))
-        
+        elif val == 'episode-info' and eps and vd and epr:
+            self.metaengine.map_episodes(
+                tvdb_dict=obj.episode_summary.copy(), epn_arr=epr.copy(), name=nm,
+                site=st, video_dir=vd
+                )
+            
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
-            copy_summary=None, direct_url=None, use_search=None, get_all=None,
-            video_dir=None):
+            copy_summary=None, direct_url=None, use_search=None, get_all=False,
+            video_dir=None, get_sum=False):
         
         logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
         if use_search is True:
@@ -5948,9 +5967,19 @@ watch/unwatch status")
             else:
                 total = 1
             for i in range(0, total):
+                ep_arr = []
                 if get_all:
                     srch_term = self.list1.item(i).text()
                     name = srch_term
+                    video_dir = None
+                    if site.lower() == 'video':
+                        video_dir = self.original_path_name[i].split('\t')[-1]
+                    elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
+                        pass
+                    else:
+                        video_dir = ui.original_path_name[i]
+                    ep_arr = self.metaengine.get_epn_arr_list(site, name, video_dir)
+                    #print(ep_arr)
                 if not srch_term.startswith('http'):
                     srch_term = self.name_adjust(srch_term)
                 if direct_url and copy_poster and not copy_fanart:
@@ -5960,10 +5989,14 @@ watch/unwatch status")
                     fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
                     self.vnt.get(srch_term, out=fanart, onfinished=partial(self.copyFanart, name))
                 else:
+                    if not get_all:
+                        ep_arr = self.epn_arr_list.copy()
                     self.tvdb.search(
-                            srch_term, backend=backend, onfinished=partial(
+                            srch_term, backend=backend, episode_summary=get_sum,
+                            onfinished=partial(
                                 self.metadata_fetched, name, copy_fanart,
-                                copy_poster, copy_summary
+                                copy_poster, copy_summary, get_sum, video_dir,
+                                site, ep_arr.copy()
                             )
                         )
                     
@@ -5974,6 +6007,8 @@ watch/unwatch status")
         nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
         nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
         nam = nam.strip()
+        if nam.endswith('+'):
+            nam = nam[:-1]
         dt = re.search('[1-2][0-9][0-9][0-9]', name)
         if dt:
             nam = re.sub(dt.group(), '', nam)
@@ -8498,8 +8533,7 @@ watch/unwatch status")
                 if (picn == thumbnail == fanart):
                     pass
                 else:
-                    self.gui_signals.set_fanart(fanart, self.player_theme)
-                    self.gui_signals.fanart_changed()
+                    self.gui_signals.fanart_changed(fanart, self.player_theme)
                 try:
                     poster_dir, _ = os.path.split(poster)
                     poster_picn = os.path.join(poster_dir, 'thumbnail.jpg')
@@ -8528,8 +8562,7 @@ watch/unwatch status")
         except Exception as e:
             print(e, '--error--in processing image--VideoImage 13432')
             if os.path.exists(self.default_background):
-                self.gui_signals.set_fanart(self.default_background, self.player_theme)
-                self.gui_signals.fanart_changed()
+                self.gui_signals.fanart_changed(self.default_background, self.player_theme)
                 dir_n, p = os.path.split(self.default_background)
                 new_jpg =  os.path.join(dir_n, 'default_poster.jpg')
                 if not os.path.exists(new_jpg):
@@ -8539,8 +8572,9 @@ watch/unwatch status")
 
         if summary:
             self.text.clear()
-            self.gui_signals.set_text(summary)
-            self.gui_signals.text_changed()
+            self.gui_signals.text_changed(summary)
+        elif summary == '':
+            pass
         elif mode is None or mode == 'no summary':
             txt_old = self.text.toPlainText()
             if self.list2.item(self.cur_row):
@@ -8552,8 +8586,7 @@ watch/unwatch status")
             if txt_old.startswith('Air Date:'):
                 pass
             else:
-                self.gui_signals.set_text(txt)
-                self.gui_signals.text_changed()
+                self.gui_signals.text_changed(txt)
             logger.debug(txt)
 
     def playlistUpdate(self):
