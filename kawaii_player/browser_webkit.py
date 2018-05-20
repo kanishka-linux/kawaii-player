@@ -502,8 +502,18 @@ class Browser(QtWebKitWidgets.QWebView):
                 my_copy = self.ui.epn_arr_list.copy()
                 r = self.ui.list1.currentRow()
                 nm = self.ui.get_title_name(r)
-                self.ui.metaengine.getTvdbEpnInfo(url.toString(), site=self.site,
-                                                  epn_arr=my_copy, name=nm, row=r)
+                video_dir = None
+                if self.site.lower() == 'video':
+                    video_dir = self.ui.original_path_name[r].split('\t')[-1]
+                elif self.site.lower() in ['playlists', 'none', 'music']:
+                    pass
+                else:
+                    video_dir = self.ui.original_path_name[r]
+                self.ui.posterfound_new(
+                    name=nm, site=self.site, url=url.toString(), direct_url=True, 
+                    copy_summary=False, copy_poster=False, copy_fanart=False,
+                    get_sum=True, video_dir=video_dir
+                )
         elif (option.lower() == 'artist link' or option.lower() == 'series link' 
                 or option.lower() == 'series/movie link'):
             url = url.toString()
