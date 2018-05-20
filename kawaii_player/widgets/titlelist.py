@@ -554,10 +554,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                 print(e)
             
     def get_all_information(self):
-        backend = ['duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
+        backend = ['tvdb', 'tmdb', 'duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
         backend_dict = {
             'duckduckgo+tvdb':'tvdb+ddg', 'duckduckgo+tmdb':'tmdb+ddg',
-            'google+tvdb':'tvdb+g', 'google+tmdb':'tmdb+g'
+            'google+tvdb':'tvdb+g', 'google+tmdb':'tmdb+g',
+            'tvdb':'tvdb', 'tmdb':'tmdb'
             }
         item, ok = QtWidgets.QInputDialog.getItem(
             MainWindow, 'Select Search Backend', 'This option will also fetch Episode Thumbnails and Summary for TV Shows\npresent in the TitleList along with relevant posters and fanart. For TV Shows\nselect TVDB based backend and for movies select backend based on TMDB',
@@ -590,7 +591,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 ui.posterfound_new(
                     name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
                     copy_summary=True, direct_url=False, use_search=use_search,
-                    get_all=True, video_dir=video_dir)
+                    get_all=True, video_dir=video_dir, get_sum=True)
             except Exception as e:
                 print(e)
                 
