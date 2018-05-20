@@ -658,24 +658,27 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 row = 0
             if self.currentItem():
-                mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(0, row, mycopy)
+                #mycopy = ui.epn_arr_list.copy()
+                #ui.metaengine.find_info_thread(0, row, mycopy)
+                self.set_search_backend(row)
         elif (event.key() == QtCore.Qt.Key_F7):
             if ui.list1.currentItem():
                 row = ui.list1.currentRow()
             else:
                 row = 0
             if self.currentItem():
-                mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(1, row, mycopy)
+                #mycopy = ui.epn_arr_list.copy()
+                #ui.metaengine.find_info_thread(1, row, mycopy)
+                self.set_search_backend(row, use_search='ddg')
         elif (event.key() == QtCore.Qt.Key_F8):
             if ui.list1.currentItem():
                 row = ui.list1.currentRow()
             else:
                 row = 0
             if self.currentItem():
-                mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(2, row, mycopy)
+                #mycopy = ui.epn_arr_list.copy()
+                #ui.metaengine.find_info_thread(2, row, mycopy)
+                self.set_search_backend(row, use_search='g')
         elif event.key() == QtCore.Qt.Key_F9:
             self.get_default_name(0, mode='from_summary')
         elif (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -1335,7 +1338,27 @@ class PlaylistWidget(QtWidgets.QListWidget):
         ui.text.setFocus()
         if ui.text.isHidden():
             ui.text.show()
-            
+    
+    def set_search_backend(self, row, use_search=None):
+        if use_search is None:
+            use_search = False
+        try:
+            site = ui.get_parameters_value(s='site')['site']
+            nm = ui.get_title_name(row)
+            video_dir = None
+            if site.lower() == 'video':
+                video_dir = ui.original_path_name[row].split('\t')[-1]
+            elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
+                pass
+            else:
+                video_dir = ui.original_path_name[row]
+            ui.posterfound_new(
+                name=nm, site=site, url=False, copy_poster=False, copy_fanart=False, 
+                copy_summary=False, direct_url=False, use_search=use_search,
+                video_dir=video_dir, get_sum=True)
+        except Exception as e:
+            print(e)
+    
     def contextMenuEvent(self, event):
         param_dict = ui.get_parameters_value(s='site', n='name')
         site = param_dict['site']
@@ -1662,24 +1685,27 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     else:
                         row = 0
                     if self.currentItem():
-                        mycopy = ui.epn_arr_list.copy()
-                        ui.metaengine.find_info_thread(0, row, mycopy)
+                        #mycopy = ui.epn_arr_list.copy()
+                        #ui.metaengine.find_info_thread(0, row, mycopy)
+                        self.set_search_backend(row)
                 elif action == eplist_ddg:
                     if ui.list1.currentItem():
                         row = ui.list1.currentRow()
                     else:
                         row = 0
                     if self.currentItem():
-                        mycopy = ui.epn_arr_list.copy()
-                        ui.metaengine.find_info_thread(1, row, mycopy)
+                        #mycopy = ui.epn_arr_list.copy()
+                        #ui.metaengine.find_info_thread(1, row, mycopy)
+                        self.set_search_backend(row, use_search='ddg')
                 elif action == eplist_g:
                     if ui.list1.currentItem():
                         row = ui.list1.currentRow()
                     else:
                         row = 0
                     if self.currentItem():
-                        mycopy = ui.epn_arr_list.copy()
-                        ui.metaengine.find_info_thread(2, row, mycopy)
+                        #mycopy = ui.epn_arr_list.copy()
+                        #ui.metaengine.find_info_thread(2, row, mycopy)
+                        self.set_search_backend(row, use_search='g')
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
