@@ -60,24 +60,11 @@ class TVDB:
         self.backend = Backend(hdrs)
         self.backend_search = backend
     
-    def name_adjust(self, name):
-        nam = re.sub('-|_| |\.', '+', name)
-        nam = nam.lower()
-        nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
-        nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
-        nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
-        nam = nam.strip()
-        dt = re.search('[1-2][0-9][0-9][0-9]', name)
-        if dt:
-            nam = re.sub(dt.group(), '', nam)
-            nam = nam.strip()
-            nam = '{}+({})'.format(nam, dt.group())
-        return nam
-    
     def find_redirected_link(self, *args):
         result = args[-1].result()
         url = result.url
-        self.getinfo(url, onfinished=args[0])
+        logger.debug(args)
+        self.getinfo(url, onfinished=args[0], eps=args[2])
         
     def search_with_backend(self, links, *args):
         if links:
@@ -87,26 +74,27 @@ class TVDB:
                 self.vnt.head(link, onfinished=partial(self.find_redirected_link, *new_args))
         
     
-    def search(self, srch, backend=None, onfinished=None):
+    def search(self, srch, backend=None, onfinished=None, episode_summary=None):
         if srch.startswith('http'):
-            self.getinfo(srch, onfinished=onfinished)
+            self.getinfo(srch, onfinished=onfinished, eps=episode_summary)
         else:
             if backend in ['g', 'ddg']:
-                self.backend.search(srch, backend, self.search_with_backend, onfinished, srch)
+                self.backend.search(srch, backend, self.search_with_backend, onfinished, srch, episode_summary)
             elif self.backend_search and backend != 'no':
-                self.backend.search(srch, self.backend_search, self.search_with_backend, onfinished, srch)
+                self.backend.search(srch, self.backend_search, self.search_with_backend, onfinished, srch, episode_summary)
             else:
                 base_url = 'https://www.thetvdb.com/search'
                 params = {'q':srch}
-                self.vnt.get(base_url, params=params, onfinished=partial(self.process_search, onfinished, srch))
+                self.vnt.get(base_url, params=params, onfinished=partial(self.process_search, onfinished, srch, episode_summary))
     
-    def getinfo(self, url, onfinished=None):
+    def getinfo(self, url, onfinished=None, eps=None):
+        logger.info('{} {}'.format(url, eps))
         self.final_dict.update({url:SeriesObject(url)})
         fanart_url = url + '/artwork/fanart' 
         banner_url = url + '/artwork/banners'
         poster_url = url + '/artwork/poster'
         artwork = [fanart_url, banner_url, poster_url]
-        self.vnt.get(url, onfinished=partial(self.process_page, onfinished, url))
+        self.vnt.get(url, onfinished=partial(self.process_page, onfinished, url, eps))
         self.vnt.get(artwork, onfinished=partial(self.process_artwork, onfinished, url))
     
     @process_artwork_onfinished
@@ -132,6 +120,7 @@ class TVDB:
     @process_page_onfinished
     def process_page(self, *args):
         ourl = args[1]
+        eps = args[2]
         result = args[-1].result()
         obj = self.final_dict[ourl]
         soup = BeautifulSoup(result.html, 'html.parser')
@@ -166,13 +155,14 @@ class TVDB:
                 series_dict.update({l:[k, m]})
         obj.season_dict = series_dict.copy()
         for i,j in series_dict.items():
-            self.vnt.get(j[0], onfinished=partial(self.process_seasons, args[0], i, ourl))
+            self.vnt.get(j[0], onfinished=partial(self.process_seasons, args[0], i, ourl, eps))
         return obj
     
     @process_seasons_onfinished
     def process_seasons(self, *args):
         season = args[1]
         ourl = args[2]
+        eps = args[3]
         obj = self.final_dict[ourl]
         result = args[-1].result()
         soup = BeautifulSoup(result.html, 'html.parser')
@@ -235,12 +225,13 @@ class TVDB:
             sid += 1
         if season.lower() != 'all seasons':
             obj.season_posters.update({season:img_list})
-        if season.lower() == 'all seasons' and self.ep_summary:
-            obj.total = len(slist)
-            for val in slist:
-                k, nsid, num, title, link, dt, img_link = val
-                if link:
-                    self.vnt.get(link, onfinished=partial(self.process_episodes, args[0], ourl, val.copy()))
+        if season.lower() == 'all seasons' and (self.ep_summary or eps):
+            if eps is None or eps is True:
+                obj.total = len(slist)
+                for val in slist:
+                    k, nsid, num, title, link, dt, img_link = val
+                    if link:
+                        self.vnt.get(link, onfinished=partial(self.process_episodes, args[0], ourl, val.copy()))
         return obj
     
     @process_episodes_onfinished
@@ -270,6 +261,7 @@ class TVDB:
         search_dict = {}
         result = args[-1].result()
         srch = args[1]
+        eps = args[2]
         exact_found = False
         soup = BeautifulSoup(result.html, 'html.parser')
         info_list = []

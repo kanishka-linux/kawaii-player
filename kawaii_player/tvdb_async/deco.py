@@ -26,7 +26,7 @@ def search_onfinished(func):
                 new_url = value[1]
                 break
             if new_url:
-                args[0].getinfo(new_url, onfinished=args[1])
+                args[0].getinfo(new_url, onfinished=args[1], eps=args[3])
         else:
             args[1](search_dict, *args)
     return wrapper
