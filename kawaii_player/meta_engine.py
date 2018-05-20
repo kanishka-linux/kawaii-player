@@ -191,7 +191,179 @@ class MetaEngine:
             site = ui.get_parameters_value(s='site')['site']
             self.getTvdbEpnInfo(elist_url, epn_arr=local_arr,
                               site=site, name=name, row=row, thread=thread)
-                              
+    
+    def get_epn_arr_list(self, site, name, video_dir):
+        epn_arr = []
+        if site.lower() == 'video' and video_dir:
+             video_db = os.path.join(ui.home_folder, 'VideoDB', 'Video.db')
+             if os.path.exists(video_db):
+                epn_arr_tmp = ui.media_data.get_video_db(video_db, "Directory", video_dir)
+                for i in epn_arr_tmp:
+                    epn_name = i[0]+'	'+i[1]
+                    logger.debug(epn_name)
+                    epn_arr.append(epn_name)
+        elif video_dir:
+            new_name_with_info = video_dir.strip()
+            extra_info = ''
+            if '	' in new_name_with_info:
+                name_title = new_name_with_info.split('	')[0]
+                extra_info = new_name_with_info.split('	')[1]
+            else:
+                name_title = new_name_with_info
+            
+            if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
+                siteName = ui.get_parameters_value(s='siteName')['siteName']
+                hist_site = os.path.join(ui.home_folder, 'History', site, siteName, name_title)
+            else:
+                hist_site = os.path.join(ui.home_folder, 'History', site, name_title)
+                
+            hist_epn = os.path.join(hist_site, 'Ep.txt')
+            logger.info(hist_epn)
+            if os.path.exists(hist_epn):
+                lines = open_files(hist_epn, True)
+                for i in lines:
+                    i = i.strip()
+                    j = i.split('	')
+                    if len(j) == 1:
+                        epn_arr.append(i+'	'+i+'	'+name)
+                    elif len(j) >= 2:
+                        epn_arr.append(i+'	'+name)
+        return epn_arr
+    
+    def map_episodes(self, tvdb_dict=None, epn_arr=None, name=None,
+                       site=None, row=None, video_dir=None):
+        epn_arr_list = epn_arr.copy()
+        ep_dict = tvdb_dict.copy()
+        if site.lower() == 'video':
+            dest_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
+        else:
+            dest_dir = os.path.join(home, "thumbnails", name)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        new_arr = []
+        for i, val in enumerate(epn_arr_list):
+            if '\t' in val:
+                name_val, extra = val.split('\t', 1)
+            else:
+                name_val = val
+                extra = ''
+            watched = False
+            if name_val.startswith('#'):
+                name_val = name_val.replace('#', '', 1)
+                watched = True
+            lower_case = name_val.lower()
+            key_found = False
+            ep_val = None
+            ep_patn = self.find_episode_key_val(lower_case, index=i)
+            print(ep_patn)
+            if ep_patn:
+                if ep_patn.startswith('s') or ep_patn.startswith('e'):
+                    if ep_patn.startswith('s'):
+                        ep_patn = ep_patn[1:]
+                    s, e = ep_patn.split('e')
+                    if s:
+                        s = int(s)
+                    else:
+                        s = 1
+                    e = int(e)
+                    ep_patn = str(s) + 'x' + str(e)
+                print(ep_patn)
+                ep_val = ep_dict.get(ep_patn)
+                if ep_val:
+                    key_found = True
+            if key_found:
+                new_name = ep_val[1]+ ' ' + ep_val[3]
+                """image_dict={sr:[img_url, date, ep_url, local_path, site]}"""
+                #image_dict.update({new_name:[ep_val[2], ep_val[3], ep_val[4], extra, site]})
+                summary = 'Air Date: {}\n\n{}: {}\n\n{}'.format(ep_val[-3], ep_val[1], ep_val[3], ep_val[-1])
+                img_url = ep_val[-2]
+                if extra:
+                    new_val = new_name + '\t' + extra
+                else:
+                    new_val = new_name+ '\t' + name_val
+                if watched:
+                    new_val = '#' + new_val
+                if site.lower() == 'video':
+                    if '\t' in extra:
+                        path = extra.split('\t')[0]
+                    else:
+                        path = extra
+                    path = path.replace('"', '')
+                    thumb_name_bytes = bytes(path, 'utf-8')
+                    h = hashlib.sha256(thumb_name_bytes)
+                    thumb_name = h.hexdigest()
+                    dest_txt = os.path.join(dest_dir, thumb_name+'.txt')
+                    dest_picn = os.path.join(dest_dir, thumb_name+'.jpg')
+                else:
+                    dest_txt = os.path.join(dest_dir, new_name+'.txt')
+                    dest_picn = os.path.join(dest_dir, new_name+'.jpg')
+                write_files(dest_txt, summary, line_by_line=False)
+                self.remove_extra_thumbnails(dest_picn)
+                if img_url and img_url.startswith('http'):
+                    ui.vnt.get(
+                            img_url, wait=0.1, out=dest_picn,
+                            onfinished=partial(self.finished_thumbnails, i, new_name, summary, dest_picn)
+                        )
+            else:
+                new_val = val
+            new_arr.append(new_val)
+        if new_arr:
+            epn_arr_list = self.epn_list = new_arr.copy()
+            
+        if site == "Video":
+            video_db = os.path.join(ui.home_folder, 'VideoDB', 'Video.db')
+            conn = sqlite3.connect(video_db)
+            cur = conn.cursor()
+            for r, val in enumerate(epn_arr_list):
+                txt = val.split('	')[1]
+                ep_name = val.split('	')[0]
+                qr = 'Update Video Set EP_NAME=? Where Path=?'
+                cur.execute(qr, (ep_name, txt))
+            conn.commit()
+            conn.close()
+            try:
+                txt = None
+                if row is None:
+                    if video_dir:
+                        txt = video_dir
+                else:
+                    txt = ui.original_path_name[row].split('	')[1]
+                if txt in ui.video_dict:
+                    del ui.video_dict[txt]
+            except Exception as err:
+                print(err, '--4240---')
+        elif site == 'Music' or site == 'PlayLists' or site == 'NONE':
+            pass
+        else: 
+            if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
+                siteName = ui.get_parameters_value(s='siteName')['siteName']
+                file_path = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
+            else:
+                file_path = os.path.join(home, 'History', site, name, 'Ep.txt')
+            
+            if os.path.exists(file_path):
+                write_files(file_path, epn_arr_list, line_by_line=True)
+            logger.debug('<<<<<<<{0}>>>>>>>>'.format(file_path))
+    
+    def finished_thumbnails(self, *args):
+        ui.gui_signals.ep_changed(args[0], args[1], args[2], args[3])
+        
+    def remove_extra_thumbnails(self, dest):
+        small_nm_1, new_title = os.path.split(dest)
+        small_nm_2 = '128px.'+new_title
+        small_nm_3 = '480px.'+new_title
+        small_nm_4 = 'label.'+new_title
+        new_small_thumb = os.path.join(small_nm_1, small_nm_2)
+        small_thumb = os.path.join(small_nm_1, small_nm_3)
+        small_label = os.path.join(small_nm_1, small_nm_4)
+        logger.info(new_small_thumb)
+        if os.path.exists(new_small_thumb):
+            os.remove(new_small_thumb)
+        if os.path.exists(small_thumb):
+            os.remove(small_thumb)
+        if os.path.exists(small_label):
+            os.remove(small_label)
+                
     def find_episode_key_val(self, lower_case, index=None, season=None):
         lower_case = re.sub('\[[^\]]*\]|\([^\)]*\)', '', lower_case)
         name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+|[0-9]+x[0-9]+ ', lower_case)
