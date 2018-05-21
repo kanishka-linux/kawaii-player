@@ -65,6 +65,7 @@ class Vinanti:
             self.onfinished_global = None
         self.tasks_completed = {}
         self.tasks_timing = {}
+        self.cookie_session = {}
         
     def clear(self):
         self.tasks.clear()
@@ -205,12 +206,32 @@ class Vinanti:
             url, onfinished, hdrs, method, kargs, length = val
             tasks.append(asyncio.ensure_future(self.__start_fetching__(url, onfinished, hdrs, length, self.loop, method, kargs))) 
         self.loop.run_until_complete(asyncio.gather(*tasks))
-        
+    
+    def __update_hdrs__(self, hdrs, netloc):
+        if hdrs:
+            hdr_cookie = hdrs.get('Cookie')
+        else:
+            hdr_cookie = None
+        cookie = self.cookie_session.get(netloc)
+        if cookie and not hdr_cookie:
+            hdrs.update({'Cookie':cookie})
+        elif cookie and hdr_cookie:
+            if hdr_cookie.endswith(';'):
+                new_cookie = hdr_cookie + cookie
+            else:
+                new_cookie = hdr_cookie + ';' + cookie
+            hdrs.update({'Cookie':new_cookie})
+        return hdrs
+    
     def __get_request__(self, url, hdrs, method, kargs):
         n = urlparse(url)
         netloc = n.netloc
         old_time = self.tasks_timing.get(netloc)
         wait_time = kargs.get('wait')
+        session = kargs.get('session')
+        if session:
+            hdrs = self.__update_hdrs__(hdrs, netloc)
+            
         if old_time and wait_time:
             time_diff = time.time() - old_time
             while(time_diff < wait_time):
@@ -218,13 +239,30 @@ class Vinanti:
                 time.sleep(wait_time)
                 time_diff = time.time() - self.tasks_timing.get(netloc)
         self.tasks_timing.update({netloc:time.time()})
+        
         req_obj = None
         kargs.update({'log':self.log})
         if self.backend == 'urllib':
             req = RequestObject(url, hdrs, method, kargs)
             req_obj = req.process_request()
+            if session:
+                self.__update_session_cookies__(req_obj, netloc)
         return req_obj
-    
+        
+    def __update_session_cookies__(self, req_obj, netloc):
+        old_cookie = self.cookie_session.get(netloc)
+        new_cookie = req_obj.session_cookies
+        cookie = old_cookie
+        if new_cookie and old_cookie:
+            if new_cookie not in old_cookie:
+                cookie = old_cookie + ';' + new_cookie
+        elif not new_cookie and old_cookie:
+            pass
+        elif new_cookie and not old_cookie:
+            cookie = new_cookie
+        if cookie:
+            self.cookie_session.update({netloc:cookie})
+        
     async def __start_fetching__(self, url, onfinished, hdrs, task_num, loop, method, kargs):
         if isinstance(url, str):
             logger.info('\nRequesting url: {}\n'.format(url))
