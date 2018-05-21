@@ -312,6 +312,41 @@ class LoginAuth(QtWidgets.QDialog):
         if self.url and self.found:
             self.ui.watch_external_video(self.url)
 
+class LoginPCToPC(QtWidgets.QDialog):
+
+    def __init__(self, parent=None, url=None, ui=None, pls_file=None, onfinished=None):
+        super(LoginPCToPC, self).__init__(parent)
+        self.ui = ui
+        self.parent = parent
+        self.pls_file = pls_file
+        self.onfinished = onfinished
+        self.text_name = QtWidgets.QLineEdit(self)
+        self.text_pass = QtWidgets.QLineEdit(self)
+        self.text_name.setPlaceholderText('USER')
+        self.text_pass.setPlaceholderText('PASSWORD')
+        self.text_pass.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.btn_login = QtWidgets.QPushButton('Login', self)
+        self.btn_login.clicked.connect(self.handle_login)
+        self.setWindowTitle('Credentials Required')
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.text_name)
+        layout.addWidget(self.text_pass)
+        layout.addWidget(self.btn_login)
+        self.url = url
+        self.show()
+        self.count = 0
+
+    def handle_login(self):
+        self.hide()
+        text_val = self.text_name.text()
+        pass_val = self.text_pass.text()
+        self.ui.vnt.post(self.url, auth=(text_val, pass_val), files=self.pls_file,
+                        onfinished=partial(self.post_login, text_val, pass_val, self.url, self.onfinished),
+                        timeout=10)
+        
+    def post_login(self, usr, passval, url, onfinished, *args):
+        r = args[-1].result()
+        onfinished(r, usr, passval, url)
 
 class OptionsSettings(QtWidgets.QTabWidget):
     
