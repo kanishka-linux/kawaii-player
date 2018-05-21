@@ -25,6 +25,7 @@ import hashlib
 import subprocess
 import base64
 import urllib.parse
+from urllib.parse import urlparse
 import json
 from collections import OrderedDict
 from functools import partial
@@ -54,7 +55,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.upcount = 0
         self.downcount = 0
         self.count_limit = 1
-    
+        self.pc_to_pc_dict = {}
+        
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
             ui.dockWidget_3.hide()
@@ -1170,7 +1172,15 @@ class PlaylistWidget(QtWidgets.QListWidget):
                                 item = '{}sending_subtitle'.format(item)
                             else:
                                 item = '{}/sending_subtitle'.format(item)
-                            ui.vnt.post(item, files=sub_json, timeout=10)
+                            n = urlparse(item)
+                            netloc = n.netloc
+                            val = self.pc_to_pc_dict.get(netloc)
+                            if val:
+                                ui.vnt.post(item, auth=(val[0], val[1]),
+                                            hdrs={'Cookie':val[2]}, files=sub_json,
+                                            timeout=10)
+                            else:
+                                ui.vnt.post(item, files=sub_json, timeout=10)
                         else:
                             send_notification('Slave IP Address not set')
                        
@@ -1188,7 +1198,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if ui.https_media_server:
             http_val = "https" 
         ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
-        ui.vnt.get(ip, onfinished=partial(self.process_pc_to_pc_casting, mode, row, item), binary=True, timeout=10)
+        ui.vnt.get(ip, binary=True, timeout=10,
+                   onfinished=partial(self.process_pc_to_pc_casting, mode, row, item))
         
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
         content = args[-1].result().html
@@ -1247,28 +1258,63 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     item = '{}{}'.format(item, request_url)
                 else:
                     item = '{}/{}'.format(item, request_url)
-                ui.vnt.post(item, files=pls_file, onfinished=self.final_pc_to_pc_process, timeout=10)
+                n = urlparse(url)
+                netloc = n.netloc
+                val = self.pc_to_pc_dict.get(netloc)
+                if val:
+                    ui.vnt.post(item, auth=(val[0], val[1]), hdrs={'Cookie':val[2]},
+                                onfinished=partial(self.final_pc_to_pc_process, pls_file),
+                                timeout=10, files=pls_file)
+                else:
+                    ui.vnt.post(item, files=pls_file,
+                                onfinished=partial(self.final_pc_to_pc_process, pls_file),
+                                timeout=10)
         else:
             msg = 'Most Probably Media Server not started on Master.'
             logger.error(msg)
             logger.error(args[-1].result().error)
             send_notification(msg)
     
-    def final_pc_to_pc_process(self, *args):
+    def final_pc_to_pc_process(self, pls_file, *args):
         r = args[-1].result()
         content = r.html
-        logger.debug(content)
         if not content:
             err = r.error
             url = args[-2]
+            logger.debug(err)
             if 'http error 401' in err.lower():
-                url = url.rsplit('/', 1)[0] + '/' + 'stream_continue.htm'
-                msg = 'Slave Asking for Authentication. Authenticate via web browser. Go to web interface {}'.format(url)
+                ui.gui_signals.login_required(url, pls_file)
             else:
-                msg = 'Most Probably slave ip address is wrong or slave server is misconfigured. Try Setting Slave IP address with proper port number again'
+                msg = ('Most Probably slave ip address is wrong or slave server\
+                        is not running or misconfigured.')
+                msg = re.sub('  +', ' ', msg)
+                logger.error(msg)
+                send_notification(msg)
+    
+    def post_pc_processing(self, *args):
+        r = args[0]
+        html = r.html
+        url = args[3]
+        if not html:
+            err = r.error
+            if 'http error 401' in err.lower():
+                msg = 'wrong credentials try again'
+                logger.error(msg)
+                send_notification(msg)
+                n = urlparse(url)
+                netloc = n.netloc
+                self.pc_to_pc_dict.update({netloc:None})
+        elif 'You are not authorized to access the content' in html:
+            msg = 'Wrong Credentials! Try Again'
             logger.error(msg)
             send_notification(msg)
-    
+        else:
+            n = urlparse(url)
+            netloc = n.netloc
+            usr = args[1]
+            passval = args[2]
+            self.pc_to_pc_dict.update({netloc:[usr, passval, r.session_cookies]})
+            
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
         if os.path.exists(dest) and remove_summary is None:
@@ -1794,3 +1840,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
             elif action == fix_ord:
                 if self.currentItem():
                     self.fix_order()
+
+
+
