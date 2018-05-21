@@ -27,9 +27,10 @@ import base64
 import urllib.parse
 import json
 from collections import OrderedDict
+from functools import partial
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui, QtWidgets
-from player_functions import write_files, open_files, ccurl, send_notification
+from player_functions import write_files, open_files, send_notification
 
 
 class PlaylistWidget(QtWidgets.QListWidget):
@@ -1169,11 +1170,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                                 item = '{}sending_subtitle'.format(item)
                             else:
                                 item = '{}/sending_subtitle'.format(item)
-                            try:
-                                content = ccurl(item, curl_opt='-postfile', post_data=sub_json)
-                            except Exception as err:
-                                logger.error(err)
-                                content = ''
+                            ui.vnt.post(item, files=sub_json, timeout=10)
                         else:
                             send_notification('Slave IP Address not set')
                        
@@ -1191,20 +1188,19 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if ui.https_media_server:
             http_val = "https" 
         ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
-        try:
-            content = ccurl(ip)
-        except Exception as err:
-            logger.error(err)
-            content = ''
-            send_notification('Most Probably Media Server not started on Master')
+        ui.vnt.get(ip, onfinished=partial(self.process_pc_to_pc_casting, mode, row, item), binary=True, timeout=10)
+        
+    def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
+        content = args[-1].result().html
         if content:
+            content = content.decode('utf-8')
             lines = content.split('\n')
             new_dict = OrderedDict()
             new_lines = []
             if mode in ['single', 'playlist', 'queue'] and item:
                 if mode in ['single', 'queue']:
-                    line1 = lines[2*row+1]
-                    line2 = lines[2*row+2]
+                    line1 = lines[2*cur_row+1]
+                    line2 = lines[2*cur_row+2]
                     new_lines = [line1, line2]
                 else:
                     lines = lines[1:]
@@ -1251,21 +1247,25 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     item = '{}{}'.format(item, request_url)
                 else:
                     item = '{}/{}'.format(item, request_url)
-                try:
-                    content = ccurl(item, curl_opt='-postfile', post_data=pls_file)
-                except Exception as err:
-                    logger.error(err)
-                    content = ''
-                if not content:
-                    msg = 'Most Probably slave ip address is wrong or slave server is misconfigured. Try Setting Slave IP address with proper port number again'
-                    logger.error(msg)
-                    send_notification(msg)
-                elif 'Nothing' in content:
-                    msg = 'Maybe {} slave is asking for authentication. Authenticate via its web interface'.format(ipval)
-                    logger.error(msg)
-                    send_notification(msg)
+                ui.vnt.post(item, files=pls_file, onfinished=self.final_pc_to_pc_process, timeout=10)
         else:
             msg = 'Most Probably Media Server not started on Master.'
+            logger.error(msg)
+            logger.error(args[-1].result().error)
+            send_notification(msg)
+    
+    def final_pc_to_pc_process(self, *args):
+        r = args[-1].result()
+        content = r.html
+        logger.debug(content)
+        if not content:
+            err = r.error
+            url = args[-2]
+            if 'http error 401' in err.lower():
+                url = url.rsplit('/', 1)[0] + '/' + 'stream_continue.htm'
+                msg = 'Slave Asking for Authentication. Authenticate via web browser. Go to web interface {}'.format(url)
+            else:
+                msg = 'Most Probably slave ip address is wrong or slave server is misconfigured. Try Setting Slave IP address with proper port number again'
             logger.error(msg)
             send_notification(msg)
     
