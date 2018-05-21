@@ -75,6 +75,14 @@ class Vinanti:
         self.method_global = 'GET'
         self.hdrs_global = None
         self.onfinished_global = None
+        self.cookie_session.clear()
+    
+    def session_clear(self, netloc=None):
+        if netloc:
+            if self.cookie_session.get(netloc):
+                del self.cookie_session[netloc]
+        else:
+            self.cookie_session.clear()
     
     def tasks_count(self):
         return len(self.tasks_completed)
