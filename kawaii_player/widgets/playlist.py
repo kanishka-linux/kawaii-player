@@ -1258,17 +1258,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     item = '{}{}'.format(item, request_url)
                 else:
                     item = '{}/{}'.format(item, request_url)
-                n = urlparse(url)
+                n = urlparse(item)
                 netloc = n.netloc
-                val = self.pc_to_pc_dict.get(netloc)
+                val = ui.vnt.cookie_session.get(netloc)
                 if val:
-                    ui.vnt.post(item, auth=(val[0], val[1]), hdrs={'Cookie':val[2]},
-                                onfinished=partial(self.final_pc_to_pc_process, pls_file),
-                                timeout=10, files=pls_file)
+                    logger.debug('using old session')
+                    ui.vnt.post(item, timeout=10, files=pls_file, session=True,
+                                onfinished=partial(self.final_pc_to_pc_process, pls_file))
                 else:
-                    ui.vnt.post(item, files=pls_file,
-                                onfinished=partial(self.final_pc_to_pc_process, pls_file),
-                                timeout=10)
+                    ui.vnt.post(item, files=pls_file, timeout=10,
+                                onfinished=partial(self.final_pc_to_pc_process, pls_file))
         else:
             msg = 'Most Probably Media Server not started on Master.'
             logger.error(msg)
@@ -1308,12 +1307,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
             msg = 'Wrong Credentials! Try Again'
             logger.error(msg)
             send_notification(msg)
-        else:
-            n = urlparse(url)
-            netloc = n.netloc
-            usr = args[1]
-            passval = args[2]
-            self.pc_to_pc_dict.update({netloc:[usr, passval, r.session_cookies]})
             
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)

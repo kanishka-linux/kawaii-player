@@ -342,7 +342,7 @@ class LoginPCToPC(QtWidgets.QDialog):
         pass_val = self.text_pass.text()
         self.ui.vnt.post(self.url, auth=(text_val, pass_val), files=self.pls_file,
                         onfinished=partial(self.post_login, text_val, pass_val, self.url, self.onfinished),
-                        timeout=10)
+                        timeout=10, session=True)
         
     def post_login(self, usr, passval, url, onfinished, *args):
         r = args[-1].result()
