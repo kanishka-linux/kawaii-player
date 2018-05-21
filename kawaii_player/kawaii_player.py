@@ -186,7 +186,7 @@ except Exception as e:
                  Torrent Streaming feature will be disabled'
     send_notification(notify_txt, code=0)
 
-from settings_widget import LoginAuth, OptionsSettings
+from settings_widget import LoginAuth, LoginPCToPC, OptionsSettings
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
@@ -213,6 +213,7 @@ class GUISignals(QtCore.QObject):
     textsignal = pyqtSignal(str)
     fanartsignal = pyqtSignal(str, str)
     epsum_signal = pyqtSignal(int, str, str, str)
+    login_box = pyqtSignal(str, str)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -233,6 +234,9 @@ class GUISignals(QtCore.QObject):
         
     def ep_changed(self, num, ep, sumr, path):
         self.epsum_signal.emit(num, ep, sumr, path)
+        
+    def login_required(self, url, pls):
+        self.login_box.emit(url, pls)
 
 @pyqtSlot(str)
 def apply_new_text(val):
@@ -242,6 +246,11 @@ def apply_new_text(val):
 @pyqtSlot(str, str)
 def apply_fanart_widget(fanart, theme):
     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=theme))
+    
+@pyqtSlot(str, str)
+def show_login_box(url, pls):
+    global MainWindow, ui
+    LoginPCToPC(MainWindow, url, ui, pls, onfinished=ui.list2.post_pc_processing)
     
 @pyqtSlot(int, str, str)
 def apply_episode_metadata(num, ep, sumr, path):
@@ -1854,6 +1863,7 @@ watch/unwatch status")
         self.gui_signals.textsignal.connect(apply_new_text)
         self.gui_signals.fanartsignal.connect(apply_fanart_widget)
         self.gui_signals.epsum_signal.connect(apply_episode_metadata)
+        self.gui_signals.login_box.connect(show_login_box)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
