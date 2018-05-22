@@ -56,6 +56,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.downcount = 0
         self.count_limit = 1
         self.pc_to_pc_dict = {}
+        self.verify_slave_ssl = True
         
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
@@ -1090,7 +1091,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             send_notification('You have not setup slave address properly')
         elif not ip.startswith('http') and not ip.startswith('https'):
             addr = 'http://{}/{}'.format(ip, request_url)
-        elif item.endswith('/'):
+        elif ip.endswith('/'):
             addr = '{}{}'.format(ip, request_url)
         else:
             addr = '{}/{}'.format(ip, request_url)
@@ -1099,7 +1100,31 @@ class PlaylistWidget(QtWidgets.QListWidget):
             ui.btnWebReviews_search.setText(addr)
             ui.webHide()
             ui.reviewsWeb(action='return_pressed')
-        
+    
+    def clear_slave_session(self):
+        ip = ui.slave_address
+        request_url = 'logout'
+        addr = None
+        if '127.0.0.1' in ip:
+            send_notification('You have not setup slave address properly')
+        elif not ip.startswith('http') and not ip.startswith('https'):
+            addr = 'http://{}/{}'.format(ip, request_url)
+        elif ip.endswith('/'):
+            addr = '{}{}'.format(ip, request_url)
+        else:
+            addr = '{}/{}'.format(ip, request_url)
+        n = urlparse(addr)
+        netloc = n.netloc
+        val = ui.vnt.cookie_session.get(netloc)
+        verify = self.verify_slave_ssl
+        print(addr, ip, request_url, netloc, val, verify)
+        logger.debug('url={} verify={}'.format(addr, verify))
+        if val:
+            ui.vnt.get(addr, session=True, verify=verify, timeout=60)
+            del ui.vnt.cookie_session[netloc]
+        else:
+            ui.vnt.get(addr, timeout=60, verify=verify)
+    
     def setup_slave_address(self):
         item = '127.0.0.1:9001'
         file_path = os.path.join(ui.home_folder, 'slave.txt')
@@ -1108,7 +1133,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         else:
             ip_addr = ''
         item, ok = QtWidgets.QInputDialog.getText(
-            MainWindow, 'Input Dialog', 'Enter IP Address of Slave\nExample: 192.168.2.3:9001',
+            MainWindow, 'Input Dialog', 'Enter IP Address of Slave\nExample: http://192.168.2.3:9001',
             QtWidgets.QLineEdit.Normal, ip_addr
             )
         if ok and item:
@@ -1174,13 +1199,14 @@ class PlaylistWidget(QtWidgets.QListWidget):
                                 item = '{}/sending_subtitle'.format(item)
                             n = urlparse(item)
                             netloc = n.netloc
-                            val = self.pc_to_pc_dict.get(netloc)
+                            val = ui.vnt.cookie_session.get(netloc)
+                            verify = self.verify_slave_ssl
+                            logger.debug('url={} verify={}'.format(item, verify))
                             if val:
-                                ui.vnt.post(item, auth=(val[0], val[1]),
-                                            hdrs={'Cookie':val[2]}, files=sub_json,
-                                            timeout=10)
+                                ui.vnt.post(item, session=True, verify=verify,
+                                            files=sub_json, timeout=60)
                             else:
-                                ui.vnt.post(item, files=sub_json, timeout=10)
+                                ui.vnt.post(item, files=sub_json, timeout=60, verify=verify)
                         else:
                             send_notification('Slave IP Address not set')
                        
@@ -1261,20 +1287,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 n = urlparse(item)
                 netloc = n.netloc
                 val = ui.vnt.cookie_session.get(netloc)
+                verify = self.verify_slave_ssl
+                logger.debug('url={} verify={}'.format(item, verify))
                 if val:
                     logger.debug('using old session')
-                    ui.vnt.post(item, timeout=10, files=pls_file, session=True,
-                                onfinished=partial(self.final_pc_to_pc_process, pls_file))
+                    ui.vnt.post(item, timeout=60, files=pls_file, session=True, verify=verify,
+                                onfinished=partial(self.final_pc_to_pc_process, pls_file, verify))
                 else:
-                    ui.vnt.post(item, files=pls_file, timeout=10,
-                                onfinished=partial(self.final_pc_to_pc_process, pls_file))
+                    ui.vnt.post(item, files=pls_file, timeout=60, verify=verify,
+                                onfinished=partial(self.final_pc_to_pc_process, pls_file, verify))
         else:
             msg = 'Most Probably Media Server not started on Master.'
             logger.error(msg)
             logger.error(args[-1].result().error)
             send_notification(msg)
     
-    def final_pc_to_pc_process(self, pls_file, *args):
+    def final_pc_to_pc_process(self, pls_file, verify, *args):
         r = args[-1].result()
         content = r.html
         if not content:
@@ -1282,10 +1310,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
             url = args[-2]
             logger.debug(err)
             if 'http error 401' in err.lower():
-                ui.gui_signals.login_required(url, pls_file)
+                ui.gui_signals.login_required(url, pls_file, verify)
+            elif 'certificate verify failed' in err.lower():
+                ui.vnt.post(url, files=pls_file, timeout=60, verify=False,
+                            onfinished=partial(self.final_pc_to_pc_process, pls_file, False))
+                self.verify_slave_ssl = False
+            elif 'errno 113' in err.lower():
+                msg = ('Slave is unreachable. Wrong IP address of slave!')
+                logger.error(msg)
+                send_notification(msg)
+            elif 'errno 104' in err.lower():
+                msg = ('Connection reset. Most Probably wrong http/https prefix to slave address')
+                logger.error(msg)
+                send_notification(msg)
             else:
                 msg = ('Most Probably slave ip address is wrong or slave server\
-                        is not running or misconfigured.')
+                        is not running or misconfigured, or wrong http/https prefix to slave address')
                 msg = re.sub('  +', ' ', msg)
                 logger.error(msg)
                 send_notification(msg)
@@ -1294,19 +1334,18 @@ class PlaylistWidget(QtWidgets.QListWidget):
         r = args[0]
         html = r.html
         url = args[3]
+        err = r.error
         if not html:
-            err = r.error
             if 'http error 401' in err.lower():
                 msg = 'wrong credentials try again'
                 logger.error(msg)
                 send_notification(msg)
-                n = urlparse(url)
-                netloc = n.netloc
-                self.pc_to_pc_dict.update({netloc:None})
         elif 'You are not authorized to access the content' in html:
             msg = 'Wrong Credentials! Try Again'
             logger.error(msg)
             send_notification(msg)
+        else:
+            logger.error(err)
             
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
@@ -1423,6 +1462,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_web = cast_menu.addAction("Show More Controls")
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
+                clear_session = cast_menu.addAction("Logout and Clear Session")
                 menu.addMenu(cast_menu)
             save_pls = menu.addAction('Save Current Playlist')
             go_to = menu.addAction("Go To Last.fm")
@@ -1462,6 +1502,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('queue', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
+                elif action == clear_session:
+                    self.clear_slave_session()
                 elif action == cast_menu_web:
                     self.show_web_menu()
             if action == new_pls:
@@ -1595,6 +1637,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_web = cast_menu.addAction("Show More Controls")
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
+                clear_session = cast_menu.addAction("Logout and Clear Session")
                 menu.addMenu(cast_menu)
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
@@ -1707,6 +1750,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.setup_slave_address()
                 elif action == cast_menu_subtitle:
                     self.send_subtitle_method()
+                elif action == clear_session:
+                    self.clear_slave_session()
                 elif action == cast_menu_web:
                     self.show_web_menu()
             if save_pls_entry:
