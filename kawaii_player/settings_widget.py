@@ -314,7 +314,8 @@ class LoginAuth(QtWidgets.QDialog):
 
 class LoginPCToPC(QtWidgets.QDialog):
 
-    def __init__(self, parent=None, url=None, ui=None, pls_file=None, onfinished=None):
+    def __init__(self, parent=None, url=None, ui=None, pls_file=None,
+                 verify=None, onfinished=None):
         super(LoginPCToPC, self).__init__(parent)
         self.ui = ui
         self.parent = parent
@@ -333,6 +334,7 @@ class LoginPCToPC(QtWidgets.QDialog):
         layout.addWidget(self.text_pass)
         layout.addWidget(self.btn_login)
         self.url = url
+        self.verify = verify
         self.show()
         self.count = 0
 
@@ -342,7 +344,7 @@ class LoginPCToPC(QtWidgets.QDialog):
         pass_val = self.text_pass.text()
         self.ui.vnt.post(self.url, auth=(text_val, pass_val), files=self.pls_file,
                         onfinished=partial(self.post_login, text_val, pass_val, self.url, self.onfinished),
-                        timeout=10, session=True)
+                        timeout=10, session=True, verify=self.verify)
         
     def post_login(self, usr, passval, url, onfinished, *args):
         r = args[-1].result()
