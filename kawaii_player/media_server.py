@@ -545,16 +545,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.do_init_function(type_request='get')
 
     def do_POST(self):
-        if (self.path.startswith('/sending_playlist')
-                or self.path.startswith('/sending_subtitle')
-                or self.path.startswith('/sending_queueitem')):
-            if ui.remote_control and ui.remote_control_field:
-                path = self.path.replace('/', '', 1)
-                self.process_POST()
-            else:
-                self.do_init_function(type_request='post')
-        else:
-            self.do_init_function(type_request='post')
+        self.do_init_function(type_request='post')
 
     def process_url(self, nm, get_bytes, status=None):
         global ui, logger
@@ -2032,7 +2023,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if client_addr in ui.client_auth_arr:
                     index = ui.client_auth_arr.index(client_addr)
                     del ui.client_auth_arr[index]
-                    
+                if ui.remote_control_field:
+                    ui.remote_control = False
                 cookie_val = self.headers['Cookie']
                 #print(cookie_val, '--cookie--')
                 if cookie_val:
