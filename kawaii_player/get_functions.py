@@ -534,6 +534,7 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
                 if (ver_peer_get.startswith('abs_path') or
                         ver_peer_get.startswith('master_abs_path')):
                     c.setopt(c.SSL_VERIFYPEER, False)
+                    c.setopt(c.SSL_VERIFYHOST, False)
             c.perform()
             c.close()
         except Exception as err:
