@@ -1414,6 +1414,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     self.line_entered(widget, var_name, option='torrent')
                 else:
                     self.line_entered(widget, var_name)
+                if ip not in ui.local_auth_arr:
+                    if len(ui.local_auth_arr) > 2:
+                        ui.local_auth_arr = ui.local_auth_arr[:2]
+                    ui.local_auth_arr.append(ip)
+                logger.debug(ui.local_auth_arr)
         except Exception as err:
             logger.error(err)
             msg = 'Not able to find. Try Setting it up manually in the format ip:port'
