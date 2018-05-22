@@ -295,6 +295,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.queue_url_list = ui.queue_url_list + lines
                 ui.queue_item_external = -100
                 ui.set_queue_item_btn.clicked.emit()
+            if ui.remote_control_field:
+                ui.remote_control = True
             self.final_message(bytes('OK', 'utf-8'))
         elif self.path.startswith('/sending_subtitle') and ui.pc_to_pc_casting == 'slave':
             content = self.rfile.read(int(self.headers['Content-Length']))
