@@ -18,6 +18,7 @@ along with vinanti.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import re
+import ssl
 import gzip
 import time
 import shutil
@@ -56,6 +57,7 @@ class RequestObject:
         self.binary = kargs.get('binary')
         self.charset = kargs.get('charset')
         self.session = kargs.get('session')
+        self.verify = kargs.get('verify')
         if not self.log:
             logger.disabled = True
         self.timeout = self.kargs.get('timeout')
@@ -94,11 +96,13 @@ class RequestObject:
     def process_request(self):
         opener = None
         cj = None
+        if self.verify is False:
+            opener = self.handle_https_context(opener, False)
         if self.proxies:
-            opener = self.add_proxy()
+            opener = self.add_proxy(opener)
         if self.session:
             opener, cj = self.enable_cookies(opener)
-        
+            
         req = urllib.request.Request(self.url, data=self.data,
                                      headers=self.hdrs,
                                      method=self.method)
@@ -144,7 +148,20 @@ class RequestObject:
         req.add_header('Authorization', 'Basic {}'.format(encoded_credentials.decode('utf-8')))
         return req
         """
-        
+    
+    def handle_https_context(self, opener, verify):
+        context = ssl.create_default_context()
+        if verify is False:
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        https_handler = urllib.request.HTTPSHandler(context=context)
+        if opener:
+            logger.info('Adding HTTPS Handle to Existing Opener')
+            opener.add_handler(https_handler)
+        else:
+            opener = urllib.request.build_opener(https_handler)
+        return opener
+    
     def enable_cookies(self, opener):
         cj = http.cookiejar.CookieJar()
         cookie_handler = urllib.request.HTTPCookieProcessor(cj)
@@ -155,10 +172,14 @@ class RequestObject:
             opener = urllib.request.build_opener(cookie_handler)
         return opener, cj
         
-    def add_proxy(self):
+    def add_proxy(self, opener):
         logger.info('proxies {}'.format(self.proxies))
         proxy_handler = urllib.request.ProxyHandler(self.proxies)
-        opener = urllib.request.build_opener(proxy_handler)
+        if opener:
+            logger.info('Adding Proxy Handle to Existing Opener')
+            opener.add_handler(proxy_handler)
+        else:
+            opener = urllib.request.build_opener(proxy_handler)
         return opener
         
         
