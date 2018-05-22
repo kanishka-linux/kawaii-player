@@ -537,13 +537,14 @@ class OptionsSettings(QtWidgets.QTabWidget):
         write_files(file_name, new_lines, line_by_line=True)
     
     def set_tab_slave(self):
+        """
         self.remote_on = QtWidgets.QPushButton()
         self.gl9.addWidget(self.remote_on, 0, 0, 1, 1)
         self.remote_on.setText('Remote Off')
         self.remote_on.clicked.connect(partial(self.slave_commands, 'remote_on.htm'))
-        
+        """
         self.play_pause = QtWidgets.QPushButton()
-        self.gl9.addWidget(self.play_pause, 0, 1, 1, 1)
+        self.gl9.addWidget(self.play_pause, 0, 0, 1, 2)
         self.play_pause.setText('Play/Pause')
         self.play_pause.clicked.connect(partial(self.slave_commands, 'playpause'))
         
@@ -577,15 +578,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.playervol5.setText('vol++')
         self.playervol5.clicked.connect(partial(self.slave_commands, 'volume5'))
         
-        
-        
     def slave_commands(self, cmd):
         if cmd == 'remote_on.htm':
             if self.remote_on.text() == 'Remote Off':
-                #self.remote_on.setText('Remote On')
                 cmd = 'remote_on.htm'
             else:
-                #self.remote_on.setText('Remote Off')
                 cmd = 'remote_off.htm'
         ip = ui.slave_address
         request_url = cmd
