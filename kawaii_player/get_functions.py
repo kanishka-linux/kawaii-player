@@ -24,7 +24,7 @@ from io import BytesIO
 import pycurl
 
 
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
 
 
 def wget_string(url, dest, get_lib, rfr=None):

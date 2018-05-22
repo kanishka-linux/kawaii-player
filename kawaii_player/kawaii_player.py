@@ -1854,7 +1854,7 @@ watch/unwatch status")
             'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
             'tab_6':self.tab_6
             }
-        self.user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:59.0) Gecko/20100101 Firefox/59.0'
+        self.user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
         self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent})
         self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
