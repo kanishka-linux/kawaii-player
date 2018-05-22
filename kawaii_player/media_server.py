@@ -438,7 +438,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             client_addr = str(self.client_address[0])
             logger.info('--cli-with-cookie-{0}'.format(client_addr))
             logger.info('--auth-with-cookie-{0}'.format(ui.client_auth_arr))
-            if not cli_key and not cookie_verified:
+            logger.info('--auth-local-cookie-{0}'.format(ui.local_auth_arr))
+            if client_addr in ui.local_auth_arr:
+               cookie_set = True 
+            elif not cli_key and not cookie_verified:
                 self.auth_header()
             elif (cli_key == new_key) and not cookie_verified:
                 if client_addr not in ui.client_auth_arr:
@@ -447,14 +450,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 while uid in self.client_auth_dict:
                     logger.debug("no unique ID, Generating again")
                     uid = str(uuid.uuid4())
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                 uid_pl = str(uuid.uuid4())
                 uid_pl = uid_pl.replace('-', '')
                 while uid_pl in self.playlist_auth_dict:
                     logger.debug("no unique playlist ID, Generating again")
                     uid_pl = str(uuid.uuid4())
                     uid_pl = uid_pl.replace('-', '')
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                 cur_time = str(int(time.time()))
                 new_id = cur_time+'&pl_id='+uid_pl
                 self.playlist_auth_dict.update({uid_pl:cur_time})
@@ -463,6 +466,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 set_cookie_id = "id="+uid
                 self.final_message(b'Session Established, Now reload page again', set_cookie_id)
                 cookie_set = True
+                
             if cookie_set or cookie_verified:
                 if ipaddress.ip_address(client_addr).is_private:
                     if type_request == 'get':
