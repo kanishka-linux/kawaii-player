@@ -528,17 +528,16 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             print(err, 'not able to write file')
             return 0
         try:
+            ver_peer = url.split('/')
+            if len(ver_peer) > 3 and os.name != 'nt':
+                ver_peer_get = ver_peer[3]
+                if (ver_peer_get.startswith('abs_path') or
+                        ver_peer_get.startswith('master_abs_path')):
+                    c.setopt(c.SSL_VERIFYPEER, False)
             c.perform()
             c.close()
         except Exception as err:
             print('failure in obtaining image try again', err)
-            if 'server csertificate verification failed' in str(err):
-                try:
-                    c.setopt(c.SSL_VERIFYPEER, False)
-                    c.perform()
-                    c.close()
-                except Exception as err:
-                    print(err)
         f.close()
     else:
         if curl_opt == '-I':
