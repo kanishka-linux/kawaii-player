@@ -537,21 +537,28 @@ class OptionsSettings(QtWidgets.QTabWidget):
         write_files(file_name, new_lines, line_by_line=True)
     
     def set_tab_slave(self):
-        """
+        
         self.remote_on = QtWidgets.QPushButton()
         self.gl9.addWidget(self.remote_on, 0, 0, 1, 1)
         self.remote_on.setText('Remote Off')
         self.remote_on.clicked.connect(partial(self.slave_commands, 'remote_on.htm'))
-        """
+        self.remote_on.hide()
+        
         self.play_pause = QtWidgets.QPushButton()
-        self.gl9.addWidget(self.play_pause, 0, 0, 1, 2)
+        self.gl9.addWidget(self.play_pause, 0, 0, 1, 1)
         self.play_pause.setText('Play/Pause')
         self.play_pause.clicked.connect(partial(self.slave_commands, 'playpause'))
+        
+        self.play_loop = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.play_loop, 0, 1, 1, 1)
+        self.play_loop.setText('Loop')
+        self.play_loop.clicked.connect(partial(self.slave_commands, 'lock'))
         
         self.toggle_fs = QtWidgets.QPushButton()
         self.gl9.addWidget(self.toggle_fs, 0, 2, 1, 1)
         self.toggle_fs.setText('FS')
         self.toggle_fs.clicked.connect(partial(self.slave_commands, 'fullscreen'))
+        self.toggle_fs.setToolTip('Toggle Fullscreen')
         
         self.playerstop = QtWidgets.QPushButton()
         self.gl9.addWidget(self.playerstop, 0, 3, 1, 1)
@@ -578,6 +585,53 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.playervol5.setText('vol++')
         self.playervol5.clicked.connect(partial(self.slave_commands, 'volume5'))
         
+        self.playerseek_10 = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseek_10, 2, 0, 1, 1)
+        self.playerseek_10.setText('-10s')
+        self.playerseek_10.clicked.connect(partial(self.slave_commands, 'seek_10'))
+        
+        self.playerseek10 = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseek10, 2, 1, 1, 1)
+        self.playerseek10.setText('+10s')
+        self.playerseek10.clicked.connect(partial(self.slave_commands, 'seek10'))
+        
+        self.playerseek_60 = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseek_60, 2, 2, 1, 1)
+        self.playerseek_60.setText('-60s')
+        self.playerseek_60.clicked.connect(partial(self.slave_commands, 'seek_60'))
+        
+        self.playerseek60 = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseek60, 2, 3, 1, 1)
+        self.playerseek60.setText('+60s')
+        self.playerseek60.clicked.connect(partial(self.slave_commands, 'seek60'))
+        
+        self.playerseek_5m = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseek_5m, 3, 0, 1, 1)
+        self.playerseek_5m.setText('-5m')
+        self.playerseek_5m.clicked.connect(partial(self.slave_commands, 'seek_5m'))
+        
+        self.playerseek5m = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseek5m, 3, 1, 1, 1)
+        self.playerseek5m.setText('+5m')
+        self.playerseek5m.clicked.connect(partial(self.slave_commands, 'seek5m'))
+        
+        self.toggle_sub = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.toggle_sub, 3, 2, 1, 1)
+        self.toggle_sub.setText('Sub')
+        self.toggle_sub.clicked.connect(partial(self.slave_commands, 'toggle_subtitle'))
+        self.toggle_sub.setToolTip('Toggle Subtitle')
+        
+        self.toggle_aud = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.toggle_aud, 3, 3, 1, 1)
+        self.toggle_aud.setText('Audio')
+        self.toggle_aud.clicked.connect(partial(self.slave_commands, 'toggle_audio'))
+        self.toggle_aud.setToolTip('Toggle Audio')
+        
+        self.slave_label = QtWidgets.QLabel()
+        self.gl9.addWidget(self.slave_label, 4, 0, 1, 4)
+        self.slave_label.setText('Slave Control Box for Master in PC-To-PC casting mode')
+        self.slave_label.setAlignment(QtCore.Qt.AlignCenter)
+        
     def slave_commands(self, cmd):
         if cmd == 'remote_on.htm':
             if self.remote_on.text() == 'Remote Off':
@@ -602,28 +656,31 @@ class OptionsSettings(QtWidgets.QTabWidget):
         print(addr, ip, request_url, netloc, val, verify)
         logger.debug('url={} verify={}'.format(addr, verify))
         if val:
-            if cmd in ['remote_on.htm', 'remote_off.htm']:
+            if cmd in ['remote_on.htm', 'remote_off.htm', 'lock']:
                 ui.vnt.get(addr, session=True, verify=verify, timeout=60,
-                           onfinished=self.slave_remote_on_off)
+                           onfinished=partial(self.slave_remote_on_off, cmd))
             else:
                 ui.vnt.get(addr, session=True, verify=verify, timeout=60)
         else:
-            if cmd in ['remote_on.htm', 'remote_off.htm']:
+            if cmd in ['remote_on.htm', 'remote_off.htm', 'lock']:
                 ui.vnt.get(addr, verify=verify, timeout=60,
-                           onfinished=self.slave_remote_on_off)
+                           onfinished=partial(self.slave_remote_on_off, cmd))
             else:
                 ui.vnt.get(addr, timeout=60, verify=verify)
     
-    def slave_remote_on_off(self, *args):
+    def slave_remote_on_off(self, cmd, *args):
         r = args[-1].result()
         html = r.html
-        if html:
-            if 'True' in html:
-                self.remote_on.setText('Remote On')
+        if cmd == 'lock':
+            logger.debug(html)
+        else:
+            if html:
+                if 'True' in html:
+                    self.remote_on.setText('Remote On')
+                else:
+                    self.remote_on.setText('Remote Off')
             else:
                 self.remote_on.setText('Remote Off')
-        else:
-            self.remote_on.setText('Remote Off')
     
     def appeareance(self):
         self.param_list = []
