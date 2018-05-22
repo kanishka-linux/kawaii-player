@@ -532,7 +532,13 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.close()
         except Exception as err:
             print('failure in obtaining image try again', err)
-            pass
+            if 'server csertificate verification failed' in str(err):
+                try:
+                    c.setopt(c.SSL_VERIFYPEER, False)
+                    c.perform()
+                    c.close()
+                except Exception as err:
+                    print(err)
         f.close()
     else:
         if curl_opt == '-I':
