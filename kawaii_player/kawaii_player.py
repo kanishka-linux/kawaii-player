@@ -1624,6 +1624,7 @@ watch/unwatch status")
         self.progress_counter = 0
         self.posterfound_arr = []
         self.client_auth_arr = ['127.0.0.1', '0.0.0.0']
+        self.local_auth_arr = ['127.0.0.1', '0.0.0.0']
         self.video_db_location = os.path.join(home, 'VideoDB')
         if not os.path.isdir(self.video_db_location):
             os.makedirs(self.video_db_location)
@@ -4049,6 +4050,13 @@ watch/unwatch status")
                 self.local_http_server.quit()
                 msg = 'Stopping Media Server\n '+self.local_ip_stream+':'+str(self.local_port_stream)
                 send_notification(msg)
+        if self.local_ip_stream not in self.client_auth_arr:
+            self.client_auth_arr.append(self.local_ip_stream)
+        if self.local_ip_stream not in self.local_auth_arr:
+            if len(self.local_auth_arr) > 2:
+                self.local_auth_arr = self.local_auth_arr[:2]
+            self.local_auth_arr.append(self.local_ip_stream)
+        logger.debug(self.local_auth_arr)
     
     def filter_btn_options(self):
         if not self.frame.isHidden() and self.tab_6.isHidden():
