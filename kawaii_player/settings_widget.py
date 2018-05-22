@@ -26,6 +26,7 @@ import pickle
 import ipaddress
 import subprocess
 from functools import partial
+from urllib.parse import urlparse
 from PyQt5 import QtWidgets, QtCore, QtGui
 from player_functions import ccurl, send_notification, get_lan_ip
 from player_functions import open_files, write_files, change_opt_file
@@ -378,6 +379,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.gl7 = QtWidgets.QGridLayout(self.tab_config)
         self.tab_shortcuts = QtWidgets.QWidget(self)
         self.gl8 = QtWidgets.QGridLayout(self.tab_shortcuts)
+        self.tab_slave = QtWidgets.QWidget(self)
+        self.gl9 = QtWidgets.QGridLayout(self.tab_slave)
         self.addTab(self.tab_close, 'X')
         self.addTab(self.tab_app, 'Appearance')
         self.addTab(self.tab_library, 'Library')
@@ -387,6 +390,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.addTab(self.tab_meta, 'Other')
         self.addTab(self.tab_config, 'Config')
         self.addTab(self.tab_shortcuts, 'Shortcuts')
+        self.addTab(self.tab_slave, 'Slave')
         
         self.option_file = os.path.join(ui.home_folder, 'other_options.txt')
         self.torrent_config = os.path.join(ui.home_folder, 'torrent_config.txt')
@@ -435,6 +439,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.player_settings()
                 self.configsettings()
                 self.apply_tab_shortcuts()
+                self.set_tab_slave()
                 self.tabs_present = True
             if not ui.label.isHidden():
                 ui.label_new.hide()
@@ -530,6 +535,98 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 i = 'LIST_TEXT_COLOR_FOCUS={}'.format(ui.list_text_color_focus)
             new_lines.append(i)
         write_files(file_name, new_lines, line_by_line=True)
+    
+    def set_tab_slave(self):
+        self.remote_on = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.remote_on, 0, 0, 1, 1)
+        self.remote_on.setText('Remote Off')
+        self.remote_on.clicked.connect(partial(self.slave_commands, 'remote_on.htm'))
+        
+        self.play_pause = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.play_pause, 0, 1, 1, 1)
+        self.play_pause.setText('Play/Pause')
+        self.play_pause.clicked.connect(partial(self.slave_commands, 'playpause'))
+        
+        self.toggle_fs = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.toggle_fs, 0, 2, 1, 1)
+        self.toggle_fs.setText('FS')
+        self.toggle_fs.clicked.connect(partial(self.slave_commands, 'fullscreen'))
+        
+        self.playerstop = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerstop, 0, 3, 1, 1)
+        self.playerstop.setText('Stop')
+        self.playerstop.clicked.connect(partial(self.slave_commands, 'playerstop'))
+        
+        self.playerprev = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerprev, 1, 0, 1, 1)
+        self.playerprev.setText('Prev')
+        self.playerprev.clicked.connect(partial(self.slave_commands, 'playprev'))
+        
+        self.playernext = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playernext, 1, 1, 1, 1)
+        self.playernext.setText('Next')
+        self.playernext.clicked.connect(partial(self.slave_commands, 'playnext'))
+        
+        self.playervol_5 = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playervol_5, 1, 2, 1, 1)
+        self.playervol_5.setText('vol--')
+        self.playervol_5.clicked.connect(partial(self.slave_commands, 'volume_5'))
+        
+        self.playervol5 = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playervol5, 1, 3, 1, 1)
+        self.playervol5.setText('vol++')
+        self.playervol5.clicked.connect(partial(self.slave_commands, 'volume5'))
+        
+        
+        
+    def slave_commands(self, cmd):
+        if cmd == 'remote_on.htm':
+            if self.remote_on.text() == 'Remote Off':
+                #self.remote_on.setText('Remote On')
+                cmd = 'remote_on.htm'
+            else:
+                #self.remote_on.setText('Remote Off')
+                cmd = 'remote_off.htm'
+        ip = ui.slave_address
+        request_url = cmd
+        addr = None
+        if '127.0.0.1' in ip:
+            send_notification('You have not setup slave address properly')
+        elif not ip.startswith('http') and not ip.startswith('https'):
+            addr = 'http://{}/{}'.format(ip, request_url)
+        elif ip.endswith('/'):
+            addr = '{}{}'.format(ip, request_url)
+        else:
+            addr = '{}/{}'.format(ip, request_url)
+        n = urlparse(addr)
+        netloc = n.netloc
+        val = ui.vnt.cookie_session.get(netloc)
+        verify = ui.list2.verify_slave_ssl
+        print(addr, ip, request_url, netloc, val, verify)
+        logger.debug('url={} verify={}'.format(addr, verify))
+        if val:
+            if cmd in ['remote_on.htm', 'remote_off.htm']:
+                ui.vnt.get(addr, session=True, verify=verify, timeout=60,
+                           onfinished=self.slave_remote_on_off)
+            else:
+                ui.vnt.get(addr, session=True, verify=verify, timeout=60)
+        else:
+            if cmd in ['remote_on.htm', 'remote_off.htm']:
+                ui.vnt.get(addr, verify=verify, timeout=60,
+                           onfinished=self.slave_remote_on_off)
+            else:
+                ui.vnt.get(addr, timeout=60, verify=verify)
+    
+    def slave_remote_on_off(self, *args):
+        r = args[-1].result()
+        html = r.html
+        if html:
+            if 'True' in html:
+                self.remote_on.setText('Remote On')
+            else:
+                self.remote_on.setText('Remote Off')
+        else:
+            self.remote_on.setText('Remote Off')
     
     def appeareance(self):
         self.param_list = []
