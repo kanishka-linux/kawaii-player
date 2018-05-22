@@ -213,7 +213,7 @@ class GUISignals(QtCore.QObject):
     textsignal = pyqtSignal(str)
     fanartsignal = pyqtSignal(str, str)
     epsum_signal = pyqtSignal(int, str, str, str)
-    login_box = pyqtSignal(str, str)
+    login_box = pyqtSignal(str, str, bool)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -235,8 +235,8 @@ class GUISignals(QtCore.QObject):
     def ep_changed(self, num, ep, sumr, path):
         self.epsum_signal.emit(num, ep, sumr, path)
         
-    def login_required(self, url, pls):
-        self.login_box.emit(url, pls)
+    def login_required(self, url, pls, verify):
+        self.login_box.emit(url, pls, verify)
 
 @pyqtSlot(str)
 def apply_new_text(val):
@@ -248,9 +248,9 @@ def apply_fanart_widget(fanart, theme):
     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=theme))
     
 @pyqtSlot(str, str)
-def show_login_box(url, pls):
+def show_login_box(url, pls, verify):
     global MainWindow, ui
-    LoginPCToPC(MainWindow, url, ui, pls, onfinished=ui.list2.post_pc_processing)
+    LoginPCToPC(MainWindow, url, ui, pls, verify, onfinished=ui.list2.post_pc_processing)
     
 @pyqtSlot(int, str, str)
 def apply_episode_metadata(num, ep, sumr, path):
