@@ -1224,7 +1224,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if ui.https_media_server:
             http_val = "https" 
         ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(ui.local_ip_stream), str(ui.local_port_stream))
-        ui.vnt.get(ip, binary=True, timeout=10,
+        ui.vnt.get(ip, binary=True, timeout=10, verify=False,
                    onfinished=partial(self.process_pc_to_pc_casting, mode, row, item))
         
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
