@@ -96,7 +96,7 @@ def ccurl_string_get(url, opt, extra, download_manager=None):
     ver_peer = url.split('/')
     if len(ver_peer) > 3:
         ver_peer_get = ver_peer[3]
-        if ver_peer_get.startswith('abs_path') and '&pl_id=' in ver_peer_get:
+        if ver_peer_get.startswith('abs_path=') or ver_peer_get.startswith('master_abs_path='):
             if '-k' not in command:
                 command.append('-k')
     command.append('-g')
