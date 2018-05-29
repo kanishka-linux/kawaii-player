@@ -61,7 +61,7 @@ class TVDB:
         self.backend_search = backend
     
     def find_redirected_link(self, *args):
-        result = args[-1].result()
+        result = args[-1]
         url = result.url
         logger.debug(args)
         self.getinfo(url, onfinished=args[0], eps=args[2])
@@ -99,7 +99,7 @@ class TVDB:
     
     @process_artwork_onfinished
     def process_artwork(self, *args):
-        result = args[-1].result()
+        result = args[-1]
         url = args[-2]
         ourl = args[1]
         soup = BeautifulSoup(result.html, 'html.parser')
@@ -121,7 +121,7 @@ class TVDB:
     def process_page(self, *args):
         ourl = args[1]
         eps = args[2]
-        result = args[-1].result()
+        result = args[-1]
         obj = self.final_dict[ourl]
         soup = BeautifulSoup(result.html, 'html.parser')
         title_s = soup.find('h1', {'id':'series_title'})
@@ -164,7 +164,7 @@ class TVDB:
         ourl = args[2]
         eps = args[3]
         obj = self.final_dict[ourl]
-        result = args[-1].result()
+        result = args[-1]
         soup = BeautifulSoup(result.html, 'html.parser')
         img_list = []
         for i in soup.findAll('div', {'class':'thumbnail'}):
@@ -237,8 +237,8 @@ class TVDB:
     @process_episodes_onfinished
     def process_episodes(self, *args):
         ourl = args[1]
-        result = args[-1].result()
-        if args[-1].exception():
+        result = args[-1]
+        if not args[-1]:
             obj = None
         else:
             obj = self.final_dict[ourl]
@@ -259,7 +259,7 @@ class TVDB:
     @search_onfinished
     def process_search(self, *args):
         search_dict = {}
-        result = args[-1].result()
+        result = args[-1]
         srch = args[1]
         eps = args[2]
         exact_found = False

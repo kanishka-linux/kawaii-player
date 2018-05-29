@@ -26,7 +26,7 @@ class Backend:
     
     def process_ddgsearch(self, onfinished, *args):
         m = []
-        result = args[-1].result()
+        result = args[-1]
         soup = BeautifulSoup(result.html, 'lxml')
         div_val = soup.findAll('h2', {'class':'result__title'})
         for div_l in div_val:
@@ -47,7 +47,7 @@ class Backend:
         self.vnt.get(url, params=params, onfinished=partial(self.process_gsearch, onfinished, *args))
     
     def process_gsearch(self, onfinished, *args):
-        result = args[-1].result()
+        result = args[-1]
         soup = BeautifulSoup(result.html, 'html.parser')
         m = soup.findAll('a')
         links = []
