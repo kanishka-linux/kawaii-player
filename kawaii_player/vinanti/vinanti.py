@@ -288,13 +288,23 @@ class Vinanti:
         
         if onfinished:
             future.add_done_callback(partial(self.finished_task_postprocess, onfinished, task_num, url))
+            
         response = await future
         
+        if not onfinished:
+            self.lock.acquire()
+            try:
+                self.task_counter += 1
+            finally:
+                self.lock.release()
+            self.tasks_completed.update({task_num:True})
+            
         if self.task_queue:
             task_list = self.task_queue.popleft()
             task_dict = {'0':task_list}
             self.start(task_dict, True)
             logger.info('starting--queued--task')
+        
             
     def __complete_request__(self, func, kargs):
         req_obj = func(*kargs)
