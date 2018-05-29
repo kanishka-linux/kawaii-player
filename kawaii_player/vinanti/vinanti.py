@@ -23,8 +23,8 @@ import urllib.parse
 from urllib.parse import urlparse
 import urllib.request
 from functools import partial
-from threading import Thread
-from collections import OrderedDict
+from threading import Thread, Lock
+from collections import OrderedDict, deque
 try:
     from vinanti.req import RequestObject
     from vinanti.log import log_function
@@ -36,16 +36,13 @@ logger = log_function(__name__)
 
 class Vinanti:
     
-    def __init__(self, backend=None, block=True, log=False, group_task=False, **kargs):
+    def __init__(self, backend=None, block=True, log=False,
+                 group_task=False, max_requests=10, **kargs):
         if backend is None:
             self.backend = 'urllib'
         else:
             self.backend = backend
         self.block = block
-        if self.block is None:
-            self.loop = None
-        else:
-            self.loop = asyncio.get_event_loop()
         self.tasks = OrderedDict()
         self.loop_nonblock_list = []
         self.log = log
@@ -66,6 +63,10 @@ class Vinanti:
         self.tasks_completed = {}
         self.tasks_timing = {}
         self.cookie_session = {}
+        self.task_counter = 0
+        self.lock = Lock()
+        self.task_queue = deque()
+        self.max_requests = max_requests
         
     def clear(self):
         self.tasks.clear()
@@ -76,6 +77,8 @@ class Vinanti:
         self.hdrs_global = None
         self.onfinished_global = None
         self.cookie_session.clear()
+        self.task_queue.clear()
+        self.task_counter = 0
     
     def session_clear(self, netloc=None):
         if netloc:
@@ -88,21 +91,11 @@ class Vinanti:
         return len(self.tasks_completed)
     
     def tasks_done(self):
-        tasks_copy = self.tasks_completed.copy()
-        count = 0
-        for key, val in tasks_copy.items():
-            if val:
-                count += 1
-        return count
+        return self.task_counter
         
     def tasks_remaining(self):
-        tasks_copy = self.tasks_completed.copy()
-        count = 0
-        for key, val in tasks_copy.items():
-            if not val:
-                count += 1
-        return count
-    
+        return len(self.tasks_completed) - self.task_counter
+        
     def __build_tasks__(self, urls, method, onfinished=None, hdrs=None, options_dict=None):
         self.tasks.clear()
         if options_dict is None:
@@ -110,14 +103,20 @@ class Vinanti:
         if self.session_params:
             global_params = [method, hdrs, onfinished, options_dict]
             method, onfinished, hdrs, options_dict = self.set_session_params(*global_params)
-        if self.block is None:
+        if self.block:
             req = None
-            print(urls)
+            logger.info(urls)
             if isinstance(urls, str):
+                length_new = len(self.tasks_completed)
                 req = self.__get_request__(urls, hdrs, method, options_dict)
+                self.tasks_completed.update({length_new:True})
+                self.task_counter += 1
+                if onfinished:
+                    onfinished(length_new, urls, req)
                 return req
         else:
             task_dict = {}
+            task_list = []
             if not isinstance(urls, list):
                 urls = [urls]
             for i, url in enumerate(urls):
@@ -128,7 +127,11 @@ class Vinanti:
                 self.tasks.update({length:task_list})
                 self.tasks_completed.update({length_new:False})
             if task_dict and not self.group_task:
-                self.start(task_dict)
+                if self.tasks_remaining() < self.max_requests:
+                    self.start(task_dict)
+                else:
+                    self.task_queue.append(task_list)
+                    logger.info('append task')
     
     def set_session_params(self, method, hdrs, onfinished, options_dict):
         if not method and self.method_global:
@@ -180,9 +183,13 @@ class Vinanti:
         if isinstance(urls, str):
             length = len(self.tasks)
             length_new = len(self.tasks_completed)
-            task_list = [urls, onfinished, hdrs, method, kargs, length_new]
-            self.tasks.update({length:task_list})
             self.tasks_completed.update({length_new:False})
+            task_list = [urls, onfinished, hdrs, method, kargs, length_new]
+            if self.tasks_remaining() < self.max_requests:
+                self.tasks.update({length:task_list})
+            else:
+                self.task_queue.append(task_list)
+                logger.info('queueing task')
             
     def __start_non_block_loop__(self, tasks_dict, loop):
         asyncio.set_event_loop(loop)
@@ -193,27 +200,15 @@ class Vinanti:
         loop.run_until_complete(asyncio.gather(*tasks))
         loop.close()
         
-    def start(self, task_dict=None):
+    def start(self, task_dict=None, queue=False):
         logger.info(task_dict)
-        if self.group_task:
+        if self.group_task and not queue:
             task_dict = self.tasks
-        if self.block is True and task_dict:
-            if not self.loop.is_running():
-                self.__event_loop__(task_dict)
-            else:
-                logger.debug('loop running: {}'.format(self.loop.is_running()))
-        elif self.block is False and task_dict:
+        if not self.block and task_dict:
             new_loop = asyncio.new_event_loop()
             loop_thread = Thread(target=self.__start_non_block_loop__, args=(task_dict, new_loop))
             self.loop_nonblock_list.append(loop_thread)
             self.loop_nonblock_list[len(self.loop_nonblock_list)-1].start()
-                
-    def __event_loop__(self, tasks_dict):
-        tasks = []
-        for key, val in tasks_dict.items():
-            url, onfinished, hdrs, method, kargs, length = val
-            tasks.append(asyncio.ensure_future(self.__start_fetching__(url, onfinished, hdrs, length, self.loop, method, kargs))) 
-        self.loop.run_until_complete(asyncio.gather(*tasks))
     
     def __update_hdrs__(self, hdrs, netloc):
         if hdrs:
@@ -270,18 +265,37 @@ class Vinanti:
             cookie = new_cookie
         if cookie:
             self.cookie_session.update({netloc:cookie})
+            
+    def finished_task_postprocess(self, onfinished, task_num, url, future):
+        self.lock.acquire()
+        try:
+            self.task_counter += 1
+        finally:
+            self.lock.release()
+        self.tasks_completed.update({task_num:True})
+        if future.exception():
+            result = None
+        else:
+            result = future.result()
+        onfinished(task_num, url, result)
         
     async def __start_fetching__(self, url, onfinished, hdrs, task_num, loop, method, kargs):
         if isinstance(url, str):
             logger.info('\nRequesting url: {}\n'.format(url))
             future = loop.run_in_executor(None, self.__get_request__, url, hdrs, method, kargs)
         else:
-            future = loop.run_in_executor(None, self.__complete_request__, url, hdrs, method, kargs)
-        if onfinished:
-            future.add_done_callback(partial(onfinished, task_num, url))
-        response = await future
-        self.tasks_completed.update({task_num:True})
+            future = loop.run_in_executor(None, self.__complete_request__, url, kargs)
         
-    def __complete_request__(self, url, args, method, kargs):
-        req_obj = url(*kargs)
+        if onfinished:
+            future.add_done_callback(partial(self.finished_task_postprocess, onfinished, task_num, url))
+        response = await future
+        
+        if self.task_queue:
+            task_list = self.task_queue.popleft()
+            task_dict = {'0':task_list}
+            self.start(task_dict, True)
+            logger.info('starting--queued--task')
+            
+    def __complete_request__(self, func, kargs):
+        req_obj = func(*kargs)
         return req_obj
