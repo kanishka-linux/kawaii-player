@@ -348,7 +348,7 @@ class LoginPCToPC(QtWidgets.QDialog):
                         timeout=10, session=True, verify=self.verify)
         
     def post_login(self, usr, passval, url, onfinished, *args):
-        r = args[-1].result()
+        r = args[-1]
         onfinished(r, usr, passval, url)
 
 class OptionsSettings(QtWidgets.QTabWidget):
@@ -669,7 +669,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.vnt.get(addr, timeout=60, verify=verify)
     
     def slave_remote_on_off(self, cmd, *args):
-        r = args[-1].result()
+        r = args[-1]
         html = r.html
         if cmd == 'lock':
             logger.debug(html)
