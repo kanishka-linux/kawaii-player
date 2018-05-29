@@ -1228,7 +1228,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                    onfinished=partial(self.process_pc_to_pc_casting, mode, row, item))
         
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
-        content = args[-1].result().html
+        content = args[-1].html
         if content:
             content = content.decode('utf-8')
             lines = content.split('\n')
@@ -1299,11 +1299,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
         else:
             msg = 'Most Probably Media Server not started on Master.'
             logger.error(msg)
-            logger.error(args[-1].result().error)
+            logger.error(args[-1].error)
             send_notification(msg)
     
     def final_pc_to_pc_process(self, pls_file, verify, *args):
-        r = args[-1].result()
+        r = args[-1]
         content = r.html
         if not content:
             err = r.error
