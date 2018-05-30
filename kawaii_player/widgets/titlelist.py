@@ -923,6 +923,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         if '.txt' in i or '.jpg' in i:
                             t = os.path.join(TMPDIR, i)
                             os.remove(t)
+                    ui.vnt.clear()
             elif action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
@@ -1226,6 +1227,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 ui.history_dict_obj.clear()
                 ui.history_dict_obj = tmpdict.copy()
                 logger.debug(len(ui.history_dict_obj))
+                ui.vnt.clear()
             elif action == tvdb:
                 self.set_search_backend(use_search=False)
             elif action == tmdb:
