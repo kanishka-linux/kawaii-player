@@ -85,6 +85,7 @@ class TVDB:
             else:
                 base_url = 'https://www.thetvdb.com/search'
                 params = {'q':srch}
+                logger.info('{}, {}'.format(base_url, params))
                 self.vnt.get(base_url, params=params, onfinished=partial(self.process_search, onfinished, srch, episode_summary))
     
     def getinfo(self, url, onfinished=None, eps=None):
@@ -95,7 +96,8 @@ class TVDB:
         poster_url = url + '/artwork/poster'
         artwork = [fanart_url, banner_url, poster_url]
         self.vnt.get(url, onfinished=partial(self.process_page, onfinished, url, eps))
-        self.vnt.get(artwork, onfinished=partial(self.process_artwork, onfinished, url))
+        for i in artwork:
+            self.vnt.get(i, onfinished=partial(self.process_artwork, onfinished, url))
     
     @process_artwork_onfinished
     def process_artwork(self, *args):
