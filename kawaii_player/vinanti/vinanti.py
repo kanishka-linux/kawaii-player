@@ -36,7 +36,7 @@ logger = log_function(__name__)
 
 class Vinanti:
     
-    def __init__(self, backend=None, block=True, log=False,
+    def __init__(self, backend=None, block=True, log=True,
                  group_task=False, max_requests=10, **kargs):
         if backend is None:
             self.backend = 'urllib'
@@ -65,6 +65,7 @@ class Vinanti:
         self.cookie_session = {}
         self.task_counter = 0
         self.lock = Lock()
+        self.new_lock = Lock()
         self.task_queue = deque()
         self.max_requests = max_requests
         
@@ -109,7 +110,7 @@ class Vinanti:
             if isinstance(urls, str):
                 length_new = len(self.tasks_completed)
                 req = self.__get_request__(urls, hdrs, method, options_dict)
-                self.tasks_completed.update({length_new:True})
+                self.tasks_completed.update({length_new:[True, urls]})
                 self.task_counter += 1
                 if onfinished:
                     onfinished(length_new, urls, req)
@@ -125,13 +126,13 @@ class Vinanti:
                 task_list = [url, onfinished, hdrs, method, options_dict, length_new]
                 task_dict.update({i:task_list})
                 self.tasks.update({length:task_list})
-                self.tasks_completed.update({length_new:False})
-            if task_dict and not self.group_task:
-                if self.tasks_remaining() < self.max_requests:
-                    self.start(task_dict)
-                else:
-                    self.task_queue.append(task_list)
-                    logger.info('append task')
+                self.tasks_completed.update({length_new:[False, url]})
+                if not self.group_task:
+                    if self.tasks_remaining() < self.max_requests:
+                        self.start(task_dict)
+                    else:
+                        self.task_queue.append(task_list)
+                        logger.info('append task')
     
     def set_session_params(self, method, hdrs, onfinished, options_dict):
         if not method and self.method_global:
@@ -174,7 +175,7 @@ class Vinanti:
         task_list = [urls, onfinished, None, 'FUNCTION', args, length_new]
         length = len(self.tasks)
         self.tasks.update({length:task_list})
-        self.tasks_completed.update({length_new:False})
+        self.tasks_completed.update({length_new:[False, urls]})
     
     def add(self, urls, onfinished=None, hdrs=None, method=None, **kargs):
         if self.session_params:
@@ -183,7 +184,7 @@ class Vinanti:
         if isinstance(urls, str):
             length = len(self.tasks)
             length_new = len(self.tasks_completed)
-            self.tasks_completed.update({length_new:False})
+            self.tasks_completed.update({length_new:[False, urls]})
             task_list = [urls, onfinished, hdrs, method, kargs, length_new]
             if self.tasks_remaining() < self.max_requests:
                 self.tasks.update({length:task_list})
@@ -201,7 +202,7 @@ class Vinanti:
         loop.close()
         
     def start(self, task_dict=None, queue=False):
-        logger.info(task_dict)
+        #logger.info(task_dict)
         if self.group_task and not queue:
             task_dict = self.tasks
         if not self.block and task_dict:
@@ -272,7 +273,7 @@ class Vinanti:
             self.task_counter += 1
         finally:
             self.lock.release()
-        self.tasks_completed.update({task_num:True})
+        self.tasks_completed.update({task_num:[True, url]})
         if future.exception():
             result = None
         else:
@@ -292,19 +293,18 @@ class Vinanti:
         response = await future
         
         if not onfinished:
-            self.lock.acquire()
+            self.new_lock.acquire()
             try:
                 self.task_counter += 1
             finally:
-                self.lock.release()
-            self.tasks_completed.update({task_num:True})
+                self.new_lock.release()
+            self.tasks_completed.update({task_num:[True, url]})
             
         if self.task_queue:
             task_list = self.task_queue.popleft()
             task_dict = {'0':task_list}
             self.start(task_dict, True)
             logger.info('starting--queued--task')
-        
             
     def __complete_request__(self, func, kargs):
         req_obj = func(*kargs)
