@@ -6019,8 +6019,9 @@ watch/unwatch status")
                         )
                     
     def name_adjust(self, name):
-        nam = re.sub('-|_| |\.', '+', name)
+        nam = re.sub('-|_|\.', ' ', name)
         nam = nam.lower()
+        nam = nam.strip()
         nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
         nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
         nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
