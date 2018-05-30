@@ -23,8 +23,9 @@ def search_onfinished(func):
         if search_n_grab:
             new_url = None
             for key,value in search_dict.items():
-                new_url = value[1]
-                break
+                if value:
+                    new_url = value[1]
+                    break
             if new_url:
                 args[0].getinfo(new_url, onfinished=args[1], eps=args[3])
         else:
