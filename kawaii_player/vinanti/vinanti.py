@@ -36,7 +36,7 @@ logger = log_function(__name__)
 
 class Vinanti:
     
-    def __init__(self, backend=None, block=True, log=True,
+    def __init__(self, backend=None, block=False, log=False,
                  group_task=False, max_requests=10, **kargs):
         if backend is None:
             self.backend = 'urllib'
@@ -217,9 +217,9 @@ class Vinanti:
         else:
             hdr_cookie = None
         cookie = self.cookie_session.get(netloc)
-        if cookie and not hdr_cookie:
+        if cookie and not hdr_cookie and hdrs:
             hdrs.update({'Cookie':cookie})
-        elif cookie and hdr_cookie:
+        elif cookie and hdr_cookie and hdrs:
             if hdr_cookie.endswith(';'):
                 new_cookie = hdr_cookie + cookie
             else:
