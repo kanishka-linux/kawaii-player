@@ -411,20 +411,38 @@ Web Interface, contains a search text box which can be used to send text command
 
 kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended in v3.5.0 to include master-slave design in order to incorporate PC-To-PC casting feature. Following are some important aspects of this feature.
     
-    * Casting of single file or entire playlist from one computer (Master) to another computer (Slave) running kawaii-player.
+    * Casting of single file or entire playlist from one computer (Master) 
+    
+      to another computer (Slave) running kawaii-player.
+      
     * Automatic loading of subtitle (if subtitle name matches the file name)
+    
     * Ability to send external subtitle file from master to slave
+    
     * Ability to queue items
-    * Ability to open web interface of slave from internal browser of master, which contains multiple other options to control playback activity on slave.
+    
+    * Ability to open web interface of slave from internal browser of master,
+    
+      which contains multiple other options to control playback activity on slave.
     
 **How to enable PC-To-PC casting feature?**
 
     * Install kawaii-player on two computers say master and slave.
-    * On master, enable master mode: Preferences->Other->PC To PC Casting->Master.
-    * On Slave, enable slave mode: Preferences->Other->PC To PC Casting->Slave
-    * Start media server on both.
-    * Select any playlist of master. From its contextmenu, start casting files or playlist from master to slave.
     
+    * On master, enable master mode: Preferences->Other->PC To PC Casting->Master.
+    
+    * On Slave, enable slave mode: Preferences->Other->PC To PC Casting->Slave
+    
+    * Start media server on both.
+    
+    * Select any playlist of master. From its contextmenu, start casting files
+      
+      or playlist from master to slave. Users only need to setup slave address,
+      
+      when it is prompted by the application, or they can change slave address
+      
+      from contextmenu itself.
+      
 After following above steps, on Master, users will find new contextmenu as shown below from which they can cast items to other Slave computers running kawaii-player.
 
 ![casting-menu](https://user-images.githubusercontent.com/17716871/39094384-1d5fd91e-464c-11e8-892f-38e2aa540c54.png)
@@ -434,6 +452,8 @@ Above contextmenu has 'Show More Controls' option. This option will open up web 
 ![Remote-Control](https://user-images.githubusercontent.com/17716871/39094637-61d22e86-4650-11e8-902c-25f09b978283.png)
     
 For more details on PC-To-PC casting feature, refer [the issue](https://github.com/kanishka-linux/kawaii-player/issues/15)
+
+From v3.6 onwards, kawaii-player will contain a separate slave control box, so that users don't have to open up web interface. Control box can be found at 'Preferences->Slave'.
 
 #### Browser to PC Casting
 
@@ -600,6 +620,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 	The 64-bit binary is built against Ubuntu 16.04 LTS as base and contains all python based dependencies. Users will have to install only non-python based dependencies like mpv/mplayer/ffmpegthumbnailer externally using their native package manager.
 
+    + Note : From v3.6 onwards, self contained binary won't be made available for gnu/linux distros. Users are advised to use either setup.py and install dependencies manually, or ask their distro maintainers to provide package for their distro by looking at either setup.py, or deb/AUR package.
 
 4. **Using setup.py** (Common method for all including gnu/linux, windows and other unix like systems): 
 		
