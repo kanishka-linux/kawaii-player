@@ -17,6 +17,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with vinanti.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+import sys
 import asyncio
 
 try:
@@ -47,8 +49,13 @@ class RequestObjectAiohttp(RequestObject):
             rsp = Response(self.url, method=self.method)
             rsp.info = resp.headers
             rsp.content_type = rsp.info.get('content-type')
+            sz = rsp.info.get('content-length')
             rsp.status = resp.status
-            if rsp.status == 200:
+            if sz:
+                sz = round(int(sz)/(1024*1024), 2)
+            if rsp.status in [200, 206]:
+                rsp.url = str(resp.url)
+                path_name = rsp.url.rsplit('/', 1)[-1]
                 human_readable = False
                 for i in self.readable_format:
                     if i in rsp.content_type.lower():
@@ -57,12 +64,27 @@ class RequestObjectAiohttp(RequestObject):
                 text = None
                 if self.method != 'HEAD':
                     if self.out:
-                        with open(self.out, 'wb') as fd:
+                        print_count = 0
+                        if self.continue_out:
+                            mode = 'ab'
+                        else:
+                            mode = 'wb'
+                        with open(self.out, mode) as fd:
                             while True:
                                 chunk = await resp.content.read(1024)
                                 if not chunk:
                                     break
                                 fd.write(chunk)
+                                print_count += 1
+                                if (print_count) % 200 == 0:
+                                    count = print_count * len(chunk)
+                                    dwn = round(int(count)/(1024*1024), 2)
+                                    sys.stdout.write('\r')
+                                    sys.stdout.write('{} M / {} M : {}'.format(dwn, sz, self.out))
+                                    sys.stdout.flush()
+                            sys.stdout.write('\r')
+                            sys.stdout.write('{} M / {} M : {}'.format(sz, sz, self.out))
+                            sys.stdout.flush()
                             text = 'file saved to {}'.format(self.out)
                     elif self.binary:
                         text = await resp.read()
@@ -74,7 +96,6 @@ class RequestObjectAiohttp(RequestObject):
                         text = 'Content {} not human readable.'.format(rsp.content_type)
                 rsp.html = text
                 rsp.status = resp.status
-                rsp.url = str(resp.url)
                 cj_arr = []
                 for c in session.cookie_jar:
                     cj_arr.append('{}={}'.format(c.key, c.value))

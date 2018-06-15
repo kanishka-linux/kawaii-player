@@ -181,7 +181,11 @@ class ResponseUrllib(Response):
         if parent.method == 'HEAD':
             self.html = 'None'
         elif parent.out:
-            with open(parent.out, 'wb') as out_file:
+            if parent.continue_out:
+                mode = 'ab'
+            else:
+                mode = 'wb'
+            with open(parent.out, mode) as out_file:
                 if dstorage is None:
                     shutil.copyfileobj(req, out_file)
                 else:

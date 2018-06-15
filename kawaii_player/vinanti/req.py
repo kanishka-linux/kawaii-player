@@ -16,7 +16,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with vinanti.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+import os
 import urllib.parse
 
 try:
@@ -54,10 +54,20 @@ class RequestObject:
             logger.disabled = True
         self.timeout = self.kargs.get('timeout')
         self.out = self.kargs.get('out')
+        self.continue_out = self.kargs.get('continue_out')
         self.__init_extra__()
     
     def __init_extra__(self):
         self.data_old = None
+        if self.out:
+            path_name = self.url.rsplit('/', 1)[-1]
+            if self.out == 'default' and path_name:
+                self.out = path_name
+            elif os.path.isdir(self.out) and path_name:
+                self.out = os.path.join(self.out, path_name)
+            if os.path.isfile(self.out) and self.continue_out:
+                sz = os.stat(self.out).st_size
+                self.hdrs.update({'Range':'bytes={}-'.format(sz)})
         if not self.hdrs:
             self.hdrs = {"User-Agent":"Mozilla/5.0"}
         if not self.method:
