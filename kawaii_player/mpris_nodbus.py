@@ -20,20 +20,19 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 
-class MprisServer():
-    def __init__(self, ui, home, tr_ay, new_tr):
-        global tray, new_tray_widget
+class MprisServer:
+    
+    def __init__(self, ui, home, tray, new_tray):
         self.ui = ui
         self.home = home
-        tray = tr_ay
-        new_tray_widget = new_tr
+        self.tray = tray
+        self.new_tray_widget = new_tray
 
     def _emitMeta(self, info, site, epnArrList):
-        global tray, new_tray_widget
         art_url = self.ui.default_background
         artist = 'Kawaii-Player'
         title = 'Kawaii-Player'
-        if epnArrList and (site == "Music" or site == "PlayLists"):
+        if epnArrList and site in ["Music", "PlayLists"]:
             try:
                 queue_list = False
                 if self.ui.queue_url_list:
@@ -104,8 +103,6 @@ class MprisServer():
                     title = epnArrList[self.ui.list2.currentRow()].split('	')[0]
                     self.ui.logger.info('artist={0}; title={1}'.format(artist, title))
                 title = title.replace('#', '')
-                #if os.path.exists(art_u):
-                #	art_url = art_u
             except Exception as e:
                 print(e, '--no-dus-error--')
                 title = "Kawaii-Player"
@@ -130,5 +127,5 @@ class MprisServer():
                 title = title[:36]+'..'
             if len(artist) > 38:
                 artist = artist[:36]+'..'
-        new_tray_widget.title.setText(title)
-        new_tray_widget.title1.setText(artist)
+        self.new_tray_widget.title.setText(title)
+        self.new_tray_widget.title1.setText(artist)
