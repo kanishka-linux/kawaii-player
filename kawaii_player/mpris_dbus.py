@@ -33,10 +33,10 @@ MPRIS_MEDIAPLAYER_INTERFACE = 'org.mpris.MediaPlayer2'
 MPRIS_MEDIAPLAYER_PLAYER_INTERFACE = 'org.mpris.MediaPlayer2.Player'
 
 class MprisServer(dbus.service.Object):
-    def __init__(self, ui, home, tr_ay, new_tr):
-        global tray, new_tray_widget
-        tray = tr_ay
-        new_tray_widget = new_tr
+    
+    def __init__(self, ui, home, tray, new_tray):
+        self.tray = tray
+        self.new_tray_widget = new_tray
         bus = dbus.service.BusName(
             AW_MPRIS_BUS_NAME,
             bus=dbus.SessionBus())
@@ -108,12 +108,10 @@ class MprisServer(dbus.service.Object):
 
     @pyqtSlot(str, str, list)
     def _emitMeta(self, info, site, epnArrList):
-        global tray, new_tray_widget
-        #print(type(tray), type(new_tray_widget), type(site), type(epnArrList))
         art_url = self.ui.default_background
         artist = 'Kawaii-Player'
         title = 'Kawaii-Player'
-        if epnArrList and (site == "Music" or site == "PlayLists"):
+        if epnArrList and site in ["Music", "PlayLists"]:
             try:
                 queue_list = False
                 if self.ui.queue_url_list:
@@ -222,8 +220,8 @@ class MprisServer(dbus.service.Object):
                 title = title[:36]+'..'
             if len(artist) > 38:
                 artist = artist[:36]+'..'
-        new_tray_widget.title.setText(title)
-        new_tray_widget.title1.setText(artist)
+        self.new_tray_widget.title.setText(title)
+        self.new_tray_widget.title1.setText(artist)
 
     @dbus.service.method(dbus.INTROSPECTABLE_IFACE, 
                          in_signature='', out_signature='s')
