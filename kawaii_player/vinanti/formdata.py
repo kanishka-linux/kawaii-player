@@ -55,12 +55,18 @@ class Formdata:
         
     def create_content(self):
         boundary = '--' + self.boundary
-        for key, value in self.form_dict.items():
-            self.final_list.append(bytes(boundary, 'utf-8'))
-            hdr = 'Content-Disposition: form-data; name="{}"'.format(key)
-            self.final_list.append(bytes(hdr, 'utf-8'))
-            self.final_list.append(b'')
-            self.final_list.append(bytes(value, 'utf-8'))
+        if isinstance(self.form_dict, (dict, tuple)):
+            for key_val in self.form_dict:
+                if isinstance(self.form_dict, dict):
+                    key = key_val
+                    value = self.form_dict.get(key)
+                else:
+                    key, value = key_val
+                self.final_list.append(bytes(boundary, 'utf-8'))
+                hdr = 'Content-Disposition: form-data; name="{}"'.format(key)
+                self.final_list.append(bytes(hdr, 'utf-8'))
+                self.final_list.append(b'')
+                self.final_list.append(bytes(value, 'utf-8'))
         if self.file_dict and isinstance(self.file_dict, str):
             self.arrange_files('filedata', self.file_dict, boundary)
         elif self.file_dict and isinstance(self.file_dict, tuple):

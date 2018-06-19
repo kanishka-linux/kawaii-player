@@ -40,7 +40,7 @@ logger = log_function(__name__)
 class RequestObjectUrllib(RequestObject):
     
     def __init__(self, url, hdrs, method, kargs):
-        super().__init__(url, hdrs, method, kargs)
+        super().__init__(url, hdrs, method, 'urllib', kargs)
         
     def process_request(self):
         opener = None
@@ -136,7 +136,8 @@ class ResponseUrllib(Response):
     
     def __init__(self, parent=None, req=None, cj=None):
         super().__init__(parent.url, error=parent.error,
-                         method=parent.method)
+                         method=parent.method, out_file=parent.out,
+                         out_dir=parent.out_dir)
         if req:
             self.set_information(req, parent)
             self.set_session_cookies(cj)
@@ -169,7 +170,8 @@ class ResponseUrllib(Response):
             if i in self.content_type.lower():
                 human_readable = True
                 break
-                
+        if not human_readable:
+            self.binary = True
         dstorage = None
         if self.content_encoding == 'gzip':
             try:
@@ -190,7 +192,7 @@ class ResponseUrllib(Response):
                     shutil.copyfileobj(req, out_file)
                 else:
                     shutil.copyfileobj(dstorage, out_file)
-            self.html = 'file saved to {}'.format(parent.out)
+            self.html = 'file saved to:: {}'.format(parent.out)
         else:
             self.read_html(parent, req, dstorage, human_readable)
         

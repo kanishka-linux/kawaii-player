@@ -17,6 +17,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with vinanti.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import time
 import asyncio
 import urllib.parse
@@ -414,6 +415,11 @@ class Vinanti:
                 if result and result.url:
                     if url != result.url:
                         crawl_object.crawl_dict.update({result.url:True})
+            if result.html and result.out_file:
+                out_file = result.out_file
+                if os.path.isfile(out_file) and not result.binary:
+                    with open(out_file, mode='r', encoding='utf-8') as fd:
+                        result.html = fd.read()
             crawl_object.start_crawling(result, url_obj, session)
         if not self.old_method:
             if self.tasks_remaining() == 0 and not self.loop_forever:

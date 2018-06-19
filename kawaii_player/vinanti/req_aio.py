@@ -19,7 +19,9 @@ along with vinanti.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
+import aiohttp
 import asyncio
+import mimetypes
 
 try:
     from vinanti.req import *
@@ -34,7 +36,7 @@ logger = log_function(__name__)
 class RequestObjectAiohttp(RequestObject):
     
     def __init__(self, url, hdrs, method, kargs):
-        super().__init__(url, hdrs, method, kargs)
+        super().__init__(url, hdrs, method, 'aiohttp', kargs)
         self.readable_format = [
                 'text/plain', 'text/html', 'text/css',
                 'text/javascript', 'application/xhtml+xml',
@@ -43,10 +45,12 @@ class RequestObjectAiohttp(RequestObject):
                 ]
         
     async def process_aio_request(self, session):
+        
         func = self.get_aio_request_func(session)
         ret_obj = None
         async with func as resp:
-            rsp = Response(self.url, method=self.method)
+            rsp = Response(self.url, method=self.method,
+                           out_file=self.out, out_dir=self.out_dir)
             rsp.info = resp.headers
             rsp.content_type = rsp.info.get('content-type')
             sz = rsp.info.get('content-length')
@@ -85,7 +89,9 @@ class RequestObjectAiohttp(RequestObject):
                             sys.stdout.write('\r')
                             sys.stdout.write('{} M / {} M : {}'.format(sz, sz, self.out))
                             sys.stdout.flush()
-                            text = 'file saved to {}'.format(self.out)
+                            text = 'file saved to:: {}'.format(self.out)
+                            if not human_readable:
+                                rsp.binary = True
                     elif self.binary:
                         text = await resp.read()
                     elif self.charset and human_readable:
@@ -102,7 +108,38 @@ class RequestObjectAiohttp(RequestObject):
                 rsp.session_cookies = ';'.join(cj_arr)
         return rsp
         
+    def get_content_type(self, filename):
+        return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        
+    def add_formfields(self):
+        self.data = aiohttp.FormData()
+        if isinstance(self.data_old, dict):
+            for key, value in self.data_old.items():
+                self.data.add_field(key, value)
+        elif isinstance(self.data_old, tuple):
+            for td in self.data_old:
+                if isinstance(td, tuple):
+                    self.data.add_field(td[0], td[1])
+        if isinstance(self.files, str):
+            content_type = self.get_content_type(self.files)
+            filename = os.path.basename(self.files)
+            self.data.add_field(filename, open(self.files, 'rb'),
+                                content_type=content_type)
+        elif isinstance(self.files, tuple):
+            for file_name in self.files:
+                content_type = self.get_content_type(file_name)
+                filename = os.path.basename(file_name)
+                self.data.add_field(filename, open(file_name, 'rb'),
+                                    content_type=content_type)
+        elif isinstance(self.files, dict):
+            for file_title, file_name in self.files.items():
+                content_type = self.get_content_type(file_name)
+                self.data.add_field(file_title, open(file_name, 'rb'),
+                                    content_type=content_type)
+                                    
     def get_aio_request_func(self, session):
+        if self.files:
+            self.add_formfields()
         if self.method == 'GET':
             func = session.get
         elif self.method == 'POST':
@@ -130,5 +167,6 @@ class RequestObjectAiohttp(RequestObject):
                 http_proxy = self.proxies.get('https')
         new_func = func(self.url, headers=self.hdrs, timeout=self.timeout,
                         ssl=verify, proxy=http_proxy, data=self.data)
+    
         return new_func
         
