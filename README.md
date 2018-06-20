@@ -45,6 +45,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Contacts](#contacts)
 
+- [Wiki](https://github.com/kanishka-linux/kawaii-player/wiki)
+
 
 ## Features
 
