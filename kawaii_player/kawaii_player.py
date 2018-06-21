@@ -285,13 +285,25 @@ def control_slave_playback(param, val):
         elif slider_name in subslider_list:
             slider = eval('ui.frame_extra_toolbar.subtitle_{}_slider'.format(slider_name))
             slider.setValue(int(slider_val))
-    else:
-        pass
+    elif param_type == 'click':
+        widget_list = [
+            'btn_aspect_original', 'btn_aspect_disable', 'btn_aspect_4_3',
+            'btn_aspect_16_9', 'btn_aspect_235', 'btn_scr_1',
+            'btn_scr_2', 'btn_scr_3', 'btn_sub_minus', 'btn_sub_plus',
+            'btn_aud_minus', 'btn_aud_plus', 'btn_chapter_minus',
+            'btn_chapter_plus', 'btn_show_stat', 'btn_fs_window'
+            ]
+        widget_name, widget_val = val.split('=')
+        if widget_name == 'widget' and widget_val in widget_list:
+            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
+            widget.clicked.emit()
+            
     
 @pyqtSlot(str, str)
 def show_login_box(url, pls, verify):
     global MainWindow, ui
     LoginPCToPC(MainWindow, url, ui, pls, verify, onfinished=ui.list2.post_pc_processing)
+    
     
 @pyqtSlot(int, str, str)
 def apply_episode_metadata(num, ep, sumr, path):
