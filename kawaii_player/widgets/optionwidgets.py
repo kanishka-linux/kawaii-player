@@ -950,27 +950,42 @@ class GSBCSlider(QtWidgets.QSlider):
         
     def adjust_gsbc_values(self, val):
         name = self.objectName()
-        if name == 'zoom':
-            label_value = eval('self.parent.{}_value'.format(name))
-            zoom_val = 0.001* val
-            label_value.setPlaceholderText(str(zoom_val))
-            cmd = '\n set video-zoom {} \n'.format(zoom_val)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'speed':
-            label_value = eval('self.parent.{}_value'.format(name))
-            speed_val = 1 + 0.01* val
-            label_value.setPlaceholderText(str(speed_val))
-            cmd = '\n set speed {} \n'.format(speed_val)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            data_dict = {'param':'gsbc', name:str(val)}
+            ui.settings_box.slave_commands(data=data_dict)
+            if name == 'zoom':
+                label_value = eval('self.parent.{}_value'.format(name))
+                zoom_val = 0.001* val
+                label_value.setPlaceholderText(str(zoom_val))
+            elif name == 'speed':
+                label_value = eval('self.parent.{}_value'.format(name))
+                speed_val = 1 + 0.01* val
+                label_value.setPlaceholderText(str(speed_val))
+            else:
+                label_value = eval('self.parent.{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
         else:
-            label_value = eval('self.parent.{}_value'.format(name))
-            label_value.setPlaceholderText(str(val))
-            cmd = '\n set {} {} \n'.format(name, val)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-            ui.gsbc_dict.update({name:val})
+            if name == 'zoom':
+                label_value = eval('self.parent.{}_value'.format(name))
+                zoom_val = 0.001* val
+                label_value.setPlaceholderText(str(zoom_val))
+                cmd = '\n set video-zoom {} \n'.format(zoom_val)
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'speed':
+                label_value = eval('self.parent.{}_value'.format(name))
+                speed_val = 1 + 0.01* val
+                label_value.setPlaceholderText(str(speed_val))
+                cmd = '\n set speed {} \n'.format(speed_val)
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            else:
+                label_value = eval('self.parent.{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+                cmd = '\n set {} {} \n'.format(name, val)
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                ui.gsbc_dict.update({name:val})
         
 class SubtitleSlider(QtWidgets.QSlider):
 
@@ -1145,6 +1160,13 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.tab_frame_layout.insertWidget(1, self.subtitle_tab_btn, 0)
         self.subtitle_tab_btn.setText('Subtitle')
         self.subtitle_tab_btn.clicked.connect(self.subtitle_tab_show)
+        
+        self.master_slave_tab_btn = QtWidgets.QPushButton(self.tab_frame)
+        self.tab_frame_layout.insertWidget(2, self.master_slave_tab_btn, 0)
+        self.master_slave_tab_btn.setText('Master')
+        self.master_slave_tab_btn.clicked.connect(self.toggle_master_slave)
+        msg = '<html>Toggle use of Extra Toolbar between Master and Slave</html>'
+        self.master_slave_tab_btn.setToolTip(msg)
         
         self.child_frame = QtWidgets.QFrame(self)
         self.subtitle_frame = QtWidgets.QFrame(self)
@@ -1391,7 +1413,16 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.generate_subtitle_frame()
         self.subtitle_box_opened = False
-        
+    
+    def toggle_master_slave(self):
+        txt = self.master_slave_tab_btn.text()
+        if txt.lower() == 'master':
+            self.master_slave_tab_btn.setText('Slave')
+            ui.extra_toolbar_control = 'slave'
+        else:
+            self.master_slave_tab_btn.setText('Master')
+            ui.extra_toolbar_control = 'master'
+    
     def generate_subtitle_frame(self):
         try:
             self.font_families = [i for i in QtGui.QFontDatabase().families()]
