@@ -632,14 +632,17 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.slave_label.setText('Slave Control Box for Master in PC-To-PC casting mode')
         self.slave_label.setAlignment(QtCore.Qt.AlignCenter)
         
-    def slave_commands(self, cmd):
+    def slave_commands(self, cmd=None, data=None):
         if cmd == 'remote_on.htm':
             if self.remote_on.text() == 'Remote Off':
                 cmd = 'remote_on.htm'
             else:
                 cmd = 'remote_off.htm'
         ip = ui.slave_address
-        request_url = cmd
+        if data:
+            request_url = 'sending_command'
+        else:
+            request_url = cmd
         addr = None
         if '127.0.0.1' in ip:
             send_notification('You have not setup slave address properly')
@@ -659,12 +662,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
             if cmd in ['remote_on.htm', 'remote_off.htm', 'lock']:
                 ui.vnt.get(addr, session=True, verify=verify, timeout=60,
                            onfinished=partial(self.slave_remote_on_off, cmd))
+            elif data:
+                ui.vnt.post(addr, session=True, verify=verify, timeout=10, data=data)
             else:
                 ui.vnt.get(addr, session=True, verify=verify, timeout=60)
         else:
             if cmd in ['remote_on.htm', 'remote_off.htm', 'lock']:
                 ui.vnt.get(addr, verify=verify, timeout=60,
                            onfinished=partial(self.slave_remote_on_off, cmd))
+            elif data:
+                ui.vnt.post(addr, verify=verify, timeout=10, data=data)
             else:
                 ui.vnt.get(addr, timeout=60, verify=verify)
     
