@@ -1302,27 +1302,27 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.btn_aspect_original = QtWidgets.QPushButton(self)
         self.btn_aspect_original.setText('Original')
-        self.btn_aspect_original.clicked.connect(partial(self.change_aspect, 'original'))
+        self.btn_aspect_original.clicked.connect(partial(self.change_aspect, 'original', 'btn_aspect_original'))
         self.buttons_layout.addWidget(self.btn_aspect_original, 0, 1, 1, 2)
         
         self.btn_aspect_disable = QtWidgets.QPushButton(self)
         self.btn_aspect_disable.setText('Disable')
-        self.btn_aspect_disable.clicked.connect(partial(self.change_aspect, 'disable'))
+        self.btn_aspect_disable.clicked.connect(partial(self.change_aspect, 'disable', 'btn_aspect_disable'))
         self.buttons_layout.addWidget(self.btn_aspect_disable, 0, 3, 1, 1)
         
         self.btn_aspect_4_3 = QtWidgets.QPushButton(self)
         self.btn_aspect_4_3.setText('4:3')
-        self.btn_aspect_4_3.clicked.connect(partial(self.change_aspect, '4:3'))
+        self.btn_aspect_4_3.clicked.connect(partial(self.change_aspect, '4:3', 'btn_aspect_4_3'))
         self.buttons_layout.addWidget(self.btn_aspect_4_3, 1, 1, 1, 1)
         
         self.btn_aspect_16_9 = QtWidgets.QPushButton(self)
         self.btn_aspect_16_9.setText('16:9')
-        self.btn_aspect_16_9.clicked.connect(partial(self.change_aspect, '16:9'))
+        self.btn_aspect_16_9.clicked.connect(partial(self.change_aspect, '16:9', 'btn_aspect_16_9'))
         self.buttons_layout.addWidget(self.btn_aspect_16_9, 1, 2, 1, 1)
         
         self.btn_aspect_235 = QtWidgets.QPushButton(self)
         self.btn_aspect_235.setText('2.35:1')
-        self.btn_aspect_235.clicked.connect(partial(self.change_aspect, '2.35:1'))
+        self.btn_aspect_235.clicked.connect(partial(self.change_aspect, '2.35:1', 'btn_aspect_235'))
         self.buttons_layout.addWidget(self.btn_aspect_235, 1, 3, 1, 1)
         
         self.btn_scr_label = QtWidgets.QLabel(self)
@@ -1331,19 +1331,19 @@ class ExtraToolBar(QtWidgets.QFrame):
         
         self.btn_scr_1 = QtWidgets.QPushButton(self)
         self.btn_scr_1.setText('1')
-        self.btn_scr_1.clicked.connect(partial(self.execute_command, 'async screenshot'))
+        self.btn_scr_1.clicked.connect(partial(self.execute_command, 'async screenshot', 'btn_scr_1'))
         self.buttons_layout.addWidget(self.btn_scr_1, 2, 1, 1, 1)
         self.btn_scr_1.setToolTip("Take Screenshot with subtitle")
         
         self.btn_scr_2 = QtWidgets.QPushButton(self)
         self.btn_scr_2.setText('2')
-        self.btn_scr_2.clicked.connect(partial(self.execute_command, 'async screenshot video'))
+        self.btn_scr_2.clicked.connect(partial(self.execute_command, 'async screenshot video', 'btn_scr_2'))
         self.buttons_layout.addWidget(self.btn_scr_2, 2, 2, 1, 1)
         self.btn_scr_2.setToolTip("Take Screenshot without subtitle")
         
         self.btn_scr_3 = QtWidgets.QPushButton(self)
         self.btn_scr_3.setText('3')
-        self.btn_scr_3.clicked.connect(partial(self.execute_command, 'async screenshot window'))
+        self.btn_scr_3.clicked.connect(partial(self.execute_command, 'async screenshot window', 'btn_scr_3'))
         self.buttons_layout.addWidget(self.btn_scr_3, 2, 3, 1, 1)
         self.btn_scr_3.setToolTip("Take Screenshot with window")
         """
@@ -1373,53 +1373,56 @@ class ExtraToolBar(QtWidgets.QFrame):
         """
         self.btn_sub_minus = QtWidgets.QPushButton(self)
         self.btn_sub_minus.setText('Sub-')
-        self.btn_sub_minus.clicked.connect(partial(self.execute_command, 'add sub-delay -0.1'))
+        self.btn_sub_minus.clicked.connect(partial(self.execute_command, 'add sub-delay -0.1', 'btn_sub_minus'))
         self.buttons_layout.addWidget(self.btn_sub_minus, 4, 0, 1, 1)
         self.btn_sub_minus.setToolTip('Add Subtitle Delay of -0.1s')
         
         self.btn_sub_plus = QtWidgets.QPushButton(self)
         self.btn_sub_plus.setText('Sub+')
-        self.btn_sub_plus.clicked.connect(partial(self.execute_command, 'add sub-delay +0.1'))
+        self.btn_sub_plus.clicked.connect(partial(self.execute_command, 'add sub-delay +0.1', 'btn_sub_plus'))
         self.buttons_layout.addWidget(self.btn_sub_plus, 4, 1, 1, 1)
         self.btn_sub_plus.setToolTip('Add Subtitle Delay of +0.1s')
         
         self.btn_aud_minus = QtWidgets.QPushButton(self)
         self.btn_aud_minus.setText('A-')
-        self.btn_aud_minus.clicked.connect(partial(self.execute_command, 'add audio-delay -0.1'))
+        self.btn_aud_minus.clicked.connect(partial(self.execute_command, 'add audio-delay -0.1', 'btn_aud_minus'))
         self.buttons_layout.addWidget(self.btn_aud_minus, 4, 2, 1, 1)
         self.btn_aud_minus.setToolTip('Add Audio Delay of -0.1s')
         
         self.btn_aud_plus = QtWidgets.QPushButton(self)
         self.btn_aud_plus.setText('A+')
-        self.btn_aud_plus.clicked.connect(partial(self.execute_command, 'add audio-delay +0.1'))
+        self.btn_aud_plus.clicked.connect(partial(self.execute_command, 'add audio-delay +0.1', 'btn_aud_plus'))
         self.buttons_layout.addWidget(self.btn_aud_plus, 4, 3, 1, 1)
         self.btn_aud_plus.setToolTip('Add Audio Delay of +0.1s')
         
         self.btn_chapter_minus = QtWidgets.QPushButton(self)
         self.btn_chapter_minus.setText('Chapter-')
-        self.btn_chapter_minus.clicked.connect(partial(self.add_chapter, '-'))
+        self.btn_chapter_minus.clicked.connect(partial(self.add_chapter, '-', 'btn_chapter_minus'))
         self.buttons_layout.addWidget(self.btn_chapter_minus, 5, 0, 1, 2)
         
         self.btn_chapter_plus = QtWidgets.QPushButton(self)
         self.btn_chapter_plus.setText('Chapter+')
-        self.btn_chapter_plus.clicked.connect(partial(self.add_chapter, '+'))
+        self.btn_chapter_plus.clicked.connect(partial(self.add_chapter, '+', 'btn_chapter_plus'))
         self.buttons_layout.addWidget(self.btn_chapter_plus, 5, 2, 1, 2)
         
         self.btn_show_stat = QtWidgets.QPushButton(self)
         self.btn_show_stat.setText('Stats')
         self.btn_show_stat.setToolTip('<html>Show Some Statistics on Video. Applicable only for mpv v0.28+</html>')
-        self.btn_show_stat.clicked.connect(partial(self.execute_command, 'script-binding stats/display-stats-toggle'))
+        self.btn_show_stat.clicked.connect(
+            partial(self.execute_command, 'script-binding stats/display-stats-toggle', 'btn_show_stat')
+            )
         self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 1)
         
         self.btn_fs_window = QtWidgets.QPushButton(self)
         self.btn_fs_window.setText('FS')
         self.btn_fs_window.setToolTip('Toggle Application Fullscreen')
-        self.btn_fs_window.clicked.connect(ui.fullscreenToggle)
+        #self.btn_fs_window.clicked.connect(ui.fullscreenToggle)
+        self.btn_fs_window.clicked.connect(partial(self.execute_command, 'TAFS', 'btn_fs_window'))
         self.buttons_layout.addWidget(self.btn_fs_window, 6, 1, 1, 1)
         
         self.btn_external_sub = QtWidgets.QPushButton(self)
         self.btn_external_sub.setText('External Sub')
-        self.btn_external_sub.clicked.connect(partial(self.execute_command, 'external-subtitle'))
+        self.btn_external_sub.clicked.connect(partial(self.execute_command, 'external-subtitle', 'btn_external_sub'))
         self.buttons_layout.addWidget(self.btn_external_sub, 6, 2, 1, 2)
         
         self.volume_layout = QtWidgets.QGridLayout(self)
@@ -1906,7 +1909,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         elif not self.child_frame.isHidden():
             self.child_frame.setFocus()
         
-    def change_aspect(self, val):
+    def change_aspect(self, val, widget=None):
         if val == '2.35:1':
             key = '3'
         elif val == 'disable':
@@ -1917,32 +1920,49 @@ class ExtraToolBar(QtWidgets.QFrame):
             key = '2'
         else:
             key = '0'
-        ui.tab_5.change_aspect_ratio(key=key)
-    
-    def execute_command(self, msg):
-        if msg == 'external-subtitle':
-            ui.tab_5.load_external_sub()
-        elif ui.mpvplayer_val.processId() > 0:
-            bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
-            print(bmsg)
-            ui.mpvplayer_val.write(bmsg)
-            pmsg = None
-            if 'sub-delay' in msg:
-                pmsg = '\n show-text "Sub delay: ${sub-delay}" \n'
-            elif 'audio-delay' in msg:
-                pmsg = '\n show-text "A-V delay: ${audio-delay}" \n'
-            if pmsg:
-                pmsg = bytes(pmsg, 'utf-8')
-                ui.mpvplayer_val.write(pmsg)
-                
-    def add_chapter(self, val):
-        if val == '-':
-            msg = bytes('\n add chapter -1 \n', 'utf-8')
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            data_dict = {'param':'click', 'widget':widget}
+            ui.settings_box.slave_commands(data=data_dict)
         else:
-            msg = bytes('\n add chapter 1 \n', 'utf-8')
-        ui.mpvplayer_val.write(msg)
-        pmsg = bytes('\n show-text "Chapter: ${chapter}" \n', 'utf-8')
-        ui.mpvplayer_val.write(pmsg)
+            ui.tab_5.change_aspect_ratio(key=key)
+    
+    def execute_command(self, msg, widget=None):
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            if msg == 'external-subtitle':
+                ui.list2.send_subtitle_method()
+            else:
+                data_dict = {'param':'click', 'widget':widget}
+                ui.settings_box.slave_commands(data=data_dict)
+        else:
+            if msg == 'external-subtitle':
+                ui.tab_5.load_external_sub()
+            elif msg == 'TAFS':
+                ui.fullscreenToggle()
+            elif ui.mpvplayer_val.processId() > 0:
+                bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
+                print(bmsg)
+                ui.mpvplayer_val.write(bmsg)
+                pmsg = None
+                if 'sub-delay' in msg:
+                    pmsg = '\n show-text "Sub delay: ${sub-delay}" \n'
+                elif 'audio-delay' in msg:
+                    pmsg = '\n show-text "A-V delay: ${audio-delay}" \n'
+                if pmsg:
+                    pmsg = bytes(pmsg, 'utf-8')
+                    ui.mpvplayer_val.write(pmsg)
+                
+    def add_chapter(self, val, widget=None):
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            data_dict = {'param':'click', 'widget':widget}
+            ui.settings_box.slave_commands(data=data_dict)
+        else:
+            if val == '-':
+                msg = bytes('\n add chapter -1 \n', 'utf-8')
+            else:
+                msg = bytes('\n add chapter 1 \n', 'utf-8')
+            ui.mpvplayer_val.write(msg)
+            pmsg = bytes('\n show-text "Chapter: ${chapter}" \n', 'utf-8')
+            ui.mpvplayer_val.write(pmsg)
         
     def adjust_speed(self, val):
         msg = None
