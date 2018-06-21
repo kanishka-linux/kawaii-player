@@ -729,10 +729,14 @@ class VolumeSlider(QtWidgets.QSlider):
     """
     def adjust_volume(self, val):
         self.parent.volume_text.setPlaceholderText('{}'.format(val))
-        ui.player_volume = str(val)
-        if ui.mpvplayer_val.processId() > 0:
-            ui.seek_to_vol_val(val, action='pressed')
-            ui.logger.debug(val)
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            data_dict = {'param':'volume', 'volume':str(val)}
+            ui.settings_box.slave_commands(data=data_dict)
+        else:
+            ui.player_volume = str(val)
+            if ui.mpvplayer_val.processId() > 0:
+                ui.seek_to_vol_val(val, action='pressed')
+                ui.logger.debug(val)
                 
 class QProgressBarCustom(QtWidgets.QProgressBar):
     
@@ -1042,80 +1046,122 @@ class SubtitleSlider(QtWidgets.QSlider):
         
     def adjust_sub_size(self, val):
         name = self.objectName()
-        if name == 'text':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            label_value.setPlaceholderText(str(val))
-            cmd = '\n set sub-font-size {} \n'.format(val)
-            ui.subtitle_dict.update({'sub-font-size':str(val)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'border':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            value = val * 0.1
-            value_str = str(value)
-            label_value.setPlaceholderText(value_str[:4])
-            cmd = '\n set sub-border-size {} \n'.format(value)
-            ui.subtitle_dict.update({'sub-border-size':str(value)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'shadow':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            value = val * 0.1
-            value_str = str(value)
-            label_value.setPlaceholderText(value_str[:4])
-            cmd = '\n set sub-shadow-offset {} \n'.format(value)
-            ui.subtitle_dict.update({'sub-shadow-offset':str(value)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'blur':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            value = val * 0.01
-            value_str = str(value)
-            label_value.setPlaceholderText(value_str[:4])
-            cmd = '\n set sub-blur {} \n'.format(value)
-            ui.subtitle_dict.update({'sub-blur':str(value)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'subscale':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            value = val * 0.01
-            value_str = str(value)
-            label_value.setPlaceholderText(value_str[:4])
-            cmd = '\n set sub-scale {} \n'.format(value)
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-            ui.subtitle_dict.update({'sub-scale':value})
-        elif name == 'xmargin':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            label_value.setPlaceholderText(str(val))
-            cmd = '\n set sub-margin-x {} \n'.format(val)
-            ui.subtitle_dict.update({'sub-margin-x':str(val)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'ymargin':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            label_value.setPlaceholderText(str(val))
-            cmd = '\n set sub-margin-y {} \n'.format(val)
-            ui.subtitle_dict.update({'sub-margin-y':str(val)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'xymargin':
-            val = 100 - val
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            label_value.setPlaceholderText(str(val))
-            cmd = '\n set sub-pos {} \n'.format(val)
-            ui.subtitle_dict.update({'sub-pos':str(val)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
-        elif name == 'space':
-            label_value = eval('self.parent.subtitle_{}_value'.format(name))
-            value = val * 0.01
-            value_str = str(value)
-            label_value.setPlaceholderText(value_str[:4])
-            cmd = '\n set sub-spacing {} \n'.format(value)
-            ui.subtitle_dict.update({'sub-spacing':str(value)})
-            if ui.mpvplayer_val.processId() > 0:
-                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            data_dict = {'param':'subtitle', name:str(val)}
+            ui.settings_box.slave_commands(data=data_dict)
+            if name == 'text':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+            elif name == 'border':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.1
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+            elif name == 'shadow':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.1
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+            elif name == 'blur':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.01
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+            elif name == 'subscale':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.01
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+            elif name == 'xmargin':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+            elif name == 'ymargin':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+            elif name == 'xymargin':
+                val = 100 - val
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+            elif name == 'space':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.01
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+        else:
+            if name == 'text':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+                cmd = '\n set sub-font-size {} \n'.format(val)
+                ui.subtitle_dict.update({'sub-font-size':str(val)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'border':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.1
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+                cmd = '\n set sub-border-size {} \n'.format(value)
+                ui.subtitle_dict.update({'sub-border-size':str(value)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'shadow':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.1
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+                cmd = '\n set sub-shadow-offset {} \n'.format(value)
+                ui.subtitle_dict.update({'sub-shadow-offset':str(value)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'blur':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.01
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+                cmd = '\n set sub-blur {} \n'.format(value)
+                ui.subtitle_dict.update({'sub-blur':str(value)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'subscale':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.01
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+                cmd = '\n set sub-scale {} \n'.format(value)
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                ui.subtitle_dict.update({'sub-scale':value})
+            elif name == 'xmargin':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+                cmd = '\n set sub-margin-x {} \n'.format(val)
+                ui.subtitle_dict.update({'sub-margin-x':str(val)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'ymargin':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+                cmd = '\n set sub-margin-y {} \n'.format(val)
+                ui.subtitle_dict.update({'sub-margin-y':str(val)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'xymargin':
+                val = 100 - val
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                label_value.setPlaceholderText(str(val))
+                cmd = '\n set sub-pos {} \n'.format(val)
+                ui.subtitle_dict.update({'sub-pos':str(val)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            elif name == 'space':
+                label_value = eval('self.parent.subtitle_{}_value'.format(name))
+                value = val * 0.01
+                value_str = str(value)
+                label_value.setPlaceholderText(value_str[:4])
+                cmd = '\n set sub-spacing {} \n'.format(value)
+                ui.subtitle_dict.update({'sub-spacing':str(value)})
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 
 
 class QLineCustomFont(QtWidgets.QLineEdit):
