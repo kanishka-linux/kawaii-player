@@ -270,6 +270,21 @@ def control_slave_playback(param, val):
         if slider_name in slider_list:
             slider = eval('ui.frame_extra_toolbar.{}_slider'.format(slider_name))
             slider.setValue(int(slider_val))
+    elif param_type == 'volume':
+        slider_name, slider_val = val.split('=')
+        if slider_name == 'volume':
+            ui.frame_extra_toolbar.slider_volume.setValue(int(slider_val))
+    elif param_type == 'subtitle':
+        subslider_list = [
+            'text', 'border', 'shadow', 'blur',
+            'xmargin', 'ymargin', 'xymargin', 'space'
+        ]
+        slider_name, slider_val = val.split('=')
+        if slider_name == 'subscale':
+            ui.frame_extra_toolbar.subscale_slider.setValue(int(slider_val))
+        elif slider_name in subslider_list:
+            slider = eval('ui.frame_extra_toolbar.subtitle_{}_slider'.format(slider_name))
+            slider.setValue(int(slider_val))
     else:
         pass
     
