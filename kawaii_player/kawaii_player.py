@@ -220,6 +220,7 @@ class GUISignals(QtCore.QObject):
     fanartsignal = pyqtSignal(str, str)
     epsum_signal = pyqtSignal(int, str, str, str)
     login_box = pyqtSignal(str, str, bool)
+    command_signal = pyqtSignal(str, str)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -243,6 +244,9 @@ class GUISignals(QtCore.QObject):
         
     def login_required(self, url, pls, verify):
         self.login_box.emit(url, pls, verify)
+        
+    def player_command(self, param, val):
+        self.command_signal.emit(param, val)
 
 @pyqtSlot(str)
 def apply_new_text(val):
@@ -252,6 +256,22 @@ def apply_new_text(val):
 @pyqtSlot(str, str)
 def apply_fanart_widget(fanart, theme):
     QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=theme))
+    
+@pyqtSlot(str, str)
+def control_slave_playback(param, val):
+    global ui
+    _, param_type = param.split('=')
+    if param_type == 'gsbc':
+        slider_name, slider_val = val.split('=')
+        slider_list = [
+            'zoom', 'speed', 'brightness',
+            'gamma', 'saturation', 'hue', 'contrast'
+            ]
+        if slider_name in slider_list:
+            slider = eval('ui.frame_extra_toolbar.{}_slider'.format(slider_name))
+            slider.setValue(int(slider_val))
+    else:
+        pass
     
 @pyqtSlot(str, str)
 def show_login_box(url, pls, verify):
@@ -1648,6 +1668,7 @@ watch/unwatch status")
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.slave_address = '127.0.0.1:9001'
+        self.extra_toolbar_control = 'master'
         self.playlist_queue_used = False
         self.player_focus = False
         self.pc_to_pc_casting = 'no'
@@ -1871,6 +1892,7 @@ watch/unwatch status")
         self.gui_signals.fanartsignal.connect(apply_fanart_widget)
         self.gui_signals.epsum_signal.connect(apply_episode_metadata)
         self.gui_signals.login_box.connect(show_login_box)
+        self.gui_signals.command_signal.connect(control_slave_playback)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
