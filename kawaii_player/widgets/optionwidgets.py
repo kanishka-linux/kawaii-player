@@ -1491,7 +1491,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.font_value.setCompleter(self.completer)
         self.sub_grid.addWidget(self.font_value, 0, 1, 1, 3)
         self.font_value.setPlaceholderText(ui.global_font)
-        self.font_value.returnPressed.connect(partial(self.change_sub_font, self.font_value))
+        self.font_value.returnPressed.connect(partial(self.change_sub_font, self.font_value, 'font_value'))
         self.font_value.textChanged['QString'].connect(self.font_value_changed)
         
         self.font_color_label = QtWidgets.QLabel(self)
@@ -1500,7 +1500,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.font_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.font_color_label, 1, 0, 1, 1)
         self.font_color_value = QtWidgets.QPushButton(self)
-        self.font_color_value.clicked.connect(partial(self.choose_color, self.font_color_value, 'text'))
+        self.font_color_value.clicked.connect(
+            partial(self.choose_color, self.font_color_value, 'text', 'font_color_value')
+            )
         self.sub_grid.addWidget(self.font_color_value, 1, 1, 1, 3)
         
         self.border_color_label = QtWidgets.QLabel(self)
@@ -1509,7 +1511,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.border_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.border_color_label, 2, 0, 1, 1)
         self.border_color_value = QtWidgets.QPushButton(self)
-        self.border_color_value.clicked.connect(partial(self.choose_color, self.border_color_value, 'border'))
+        self.border_color_value.clicked.connect(
+            partial(self.choose_color, self.border_color_value, 'border', 'border_color_value')
+            )
         self.sub_grid.addWidget(self.border_color_value, 2, 1, 1, 3)
         
         self.shadow_color_label = QtWidgets.QLabel(self)
@@ -1518,19 +1522,27 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.shadow_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.shadow_color_label, 3, 0, 1, 1)
         self.shadow_color_value = QtWidgets.QPushButton(self)
-        self.shadow_color_value.clicked.connect(partial(self.choose_color, self.shadow_color_value, 'shadow'))
+        self.shadow_color_value.clicked.connect(
+            partial(self.choose_color, self.shadow_color_value, 'shadow', 'shadow_color_value')
+            )
         self.sub_grid.addWidget(self.shadow_color_value, 3, 1, 1, 3)
         
         self.checkbox_bold = QtWidgets.QCheckBox("Bold")
-        self.checkbox_bold.stateChanged.connect(partial(self.checkbox_options, self.checkbox_bold, 'bold'))
+        self.checkbox_bold.stateChanged.connect(
+            partial(self.checkbox_options, self.checkbox_bold, 'checkbox_bold')
+            )
         self.sub_grid.addWidget(self.checkbox_bold, 4, 0, 1, 1)
         
         self.checkbox_italic = QtWidgets.QCheckBox("Italic")
-        self.checkbox_italic.stateChanged.connect(partial(self.checkbox_options, self.checkbox_italic, 'italic'))
+        self.checkbox_italic.stateChanged.connect(
+            partial(self.checkbox_options, self.checkbox_italic, 'checkbox_italic')
+            )
         self.sub_grid.addWidget(self.checkbox_italic, 4, 1, 1, 1)
         
         self.checkbox_gray = QtWidgets.QCheckBox("GrayScale")
-        self.checkbox_gray.stateChanged.connect(partial(self.checkbox_options, self.checkbox_gray, 'grayscale'))
+        self.checkbox_gray.stateChanged.connect(
+            partial(self.checkbox_options, self.checkbox_gray, 'checkbox_gray')
+            )
         self.sub_grid.addWidget(self.checkbox_gray, 4, 2, 1, 2)
         self.checkbox_gray.setToolTip('Useful only for yellow DVD/Vobsubs')
         
@@ -1666,7 +1678,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         for  i in ['Center', 'Left', 'Right']:
             self.subtitle_horiz_align.addItem(i)
         self.subtitle_horiz_align.currentIndexChanged['int'].connect(
-            partial(self.change_alignment, self.subtitle_horiz_align, 'x')
+            partial(self.change_alignment, self.subtitle_horiz_align, 'x', 'subtitle_horiz_align')
             )
         
         self.subtitle_vertical_align = QtWidgets.QComboBox(self)
@@ -1674,7 +1686,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         for  i in ['Bottom', 'Middle', 'Top']:
             self.subtitle_vertical_align.addItem(i)
         self.subtitle_vertical_align.currentIndexChanged['int'].connect(
-            partial(self.change_alignment, self.subtitle_vertical_align, 'y')
+            partial(self.change_alignment, self.subtitle_vertical_align, 'y', 'subtitle_vertical_align')
             )
         """
         self.spinbox_space = QtWidgets.QDoubleSpinBox(self)
@@ -1716,7 +1728,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.ass_override_value.setToolTip('Default, Yes')
         
         self.checkbox_dont = QtWidgets.QCheckBox("Don't Apply Above Settings")
-        self.checkbox_dont.stateChanged.connect(partial(self.checkbox_options, self.checkbox_dont, 'dont'))
+        self.checkbox_dont.stateChanged.connect(
+            partial(self.checkbox_options, self.checkbox_dont, 'checkbox_dont')
+            )
         self.sub_grid.addWidget(self.checkbox_dont, 15, 0, 1, 3)
         self.checkbox_dont.setToolTip('<html>Do not apply above custom settings</html>')
         
@@ -1741,19 +1755,22 @@ class ExtraToolBar(QtWidgets.QFrame):
             'sub-spacing': self.subtitle_space_slider
         }
     
-    def change_alignment(self, widget, val):
+    def change_alignment(self, widget, val, widget_name=None):
         txt = widget.currentText().lower()
         if txt == 'middle':
             txt = 'center'
-        cmd = None
-        if val == 'x':
-            cmd = 'set sub-align-x "{}"'.format(txt)
-            ui.subtitle_dict.update({'sub-align-x':txt})
-        elif val == 'y':
-            cmd = 'set sub-align-y "{}"'.format(txt)
-            ui.subtitle_dict.update({'sub-align-y':txt})
-        if cmd:
-            self.execute_command(cmd)
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            self.execute_command('change_align', {widget_name:txt})
+        else:
+            cmd = None
+            if val == 'x':
+                cmd = 'set sub-align-x "{}"'.format(txt)
+                ui.subtitle_dict.update({'sub-align-x':txt})
+            elif val == 'y':
+                cmd = 'set sub-align-y "{}"'.format(txt)
+                ui.subtitle_dict.update({'sub-align-y':txt})
+            if cmd:
+                self.execute_command(cmd)
             
     def spinbox_changed(self, widget, val):
         flval = widget.value()
@@ -1768,48 +1785,56 @@ class ExtraToolBar(QtWidgets.QFrame):
         
     def ass_override_function(self):
         txt = self.ass_override_value.currentText().lower()
-        ui.subtitle_dict.update({'sub-ass-override':txt})
-        self.execute_command('set sub-ass-override {}'.format(txt))
-        #self.execute_command('print-text "${property-list}"')
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            self.execute_command('ass_override', {'ass_override_value':txt})
+        else:
+            ui.subtitle_dict.update({'sub-ass-override':txt})
+            self.execute_command('set sub-ass-override {}'.format(txt))
         
-    def change_sub_font(self, widget):
+    def change_sub_font(self, widget, widget_name):
         txt = widget.text()
         widget.clear()
         widget.setPlaceholderText(txt)
-        ui.subtitle_dict.update({'sub-font':txt})
-        self.execute_command('set sub-font "{}"'.format(txt))
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            self.execute_command('change_font', {widget_name:txt})
+        else:
+            ui.subtitle_dict.update({'sub-font':txt})
+            self.execute_command('set sub-font "{}"'.format(txt))
             
-    def checkbox_options(self, widget, value):
-        cmd = None
-        if value == 'bold':
-            if widget.isChecked():
-                ui.subtitle_dict.update({'sub-bold':'yes'})
-                cmd = 'set sub-bold yes'
-            else:
-                ui.subtitle_dict.update({'sub-bold':'no'})
-                cmd = 'set sub-bold no'
-        elif value == 'italic':
-            if widget.isChecked():
-                ui.subtitle_dict.update({'sub-italic':'yes'})
-                cmd = 'set sub-italic yes'
-            else:
-                ui.subtitle_dict.update({'sub-italic':'no'})
-                cmd = 'set sub-italic no'
-        elif value == 'grayscale':
-            if widget.isChecked():
-                ui.subtitle_dict.update({'sub-gray':'yes'})
-                cmd = 'set sub-gray yes'
-            else:
-                ui.subtitle_dict.update({'sub-gray':'no'})
-                cmd = 'set sub-gray no'
-        elif value == 'dont':
-            if widget.isChecked():
-                ui.apply_subtitle_settings = False
-            else:
-                ui.apply_subtitle_settings = True
-            ui.playerStop(msg='remember quit', restart=True)
-        if cmd:
-            self.execute_command(cmd)
+    def checkbox_options(self, widget, widget_name):
+        if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+            self.execute_command('checkbox', {widget_name:str(widget.isChecked())})
+        else:
+            cmd = None
+            if widget_name == 'checkbox_bold':
+                if widget.isChecked():
+                    ui.subtitle_dict.update({'sub-bold':'yes'})
+                    cmd = 'set sub-bold yes'
+                else:
+                    ui.subtitle_dict.update({'sub-bold':'no'})
+                    cmd = 'set sub-bold no'
+            elif widget_name == 'checkbox_italic':
+                if widget.isChecked():
+                    ui.subtitle_dict.update({'sub-italic':'yes'})
+                    cmd = 'set sub-italic yes'
+                else:
+                    ui.subtitle_dict.update({'sub-italic':'no'})
+                    cmd = 'set sub-italic no'
+            elif widget_name == 'checkbox_gray':
+                if widget.isChecked():
+                    ui.subtitle_dict.update({'sub-gray':'yes'})
+                    cmd = 'set sub-gray yes'
+                else:
+                    ui.subtitle_dict.update({'sub-gray':'no'})
+                    cmd = 'set sub-gray no'
+            elif widget_name == 'checkbox_dont':
+                if widget.isChecked():
+                    ui.apply_subtitle_settings = False
+                else:
+                    ui.apply_subtitle_settings = True
+                ui.playerStop(msg='remember quit', restart=True)
+            if cmd:
+                self.execute_command(cmd)
             
     def general_tab_show(self):
         self.subtitle_frame.hide()
@@ -1831,25 +1856,45 @@ class ExtraToolBar(QtWidgets.QFrame):
             color_name = '#FFFFFF'
         return color_name
         
-    def choose_color(self, widget, name):
+    def choose_color(self, widget, name, widget_name):
         default_color = self.get_default_color(widget, name)
         color = QtWidgets.QColorDialog.getColor(QtGui.QColor(default_color))
         if color.isValid():
             color_name = color.name().upper()
             widget.setStyleSheet('background:{};'.format(color_name))
-            cmd = None
-            if name == 'text':
-                ui.subtitle_dict.update({'sub-color':color_name})
-                cmd = 'set sub-color "{}"'.format(color_name)
-            elif name == 'border':
-                ui.subtitle_dict.update({'sub-border-color':color_name})
-                cmd = 'set sub-border-color "{}"'.format(color_name)
-            elif name == 'shadow':
-                ui.subtitle_dict.update({'sub-shadow-color':color_name})
-                cmd = 'set sub-shadow-color "{}"'.format(color_name)
-            if cmd:
-                self.execute_command(cmd)
+            if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
+                self.execute_command('choose_color', {widget_name:color_name})
+            else:
+                cmd = None
+                if name == 'text':
+                    ui.subtitle_dict.update({'sub-color':color_name})
+                    cmd = 'set sub-color "{}"'.format(color_name)
+                elif name == 'border':
+                    ui.subtitle_dict.update({'sub-border-color':color_name})
+                    cmd = 'set sub-border-color "{}"'.format(color_name)
+                elif name == 'shadow':
+                    ui.subtitle_dict.update({'sub-shadow-color':color_name})
+                    cmd = 'set sub-shadow-color "{}"'.format(color_name)
+                if cmd:
+                    self.execute_command(cmd)
                 
+    def apply_slave_subtitile_effects(self, widget_name, color_name):
+        widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
+        widget.setStyleSheet('background:{};'.format(widget_val))
+        cmd = None
+        if widget_name == 'font_color_value':
+            ui.subtitle_dict.update({'sub-color':color_name})
+            cmd = 'set sub-color "{}"'.format(color_name)
+        elif widget_name == 'border_color_value':
+            ui.subtitle_dict.update({'sub-border-color':color_name})
+            cmd = 'set sub-border-color "{}"'.format(color_name)
+        elif widget_name == 'shadow_color_value':
+            ui.subtitle_dict.update({'sub-shadow-color':color_name})
+            cmd = 'set sub-shadow-color "{}"'.format(color_name)
+        if cmd:
+            self.execute_command(cmd)
+        
+        
     def subtitle_tab_show(self):
         self.subtitle_frame.setMinimumHeight(self.child_frame.height())
         #self.subtitle_frame.setMaximumHeight(self.child_frame.height())
@@ -1930,6 +1975,11 @@ class ExtraToolBar(QtWidgets.QFrame):
         if ui.extra_toolbar_control == 'slave' and ui.pc_to_pc_casting == 'master':
             if msg == 'external-subtitle':
                 ui.list2.send_subtitle_method()
+            elif isinstance(widget, dict):
+                data_dict = {'param':'click'}
+                for key, val in widget.items():
+                    data_dict.update({key:val})
+                ui.settings_box.slave_commands(data=data_dict)
             else:
                 data_dict = {'param':'click', 'widget':widget}
                 ui.settings_box.slave_commands(data=data_dict)
