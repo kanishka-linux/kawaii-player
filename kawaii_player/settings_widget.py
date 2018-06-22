@@ -627,10 +627,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.toggle_aud.clicked.connect(partial(self.slave_commands, 'toggle_audio'))
         self.toggle_aud.setToolTip('Toggle Audio')
         
-        self.slave_label = QtWidgets.QLabel()
+        self.slave_label = QtWidgets.QTextEdit()
+        self.slave_label.setMaximumHeight(200)
         self.gl9.addWidget(self.slave_label, 4, 0, 1, 4)
-        self.slave_label.setText('Slave Control Box for Master in PC-To-PC casting mode')
-        self.slave_label.setAlignment(QtCore.Qt.AlignCenter)
+        msg = ('Slave Control Tab for Master in PC-To-PC casting mode.\
+                \n\nUsers can also use all controls available in Extra-Toolbar, \
+                for controlling slave, by toggling Master/Slave button\
+                available in Extra-Toolbar, and setting it to Slave.')
+        msg = re.sub(' +', ' ', msg)
+        self.slave_label.setText(msg)
+        #self.slave_label.setAlignment(QtCore.Qt.AlignCenter)
         
     def slave_commands(self, cmd=None, data=None):
         if cmd == 'remote_on.htm':
