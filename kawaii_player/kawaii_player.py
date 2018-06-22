@@ -294,6 +294,8 @@ def control_slave_playback(param, val):
             'btn_chapter_plus', 'btn_show_stat', 'btn_fs_window'
             ]
         widget_name, widget_val = val.split('=')
+        widget_name = urllib.parse.unquote(widget_name)
+        widget_val = urllib.parse.unquote(widget_val)
         if widget_name == 'widget' and widget_val in widget_list:
             widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
             widget.clicked.emit()
