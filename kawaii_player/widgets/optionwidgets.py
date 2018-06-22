@@ -1880,7 +1880,7 @@ class ExtraToolBar(QtWidgets.QFrame):
                 
     def apply_slave_subtitile_effects(self, widget_name, color_name):
         widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
-        widget.setStyleSheet('background:{};'.format(widget_val))
+        widget.setStyleSheet('background:{};'.format(color_name))
         cmd = None
         if widget_name == 'font_color_value':
             ui.subtitle_dict.update({'sub-color':color_name})
