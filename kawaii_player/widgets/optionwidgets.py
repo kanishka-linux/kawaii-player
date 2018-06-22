@@ -1211,7 +1211,10 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.tab_frame_layout.insertWidget(2, self.master_slave_tab_btn, 0)
         self.master_slave_tab_btn.setText('Master')
         self.master_slave_tab_btn.clicked.connect(self.toggle_master_slave)
-        msg = '<html>Toggle use of Extra Toolbar between Master and Slave</html>'
+        msg = ('<html>Toggle use of Extra Toolbar between Master and Slave.\
+                Only useful in PC-To-PC casting mode.\
+                Toggle it to Slave, in order to use controls available in\
+                Extra Toolbar to control Slave Computer from Master. </html>')
         self.master_slave_tab_btn.setToolTip(msg)
         
         self.child_frame = QtWidgets.QFrame(self)
@@ -1420,10 +1423,18 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.btn_fs_window.clicked.connect(partial(self.execute_command, 'TAFS', 'btn_fs_window'))
         self.buttons_layout.addWidget(self.btn_fs_window, 6, 1, 1, 1)
         
+        self.btn_fs_video = QtWidgets.QPushButton(self)
+        self.btn_fs_video.setText('F')
+        self.btn_fs_video.setToolTip('Toggle Video Fullscreen')
+        #self.btn_fs_window.clicked.connect(ui.fullscreenToggle)
+        self.btn_fs_video.clicked.connect(partial(self.execute_command, 'TVFS', 'btn_fs_video'))
+        self.buttons_layout.addWidget(self.btn_fs_video, 6, 2, 1, 1)
+        
         self.btn_external_sub = QtWidgets.QPushButton(self)
-        self.btn_external_sub.setText('External Sub')
+        self.btn_external_sub.setText('ES')
+        self.btn_external_sub.setToolTip('Load External Subtitle')
         self.btn_external_sub.clicked.connect(partial(self.execute_command, 'external-subtitle', 'btn_external_sub'))
-        self.buttons_layout.addWidget(self.btn_external_sub, 6, 2, 1, 2)
+        self.buttons_layout.addWidget(self.btn_external_sub, 6, 3, 1, 1)
         
         self.volume_layout = QtWidgets.QGridLayout(self)
         self.volume_layout.setObjectName('volume_layout')
@@ -1988,6 +1999,9 @@ class ExtraToolBar(QtWidgets.QFrame):
                 ui.tab_5.load_external_sub()
             elif msg == 'TAFS':
                 ui.fullscreenToggle()
+            elif msg == 'TVFS':
+                if ui.mpvplayer_val.processId() > 0:
+                    ui.tab_5.toggle_fullscreen_mode()
             elif ui.mpvplayer_val.processId() > 0:
                 bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
                 print(bmsg)
