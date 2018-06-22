@@ -291,7 +291,8 @@ def control_slave_playback(param, val):
             'btn_aspect_16_9', 'btn_aspect_235', 'btn_scr_1',
             'btn_scr_2', 'btn_scr_3', 'btn_sub_minus', 'btn_sub_plus',
             'btn_aud_minus', 'btn_aud_plus', 'btn_chapter_minus',
-            'btn_chapter_plus', 'btn_show_stat', 'btn_fs_window'
+            'btn_chapter_plus', 'btn_show_stat', 'btn_fs_window',
+            'btn_fs_video'
             ]
         widget_name, widget_val = val.split('=')
         widget_name = urllib.parse.unquote(widget_name)
