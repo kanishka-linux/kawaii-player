@@ -297,8 +297,26 @@ def control_slave_playback(param, val):
         if widget_name == 'widget' and widget_val in widget_list:
             widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
             widget.clicked.emit()
+        elif widget_name in ['font_color_value', 'border_color_value', 'shadow_color_value']:
+            ui.frame_extra_toolbar.apply_slave_subtitile_effects(widget_name, widget_val)
+        elif widget_name in ['checkbox_bold', 'checkbox_italic', 'checkbox_gray', 'checkbox_dont']:
+            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
+            if widget_val.lower() == 'true':
+                widget.setChecked(True)
+            else:
+                widget.setChecked(False)
+        elif widget_name == 'font_value':
+            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
+            widget.setText(widget_val)
+            ui.frame_extra_toolbar.change_sub_font(widget, widget_name)
+        elif widget_name in ['subtitle_horiz_align', 'subtitle_vertical_align', 'ass_override_value']:
+            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
+            if widget_name == 'subtitle_vertical_align' and widget_val == 'center':
+                    widget_val = 'Middle'
+            widget_val = widget_val.title()
+            index = widget.findText(widget_val)
+            widget.setCurrentIndex(index)
             
-    
 @pyqtSlot(str, str)
 def show_login_box(url, pls, verify):
     global MainWindow, ui
