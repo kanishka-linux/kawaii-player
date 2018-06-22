@@ -3793,6 +3793,10 @@ watch/unwatch status")
                     #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause yes \n')
                     self.player_play_pause.setText(self.player_buttons['play'])
+                    counter = str(datetime.timedelta(seconds=int(self.progress_counter)))
+                    cmd = ('show-text "${osd-sym-cc}'+ counter + ' / ' 
+                            + self.mpv_playback_duration + '" 2000')
+                    self.mpv_execute_command(cmd, '', 100)
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
