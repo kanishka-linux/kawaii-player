@@ -11820,7 +11820,7 @@ watch/unwatch status")
             self.mpv_custom_pause = False
             command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
  --cache-initial=0 --cache-seek-min=100 --cache-pause\
- --idle -msg-level=all=v --osd-level=0 --cursor-autohide=no\
+ --idle -msg-level=all=v --osd-level=1 --cursor-autohide=no\
  --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
  --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"\
