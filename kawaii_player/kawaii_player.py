@@ -4813,15 +4813,13 @@ watch/unwatch status")
             self.scrollArea1.show()
             
     def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None,
-                                 title_list=None, start_async=None, send_path=None):
-        global site, home, name
+                                 title_list=None, start_async=None, send_path=None,
+                                 fullsize=None, filename=None):
+        global site, home, name, screen_width
         picn = ''
         title = row_string.strip()
         path = ''
-        if (site == "Local" or site == "None" or site == "Music" 
-                or site.lower() == 'playlists' or site == "Video" 
-                or site.lower() == 'myserver'):
-            
+        if site.lower() in ['none', 'music', 'playlists', 'video', 'myserver']:
             thumbnail_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
             if not os.path.exists(thumbnail_dir):
                 os.makedirs(thumbnail_dir)
@@ -4894,11 +4892,12 @@ watch/unwatch status")
             return (picn, path)
         elif only_name:
             return picn
-            
+        if fullsize and filename:
+            picn = filename
         if ((picn and not os.path.exists(picn) and 'http' not in path) 
                 or (picn and not os.path.exists(picn) and 'http' in path and 'youtube.com' in path)
                 or (picn and 'http' in path and site.lower() == 'myserver' and not os.path.exists(picn))
-                or start_async or ('master_abs_path=' in path and not os.path.exists(picn))):
+                or start_async or ('master_abs_path=' in path and not os.path.exists(picn)) or fullsize):
             path = path.replace('"', '')
             if (('http' in path and 'youtube.com' in path and '/watch?' in path) or
                     ('http' in path and site.lower() == 'myserver') or 'master_abs_path=' in path):
@@ -4906,7 +4905,11 @@ watch/unwatch status")
                     path = path + '.image'
                 else:
                     path = self.create_img_url(path)
-            self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter))
+            if fullsize:
+                size = screen_width
+            else:
+                size = None
+            self.threadPoolthumb.append(ThreadingThumbnail(self, logger, path, picn, inter, size))
             self.threadPoolthumb[len(self.threadPoolthumb)-1].finished.connect(
                 partial(self.thumbnail_generated, row_cnt, picn))
             length = len(self.threadPoolthumb)
@@ -8133,7 +8136,12 @@ watch/unwatch status")
                         summary = open_files(summary1, False)
                     else:
                         summary = "Not Available"
-                    
+                        titles = [i.split('\t')[0].replace('#', '') for i in self.epn_arr_list]
+                        summary = '\n'.join(titles)
+                        summary = art_n + '\n\n' + summary
+                        write_files(summary1, summary, line_by_line=False)
+                    if not os.path.isfile(picn) and self.epn_arr_list:
+                        picn = self.get_thumbnail_image_path(0, self.epn_arr_list[0], fullsize=True, filename=picn)
                     self.videoImage(picn, thumbnail, fanart, summary)
                     logger.info(picn)
                 else:
