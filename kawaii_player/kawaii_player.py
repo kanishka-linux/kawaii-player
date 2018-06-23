@@ -8072,11 +8072,7 @@ watch/unwatch status")
                 file_path = os.path.join(home, 'Playlists', str(pls))
                 if os.path.exists(file_path):
                     lines = open_files(file_path, True)
-                    k = 0
-                    for i in lines:
-                        i = i.replace('\n', '')
-                        if i:	
-                            self.epn_arr_list.append(i)
+                    self.epn_arr_list = [i.strip() for i in lines if i.strip()]
         elif site == "Video":
             item = self.list1.item(row_select)
             if item:
