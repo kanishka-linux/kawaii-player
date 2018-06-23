@@ -1210,7 +1210,7 @@ def set_my_ip_function(my_ip):
 
 class ThreadingThumbnail(QtCore.QThread):
 
-    def __init__(self, ui_widget, logr, path, picn, inter):
+    def __init__(self, ui_widget, logr, path, picn, inter, size):
         QtCore.QThread.__init__(self)
         global ui, logger
         ui = ui_widget
@@ -1219,6 +1219,7 @@ class ThreadingThumbnail(QtCore.QThread):
         self.picn = picn
         self.inter = inter
         self.interval = 1
+        self.size = size
 
     def __del__(self):
         self.wait()                        
@@ -1233,7 +1234,7 @@ class ThreadingThumbnail(QtCore.QThread):
                     ccurl(self.path+'#'+'-o'+'#'+self.picn)
                     ui.image_fit_option(self.picn, self.picn, fit_size=6, widget=ui.label)
                 else:
-                    ui.generate_thumbnail_method(self.picn, self.inter, self.path)
+                    ui.generate_thumbnail_method(self.picn, self.inter, self.path, width_allowed=self.size)
             except Exception as e:
                 logger.info("Thumbnail Generation Exception: {0}".format(e))
                 print(e,'--548--')
