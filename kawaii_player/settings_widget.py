@@ -633,7 +633,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
         msg = ('Slave Control Tab for Master in PC-To-PC casting mode.\
                 \n\nUsers can also use all controls available in Extra-Toolbar, \
                 for controlling slave, by toggling Master/Slave button\
-                available in Extra-Toolbar, and setting it to Slave.')
+                available in Extra-Toolbar, and setting it to Slave.\
+                \n\nMake sure to enable Remote-Control on Slave, before using\
+                this control box')
         msg = re.sub(' +', ' ', msg)
         self.slave_label.setText(msg)
         #self.slave_label.setAlignment(QtCore.Qt.AlignCenter)
