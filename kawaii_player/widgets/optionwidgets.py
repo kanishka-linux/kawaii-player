@@ -973,20 +973,29 @@ class GSBCSlider(QtWidgets.QSlider):
                 label_value = eval('self.parent.{}_value'.format(name))
                 zoom_val = 0.001* val
                 label_value.setPlaceholderText(str(zoom_val))
-                cmd = '\n set video-zoom {} \n'.format(zoom_val)
+                if ui.player_val.lower() == 'mpv':
+                    cmd = '\n set video-zoom {} \n'.format(zoom_val)
+                else:
+                    cmd = '\n set_property panscan {} \n'.format(zoom_val)
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             elif name == 'speed':
                 label_value = eval('self.parent.{}_value'.format(name))
                 speed_val = 1 + 0.01* val
                 label_value.setPlaceholderText(str(speed_val))
-                cmd = '\n set speed {} \n'.format(speed_val)
+                if ui.player_val.lower() == 'mpv':
+                    cmd = '\n set speed {} \n'.format(speed_val)
+                else:
+                    cmd = '\n set_property speed {} \n'.format(speed_val)
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
             else:
                 label_value = eval('self.parent.{}_value'.format(name))
                 label_value.setPlaceholderText(str(val))
-                cmd = '\n set {} {} \n'.format(name, val)
+                if ui.player_val.lower() == 'mpv':
+                    cmd = '\n set {} {} \n'.format(name, val)
+                else:
+                    cmd = '\n set_property {} {} \n'.format(name, val)
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 ui.gsbc_dict.update({name:val})
