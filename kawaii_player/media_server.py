@@ -35,6 +35,7 @@ import imp
 import subprocess
 import urllib.parse
 import urllib.request
+from urllib.parse import urlparse
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
@@ -273,12 +274,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             for i in sort_key_arr:
                 odict.update({str(i):new_dict.get(str(i))})
             play_row = -1
+            sample_url = None
+            val = None
+            fanart_url = None
             for i in odict:
                 val = odict[i]
                 lines.append('{}\t{}\t{}'.format(val['title'], val['url'], val['artist']))
                 play_row = val['play_now']
                 if val['sub'] != 'none':
                     ui.master_casting_subdict.update({val['url']:val['sub']})
+            if isinstance(val, dict):
+                sample_url = val.get('url')
+                if sample_url:
+                    n = urlparse(sample_url)
+                    fanart_url = n.scheme + '://' + n.netloc + '/' + 'get_current_background'
             if self.path.startswith('/sending_playlist'):
                 file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
                 f = open(file_name, 'w').close()
@@ -298,6 +307,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control_field:
                 ui.remote_control = True
             self.final_message(bytes('OK', 'utf-8'))
+            if fanart_url:
+                out_file = os.path.join(ui.tmp_download_folder, 'master_fanart.jpg')
+                ui.vnt.get(fanart_url, out=out_file, onfinished=self.got_master_fanart)
         elif self.path.startswith('/sending_subtitle') and ui.pc_to_pc_casting == 'slave':
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
@@ -528,7 +540,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 txt = b'Access From Outside Network Not Allowed'
                 self.final_message(txt)
-
+                
+    def got_master_fanart(self, *args):
+        result = args[-1]
+        url = args[-2]
+        if result.error is None:
+            ui.gui_signals.fanart_changed(result.out_file, ui.player_theme)
+            
     def do_HEAD(self):
         self.do_init_function(type_request='head')
 
@@ -1527,6 +1545,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
+        elif path.lower() == 'get_current_background':
+            if ui.remote_control and ui.remote_control_field:
+                content = None
+                if os.path.isfile(ui.current_background):
+                    with open(ui.current_background, 'rb') as f:
+                        content = f.read()
+                if content:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'image/jpeg')
+                    self.send_header('Content-Length', len(content))
+                    self.send_header('Connection', 'close')
+                    self.end_headers()
+                    try:
+                        self.wfile.write(content)
+                    except Exception as err:
+                        self.final_message(b'No Content')
+                else:
+                    self.final_message(b'No Content')
+            else:
+                self.final_message(b'Remote Control Not Allowed')
         elif path.lower() == 'seek_5m':
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek -300s'
