@@ -258,12 +258,14 @@ def apply_new_text(val):
     ui.text.setText(val)
 
 @pyqtSlot(bool, str)
-def apply_dropped_fanart_poster(poster_drop, picn):
+def apply_dropped_fanart_poster(poster_drop, url):
     global ui
-    if poster_drop:
-        ui.copy_poster_image(picn)
+    if url.startswith('http'):
+        ui.watch_external_video('{}'.format(url), start_now=True)
+    elif poster_drop:
+        ui.copy_poster_image(url)
     else:
-        ui.copy_fanart_image(picn)
+        ui.copy_fanart_image(url)
 
 @pyqtSlot(str, str)
 def apply_fanart_widget(fanart, theme):
@@ -416,17 +418,17 @@ class MainWindowWidget(QtWidgets.QWidget):
     def dropEvent(self, event):
         global ui, logger
         urls = event.mimeData().urls()
-        for i in urls:
-            i = i.toString()
-            logger.debug(i)
-            if i.startswith('file:///') or i.startswith('http') or i.startswith('magnet:'):
+        for url in urls:
+            url = url.toString()
+            logger.debug(url)
+            if url.startswith('file:///') or url.startswith('http') or url.startswith('magnet:'):
                 if OSNAME == 'posix':
-                    i = i.replace('file://', '', 1)
+                    url = url.replace('file://', '', 1)
                 else:
-                    i = i.replace('file:///', '', 1)
+                    url = url.replace('file:///', '', 1)
             ext = None
-            if '.' in i:
-                ext = i.rsplit('.', 1)[-1]
+            if '.' in url:
+                ext = url.rsplit('.', 1)[-1]
                 ext = ext.lower()
             rect = QtCore.QRect(ui.label.x(), ui.label.y(), ui.label.width(), ui.label.height())
             pos = event.pos()
@@ -434,24 +436,29 @@ class MainWindowWidget(QtWidgets.QWidget):
                 poster_drop = True
             else:
                 poster_drop = False
-            if ext and ext in ['jpg', 'jpeg', 'png'] and not i.startswith('http'):
-                ui.gui_signals.poster_drop(poster_drop, i)
-            elif i.startswith('http'):
-                ui.vnt.head(i, onfinished=partial(self.process_dropped_url, poster_drop))
+            if ext and ext in ['jpg', 'jpeg', 'png'] and not url.startswith('http'):
+                ui.gui_signals.poster_drop(poster_drop, url)
+            elif url.startswith('http'):
+                url = url.replace(' ', '%20')
+                ui.vnt.head(url, onfinished=partial(self.process_dropped_url, poster_drop))
             else:
-                ui.watch_external_video('{}'.format(i), start_now=True)
+                ui.watch_external_video('{}'.format(url), start_now=True)
     
     def process_dropped_url(self, *args):
         result = args[-1]
         url = args[-2]
         poster_drop = args[0]
         if result.error is None:
-            if result.content_type in ['image/jpeg', 'image/png', 'image/webp']:
-                out_file = os.path.join(ui.tmp_download_folder, 'dropped_fanart.jpg')
+            out_file = os.path.join(ui.tmp_download_folder, 'dropped_fanart.jpg')
+            if (result.content_type in ['image/jpeg', 'image/png', 'image/webp']
+                    or url.endswith('.jpg') or url.endswith('.png')):
                 ui.vnt.get(url, out=out_file, onfinished=partial(self.download_fanart, poster_drop))
             else:
-                ui.watch_external_video('{}'.format(url), start_now=True)
-                
+                ui.gui_signals.poster_drop(poster_drop, url)
+        elif url.endswith('.jpg') or url.endswith('.png'):
+            out_file = os.path.join(ui.tmp_download_folder, 'dropped_fanart.jpg')
+            ui.vnt.get(url, out=out_file, onfinished=partial(self.download_fanart, poster_drop))
+            
     def download_fanart(self, *args):
         result = args[-1]
         url = args[-2]
