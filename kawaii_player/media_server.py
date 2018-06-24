@@ -338,6 +338,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
             param, value = content.split('&')
+            if param and not param.startswith('param='):
+                param, value = value, param
             self.final_message(bytes('Command Recieved', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
         else:
