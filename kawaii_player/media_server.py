@@ -547,7 +547,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         result = args[-1]
         url = args[-2]
         if result.error is None:
-            ui.gui_signals.fanart_changed(result.out_file, ui.player_theme)
+            if result.content_type in ['image/jpeg', 'image/png']:
+                ui.gui_signals.fanart_changed(result.out_file, ui.player_theme)
             
     def do_HEAD(self):
         self.do_init_function(type_request='head')
@@ -2421,7 +2422,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             default_jpg = os.path.join(home, 'default.jpg')
             content = open(default_jpg, 'rb').read()
             self.send_response(200)
-            self.send_header('Content-type', 'image/jpg')
+            self.send_header('Content-type', 'image/jpeg')
             self.send_header('Content-Length', len(content))
             self.send_header('Connection', 'close')
             self.end_headers()
@@ -2559,7 +2560,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.create_new_image_pixel(default_jpg, 480)
             content = open(new_file, 'rb').read()
         self.send_response(200)
-        self.send_header('Content-type', 'image/jpg')
+        self.send_header('Content-type', 'image/jpeg')
         self.send_header('Content-Length', len(content))
         self.send_header('Connection', 'close')
         self.end_headers()
