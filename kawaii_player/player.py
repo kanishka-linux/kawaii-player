@@ -596,10 +596,19 @@ class PlayerWidget(QtWidgets.QWidget):
             show_text_val = 'Aspect Ratio Disabled'
         else:
             show_text_val = aspect_val
-        if self.player_val == 'mpv':
-            msg = '\n set video-aspect "{0}" \n'.format(aspect_val)
+        if self.player_val in ['mpv', 'mplayer']:
+            if self.ui.player_val.lower() == 'mpv':
+                msg = '\n set video-aspect "{0}" \n'.format(aspect_val)
+                txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
+            else:
+                if ':' in aspect_val:
+                    num1, num2 = aspect_val.split(':')
+                    aspect_fl = float(num1)/float(num2)
+                else:
+                    aspect_fl = int(aspect_val)
+                msg = '\n set_property aspect "{0}" \n'.format(aspect_fl)
+                txt_osd = '\n osd_show_text "{0}: restart" \n'.format(show_text_val)
             self.mpvplayer.write(bytes(msg, 'utf-8'))
-            txt_osd = '\n show-text "{0}" \n'.format(show_text_val)
             self.mpvplayer.write(bytes(txt_osd, 'utf-8'))
             if self.ui.final_playing_url in self.ui.history_dict_obj:
                 seek_time, acc_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj.get(self.ui.final_playing_url)
