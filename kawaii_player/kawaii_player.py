@@ -11951,20 +11951,21 @@ watch/unwatch status")
         if self.player_volume:
             if self.player_volume.isnumeric():
                 if player == 'mplayer':
-                    command = command + " -volume={}".format(self.player_volume)
+                    pass
+                    #command = command + " -volume={}".format(self.player_volume)
                 elif player == 'mpv':
                     if self.volume_type == 'volume':
                         command = command + " --volume={}".format(self.player_volume)
-        if self.gsbc_dict:
+        if self.gsbc_dict and player.lower() == 'mpv':
             for i in self.gsbc_dict:
                 if i == 'subscale':
                     pass
                 else:
                     command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
-        if self.subtitle_dict and self.apply_subtitle_settings:
+        if self.subtitle_dict and self.apply_subtitle_settings and player.lower() == 'mpv':
             for i in self.subtitle_dict:
                 command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
-        elif self.subtitle_dict and not self.apply_subtitle_settings:
+        elif self.subtitle_dict and not self.apply_subtitle_settings and player.lower() == 'mpv':
             scale = self.subtitle_dict.get('sub-scale')
             if scale:
                 command = command + ' --sub-scale="{}"'.format(scale)
