@@ -1930,7 +1930,11 @@ watch/unwatch status")
             'tab_6':self.tab_6
             }
         self.user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
-        self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent})
+        if OSNAME == 'posix':
+            verify = True
+        else:
+            verify = False
+        self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent}, verify=verify)
         self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
