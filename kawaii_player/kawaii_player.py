@@ -221,6 +221,7 @@ class GUISignals(QtCore.QObject):
     epsum_signal = pyqtSignal(int, str, str, str)
     login_box = pyqtSignal(str, str, bool)
     command_signal = pyqtSignal(str, str)
+    poster_signal = pyqtSignal(bool, str)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -247,11 +248,22 @@ class GUISignals(QtCore.QObject):
         
     def player_command(self, param, val):
         self.command_signal.emit(param, val)
+        
+    def poster_drop(self, param, picn):
+        self.poster_signal.emit(param, picn)
 
 @pyqtSlot(str)
 def apply_new_text(val):
     global ui
     ui.text.setText(val)
+
+@pyqtSlot(bool, str)
+def apply_dropped_fanart_poster(poster_drop, picn):
+    global ui
+    if poster_drop:
+        ui.copy_poster_image(picn)
+    else:
+        ui.copy_fanart_image(picn)
 
 @pyqtSlot(str, str)
 def apply_fanart_widget(fanart, theme):
@@ -412,8 +424,41 @@ class MainWindowWidget(QtWidgets.QWidget):
                     i = i.replace('file://', '', 1)
                 else:
                     i = i.replace('file:///', '', 1)
-            ui.watch_external_video('{}'.format(i), start_now=True)
+            ext = None
+            if '.' in i:
+                ext = i.rsplit('.', 1)[-1]
+                ext = ext.lower()
+            rect = QtCore.QRect(ui.label.x(), ui.label.y(), ui.label.width(), ui.label.height())
+            pos = event.pos()
+            if rect.contains(pos):
+                poster_drop = True
+            else:
+                poster_drop = False
+            if ext and ext in ['jpg', 'jpeg', 'png'] and not i.startswith('http'):
+                ui.gui_signals.poster_drop(poster_drop, i)
+            elif i.startswith('http'):
+                ui.vnt.head(i, onfinished=partial(self.process_dropped_url, poster_drop))
+            else:
+                ui.watch_external_video('{}'.format(i), start_now=True)
     
+    def process_dropped_url(self, *args):
+        result = args[-1]
+        url = args[-2]
+        poster_drop = args[0]
+        if result.error is None:
+            if result.content_type in ['image/jpeg', 'image/png', 'image/webp']:
+                out_file = os.path.join(ui.tmp_download_folder, 'dropped_fanart.jpg')
+                ui.vnt.get(url, out=out_file, onfinished=partial(self.download_fanart, poster_drop))
+            else:
+                ui.watch_external_video('{}'.format(url), start_now=True)
+                
+    def download_fanart(self, *args):
+        result = args[-1]
+        url = args[-2]
+        poster_drop = args[0]
+        if result.error is None:
+            ui.gui_signals.poster_drop(poster_drop, result.out_file)
+            
     def mouseMoveEvent(self, event):
         global site, ui
         pos = event.pos()
@@ -1945,6 +1990,7 @@ watch/unwatch status")
         self.gui_signals.epsum_signal.connect(apply_episode_metadata)
         self.gui_signals.login_box.connect(show_login_box)
         self.gui_signals.command_signal.connect(control_slave_playback)
+        self.gui_signals.poster_signal.connect(apply_dropped_fanart_poster)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
@@ -5970,6 +6016,16 @@ watch/unwatch status")
         if dir_path and os.path.exists(picn):
              self.metadata_copy(dir_path, picn, thumbnail, mode='img')
              
+    def copy_poster_image(self, url=None):
+        global name, site, opt, pre_opt, home, siteName
+        
+        dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
+            site, opt, siteName, '', mode='img'
+            )
+        
+        if dir_path and os.path.exists(url):
+             self.metadata_copy(dir_path, url, thumbnail, mode='img')
+             
     def copyFanart(self, new_name=None, *args):
         global name, site, opt, pre_opt, home, siteName
         
@@ -5980,7 +6036,16 @@ watch/unwatch status")
         if dir_path and os.path.exists(picn):
             self.metadata_copy(dir_path, picn, mode='fanart', img_opt=img_opt)
                     
-                
+    def copy_fanart_image(self, url=None):
+        global name, site, opt, pre_opt, home, siteName
+        
+        dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
+            site, opt, siteName, '', mode='fanart'
+            )
+        
+        if dir_path and os.path.exists(url):
+            self.metadata_copy(dir_path, url, mode='fanart', img_opt=img_opt)
+    
     def copySummary(self, copy_sum=None, new_name=None, find_name=None):
         global name, site, opt, pre_opt, home, siteName
         
