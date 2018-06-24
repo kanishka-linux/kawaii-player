@@ -17,6 +17,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with tvdb-async.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import time
 from functools import partial
 from vinanti import Vinanti
@@ -46,10 +47,14 @@ class TVDB:
             self.hdrs = hdrs
         else:
             self.hdrs = {'User-Agent':'Mozilla/5.0'}
-        if isinstance(wait, int) or isinstance(wait, float):
-            self.vnt = Vinanti(block=False, hdrs=self.hdrs, wait=wait, timeout=10)
+        if os.name == 'posix':
+            verify = True
         else:
-            self.vnt = Vinanti(block=False, hdrs=self.hdrs, timeout=10)
+            verify = False
+        if isinstance(wait, int) or isinstance(wait, float):
+            self.vnt = Vinanti(block=False, hdrs=self.hdrs, wait=wait, timeout=10, verify=verify)
+        else:
+            self.vnt = Vinanti(block=False, hdrs=self.hdrs, timeout=10, verify=verify)
         self.fanart_list = []
         self.poster_list = []
         self.banner_list = []
