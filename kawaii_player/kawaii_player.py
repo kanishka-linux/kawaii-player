@@ -2734,10 +2734,9 @@ watch/unwatch status")
         
     def seek_to_vol_val(self, val, action=None):
         msg = None
-        if self.player_val == "mplayer":
-            txt1 = '\n osd 1 \n'
-            txt = '\n volume {0} \n'.format(val)
-            self.mpvplayer_val.write(b'')
+        if self.player_val.lower() == "mplayer":
+            txt1 = '\n osd_show_text "volume: {0}" \n'.format(val)
+            txt = '\n set_property volume {0} \n'.format(val)
         else:
             txt1 = '\n set osd-level 1 \n'
             if self.volume_type == 'ao-volume':
@@ -2755,6 +2754,8 @@ watch/unwatch status")
         #if action is None:
         #    self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
+        if self.player_val.lower() == 'mplayer':
+            self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         if msg and (action is None or action == 'pressed'):
             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
     
