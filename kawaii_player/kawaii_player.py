@@ -221,7 +221,7 @@ class GUISignals(QtCore.QObject):
     epsum_signal = pyqtSignal(int, str, str, str)
     login_box = pyqtSignal(str, str, bool)
     command_signal = pyqtSignal(str, str)
-    poster_signal = pyqtSignal(bool, str)
+    poster_signal = pyqtSignal(bool, str, str)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -249,23 +249,29 @@ class GUISignals(QtCore.QObject):
     def player_command(self, param, val):
         self.command_signal.emit(param, val)
         
-    def poster_drop(self, param, picn):
-        self.poster_signal.emit(param, picn)
+    def poster_drop(self, param, picn, nm):
+        self.poster_signal.emit(param, picn, nm)
 
 @pyqtSlot(str)
 def apply_new_text(val):
     global ui
     ui.text.setText(val)
 
-@pyqtSlot(bool, str)
-def apply_dropped_fanart_poster(poster_drop, url):
-    global ui
+@pyqtSlot(bool, str, str)
+def apply_dropped_fanart_poster(poster_drop, url, nm):
+    global ui, site
     if url.startswith('http'):
         ui.watch_external_video('{}'.format(url), start_now=True)
     elif poster_drop:
-        ui.copy_poster_image(url)
+        if site == 'Music':
+            ui.copy_poster_image(url, find_name=True)
+        else:
+            ui.copyImg(new_name=nm)
     else:
-        ui.copy_fanart_image(url)
+        if site == 'Music':
+            ui.copy_fanart_image(url, find_name=True)
+        else:
+            ui.copyFanart(new_name=nm)
 
 @pyqtSlot(str, str)
 def apply_fanart_widget(fanart, theme):
@@ -416,7 +422,7 @@ class MainWindowWidget(QtWidgets.QWidget):
             event.ignore()
         
     def dropEvent(self, event):
-        global ui, logger
+        global ui, logger, name
         urls = event.mimeData().urls()
         for url in urls:
             url = url.toString()
@@ -434,13 +440,17 @@ class MainWindowWidget(QtWidgets.QWidget):
             pos = event.pos()
             if rect.contains(pos):
                 poster_drop = True
+                out_file = os.path.join(ui.tmp_download_folder, name+'.jpg')
             else:
                 poster_drop = False
+                out_file = os.path.join(ui.tmp_download_folder, name+'-fanart.jpg')
             if ext and ext in ['jpg', 'jpeg', 'png'] and not url.startswith('http'):
-                ui.gui_signals.poster_drop(poster_drop, url)
+                if os.path.isfile(url):
+                    shutil.copy(url, out_file)
+                ui.gui_signals.poster_drop(poster_drop, url, name)
             elif url.startswith('http'):
                 url = url.replace(' ', '%20')
-                ui.vnt.head(url, onfinished=partial(self.process_dropped_url, poster_drop))
+                ui.vnt.head(url, onfinished=partial(self.process_dropped_url, poster_drop, name))
             else:
                 ui.watch_external_video('{}'.format(url), start_now=True)
     
@@ -448,23 +458,27 @@ class MainWindowWidget(QtWidgets.QWidget):
         result = args[-1]
         url = args[-2]
         poster_drop = args[0]
+        nm = args[1]
+        if poster_drop:
+            out_file = os.path.join(ui.tmp_download_folder, nm+'.jpg')
+        else:
+            out_file = os.path.join(ui.tmp_download_folder, nm+'-fanart.jpg')
         if result.error is None:
-            out_file = os.path.join(ui.tmp_download_folder, 'dropped_fanart.jpg')
             if (result.content_type in ['image/jpeg', 'image/png', 'image/webp']
                     or url.endswith('.jpg') or url.endswith('.png')):
-                ui.vnt.get(url, out=out_file, onfinished=partial(self.download_fanart, poster_drop))
+                ui.vnt.get(url, out=out_file, onfinished=partial(self.download_fanart, poster_drop, nm))
             else:
-                ui.gui_signals.poster_drop(poster_drop, url)
+                ui.gui_signals.poster_drop(poster_drop, url, nm)
         elif url.endswith('.jpg') or url.endswith('.png'):
-            out_file = os.path.join(ui.tmp_download_folder, 'dropped_fanart.jpg')
             ui.vnt.get(url, out=out_file, onfinished=partial(self.download_fanart, poster_drop))
             
     def download_fanart(self, *args):
         result = args[-1]
         url = args[-2]
         poster_drop = args[0]
+        nm = args[1]
         if result.error is None:
-            ui.gui_signals.poster_drop(poster_drop, result.out_file)
+            ui.gui_signals.poster_drop(poster_drop, result.out_file, nm)
             
     def mouseMoveEvent(self, event):
         global site, ui
@@ -5941,8 +5955,8 @@ watch/unwatch status")
             shutil.copy(sumry, file_path)
     
     
-    def get_metadata_location(self, site, opt, siteName, new_name, mode=None,
-                              copy_sum=None, find_name=None):
+    def get_metadata_location(self, site, opt, siteName, new_name,
+                              mode=None, copy_sum=None, find_name=None):
         picn = ''
         img_opt = ''
         thumbnail = ''
@@ -6023,11 +6037,11 @@ watch/unwatch status")
         if dir_path and os.path.exists(picn):
              self.metadata_copy(dir_path, picn, thumbnail, mode='img')
              
-    def copy_poster_image(self, url=None):
+    def copy_poster_image(self, url=None, find_name=None):
         global name, site, opt, pre_opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
-            site, opt, siteName, '', mode='img'
+            site, opt, siteName, '', mode='img', find_name=find_name
             )
         
         if dir_path and os.path.exists(url):
@@ -6043,11 +6057,11 @@ watch/unwatch status")
         if dir_path and os.path.exists(picn):
             self.metadata_copy(dir_path, picn, mode='fanart', img_opt=img_opt)
                     
-    def copy_fanart_image(self, url=None):
+    def copy_fanart_image(self, url=None, find_name=None):
         global name, site, opt, pre_opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
-            site, opt, siteName, '', mode='fanart'
+            site, opt, siteName, '', mode='fanart', find_name=find_name
             )
         
         if dir_path and os.path.exists(url):
