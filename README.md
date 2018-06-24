@@ -435,6 +435,8 @@ kawaii-player can work as client as well as server at the same time. This featur
     
     * On Slave, enable slave mode: Preferences->Other->PC To PC Casting->Slave
     
+    * On Slave, enable remote control: Preferences->Media Server->Turn On Remote Control
+    
     * Start media server on both.
     
     * Select any playlist of master. From its contextmenu, start casting files
