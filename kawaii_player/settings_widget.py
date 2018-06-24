@@ -1649,6 +1649,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     ui.slider.final_url = None
                 elif var_name == 'pc_to_pc_casting':
                     ui.pc_to_pc_casting = ui.pc_to_pc_casting.lower()
+                    if ui.pc_to_pc_casting == 'slave':
+                        ui.frame_extra_toolbar.master_slave_tab_btn.setText('Master')
+                        ui.extra_toolbar_control = 'master'
         if option == 'torrent':
             change_opt_file(self.torrent_config, param, param_value)
         else:
