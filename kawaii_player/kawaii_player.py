@@ -3823,6 +3823,8 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
+                    cmd = 'osd_show_text "Loop=yes" 2000'
+                    self.mpv_execute_command(cmd, '', 100)
         else:
             self.player_setLoop_var = False
             self.player_loop_file.setText(self.player_buttons['unlock'])
@@ -3832,6 +3834,8 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
+                    cmd = 'osd_show_text "Loop=no" 2000'
+                    self.mpv_execute_command(cmd, '', 100)
                 
     def playerPlayPause(self):
         txt = self.player_play_pause.text() 
@@ -11893,9 +11897,9 @@ watch/unwatch status")
         aspect_value = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
         if player.lower() == 'mplayer':
             if finalUrl.startswith('http'):
-                command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 0 -slave -wid {0}'.format(idw)
+                command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -cache 100000 -cache-min 0.001 -cache-seek-min 0.001 -osdlevel 1 -slave -wid {0}'.format(idw)
             else:
-                command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 0 -slave -wid {0}'.format(idw)
+                command = 'mplayer -idle -identify -msglevel statusline=5:global=6 -nocache -osdlevel 1 -slave -wid {0}'.format(idw)
             if aspect_value == '0':
                 command = command + ' -nokeepaspect'
             elif aspect_value == '-1':
@@ -12002,7 +12006,7 @@ watch/unwatch status")
                     command = command.replace('ytdl=no', 'ytdl=yes')
                 elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
                     finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
-            if self.gapless_playback and site in self.local_site_list:
+            if self.gapless_playback and site in self.local_site_list and player.lower() == 'mpv':
                 if site != 'MyServer' and from_function == 'now_start':
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
                     self.playback_mode = 'single'
