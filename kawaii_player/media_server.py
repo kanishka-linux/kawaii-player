@@ -556,7 +556,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             logger.debug('using quick mode')
             path = self.path.replace('/', '', 1)
             self.get_the_content(path, 0)
-        elif self.path.startswith('/master_abs_path='):
+        elif (self.path.startswith('/master_abs_path=')
+                or self.path.startswith('/get_current_background')):
             if ui.pc_to_pc_casting == 'master':
                 path = self.path.replace('/', '', 1)
                 if '/' in path:
@@ -1546,25 +1547,22 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
         elif path.lower() == 'get_current_background':
-            if ui.remote_control and ui.remote_control_field:
-                content = None
-                if os.path.isfile(ui.current_background):
-                    with open(ui.current_background, 'rb') as f:
-                        content = f.read()
-                if content:
-                    self.send_response(200)
-                    self.send_header('Content-type', 'image/jpeg')
-                    self.send_header('Content-Length', len(content))
-                    self.send_header('Connection', 'close')
-                    self.end_headers()
-                    try:
-                        self.wfile.write(content)
-                    except Exception as err:
-                        self.final_message(b'No Content')
-                else:
+            content = None
+            if os.path.isfile(ui.current_background):
+                with open(ui.current_background, 'rb') as f:
+                    content = f.read()
+            if content:
+                self.send_response(200)
+                self.send_header('Content-type', 'image/jpeg')
+                self.send_header('Content-Length', len(content))
+                self.send_header('Connection', 'close')
+                self.end_headers()
+                try:
+                    self.wfile.write(content)
+                except Exception as err:
                     self.final_message(b'No Content')
             else:
-                self.final_message(b'Remote Control Not Allowed')
+                self.final_message(b'No Content')
         elif path.lower() == 'seek_5m':
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek -300s'
