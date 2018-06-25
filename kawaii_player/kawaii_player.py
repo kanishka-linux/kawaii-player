@@ -11968,9 +11968,20 @@ watch/unwatch status")
                     command = command + ' --{}={}'.format(key, value)
                 elif player.lower() == 'mplayer':
                     command = command + ' -{} {}'.format(key, value)
-        if self.subtitle_dict and self.apply_subtitle_settings and player.lower() == 'mpv':
-            for i in self.subtitle_dict:
-                command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
+        if self.subtitle_dict and self.apply_subtitle_settings:
+            for key, value in self.subtitle_dict.items():
+                if player.lower() == 'mpv':
+                    command = command + ' --{}="{}"'.format(key, value)
+                else:
+                    if key == 'sub-font':
+                        command = command + ' -{} "{}"'.format('font', value)
+                    elif key == 'sub-ass-override':
+                        command = command + ' -ass'
+                    elif key == 'sub-color':
+                        command = command + ' -{} "{}"'.format('ass-color', value.replace('#', '', 1)+'00')
+                    elif key == 'sub-border-color':
+                        command = command + ' -{} "{}"'.format('ass-border-color', value.replace('#', '', 1)+'00')
+                        
         elif self.subtitle_dict and not self.apply_subtitle_settings and player.lower() == 'mpv':
             scale = self.subtitle_dict.get('sub-scale')
             if scale:

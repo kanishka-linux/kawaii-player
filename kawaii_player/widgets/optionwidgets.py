@@ -1136,7 +1136,10 @@ class SubtitleSlider(QtWidgets.QSlider):
                 value = val * 0.01
                 value_str = str(value)
                 label_value.setPlaceholderText(value_str[:4])
-                cmd = '\n set sub-scale {} \n'.format(value)
+                if ui.player_val.lower() == 'mpv':
+                    cmd = '\n set sub-scale {} \n'.format(value)
+                else:
+                    cmd = '\n set_property sub_scale {} \n'.format(value)
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 ui.subtitle_dict.update({'sub-scale':value})
@@ -2012,14 +2015,28 @@ class ExtraToolBar(QtWidgets.QFrame):
                 if ui.mpvplayer_val.processId() > 0:
                     ui.tab_5.toggle_fullscreen_mode()
             elif ui.mpvplayer_val.processId() > 0:
+                if ui.player_val.lower() == 'mplayer':
+                    if 'sub-delay' in msg or 'audio-delay' in msg:
+                        msg = msg.replace('add ', '')
+                        msg = msg.strip()
+                        if 'sub-delay' in msg:
+                            msg = msg.replace('sub-delay', 'sub_delay')
+                        elif 'audio-delay' in msg:
+                            msg = msg.replace('audio-delay', 'audio_delay')
                 bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
                 print(bmsg)
                 ui.mpvplayer_val.write(bmsg)
                 pmsg = None
                 if 'sub-delay' in msg:
-                    pmsg = '\n show-text "Sub delay: ${sub-delay}" \n'
+                    if ui.player_val.lower() == 'mpv':
+                        pmsg = '\n show-text "Sub delay: ${sub-delay}" \n'
+                    else:
+                        pmsg = '\n osd_show_property_text "Sub delay: ${sub_delay}" \n'
                 elif 'audio-delay' in msg:
-                    pmsg = '\n show-text "A-V delay: ${audio-delay}" \n'
+                    if ui.player_val.lower() == 'mpv':
+                        pmsg = '\n show-text "A-V delay: ${audio-delay}" \n'
+                    else:
+                        pmsg = '\n osd_show_property_text "A-V delay: ${audio_delay}" \n'
                 if pmsg:
                     pmsg = bytes(pmsg, 'utf-8')
                     ui.mpvplayer_val.write(pmsg)
@@ -2030,11 +2047,20 @@ class ExtraToolBar(QtWidgets.QFrame):
             ui.settings_box.slave_commands(data=data_dict)
         else:
             if val == '-':
-                msg = bytes('\n add chapter -1 \n', 'utf-8')
+                if ui.player_val.lower() == 'mpv':
+                    msg = bytes('\n add chapter -1 \n', 'utf-8')
+                else:
+                    msg = bytes('\n seek_chapter -1 0 \n', 'utf-8')
             else:
-                msg = bytes('\n add chapter 1 \n', 'utf-8')
+                if ui.player_val.lower() == 'mpv':
+                    msg = bytes('\n add chapter 1 \n', 'utf-8')
+                else:
+                    msg = bytes('\n seek_chapter +1 0 \n', 'utf-8')
             ui.mpvplayer_val.write(msg)
-            pmsg = bytes('\n show-text "Chapter: ${chapter}" \n', 'utf-8')
+            if ui.player_val.lower() == 'mpv':
+                pmsg = bytes('\n show-text "Chapter: ${chapter}" \n', 'utf-8')
+            else:
+                pmsg = bytes('\n osd_show_property_text "Chapter: ${chapter}" \n', 'utf-8')
             ui.mpvplayer_val.write(pmsg)
         
     def adjust_speed(self, val):
