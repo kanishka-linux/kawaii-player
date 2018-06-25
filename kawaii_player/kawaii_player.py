@@ -11951,22 +11951,23 @@ watch/unwatch status")
             self.append_audio_start = True
         else:
             self.append_audio_start = False
-        if self.gapless_playback or self.gapless_network_stream:
+        if (self.gapless_playback or self.gapless_network_stream) and player.lower() == 'mpv':
             command = command + " --gapless-audio=yes --prefetch-playlist=yes"
         if self.player_volume:
             if self.player_volume.isnumeric():
                 if player == 'mplayer':
-                    pass
-                    #command = command + " -volume={}".format(self.player_volume)
+                    command = command + " -volume {}".format(self.player_volume)
                 elif player == 'mpv':
                     if self.volume_type == 'volume':
                         command = command + " --volume={}".format(self.player_volume)
-        if self.gsbc_dict and player.lower() == 'mpv':
-            for i in self.gsbc_dict:
-                if i == 'subscale':
+        if self.gsbc_dict:
+            for key, value in self.gsbc_dict.items():
+                if key == 'subscale':
                     pass
-                else:
-                    command = command + ' --{}={}'.format(i, self.gsbc_dict[i])
+                elif player.lower() == 'mpv':
+                    command = command + ' --{}={}'.format(key, value)
+                elif player.lower() == 'mplayer':
+                    command = command + ' -{} {}'.format(key, value)
         if self.subtitle_dict and self.apply_subtitle_settings and player.lower() == 'mpv':
             for i in self.subtitle_dict:
                 command = command + ' --{}="{}"'.format(i, self.subtitle_dict[i])
