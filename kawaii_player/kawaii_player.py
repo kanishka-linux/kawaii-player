@@ -11907,6 +11907,7 @@ watch/unwatch status")
                 pass
             else:
                 command = command + ' -aspect {0}'.format(aspect_value)
+            command = command + ' -vf screenshot="{0}"'.format(self.screenshot_directory)
         elif player.lower() == "mpv":
             self.mpv_custom_pause = False
             command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
@@ -11969,18 +11970,54 @@ watch/unwatch status")
                 elif player.lower() == 'mplayer':
                     command = command + ' -{} {}'.format(key, value)
         if self.subtitle_dict and self.apply_subtitle_settings:
+            ass_mplayer = []
+            ass_override = False
             for key, value in self.subtitle_dict.items():
                 if player.lower() == 'mpv':
                     command = command + ' --{}="{}"'.format(key, value)
                 else:
                     if key == 'sub-font':
                         command = command + ' -{} "{}"'.format('font', value)
+                        ass_mplayer.append('Fontname={}'.format(value))
                     elif key == 'sub-ass-override':
-                        command = command + ' -ass'
+                        if value.lower() in ['yes', 'force']:
+                            ass_override = True
+                            command = command + ' -ass'
+                        elif value.lower() == 'no':
+                            command = command + ' -ass'
+                        else:
+                            ass_override = True
                     elif key == 'sub-color':
-                        command = command + ' -{} "{}"'.format('ass-color', value.replace('#', '', 1)+'00')
+                        ass_mplayer.append('PrimaryColour=&H00{}'.format(value[1:][::-1]))
                     elif key == 'sub-border-color':
-                        command = command + ' -{} "{}"'.format('ass-border-color', value.replace('#', '', 1)+'00')
+                        ass_mplayer.append('OutlineColour=&H00{}'.format(value[1:][::-1]))
+                    elif key == 'sub-shadow-color':
+                        ass_mplayer.append('BackColour=&H00{}'.format(value[1:][::-1]))
+                    elif key == 'sub-font-size':
+                        ass_mplayer.append('Fontsize={}'.format(value))
+                    elif key == 'sub-border-size':
+                        ass_mplayer.append('Outline={}'.format(value))
+                    elif key == 'sub-shadow-offset':
+                        ass_mplayer.append('Shadow={}'.format(value))
+                    elif key == 'sub-spacing':
+                        command = command + ' -ass-line-spacing {}'.format(value)
+                    elif key == 'sub-pos':
+                        command = command + ' -subpos {}'.format(value)
+                    elif key == 'sub-blur':
+                        command = command + ' -subfont-blur {}'.format(value)
+                    elif key == 'sub-bold':
+                        if value == 'yes':
+                            ass_mplayer.append('Bold=1')
+                        else:
+                            ass_mplayer.append('Bold=0')
+                    elif key == 'sub-italic':
+                        if value == 'yes':
+                            ass_mplayer.append('Italic=1')
+                        else:
+                            ass_mplayer.append('Italic=0')
+            if player.lower() == 'mplayer':
+                if ass_override and ass_mplayer:
+                    command = command + ' -ass-force-style "{}"'.format(','.join(ass_mplayer))
                         
         elif self.subtitle_dict and not self.apply_subtitle_settings and player.lower() == 'mpv':
             scale = self.subtitle_dict.get('sub-scale')
