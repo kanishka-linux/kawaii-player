@@ -2023,6 +2023,8 @@ class ExtraToolBar(QtWidgets.QFrame):
                             msg = msg.replace('sub-delay', 'sub_delay')
                         elif 'audio-delay' in msg:
                             msg = msg.replace('audio-delay', 'audio_delay')
+                    elif 'screenshot' in msg:
+                        msg = 'screenshot 0'
                 bmsg = bytes('\n {} \n'.format(msg), 'utf-8')
                 print(bmsg)
                 ui.mpvplayer_val.write(bmsg)
