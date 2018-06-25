@@ -1539,17 +1539,23 @@ class OptionsSettings(QtWidgets.QTabWidget):
                     i = i.strip()
                     if ':' in i:
                         i = i.split(':')[0].strip()
-                    if i and not i.lower().startswith('available'):
+                    if (i and not i.lower().startswith('available')
+                            and not i.lower().startswith('driver')):
+                        try:
+                            out = i.split()[0]
+                        except Exception as err:
+                            logger.error(err)
+                            out = i
                         if value == '--vo':
                             if not output_video:
-                                output_video = i
+                                output_video = out
                             else:
-                                output_video = output_video + ', ' + i
+                                output_video = output_video + ', ' + out
                         else:
                             if not output_audio:
-                                output_audio = i
+                                output_audio = out
                             else:
-                                output_audio = output_audio + ', ' + i
+                                output_audio = output_audio + ', ' + out
         output_video = re.sub(' +', ' ', output_video)
         output_audio = re.sub(' +', ' ', output_audio)
         return (output_video, output_audio)
