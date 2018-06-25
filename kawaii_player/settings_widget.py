@@ -556,7 +556,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.toggle_fs = QtWidgets.QPushButton()
         self.gl9.addWidget(self.toggle_fs, 0, 2, 1, 1)
-        self.toggle_fs.setText('FS')
+        self.toggle_fs.setText('F')
         self.toggle_fs.clicked.connect(partial(self.slave_commands, 'fullscreen'))
         self.toggle_fs.setToolTip('Toggle Fullscreen')
         
