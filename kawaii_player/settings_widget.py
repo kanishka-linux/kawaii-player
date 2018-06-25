@@ -1550,6 +1550,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                                 output_audio = i
                             else:
                                 output_audio = output_audio + ', ' + i
+        output_video = re.sub(' +', ' ', output_video)
+        output_audio = re.sub(' +', ' ', output_audio)
         return (output_video, output_audio)
         
     def set_folder(self, widget, var_name=None):
