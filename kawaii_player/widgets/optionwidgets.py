@@ -22,7 +22,8 @@ class SidebarWidget(QtWidgets.QListWidget):
         home = home_dir
 
     def mouseMoveEvent(self, event): 
-        self.setFocus()
+        if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
+            self.setFocus()
             
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_O:
@@ -447,7 +448,8 @@ class MySlider(QtWidgets.QSlider):
             self.final_url = ui.final_playing_url
             
     def mouseMoveEvent(self, event):
-        self.setFocus()
+        if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
+            self.setFocus()
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
         if self.final_url != ui.final_playing_url:

@@ -63,7 +63,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             ui.dockWidget_3.hide()
         if ui.tab_5.arrow_timer.isActive():
             ui.tab_5.arrow_timer.stop()
-        self.setFocus()
+        if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
+            self.setFocus()
 
     def init_offline_mode(self):
         print(self.currentRow(), '--init--offline--')
