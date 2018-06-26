@@ -479,7 +479,7 @@ class MainWindowWidget(QtWidgets.QWidget):
         nm = args[1]
         if result.error is None:
             ui.gui_signals.poster_drop(poster_drop, result.out_file, nm)
-            
+        
     def mouseMoveEvent(self, event):
         global site, ui
         pos = event.pos()
@@ -489,24 +489,26 @@ class MainWindowWidget(QtWidgets.QWidget):
         if ui.orientation_dock == 'right':
             if px <= x and px >= x-6 and ui.auto_hide_dock:
                 ui.dockWidget_3.show()
-                ui.btn1.setFocus()
+                if ui.player_val != 'mplayer':
+                    ui.btn1.setFocus()
                 logger.info('show options sidebar')
             elif px <= x-dock_w and ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
-                if not ui.list1.isHidden():
+                if not ui.list1.isHidden() and ui.player_val != 'mplayer':
                     ui.list1.setFocus()
-                elif not ui.list2.isHidden():
+                elif not ui.list2.isHidden() and ui.player_val != 'mplayer':
                     ui.list2.setFocus()
         else:
             if px >= 0 and px <= 10 and ui.auto_hide_dock:
                 ui.dockWidget_3.show()
-                ui.btn1.setFocus()
+                if ui.player_val != 'mplayer':
+                    ui.btn1.setFocus()
                 logger.info('show options sidebar')
             elif px >= dock_w and ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
-                if not ui.list1.isHidden():
+                if not ui.list1.isHidden() and ui.player_val != 'mplayer':
                     ui.list1.setFocus()
-                elif not ui.list2.isHidden():
+                elif not ui.list2.isHidden() and ui.player_val != 'mplayer':
                     ui.list2.setFocus()
         if self.isFullScreen() and ui.mpvplayer_val.processId() > 0:
             logger.info('FullScreen Window but not video')
@@ -3645,11 +3647,11 @@ watch/unwatch status")
                 self.quit_really = 'no'
             else:
                 self.quit_really = "yes"
-            if msg:
-                if msg.lower() == 'already quit':
-                    logger.debug(msg)
-                else:
-                    self.mpvplayer_val.kill()
+            if msg and msg.lower() == 'already quit':
+                logger.debug(msg)
+            elif self.player_val.lower() == 'mplayer':
+                self.mpvplayer_val.write(b'\n stop \n')
+                self.mpv_execute_command('kill_process', 0, timer=100)
             else:
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
@@ -9437,6 +9439,8 @@ watch/unwatch status")
             QtCore.QTimer.singleShot(
                 timer, partial(self.mpv_execute_command, cmd, row)
                 )
+        elif cmd == 'kill_process':
+            self.mpvplayer_val.kill()
         else:
             cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
             self.mpvplayer_val.write(cmdb)
@@ -12017,6 +12021,7 @@ watch/unwatch status")
                             ass_mplayer.append('Italic=0')
             if player.lower() == 'mplayer':
                 if ass_override and ass_mplayer:
+                    #ass_mplayer = ass_mplayer + ['PlayResX=512', 'PlayResY=320']
                     command = command + ' -ass-force-style "{}"'.format(','.join(ass_mplayer))
                         
         elif self.subtitle_dict and not self.apply_subtitle_settings and player.lower() == 'mpv':
