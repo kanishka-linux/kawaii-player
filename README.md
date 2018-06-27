@@ -515,7 +515,7 @@ It supports certain MPRIS D-bus functionalities. Therefore if you have created g
 
 It is not very powerful music organizer, but provide certain decent functionalities. When using with mplayer, it's cpu usage is just 1-2 % which makes it very ideal for low end machines.
 
-In Music mode only audio will be played and video will be suppressed.
+In Music section only audio will be played and video will be suppressed.
 
 ## Detached Video Mode
 
@@ -762,7 +762,7 @@ dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3
 
 13. Library paths are set in '~/.config/kawaii-player/local.txt' file. If there is a problem setting it from GUI, then directly enter paths in **'local.txt'** file.
 
-14. If there is some problem with mpv/mplayer video playback, then try changing video output driver (vo) to gl or opengl, in the configuration files of mpv/mplayer. mpv config file is: '.config/mpv/config'; mplayer config file is: '.mplayer/config'. Users can also check other available video drivers using command 'mpv/mplayer -vo help'
+14. If there is some problem with mpv/mplayer video playback, then try changing video output driver (vo) to gl or opengl, in the configuration files of mpv/mplayer. mpv config file is: '.config/mpv/config'; mplayer config file is: '.mplayer/config'. Users can also check other available video drivers using command 'mpv/mplayer -vo help'. In mpv v.28+, opengl has been replaced with gpu. 
 
 15. If there are some other problems, then turn on logging by setting 'LOGGING' to 'ON', in other_options.txt. It will create 'kawaii-player.log' file in '~/.config/kawaii-player/tmp' folder. Users can analyse the log on their own or can post the log on github issues section. Or alternatively users can post console output if application was started from console.
 
