@@ -23,7 +23,6 @@ import re
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from yt import get_yt_url, get_yt_sub
 from player_functions import write_files, ccurl, send_notification, wget_string
 from hls_webengine.netmon import NetManager
 
@@ -380,7 +379,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                     arr.append('Play with Kawaii-Player')
                     arr.append('Queue Item')
                     arr.append('Download')
-                    arr.append('Get Subtitle (If Available)')
                     if 'ytimg.com' in url:
                         yt_id = url.split('/')[-2]
                         url = 'https://m.youtube.com/watch?v='+yt_id
@@ -440,8 +438,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
         else:
             if 'youtube.com/watch?v=' in self.url().url() or self.url().url().startswith('http'):
                 self.title_page = self.title()
-                arr = ['Play with Kawaii-Player', 'Download', 
-                       'Get Subtitle (If Available)']
+                arr = ['Play with Kawaii-Player', 'Download']
                 if 'tvdb' in self.url().url():
                     arr = arr + arr_extra_tvdb
                 elif 'themoviedb' in self.url().url():
@@ -544,7 +541,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 quality = 'hd'
             else:
                 quality = self.ui.quality_val
-            finalUrl = get_yt_url(url, quality, self.ui.ytdl_path, self.ui.logger, mode='offline')
+            finalUrl = self.ui.yt.get_yt_url(url, quality, self.ui.ytdl_path,
+                                             self.ui.logger, mode='offline')
             finalUrl = finalUrl.replace('\n', '')
             title = self.title_page+'.mp4'
             title = title.replace('"', '')
@@ -556,12 +554,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             command = wget_string(finalUrl, title, self.ui.get_fetch_library)
             self.ui.logger.debug(command)
             self.ui.infoWget(command, 0)
-        elif option.lower() == 'get subtitle (if available)':
-            self.ui.epn_name_in_list = self.title_page
-            self.ui.logger.info(self.ui.epn_name_in_list)
-            get_yt_sub(
-                url, self.ui.epn_name_in_list, self.yt_sub_folder, 
-                self.ui.tmp_download_folder, self.ui.ytdl_path, self.ui.logger)
         elif option.lower() == 'queue item':
             file_path = os.path.join(self.home, 'Playlists', 'Queue')
             if not os.path.exists(file_path):

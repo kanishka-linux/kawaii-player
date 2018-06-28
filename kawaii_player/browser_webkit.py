@@ -27,7 +27,6 @@ from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QUrl
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from yt import get_yt_url, get_yt_sub
 from player_functions import ccurl, send_notification, write_files, wget_string
 from hls_webkit.netmon_webkit import NetManager
 
@@ -382,7 +381,6 @@ class Browser(QtWebKitWidgets.QWebView):
                 arr.append('Play with Kawaii-Player')
                 arr.append('Queue Item')
                 arr.append('Download')
-                arr.append('Get Subtitle (If Available)')
                 if 'ytimg.com' in url.toString():
                     yt_id = url.toString().split('/')[-2]
                     url = QUrl('https://m.youtube.com/watch?v='+yt_id)
@@ -467,7 +465,9 @@ class Browser(QtWebKitWidgets.QWebView):
                 quality = 'hd'
             else:
                 quality = self.ui.quality_val
-            finalUrl = get_yt_url(url.toString(), quality, self.ui.ytdl_path, self.ui.logger, mode='offline')
+            finalUrl = self.ui.yt.get_yt_url(url.toString(), quality,
+                                             self.ui.ytdl_path, self.ui.logger,
+                                             mode='offline')
             finalUrl = finalUrl.replace('\n', '')
             title = self.title_page+'.mp4'
             title = title.replace('"', '')
@@ -478,11 +478,6 @@ class Browser(QtWebKitWidgets.QWebView):
                 title = os.path.join(self.ui.tmp_download_folder, title)
             command = wget_string(finalUrl, title, self.ui.get_fetch_library)
             self.ui.infoWget(command, 0)
-        elif option.lower() == 'get subtitle (if available)':
-            self.ui.epn_name_in_list = self.title_page
-            get_yt_sub(url.toString(), self.ui.epn_name_in_list, 
-                       self.yt_sub_folder, self.ui.tmp_download_folder, 
-                       self.ui.ytdl_path, self.ui.logger)
         elif option.lower() == 'queue item':
             file_path = os.path.join(self.home, 'Playlists', 'Queue')
             if not os.path.exists(file_path):
