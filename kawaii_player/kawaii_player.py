@@ -81,7 +81,7 @@ from player_functions import wget_string, open_files, get_config_options
 from player_functions import get_tmp_dir, naturallysorted, set_logger
 from player_functions import get_home_dir, change_opt_file, create_ssl_cert
 from player_functions import set_user_password, get_lan_ip
-from yt import get_yt_url, get_yt_sub_
+from yt import YTDL
 from ds import CustomList
 from meta_engine import MetaEngine
 
@@ -222,6 +222,8 @@ class GUISignals(QtCore.QObject):
     login_box = pyqtSignal(str, str, bool)
     command_signal = pyqtSignal(str, str)
     poster_signal = pyqtSignal(bool, str, str)
+    sub_signal = pyqtSignal(list)
+    sub_apply = pyqtSignal(str, str)
     
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -251,11 +253,35 @@ class GUISignals(QtCore.QObject):
         
     def poster_drop(self, param, picn, nm):
         self.poster_signal.emit(param, picn, nm)
+        
+    def subtitle_fetch(self, arr):
+        self.sub_signal.emit(arr)
+        
+    def subtitle_apply(self, url, title):
+        self.sub_apply.emit(url, title)
 
 @pyqtSlot(str)
 def apply_new_text(val):
     global ui
     ui.text.setText(val)
+
+@pyqtSlot(str)
+def apply_player_subtitle(url, title):
+    global ui
+    ui.tab_5.load_external_sub(mode='load', subtitle=url, title=title)
+    
+@pyqtSlot(list)
+def grab_subtitle(arr):
+    global ui
+    for entry in arr:
+        url, sub_name, title = entry
+        if not os.path.isfile(sub_name):
+            ui.vnt.get(
+                url, out=sub_name,
+                onfinished=partial(ui.yt.post_subtitle_fetch, title)
+                )
+        else:
+            ui.tab_5.load_external_sub(mode='auto', subtitle=sub_name, title=title)
 
 @pyqtSlot(bool, str, str)
 def apply_dropped_fanart_poster(poster_drop, url, nm):
@@ -628,11 +654,13 @@ class Ui_MainWindow(object):
         
         self.label = ThumbnailWidget(MainWindow)
         self.label.setup_globals(MainWindow, self, home, TMPDIR,
-                                 logger, screen_width, screen_height, 'label')
+                                 logger, screen_width, screen_height,
+                                 'label')
         
         self.label_new = ThumbnailWidget(MainWindow)
         self.label_new.setup_globals(MainWindow, self, home, TMPDIR,
-                                 logger, screen_width, screen_height, 'label_new')
+                                     logger, screen_width, screen_height,
+                                     'label_new')
         self.label_new.setMouseTracking(True)
         #self.label_new.setFrameStyle(QtWidgets.QFrame.StyledPanel)
         #self.text = QtWidgets.QTextBrowser(MainWindow)
@@ -1915,6 +1943,7 @@ watch/unwatch status")
         self.new_tray_widget = None
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
+        self.yt = YTDL(self)
         self.player_val = 'mpv'
         self.addons_option_arr = []
         self.mpvplayer_started = False
@@ -2014,6 +2043,8 @@ watch/unwatch status")
         self.gui_signals.login_box.connect(show_login_box)
         self.gui_signals.command_signal.connect(control_slave_playback)
         self.gui_signals.poster_signal.connect(apply_dropped_fanart_poster)
+        self.gui_signals.sub_signal.connect(grab_subtitle)
+        self.gui_signals.sub_apply.connect(apply_player_subtitle)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
@@ -9245,7 +9276,6 @@ watch/unwatch status")
                 new_txt = new_txt[1:]
             if new_txt.lower() == txt.lower():
                 r = i
-            #logger.info('\ntxt={0}: new_txt={1}\n: 11116'.format(txt, new_txt))
         return r
 
     def set_init_settings(self):
@@ -9300,7 +9330,9 @@ watch/unwatch status")
                     if nm.startswith('"'):
                         nm = nm.replace('"', '')
                 elif 'youtube.com' in nm and not thumbnail:
-                    nm = get_yt_url(nm, ui.quality_val, ui.ytdl_path, logger, mode='offline').strip()
+                    nm = self.yt.get_yt_url(nm, ui.quality_val,
+                                            ui.ytdl_path, logger,
+                                            mode='offline')
                     if '::' in nm:
                         nm = nm.split('::')[0]
         elif path.startswith('relative_path='):
@@ -10094,7 +10126,9 @@ watch/unwatch status")
                             yt_mode = 'yt_music'
                         else:
                             yt_mode = 'yt'
-                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode=yt_mode).strip()
+                    finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
+                                                  self.ytdl_path, logger,
+                                                  mode=yt_mode)
         
         if site not in ["PlayLists", "None", "Music", "Video"]:
             if site != "Local":
@@ -10131,11 +10165,14 @@ watch/unwatch status")
             if site == 'None' and self.btn1.currentText().lower() == 'youtube':
                     finalUrl = finalUrl.replace('"', '')
                     if mode == 'offline':
-                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode='offline').strip()
+                        finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
+                                                      self.ytdl_path, logger,
+                                                      mode='offline')
                         if '::' in finalUrl:
                             finalUrl = finalUrl.split('::')[0]
                     else:
-                        finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger).strip()
+                        finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
+                                                      self.ytdl_path, logger)
                     finalUrl = '"'+finalUrl+'"'
             if 'youtube.com' in finalUrl.lower():
                 finalUrl = finalUrl.replace('"', '')
@@ -10146,7 +10183,9 @@ watch/unwatch status")
                         yt_mode = 'yt_music'
                     else:
                         yt_mode = 'yt'
-                finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode=yt_mode).strip()
+                finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
+                                              self.ytdl_path, logger,
+                                              mode=yt_mode)
         return finalUrl
         
     def watchDirectly(self, finalUrl, title, quit_val):
@@ -12060,7 +12099,9 @@ watch/unwatch status")
                         finalUrl = finalUrl.replace('ytdl:', '', 1)
                     command = command.replace('ytdl=no', 'ytdl=yes')
                 elif ('youtube.com' in finalUrl or finalUrl.startswith('ytdl:')) and player == 'mplayer':
-                    finalUrl = get_yt_url(finalUrl, self.quality_val, self.ytdl_path, logger, mode="offline").strip()
+                    finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
+                                                  self.ytdl_path, logger,
+                                                  mode="offline")
             if self.gapless_playback and site in self.local_site_list and player.lower() == 'mpv':
                 if site != 'MyServer' and from_function == 'now_start':
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
@@ -13099,7 +13140,7 @@ watch/unwatch status")
                     if self.gapless_network_stream and self.mpvplayer_val.processId() == 0:
                         self.start_gapless_stream_process(length, link=title_url.replace('ytdl:', '', 1))
                     if mode == 'open url':
-                        file_name = os.path.join(ui.home_folder, 'Playlists', 'TMP_PLAYLIST')
+                        file_name = os.path.join(self.home_folder, 'Playlists', 'TMP_PLAYLIST')
                         if not os.path.exists(file_name):
                             f = open(file_name, 'w').close()
                         self.list1.clear()
