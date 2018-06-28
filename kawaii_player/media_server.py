@@ -44,7 +44,6 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import send_notification, write_files, open_files
 from player_functions import get_lan_ip, ccurl, naturallysorted, change_opt_file
-from yt import get_yt_url, get_yt_sub_
 from settings_widget import LoginAuth
 from serverlib import ServerLib
 try:
@@ -104,7 +103,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 nm = str(base64.b64decode(nm).decode('utf-8'))
                 logger.info(nm)
                 if 'youtube.com' in nm:
-                    nm = get_yt_url(nm, ui.quality_val, ui.ytdl_path, logger).strip()
+                    nm = ui.yt.get_yt_url(nm, ui.quality_val, ui.ytdl_path, logger)
             except Exception as e:
                 print(e)
         elif path.startswith('relative_path='):
@@ -1735,7 +1734,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             nm = nm.replace('"', '')
                     elif (('youtube.com' in nm or nm.startswith('ytdl:')) and not self.path.endswith('.subtitle') 
                             and not self.path.endswith('.getsub') and not self.path.endswith('.image')):
-                        nm = get_yt_url(
+                        nm = ui.yt.get_yt_url(
                                 nm, ui.client_quality_val, ui.ytdl_path, logger,
                                 mode=ui.client_yt_mode, reqfrom='client'
                                 )
@@ -2485,8 +2484,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             sub_name_bytes = bytes(loc, 'utf-8')
             h = hashlib.sha256(sub_name_bytes)
             sub_name = h.hexdigest()
-            get_yt_sub_(
-                url, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
+            #get_yt_sub_(
+            #    url, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
         try:
             ccurl(nm+'#'+'-o'+'#'+loc)
             ok_val = True
@@ -2644,7 +2643,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
             if path.startswith('http') and 'youtube.com' in path:
                 if status == 'getsub':
-                    get_yt_sub_(path, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
+                    #get_yt_sub_(path, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
                     check_local_sub = self.check_local_subtitle(sub_name_path+'.mkv', external=True)
 
                 if check_local_sub is not None and not os.path.exists(sub_path):
@@ -2809,7 +2808,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             write_files(pls_path, lines, line_by_line=True)
                             op_success = True
                 if mode == 'offline':
-                    nm = get_yt_url(
+                    nm = ui.yt.get_yt_url(
                             url, ui.client_quality_val, ui.ytdl_path,
                             logger, mode=ui.client_yt_mode, reqfrom='client'
                             )
