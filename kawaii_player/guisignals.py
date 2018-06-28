@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import urllib.parse
 from functools import partial
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -173,10 +174,9 @@ class GUISignals(QtCore.QObject):
                 index = widget.findText(widget_val)
                 widget.setCurrentIndex(index)
                 
-    @pyqtSlot(str, str)
+    @pyqtSlot(str, str, bool)
     def show_login_box(self, url, pls, verify):
         LoginPCToPC(MainWindow, url, ui, pls, verify, onfinished=ui.list2.post_pc_processing)
-        
         
     @pyqtSlot(int, str, str)
     def apply_episode_metadata(self, num, ep, sumr, path):
