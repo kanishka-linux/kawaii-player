@@ -1943,7 +1943,6 @@ watch/unwatch status")
         self.new_tray_widget = None
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
-        self.yt = YTDL(self)
         self.player_val = 'mpv'
         self.addons_option_arr = []
         self.mpvplayer_started = False
@@ -2033,6 +2032,7 @@ watch/unwatch status")
             verify = False
         self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent}, verify=verify)
         self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
+        self.yt = YTDL(self)
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, int(screen_height/1.5)))
