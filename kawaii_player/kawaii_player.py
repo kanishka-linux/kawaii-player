@@ -10124,6 +10124,8 @@ watch/unwatch status")
                     else:
                         if self.music_playlist:
                             yt_mode = 'yt_music'
+                        elif mode:
+                            yt_mode = mode
                         else:
                             yt_mode = 'yt'
                     finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
@@ -10270,7 +10272,7 @@ watch/unwatch status")
         global site, name
         self.queue_stop = False
         if not self.epn_wait_thread.isRunning():
-            if site not in ['Video', 'Music', 'PlayLists', 'None'] and extra:
+            if site.lower() not in ['video', 'music', 'playlists', 'none'] and extra:
                 n, e, m, q, r, s, sn, ep = extra
                 self.epn_wait_thread = PlayerGetEpn(
                     self, logger, 'type_three', n, e, m, q, r, s, sn, ep)
