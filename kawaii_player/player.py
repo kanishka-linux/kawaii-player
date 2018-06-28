@@ -410,7 +410,7 @@ class PlayerWidget(QtWidgets.QWidget):
     def player_quit(self, msg=None):
         self.ui.player_stop.clicked.emit()
         
-    def load_external_sub(self, mode=None, subtitle=None):
+    def load_external_sub(self, mode=None, subtitle=None, title=None):
         if mode is None:
             fname = QtWidgets.QFileDialog.getOpenFileNames(
                     MainWindow, 'Select Subtitle file', self.ui.last_dir)
@@ -459,6 +459,26 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt_b = bytes(txt, 'utf-8')
                 logger.info("{0} - {1}".format(txt_b, txt))
                 self.mpvplayer.write(txt_b)
+        elif mode in ['load', 'auto']:
+            ext_find = subtitle.split('.')
+            if len(ext_find) >= 2:
+                lang = ext_find[-2]
+                ext = ext_find[-1]
+            else:
+                lang = ext_find[-1]
+                ext = ext_find[-1]
+            if self.ui.player_val == "mplayer":
+                cmd = 'sub_load "{}"'.format(subtitle)
+            else:
+                cmd = 'sub-add "{}" auto {} {}'.format(subtitle, lang, lang)
+            if self.ui.list2.currentItem():
+                row = self.ui.list2.currentRow()
+            else:
+                row = 0
+            if mode == 'auto':
+                self.ui.mpv_execute_command(cmd, row, 1000)
+            else:
+                self.ui.mpv_execute_command(cmd, row)
     
     def keyReleaseEvent(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
