@@ -245,6 +245,12 @@ class YTDL:
         if mode == 'music':
             final_url = final_url_aud.strip()
             logger.debug('\n only audio required since music mode has been selected \n')
+        elif mode == 'offline':
+            final_url_list = video_dict.get('22')
+            if not final_url_list:
+                final_url_list = video_dict.get('18')
+            if final_url_list:
+                final_url = final_url_list[-1]
         return final_url
 
     def post_subtitle_fetch(self, *args):
