@@ -84,6 +84,7 @@ from player_functions import set_user_password, get_lan_ip
 from yt import YTDL
 from ds import CustomList
 from meta_engine import MetaEngine
+from guisignals import GUISignals
 
 HOME_DIR = get_home_dir()
 HOME_OPT_FILE = os.path.join(HOME_DIR, 'other_options.txt')
@@ -210,216 +211,8 @@ from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
 from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
-
 from vinanti import Vinanti
 from tvdb_async import TVDB
-
-class GUISignals(QtCore.QObject):
-    
-    textsignal = pyqtSignal(str)
-    fanartsignal = pyqtSignal(str, str)
-    epsum_signal = pyqtSignal(int, str, str, str)
-    login_box = pyqtSignal(str, str, bool)
-    command_signal = pyqtSignal(str, str)
-    poster_signal = pyqtSignal(bool, str, str)
-    sub_signal = pyqtSignal(list)
-    sub_apply = pyqtSignal(str, str)
-    
-    def __init__(self):
-        QtCore.QObject.__init__(self)
-        self.text = ''
-        
-    def set_text(self, text):
-        self.text = text
-    
-    def set_fanart(self, fanart, theme):
-        self.fanart = fanart
-        self.theme = theme
-        
-    def text_changed(self, txt):
-        self.textsignal.emit(txt)
-        
-    def fanart_changed(self, fanart, theme):
-        self.fanartsignal.emit(fanart, theme)
-        
-    def ep_changed(self, num, ep, sumr, path):
-        self.epsum_signal.emit(num, ep, sumr, path)
-        
-    def login_required(self, url, pls, verify):
-        self.login_box.emit(url, pls, verify)
-        
-    def player_command(self, param, val):
-        self.command_signal.emit(param, val)
-        
-    def poster_drop(self, param, picn, nm):
-        self.poster_signal.emit(param, picn, nm)
-        
-    def subtitle_fetch(self, arr):
-        self.sub_signal.emit(arr)
-        
-    def subtitle_apply(self, url, title):
-        self.sub_apply.emit(url, title)
-
-@pyqtSlot(str)
-def apply_new_text(val):
-    global ui
-    ui.text.setText(val)
-
-@pyqtSlot(str)
-def apply_player_subtitle(url, title):
-    global ui
-    ui.tab_5.load_external_sub(mode='load', subtitle=url, title=title)
-    
-@pyqtSlot(list)
-def grab_subtitle(arr):
-    global ui
-    for entry in arr:
-        url, sub_name, title = entry
-        if not os.path.isfile(sub_name):
-            ui.vnt.get(
-                url, out=sub_name,
-                onfinished=partial(ui.yt.post_subtitle_fetch, title)
-                )
-        else:
-            ui.tab_5.load_external_sub(mode='auto', subtitle=sub_name, title=title)
-
-@pyqtSlot(bool, str, str)
-def apply_dropped_fanart_poster(poster_drop, url, nm):
-    global ui, site
-    if url.startswith('http'):
-        ui.watch_external_video('{}'.format(url), start_now=True)
-    elif poster_drop:
-        if site == 'Music':
-            ui.copy_poster_image(url, find_name=True)
-        else:
-            ui.copyImg(new_name=nm)
-    else:
-        if site == 'Music':
-            ui.copy_fanart_image(url, find_name=True)
-        else:
-            ui.copyFanart(new_name=nm)
-
-@pyqtSlot(str, str)
-def apply_fanart_widget(fanart, theme):
-    QtCore.QTimer.singleShot(100, partial(set_mainwindow_palette, fanart, theme=theme))
-    
-@pyqtSlot(str, str)
-def control_slave_playback(param, val):
-    global ui
-    _, param_type = param.split('=')
-    if param_type == 'gsbc':
-        slider_name, slider_val = val.split('=')
-        slider_list = [
-            'zoom', 'speed', 'brightness',
-            'gamma', 'saturation', 'hue', 'contrast'
-            ]
-        if slider_name in slider_list:
-            slider = eval('ui.frame_extra_toolbar.{}_slider'.format(slider_name))
-            slider.setValue(int(slider_val))
-    elif param_type == 'volume':
-        slider_name, slider_val = val.split('=')
-        if slider_name == 'volume':
-            ui.frame_extra_toolbar.slider_volume.setValue(int(slider_val))
-    elif param_type == 'subtitle':
-        subslider_list = [
-            'text', 'border', 'shadow', 'blur',
-            'xmargin', 'ymargin', 'xymargin', 'space'
-        ]
-        slider_name, slider_val = val.split('=')
-        if slider_name == 'subscale':
-            ui.frame_extra_toolbar.subscale_slider.setValue(int(slider_val))
-        elif slider_name in subslider_list:
-            slider = eval('ui.frame_extra_toolbar.subtitle_{}_slider'.format(slider_name))
-            slider.setValue(int(slider_val))
-    elif param_type == 'click':
-        widget_list = [
-            'btn_aspect_original', 'btn_aspect_disable', 'btn_aspect_4_3',
-            'btn_aspect_16_9', 'btn_aspect_235', 'btn_scr_1',
-            'btn_scr_2', 'btn_scr_3', 'btn_sub_minus', 'btn_sub_plus',
-            'btn_aud_minus', 'btn_aud_plus', 'btn_chapter_minus',
-            'btn_chapter_plus', 'btn_show_stat', 'btn_fs_window',
-            'btn_fs_video'
-            ]
-        widget_name, widget_val = val.split('=')
-        widget_name = urllib.parse.unquote(widget_name)
-        widget_val = urllib.parse.unquote(widget_val)
-        if widget_name == 'widget' and widget_val in widget_list:
-            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
-            widget.clicked.emit()
-        elif widget_name in ['font_color_value', 'border_color_value', 'shadow_color_value']:
-            ui.frame_extra_toolbar.apply_slave_subtitile_effects(widget_name, widget_val)
-        elif widget_name in ['checkbox_bold', 'checkbox_italic', 'checkbox_gray', 'checkbox_dont']:
-            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
-            if widget_val.lower() == 'true':
-                widget.setChecked(True)
-            else:
-                widget.setChecked(False)
-        elif widget_name == 'font_value':
-            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
-            widget.setText(widget_val)
-            ui.frame_extra_toolbar.change_sub_font(widget, widget_name)
-        elif widget_name in ['subtitle_horiz_align', 'subtitle_vertical_align', 'ass_override_value']:
-            widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
-            if widget_name == 'subtitle_vertical_align' and widget_val == 'center':
-                    widget_val = 'Middle'
-            widget_val = widget_val.title()
-            index = widget.findText(widget_val)
-            widget.setCurrentIndex(index)
-            
-@pyqtSlot(str, str)
-def show_login_box(url, pls, verify):
-    global MainWindow, ui
-    LoginPCToPC(MainWindow, url, ui, pls, verify, onfinished=ui.list2.post_pc_processing)
-    
-    
-@pyqtSlot(int, str, str)
-def apply_episode_metadata(num, ep, sumr, path):
-    global ui
-    if num < ui.list2.count():
-        ui.list2.item(num).setText(ep)
-        ui.list2.item(num).setIcon(QtGui.QIcon(path))
-        ui.text.setText(sumr)
-        
-
-def set_mainwindow_palette(fanart, first_time=None, theme=None):
-    if theme is None or theme == 'default':
-        logger.info('\n{0}:  mainwindow background\n'.format(fanart))
-        if fanart.endswith('default.jpg'):
-            default_dir, default_img = os.path.split(fanart)
-            default_fit = os.path.join(default_dir, 'default_fit.jpg')
-            if not os.path.exists(default_fit):
-                ui.image_fit_option(fanart, default_fit, fit_size=1)
-            fanart = default_fit
-                
-        if not os.path.isfile(fanart) or ui.keep_background_constant:
-            fanart = ui.default_background
-        if os.path.isfile(fanart):
-            if not ui.keep_background_constant or first_time:
-                palette	= QtGui.QPalette()
-                palette.setBrush(QtGui.QPalette.Background, 
-                                QtGui.QBrush(QtGui.QPixmap(fanart)))
-                MainWindow.setPalette(palette)
-                ui.current_background = fanart
-    elif theme in ['system', 'transparent', 'mix', 'dark']:
-        if theme == 'dark' and first_time:
-            palette	= QtGui.QPalette()
-            palette.setColor(MainWindow.backgroundRole(), QtGui.QColor(56,60,74))
-            MainWindow.setPalette(palette)
-        if os.path.isfile(fanart) and ui.layout_mode != 'Music':
-            ui.current_background = fanart
-            if '.' in fanart:
-                fanart_name, ext = fanart.rsplit('.', 1)
-                if not fanart_name.endswith('default'):
-                    fanart_new = fanart_name + '-new.' + ext
-                    picn = ui.image_fit_option(
-                            fanart, fanart_new, fit_size=6, widget=ui.label_new
-                            )
-                    if os.path.exists(fanart_new):
-                        ui.label_new.setPixmap(QtGui.QPixmap(fanart_new, "1"))
-                else:
-                    ui.label_new.clear()
-        else:
-            ui.label_new.clear()
 
 
 class DoGetSignalNew(QtCore.QObject):
@@ -2036,15 +1829,16 @@ watch/unwatch status")
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, int(screen_height/1.5)))
-        self.gui_signals = GUISignals()
-        self.gui_signals.textsignal.connect(apply_new_text)
-        self.gui_signals.fanartsignal.connect(apply_fanart_widget)
-        self.gui_signals.epsum_signal.connect(apply_episode_metadata)
-        self.gui_signals.login_box.connect(show_login_box)
-        self.gui_signals.command_signal.connect(control_slave_playback)
-        self.gui_signals.poster_signal.connect(apply_dropped_fanart_poster)
-        self.gui_signals.sub_signal.connect(grab_subtitle)
-        self.gui_signals.sub_apply.connect(apply_player_subtitle)
+        
+        self.gui_signals = GUISignals(self, MainWindow)
+        self.gui_signals.textsignal.connect(self.gui_signals.apply_new_text)
+        self.gui_signals.fanartsignal.connect(self.gui_signals.apply_fanart_widget)
+        self.gui_signals.epsum_signal.connect(self.gui_signals.apply_episode_metadata)
+        self.gui_signals.login_box.connect(self.gui_signals.show_login_box)
+        self.gui_signals.command_signal.connect(self.gui_signals.control_slave_playback)
+        self.gui_signals.poster_signal.connect(self.gui_signals.apply_dropped_fanart_poster)
+        self.gui_signals.sub_signal.connect(self.gui_signals.grab_subtitle)
+        self.gui_signals.sub_apply.connect(self.gui_signals.apply_player_subtitle)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
@@ -2272,6 +2066,46 @@ watch/unwatch status")
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = False
+    
+    def set_mainwindow_palette(self, fanart, first_time=None, theme=None):
+        if theme is None or theme == 'default':
+            logger.info('\n{0}:  mainwindow background\n'.format(fanart))
+            if fanart.endswith('default.jpg'):
+                default_dir, default_img = os.path.split(fanart)
+                default_fit = os.path.join(default_dir, 'default_fit.jpg')
+                if not os.path.exists(default_fit):
+                    self.image_fit_option(fanart, default_fit, fit_size=1)
+                fanart = default_fit
+                    
+            if not os.path.isfile(fanart) or self.keep_background_constant:
+                fanart = self.default_background
+            if os.path.isfile(fanart):
+                if not self.keep_background_constant or first_time:
+                    palette	= QtGui.QPalette()
+                    palette.setBrush(QtGui.QPalette.Background, 
+                                     QtGui.QBrush(QtGui.QPixmap(fanart)))
+                    MainWindow.setPalette(palette)
+                    self.current_background = fanart
+        elif theme in ['system', 'transparent', 'mix', 'dark']:
+            if theme == 'dark' and first_time:
+                palette	= QtGui.QPalette()
+                palette.setColor(MainWindow.backgroundRole(), QtGui.QColor(56,60,74))
+                MainWindow.setPalette(palette)
+            if os.path.isfile(fanart) and self.layout_mode != 'Music':
+                self.current_background = fanart
+                if '.' in fanart:
+                    fanart_name, ext = fanart.rsplit('.', 1)
+                    if not fanart_name.endswith('default'):
+                        fanart_new = fanart_name + '-new.' + ext
+                        picn = self.image_fit_option(
+                                fanart, fanart_new, fit_size=6, widget=ui.label_new
+                                )
+                        if os.path.exists(fanart_new):
+                            self.label_new.setPixmap(QtGui.QPixmap(fanart_new, "1"))
+                    else:
+                        self.label_new.clear()
+            else:
+                self.label_new.clear()
     
     def player_volume_manager(self):
         if self.frame_extra_toolbar.isHidden():
@@ -2834,7 +2668,7 @@ watch/unwatch status")
                 self.image_fit_option(picn, fanart, fit_size=6, widget=self.label_new)
             else:
                 self.image_fit_option(picn, fanart, fit_size=self.image_fit_option_val)
-            set_mainwindow_palette(fanart, theme=self.player_theme)
+            self.set_mainwindow_palette(fanart, theme=self.player_theme)
         
     def webResize(self):
         global screen_width
@@ -4160,7 +3994,7 @@ watch/unwatch status")
                             os.remove(i)
                     QtCore.QTimer.singleShot(
                         100, partial(
-                            set_mainwindow_palette, self.default_background,
+                            self.set_mainwindow_palette, self.default_background,
                             first_time=True, theme='default'
                             )
                         )
@@ -12954,14 +12788,14 @@ watch/unwatch status")
             if self.player_theme == 'mix':
                 QtCore.QTimer.singleShot(
                     100, partial(
-                        set_mainwindow_palette, self.default_background,
+                        self.set_mainwindow_palette, self.default_background,
                         first_time=True, theme='default'
                         )
                     )
             else:
                 QtCore.QTimer.singleShot(
                     100, partial(
-                        set_mainwindow_palette, self.current_background,
+                        self.set_mainwindow_palette, self.current_background,
                         first_time=True, theme=self.player_theme
                         )
                     )
@@ -14251,14 +14085,14 @@ def main():
     if ui.player_theme == 'mix':
         QtCore.QTimer.singleShot(
             100, partial(
-                set_mainwindow_palette, ui.default_background,
+                ui.set_mainwindow_palette, ui.default_background,
                 first_time=True, theme='default'
                 )
             )
     else:
         QtCore.QTimer.singleShot(
             100, partial(
-                set_mainwindow_palette, picn, first_time=True,
+                ui.set_mainwindow_palette, picn, first_time=True,
                 theme=ui.player_theme
                 )
             )
@@ -14602,7 +14436,6 @@ def main():
                 ui.mpvplayer_string_list = config_dict['str']
     except Exception as err:
         logger.error(err)
-        
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
