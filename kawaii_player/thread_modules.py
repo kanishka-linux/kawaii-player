@@ -32,7 +32,6 @@ from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import ccurl, write_files, open_files, send_notification
-from yt import get_yt_url
 
 class FindPosterThread(QtCore.QThread):
 
@@ -667,8 +666,8 @@ class YTdlThread(QtCore.QThread):
     def run(self):
         final_url = ''
         try:
-            final_url = get_yt_url(self.url, self.quality, self.path,
-                                   self.loger, mode='a+v')
+            final_url = ui.yt.get_yt_url(self.url, self.quality, self.path,
+                                         self.loger, mode='a+v')
             self.gotlink.emit(final_url, self.nm)
             try:
                 if not self.nm:
@@ -977,31 +976,31 @@ class PlayerGetEpn(QtCore.QThread):
         mylist = []
         try:
             if self.epn_type == 'yt':
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='a+v')
+                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                            logger, mode='a+v')
             elif self.epn_type == 'yt_music':
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='music')
+                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                            logger, mode='music')
             elif self.epn_type == 'yt_prefetch_av':
                 if ui.use_single_network_stream:
                     ytmode = 'offline'
                 else:
                     ytmode = 'a+v'
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode=ytmode)
+                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                            logger, mode=ytmode)
             elif self.epn_type == 'yt_prefetch_a':
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='music')
+                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                            logger, mode='music')
             elif self.epn_type == 'yt_title':
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='TITLE')
+                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                            logger, mode='TITLE')
             elif self.epn_type == 'yt+title':
-                finalUrl = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='a+v')
+                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                            logger, mode='a+v')
                 
                 self.get_epn_signal.emit(finalUrl, '-1')
-                title = get_yt_url(self.final, self.quality, self.yt_path,
-                                      logger, mode='TITLE')
+                title = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                        logger, mode='TITLE')
                 self.get_title_signal.emit(title, self.final)
                 nosignal = True
             elif self.epn_type == 'addons':
