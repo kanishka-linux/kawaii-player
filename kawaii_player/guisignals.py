@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import urllib.parse
 from functools import partial
 from PyQt5 import QtCore, QtGui
@@ -76,7 +77,7 @@ class GUISignals(QtCore.QObject):
     def apply_new_text(self, val):
         ui.text.setText(val)
 
-    @pyqtSlot(str)
+    @pyqtSlot(str, str)
     def apply_player_subtitle(self, url, title):
         ui.tab_5.load_external_sub(mode='load', subtitle=url, title=title)
         
