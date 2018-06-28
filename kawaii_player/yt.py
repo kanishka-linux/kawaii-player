@@ -26,13 +26,18 @@ import subprocess
 from functools import partial
 from tempfile import mkstemp
 from PyQt5 import QtCore
-from player_functions import send_notification, ccurl, get_home_dir
-
+from player_functions import send_notification, ccurl
+from vinanti import Vinanti
 
 class YTDL:
     
     def __init__(self, ui):
         self.ui = ui
+        if os.name == 'posix':
+            verify = True
+        else:
+            verify = False
+        self.vnt = Vinanti(block=True, hdrs={'User-Agent':self.ui.user_agent}, verify=verify)
 
     def get_yt_url(self, url, quality, ytdl_path,
                    logger, mode=None, reqfrom=None):
@@ -231,11 +236,10 @@ class YTDL:
                     if isinstance(entry, dict):
                         url = entry.get('url')
                         ext = entry.get('ext')
-                        path = '{}.{}.{}'.format(ytid, key, ext)
-                        sub_path = os.path.join(sub_folder, path)
-                        sub_arr.append([url, sub_path, title])
-        if sub_arr:
-            self.ui.gui_signals.subtitle_fetch(sub_arr)
+                        if ext != 'ttml':
+                            path = '{}.{}.{}'.format(ytid, key, ext)
+                            sub_path = os.path.join(sub_folder, path)
+                            sub_arr.append([url, sub_path, title])
         final_url_vid = req_vid[-1]
         final_url_aud = req_aud[-1]
         if final_url_vid and final_url_aud:
@@ -251,6 +255,15 @@ class YTDL:
                 final_url_list = video_dict.get('18')
             if final_url_list:
                 final_url = final_url_list[-1]
+        if (sub_arr and self.ui.mpvplayer_val.processId() == 0) or not self.ui.gapless_network_stream:
+            self.ui.gui_signals.subtitle_fetch(sub_arr)
+        elif sub_arr and self.ui.gapless_network_stream:
+            for sub in sub_arr:
+                url, sub_path, title = sub
+                if not os.path.isfile(sub_path):
+                    self.vnt.get(url, out=sub_path)
+                final_url = final_url + '::' + sub_path
+                logger.debug(sub_path)
         return final_url
 
     def post_subtitle_fetch(self, *args):
