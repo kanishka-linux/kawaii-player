@@ -1450,8 +1450,8 @@ class BroadcastServer(QtCore.QThread):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         port = str(ui.local_port_stream)
         print(ui.local_ip_stream, '-----ip--', ui.local_port_stream)
-        msg = 'this is kawaii-player At: port={} https={} msg={}'.format(
-            port, ui.https_media_server, ui.broadcast_message)
+        msg = 'this is kawaii-player At: port={} https={} pc_to_pc_casting={} msg={}'.format(
+            port, ui.https_media_server, ui.pc_to_pc_casting, ui.broadcast_message)
         msg = bytes(msg , 'utf-8')
         if ui.https_media_server:
             https_val = 'https'
@@ -1483,24 +1483,30 @@ class DiscoverServer(QtCore.QThread):
             ui.discover_server = True
         self.discover_signal.connect(remember_server)
         self.clear_list.connect(clear_server_list)
+        
     def __del__(self):
         self.wait()                        
     
     def run(self):
-        print('hello world---server discovery')
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind(('', 12345))
         s.settimeout(60)
         port_val = ''
         https_val = ''
         msg_val = ''
-        send_notification('Started Process of Discovering')
-        self.clear_list.emit('start')
-        while ui.discover_server:
+        if ui.discover_slaves:
+            send_notification('Started Process of Discovering. Make sure that other\
+                               slave-server is broadcasting itself')
+        else:
+            send_notification('Started Process of Discovering')
+        if ui.discover_server:
+            self.clear_list.emit('start')
+        while ui.discover_server or ui.discover_slaves:
             try:
                 m = s.recvfrom(1024)
                 val = str(m[0], 'utf-8')
                 server = str(m[1][0])
+                casting_mode = None
                 if val.lower().startswith('this is kawaii-player at:'):
                     val_string = (val.split(':')[1]).strip()
                     val_arr = val_string.split(' ')
@@ -1513,23 +1519,33 @@ class DiscoverServer(QtCore.QThread):
                                 https_val = 'https'
                             else:
                                 https_val = 'http'
+                        elif i.startswith('pc_to_pc_casting='):
+                            casting_mode = i.split('=')[1]
+                    if casting_mode == 'slave' and ui.discover_slaves:
+                        slave_address = '{}://{}:{}'.format(https_val, server, port_val)
+                        if slave_address not in ui.pc_to_pc_casting_slave_list:
+                            ui.pc_to_pc_casting_slave_list.append(slave_address)
                     msg_val = re.search('msg=[^"]*', val_string).group()
                     msg_val = msg_val.replace('msg=', '', 1)
                     server_val = '{0}://{1}:{2}/\t{3}'.format(
                         https_val, server, port_val, msg_val)
-                    if server_val not in ui.broadcast_server_list:
+                    if server_val not in ui.broadcast_server_list and ui.discover_server:
                         ui.broadcast_server_list.append(server_val)
                         self.discover_signal.emit(server_val)
                 time.sleep(1)
             except Exception as e:
                 print('timeout', e)
                 break
-        if not ui.broadcast_server_list:
+        if not ui.broadcast_server_list and ui.discover_server:
             send_notification('No Server Found')
             self.clear_list.emit('no server')
-        else:
+        elif not ui.pc_to_pc_casting_slave_list and ui.discover_slaves:
+            send_notification('No Slave Found')
+        elif ui.broadcast_server_list:
             send_notification('Stopped Discovering: found {} servers'.format(len(ui.broadcast_server_list)))
-
+        elif ui.pc_to_pc_casting_slave_list:
+            send_notification('Stopped Discovering: found {} slaves'.format(len(ui.pc_to_pc_casting_slave_list)))
+            
 @pyqtSlot(str)
 def remember_server(val):
     ui.text.setText('Found..')
