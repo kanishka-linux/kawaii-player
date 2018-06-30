@@ -14442,7 +14442,9 @@ def main():
     
     """Starting of Final code which will be Executed just before 
     Application Quits"""
-    
+    ui.discover_server = False
+    ui.discover_slaves = False
+    ui.broadcast_server = False
     if ui.dockWidget_3.isHidden() or ui.auto_hide_dock:
         dock_opt = 0
     else:
