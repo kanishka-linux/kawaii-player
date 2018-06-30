@@ -179,7 +179,7 @@ class GUISignals(QtCore.QObject):
     def show_login_box(self, url, pls, verify):
         LoginPCToPC(MainWindow, url, ui, pls, verify, onfinished=ui.list2.post_pc_processing)
         
-    @pyqtSlot(int, str, str)
+    @pyqtSlot(int, str, str, str)
     def apply_episode_metadata(self, num, ep, sumr, path):
         if num < ui.list2.count():
             ui.list2.item(num).setText(ep)
