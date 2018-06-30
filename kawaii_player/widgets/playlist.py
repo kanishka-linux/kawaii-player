@@ -32,7 +32,7 @@ from functools import partial
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files, open_files, send_notification
-
+from thread_modules import DiscoverServer
 
 class PlaylistWidget(QtWidgets.QListWidget):
 
@@ -57,6 +57,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.count_limit = 1
         self.pc_to_pc_dict = {}
         self.verify_slave_ssl = True
+        self.discover_slave_thread = None
         
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
@@ -663,8 +664,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 row = 0
             if self.currentItem():
-                #mycopy = ui.epn_arr_list.copy()
-                #ui.metaengine.find_info_thread(0, row, mycopy)
                 self.set_search_backend(row)
         elif (event.key() == QtCore.Qt.Key_F7):
             if ui.list1.currentItem():
@@ -672,8 +671,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 row = 0
             if self.currentItem():
-                #mycopy = ui.epn_arr_list.copy()
-                #ui.metaengine.find_info_thread(1, row, mycopy)
                 self.set_search_backend(row, use_search='ddg')
         elif (event.key() == QtCore.Qt.Key_F8):
             if ui.list1.currentItem():
@@ -681,8 +678,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 row = 0
             if self.currentItem():
-                #mycopy = ui.epn_arr_list.copy()
-                #ui.metaengine.find_info_thread(2, row, mycopy)
                 self.set_search_backend(row, use_search='g')
         elif event.key() == QtCore.Qt.Key_F9:
             self.get_default_name(0, mode='from_summary')
@@ -1126,17 +1121,21 @@ class PlaylistWidget(QtWidgets.QListWidget):
         else:
             ui.vnt.get(addr, timeout=60, verify=verify)
     
-    def setup_slave_address(self):
-        item = '127.0.0.1:9001'
+    def setup_slave_address(self, ipaddr=None):
         file_path = os.path.join(ui.home_folder, 'slave.txt')
-        if os.path.isfile(file_path):
-            ip_addr = open_files(file_path, False)
+        if ipaddr:
+            item = ipaddr
+            ok = True
         else:
-            ip_addr = ''
-        item, ok = QtWidgets.QInputDialog.getText(
-            MainWindow, 'Input Dialog', 'Enter IP Address of Slave\nExample: http://192.168.2.3:9001',
-            QtWidgets.QLineEdit.Normal, ip_addr
-            )
+            item = '127.0.0.1:9001'
+            if os.path.isfile(file_path):
+                ip_addr = open_files(file_path, False)
+            else:
+                ip_addr = ''
+            item, ok = QtWidgets.QInputDialog.getText(
+                MainWindow, 'Input Dialog', 'Enter IP Address of Slave\nExample: http://192.168.2.3:9001',
+                QtWidgets.QLineEdit.Normal, ip_addr
+                )
         if ok and item:
             n = urlparse(item)
             scheme = n.scheme
@@ -1148,7 +1147,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             item = scheme + '://' + netloc
             with open(file_path, 'w') as f:
                 f.write(item)
-            msg = 'Address of Slave is set to {}, now start media server and cast single item or playlist'.format(item)
+            msg = ('Address of Slave is set to {}, now start media server\
+                    and cast single item or playlist'.format(item))
             send_notification(msg)
             logger.info(msg)
         ui.slave_address = item
@@ -1648,6 +1648,15 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 clear_session = cast_menu.addAction("Logout and Clear Session")
+                if ui.discover_slaves:
+                    dis_slave = cast_menu.addAction("Stop Discovering")
+                else:
+                    dis_slave = cast_menu.addAction("Discover Slaves")
+                slave_actions = []
+                if ui.pc_to_pc_casting_slave_list:
+                    cast_menu.addSeparator()
+                    for ip in ui.pc_to_pc_casting_slave_list:
+                        slave_actions.append(cast_menu.addAction(ip))
                 menu.addMenu(cast_menu)
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
@@ -1764,6 +1773,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.clear_slave_session()
                 elif action == cast_menu_web:
                     self.show_web_menu()
+                elif action == dis_slave:
+                    self.discover_slave_ips(action.text())
+                elif action in slave_actions:
+                    self.setup_slave_address(ipaddr=action.text())
             if save_pls_entry:
                 if action == save_pls:
                     print("creating")
@@ -1779,8 +1792,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     else:
                         row = 0
                     if self.currentItem():
-                        #mycopy = ui.epn_arr_list.copy()
-                        #ui.metaengine.find_info_thread(0, row, mycopy)
                         self.set_search_backend(row)
                 elif action == eplist_ddg:
                     if ui.list1.currentItem():
@@ -1788,8 +1799,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     else:
                         row = 0
                     if self.currentItem():
-                        #mycopy = ui.epn_arr_list.copy()
-                        #ui.metaengine.find_info_thread(1, row, mycopy)
                         self.set_search_backend(row, use_search='ddg')
                 elif action == eplist_g:
                     if ui.list1.currentItem():
@@ -1797,8 +1806,6 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     else:
                         row = 0
                     if self.currentItem():
-                        #mycopy = ui.epn_arr_list.copy()
-                        #ui.metaengine.find_info_thread(2, row, mycopy)
                         self.set_search_backend(row, use_search='g')
             if action == new_pls:
                 print("creating")
@@ -1889,5 +1896,17 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if self.currentItem():
                     self.fix_order()
 
-
-
+    def discover_slave_ips(self, text):
+        if text.lower() == 'discover slaves':
+            ui.discover_slaves = True
+            logger.debug('starting...')
+            if not self.discover_slave_thread:
+                self.discover_slave_thread = DiscoverServer(ui)
+                self.discover_slave_thread.start()
+            elif isinstance(self.discover_slave_thread, DiscoverServer):
+                if not self.discover_slave_thread.isRunning():
+                    self.discover_slave_thread = DiscoverServer(ui)
+                    self.discover_slave_thread.start()
+        elif text.lower() == 'stop discovering':
+            ui.discover_slaves = False
+            logger.debug('stopping...')
