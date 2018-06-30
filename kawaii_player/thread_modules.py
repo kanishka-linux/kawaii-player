@@ -1496,7 +1496,7 @@ class DiscoverServer(QtCore.QThread):
         msg_val = ''
         if ui.discover_slaves:
             notifymsg = ('Started Process of Discovering. Make sure that\
-                          other slave-server is broadcasting itself')
+                          Slave is broadcasting itself')
         else:
             notifymsg = 'Started Process of Discovering'
         notifymsg = re.sub(' +', ' ', notifymsg)
