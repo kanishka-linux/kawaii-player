@@ -1474,6 +1474,15 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu.addSeparator()
                 set_cast_slave = cast_menu.addAction("Set Slave IP Address")
                 clear_session = cast_menu.addAction("Logout and Clear Session")
+                if ui.discover_slaves:
+                    dis_slave = cast_menu.addAction("Stop Discovering")
+                else:
+                    dis_slave = cast_menu.addAction("Discover Slaves")
+                slave_actions = []
+                if ui.pc_to_pc_casting_slave_list:
+                    cast_menu.addSeparator()
+                    for ip in ui.pc_to_pc_casting_slave_list:
+                        slave_actions.append(cast_menu.addAction(ip))
                 menu.addMenu(cast_menu)
             save_pls = menu.addAction('Save Current Playlist')
             go_to = menu.addAction("Go To Last.fm")
@@ -1517,6 +1526,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.clear_slave_session()
                 elif action == cast_menu_web:
                     self.show_web_menu()
+                elif action == dis_slave:
+                    self.discover_slave_ips(action.text())
+                elif action in slave_actions:
+                    self.setup_slave_address(ipaddr=action.text())
             if action == new_pls:
                 print("creating")
                 item, ok = QtWidgets.QInputDialog.getText(
