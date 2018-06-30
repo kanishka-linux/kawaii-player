@@ -1609,6 +1609,8 @@ watch/unwatch status")
         self.playlist_queue_used = False
         self.player_focus = False
         self.pc_to_pc_casting = 'no'
+        self.pc_to_pc_casting_slave_list = []
+        self.discover_slaves = False
         self.subtitle_wait_thread = QtCore.QThread()
         self.instant_cast_play = -1
         self.live_preview = 'no'
