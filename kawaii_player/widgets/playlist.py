@@ -1149,6 +1149,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 f.write(item)
             msg = ('Address of Slave is set to {}, now start media server\
                     and cast single item or playlist'.format(item))
+            msg = re.sub(' +', ' ', msg)
             send_notification(msg)
             logger.info(msg)
         ui.slave_address = item

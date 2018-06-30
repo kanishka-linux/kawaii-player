@@ -1495,10 +1495,12 @@ class DiscoverServer(QtCore.QThread):
         https_val = ''
         msg_val = ''
         if ui.discover_slaves:
-            send_notification('Started Process of Discovering. Make sure that other\
-                               slave-server is broadcasting itself')
+            notifymsg = ('Started Process of Discovering. Make sure that\
+                          other slave-server is broadcasting itself')
         else:
-            send_notification('Started Process of Discovering')
+            notifymsg = 'Started Process of Discovering'
+        notifymsg = re.sub(' +', ' ', notifymsg)
+        send_notification(notifymsg)
         if ui.discover_server:
             self.clear_list.emit('start')
         while ui.discover_server or ui.discover_slaves:
