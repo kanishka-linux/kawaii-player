@@ -46,6 +46,7 @@ var _player = document.getElementById("player"),
     _seek_5m_ = document.getElementById("seek_5m"),
     _vol_5 = document.getElementById("vol5"),
     _vol_5_ = document.getElementById("vol_5"),
+    _toggle_master = document.getElementById("toggle_master"),
     _fullscreen = document.getElementById("fullscreen"),
     _selection_site = document.getElementById("selection_site"),
     _minimal = document.getElementById("minimal"),
@@ -1773,6 +1774,13 @@ function onDocReady(){
         _show_thumbnails = false;
         show_thumbnails_image_set('False');
     }
+    
+    if (w[3].toLowerCase() == 'webcontrol:master'){
+		_toggle_master.innerHTML = 'Master';
+	}else if (w[3].toLowerCase() == 'webcontrol:slave'){
+        _toggle_master.innerHTML = 'Slave';
+		}
+    
 	var x = document.getElementById("site").value;
 	console.log(x);
 	
@@ -2323,7 +2331,18 @@ function populate_playlist(new_url){
         populate_playlist_only(response, 0);
 	})
 }
-
+function toggle_master_slave(){
+    var client = new getRequest();
+	client.get('toggle_master_slave', function(response) {
+        var txt = response.toLowerCase();
+        console.log(txt);
+        if (txt == 'master'){
+            _toggle_master.innerHTML = 'Master';
+        }else if (txt == 'slave'){
+            _toggle_master.innerHTML = 'Slave';
+        }
+	})
+}
 _m3u.addEventListener("click", function () {
 	/*
     if (_current_working_m3u.startsWith('site')){
