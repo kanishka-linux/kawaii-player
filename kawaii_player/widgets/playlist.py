@@ -1241,6 +1241,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
         content = args[-1].html
         if content:
+            ui.slave_live_status = True
             content = content.decode('utf-8')
             lines = content.split('\n')
             new_dict = OrderedDict()
@@ -1340,6 +1341,32 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 msg = re.sub('  +', ' ', msg)
                 logger.error(msg)
                 send_notification(msg)
+        else:
+            self.start_remote_status(args[-2])
+            
+    def start_remote_status(self, url):
+        n = urlparse(url)
+        nurl = n.scheme + '://' + n.netloc + '/get_remote_control_status'
+        val = ui.vnt.cookie_session.get(n.netloc)
+        verify = self.verify_slave_ssl
+        if val:
+            ui.vnt.get(nurl, session=True, verify=verify, timeout=60, onfinished=self.get_remote_status)
+        else:
+            ui.vnt.get(nurl, timeout=60, verify=verify, onfinished=self.get_remote_status)
+    
+    def get_remote_status(self, *args):
+        r = args[-1]
+        content = r.html
+        url = args[-2]
+        if content and ui.slave_live_status:
+            ui.slave_status_string = content
+            n = urlparse(url)
+            val = ui.vnt.cookie_session.get(n.netloc)
+            verify = self.verify_slave_ssl
+            if val:
+                ui.vnt.get(url, session=True, verify=verify, wait=0.8, timeout=60, onfinished=self.get_remote_status)
+            else:
+                ui.vnt.get(url, timeout=60, verify=verify, wait=0.8, onfinished=self.get_remote_status)
     
     def post_pc_processing(self, *args):
         r = args[0]
@@ -1357,6 +1384,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             send_notification(msg)
         else:
             logger.error(err)
+            self.start_remote_status(url)
             
     def remove_thumbnails(self, row, row_item, remove_summary=None):
         dest = ui.get_thumbnail_image_path(row, row_item, only_name=True)
