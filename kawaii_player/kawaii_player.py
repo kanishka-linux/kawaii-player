@@ -1608,6 +1608,8 @@ watch/unwatch status")
         self.extra_toolbar_control = 'master'
         self.playlist_queue_used = False
         self.player_focus = False
+        self.slave_live_status = False
+        self.slave_status_string = "00::00::0::0"
         self.pc_to_pc_casting = 'no'
         self.pc_to_pc_casting_slave_list = []
         self.discover_slaves = False
