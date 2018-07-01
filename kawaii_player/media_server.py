@@ -3164,7 +3164,8 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                         item = ui.list1.item(row)
                         logger.debug(':::::row:::{0}::::::::'.format(row))
                         if item:
-                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            #ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            ui.gui_signals.click_title_list('playlist_click_from_client')
                             time.sleep(0.5)
                             if ui.instant_cast_play in range(0, ui.list2.count()) and srch.lower() == 'tmp_playlist':
                                 ui.list2.setCurrentRow(ui.instant_cast_play)
