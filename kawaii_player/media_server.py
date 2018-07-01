@@ -904,8 +904,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         global html_default_arr, home, ui, logger
         #extra_fields = ''
 
-        extra_fields = 'RemoteField:{0};RemoteControl:{1};Thumbnails:{2};'.format(
-            ui.remote_control_field, ui.remote_control, ui.show_client_thumbnails
+        extra_fields = 'RemoteField:{0};RemoteControl:{1};Thumbnails:{2};WebControl:{3};'.format(
+            ui.remote_control_field, ui.remote_control, ui.show_client_thumbnails, ui.web_control
             )
         for i in html_default_arr:
             if i.lower() == 'video':
@@ -1545,6 +1545,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.final_message(b)
                 remote_signal = doGETSignal()
                 remote_signal.control_signal.emit(300, 'seek')
+            else:
+                b = b'Remote Control Not Allowed'
+                self.final_message(b)
+        elif path.lower() == 'toggle_master_slave':
+            if ui.remote_control and ui.remote_control_field:
+                if ui.web_control == 'master':
+                    ui.web_control = 'slave'
+                else:
+                    ui.web_control = 'master'
+                self.final_message(bytes(ui.web_control, 'utf-8'))
+                if not ui.settings_box.tabs_present:
+                    ui.gui_signals.box_settings('hide')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -2926,70 +2938,118 @@ def start_player_remotely(nm, mode):
             ui.cur_row = (nm%ui.list2.count())
         ui.list2.setCurrentRow(ui.cur_row)
         item = ui.list2.item(ui.cur_row)
-        if item:
+        if item and ui.web_control == 'master':
             ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-        #print('---1523---')
+        elif item and ui.web_control == 'slave':
+            ui.gui_signals.playlist_command('playlist', ui.cur_row)
     elif mode == 'queue':
         nm = nm - 1
         ui.queue_item_external = nm
-        ui.set_queue_item_btn.clicked.emit()
+        if ui.web_control == 'master':
+            ui.set_queue_item_btn.clicked.emit()
+        else:
+            ui.gui_signals.playlist_command('queue', nm)
     elif mode == 'queue_remove':
         ui.queue_item_external_remove = nm
         ui.remove_queue_item_btn.clicked.emit()
-    else:
-        if mode == 'playpause':
+    elif mode == 'playpause':
+        if ui.web_control == 'master':
             ui.player_play_pause.clicked.emit()
-        elif mode == 'playpause_play':
-            ui.player_play_pause_play.clicked.emit()
-        elif mode == 'playpause_pause':
-            ui.player_play_pause_pause.clicked.emit()
-        elif mode == 'show_player':
-            #print('show--window---2149')
-            ui.player_show_btn.clicked.emit()
-        elif mode == 'hide_player':
-            #print('hide--window---2152')
-            ui.player_hide_btn.clicked.emit()
         else:
-            if ui.mpvplayer_val.processId() > 0:
-                if mode == 'stop':
-                    if MainWindow.isFullScreen():
-                        ui.player_fullscreen.clicked.emit()
-                    ui.player_stop.clicked.emit()
-                elif mode == 'loop':
-                    ui.player_loop_file.clicked.emit()
-                elif mode == 'next':
-                    ui.player_next.clicked.emit()
-                elif mode == 'prev':
-                    ui.player_prev.clicked.emit()
-                elif mode == 'seek':
-                    if nm == 10:
-                        ui.player_seek_10.clicked.emit()
-                    elif nm == -10:
-                        ui.player_seek_10_.clicked.emit()
-                    elif nm == 60:
-                        ui.player_seek_60.clicked.emit()
-                    elif nm == -60:
-                        ui.player_seek_60_.clicked.emit()
-                    elif nm == 300:
-                        ui.player_seek_5m.clicked.emit()
-                    elif nm == -300:
-                        ui.player_seek_5m_.clicked.emit()
-                    else:
-                        ui.client_seek_val = nm
-                        ui.player_seek_all.clicked.emit()
-                elif mode == 'volume':
-                    if nm == 5:
-                        ui.player_vol_5.clicked.emit()
-                    elif nm == -5:
-                        ui.player_vol_5_.clicked.emit()
-                elif mode == 'fullscreen':
+            ui.settings_box.play_pause.clicked.emit()
+    elif mode == 'playpause_play':
+        ui.player_play_pause_play.clicked.emit()
+    elif mode == 'playpause_pause':
+        ui.player_play_pause_pause.clicked.emit()
+    elif mode == 'show_player':
+        ui.player_show_btn.clicked.emit()
+    elif mode == 'hide_player':
+        ui.player_hide_btn.clicked.emit()
+    elif ui.mpvplayer_val.processId() > 0 or ui.web_control == 'slave':
+        if mode == 'stop':
+            if ui.web_control == 'master':
+                if MainWindow.isFullScreen():
                     ui.player_fullscreen.clicked.emit()
-                elif mode == 'toggle_subtitle':
-                    ui.subtitle_track.clicked.emit()
-                elif mode == 'toggle_audio':
-                    ui.audio_track.clicked.emit()
-                elif mode == 'add_subtitle':
-                    ui.add_external_subtitle.clicked.emit()
+                ui.player_stop.clicked.emit()
+            else:
+                ui.settings_box.playerstop.clicked.emit()
+        elif mode == 'loop':
+            if ui.web_control == 'master':
+                ui.player_loop_file.clicked.emit()
+            else:
+                ui.settings_box.play_loop.clicked.emit()
+        elif mode == 'next':
+            if ui.web_control == 'master':
+                ui.player_next.clicked.emit()
+            else:
+                ui.settings_box.playernext.clicked.emit()
+        elif mode == 'prev':
+            if ui.web_control == 'slave':
+                ui.player_prev.clicked.emit()
+            else:
+                ui.settings_box.playerprev.clicked.emit()
+        elif mode == 'seek':
+            if nm == 10:
+                if ui.web_control == 'master':
+                    ui.player_seek_10.clicked.emit()
+                else:
+                    ui.settings_box.playerseek10.clicked.emit()
+            elif nm == -10:
+                if ui.web_control == 'master':
+                    ui.player_seek_10_.clicked.emit()
+                else:
+                    ui.settings_box.playerseek_10.clicked.emit()
+            elif nm == 60:
+                if ui.web_control == 'master':
+                    ui.player_seek_60.clicked.emit()
+                else:
+                    ui.settings_box.playerseek60.clicked.emit()
+            elif nm == -60:
+                if ui.web_control == 'master':
+                    ui.player_seek_60_.clicked.emit()
+                else:
+                    ui.settings_box.playerseek_60.clicked.emit()
+            elif nm == 300:
+                if ui.web_control == 'master':
+                    ui.player_seek_5m.clicked.emit()
+                else:
+                    ui.settings_box.playerseek5m.clicked.emit()
+            elif nm == -300:
+                if ui.web_control == 'master':
+                    ui.player_seek_5m_.clicked.emit()
+                else:
+                    ui.settings_box.playerseek_5m.clicked.emit()
+            elif ui.web_control == 'master':
+                ui.client_seek_val = nm
+                ui.player_seek_all.clicked.emit()
+        elif mode == 'volume':
+            if nm == 5:
+                if ui.web_control == 'master':
+                    ui.player_vol_5.clicked.emit()
+                else:
+                    ui.settings_box.playervol5.clicked.emit()
+            elif nm == -5:
+                if ui.web_control == 'master':
+                    ui.player_vol_5_.clicked.emit()
+                else:
+                    ui.settings_box.playervol_5.clicked.emit()
+        elif mode == 'fullscreen':
+            if ui.web_control == 'master':
+                ui.player_fullscreen.clicked.emit()
+            else:
+                ui.settings_box.toggle_fs.clicked.emit()
+        elif mode == 'toggle_subtitle':
+            if ui.web_control == 'master':
+                ui.subtitle_track.clicked.emit()
+            else:
+                ui.settings_box.toggle_sub.clicked.emit()
+        elif mode == 'toggle_audio':
+            if ui.web_control == 'master':
+                ui.audio_track.clicked.emit()
+            else:
+                ui.settings_box.toggle_aud.clicked.emit()
+        elif mode == 'add_subtitle':
+            ui.add_external_subtitle.clicked.emit()
 
 def find_and_set_index(st, st_o, srch):
     index = None
