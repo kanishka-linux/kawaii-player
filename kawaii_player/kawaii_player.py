@@ -2947,14 +2947,13 @@ watch/unwatch status")
             self.cur_row = 0
             self.list1.show()
             self.list1.setFocus()
-        else:
-            if self.list2.isHidden():
-                self.list1.hide()
-                self.frame.hide()
-                self.list2.show()
-                self.list2.setFocus()
-                show_hide_titlelist = 0
-                show_hide_playlist = 1
+        elif self.list2.isHidden():
+            self.list1.hide()
+            self.frame.hide()
+            self.list2.show()
+            self.list2.setFocus()
+            show_hide_titlelist = 0
+            show_hide_playlist = 1
         self.update_list2()
         
     def hide_torrent_info(self):
@@ -6499,14 +6498,14 @@ watch/unwatch status")
             else:
                 self.rawlist_highlight()
     
-    def update_list2(self, epn_arr=None):
+    def update_list2(self, epn_arr=None, show_thumb=None):
         global site
         update_pl_thumb = True
         
         if not self.epn_arr_list and epn_arr is None:
             pass
         else:
-            if self.list2.isHidden():
+            if self.list2.isHidden() and not show_thumb:
                 update_pl_thumb = False
             if epn_arr:
                 new_epn_arr = epn_arr.copy()
