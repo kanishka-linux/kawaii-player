@@ -441,7 +441,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 self.apply_tab_shortcuts()
                 self.set_tab_slave()
                 self.tabs_present = True
-            if not ui.label.isHidden():
+            if not ui.label.isHidden() and mode != 'hide':
                 ui.label_new.hide()
                 ui.label.hide()
                 ui.text.hide()
@@ -630,6 +630,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.toggle_aud.clicked.connect(partial(self.slave_commands, 'toggle_audio'))
         self.toggle_aud.setToolTip('Toggle Audio')
         
+        self.playerseekabs = QtWidgets.QPushButton()
+        self.gl9.addWidget(self.playerseekabs, 3, 4, 1, 1)
+        self.playerseekabs.setText('abs')
+        self.playerseekabs.clicked.connect(partial(self.slave_commands, 'seek_abs_'))
+        self.playerseekabs.hide()
+        
         self.slave_label = QtWidgets.QTextEdit()
         self.slave_label.setMaximumHeight(200)
         self.gl9.addWidget(self.slave_label, 4, 0, 1, 4)
@@ -649,9 +655,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 cmd = 'remote_on.htm'
             else:
                 cmd = 'remote_off.htm'
+        if cmd == 'playerstop':
+            ui.slave_live_status = False
         ip = ui.slave_address
         if data:
             request_url = 'sending_command'
+        elif cmd == 'seek_abs_':
+            request_url = 'seek_abs_{}'.format(ui.client_seek_val)
         else:
             request_url = cmd
         addr = None
