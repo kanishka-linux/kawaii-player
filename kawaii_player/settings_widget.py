@@ -421,7 +421,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             ui.settings_tab_index = index
             logger.debug(ui.settings_tab_index)
         
-    def start(self, index=None):
+    def start(self, index=None, mode=None):
         if self.isHidden():
             logger.debug(ui.settings_tab_index)
             self.setCurrentIndex(ui.settings_tab_index)
@@ -446,7 +446,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.label.hide()
                 ui.text.hide()
                 self.hide_label = True
-            self.show()
+            if mode == 'hide':
+                self.hide()
+            else:
+                self.show()
             self.currentChanged.connect(self.tab_changed)
         else:
             self.hide()
