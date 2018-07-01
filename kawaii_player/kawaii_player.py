@@ -1831,16 +1831,8 @@ watch/unwatch status")
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, int(screen_height/1.5)))
-        
+        self.web_control = 'master'
         self.gui_signals = GUISignals(self, MainWindow)
-        self.gui_signals.textsignal.connect(self.gui_signals.apply_new_text)
-        self.gui_signals.fanartsignal.connect(self.gui_signals.apply_fanart_widget)
-        self.gui_signals.epsum_signal.connect(self.gui_signals.apply_episode_metadata)
-        self.gui_signals.login_box.connect(self.gui_signals.show_login_box)
-        self.gui_signals.command_signal.connect(self.gui_signals.control_slave_playback)
-        self.gui_signals.poster_signal.connect(self.gui_signals.apply_dropped_fanart_poster)
-        self.gui_signals.sub_signal.connect(self.gui_signals.grab_subtitle)
-        self.gui_signals.sub_apply.connect(self.gui_signals.apply_player_subtitle)
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
