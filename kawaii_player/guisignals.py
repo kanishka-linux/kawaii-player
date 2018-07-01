@@ -34,6 +34,8 @@ class GUISignals(QtCore.QObject):
     poster_signal = pyqtSignal(bool, str, str)
     sub_signal = pyqtSignal(list)
     sub_apply = pyqtSignal(str, str)
+    play_signal = pyqtSignal(str, int)
+    start_settings = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -41,6 +43,16 @@ class GUISignals(QtCore.QObject):
         self.text = ''
         ui = uiwidget
         MainWindow = mw
+        self.textsignal.connect(self.apply_new_text)
+        self.fanartsignal.connect(self.apply_fanart_widget)
+        self.epsum_signal.connect(self.apply_episode_metadata)
+        self.login_box.connect(self.show_login_box)
+        self.command_signal.connect(self.control_slave_playback)
+        self.poster_signal.connect(self.apply_dropped_fanart_poster)
+        self.sub_signal.connect(self.grab_subtitle)
+        self.sub_apply.connect(self.apply_player_subtitle)
+        self.play_signal.connect(self.receive_playlist_command)
+        self.start_settings.connect(self.start_settings_box)
         
     def set_text(self, text):
         self.text = text
@@ -72,6 +84,16 @@ class GUISignals(QtCore.QObject):
         
     def subtitle_apply(self, url, title):
         self.sub_apply.emit(url, title)
+        
+    def playlist_command(self, mode, row):
+        self.play_signal.emit(mode, row)
+        
+    def box_settings(self, mode):
+        self.start_settings.emit(mode)
+        
+    @pyqtSlot(str)
+    def start_settings_box(self, val):
+        ui.settings_box.start(mode=val)
 
     @pyqtSlot(str)
     def apply_new_text(self, val):
@@ -80,6 +102,10 @@ class GUISignals(QtCore.QObject):
     @pyqtSlot(str, str)
     def apply_player_subtitle(self, url, title):
         ui.tab_5.load_external_sub(mode='load', subtitle=url, title=title)
+    
+    @pyqtSlot(str, int)
+    def receive_playlist_command(self, mode, row):
+        ui.list2.start_pc_to_pc_casting(mode, row)
         
     @pyqtSlot(list)
     def grab_subtitle(self, arr):
