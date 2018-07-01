@@ -1593,9 +1593,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 seek_val = 0
                 try:
                     seek_val_float = float(val)
-                    seek_val = int(ui.mplayerLength*(seek_val_float/100))
-                    if ui.player_val == 'mplayer':
-                        seek_val = seek_val/1000
+                    if ui.web_control == 'master':
+                        seek_val = int(ui.mplayerLength*(seek_val_float/100))
+                        if ui.player_val == 'mplayer':
+                            seek_val = seek_val/1000
+                    else:
+                        seek_val = float(val)
                 except Exception as err:
                     print(err, '--1358--seek-abs--')
                 seek_str = 'seek {0}/{1}'.format(seek_val, ui.mplayerLength)
@@ -1698,12 +1701,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif path.lower() == 'get_remote_control_status':
             try:
                 if ui.remote_control and ui.remote_control_field:
-                    media_length = ui.mplayerLength
-                    progress_counter = ui.progress_counter
-                    if ui.player_val == 'mplayer':
-                        media_length = media_length/1000
-                        progress_counter = progress_counter/1000
-                    msg = str(media_length)+'::'+str(progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))
+                    if ui.web_control == 'master':
+                        media_length = ui.mplayerLength
+                        progress_counter = ui.progress_counter
+                        if ui.player_val == 'mplayer':
+                            media_length = media_length/1000
+                            progress_counter = progress_counter/1000
+                        msg = str(media_length)+'::'+str(progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))
+                    else:
+                        msg = ui.slave_status_string
                     self.final_message(bytes(msg, 'utf-8'))
                 else:
                     b = b'Remote Control Not Allowed'
@@ -3019,9 +3025,12 @@ def start_player_remotely(nm, mode):
                     ui.player_seek_5m_.clicked.emit()
                 else:
                     ui.settings_box.playerseek_5m.clicked.emit()
-            elif ui.web_control == 'master':
+            else:
                 ui.client_seek_val = nm
-                ui.player_seek_all.clicked.emit()
+                if ui.web_control == 'master':
+                    ui.player_seek_all.clicked.emit()
+                else:
+                    ui.settings_box.playerseekabs.clicked.emit()
         elif mode == 'volume':
             if nm == 5:
                 if ui.web_control == 'master':
