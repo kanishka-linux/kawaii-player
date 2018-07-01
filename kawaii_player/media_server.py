@@ -133,7 +133,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
             elif nm == 'txt_html':
                 self.send_response(200)
-                self.send_header('Content-type', 'text/html')
+                self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.send_header('Content-Length', str(1024))
                 self.send_header('Accept-Ranges', 'bytes')
                 #self.send_header('Content-Range', 'bytes ' +str('0-')+str(size)+'/'+str(size))
@@ -1200,7 +1200,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             #self.send_header('Set-Cookie', 'A=Bcdfgh')
             if path.endswith('.htm') or path.endswith('.html'):
-                self.send_header('Content-type', 'text/html')
+                self.send_header('Content-type', 'text/html; charset=utf-8')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
             size = len(pls_txt)
@@ -1286,7 +1286,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             pls_txt = bytes(pls_txt, 'utf-8')
             self.send_response(200)
             if path.endswith('.htm') or path.endswith('.html'):
-                self.send_header('Content-type', 'text/html')
+                self.send_header('Content-type', 'text/html; charset=utf-8')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
             size = len(pls_txt)
@@ -1402,7 +1402,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         st, st_o, original_path_name)
             self.send_response(200)
             if path.endswith('.htm') or path.endswith('.html'):
-                self.send_header('Content-type', 'text/html')
+                self.send_header('Content-type', 'text/html; charset=utf-8')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
             if not pls_cache:
@@ -2060,7 +2060,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 arr = b'<html>Clearing Visited Client list</html>'
                 #size = sys.getsizeof(arr)
                 self.send_response(200)
-                self.send_header('Content-type', 'text/html')
+                self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.send_header('Content-Length', len(arr))
                 self.send_header('Connection', 'close')
                 self.end_headers()
@@ -2868,7 +2868,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
         else:
             self.send_response(200)
-            self.send_header('Content-type', 'text/html')
+            self.send_header('Content-type', 'text/html; charset=utf-8')
             self.send_header('Content-Length', len(txt))
             self.send_header('Connection', 'close')
             self.end_headers()
@@ -2883,7 +2883,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         print("send header")
         self.send_response(401)
         self.send_header('WWW-Authenticate', 'Basic realm="Auth"')
-        self.send_header('Content-type', 'text/html')
+        self.send_header('Content-type', 'text/html; charset=utf-8')
         self.send_header('Content-Length', len(txt))
         self.end_headers()
         try:
