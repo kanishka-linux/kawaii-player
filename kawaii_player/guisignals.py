@@ -36,6 +36,7 @@ class GUISignals(QtCore.QObject):
     sub_apply = pyqtSignal(str, str)
     play_signal = pyqtSignal(str, int)
     start_settings = pyqtSignal(str)
+    title_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -53,6 +54,7 @@ class GUISignals(QtCore.QObject):
         self.sub_apply.connect(self.apply_player_subtitle)
         self.play_signal.connect(self.receive_playlist_command)
         self.start_settings.connect(self.start_settings_box)
+        self.title_signal.connect(self.title_clicked)
         
     def set_text(self, text):
         self.text = text
@@ -91,6 +93,14 @@ class GUISignals(QtCore.QObject):
     def box_settings(self, mode):
         self.start_settings.emit(mode)
         
+    def click_title_list(self, mode):
+        self.title_signal.emit(mode)
+    
+    @pyqtSlot(str)
+    def title_clicked(self, val):
+        ui.listfound()
+        ui.update_list2(show_thumb=True)
+    
     @pyqtSlot(str)
     def start_settings_box(self, val):
         ui.settings_box.start(mode=val)
