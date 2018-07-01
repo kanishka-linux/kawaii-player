@@ -2990,7 +2990,7 @@ def start_player_remotely(nm, mode):
             else:
                 ui.settings_box.playernext.clicked.emit()
         elif mode == 'prev':
-            if ui.web_control == 'slave':
+            if ui.web_control == 'master':
                 ui.player_prev.clicked.emit()
             else:
                 ui.settings_box.playerprev.clicked.emit()
