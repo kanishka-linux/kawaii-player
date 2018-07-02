@@ -1928,7 +1928,7 @@ watch/unwatch status")
         self.player_prev.clicked.connect(self.mpvPrevEpnList)
         self.player_play_pause.clicked.connect(self.playerPlayPause)
         self.player_loop_file.clicked.connect(
-            lambda x=0: self.playerLoopFile(self.player_loop_file)
+            partial(self.playerLoopFile, self.player_loop_file)
             )
         self.player_next.clicked.connect(self.mpvNextEpnList)
         self.mirror_change.clicked.connect(self.mirrorChange)
@@ -3242,8 +3242,9 @@ watch/unwatch status")
                 mirrorNo = 1
             else:
                 self.mirror_change.setText(str(mirrorNo))
-        
-    def toggleAudio(self):
+                
+    @GUISignals.check_master_mode('toggle_aud')
+    def toggleAudio(self, *args):
         global audio_id
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == "mplayer":
@@ -3331,8 +3332,9 @@ watch/unwatch status")
                         txt_b = bytes(txt, 'utf-8')
                         logger.info("{0} - {1}".format(txt_b, txt))
                         self.mpvplayer_val.write(txt_b)
-                        
-    def toggleSubtitle(self):
+    
+    @GUISignals.check_master_mode('toggle_sub')
+    def toggleSubtitle(self, *args):
         global sub_id
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == "mplayer":
@@ -3466,8 +3468,9 @@ watch/unwatch status")
         else:
             self.thumbnail_label_update_epn()
         QtCore.QTimer.singleShot(1000, partial(self.update_thumbnail_position))
-            
-    def playerStop(self, msg=None, restart=None):
+    
+    @GUISignals.check_master_mode('stop')
+    def playerStop(self, msg=None, restart=None, *args):
         global thumbnail_indicator, total_till, browse_cnt
         global iconv_r_indicator, iconv_r, show_hide_cover
         global show_hide_playlist, show_hide_titlelist
@@ -3670,12 +3673,11 @@ watch/unwatch status")
                 self.mpvplayer_val.write(b'\n set loop-file inf \n')
             else:
                 self.mpvplayer_val.write(b'\n set_property loop 0 \n')
-                
-    def playerLoopFile(self, loop_widget):
+    
+    @GUISignals.check_master_mode('loop')
+    def playerLoopFile(self, loop_widget, *args):
         global tray
         txt = loop_widget.text()
-        #txt = self.player_loop_file.text()
-        
         if txt == self.player_buttons['unlock']:
             self.player_setLoop_var = True
             self.player_loop_file.setText(self.player_buttons['lock'])
@@ -3699,8 +3701,9 @@ watch/unwatch status")
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                     cmd = 'osd_show_text "Loop=no" 2000'
                     self.mpv_execute_command(cmd, '', 100)
-                
-    def playerPlayPause(self):
+    
+    @GUISignals.check_master_mode('playpause')
+    def playerPlayPause(self, *args):
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
             if self.mpvplayer_val.processId() > 0:
@@ -5174,7 +5177,8 @@ watch/unwatch status")
             else:
                 self.tab_5.player_fs(mode='fs')
     
-    def mpvNextEpnList(self, play_row=None, mode=None):
+    @GUISignals.check_master_mode('next')
+    def mpvNextEpnList(self, play_row=None, mode=None, *args):
         global epn, site
         print(play_row, '--play_row--', mode)
         self.cache_mpv_counter = '00'
@@ -5275,8 +5279,9 @@ watch/unwatch status")
                     self.mpvplayer_started = False
                     print(self.mpvplayer_val.processId(), '--mpvnext---')
                     self.getNextInList(eofcode='next')
-    
-    def mpvPrevEpnList(self):
+                    
+    @GUISignals.check_master_mode('prev')
+    def mpvPrevEpnList(self, *args):
         global epn, site
         global current_playing_file_path
         self.cache_mpv_counter = '00'
@@ -11251,7 +11256,7 @@ watch/unwatch status")
                 logger.info('infoplay--10998--')
                 self.mpvplayer_started = True
                 if self.player_setLoop_var and self.player_val == 'mpv':
-                    QtCore.QTimer.singleShot(15000, partial(self.set_playerLoopFile))
+                    QtCore.QTimer.singleShot(15000, self.set_playerLoopFile)
                 
     def adjust_thumbnail_window(self, row):
         global thumbnail_indicator
