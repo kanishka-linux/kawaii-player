@@ -657,6 +657,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 cmd = 'remote_off.htm'
         if cmd == 'playerstop':
             ui.slave_live_status = False
+            ui.gui_signals.first_time = False
         ip = ui.slave_address
         if data:
             request_url = 'sending_command'
