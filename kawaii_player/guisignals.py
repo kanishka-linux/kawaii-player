@@ -18,6 +18,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import datetime
 import urllib.parse
 from functools import partial
 from PyQt5 import QtCore, QtGui
@@ -37,6 +38,7 @@ class GUISignals(QtCore.QObject):
     play_signal = pyqtSignal(str, int)
     start_settings = pyqtSignal(str)
     title_signal = pyqtSignal(str)
+    slave_status_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -55,6 +57,8 @@ class GUISignals(QtCore.QObject):
         self.play_signal.connect(self.receive_playlist_command)
         self.start_settings.connect(self.start_settings_box)
         self.title_signal.connect(self.title_clicked)
+        self.slave_status_signal.connect(self.track_slave_status)
+        self.first_time = True
         
     def set_text(self, text):
         self.text = text
@@ -95,7 +99,62 @@ class GUISignals(QtCore.QObject):
         
     def click_title_list(self, mode):
         self.title_signal.emit(mode)
+        
+    def slave_status(self, val):
+        self.slave_status_signal.emit(val)
     
+    @staticmethod
+    def check_master_mode(value):
+        def real_deco(func):
+            def wrapper(*args, **kargs):
+                gui = args[0]
+                if (gui.extra_toolbar_control == 'slave'
+                        and gui.pc_to_pc_casting == 'master'
+                        and gui.mpvplayer_val.processId() == 0):
+                    if value == 'stop':
+                        gui.settings_box.playerstop.clicked.emit()
+                    elif value == 'playpause':
+                        gui.settings_box.play_pause.clicked.emit()
+                    elif value == 'toggle_sub':
+                        gui.settings_box.toggle_sub.clicked.emit()
+                    elif value == 'toggle_aud':
+                        gui.settings_box.toggle_aud.clicked.emit()
+                    elif value == 'next':
+                        gui.settings_box.playernext.clicked.emit()
+                    elif value == 'prev':
+                        gui.settings_box.playerprev.clicked.emit()
+                    elif value == 'loop':
+                        gui.settings_box.play_loop.clicked.emit()
+                else:
+                    func(*args, **kargs)
+            return wrapper
+        return real_deco
+        
+    @pyqtSlot(str)
+    def track_slave_status(self, val):
+        val_arr = val.split('::')
+        if len(val_arr) > 3 and ui.mpvplayer_val.processId() == 0:
+            length = int(val_arr[0])
+            counter = int(val_arr[1])
+            row = int(val_arr[2]) - 1
+            que = int(val_arr[3])
+            nlen = str(datetime.timedelta(seconds=int(length)))
+            tme = str(datetime.timedelta(seconds=int(counter)))
+            if row != ui.list2.currentRow() or self.first_time:
+                ui.list2.setCurrentRow(row)
+                self.first_time = False
+            slider_max = ui.slider.maximum()
+            if length != slider_max:
+                ui.slider.setRange(0, length)
+            if ui.list2.currentItem():
+                title = ui.list2.currentItem().text()
+            else:
+                title = 'Not Available'
+            ui.slider.setValue(counter)
+            ui.progressEpn.setValue(0)
+            ui.progressEpn.setFormat((''))
+            ui.progressEpn.setFormat(('{} / {} [{}]'.format(tme, nlen, title)))
+            
     @pyqtSlot(str)
     def title_clicked(self, val):
         ui.listfound()
