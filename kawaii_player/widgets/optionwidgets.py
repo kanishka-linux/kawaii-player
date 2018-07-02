@@ -461,7 +461,10 @@ class MySlider(QtWidgets.QSlider):
         self.preview_counter += 1
         #self.setToolTip('') 
         t = ((event.x() - self.x())/self.width())
-        t = int(t*ui.mplayerLength)
+        if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:
+            t = int(t*self.maximum())
+        else:
+            t = int(t*ui.mplayerLength)
         #t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
@@ -661,7 +664,13 @@ class MySlider(QtWidgets.QSlider):
         self.preview_counter = 0
         old_val = int(self.value())
         t = ((event.x() - self.x())/self.width())
-        t = int(t*ui.mplayerLength)
+        if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:            
+            seek_per = round((t * 100), 2)
+            ui.client_seek_val = seek_per
+            ui.settings_box.playerseekabs.clicked.emit()
+            t = int(t*self.maximum())
+        else:
+            t = int(t*ui.mplayerLength)
         new_val = t
         if ui.player_val == 'mplayer':
             print(old_val, new_val, int((new_val-old_val)/1000))
@@ -1493,6 +1502,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         if txt.lower() == 'master':
             self.master_slave_tab_btn.setText('Slave')
             ui.extra_toolbar_control = 'slave'
+            if not ui.settings_box.tabs_present:
+                ui.gui_signals.box_settings('hide')
         else:
             self.master_slave_tab_btn.setText('Master')
             ui.extra_toolbar_control = 'master'
