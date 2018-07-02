@@ -1242,6 +1242,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         content = args[-1].html
         if content:
             ui.slave_live_status = True
+            ui.gui_signals.first_time = True
             content = content.decode('utf-8')
             lines = content.split('\n')
             new_dict = OrderedDict()
@@ -1360,6 +1361,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
         url = args[-2]
         if content and ui.slave_live_status:
             ui.slave_status_string = content
+            if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:
+                ui.gui_signals.slave_status(content)
             n = urlparse(url)
             val = ui.vnt.cookie_session.get(n.netloc)
             verify = self.verify_slave_ssl
