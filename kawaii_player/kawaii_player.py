@@ -1690,7 +1690,7 @@ watch/unwatch status")
         self.acquire_subtitle_lock = False
         self.cache_mpv_indicator = False
         self.cache_mpv_counter = '00'
-        self.mpv_playback_duration = None
+        self.mpv_playback_duration = 0
         self.thumbnail_label_number = [0, 'None']
         self.broadcast_message = 'kawaii-player {0}'.format(self.version_number)
         self.broadcast_server = False
@@ -10709,7 +10709,7 @@ watch/unwatch status")
                 elif ("VO:" in a or "AO:" in a or 'Stream opened successfully' in a) and not self.mplayerLength:
                     self.cache_mpv_indicator = False
                     self.cache_mpv_counter = '00'
-                    self.mpv_playback_duration = None
+                    self.mpv_playback_duration = 0
                     t = "Loading: "+self.epn_name_in_list+" (Please Wait)"
                     self.progressEpn.setFormat((t))
                     self.eof_reached = False
@@ -10768,7 +10768,7 @@ watch/unwatch status")
                         logger.debug(self.video_parameters)
                     self.cache_mpv_indicator = False
                     self.cache_mpv_counter = '00'
-                    self.mpv_playback_duration = None
+                    self.mpv_playback_duration = 0
                     logger.debug('\ntrack no. {0} ended due to reason={1}\n::{2}'.format(self.cur_row, reason_end, a))
                     logger.debug('{0}::{1}'.format(self.mplayerLength, self.progress_counter))
                     queue_item = None
@@ -11167,7 +11167,7 @@ watch/unwatch status")
         if mpv_start:
             mpv_start.pop()
         self.mplayerLength = 0
-        self.mpv_playback_duration = None
+        self.mpv_playback_duration = 0
         self.progressEpn.setMaximum(100)
         self.slider.setRange(0, 100)
         logger.debug("Process Ended")
@@ -11215,7 +11215,7 @@ watch/unwatch status")
         global site, new_epn, mpv_indicator, cache_empty
         self.eof_reached = False
         self.eof_lock = False
-        self.mpv_playback_duration = None
+        self.mpv_playback_duration = 0
         self.playlist_queue_used = False
         logger.debug('Now Starting')
         if not command:
