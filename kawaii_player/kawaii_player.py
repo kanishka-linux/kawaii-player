@@ -9953,15 +9953,14 @@ watch/unwatch status")
                     refererNeeded = False
                 epn = arr[0]
                 if 'youtube.com' in finalUrl or finalUrl.startswith('ytdl:'):
-                    if self.gapless_network_stream:
+                    if self.gapless_network_stream and mode != 'offline':
                         yt_mode = 'yt_prefetch_a'
+                    elif self.music_playlist:
+                        yt_mode = 'yt_music'
+                    elif mode:
+                        yt_mode = mode
                     else:
-                        if self.music_playlist:
-                            yt_mode = 'yt_music'
-                        elif mode:
-                            yt_mode = mode
-                        else:
-                            yt_mode = 'yt'
+                        yt_mode = 'yt'
                     finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
                                                   self.ytdl_path, logger,
                                                   mode=yt_mode)
