@@ -14314,7 +14314,7 @@ def main():
         ui.tray_widget = tray
         ui.detach_video_button.clicked.connect(ui.tray_widget.right_menu._detach_video)
     except Exception as e:
-        print('System Tray Failed with Exception: {0}'.format(e))
+        logger.error('System Tray Failed with Exception: {0}'.format(e))
         tray = None
         
     ui.new_tray_widget = FloatWindowWidget(ui, tray, logger)
@@ -14323,7 +14323,7 @@ def main():
         ui.new_tray_widget.installEventFilter(m_event)
         print('Event Filter Installed in new_tray_widget')
     except Exception as e:
-        print("Error in Tray Widget Event Filter with error message {0}".format(e))
+        logger.error("Error in Tray Widget Event Filter with error message {0}".format(e))
     
     if ui.window_frame == 'false':
         ui._set_window_frame()
