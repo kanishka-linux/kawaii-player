@@ -750,7 +750,6 @@ watch/unwatch status")
         
         self.detach_video_button = QtWidgets.QPushButton(self.player_opt)
         self.detach_video_button.setText(self.player_buttons['attach'])
-        #self.attach.clicked.connect(tray.right_menu._detach_video)
         self.detach_video_button.setToolTip('Detach Video (aka Picture in Picture)')
         self.horizontalLayout_player_opt.insertWidget(15, self.detach_video_button, 0)
         
@@ -3526,7 +3525,6 @@ watch/unwatch status")
             self.sortList()
             
     def set_playerLoopFile(self):
-        global tray
         if self.mpvplayer_val.processId() > 0:
             if self.player_val == 'mpv':
                 self.mpvplayer_val.write(b'\n set loop-file inf \n')
@@ -3535,7 +3533,6 @@ watch/unwatch status")
     
     @GUISignals.check_master_mode('loop')
     def playerLoopFile(self, loop_widget, *args):
-        global tray
         txt = loop_widget.text()
         if txt == self.player_buttons['unlock']:
             self.player_setLoop_var = True
@@ -12500,12 +12497,12 @@ watch/unwatch status")
     def music_mode_layout(self):
         global screen_width, show_hide_cover, show_hide_player
         global show_hide_playlist, show_hide_titlelist, music_arr_setting
-        global opt, tray
+        global opt
         #ui.VerticalLayoutLabel.takeAt(2)
         if self.player_theme in ['dark', 'system']:
             self.label_new.hide()
         if not self.float_window.isHidden():
-            tray.right_menu._detach_video()
+            self.tray_widget.right_menu._detach_video()
             
         self.music_mode_dim_show = True
         #self.list_with_thumbnail = False
@@ -12555,11 +12552,11 @@ watch/unwatch status")
         self.apply_new_font()
         
     def video_mode_layout(self):
-        global default_arr_setting, opt, tray, site
+        global default_arr_setting, opt, site
         global show_hide_titlelist
         #ui.VerticalLayoutLabel.addStretch(1)
         if not self.float_window.isHidden():
-            tray.right_menu._detach_video()
+            self.tray_widget.right_menu._detach_video()
         print('default Mode')
         if MainWindow.pos().y() < 0:
             yc = 32
@@ -12949,7 +12946,7 @@ watch/unwatch status")
             logger.error(err)
             
 def main():
-    global ui, MainWindow, tray, name, pgn, genre_num, site, epn
+    global ui, MainWindow, name, pgn, genre_num, site, epn
     global embed, opt, mirrorNo
     global pre_opt
     global rfr_url, category, home
@@ -14161,16 +14158,15 @@ def main():
     print(int(MainWindow.winId()))
     
     try:
-        tray = SystemAppIndicator(ui_widget=ui, home=home, window=MainWindow, logr=logger)
-        tray.right_menu.setup_globals(screen_width, screen_height)
-        tray.show()
-        ui.tray_widget = tray
+        ui.tray_widget = SystemAppIndicator(ui_widget=ui, home=home, window=MainWindow, logr=logger)
+        ui.tray_widget.right_menu.setup_globals(screen_width, screen_height)
+        ui.tray_widget.show()
         ui.detach_video_button.clicked.connect(ui.tray_widget.right_menu._detach_video)
     except Exception as e:
         logger.error('System Tray Failed with Exception: {0}'.format(e))
-        tray = None
+        ui.tray_widget = None
         
-    ui.new_tray_widget = FloatWindowWidget(ui, tray, logger)
+    ui.new_tray_widget = FloatWindowWidget(ui, ui.tray_widget, logger)
     try:
         m_event = EventFilterFloatWindow()
         m_event.set_globals(ui)
@@ -14183,18 +14179,19 @@ def main():
         ui._set_window_frame()
     
     try:
-        server = MprisServer(ui, home, tray, ui.new_tray_widget)
+        server = MprisServer(ui, home, ui.tray_widget, ui.new_tray_widget)
     except Exception as e:
         print("can't open Mpris plugin, Exception raised: {0}".format(e))
     
     if ui.layout_mode == "Music":
         try:
-            t1 = tray.geometry().height()
+            t1 = ui.tray_widget.geometry().height()
         except:
             t1 = 65
         MainWindow.setGeometry(
             ui.music_mode_dim[0], ui.music_mode_dim[1], 
-            ui.music_mode_dim[2], ui.music_mode_dim[3])
+            ui.music_mode_dim[2], ui.music_mode_dim[3]
+            )
         ui.image_fit_option_val = 3
     else:
         ui.sd_hd.show()
