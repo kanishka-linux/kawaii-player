@@ -4084,7 +4084,7 @@ watch/unwatch status")
                       iconv_r_poster=None, value_str=None,
                       dimn=None, txt_name=None):
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
-        global row_history, home, epn, iconv_r
+        global home, epn, iconv_r
         global total_till, browse_cnt
         global bookmark, status, thumbnail_indicator
         global siteName, category, finalUrlFound, refererNeeded
@@ -4225,7 +4225,7 @@ watch/unwatch status")
                 
     def next_page(self, value_str):
         global site, name, embed, opt, pre_opt, mirrorNo
-        global row_history, home, epn, iconv_r
+        global home, epn, iconv_r
         global total_till
         global total_till, browse_cnt
         global bookmark, status, thumbnail_indicator
@@ -6736,7 +6736,6 @@ watch/unwatch status")
         global opt, pgn, site, filter_on
         print("filter label")
         filter_on = 1
-        row_history = []
         key = str(self.label_search.text()).lower()
         if not key:
             filter_on = 0
@@ -6788,7 +6787,6 @@ watch/unwatch status")
         global opt, pgn, site, filter_on
         print("filter label")
         filter_on = 1
-        row_history = []
         key = str(self.go_page.text()).lower()
         if not key:
             filter_on = 0
@@ -6819,7 +6817,6 @@ watch/unwatch status")
         global opt, pgn, site, filter_on
         print("filter epn list")
         filter_on = 1
-        row_history = []
         key = str(self.goto_epn_filter_txt.text()).lower()
         if not key:
             filter_on = 0
@@ -7149,7 +7146,7 @@ watch/unwatch status")
         
     def rawlist_highlight(self):
         global site, name, opt, pre_opt, mirrorNo
-        global row_history, home, epn
+        global home, epn
         global bookmark, status, siteName
         global screen_height, screen_width
         if self.list1.currentItem():
@@ -7567,7 +7564,7 @@ watch/unwatch status")
     
     def listfound(self, send_list=None, row_select=None, show_ep_thumbnail=None):
         global site, name, base_url, embed, opt, pre_opt, mirrorNo
-        global row_history, home, epn, bookmark
+        global home, epn, bookmark
         global status, finalUrlFound, refererNeeded, audio_id, sub_id
         global siteName
         global screen_height, screen_width
