@@ -1462,6 +1462,7 @@ watch/unwatch status")
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.mpv_start = False
         self.slave_address = '127.0.0.1:9001'
         self.extra_toolbar_control = 'master'
         self.playlist_queue_used = False
@@ -10196,7 +10197,7 @@ watch/unwatch status")
         global cache_empty, buffering_mplayer
         global artist_name_mplayer, server
         global pause_indicator
-        global mpv_indicator, mpv_start
+        global mpv_indicator
         global sub_id, audio_id, current_playing_file_path, desktop_session
         
         try:
@@ -10369,8 +10370,8 @@ watch/unwatch status")
                             self.mplayerLength = int(mpl.split('=')[1])
                         self.slider.setRange(0, int(self.mplayerLength))
                 elif ("AV:" in a or "A:" in a) and not self.eof_reached:
-                    if not mpv_start:
-                        mpv_start.append("Start")
+                    if not self.mpv_start:
+                        self.mpv_start = True
                         try:
                             msg = 'Playing: {0}'.format(self.epn_name_in_list.replace('#', '', 1))
                             MainWindow.setWindowTitle(self.epn_name_in_list)
@@ -10662,8 +10663,8 @@ watch/unwatch status")
                         logger.debug('\ncurR={0}\n'.format(self.cur_row))
                     self.mplayerLength = 0
                     self.total_file_size = 0
-                    if mpv_start:
-                        mpv_start.pop()
+                    if self.mpv_start:
+                        self.mpv_start = False
                     if "HTTP error 403 Forbidden" in a:
                         print(a)
                         self.quit_really = "yes"
@@ -10762,8 +10763,8 @@ watch/unwatch status")
                     self.total_file_size = int(((self.id_audio_bitrate+self.id_video_bitrate)*self.mplayerLength)/(8*1024*1024*1000))
                     print(self.total_file_size, ' MB')
                 if ("A:" in a) or ("PAUSE" in a):
-                    if not mpv_start:
-                        mpv_start.append("Start")
+                    if not self.mpv_start:
+                        self.mpv_start = True
                         try:
                             if self.tab_5.mplayer_aspect_msg:
                                 aspect_val = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
@@ -10923,7 +10924,7 @@ watch/unwatch status")
                 if ("EOF code: 1" in a or "HTTP error 403 Forbidden" in a):
                     self.mplayerLength = 0
                     self.total_file_size = 0
-                    mpv_start.pop()
+                    self.mpv_start = False
                     if self.final_playing_url in self.history_dict_obj:
                         asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
                         self.history_dict_obj.update(
@@ -10995,7 +10996,7 @@ watch/unwatch status")
             logger.error('{0}::dataready-exception'.format(err))
         
     def started(self):
-        global epn, new_epn, mpv_start
+        global epn, new_epn
         global site
         if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
             length_1 = self.list2.count()
@@ -11006,8 +11007,7 @@ watch/unwatch status")
             QtWidgets.QApplication.processEvents()
         logger.debug("Process Started")
         logger.debug(self.mpvplayer_val.processId())
-        mpv_start =[]
-        mpv_start[:]=[]
+        self.mpv_start = False
         msg = "Loading: "+self.epn_name_in_list+" (Please Wait)"
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((msg))
@@ -11020,9 +11020,9 @@ watch/unwatch status")
                 self.frame_timer.stop()
         
     def finished(self):
-        global mpv_start, thumbnail_indicator
-        if mpv_start:
-            mpv_start.pop()
+        global thumbnail_indicator
+        if self.mpv_start:
+            self.mpv_start = False
         self.mplayerLength = 0
         self.mpv_playback_duration = 0
         self.progressEpn.setMaximum(100)
@@ -11039,7 +11039,7 @@ watch/unwatch status")
             self.player_restart()
             
     def player_restart(self):
-        global mpv_start, thumbnail_indicator
+        global thumbnail_indicator
         logger.warning('quit={0} , hence --restarting--'.format(self.quit_really))
         num = self.cur_row
         self.list2.setCurrentRow(num)
@@ -12967,7 +12967,6 @@ def main():
     global audio_id, sub_id, site_arr, siteName, finalUrlFound
     global refererNeeded
     global update_start, screen_width, screen_height, total_till_epn
-    global mpv_start
     global show_hide_cover, show_hide_playlist, show_hide_titlelist, server
     global show_hide_player, current_playing_file_path
     global music_arr_setting, default_arr_setting
@@ -12980,7 +12979,6 @@ def main():
     show_hide_cover = 1
     show_hide_playlist = 1
     show_hide_titlelist = 1
-    mpv_start = []
     total_till_epn = 0
     update_start = 0
     artist_name_mplayer =""
