@@ -32,12 +32,9 @@ RESOURCE_DIR = os.path.join(BASEDIR, 'resources')
 print(sys.path)
 
 import urllib.parse
-from urllib.parse import urlparse
 import urllib.request
 import imp
 import shutil
-from io import StringIO, BytesIO
-from tempfile import mkstemp, mkdtemp
 import re
 import subprocess
 import lxml
@@ -46,7 +43,6 @@ import datetime
 import time
 import random
 import textwrap
-from functools import partial
 import weakref
 import socket
 import struct
@@ -64,6 +60,10 @@ import pickle
 import asyncio
 import mimetypes
 import http.cookiejar
+from functools import partial
+from urllib.parse import urlparse
+from io import StringIO, BytesIO
+from tempfile import mkstemp, mkdtemp
 from collections import OrderedDict, deque
 from threading import Thread, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -145,26 +145,11 @@ if TMPDIR and not os.path.exists(TMPDIR):
         print(e)
         TMPDIR = mkdtemp(suffix=None, prefix='kawaii-player_')
 
+from log import Logging
 
-def set_logger(file_name, TMPDIR):
-    file_name_log = os.path.join(TMPDIR, file_name)
-    #log_file = open(file_name_log, "w", encoding="utf-8")
-    logging.basicConfig(level=logging.DEBUG)
-    formatter_fh = logging.Formatter('%(asctime)-15s::%(module)s:%(funcName)s: %(levelname)-7s - %(message)s')
-    formatter_ch = logging.Formatter('%(levelname)s::%(module)s::%(funcName)s: %(message)s')
-    fh = logging.FileHandler(file_name_log)
-    fh.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter_ch)
-    fh.setFormatter(formatter_fh)
-    log = logging.getLogger(__name__)
-    log.addHandler(ch)
-    log.addHandler(fh)
-    return log
-
-logger = set_logger('kawaii-player.log', TMPDIR)
-
+file_name_log = os.path.join(TMPDIR, 'kawaii-player.log')
+log_instance = Logging(__name__, file_name_log, TMPDIR)
+logger = log_instance.get_logger()
 
 print(TMPDIR, OSNAME)
 
