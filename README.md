@@ -98,17 +98,19 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 23. [Web Interface for accessing media server content](#using-web-interface)
 
-24. [Casting Support](#casting)
+24. [PC-To-PC Casting](#casting)
 
-25. [Remote Control using web interface](#remote-control)
+25. [Browser-To-PC Casting](#casting)
 
-26. [Peer to Peer Mode](#peer-to-peer-mode)
+26. [Remote Control using web interface](#remote-control)
 
-27. Available in three themes including dark and system theme (from v3.1 onwards).
+27. [Peer to Peer Mode](#peer-to-peer-mode)
 
-28. [Gapless Playback of Network Streams](#gapless-playback)
+28. Available in three themes including dark and system theme (from v3.1 onwards).
 
-29. [Live Seekbar Preview](#live-seekbar-preview)
+29. [Gapless Playback of Network Streams](#gapless-playback)
+
+30. [Live Seekbar Preview](#live-seekbar-preview)
 
 ## Playing Mode
 
