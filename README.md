@@ -413,9 +413,9 @@ Web Interface, contains a search text box which can be used to send text command
 
 #### PC To PC Casting
 
-kawaii-player can work as client as well as server at the same time. This feature was exploited in the past to create peer-to-peer mode. Now this peer-to-peer mode has been extended in v3.5.0 to include master-slave design in order to incorporate PC-To-PC casting feature. Following are some important aspects of this feature.
+PC To PC Casting in the context of kawaii-player means ability to cast (send) videos/playlist from one computer to another computer running kawaii-player. Following are important aspects of this feature.
     
-    * Casting of single file or entire playlist from one computer (Master) 
+    * Casting single file or entire playlist from one computer (Master) 
     
       to another computer (Slave) running kawaii-player.
       
