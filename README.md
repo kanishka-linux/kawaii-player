@@ -768,6 +768,7 @@ dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3
 
 15. If there are some other problems, then turn on logging by setting 'LOGGING' to 'ON', in other_options.txt. It will create 'kawaii-player.log' file in '~/.config/kawaii-player/tmp' folder. Users can analyse the log on their own or can post the log on github issues section. Or alternatively users can post console output if application was started from console.
 
+16. when accessing media-server if browser does not redirect properly due to cookies then clear browser cookie cache or disable media server cookies.
 
 ## Documentation
 
