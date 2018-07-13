@@ -235,7 +235,6 @@ class Ui_MainWindow(object):
         global BASEDIR, screen_width, screen_height, home
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.set_globals(self)
-        #MainWindow.resize(875, 600)
         if media_data is not None:
             self.media_data = media_data
         if home_val is not None:
@@ -257,7 +256,6 @@ class Ui_MainWindow(object):
         self.superGridLayout = QtWidgets.QGridLayout(MainWindow)
         self.superGridLayout.setObjectName(_fromUtf8("superGridLayout"))
         self.gridLayout = QtWidgets.QGridLayout(self.superTab)
-        #self.gridLayout.setMouseTracking(True)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.superTab.setMouseTracking(True)
         self.superGridLayout.addWidget(self.superTab, 0, 1, 1, 1)
@@ -348,12 +346,9 @@ class Ui_MainWindow(object):
         self.btnEpnList.setObjectName(_fromUtf8("btnEpnList"))
         self.verticalLayout_40.addWidget(self.btnEpnList)
         self.btnEpnList.hide()
-        #self.btnEpnList.setMaximumSize(QtCore.QSize(350, 16777215))
         ###################################
-        #self.list2 = QtGui.QListWidget(self.tab)
         self.list2 = PlaylistWidget(MainWindow, self, home, TMPDIR, logger)
         self.list2.setObjectName(_fromUtf8("list2"))
-        #self.list2.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list2.setMouseTracking(True)
         
         self.verticalLayout_40.setAlignment(QtCore.Qt.AlignBottom)
@@ -366,21 +361,18 @@ class Ui_MainWindow(object):
         
         self.list4 = FilterTitleList(MainWindow, self, home)
         self.list4.setObjectName(_fromUtf8("list4"))
-        #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list4.setMouseTracking(True)
         
         self.list4.hide()
         
         self.list5 = FilterPlaylist(MainWindow, self, home, logger)
         self.list5.setObjectName(_fromUtf8("list5"))
-        #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list5.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(1, self.list5, 0)
         self.list5.hide()
         
         self.list6 = QueueListWidget(MainWindow, self, home)
         self.list6.setObjectName(_fromUtf8("list6"))
-        #self.list4.setMaximumSize(QtCore.QSize(400, 16777215))
         self.list6.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(2, self.list6, 0)
         self.list6.hide()
@@ -391,9 +383,7 @@ Played Sequentially as per Playlist. \
 (Queue Feature Works Only With\n Local/Offline Content)\
 Select Item and Press 'W' to toggle\
 watch/unwatch status")
-        #self.gridLayout.addWidget(self.list2, 0, 2, 1, 1)
         self.frame = QtWidgets.QFrame(MainWindow)
-        #self.frame.setMinimumSize(QtCore.QSize(500, 22))
         self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
@@ -424,7 +414,6 @@ watch/unwatch status")
         
         self.filter_btn.setMinimumHeight(30)
         self.filter_btn.hide()
-        #self.go_page = QtGui.QLineEdit(self.frame)
         
         self.page_number = QtWidgets.QLineEdit(self.frame)
         self.page_number.setObjectName(_fromUtf8("page_number"))
@@ -436,7 +425,6 @@ watch/unwatch status")
         self.go_page.setObjectName(_fromUtf8("go_page"))
         self.go_page.setMinimumHeight(30)
         self.go_page.setPlaceholderText('Filter')
-        #self.go_page.hide()
         
         self.forward = QtWidgets.QPushButton(self.frame)
         self.forward.setObjectName(_fromUtf8("forward"))
@@ -457,17 +445,14 @@ watch/unwatch status")
         self.horizontalLayout_goto_epn.setObjectName(_fromUtf8("horizontalLayout_goto_epn"))
         self.horizontalLayout_goto_epn.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_goto_epn.setSpacing(5)
-        #self.gridLayout.addWidget(self.goto_epn, 1, 2, 1, 1)
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setSpacing(5)
         
         self.goto_epn.hide()
         self.frame.hide()
         
-        #self.progress = QtWidgets.QProgressBar(MainWindow)
         self.progress = QProgressBarCustom(MainWindow, self)
         self.progress.setObjectName(_fromUtf8("progress"))
-        #self.gridLayout.addWidget(self.progress, 1, 3, 1, 1)
         self.verticalLayout_50.insertWidget(3, self.progress, 0)
         self.progress.setMinimum(0)
         self.progress.setMaximum(100)
@@ -502,13 +487,11 @@ watch/unwatch status")
         self.label_torrent_stop.setText(self.player_buttons['stop'])
         self.label_torrent_stop.setMinimumWidth(24)
         self.horizontalLayout_torrent_frame.insertWidget(0, self.label_torrent_stop, 0)
-        #self.label_torrent_stop.setToolTip("Stop Torrent")
         
         self.label_down_speed = QtWidgets.QLineEdit(self.torrent_frame)
         self.label_down_speed.setObjectName(_fromUtf8("label_down_speed"))
         self.label_down_speed.setToolTip("Set Download Speed Limit For Current Session in KB\nEnter Only Integer Values")
         self.horizontalLayout_torrent_frame.insertWidget(1, self.label_down_speed, 0)
-        #self.label_down_speed.setMaximumWidth(100)
         self.label_up_speed = QtWidgets.QLineEdit(self.torrent_frame)
         self.label_up_speed.setObjectName(_fromUtf8("label_up_speed"))
         self.label_up_speed.setToolTip("Set Upload Speed Limit in KB for Current Session\nEnter Only Integer Values")
