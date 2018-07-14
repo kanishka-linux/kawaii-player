@@ -376,13 +376,15 @@ class Ui_MainWindow(object):
         self.list6.setMouseTracking(True)
         self.verticalLayout_50.insertWidget(2, self.list6, 0)
         self.list6.hide()
-        self.list6.addItem("Queue Empty: \
-Select Item and Press 'ctrl+Q' to EnQueue it. \
-If Queue List is Empty then Items Will be\
-Played Sequentially as per Playlist. \
-(Queue Feature Works Only With\n Local/Offline Content)\
-Select Item and Press 'W' to toggle\
-watch/unwatch status")
+        msg = ("Queue Empty:\
+                Select Item and Press 'ctrl+Q' to EnQueue it. \
+                If Queue List is Empty then Items Will be\
+                Played Sequentially as per Playlist. \
+                (Queue Feature Works Only With\n Local/Offline Content)\
+                Select Item and Press 'W' to toggle\
+                watch/unwatch status")
+        msg = re.sub(' +', ' ', msg)
+        self.list6.addItem(msg)
         self.frame = QtWidgets.QFrame(MainWindow)
         self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
