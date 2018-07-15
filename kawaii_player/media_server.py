@@ -1172,9 +1172,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 pls_txt = pls_txt+'#EXTINF:0, {0} - {1}\n{2}\n'.format(n_art, n_out, out)
                 except Exception as e:
                     print(e, '--1081--')
+            playlist_file_name = n_art + '.m3u'
             if path.endswith('.pls'):
                 footer = '\nNumberOfEntries='+str(len(new_arr))+'\n'
                 pls_txt = pls_txt+footer
+                playlist_file_name = n_art + '.pls'
             elif path.endswith('.htm') or path.endswith('.html'):
                 pls_txt = pls_txt+'</ol>'
                 playlist_htm = os.path.join(BASEDIR, 'web', 'playlist.html')
@@ -1203,6 +1205,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html; charset=utf-8')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
+                self.send_header('Content-Disposition', 'attachment; filename={}'.format(playlist_file_name))
             size = len(pls_txt)
             #size = size - get_bytes
             self.send_header('Content-Length', str(size))
@@ -1405,6 +1408,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html; charset=utf-8')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
+                self.send_header('Content-Disposition', 'attachment; filename={}'.format(srch))
             if not pls_cache:
                 pls_txt = bytes(pls_txt, 'utf-8')
             size = len(pls_txt)
@@ -2413,6 +2417,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     pls_txt = bytes(pls_txt, 'utf-8')
                     self.send_response(200)
                     self.send_header('Content-type', 'audio/mpegurl')
+                    self.send_header('Content-Disposition', 'attachment; filename={}'.format(path))
                     size = len(pls_txt)
                     self.send_header('Content-Length', str(size))
                     self.send_header('Connection', 'close')
