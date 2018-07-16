@@ -6536,7 +6536,6 @@ class Ui_MainWindow(object):
             txt_file = new_title.replace('.jpg', '.txt', 1)
             txt_path = os.path.join(path_thumb, txt_file)
             if os.path.isfile(txt_path):
-                #logger.debug(txt_path)
                 summary = open_files(txt_path, False)
                 self.text.setText(summary)
                 
@@ -6552,10 +6551,10 @@ class Ui_MainWindow(object):
                         if row < self.list2.count():
                             self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
                     except Exception as err:
-                        print(err, '--6238--')
+                        logger.error(err)
         except Exception as err:
-            print(err, '--6240--')
-        print("Thumbnail Process Ended")
+            logger.error(err)
+        logger.info("Thumbnail Process Ended")
         self.threadPoolthumb = self.threadPoolthumb[1:]
         length = len(self.threadPoolthumb)
         if length > 0:
