@@ -60,7 +60,7 @@ import pickle
 import asyncio
 import mimetypes
 import http.cookiejar
-from functools import partial
+from functools import partial, reduce
 from urllib.parse import urlparse
 from io import StringIO, BytesIO
 from tempfile import mkstemp, mkdtemp
@@ -7111,10 +7111,7 @@ class Ui_MainWindow(object):
             self.btnWebReviews_search.setPlaceholderText('Search ' + review_site)
         
     def rawlist_highlight(self):
-        global site, name, opt, pre_opt, mirrorNo
-        global home, epn
-        global bookmark, status, siteName
-        global screen_height, screen_width
+        global site, name, home, siteName
         if self.list1.currentItem():
             nm = self.original_path_name[self.list1.currentRow()].strip()
             if '	' in nm:
@@ -7130,29 +7127,24 @@ class Ui_MainWindow(object):
         self.epn_arr_list[:]=[]
         summary = 'Summary Not Available'
         picn = 'No.jpg'
+        base_dir_list = [home, 'History', site, name]
         if siteName:
-            file_name = os.path.join(home, 'History', site, siteName, name, 'Ep.txt')
-            picn1 = os.path.join(home, 'History', site, siteName, name, 'poster.jpg')
-            fanart1 = os.path.join(home, 'History', site, siteName, name, 'fanart.jpg')
-            thumbnail1 = os.path.join(home, 'History', site, siteName, name, 'thumbnail.jpg')
-            summary_file = os.path.join(home, 'History', site, siteName, name, 'summary.txt')
-        else:
-            file_name = os.path.join(home, 'History', site, name, 'Ep.txt')
-            picn1 = os.path.join(home, 'History', site, name, 'poster.jpg')
-            fanart1 = os.path.join(home, 'History', site, name, 'fanart.jpg')
-            thumbnail1 = os.path.join(home, 'History', site, name, 'thumbnail.jpg')
-            summary_file = os.path.join(home, 'History', site, name, 'summary.txt')
+            base_dir_list.insert(3, siteName)
+        
+        base_dir = reduce(os.path.join, base_dir_list)
+                
+        file_name = os.path.join(base_dir, 'Ep.txt')
+        picn1 = os.path.join(base_dir, 'poster.jpg')
+        fanart1 = os.path.join(base_dir, 'fanart.jpg')
+        thumbnail1 = os.path.join(base_dir, 'thumbnail.jpg')
+        summary_file = os.path.join(base_dir, 'summary.txt')
+        
+            
         logger.info(file_name)
         if os.path.exists(file_name) and site!="PlayLists":
             lines = open_files(file_name, True)
-            m = []
-            if lines:
-                logger.info(file_name)
-                for i in lines:
-                    i = i.strip()
-                    if i:
-                        self.epn_arr_list.append(i)
-                        m.append(i)
+            self.epn_arr_list = [ i.strip() for i in lines if i.strip()]
+            logger.info(file_name)
                     
             picn = picn1
             fanart = fanart1
@@ -7161,19 +7153,11 @@ class Ui_MainWindow(object):
             if os.path.isfile(summary_file):
                 summary = open_files(summary_file, False)
             
-            j = 0
-            
             self.text.clear()
-            
             self.text.lineWrapMode()
-            if site!= "Local":
-                pass
-                
             if summary.lower() == 'summary not available':
                 summary = summary+'\n'+self.original_path_name[cur_row]
-                
             self.videoImage(picn, thumbnail, fanart, summary)
-                
             if os.path.isfile(file_name):
                 self.list2.clear()
                 self.update_list2()
@@ -7200,7 +7184,6 @@ class Ui_MainWindow(object):
         else:
             self.search()
             name = (self.line.text())
-        
         
     def search(self):
         code = 1
