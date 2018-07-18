@@ -6497,22 +6497,12 @@ class Ui_MainWindow(object):
                 write_files(file_path, self.original_path_name, line_by_line=True)
             
     def create_img_url(self, path):
-        m = []
         img_url = ''
         if '/watch?' in path:
-            a = path.split('?')[-1]
-            b = a.split('&')
-            if b:
-                for i in b:
-                    j = i.split('=')
-                    k = (j[0], j[1])
-                    m.append(k)
-            else:
-                j = a.split('=')
-                k = (j[0], j[1])
-                m.append(k)
-            d = dict(m)
-            img_url="https://i.ytimg.com/vi/"+d['v']+"/hqdefault.jpg"
+            res = urlparse(path)
+            val = urllib.parse.parse_qs(res.query).get('v')
+            url_string = "https://i.ytimg.com/vi/{}/hqdefault.jpg"
+            img_url =  url_string.format(val[0]) if val else ''
         return img_url
     
     def epn_highlight(self):
