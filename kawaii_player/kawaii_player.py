@@ -6531,8 +6531,7 @@ class Ui_MainWindow(object):
                 
     def thumbnail_generated(self, row=None, picn=None):
         try:
-            if os.path.exists(picn):
-                if not os.stat(picn).st_size:
+            if os.path.exists(picn) and not os.stat(picn).st_size:
                     picn = self.default_background
             if self.list_with_thumbnail:
                 icon_new_pixel = self.create_new_image_pixel(picn, 128)
@@ -6547,9 +6546,8 @@ class Ui_MainWindow(object):
         logger.info("Thumbnail Process Ended")
         self.threadPoolthumb = self.threadPoolthumb[1:]
         length = len(self.threadPoolthumb)
-        if length > 0:
-            if not self.threadPoolthumb[0].isRunning():
-                self.threadPoolthumb[0].start()
+        if length > 0 and not self.threadPoolthumb[0].isRunning():
+            self.threadPoolthumb[0].start()
     
     def preview(self):
         txt = str(self.chk.text())
@@ -6558,27 +6556,22 @@ class Ui_MainWindow(object):
         txt = self.playback_engine[index]
         self.chk.setText(txt)
         self.player_val = txt
-        if self.mpvplayer_val.processId()>0 and self.tab_2.isHidden() and self.player_val in ['mpv', 'mplayer']:
+        if self.mpvplayer_val.processId() > 0 and self.tab_2.isHidden() and self.player_val in ['mpv', 'mplayer']:
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
             self.epnfound()
     
     def nextp(self, val):
-        global opt, pgn, genre_num, site, mirrorNo, name
-        global total_till, browse_cnt
+        global opt, pgn, genre_num, browse_cnt
     
-        browse_cnt=0
-        
-        if val == "next":
-            r = self.list3.currentRow()
-        else:
-            r = val
+        browse_cnt = 0
+        r = self.list3.currentRow() if val == 'next' else val
         item = self.list3.item(r)
-        print(r)
+        logger.info(r)
         if item:
             opt_val = str(item.text())
-            print(opt_val)
-            if opt_val == "History" or opt_val == "Random" or opt_val == "List":
+            logger.info(opt_val)
+            if opt_val in ["History", "Random", "List"]:
                 return 0
         elif opt == 'Search':
             opt_val = 'Search'
@@ -6591,7 +6584,7 @@ class Ui_MainWindow(object):
         
         try:
             code = 6
-            pgn = pgn + 1
+            pgn += 1
             if opt:
                 m = self.site_var.getNextPage(opt_val, pgn, genre_num, self.search_term)
                 self.list1.clear()
@@ -6603,20 +6596,17 @@ class Ui_MainWindow(object):
                         i = i.split('	')[0]
                     self.list1.addItem(i)
                     self.original_path_name.append(j)
-        except:
-            pass
+        except Exception as err:
+            logger.error(err)
         
     def backp(self, val):
-        global opt, pgn, genre_num, mirrorNo, name
+        global opt, pgn, genre_num
         self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
-        if val == "back":
-            r = self.list3.currentRow()
-        else:
-            r = val
+        r = self.list3.currentRow() if val == 'back' else val
         item = self.list3.item(r)
         if item:
             opt_val = str(item.text())
-            if opt_val == "History" or opt_val == "Random" or opt_val == "List":
+            if opt_val in ["History", "Random", "List"]:
                 return 0
         elif opt == 'Search':
             opt_val = 'Search'
@@ -6624,7 +6614,7 @@ class Ui_MainWindow(object):
             return 0
         
         try:
-            pgn = pgn - 1
+            pgn -= 1
             if opt:
                 m = self.site_var.getPrevPage(opt_val, pgn, genre_num, self.search_term)
                 self.list1.clear()
@@ -6636,12 +6626,12 @@ class Ui_MainWindow(object):
                         i = i.split('	')[0]
                     self.list1.addItem(i)
                     self.original_path_name.append(j)
-        except:
-            pass
+        except Exception as err:
+            logger.error(err)
                     
     def gotopage(self):
-        key = self.page_number.text()
         global opt, pgn, site
+        key = self.page_number.text()
         if key and opt and site not in ['Video', 'Music', 'None', 'MyServer', 'PlayLists']:
             self.list1.verticalScrollBar().setValue(self.list1.verticalScrollBar().minimum())
             pgn = int(key)
