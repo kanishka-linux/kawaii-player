@@ -2051,13 +2051,10 @@ class Ui_MainWindow(object):
             widget_list = self.epn_arr_list
         if widget_list:
             for i, j in enumerate(widget_list):
-                if '\t' in j:
-                    title_name = j.split('\t')[0]
-                else:
-                    title_name = j
+                title_name = j.split('\t')[0] if '\t' in j else j
                 title_name = title_name.lower()
                 if title_name.startswith('#'):
-                    title_name = title_name.replace('#', '', 1)
+                    title_name = title_name[1:]
                 if mode == 0:
                     if title_name.startswith(txt):
                         index_found = True
@@ -2098,23 +2095,19 @@ class Ui_MainWindow(object):
             
     def remove_queue_item_btn_method(self, row=None):
         row = self.queue_item_external_remove
-        if row >= 0:
-            r = row
-            if self.list6.item(r):
-                item = self.list6.item(r)
-                self.list6.takeItem(r)
-                del item
-                if not self.video_local_stream and r < len(self.queue_url_list):
-                    del self.queue_url_list[r]
+        if row >= 0 and self.list6.item(row):
+            item = self.list6.item(row)
+            self.list6.takeItem(row)
+            del item
+            if not self.video_local_stream and row < len(self.queue_url_list):
+                del self.queue_url_list[row]
             self.queue_item_external_remove = -1
     
     def set_queue_item_btn_method(self, row=None):
         global site
-        #if row is None:
         row = self.queue_item_external
         if row >= 0:
-            if (site == "Music" or site == "Video" or site == "Local" 
-                    or site == "PlayLists" or site == "None"):
+            if site in ["Music", "Video", "PlayLists", "None"]:
                 file_path = os.path.join(home, 'Playlists', 'Queue')
                 if not os.path.exists(file_path):
                     f = open(file_path, 'w')
@@ -2148,10 +2141,7 @@ class Ui_MainWindow(object):
         elif row == -100:
             self.list6.clear()
             for i in self.queue_url_list:
-                if '\t' in i:
-                    nm = i.split('\t')[0]
-                else:
-                    nm = i
+                nm = i.split('\t')[0] if '\t' in i else i
                 self.list6.addItem(nm)
     
     def set_quality_server_btn_method(self):
