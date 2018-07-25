@@ -234,6 +234,17 @@ class MetaEngine:
                        site=None, row=None, video_dir=None):
         epn_arr_list = epn_arr.copy()
         ep_dict = tvdb_dict.copy()
+        sr_dict = {}
+        ep_list = []
+        sp = 0
+        for key, value in ep_dict.items():
+            if value and not key.startswith('0x'):
+                ep_list.append(value)
+            elif key.startswith('0x'):
+                sp += 1
+        for i, j in enumerate(ep_list):
+            key = j[0] - sp + 1
+            sr_dict.update({key:j})
         if site.lower() == 'video':
             dest_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
         else:
@@ -255,8 +266,9 @@ class MetaEngine:
             key_found = False
             ep_val = None
             ep_patn = self.find_episode_key_val(lower_case, index=i)
-            print(ep_patn)
+            print(ep_patn, lower_case)
             if ep_patn:
+                e = -1
                 if ep_patn.startswith('s') or ep_patn.startswith('e'):
                     if ep_patn.startswith('s'):
                         ep_patn = ep_patn[1:]
@@ -267,14 +279,14 @@ class MetaEngine:
                         s = 1
                     e = int(e)
                     ep_patn = str(s) + 'x' + str(e)
-                print(ep_patn)
+                print(ep_patn, 'final...')
                 ep_val = ep_dict.get(ep_patn)
+                if not ep_val and e != -1:
+                    ep_val = sr_dict.get(e)
                 if ep_val:
                     key_found = True
             if key_found:
-                new_name = ep_val[1]+ ' ' + ep_val[3]
-                """image_dict={sr:[img_url, date, ep_url, local_path, site]}"""
-                #image_dict.update({new_name:[ep_val[2], ep_val[3], ep_val[4], extra, site]})
+                new_name = ep_val[1]+ ' ' + ep_val[3].replace('/', ' - ')
                 summary = 'Air Date: {}\n\n{}: {}\n\n{}'.format(ep_val[-3], ep_val[1], ep_val[3], ep_val[-1])
                 img_url = ep_val[-2]
                 if extra:
@@ -366,12 +378,12 @@ class MetaEngine:
                 
     def find_episode_key_val(self, lower_case, index=None, season=None):
         lower_case = re.sub('\[[^\]]*\]|\([^\)]*\)', '', lower_case)
-        name_srch = re.search('s[0-9]+e[0-9]+|s[0-9]+ep[0-9]+|[0-9]+x[0-9]+ ', lower_case)
+        name_srch = re.search(r's[0-9]+ep?[0-9]+|[0-9]+x[0-9]+ ', lower_case)
         name_srch_val = None
         ep_name = ''
         
         if not name_srch:
-            name_srch = re.search('ep[0-9]+|episode[^"]*[0-9]+|ep[^"]+[0-9]+|e[0-9]+', lower_case)
+            name_srch = re.search('e(p)?(isode)?[0-9]+', lower_case)
             if not name_srch:
                 name_srch = re.search('-[^"]*[0-9][0-9]+', lower_case)
                 if not name_srch:
@@ -382,7 +394,9 @@ class MetaEngine:
                             if not oped:
                                 name_srch_val = 'ep'+str(index+1)
                     else:
-                        name_srch_val = 'ep' + name_srch.group()
+                        oped = re.search('op[0-9]*|ed[0-9]*', lower_case)
+                        if not oped:
+                            name_srch_val = 'ep' + name_srch.group()
                 else:
                     ssn_final = ''
                     ssn_val = re.search('s[0-9]+[^"]*\-', lower_case)
@@ -393,7 +407,10 @@ class MetaEngine:
                     if ssn_final:
                         name_srch_val = ssn_final + 'ep'+re.sub('-[^0-9]*', '', name_srch.group())
                     else:
-                        name_srch_val = 'ep' + re.sub('-[^0-9]*', '', name_srch.group())
+                        oped = re.search('op[0-9]*|ed[0-9]*', lower_case)
+                        if not oped:
+                            name_srch_val = 'ep' + re.sub('-[^0-9]*', '', name_srch.group())
+                            print(name_srch_val, lower_case)
             else:
                 name_srch_val = name_srch.group()
         else:
