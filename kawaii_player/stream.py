@@ -233,7 +233,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(e)
                     break
-        ui_player.torrent_piece_seek = False
         if os.path.exists(tmp_pl_file):
             os.remove(tmp_pl_file)
         if os.path.exists(tmp_file):
