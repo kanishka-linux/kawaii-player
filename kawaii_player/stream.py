@@ -50,7 +50,8 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def get_the_content(self, get_bytes):
         global handle, ses, info, cnt, cnt_limit, file_name, torrent_download_path
-        global tmp_dir_folder, httpd, media_server_key, client_auth_arr
+        global tmp_dir_folder, httpd, media_server_key, client_auth_arr, ui_player
+        global content_length
 
         user_agent = self.headers['User-Agent']
         range_hdr = self.headers['Range']
@@ -105,7 +106,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 for i in range(info.num_pieces()):
                     tmp = tmp+':'+str(handle.piece_priority(i))
                 #print(tmp)
-                print('starting', handle.name())
+                print('starting', handle.name(), '--file')
                 #handle.set_sequential_download(True)
                 cnt = pr.piece
                 cnt_limit = pr.piece+n_pieces
@@ -115,13 +116,13 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print(e)
 
         length = info.piece_length()
+        print(length, '--piece--length')
         complete_file = False
         if not os.path.exists(file_name):
             dir_name, sub_file = os.path.split(file_name)
             if not os.path.exists(dir_name):
                 os.makedirs(dir_name)
-            f = open(file_name, 'wb')
-            f.close()
+            open(file_name, 'wb').close()
         else:
             if (os.path.exists(file_name) and 
                     os.stat(file_name).st_size == content_length):
@@ -134,18 +135,18 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(content_length))
         self.send_header('Accept-Ranges', 'bytes')
         if get_bytes or upper_range is not None:
-                if upper_range is None:
-                    upper_range = content_length - 1
-                print('...sending range...{0}-{1}/{2}'.format(str(get_bytes), str(upper_range), str(content_length)))
-                self.send_header(
-                    'Content-Range', 'bytes ' +str(get_bytes)+'-'+str(upper_range)+'/'+str(content_length))
+            if upper_range is None:
+                upper_range = content_length - 1
+            print('...sending range...{0}-{1}/{2}'.format(str(get_bytes), str(upper_range), str(content_length)))
+            self.send_header(
+                'Content-Range', 'bytes ' +str(get_bytes)+'-'+str(upper_range)+'/'+str(content_length))
         self.send_header('Connection', 'close')
         self.end_headers()
         seek_end = False
-        f = open(file_name, 'rb')
+        
         if get_bytes:
             new_piece = int(get_bytes/length)+1
-            print(new_piece, get_bytes, length)
+            print(new_piece, get_bytes, length, get_bytes/info.piece_length())
             i = cnt+new_piece
             if i > cnt_limit -3:
                 i = cnt
@@ -168,11 +169,16 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 handle.piece_priority(l, 6)
         tm = 0
+        content = b'01'
         with open(file_name, 'rb') as f:
-            content = b'0'
             while content:
+                #tmp = ""
+                #for ii in range(info.num_pieces()):
+                #    tmp = tmp+':'+str(handle.piece_priority(ii))
+                #print(tmp)
                 try:
                     if handle.have_piece(i):
+                        print('got {}, {}/{}'.format(i, cnt, cnt_limit))
                         if get_bytes:
                             f.seek(get_bytes)
                             get_bytes = 0
@@ -180,15 +186,23 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         try:
                             self.wfile.write(content)
                             self.current_cnt = i
-                            #print('writing:'+str(i))
                         except Exception as e:
                             print(e)
                             time.sleep(1)
                             break
                         i = i+1
-                        #print(i, '=i piece')
+                        
                         handle.piece_priority(i, 7)
                     else:
+                        print('waiting {}, {}/{}'.format(i, cnt, cnt_limit))
+                        if not handle.have_piece(cnt_limit-1):
+                            handle.piece_priority(cnt_limit-1, 7)
+                        if not handle.have_piece(cnt_limit-2):
+                            handle.piece_priority(cnt_limit-2, 6)
+                        if not handle.have_piece(cnt):
+                            handle.piece_priority(cnt, 7)
+                        if not handle.have_piece(cnt+1):
+                            handle.piece_priority(cnt+1, 7)
                         time.sleep(1)
                         d = 0
                         for l in cnt_arr:
@@ -206,20 +220,20 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         
                         if get_bytes and not pri_lowered:
                             if seek_end:
-                                k = cnt+10
+                                ll = cnt+10
                             else:
-                                k = cnt
-                            #print(k, i, '---k, i--')
-                            while k < i:
+                                ll = cnt
+                            print(i-1, ll, '----')
+                            for k in range(ll, i-1):
                                 handle.piece_priority(k, 1)
-                                #print(k, ' lowered')
-                                k = k+1
+                                print('lowered {} {}/{}'.format(k, cnt, cnt_limit))
                             pri_lowered = True
                     if ses.is_paused() or os.path.exists(tmp_pl_file):
                         break
                 except Exception as e:
                     print(e)
                     break
+        ui_player.torrent_piece_seek = False
         if os.path.exists(tmp_pl_file):
             os.remove(tmp_pl_file)
         if os.path.exists(tmp_file):
@@ -402,7 +416,7 @@ class TorrentThread(QtCore.QThread):
         for f in info.files():
             if fileIndex == i:
                 fileStr = f
-                handle.file_priority(i, 7)
+                handle.file_priority(i, 5)
             i += 1
         try:
             new_path = os.path.join(torrent_download_path, fileStr.path)
@@ -626,7 +640,7 @@ def session_finished(var):
             for f in info.files():
                 if fileIndex == i:
                     fileStr = f
-                    handle.file_priority(i, 7)
+                    handle.file_priority(i, 5)
                 i += 1
             try:
                 print(fileStr.path)
@@ -684,7 +698,7 @@ def set_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client_ar
     for f in info.files():
         if fileIndex == i:
             fileStr = f
-            handle.file_priority(i, 7)
+            handle.file_priority(i, 5)
         else:
             new_path = os.path.join(v3, f.path)
             new_size = f.size
@@ -893,7 +907,7 @@ def get_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client=No
             file_exists = True
         if fileIndex == i:
             fileStr = f
-            handle.file_priority(i, 7)
+            handle.file_priority(i, 5)
             if file_exists:
                 file_found = True
         else:
