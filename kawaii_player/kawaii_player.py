@@ -9292,9 +9292,8 @@ class Ui_MainWindow(object):
                         if self.thread_server.isRunning():
                             if self.do_get_thread.isRunning():
                                 row_file = os.path.join(TMPDIR, 'row.txt')
-                                f = open(row_file, 'w')
-                                f.write(str(row))
-                                f.close()
+                                with open(row_file, 'w') as f:
+                                    f.write(str(row))
                                 if self.https_media_server:
                                     https_val = 'https'
                                 else:
@@ -9636,7 +9635,12 @@ class Ui_MainWindow(object):
                     ip, port, self.media_server_key, self.client_auth_arr, 
                     self.https_media_server, self.https_cert_file, self)
                 thread_server.start()
+                for wait_count in range(0, 5):
+                     time.sleep(0.2)
+                     logger.debug('waiting for thread to start')
+                     wait_count += 1
             print('--line--15415--', self.thread_server.isRunning(), '=thread_server')
+           
             handle, ses, info, cnt, cnt_limit, file_name = get_torrent_info(
                                     torrent_dest, index, path, session, self.list6, 
                                     self.progress, TMPDIR, self.media_server_key, 
