@@ -34,13 +34,10 @@ from player_functions import send_notification, get_home_dir
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     protocol_version = 'HTTP/1.1'
-    current_cnt = 0
-
+    
     def do_HEAD(self):
-        global handle, ses, info, cnt, cnt_limit, file_name, torrent_download_path
+        global handle, ses, info, count, count_limit, file_name, torrent_download_path
         global tmp_dir_folder, content_length
-        #print(handle, ses, info)
-        print('--head--', content_length)
         self.send_response(200)
         self.send_header('Content-type', 'video/mp4')
         self.send_header('Content-Length', str(content_length))
@@ -49,7 +46,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def get_the_content(self, get_bytes):
-        global handle, ses, info, cnt, cnt_limit, file_name, torrent_download_path
+        global handle, ses, info, count, count_limit, file_name, torrent_download_path
         global tmp_dir_folder, httpd, media_server_key, client_auth_arr, ui_player
         global content_length
 
@@ -93,7 +90,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         fileStr = f
                     i += 1
                 try:
-                    print(fileStr.path)
+                    print(fileStr.path, '------>')
                 except:
                     return 0
                 
@@ -105,12 +102,10 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 tmp = ''
                 for i in range(info.num_pieces()):
                     tmp = tmp+':'+str(handle.piece_priority(i))
-                #print(tmp)
                 print('starting', handle.name(), '--file')
-                #handle.set_sequential_download(True)
-                cnt = pr.piece
-                cnt_limit = pr.piece+n_pieces
-                cnt1 = cnt
+                count = pr.piece
+                count_limit = pr.piece+n_pieces
+                count1 = count
                 file_name = os.path.join(torrent_download_path, fileStr.path)
             except Exception as e:
                 print(e)
@@ -137,9 +132,13 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if get_bytes or upper_range is not None:
             if upper_range is None:
                 upper_range = content_length - 1
-            print('...sending range...{0}-{1}/{2}'.format(str(get_bytes), str(upper_range), str(content_length)))
+            print('...sending range...{0}-{1}/{2}'.format(str(get_bytes),
+                                                          str(upper_range),
+                                                          str(content_length)))
             self.send_header(
-                'Content-Range', 'bytes ' +str(get_bytes)+'-'+str(upper_range)+'/'+str(content_length))
+                'Content-Range',
+                'bytes ' +str(get_bytes)+'-'+str(upper_range)+'/'+str(content_length)
+            )
         self.send_header('Connection', 'close')
         self.end_headers()
         seek_end = False
@@ -147,87 +146,67 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if get_bytes:
             new_piece = int(get_bytes/length)+1
             print(new_piece, get_bytes, length, get_bytes/info.piece_length())
-            i = cnt+new_piece
-            if i > cnt_limit -3:
-                i = cnt
-            if i > cnt_limit - 10:
+            req_piece = count+new_piece
+            if req_piece > count_limit - 10:
                 seek_end = True
-            print(new_piece, '--new_piece--', i, get_bytes, content_length)
+            print(new_piece, '--new_piece--', req_piece, count,
+                  count_limit, get_bytes, content_length)
         else:
-            i = cnt
-        total = 0
-
-        print(file_name, i, cnt, cnt_limit, '---file--download---path--')
-        t = 0
-        content = 0
+            req_piece = count
+        print(file_name, req_piece, count, count_limit, '---file--download---path--')
         pri_lowered = False
-        cnt_arr = []
-        for l in range(10):
-            cnt_arr.append(i+l)
-            if l == 0:
-                handle.piece_priority(l, 7)
-            else:
-                handle.piece_priority(l, 6)
-        tm = 0
         content = b'01'
         with open(file_name, 'rb') as f:
-            while content:
-                #tmp = ""
-                #for ii in range(info.num_pieces()):
-                #    tmp = tmp+':'+str(handle.piece_priority(ii))
-                #print(tmp)
+            while content and req_piece in range(count, count_limit+1):
                 try:
-                    if handle.have_piece(i):
-                        print('got {}, {}/{}'.format(i, cnt, cnt_limit))
+                    if handle.have_piece(req_piece):
+                        print('got {}, {}/{}'.format(req_piece, count, count_limit))
                         if get_bytes:
                             f.seek(get_bytes)
                             get_bytes = 0
                         content = f.read(length)
                         try:
                             self.wfile.write(content)
-                            self.current_cnt = i
                         except Exception as e:
                             print(e)
                             time.sleep(1)
                             break
-                        i = i+1
-                        
-                        handle.piece_priority(i, 7)
-                    else:
-                        print('waiting {}, {}/{}'.format(i, cnt, cnt_limit))
-                        if not handle.have_piece(cnt_limit-1):
-                            handle.piece_priority(cnt_limit-1, 7)
-                        if not handle.have_piece(cnt_limit-2):
-                            handle.piece_priority(cnt_limit-2, 6)
-                        if not handle.have_piece(cnt):
-                            handle.piece_priority(cnt, 7)
-                        if not handle.have_piece(cnt+1):
-                            handle.piece_priority(cnt+1, 7)
+                        req_piece += 1
+                        priority = 7
+                        for piece in range(req_piece, req_piece+7):
+                            if piece in range(count, count_limit+1):
+                                handle.piece_priority(piece, priority)
+                                priority -= 1
+                        if req_piece in range (count_limit-10, count_limit-7):
+                            for k in range(count+1, req_piece-1):
+                                if not handle.have_piece(k) and handle.piece_priority(k) == 0:
+                                    handle.piece_priority(k, 1)
+                            self.show_piece_map(info, handle, req_piece)
+                    elif not handle.have_piece(count) or not handle.have_piece(count_limit):
+                        handle.piece_priority(count, 7)
+                        handle.piece_priority(count_limit, 7)
+                        print('waiting for {} and {}'.format(count, count_limit))
                         time.sleep(1)
-                        d = 0
-                        for l in cnt_arr:
-                            if handle.have_piece(l):
-                                d = d+1
-                        if d >= 5:
-                            o = cnt_arr[-1]
-                            cnt_arr[:] = []
-                            for l in range(10):
-                                if i+l < cnt_limit:
-                                    cnt_arr.append(i+l)
-                                    handle.piece_priority(i+l, 6)
-                            #print(cnt_arr)
-                        handle.piece_priority(i, 7)
-                        
+                    else:
+                        print('waiting {}, {}/{}'.format(req_piece, count, count_limit))
+                        if not handle.have_piece(count_limit-1):
+                            handle.piece_priority(count_limit-1, 7)
+                        if not handle.have_piece(count+1):
+                            handle.piece_priority(count+1, 6)
+                        time.sleep(1)
+                        handle.piece_priority(req_piece, 7)
                         if get_bytes and not pri_lowered:
                             if seek_end:
-                                ll = cnt+10
+                                ncount = count+10
                             else:
-                                ll = cnt
-                            print(i-1, ll, '----')
-                            for k in range(ll, i-1):
-                                handle.piece_priority(k, 1)
-                                print('lowered {} {}/{}'.format(k, cnt, cnt_limit))
+                                ncount = count + 1
+                            print(req_piece-1, ncount, '----')
+                            for k in range(ncount, req_piece-1):
+                                if not handle.have_piece(k) and handle.piece_priority(k) == 1:
+                                    handle.piece_priority(k, 0)
+                                    print('lowered {} {}/{}'.format(k, count, count_limit))
                             pri_lowered = True
+                            self.show_piece_map(info, handle, req_piece)
                     if ses.is_paused() or os.path.exists(tmp_pl_file):
                         break
                 except Exception as e:
@@ -237,9 +216,20 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
             os.remove(tmp_pl_file)
         if os.path.exists(tmp_file):
             os.remove(tmp_file)
-
+            
+    def show_piece_map(self, info, handle, req_piece):
+        tmp = ""
+        for piece in range(info.num_pieces()):
+            if piece == req_piece:
+                tmp = tmp+':Y'
+            elif handle.have_piece(piece):
+                tmp = tmp+':X'
+            else:
+                tmp = tmp+':'+str(handle.piece_priority(piece))
+        print(tmp)
+        
     def do_GET(self):
-        global handle, ses, info, cnt, cnt_limit, file_name, torrent_download_path
+        global handle, ses, info, count, count_limit, file_name, torrent_download_path
         global tmp_dir_folder, httpd, media_server_key, client_auth_arr, local_ip_arr
         global ui_player
         print('do_get')
@@ -388,8 +378,8 @@ class TorrentThread(QtCore.QThread):
     def __init__(self, v1, v2, v3, v4, row=None, from_client=None):
         QtCore.QThread.__init__(self)
         self.handle = v1
-        self.cnt = v2
-        self.cnt_limit = v3
+        self.count = v2
+        self.count_limit = v3
         self.session = v4
         if row:
             self.current_index = row
@@ -405,7 +395,7 @@ class TorrentThread(QtCore.QThread):
         self.wait()                        
 
     def process_next(self):
-        global handle, info, ses, new_cnt, new_cnt_limit, total_size_content
+        global handle, info, ses, new_count, new_count_limit, total_size_content
         global torrent_download_path
         self.current_index = self.current_index + 1
         fileIndex = int(self.current_index)
@@ -454,15 +444,15 @@ class TorrentThread(QtCore.QThread):
             print(tmp)
             print('starting', handle.name())
             handle.set_sequential_download(True)
-            new_cnt = pr.piece
-            new_cnt_limit = pr.piece+n_pieces
-            cnt1 = cnt
+            new_count = pr.piece
+            new_count_limit = pr.piece+n_pieces
+            count1 = count
             self.start_next = False
 
     def run(self):
-        global new_cnt, new_cnt_limit, total_size_content
-        cnt1 = self.cnt
-        cnt_limit = self.cnt_limit
+        global new_count, new_count_limit, total_size_content
+        count1 = self.count
+        count_limit = self.count_limit
         s = self.handle.status()
 
         while (not self.session.is_paused()):
@@ -487,11 +477,11 @@ class TorrentThread(QtCore.QThread):
             if s.state == 1:
                 out1 = 'Checking Please Wait: '+str(out)
             self.progress_signal.emit(out1, out_percent)
-            if cnt1+3 < cnt_limit:
-                if self.handle.have_piece(cnt1) and self.handle.have_piece(cnt1+1):
-                    self.handle.piece_priority(cnt1+2, 7)
-                    self.handle.piece_priority(cnt1+3, 7)
-                    cnt1 = cnt1+4
+            if count1+3 < count_limit:
+                if self.handle.have_piece(count1) and self.handle.have_piece(count1+1):
+                    self.handle.piece_priority(count1+2, 7)
+                    self.handle.piece_priority(count1+3, 7)
+                    count1 = count1+4
 
             if (s.progress * 100) >= 99 and (s.state != 1):
                 if self.from_client:
@@ -619,7 +609,7 @@ def print_progress(var_str, var_int):
 
 @pyqtSlot(str)
 def session_finished(var):
-    global ui, handle, info, ses, new_cnt, new_cnt_limit, total_size_content
+    global ui, handle, info, ses, new_count, new_count_limit, total_size_content
     print(var, '--session-finished--')
     if ui.count() > 0:
         item = ui.item(0)
@@ -669,15 +659,15 @@ def session_finished(var):
             print('starting', handle.name())
             handle.set_sequential_download(True)
 
-            new_cnt = pr.piece
-            new_cnt_limit = pr.piece+n_pieces
-            cnt1 = cnt
+            new_count = pr.piece
+            new_count_limit = pr.piece+n_pieces
+            count1 = count
 
             g = fileStr.path
             g = os.path.basename(g)
 
 def set_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client_arr=None):
-    global handle, ses, info, cnt, cnt_limit, file_name, ui, progress, tmp_dir_folder
+    global handle, ses, info, count, count_limit, file_name, ui, progress, tmp_dir_folder
     global media_server_key, client_auth_arr
     media_server_key = key
     client_auth_arr = client_arr
@@ -742,16 +732,16 @@ def set_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client_ar
         tmp = tmp+':'+str(handle.piece_priority(i))
     print(tmp)
 
-    cnt = pr.piece
-    cnt_limit = pr.piece+n_pieces
-    cnt1 = cnt
+    count = pr.piece
+    count_limit = pr.piece+n_pieces
+    count1 = count
     if ses.is_paused():
         ses.resume()
     handle.resume()
-    return cnt, cnt_limit
+    return count, count_limit
 
 def get_torrent_info_magnet(v1, v3, u, p_bar, tmp_dir):
-    global handle, ses, info, cnt, cnt_limit, file_name, ui, progress, tmp_dir_folder
+    global handle, ses, info, count, count_limit, file_name, ui, progress, tmp_dir_folder
     ui = u
     progress = p_bar
     tmp_dir_folder = tmp_dir
@@ -784,7 +774,7 @@ def get_torrent_info_magnet(v1, v3, u, p_bar, tmp_dir):
 
 def set_new_torrent_file_limit(
         v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client_arr=None):
-    global handle, ses, info, cnt, cnt_limit, file_name, ui, torrent_download_path
+    global handle, ses, info, count, count_limit, file_name, ui, torrent_download_path
     global progress, tmp_dir_folder, content_length
     global media_server_key, client_auth_arr
     media_server_key = key
@@ -836,15 +826,15 @@ def set_new_torrent_file_limit(
     print(n_pieces)
     n_pieces = int(n_pieces)
 
-    cnt = pr.piece
-    cnt_limit = pr.piece+n_pieces
-    cnt1 = cnt
+    count = pr.piece
+    count_limit = pr.piece+n_pieces
+    count1 = count
 
-    print('\n', cnt, cnt_limit, file_name, '---get--torrent--info\n')
+    print('\n', count, count_limit, file_name, '---get--torrent--info\n')
     return handle
 
 def get_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client=None):
-    global handle, ses, info, cnt, cnt_limit, file_name, ui, torrent_download_path
+    global handle, ses, info, count, count_limit, file_name, ui, torrent_download_path
     global progress, total_size_content, tmp_dir_folder, content_length
     global media_server_key, client_auth_arr
     media_server_key = key
@@ -906,7 +896,7 @@ def get_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client=No
             file_exists = True
         if fileIndex == i:
             fileStr = f
-            handle.file_priority(i, 5)
+            handle.file_priority(i, 1)
             if file_exists:
                 file_found = True
         else:
@@ -954,15 +944,15 @@ def get_torrent_info(v1, v2, v3, session, u, p_bar, tmp_dir, key=None, client=No
     print('starting', handle.name())
     handle.set_sequential_download(True)
 
-    cnt = pr.piece
-    cnt_limit = pr.piece+n_pieces
-    cnt1 = cnt
+    count = pr.piece
+    count_limit = pr.piece+n_pieces
+    count1 = count
 
-    print('\n', cnt, cnt_limit, file_name, '---get--torrent--info\n')
+    print('\n', count, count_limit, file_name, '---get--torrent--info\n')
 
     if ses.is_paused():
         ses.resume()
     handle.resume()
 
-    return handle, ses, info, cnt, cnt_limit, file_name
+    return handle, ses, info, count, count_limit, file_name
 
