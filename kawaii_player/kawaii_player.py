@@ -478,9 +478,9 @@ class Ui_MainWindow(object):
         self.torrent_frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.torrent_frame.setObjectName(_fromUtf8("torrent_frame"))
         self.verticalLayout_50.insertWidget(4, self.torrent_frame, 0)
-        self.horizontalLayout_torrent_frame = QtWidgets.QHBoxLayout(self.torrent_frame)
-        self.horizontalLayout_torrent_frame.setContentsMargins(0, 2, 0, 2)
-        self.horizontalLayout_torrent_frame.setSpacing(2)
+        self.horizontalLayout_torrent_frame = QtWidgets.QGridLayout(self.torrent_frame)
+        #self.horizontalLayout_torrent_frame.setContentsMargins(0, 0, 0, 0)
+        #self.horizontalLayout_torrent_frame.setSpacing(0)
         self.horizontalLayout_torrent_frame.setObjectName(_fromUtf8("horizontalLayout_torrent_frame"))
         self.torrent_frame.hide()
         
@@ -488,16 +488,24 @@ class Ui_MainWindow(object):
         self.label_torrent_stop.setObjectName(_fromUtf8("label_torrent_stop"))
         self.label_torrent_stop.setText(self.player_buttons['stop'])
         self.label_torrent_stop.setMinimumWidth(24)
-        self.horizontalLayout_torrent_frame.insertWidget(0, self.label_torrent_stop, 0)
+        self.label_torrent_stop.setMinimumHeight(28)
+        self.horizontalLayout_torrent_frame.addWidget(self.label_torrent_stop, 0, 0, 1, 1)
         
         self.label_down_speed = QtWidgets.QLineEdit(self.torrent_frame)
         self.label_down_speed.setObjectName(_fromUtf8("label_down_speed"))
         self.label_down_speed.setToolTip("Set Download Speed Limit For Current Session in KB\nEnter Only Integer Values")
-        self.horizontalLayout_torrent_frame.insertWidget(1, self.label_down_speed, 0)
+        self.horizontalLayout_torrent_frame.addWidget(self.label_down_speed, 0, 1, 1, 1)
+        self.label_down_speed.setMinimumHeight(28)
+        
         self.label_up_speed = QtWidgets.QLineEdit(self.torrent_frame)
         self.label_up_speed.setObjectName(_fromUtf8("label_up_speed"))
         self.label_up_speed.setToolTip("Set Upload Speed Limit in KB for Current Session\nEnter Only Integer Values")
-        self.horizontalLayout_torrent_frame.insertWidget(2, self.label_up_speed, 0)
+        self.horizontalLayout_torrent_frame.addWidget(self.label_up_speed, 0, 2, 1, 1)
+        self.label_up_speed.setMinimumHeight(28)
+        
+        self.label_torrent_status = QtWidgets.QTextEdit(self.torrent_frame)
+        self.label_torrent_status.setObjectName(_fromUtf8("label_torrent_status"))
+        self.horizontalLayout_torrent_frame.addWidget(self.label_torrent_status, 1, 0, 5, 3)
         
         self.frame1 = QtWidgets.QFrame(MainWindow)
         self.frame1.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -1259,6 +1267,7 @@ class Ui_MainWindow(object):
         self.frame2.setMaximumHeight(self.frame2_height)
         self.frame_web.setMinimumHeight(self.frame2_height)
         self.frame_web.setMaximumHeight(self.frame2_height)
+        self.label_torrent_status.setMinimumHeight(self.frame2_height)
         for browser_btn in self.browser_buttons:
             browser_btn.setMinimumHeight(self.frame2_height)
         
@@ -9289,6 +9298,7 @@ class Ui_MainWindow(object):
                 try:
                     self.progressEpn.setFormat('Wait..')
                     if self.video_local_stream:
+                        self.quit_really = 'yes'
                         if self.thread_server.isRunning():
                             if self.do_get_thread.isRunning():
                                 row_file = os.path.join(TMPDIR, 'row.txt')
@@ -9661,18 +9671,30 @@ class Ui_MainWindow(object):
                 self.started_from_external_client = False
             if status.lower() == 'first run':
                 self.list6.clear()
-                i=0
-                for f in info.files():
+                file_queue = []
+                pivot_file = ''
+                for i, f in enumerate(info.files()):
                     file_path = f.path
                     file_exists = False
                     new_path = os.path.join(path, file_path)
                     new_size = f.size
                     if os.path.exists(new_path) and os.stat(new_path).st_size == new_size:
                         file_exists = True
-                    if i > index and not file_exists:
-                        txt = os.path.basename(file_path)+':'+str(i)
-                        self.list6.addItem(txt)
-                    i = i+1
+                    file_queue.append((file_path, i, file_exists))
+                    if i == index:
+                        pivot_file = (file_path, i, file_exists)
+                if file_queue:
+                    convert_str = (lambda txt: int(txt) if txt.isdigit() else txt.lower())
+                    create_key = (lambda txt: [convert_str(i) for i in re.split('([0-9]+)', txt)])
+                    file_queue = sorted(file_queue, key=lambda x: create_key(x[0]))
+                    if pivot_file:
+                        nindex = file_queue.index(pivot_file)
+                        file_queue = file_queue[nindex+1:]
+                    for qval in file_queue:
+                        file_path, nindex, file_exists = qval
+                        if not file_exists:
+                            txt = os.path.basename(file_path)+':'+str(nindex)
+                            self.list6.addItem(txt)
                 return url, thread_server, torrent_thread, ses, handle
             else:
                 if torrent_thread is None:
