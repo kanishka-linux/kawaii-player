@@ -39,6 +39,7 @@ class GUISignals(QtCore.QObject):
     start_settings = pyqtSignal(str)
     title_signal = pyqtSignal(str)
     slave_status_signal = pyqtSignal(str)
+    torrent_status_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -58,6 +59,7 @@ class GUISignals(QtCore.QObject):
         self.start_settings.connect(self.start_settings_box)
         self.title_signal.connect(self.title_clicked)
         self.slave_status_signal.connect(self.track_slave_status)
+        self.torrent_status_signal.connect(self.update_torrent_status_window)
         self.first_time = True
         
     def set_text(self, text):
@@ -102,6 +104,13 @@ class GUISignals(QtCore.QObject):
         
     def slave_status(self, val):
         self.slave_status_signal.emit(val)
+        
+    def update_torrent_status(self, val):
+        self.torrent_status_signal.emit(val)
+    
+    @staticmethod
+    def update_torrent_status_window(value):
+        ui.label_torrent_status.setText(value)
     
     @staticmethod
     def check_master_mode(value):
