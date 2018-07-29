@@ -156,14 +156,14 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         for k in range(count+1, req_piece-1):
                             if not handle.have_piece(k) and handle.piece_priority(k) == 0:
                                 handle.piece_priority(k, 2)
-                    self.show_piece_map(info, handle, req_piece)
+                        self.show_piece_map(info, handle, req_piece)
                 elif not handle.have_piece(count) or not handle.have_piece(count_limit):
                     handle.piece_priority(count, 7)
                     handle.piece_priority(count_limit, 7)
                     update_str = ('Waiting for Beginning and End\npiece No. {} and {}'
                                   .format(count, count_limit))
                     time.sleep(1)
-                    self.show_piece_map(info, handle, req_piece)
+                    #self.show_piece_map(info, handle, req_piece)
                 else:
                     update_str = ('Waiting for Piece No. {}\nBeginning={}\nEnd={}'
                                   .format(req_piece, count, count_limit))
@@ -185,20 +185,28 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                     handle.piece_priority(k, 0)
                                     print('lowered {} {}/{}'.format(k, count, count_limit))
                         pri_lowered = True
-                    self.show_piece_map(info, handle, req_piece)
+                        self.show_piece_map(info, handle, req_piece)
                 if update_str and not ui_player.torrent_frame.isHidden():
                     s = handle.status()
-                    update_str = update_str + '\nTotal={}\nDownloaded={}'.format(count_limit-count+1, s.num_pieces)
+                    if ui_player.torrent_show_piece_map:
+                        update_str = self.show_piece_map(info, handle, req_piece, local=True)
+                    else:
+                        update_str = update_str + '\nTotal={}\nDownloaded={}'.format(count_limit-count+1, s.num_pieces)
                     ui_player.gui_signals.update_torrent_status(update_str)
                 if ses.is_paused() or os.path.exists(tmp_pl_file):
                     break
         if os.path.exists(tmp_pl_file):
             os.remove(tmp_pl_file)
             
-    def show_piece_map(self, info, handle, req_piece):
+    def show_piece_map(self, info, handle, req_piece, local=False):
         global count, count_limit, ui_player
+        if local:
+            low, up = count, count_limit + 1
+        else:
+            low, up = 0, info.num_pieces()
         tmp = ""
-        for piece in range(info.num_pieces()):
+        break_line = 0
+        for piece in range(low, up):
             if piece == req_piece:
                 tmp = tmp+':Y'
             elif handle.have_piece(piece):
@@ -206,9 +214,13 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 tmp = tmp+':'+str(handle.piece_priority(piece))
             if piece in [count, count_limit]:
-                tmp = tmp + '.{}.:'.format(piece)
+                tmp = tmp + '.{}\n'.format(piece)
+            if break_line%20 == 0:
+                tmp = tmp + '\n'
+            break_line += 1
         #ui_player.gui_signals.update_torrent_status(tmp)
-        print(tmp)
+        #print(tmp)
+        return tmp
         
     def do_GET(self):
         global handle, ses, info, count, count_limit, file_name, torrent_download_path
@@ -380,16 +392,14 @@ class TorrentThread(QtCore.QThread):
     def process_next(self):
         global handle, info, ses, new_count, new_count_limit, total_size_content
         global torrent_download_path
-        self.current_index = self.current_index + 1
+        self.current_index += 1
         fileIndex = int(self.current_index)
-        i = 0
         fileStr = None
         file_exists = False
-        for f in info.files():
+        for i, f in enumerate(info.files()):
             if fileIndex == i:
                 fileStr = f
                 handle.file_priority(i, 5)
-            i += 1
         try:
             new_path = os.path.join(torrent_download_path, fileStr.path)
             new_size = fileStr.size
@@ -452,14 +462,19 @@ class TorrentThread(QtCore.QThread):
                 out1 = 'Checking Please Wait: '+str(out)
             self.progress_signal.emit(out1, out_percent)
             if (s.progress * 100) >= 99 and (s.state != 1):
-                if self.from_client:
-                    if not self.start_next:
-                        self.start_next = True
-                        self.process_next()
-                else:
-                    self.session_signal.emit('..Starting Next Download..')
-                    time.sleep(5)
-
+                partial_down = False
+                for k in range(count, count_limit+1):
+                    if handle.piece_priority(k) == 0:
+                        handle.piece_priority(k, 2)
+                        partial_down = True
+                if not partial_down:
+                    if self.from_client:
+                        if not self.start_next:
+                            self.start_next = True
+                            self.process_next()
+                    else:
+                        self.session_signal.emit('..Starting Next Download..')
+                        time.sleep(5)
             time.sleep(1)
         self.progress_signal_end.emit('complete')
 
@@ -661,6 +676,18 @@ def get_torrent_handle(ses, nm):
         print(old_name, nm)
     return handle
 
+def assign_piece_priority(handle, info, count, count_limit):
+    for i in range(info.num_pieces()):
+        if i in range(count, count_limit+1):
+            if i in range(count, count+10):
+                if i == count:
+                    handle.piece_priority(i, 7)
+                else:
+                    handle.piece_priority(i, 6)
+            elif i == count_limit:
+                handle.piece_priority(i, 7)
+            else:
+                handle.piece_priority(i, 2)
 
 def get_torrent_info(torrent_file, file_index, file_dest,
                      session, u, p_bar, tmp_dir, key=None,
@@ -697,7 +724,7 @@ def get_torrent_info(torrent_file, file_index, file_dest,
                 print('No Metadata Available')
                 break
         info = handle.get_torrent_info()
-    elif torrent_handle:
+    elif torrent_handle and torrent_handle.is_valid():
         info = lt.torrent_info(torrent_file)
         handle = torrent_handle
     else:
@@ -705,7 +732,6 @@ def get_torrent_info(torrent_file, file_index, file_dest,
         handle = ses.add_torrent({'ti': info, 'save_path': file_dest})
 
     fileIndex = int(file_index)
-    file_found = False
     for i, f in enumerate(info.files()):
         file_exists = False
         new_path = os.path.join(file_dest, f.path)
@@ -714,9 +740,7 @@ def get_torrent_info(torrent_file, file_index, file_dest,
             file_exists = True
         if fileIndex == i:
             fileStr = f
-            handle.file_priority(i, 2)
-            if file_exists:
-                file_found = True
+            handle.file_priority(i, 1)
         elif file_exists:
             handle.file_priority(i, 1)
         else:
@@ -738,11 +762,7 @@ def get_torrent_info(torrent_file, file_index, file_dest,
     
     count = pr.piece
     count_limit = pr.piece + n_pieces - 1
-    priority = 7
-    for piece in range(count, count+5):
-        handle.piece_priority(piece, priority)
-        priority -= 1
-    handle.piece_priority(count_limit, 7)
+    assign_piece_priority(handle, info, count, count_limit)
     
     print('starting', handle.name())
     handle.set_sequential_download(True)
