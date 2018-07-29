@@ -76,40 +76,8 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         print('Range: {0}-{1}'.format(str(get_bytes), str(upper_range)))
 
-        tmp_file = os.path.join(tmp_dir_folder, 'row.txt')
-        tmp_seek_file = os.path.join(tmp_dir_folder, 'seek.txt')
         tmp_pl_file = os.path.join(tmp_dir_folder, 'player_stop.txt')
-
-        if os.path.exists(tmp_file):
-            content = open(tmp_file).read()
-            try:
-                fileIndex = int(content)
-                i = 0
-                for f in info.files():
-                    if fileIndex == i:
-                        fileStr = f
-                    i += 1
-                try:
-                    print(fileStr.path, '------>')
-                except:
-                    return 0
-                
-                pr = info.map_file(fileIndex, 0, fileStr.size)
-                print(pr.length, info.piece_length(), info.num_pieces())
-                n_pieces = pr.length / info.piece_length() + 1 
-                print(n_pieces)
-                n_pieces = int(n_pieces)
-                tmp = ''
-                for i in range(info.num_pieces()):
-                    tmp = tmp+':'+str(handle.piece_priority(i))
-                print('starting', handle.name(), '--file')
-                count = pr.piece
-                count_limit = pr.piece + n_pieces - 1
-                count1 = count
-                file_name = os.path.join(torrent_download_path, fileStr.path)
-            except Exception as e:
-                print(e)
-
+        
         length = info.piece_length()
         print(length, '--piece--length')
         complete_file = False
@@ -224,8 +192,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     break
         if os.path.exists(tmp_pl_file):
             os.remove(tmp_pl_file)
-        if os.path.exists(tmp_file):
-            os.remove(tmp_file)
             
     def show_piece_map(self, info, handle, req_piece):
         global count, count_limit, ui_player
