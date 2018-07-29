@@ -1440,6 +1440,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.torrent_show_piece_map = False
         self.mpv_start = False
         self.slave_address = '127.0.0.1:9001'
         self.extra_toolbar_control = 'master'
