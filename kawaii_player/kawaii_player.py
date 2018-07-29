@@ -170,8 +170,8 @@ except Exception as e:
 try:
     import libtorrent as lt
     from stream import ThreadServer, TorrentThread, get_torrent_info
-    from stream import set_torrent_info, get_torrent_info_magnet
-    from stream import set_new_torrent_file_limit, torrent_session_status
+    from stream import get_torrent_info_magnet
+    from stream import torrent_session_status
     from stream import get_torrent_download_location
 except Exception as e:
     print(e, '---156---')
@@ -9300,17 +9300,10 @@ class Ui_MainWindow(object):
                     if self.video_local_stream:
                         self.quit_really = 'yes'
                         if self.thread_server.isRunning():
-                            if self.do_get_thread.isRunning():
-                                row_file = os.path.join(TMPDIR, 'row.txt')
-                                with open(row_file, 'w') as f:
-                                    f.write(str(row))
-                                if self.https_media_server:
-                                    https_val = 'https'
-                                else:
-                                    https_val = 'http'
-                                finalUrl = https_val+"://"+self.local_ip+':'+str(self.local_port)+'/'
-                            else:
-                                finalUrl, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Next', self.torrent_download_folder, self.stream_session)
+                            finalUrl = self.start_torrent_stream(
+                                name, row, self.local_ip+':'+str(self.local_port),
+                                'Next', self.torrent_download_folder, self.stream_session
+                            )
                         else:
                             finalUrl, self.thread_server, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
                             
@@ -9607,9 +9600,9 @@ class Ui_MainWindow(object):
                 cmd = 'sub-add "{}" select'.format(subval)
             self.mpv_execute_command(cmd, self.cur_row, timer=5000)
             
-    def start_torrent_stream(
-            self, name_file, epn_index, local_ip, status, path_folder, session, 
-            site_name=None, from_client=None):
+    def start_torrent_stream(self, name_file, epn_index, local_ip,
+                             status, path_folder, session, 
+                             site_name=None, from_client=None):
         global site, home
         torrent_thread = None
         index = int(epn_index)
@@ -9632,14 +9625,16 @@ class Ui_MainWindow(object):
         else:
             https_val = 'http'
         url = https_val+'://'+ip+':'+str(port)+'/'
-        print(url, '-local-ip-url', status)
-        
-        if status.lower() == 'get next':
-            self.torrent_handle = set_new_torrent_file_limit(
+        logger.info('local-ip-url=> {} {}'.format(url, status))
+        if status.lower() == 'next':
+            get_torrent_info(
                 torrent_dest, index, path, self.stream_session, self.list6, 
-                self.progress, TMPDIR, self.media_server_key, self.client_auth_arr)
+                self.progress, TMPDIR, self.media_server_key, 
+                self.client_auth_arr, self.torrent_handle
+            )
+            return url
         else:
-            print('--line--15410--', self.thread_server.isRunning(), '=thread_server')
+            logger.info('9637 thread-server running: {}'.format(self.thread_server.isRunning()))
             if status.lower() =='first run' and not self.thread_server.isRunning():
                 thread_server = ThreadServer(
                     ip, port, self.media_server_key, self.client_auth_arr, 
@@ -9649,19 +9644,18 @@ class Ui_MainWindow(object):
                      time.sleep(0.2)
                      logger.debug('waiting for thread to start')
                      wait_count += 1
-            print('--line--15415--', self.thread_server.isRunning(), '=thread_server')
-           
+            logger.info('9647 thread-server running: {}'.format(self.thread_server.isRunning()))
+            torrent_handle = None
             handle, ses, info, cnt, cnt_limit, file_name = get_torrent_info(
                                     torrent_dest, index, path, session, self.list6, 
                                     self.progress, TMPDIR, self.media_server_key, 
-                                    self.client_auth_arr)
-            print('--line--15419--', self.do_get_thread.isRunning(), '--do_get--')
+                                    self.client_auth_arr, torrent_handle
+                                    )
             if not self.do_get_thread.isRunning():
-                torrent_thread = TorrentThread(
-                                handle, cnt, cnt_limit, ses, row=index, 
-                                from_client=from_client)
+                torrent_thread = TorrentThread(handle, cnt, cnt_limit,
+                                               ses, row=index,
+                                               from_client=from_client)
                 torrent_thread.start()
-            print('--line--15425--', self.do_get_thread.isRunning(), '--do_get--')
             if self.progress.isHidden():
                 self.progress.show()
             if from_client:
@@ -9779,14 +9773,10 @@ class Ui_MainWindow(object):
                         finalUrl = https_val+"://"+self.local_ip+':'+str(self.local_port)+'/'
                         print(finalUrl, '=finalUrl--torrent--')
                         if self.thread_server.isRunning():
-                            if self.do_get_thread.isRunning():
-                                row_file = os.path.join(TMPDIR, 'row.txt')
-                                f = open(row_file, 'w')
-                                f.write(str(row))
-                                f.close()
-                                finalUrl = https_val+"://"+self.local_ip+':'+str(self.local_port)+'/'
-                            else:
-                                finalUrl, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Next', self.torrent_download_folder, self.stream_session)
+                            finalUrl = self.start_torrent_stream(
+                                name, row, self.local_ip+':'+str(self.local_port),
+                                'Next', self.torrent_download_folder, self.stream_session
+                                )
                         else:
                             finalUrl, self.thread_server, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
@@ -11827,19 +11817,10 @@ class Ui_MainWindow(object):
                 try:
                     if self.video_local_stream:
                         if self.thread_server.isRunning():
-                            if self.do_get_thread.isRunning():
-                                if self.https_media_server:
-                                    https_val = 'https'
-                                else:
-                                    https_val = 'http'
-                                finalUrl = https_val+"://"+self.local_ip+':'+str(self.local_port)+'/'
-                                if self.torrent_handle.file_priority(row):
-                                    self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Get Next', self.torrent_download_folder, self.stream_session)
-                                else:
-                                    if self.player_val == 'mplayer':
-                                        self.mpvplayer_val.write(b'\n quit \n')
-                            else:
-                                finalUrl, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'Already Running', self.torrent_download_folder, self.stream_session)
+                            finalUrl = self.start_torrent_stream(
+                                name, row, self.local_ip+':'+str(self.local_port),
+                                'Next', self.torrent_download_folder, self.stream_session
+                                )
                         else:
                             finalUrl, self.thread_server, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
