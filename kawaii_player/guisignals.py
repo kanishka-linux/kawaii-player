@@ -110,7 +110,19 @@ class GUISignals(QtCore.QObject):
     
     @staticmethod
     def update_torrent_status_window(value):
-        ui.label_torrent_status.setText(value)
+        text = ui.label_torrent_status.toPlainText()
+        if text and text.startswith('+'):
+            ui.torrent_show_piece_map = True
+            text = text[1:]
+            ui.label_torrent_status.setText(text)
+        elif text and text.startswith('-'):
+            ui.torrent_show_piece_map = False
+            text = text[1:]
+            ui.label_torrent_status.setText(text)
+        else:
+            vscroll = ui.label_torrent_status.verticalScrollBar().value()
+            ui.label_torrent_status.setText(value)
+            ui.label_torrent_status.verticalScrollBar().setValue(vscroll)
     
     @staticmethod
     def check_master_mode(value):
