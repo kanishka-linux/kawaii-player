@@ -188,11 +188,12 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         self.show_piece_map(info, handle, req_piece)
                 if update_str and not ui_player.torrent_frame.isHidden():
                     s = handle.status()
-                    if ui_player.torrent_show_piece_map:
+                    if ui_player.torrent_status_command == 'map':
                         update_str = self.show_piece_map(info, handle, req_piece, local=True)
-                    else:
+                        ui_player.gui_signals.update_torrent_status(update_str)
+                    elif ui_player.torrent_status_command == 'default':
                         update_str = update_str + '\nTotal={}\nDownloaded={}'.format(count_limit-count+1, s.num_pieces)
-                    ui_player.gui_signals.update_torrent_status(update_str)
+                        ui_player.gui_signals.update_torrent_status(update_str)
                 if ses.is_paused() or os.path.exists(tmp_pl_file):
                     break
         if os.path.exists(tmp_pl_file):
@@ -385,6 +386,7 @@ class TorrentThread(QtCore.QThread):
         self.session_signal.connect(session_finished)
         self.progress_signal.connect(print_progress)
         self.progress_signal_end.connect(print_progress_complete)
+        self.ui = None
 
     def __del__(self):
         self.wait()                        
@@ -440,7 +442,13 @@ class TorrentThread(QtCore.QThread):
             new_count = pr.piece
             new_count_limit = pr.piece + n_pieces - 1
             self.start_next = False
-
+    
+    def assign_handle(self, handle):
+        self.handle = handle
+        
+    def assign_globals(self, ui):
+        self.ui = ui
+        
     def run(self):
         global new_count, new_count_limit, total_size_content
         count_limit = self.count_limit
@@ -476,6 +484,9 @@ class TorrentThread(QtCore.QThread):
                         self.session_signal.emit('..Starting Next Download..')
                         time.sleep(5)
             time.sleep(1)
+            if self.ui and self.ui.torrent_status_command == 'all':
+                msg = get_torrent_info_all(self.ui)
+                self.ui.gui_signals.update_torrent_status(msg)
         self.progress_signal_end.emit('complete')
 
 def change_config_file(ip, port):
@@ -536,6 +547,16 @@ def get_torrent_download_location(url, home_dir, download_loc):
     print(fileStr.path)
     file_name = os.path.join(download_loc, fileStr.path)
     return file_name
+    
+def get_torrent_info_all(ui):
+    msg = ''
+    torrent_list = ui.stream_session.get_torrents()
+    for i, handle in enumerate(torrent_list):
+        msg_t = str(i+1)+'. '+handle.name() +':'+torrent_session_status(handle) +'\n\n'
+        if handle == ui.torrent_handle:
+            msg_t = ui.check_symbol+msg_t
+        msg = msg + msg_t
+    return msg
 
 def torrent_session_status(torrent_handle):
     s = torrent_handle.status()
