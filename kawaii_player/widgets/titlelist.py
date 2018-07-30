@@ -844,6 +844,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         old_name = item_value.split('\t')[0]
                     else:
                         old_name = item_value
+                    
                     if site.lower() == 'subbedanime' or site.lower() == 'dubbedanime':
                         history_txt = os.path.join(home, 'History', site, siteName, 'history.txt')
                         file_dir_new = os.path.join(home, 'History', site, siteName, item)
@@ -852,18 +853,35 @@ class TitleListWidget(QtWidgets.QListWidget):
                         history_txt = os.path.join(home, 'History', site, 'history.txt')
                         file_dir_new = os.path.join(home, 'History', site, item)
                         file_dir_old = os.path.join(home, 'History', site, old_name)
-                    tmp = re.sub('[^	]*', item, item_value, 1)
-                    ui.original_path_name[row] = tmp
-                    write_files(history_txt, ui.original_path_name, line_by_line=True)
-                    itemlist.setText(item)
-                    if os.path.exists(file_dir_old):
-                        if not os.path.exists(file_dir_new):
-                            shutil.move(file_dir_old, file_dir_new)
-                            logger.info('\nmoving {0}::to::{1}\n'.format(file_dir_old, file_dir_new))
-                        else:
-                            shutil.rmtree(file_dir_old)
-                            msg = '\nFolder: {0} already exists thus removing {1}\n'.format(file_dir_new, file_dir_old)
-                            logger.info(msg)
+                    old_history = open_files(history_txt, True)
+                    old_history = set([i.strip().split('\t')[0] for i in old_history if i.strip()])
+                    if item not in old_history:
+                        thumbnail_dir_old = os.path.join(home, 'thumbnails', old_name)
+                        thumbnail_dir_new = os.path.join(home, 'thumbnails', item)
+                        tmp = re.sub('[^	]*', item, item_value, 1)
+                        ui.original_path_name[row] = tmp
+                        write_files(history_txt, ui.original_path_name, line_by_line=True)
+                        itemlist.setText(item)
+                        if os.path.exists(file_dir_old) and file_dir_old != file_dir_new:
+                            if not os.path.exists(file_dir_new):
+                                shutil.move(file_dir_old, file_dir_new)
+                                logger.info('\nmoving {0}::to::{1}\n'.format(file_dir_old, file_dir_new))
+                                if ui.video_local_stream:
+                                    torrent_file_old = file_dir_old + '.torrent'
+                                    torrent_file_new = os.path.join(file_dir_new, 'title.torrent')
+                                    if os.path.isfile(torrent_file_old) and not os.path.isfile(torrent_file_new):
+                                        shutil.move(torrent_file_old, torrent_file_new)
+                                    elif os.path.isfile(torrent_file_old) and os.path.isfile(torrent_file_new):
+                                        os.remove(torrent_file_old)
+                                if os.path.exists(thumbnail_dir_old) and not os.path.exists(thumbnail_dir_new):
+                                    shutil.move(thumbnail_dir_old, thumbnail_dir_new)
+                            else:
+                                shutil.rmtree(file_dir_old)
+                                msg = '\nFolder: {0} already exists thus removing {1}\n'.format(file_dir_new, file_dir_old)
+                                logger.info(msg)
+                    else:
+                        msg = 'Choose another name. Title: {} already exists'.format(old_name)
+                        send_notification(msg)
                     
     def contextMenuEvent(self, event):
         if self.currentItem():
