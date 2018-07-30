@@ -1944,6 +1944,8 @@ class Ui_MainWindow(object):
     
     def player_volume_manager(self):
         if self.frame_extra_toolbar.isHidden():
+            if not self.torrent_frame.isHidden():
+                self.torrent_frame.hide()
             if self.fullscreen_video:
                 self.gridLayout.setSpacing(5)
                 self.superGridLayout.setSpacing(5)
