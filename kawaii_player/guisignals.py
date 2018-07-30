@@ -112,11 +112,15 @@ class GUISignals(QtCore.QObject):
     def update_torrent_status_window(value):
         text = ui.label_torrent_status.toPlainText()
         if text and text.startswith('+'):
-            ui.torrent_show_piece_map = True
+            ui.torrent_status_command = 'map'
             text = text[1:]
             ui.label_torrent_status.setText(text)
         elif text and text.startswith('-'):
-            ui.torrent_show_piece_map = False
+            ui.torrent_status_command = 'default'
+            text = text[1:]
+            ui.label_torrent_status.setText(text)
+        elif text and text.startswith('*'):
+            ui.torrent_status_command = 'all'
             text = text[1:]
             ui.label_torrent_status.setText(text)
         else:
