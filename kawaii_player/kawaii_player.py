@@ -1384,8 +1384,8 @@ class Ui_MainWindow(object):
         self.thumbnail_cnt = 0
         self.player_setLoop_var = False
         self.playerPlaylist_setLoop_var = 0
-        self.thread_server = QtCore.QThread()
-        self.do_get_thread = QtCore.QThread()
+        self.torrent_serve_thread = QtCore.QThread()
+        self.torrent_status_thread = QtCore.QThread()
         self.mplayer_status_thread = QtCore.QThread()
         self.stream_session = None
         self.start_streaming = False
@@ -1441,6 +1441,7 @@ class Ui_MainWindow(object):
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
         self.torrent_show_piece_map = False
+        self.torrent_status_command = 'default'
         self.mpv_start = False
         self.slave_address = '127.0.0.1:9001'
         self.extra_toolbar_control = 'master'
@@ -2165,7 +2166,7 @@ class Ui_MainWindow(object):
             self.progress.hide()
             
     def quick_torrent_play_method(self, url):
-        if self.thread_server.isRunning():
+        if self.torrent_serve_thread.isRunning():
             self.label_torrent_stop.clicked.emit()
         time.sleep(0.5)
         hist_folder = os.path.join(home, 'History', 'Torrent')
@@ -2803,7 +2804,7 @@ class Ui_MainWindow(object):
                 stop_now = True
             if stop_now:
                 if self.video_local_stream or new_video_local_stream:
-                    if self.do_get_thread.isRunning():
+                    if self.torrent_status_thread.isRunning():
                         logger.debug('----------stream-----pausing-----')
                         t_list = self.stream_session.get_torrents()
                         for i in t_list:
@@ -2850,7 +2851,7 @@ class Ui_MainWindow(object):
     def stop_torrent_forcefully(self, from_client=None):
         global site
         try:
-            if self.do_get_thread.isRunning():
+            if self.torrent_status_thread.isRunning():
                 print('----------stream-----pausing-----')
                 t_list = self.stream_session.get_torrents()
                 for i in t_list:
@@ -7708,6 +7709,11 @@ class Ui_MainWindow(object):
                             if not os.path.exists(hist_site):
                                 os.makedirs(hist_site)
                                 first_try = True
+                                if self.video_local_stream:
+                                    torrent_file = hist_site + '.torrent'
+                                    title_torrent = os.path.join(hist_site, 'title.torrent')
+                                    if os.path.isfile(torrent_file):
+                                        shutil.copy(torrent_file, title_torrent)
                             
                             if not first_try or site == 'MyServer':
                                 lines = open_files(hist_epn, True)
@@ -9300,13 +9306,13 @@ class Ui_MainWindow(object):
                     self.progressEpn.setFormat('Wait..')
                     if self.video_local_stream:
                         self.quit_really = 'yes'
-                        if self.thread_server.isRunning():
+                        if self.torrent_serve_thread.isRunning() or self.torrent_status_thread.isRunning():
                             finalUrl = self.start_torrent_stream(
                                 name, row, self.local_ip+':'+str(self.local_port),
                                 'Next', self.torrent_download_folder, self.stream_session
                             )
                         else:
-                            finalUrl, self.thread_server, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
+                            finalUrl, self.torrent_serve_thread, self.torrent_status_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
                             
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
@@ -9605,7 +9611,7 @@ class Ui_MainWindow(object):
                              status, path_folder, session, 
                              site_name=None, from_client=None):
         global site, home
-        torrent_thread = None
+        torrent_status_thread = None
         index = int(epn_index)
         ip_n = local_ip.rsplit(':', 1)
         ip = ip_n[0]
@@ -9620,6 +9626,8 @@ class Ui_MainWindow(object):
                 site_name_val = site
         site_home = os.path.join(home, 'History', site_name_val)
         torrent_dest = os.path.join(site_home, name_file+'.torrent')
+        if not os.path.isfile(torrent_dest):
+            torrent_dest = os.path.join(site_home, name_file, 'title.torrent')
         logger.info('torrent_dest={0} ; index={1}; path={2}'.format(torrent_dest, index, path))
         if self.https_media_server:
             https_val = 'https'
@@ -9628,35 +9636,40 @@ class Ui_MainWindow(object):
         url = https_val+'://'+ip+':'+str(port)+'/'
         logger.info('local-ip-url=> {} {}'.format(url, status))
         if status.lower() == 'next':
-            get_torrent_info(
-                torrent_dest, index, path, self.stream_session, self.list6, 
-                self.progress, TMPDIR, self.media_server_key, 
-                self.client_auth_arr, self.torrent_handle
-            )
+            handle = self.get_torrent_handle(name_file)
+            return_val = get_torrent_info(
+                    torrent_dest, index, path, self.stream_session, self.list6, 
+                    self.progress, TMPDIR, self.media_server_key, 
+                    self.client_auth_arr, handle
+                )
+            self.torrent_handle, self.stream_session, _, _, _, _ = return_val
+            if self.torrent_status_thread.isRunning():
+                self.torrent_status_thread.assign_handle(self.torrent_handle)
             return url
         else:
-            logger.info('9637 thread-server running: {}'.format(self.thread_server.isRunning()))
-            if status.lower() =='first run' and not self.thread_server.isRunning():
-                thread_server = ThreadServer(
+            logger.info('9637 thread-server running: {}'.format(self.torrent_serve_thread.isRunning()))
+            if status.lower() =='first run' and not self.torrent_serve_thread.isRunning():
+                torrent_serve_thread = ThreadServer(
                     ip, port, self.media_server_key, self.client_auth_arr, 
                     self.https_media_server, self.https_cert_file, self)
-                thread_server.start()
+                torrent_serve_thread.start()
                 for wait_count in range(0, 5):
                      time.sleep(0.2)
                      logger.debug('waiting for thread to start')
                      wait_count += 1
-            logger.info('9647 thread-server running: {}'.format(self.thread_server.isRunning()))
+            logger.info('9647 thread-server running: {}'.format(self.torrent_serve_thread.isRunning()))
             torrent_handle = None
             handle, ses, info, cnt, cnt_limit, file_name = get_torrent_info(
                                     torrent_dest, index, path, session, self.list6, 
                                     self.progress, TMPDIR, self.media_server_key, 
                                     self.client_auth_arr, torrent_handle
                                     )
-            if not self.do_get_thread.isRunning():
-                torrent_thread = TorrentThread(handle, cnt, cnt_limit,
-                                               ses, row=index,
-                                               from_client=from_client)
-                torrent_thread.start()
+            if not self.torrent_status_thread.isRunning():
+                torrent_status_thread = TorrentThread(handle, cnt, cnt_limit,
+                                                     ses, row=index,
+                                                     from_client=from_client)
+                torrent_status_thread.assign_globals(self)
+                torrent_status_thread.start()
             if self.progress.isHidden():
                 self.progress.show()
             if from_client:
@@ -9690,11 +9703,11 @@ class Ui_MainWindow(object):
                         if not file_exists:
                             txt = os.path.basename(file_path)+':'+str(nindex)
                             self.list6.addItem(txt)
-                return url, thread_server, torrent_thread, ses, handle
+                return url, torrent_serve_thread, torrent_status_thread, ses, handle
             else:
-                if torrent_thread is None:
-                    torrent_thread = self.do_get_thread
-                return url, torrent_thread, ses, handle
+                if torrent_status_thread is None:
+                    torrent_status_thread = self.torrent_status_thread
+                return url, torrent_status_thread, ses, handle
     
     def initial_view_mode(self):
         global site, show_hide_player
@@ -9773,13 +9786,13 @@ class Ui_MainWindow(object):
                             https_val = 'http'
                         finalUrl = https_val+"://"+self.local_ip+':'+str(self.local_port)+'/'
                         print(finalUrl, '=finalUrl--torrent--')
-                        if self.thread_server.isRunning():
+                        if self.torrent_serve_thread.isRunning() or self.torrent_status_thread.isRunning():
                             finalUrl = self.start_torrent_stream(
                                 name, row, self.local_ip+':'+str(self.local_port),
                                 'Next', self.torrent_download_folder, self.stream_session
                                 )
                         else:
-                            finalUrl, self.thread_server, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
+                            finalUrl, self.torrent_serve_thread, self.torrent_status_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
@@ -11817,13 +11830,13 @@ class Ui_MainWindow(object):
                 self.progressEpn.setFormat('Wait..')
                 try:
                     if self.video_local_stream:
-                        if self.thread_server.isRunning():
+                        if self.torrent_serve_thread.isRunning() and self.torrent_status_thread.isRunning():
                             finalUrl = self.start_torrent_stream(
                                 name, row, self.local_ip+':'+str(self.local_port),
                                 'Next', self.torrent_download_folder, self.stream_session
                                 )
                         else:
-                            finalUrl, self.thread_server, self.do_get_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
+                            finalUrl, self.torrent_serve_thread, self.torrent_status_thread, self.stream_session, self.torrent_handle = self.start_torrent_stream(name, row, self.local_ip+':'+str(self.local_port), 'First Run', self.torrent_download_folder, self.stream_session)
                         self.torrent_handle.set_upload_limit(self.torrent_upload_limit)
                         self.torrent_handle.set_download_limit(self.torrent_download_limit)
                     else:
