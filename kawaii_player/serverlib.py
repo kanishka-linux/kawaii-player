@@ -857,6 +857,8 @@ class ServerLib:
                         os.makedirs(hist_site)
                         hist_epn = os.path.join(hist_site, 'Ep.txt')
                         write_files(hist_epn, file_arr, line_by_line=True)
+                        torrent_extra = os.path.join(hist_site, 'title.torrent')
+                        shutil.copy(torrent_dest, torrent_extra)
                     except Exception as e:
                         print(e)
         return name
@@ -938,8 +940,8 @@ class ServerLib:
                         https_val = 'http'
                     finalUrl = https_val+"://"+ui.local_ip+':'+str(ui.local_port)+'/'
                     print(finalUrl, '=finalUrl--torrent--')
-                    if ui.thread_server.isRunning():
-                        if ui.do_get_thread.isRunning():
+                    if ui.torrent_serve_thread.isRunning():
+                        if ui.torrent_status_thread.isRunning():
                             get_next = 'Next'
                             if ui.torrent_handle.file_priority(row):
                                 t_list = ui.stream_session.get_torrents()
@@ -951,17 +953,17 @@ class ServerLib:
                                         get_next = 'Get Next'
                                         logger.info(get_next)
                                         break
-                            finalUrl, ui.do_get_thread, ui.stream_session, ui.torrent_handle = ui.start_torrent_stream(
+                            finalUrl, ui.torrent_status_thread, ui.stream_session, ui.torrent_handle = ui.start_torrent_stream(
                                 na_me, row, ui.local_ip+':'+str(ui.local_port),
                                 get_next, ui.torrent_download_folder,
                                 ui.stream_session, site_name=si_te, from_client=from_client)
                         else:
-                            finalUrl, ui.do_get_thread, ui.stream_session, ui.torrent_handle = ui.start_torrent_stream(
+                            finalUrl, ui.torrent_status_thread, ui.stream_session, ui.torrent_handle = ui.start_torrent_stream(
                                 na_me, row, ui.local_ip+':'+str(ui.local_port), 'Next',
                                 ui.torrent_download_folder, ui.stream_session,
                                 site_name=si_te, from_client=from_client)
                     else:
-                        finalUrl, ui.thread_server, ui.do_get_thread, ui.stream_session, ui.torrent_handle = ui.start_torrent_stream(
+                        finalUrl, ui.torrent_serve_thread, ui.torrent_status_thread, ui.stream_session, ui.torrent_handle = ui.start_torrent_stream(
                             na_me, row, ui.local_ip+':'+str(ui.local_port), 'First Run', 
                             ui.torrent_download_folder, ui.stream_session, 
                             site_name=si_te, from_client=from_client)
