@@ -1,5 +1,5 @@
 import os
-
+from PyQt5 import QtWidgets
 
 class WidgetStyleSheet:
     
@@ -557,12 +557,15 @@ class WidgetStyleSheet:
                 background-image:url('1.png');}}
                 """.format(ht, gui.list_text_color, gui.list_text_color_focus))
         elif theme == 'system':
+            bgcol = gui.frame1.palette().color(QtWidgets.QWidget.backgroundRole(gui.frame1))
+            bgcolor = bgcol.name()
+            gui.system_bgcolor = bgcolor
             if widget == gui.list2:
                 if gui.list_with_thumbnail:
                     ht = '128px'
                 else:
                     ht = '30px'
-                gui.list2.setAlternatingRowColors(True)
+                #gui.list2.setAlternatingRowColors(False)
                 gui.list2.setStyleSheet("""QListWidget{{
                 border-radius:3px;
                 }}
@@ -579,18 +582,12 @@ class WidgetStyleSheet:
                 text-align: center;
                 }
                 """)
-                gui.list_poster.setStyleSheet("""
-                QListWidget:item {
-                height: 256px;
-                width:128px;
-                }
-                """)
                 #gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
-                    widget.setAlternatingRowColors(True)
+                    #widget.setAlternatingRowColors(False)
                     widget.setStyleSheet("""QListWidget{{
-                    border-radius:3px;
+                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
                     }}
                     QListWidget:item {{
                     height: 30px;
@@ -599,14 +596,14 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 10%);
                     color: {0};
                     }}
-                    """.format(gui.list_text_color_focus))
+                    """.format(gui.list_text_color_focus, bgcolor))
                 if gui.list_with_thumbnail:
                     ht = '128px'
                 else:
                     ht = '30px'
-                gui.list2.setAlternatingRowColors(True)
+                #gui.list2.setAlternatingRowColors(False)
                 gui.list2.setStyleSheet("""QListWidget{{
-                border-radius:3px;
+                border-radius:3px;background-color :{2}; border: 1px solid rgba(0,0,0,20%);
                 }}
                 QListWidget:item {{
                 height: {0};
@@ -615,7 +612,27 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 20%);
                 color: {1};
                 }}
-                """.format(ht, gui.list_text_color_focus))
+                """.format(ht, gui.list_text_color_focus, bgcolor))
+            
+            gui.dockWidget_3.setStyleSheet("""
+                QFrame{{
+                    background-color:{color};
+                    border: 1px solid rgba(0, 0, 0, 40%)
+                    }};
+                """.format(color=bgcolor)
+                )
+            gui.text.setStyleSheet("""
+                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
+                    """.format(gui.list_text_color_focus, bgcolor))
+            gui.list_poster.setStyleSheet("""QListWidget{{
+                border-radius:3px;background-color :{2}; border: 1px solid rgba(0,0,0,20%);
+                }}
+                QListWidget:item {{
+                height: 256px;
+                width: 128px;
+                }}
+                
+                """.format(ht, gui.list_text_color_focus, bgcolor))
         elif theme == 'dark':
             alpha = '30%'
             qbtn = '10%'

@@ -1440,6 +1440,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = False
         self.mpvplayer_val = QtCore.QProcess()
+        self.system_bgcolor = ''
         self.torrent_show_piece_map = False
         self.torrent_status_command = 'default'
         self.mpv_start = False
@@ -4313,6 +4314,15 @@ class Ui_MainWindow(object):
                             }}
                             """.format(self.global_font, self.thumbnail_text_color, bold=font_bold, size=font_size)
                             )
+                    elif self.player_theme == 'system':
+                        label_title_txt.setStyleSheet(
+                            """font: {bold} {size}px {0};color: {1}; background : {bgcolor};
+                            QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                            background:{bgcolor};
+                            }}
+                            """.format(self.global_font, self.thumbnail_text_color,
+                                       bold=font_bold, size=font_size, bgcolor=self.system_bgcolor)
+                            )
                     else:
                         label_title_txt.setStyleSheet(
                             """font: {bold} {size}px {0}; color: {1};
@@ -4892,6 +4902,15 @@ class Ui_MainWindow(object):
                             }}
                             """.format(self.global_font, self.thumbnail_text_color,
                                        bold=font_bold, size=font_size)
+                            )
+                    elif self.player_theme == 'system':
+                        label_epn_txt.setStyleSheet(
+                            """font: {bold} {size}px {0};color: {1};background: {bgcolor};
+                            QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                            background:{bgcolor};
+                            }}
+                            """.format(self.global_font, self.thumbnail_text_color,
+                                       bold=font_bold, size=font_size, bgcolor=self.system_bgcolor)
                             )
                     else:
                         label_epn_txt.setStyleSheet(
@@ -13892,7 +13911,8 @@ def main():
                 theme=ui.player_theme
                 )
             )
-    
+    if ui.player_theme == 'system':
+        ui.frame1.setMaximumWidth(screen_width-10)
     try:
         font = 'default'
         if ui.global_font != 'default':
