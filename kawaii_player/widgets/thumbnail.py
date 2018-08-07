@@ -603,15 +603,16 @@ class ThumbnailWidget(QtWidgets.QLabel):
         if self.objectName() == 'label_new':
             if ui.mpvplayer_val.processId() > 0:
                 pass
-            else:
-                if self.rect is None:
-                    self.rect = QtCore.QRect(self.x()+20, self.y()+20, self.width()-40, self.height()-40)
+            elif self.rect is None:
+                self.rect = QtCore.QRect(self.x()+20, self.y()+20, self.width()-40, self.height()-40)
+                """
                 if self.rect.contains(event.pos()) and not ui.clicked_label_new:
                     ui.progressEpn.setValue(0)
                     ui.progressEpn.setFormat((self.tooltip))
                 else:
                     ui.progressEpn.setValue(0)
                     ui.progressEpn.setFormat((''))
+                """
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
         if ui.search_on_type_btn.isHidden():
