@@ -1152,7 +1152,7 @@ class Ui_MainWindow(object):
         self.thumbnail_text_color_focus = 'green'
         self.list_text_color = 'white'
         self.list_text_color_focus = 'violet'
-        self.font_bold = True
+        self.font_bold = False
         self.horizontalLayout10 = QtWidgets.QVBoxLayout(self.tab_6)
         self.horizontalLayout10.setObjectName(_fromUtf8("horizontalLayout"))
         self.scrollArea = QtGuiQWidgetScroll(self.tab_6, self)
@@ -1438,7 +1438,7 @@ class Ui_MainWindow(object):
         self.tmp_pls_file_dict = {}
         self.torrent_type = 'file'
         self.torrent_handle = ''
-        self.list_with_thumbnail = False
+        self.list_with_thumbnail = True
         self.mpvplayer_val = QtCore.QProcess()
         self.system_bgcolor = ''
         self.torrent_show_piece_map = False
@@ -1455,10 +1455,10 @@ class Ui_MainWindow(object):
         self.discover_slaves = False
         self.subtitle_wait_thread = QtCore.QThread()
         self.instant_cast_play = -1
-        self.live_preview = 'no'
+        self.live_preview = 'fast'
         self.master_casting_subdict = {}
         self.live_preview_quality = '90'
-        self.live_preview_style = 'tooltip'
+        self.live_preview_style = 'widget'
         self.playback_mode = 'single'
         self.append_counter = 0
         self.append_audio_start = False
@@ -1516,7 +1516,7 @@ class Ui_MainWindow(object):
         self.focus_widget = None
         self.status_dict = {'label_dock':0}
         self.status_dict_widget = {}
-        self.player_theme = 'default'
+        self.player_theme = 'dark'
         self.mpv_length_find_attempt = 0
         self.force_fs = False
         self.media_server_cache_music = {}
@@ -9886,6 +9886,11 @@ class Ui_MainWindow(object):
         
         finalUrl = str(finalUrl)
         current_playing_file_path = finalUrl
+        self.final_playing_url = finalUrl
+        if finalUrl.startswith('"') and finalUrl.endswith('"'):
+            self.final_playing_url = self.final_playing_url[1:]
+            self.final_playing_url = self.final_playing_url[:-1]
+            
         a_url = None
         s_url = None
         if '::' in finalUrl:
@@ -13729,7 +13734,7 @@ def main():
                                 ui.player_theme = 'default'
                     except Exception as e:
                         print(e)
-                        ui.player_theme = 'default'
+                        ui.player_theme = 'dark'
                 elif i.startswith('EXTRA_PLAYERS='):
                     try:
                         extra_players = j.split(',')
@@ -13876,13 +13881,13 @@ def main():
             f.write("\nBROADCAST_MESSAGE=False")
             f.write("\nMEDIA_SERVER_AUTOSTART=False")
             f.write("\n#THEME=default,system,dark")
-            f.write("\nTHEME=DEFAULT")
+            f.write("\nTHEME=DARK")
             f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
             f.write("\nEXTRA_PLAYERS=NONE")
             f.write("\n#GLOBAL_FONT=Name of Font")
             f.write("\nGLOBAL_FONT=Default")
             f.write("\nGLOBAL_FONT_SIZE=Default")
-            f.write("\nFONT_BOLD=True")
+            f.write("\nFONT_BOLD=False")
             msg = ("\n#THUMBNAIL_TEXT_COLOR/LIST_TEXT_COLOR=red,green,blue,yellow,\
                    gray,white,black,cyan,magenta,darkgray,lightgray,darkred,\
                    darkblue,darkyellow,transparent")
