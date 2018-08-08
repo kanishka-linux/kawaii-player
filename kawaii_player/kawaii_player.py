@@ -3309,7 +3309,7 @@ class Ui_MainWindow(object):
         global sub_id, audio_id
         change_spacing = False
         if self.mpvplayer_val.processId() > 0 or msg:
-            logger.warn(self.progress_counter)
+            logger.warning(self.progress_counter)
             if self.player_val == 'mpv':
                 counter = self.progress_counter
             else:
@@ -10475,13 +10475,13 @@ class Ui_MainWindow(object):
                                     if self.mpv_length_find_attempt >= 4:
                                         self.mplayerLength = 1
                                         self.mpv_length_find_attempt = 0
-                                        logger.warn('No Suitable length detected')
+                                        logger.warning('No Suitable length detected')
                                         msg = '\n print-text "LENGTH_SECONDS=${duration}" \n'
                                         self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                                     else:
                                         self.mpv_cnt = 0
                                         self.mpv_length_find_attempt += 1
-                                        logger.warn(self.mpv_length_find_attempt)
+                                        logger.warning(self.mpv_length_find_attempt)
                                         msg = '\n print-text "LENGTH_SECONDS=${duration}" \n'
                                         self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                                 self.mpv_playback_duration = n

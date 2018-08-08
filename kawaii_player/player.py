@@ -445,7 +445,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     logger.info("{0} - {1}".format(txt_b, txt))
                     self.mpvplayer.write(txt_b)
             else:
-                logger.warn('Not Allowed')
+                logger.warning('Not Allowed')
         elif mode == 'drop':
             title_sub = subtitle
             logger.debug(title_sub)

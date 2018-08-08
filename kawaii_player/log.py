@@ -48,10 +48,10 @@ class Logging:
         args_str = '; '.join(args_list)
         self.logger.debug(args_str)
         
-    def warn(self, *args):
+    def warning(self, *args):
         args_list = [str(i) for i in args]
         args_str = '; '.join(args_list)
-        self.logger.warn(args_str)
+        self.logger.warning(args_str)
         
     def error(self, *args):
         args_list = [str(i) for i in args]
