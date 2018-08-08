@@ -33,7 +33,7 @@ print(sys.path)
 
 import urllib.parse
 import urllib.request
-import imp
+import importlib as imp
 import shutil
 import re
 import subprocess
@@ -6911,7 +6911,7 @@ class Ui_MainWindow(object):
             print(type(self.site_var), site, '--addon-changed--')
             plugin_path = os.path.join(home, 'src', 'Plugins', site+'.py')
             if os.path.exists(plugin_path):
-                module = imp.load_source(site, plugin_path)
+                module = imp.import_module(site, plugin_path)
             self.site_var = getattr(module, site)(TMPDIR)
             bookmark = False
             if not os.path.exists(os.path.join(home, "History", site)):
@@ -6954,7 +6954,7 @@ class Ui_MainWindow(object):
         print(type(self.site_var), site, '--addon-changed--')
         plugin_path = os.path.join(home, 'src', 'Plugins', site+'.py')
         if os.path.exists(plugin_path):
-            module = imp.load_source(site, plugin_path)
+            module = imp.import_module(site, plugin_path)
         self.site_var = getattr(module, site)(TMPDIR)
         print(type(self.site_var), site, '--addon-changed--')
         if siteName:
@@ -7605,7 +7605,7 @@ class Ui_MainWindow(object):
                     if self.site_var:
                         del self.site_var
                         self.site_var = ''
-                    module = imp.load_source(site, plugin_path)
+                    module = imp.import_module(site, plugin_path)
                     self.site_var = getattr(module, site)(TMPDIR)
                 else:
                     return 0

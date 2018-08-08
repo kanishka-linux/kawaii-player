@@ -1,6 +1,6 @@
 import os
 import re
-import imp
+import importlib as imp
 import shutil
 import hashlib
 from player_functions import open_files, write_files, ccurl, send_notification
@@ -204,7 +204,7 @@ class ServerLib:
                 if site_var:
                     del site_var
                     site_var = ''
-                module = imp.load_source(site, plugin_path)
+                module = imp.import_module(site, plugin_path)
                 site_var = getattr(module, site)(TMPDIR)
                 if site_var:
                     criteria = site_var.getOptions() 
@@ -564,7 +564,7 @@ class ServerLib:
                     if site_var:
                         del site_var
                         site_var = ''
-                    module = imp.load_source(site, plugin_path)
+                    module = imp.import_module(site, plugin_path)
                     site_var = getattr(module, site)(TMPDIR)
                     siteName = site_option
                     if site_var:
@@ -909,7 +909,7 @@ class ServerLib:
         finalUrl = ''
         plugin_path = os.path.join(home, 'src', 'Plugins', si_te+'.py')
         if os.path.exists(plugin_path):
-            module = imp.load_source(si_te, plugin_path)
+            module = imp.import_module(si_te, plugin_path)
             si_te_var = getattr(module, si_te)(TMPDIR)
             
         if si_te == "SubbedAnime" or si_te == "DubbedAnime":

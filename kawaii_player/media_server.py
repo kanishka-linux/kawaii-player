@@ -31,7 +31,7 @@ import json
 import ssl
 import random
 import socket
-import imp
+import importlib as imp
 import subprocess
 import urllib.parse
 import urllib.request
@@ -934,7 +934,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             elif i.lower() == 'subbedanime' or i.lower() == 'dubbedanime':
                 plugin_path = os.path.join(home, 'src', 'Plugins', i+'.py')
                 if os.path.exists(plugin_path):
-                    module = imp.load_source(i, plugin_path)
+                    module = imp.import_module(i, plugin_path)
                     site_var = getattr(module, i)(TMPDIR)
                     if site_var:
                         criteria = site_var.getOptions() 

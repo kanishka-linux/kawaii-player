@@ -19,7 +19,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import re
-import imp
+import importlib as imp
 import time
 import ipaddress
 import random
@@ -933,7 +933,7 @@ class PlayerGetEpn(QtCore.QThread):
                     if self.site_name != self.site:
                         plugin_path = os.path.join(ui.home_folder, 'src', 'Plugins', self.site+'.py')
                         if os.path.exists(plugin_path):
-                            module = imp.load_source(self.site, plugin_path)
+                            module = imp.import_module(self.site, plugin_path)
                             self.site_var = getattr(module, self.site)(ui.tmp_download_folder)
                 else:
                     self.siteName = args[5]
