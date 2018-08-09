@@ -2769,8 +2769,10 @@ class Ui_MainWindow(object):
                 except Exception as err:
                     print(err)
                     self.handle_png_to_jpg(abs_path_thumb, img)
-            
-        return abs_path_thumb
+        if abs_path_thumb and abs_path_thumb.endswith('.default.jpg'):
+            return ''
+        else:
+            return abs_path_thumb
         
     def list1_double_clicked(self):
         global show_hide_titlelist, show_hide_playlist
@@ -6530,12 +6532,9 @@ class Ui_MainWindow(object):
         return img_url
     
     def epn_highlight(self):
-        global home, site
+        global home, site, name
         num = self.list2.currentRow()
-        move_ahead = True
-        if num < 0:
-            move_ahead = False
-        if self.list2.currentItem() and num < len(self.epn_arr_list) and move_ahead:
+        if self.list2.currentItem() and num < len(self.epn_arr_list) and num >= 0:
             epn_h = self.list2.currentItem().text()
             picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
             label_name = 'label.'+os.path.basename(picn)
@@ -6552,6 +6551,9 @@ class Ui_MainWindow(object):
             if os.path.isfile(txt_path):
                 summary = open_files(txt_path, False)
                 self.text.setText(summary)
+            else:
+                title_episode = self.list2.currentItem().text()
+                self.text.setText('{}\n\n{}. {}'.format(name, num+1, title_episode))
                 
     def thumbnail_generated(self, row=None, picn=None):
         try:
