@@ -306,6 +306,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             title = title.replace('#', '')
         if title.startswith('.'):
             title = title[1:]
+        title = title.replace('\\', ' - ')
         if os.name != 'posix':
             title = title.replace(':', '-')
             title = title.replace('|', '-')
@@ -336,13 +337,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             self.selected_text = data.selectedText()
             self.ui.logger.info(self.selected_text)
             try:
-                tmp = self.title_page.replace('\n', '#')
-                tmp1 = tmp.split('#')[0]
-                if tmp1:
-                    self.title_page = tmp.split('#')[1]
-                else:
-                    self.title_page = tmp.split('#')[1]+'-'+tmp.split('#')[2]
-                self.title_page = self.title_page.replace('#', '')
+                self.title_page = self.title_page.replace('\n', ' - ')
+                self.ui.logger.info(self.title_page)
             except Exception as err:
                 self.ui.logger.error(err)
             self.epn_name_in_list = self.title_page
@@ -408,17 +404,18 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                     submenuR.addSeparator()
                     new_pls = submenuR.addAction("Create New Playlist")
 
-            for i in range(len(arr)):
-                action.append(menu.addAction(arr[i]))
+            for nmenu in arr:
+                action.append(menu.addAction(nmenu))
 
             act = menu.exec_(event.globalPos())
 
-            for i in range(len(action)):
-                if act == action[i]:
+            for i, acts in enumerate(action):
+                if act == acts:
                     self.download(url, arr[i], copy_summary=self.selected_text)
             if yt:
-                for i in range(len(item_m)):
-                    if act == item_m[i]:
+                self.ui.logger.info(self.title_page)
+                for i, acts in enumerate(item_m):
+                    if act == acts:
                         if not self.title_page:
                             content = ccurl(url)
                             soup = BeautifulSoup(content, 'lxml')
@@ -438,6 +435,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
         else:
             if 'youtube.com/watch?v=' in self.url().url() or self.url().url().startswith('http'):
                 self.title_page = self.title()
+                if self.title_page and self.title_page.lower() == 'youtube' and self.selected_text:
+                    self.title_page = self.selected_text.replace('\n', ' - ')
                 arr = ['Play with Kawaii-Player', 'Download']
                 if 'tvdb' in self.url().url():
                     arr = arr + arr_extra_tvdb
@@ -466,17 +465,17 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 submenuR.addSeparator()
                 new_pls = submenuR.addAction("Create New Playlist")
 
-                for i in range(len(arr)):
-                    action.append(menu.addAction(arr[i]))
+                for nmenu in arr:
+                    action.append(menu.addAction(nmenu))
 
                 act = menu.exec_(event.globalPos())
 
-                for i in range(len(action)):
-                    if act == action[i]:
+                for i, acts in enumerate(action):
+                    if act == acts:
                         self.download(self.url().url(), arr[i])
-
-                for i in range(len(item_m)):
-                    if act == item_m[i]:
+                self.ui.logger.info(self.title_page)
+                for i, acts in enumerate(item_m):
+                    if act == acts:
                         self.triggerPlaylist(pls[i], self.url().url(), 
                                              self.title_page)
 
@@ -502,13 +501,13 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 elif self.selected_text:
                     arr[:] = []
                     arr.append('Copy Summary')
-                for i in range(len(arr)):
-                    action.append(menu.addAction(arr[i]))
+                for nmenu in arr:
+                    action.append(menu.addAction(nmenu))
 
                 act = menu.exec_(event.globalPos())
 
-                for i in range(len(action)):
-                    if act == action[i]:
+                for i, acts in enumerate(action):
+                    if act == acts:
                         self.download(self.url().url(), arr[i], 
                                       copy_summary=self.selected_text)
             else:

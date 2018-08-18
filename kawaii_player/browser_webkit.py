@@ -310,6 +310,7 @@ class Browser(QtWebKitWidgets.QWebView):
             title = title[1:]
         if 'list=' in url:
             title = title + '-Playlist'
+        title = title.replace('\\', ' - ')
         img_u = ''
         if self.img_url:
             img_u = self.img_url.toString() 
@@ -342,18 +343,22 @@ class Browser(QtWebKitWidgets.QWebView):
         self.img_url = hit.imageUrl()
         self.title_page = hit.linkText()
         yt = False
-        
+        title_found = False
+        self.ui.logger.info('elm: {}; text:{};'.format(hit.element(), hit.element().toPlainText()))
         try:
             if self.title_page:
                 if 'youtube.com' in self.url().toString(): 
                     self.title_page = hit_n.linkElement().toPlainText()
+                    self.ui.logger.info(self.title_page)
                 if not self.title_page:
                     self.title_page = hit.linkText()
                 self.title_page = self.title_page.strip()
-                tmp = self.title_page.replace('\n', '#')
-                tmp1 = re.search('#[^#]*', tmp)
-                self.title_page = tmp1.group()
-                self.title_page = self.title_page.replace('#', '')
+                self.title_page = self.title_page.replace('\n', ' - ')
+                self.ui.logger.info(self.title_page)
+            elif hit.element():
+                self.title_page = hit.element().toPlainText()
+                self.ui.logger.info(self.title_page)
+                title_found = True
             else:
                 self.title_page = hit.title()
         except Exception as err:
@@ -364,7 +369,8 @@ class Browser(QtWebKitWidgets.QWebView):
             url = self.img_url
         if url.isEmpty():
             url = self.url()
-            self.title_page = hit_m.title()
+            if not title_found:
+                self.title_page = hit_m.title()
             if 'reload' in self.url().toString():
                 url = self.url().toString()
                 n_url = re.sub('\?reload[^\/]*\/|&mode=NORMAL|&params[^&]*', '', url)
@@ -408,16 +414,16 @@ class Browser(QtWebKitWidgets.QWebView):
                 submenuR.addSeparator()
                 new_pls = submenuR.addAction("Create New Playlist")
 
-            for i in range(len(arr)):
-                action.append(menu.addAction(arr[i]))
+            for nmenu in arr:
+                action.append(menu.addAction(nmenu))
 
             act = menu.exec_(event.globalPos())
-            for i in range(len(action)):
-                if act == action[i]:
+            for i, acts in enumerate(action):
+                if act == acts:
                     self.download(url, arr[i])
             if yt:
-                for i in range(len(item_m)):
-                    if act == item_m[i]:
+                for i, acts in enumerate(item_m):
+                    if act == acts:
                         if 'views' in self.title_page:
                             self.title_page = re.sub('[0-9][^ ]* ', '', self.title_page, 1)
                             self.title_page = re.sub('[0-9][^ ]* views', '', self.title_page, 1)
