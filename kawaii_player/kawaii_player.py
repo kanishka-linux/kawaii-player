@@ -3256,7 +3256,7 @@ class Ui_MainWindow(object):
                 self.mark_epn_thumbnail_label(r, old_num=True)
         
     def thumbnail_window_present_mode(self, mode=None):
-        global iconv_r, MainWindow, iconv_r_indicator
+        global iconv_r, MainWindow
         
         if MainWindow.isFullScreen() and mode != 5:
             if self.list2.count() == 0:
@@ -3475,24 +3475,9 @@ class Ui_MainWindow(object):
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle('Kawaii-Player')
         self.fullscreen_video = False
-        #if change_spacing:
-        #    self.gridLayout.setSpacing(5)
-        #    self.superGridLayout.setSpacing(5)
-        #    self.gridLayout.setContentsMargins(5, 5, 5, 5)
-        #    self.superGridLayout.setContentsMargins(5, 5, 5, 5)
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-    
-    def shufflePlaylist(self):
-        global site
-        if (site == "Local" or site =="Video" or site == "Music" 
-                or site == "PlayLists" or self.epn_arr_list):
-            if self.epn_arr_list:
-                if '	' in self.epn_arr_list[0]:
-                    print("++++++++++++++++")
-                    self.epn_arr_list = random.sample(self.epn_arr_list, len(self.epn_arr_list))
-                    self.update_list2()
             
     def playerPlaylist1(self, val):
         if val == "Shuffle":
