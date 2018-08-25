@@ -22,6 +22,7 @@ import os
 import shutil
 from PyQt5 import QtWidgets
 from player_functions import send_notification, ccurl
+
 try:
     import libtorrent as lt
     from stream import ThreadServer, TorrentThread, get_torrent_info, get_torrent_info_magnet
@@ -32,8 +33,8 @@ except Exception as err:
 
 
 class Torrent():
+    
     def __init__(self, tmp):
-        self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
         self.tmp_dir = tmp
         
     def getOptions(self):
