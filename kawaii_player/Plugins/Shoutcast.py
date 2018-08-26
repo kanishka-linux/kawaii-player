@@ -24,7 +24,6 @@ from player_functions import ccurl
 class Shoutcast():
     
     def __init__(self, tmp):
-        self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
         self.tmp_dir = tmp
         self.genre = []
         
