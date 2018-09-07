@@ -92,9 +92,7 @@ class Shoutcast():
                 self.genre = m.copy()
             m.append('<----')
             m.append(0)
-        elif opt == 'History':
-            pass
-        elif opt == 'TV':
+        elif opt in ['History', 'TV']:
             pass
         else:
             url = "https://www.shoutcast.com/Home/BrowseByGenre"
