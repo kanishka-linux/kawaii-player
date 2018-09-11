@@ -49,7 +49,6 @@ class LoginWidget(QtWidgets.QDialog):
         self.auth_info = ''
         self.auth_64 = ''
         self.show()
-        self.count = 0
         self.found = True
 
     def handleLogin(self):
