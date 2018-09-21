@@ -2446,8 +2446,6 @@ class Ui_MainWindow(object):
                 else:
                     txt = '\n osd-msg-bar add volume {0} \n'.format(val)
                 msg = '\n print-text volume-print=${volume} \n'
-        #if action is None:
-        #    self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         self.mpvplayer_val.write(bytes(txt, 'utf-8'))
         if self.player_val.lower() == 'mplayer':
             self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
