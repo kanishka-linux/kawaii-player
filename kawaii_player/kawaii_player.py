@@ -12229,7 +12229,6 @@ class Ui_MainWindow(object):
             elif music_opt == "Directory" or music_opt == "Fav-Directory":
                 for i in artist:
                     self.original_path_name.append(i)
-                    #i = i.split('/')[-1]
                     i = os.path.basename(i)
                     self.list1.addItem((i))
             elif music_opt == "Playlist":
@@ -12243,7 +12242,6 @@ class Ui_MainWindow(object):
                 self.list2.clear()
                 for i in m:
                     self.epn_arr_list.append(str(i[1]+'	'+i[2]+'	'+i[0]))
-                    #self.list2.addItem((i[1]))
                 self.update_list2()
         elif site == "Video":
             video_dir = os.path.join(home, 'VideoDB')
