@@ -2048,7 +2048,6 @@ class Ui_MainWindow(object):
                 function_map(function_arg)
             
     def experiment_list(self, mode=None):
-        global screen_width, screen_height
         self.view_mode = 'thumbnail_light'
         self.list_poster.title_clicked = True
         if mode == 'show' or mode is None:
