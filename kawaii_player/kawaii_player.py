@@ -2246,8 +2246,8 @@ class Ui_MainWindow(object):
                 icon_new_pixel = self.create_new_image_pixel(dest, 128)
                 if os.path.exists(icon_new_pixel):
                     self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
-        except Exception as e:
-            print(e)
+        except Exception as err:
+            logger.error(err)
         self.downloadWget_cnt += 1
         thr = self.downloadWget[length]
         del thr
