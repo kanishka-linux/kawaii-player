@@ -5176,15 +5176,13 @@ class Ui_MainWindow(object):
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
         self.idw = str(int(self.tab_5.winId()))
         thumbnail_indicator[:]=[]
-        i = 0
         if context == "ExtendedQLabel":
             pass
         else:
             if total_till > 0:
-                while(i<total_till):
+                for i in range(total_till):
                     t = "self.label_"+str(i)+".deleteLater()"
                     exec(t)
-                    i = i+1
             if total_till_epn > 0:
                 for i in range(total_till_epn):
                     t = "self.label_epn_"+str(i)+".deleteLater()"
