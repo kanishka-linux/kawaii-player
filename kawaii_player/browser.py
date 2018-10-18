@@ -64,7 +64,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
         if self.ui.btnWebReviews.currentText().lower() == 'youtube' or yt_url:
             self.hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
         else:
-            self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
+            self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:61.0) Gecko/20100101 Firefox/61.0'
         self.page().profile().setHttpUserAgent(self.hdr)
         p = NetManager(parent=self.pg, default_block=True)
         self.page().profile().setRequestInterceptor(p)
