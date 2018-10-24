@@ -3814,8 +3814,7 @@ class Ui_MainWindow(object):
                         )
         elif val == "Show/Hide Web Browser":
             self.showHideBrowser()
-        elif (site == "Music" or site == "Local" or site == "Video" 
-                or site == "PlayLists"):
+        elif site in ["Music", "Video", "PlayLists"]:
             convert_str = (lambda txt: int(txt) if txt.isdigit() else txt.lower())
             create_key = (lambda txt: [convert_str(i) for i in re.split('([0-9]+)', txt)])
             if val == "Order by Name(Descending)":
@@ -4010,7 +4009,7 @@ class Ui_MainWindow(object):
                 self.frame1.hide()
                 
     def frame_options(self):
-        print("Frame Hiding" )
+        logger.debug("Frame Hiding" )
         if (MainWindow.isFullScreen() and site != "Music" and self.tab_6.isHidden() 
                 and self.list2.isHidden() and self.tab_2.isHidden()):
             self.frame1.hide()
