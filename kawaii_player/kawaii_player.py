@@ -4784,7 +4784,7 @@ class Ui_MainWindow(object):
                     """.format(self.list_text_color, self.list_text_color_focus))
                 counter = i
                 start_already = False
-                if site in [site=="None", "Music", "Video", 'MyServer', 'PlayLists']: 
+                if site in ["None", "Music", "Video", 'MyServer', 'PlayLists']: 
                     if '	' in self.epn_arr_list[counter]:
                         nameEpn = (self.epn_arr_list[counter]).split('	')[0]
                         
