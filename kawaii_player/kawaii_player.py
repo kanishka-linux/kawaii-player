@@ -5477,7 +5477,6 @@ class Ui_MainWindow(object):
             
     def fullscreenToggle(self):
         if not MainWindow.isFullScreen():
-            #self.dockWidget_4.close()
             self.dockWidget_3.hide()
             MainWindow.showFullScreen()
             self.force_fs = True
@@ -5493,33 +5492,27 @@ class Ui_MainWindow(object):
         global finalUrlFound
         global total_till, browse_cnt
         global bookmark
-        browse_cnt=0
-        embed = 0
         n = []
         m = []
             
-        if site == "Music" or site=="Video":
-            if self.original_path_name:
-                tmp = self.original_path_name[0]
-                if '/' in tmp:
-                    p = random.sample(self.original_path_name, len(self.original_path_name))
-                    self.original_path_name[:]=[]
-                    self.original_path_name = p
-                    
-                    for i in p:
-                        if site=="Video":
-                            m.append(i.split('	')[0])
-                        else:
-                            #m.append(i.split('/')[-1])
-                            m.append(os.path.basename(i))
-                else:
-                    for i in range(self.list1.count()):
-                        n.append(str(self.list1.item(i).text()))
-                    m = random.sample(n, len(n))
+        if site in ["Music", "Video"] and self.original_path_name:
+            tmp = self.original_path_name[0]
+            if '/' in tmp:
+                self.original_path_name = random.sample(self.original_path_name,
+                                                        len(self.original_path_name))
+                for i in self.original_path_name:
+                    if site == "Video":
+                        m.append(i.split('	')[0])
+                    else:
+                        m.append(os.path.basename(i))
+            else:
+                for i in range(self.list1.count()):
+                    n.append(str(self.list1.item(i).text()))
+                m = random.sample(n, len(n))
         else:
             m = random.sample(self.original_path_name, len(self.original_path_name))
-            self.original_path_name[:]=[]
-            self.original_path_name = m
+            self.original_path_name.clear()
+            self.original_path_name = m.copy()
             
         if m and not bookmark: 
             self.label.clear()
@@ -5528,11 +5521,10 @@ class Ui_MainWindow(object):
             self.list2.clear()
             self.text.clear()
             for i in m:
-                if site.lower() == 'video' or site.lower() == 'music':
+                if site.lower() in ['video', 'music']:
                     pass
-                else:
-                    if '	' in i:
-                        i = i.split('	')[0]
+                elif '	' in i:
+                    i = i.split('	')[0]
                 self.list1.addItem(i)
         opt = "Random"
         
