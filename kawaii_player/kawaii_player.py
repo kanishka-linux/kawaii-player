@@ -5527,33 +5527,25 @@ class Ui_MainWindow(object):
         opt = "Random"
         
     def sortList(self):
-        global pre_opt, opt, site, embed
-        global finalUrlFound
-        global total_till
-        global browse_cnt, bookmark
+        global opt, site, bookmark
         
-        browse_cnt=0
-        tmp_arr = []
-        embed = 0
         n = []
         m =[]
-        if site == "Music" or site == "Video":
-            if self.original_path_name:
+        
+        if site in ["Music", "Video"] and self.original_path_name:
                 tmp = self.original_path_name[0]
                 if '/' in tmp:
                     if site == "Video":
-                        p = sorted(
+                        self.original_path_name = sorted(
                             self.original_path_name, 
                             key = lambda x: x.split('	')[0].lower()
                             )
                     else:
-                        p = sorted(
+                        self.original_path_name = sorted(
                             self.original_path_name, 
                             key = lambda x: os.path.basename(x).lower()
                             )
-                    self.original_path_name[:]=[]
-                    self.original_path_name = p
-                    for i in p:
+                    for i in self.original_path_name:
                         if site == "Video":
                             m.append(i.split('	')[0])
                         else:
@@ -5565,7 +5557,7 @@ class Ui_MainWindow(object):
                     m.sort()
         else:
             self.original_path_name.sort()
-            m = self.original_path_name
+            m = self.original_path_name.copy()
         
         if m and not bookmark:
             self.label.clear()
@@ -5574,11 +5566,10 @@ class Ui_MainWindow(object):
             self.list2.clear()
             self.text.clear()
             for i in m:
-                if site.lower() == 'music' or site.lower() == 'video':
+                if site.lower() in ['music', 'video']:
                     pass
-                else:
-                    if '	' in i:
-                        i = i.split('	')[0]
+                elif '	' in i:
+                    i = i.split('	')[0]
                 self.list1.addItem(i)
         
     def deleteArtwork(self):
