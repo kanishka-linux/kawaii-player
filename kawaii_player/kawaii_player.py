@@ -5488,10 +5488,8 @@ class Ui_MainWindow(object):
     
     
     def shuffleList(self):
-        global pre_opt, opt, site, embed
-        global finalUrlFound
-        global total_till, browse_cnt
-        global bookmark
+        global opt, site, bookmark
+        
         n = []
         m = []
             
