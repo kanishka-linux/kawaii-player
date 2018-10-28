@@ -5571,13 +5571,6 @@ class Ui_MainWindow(object):
                 elif '	' in i:
                     i = i.split('	')[0]
                 self.list1.addItem(i)
-        
-    def deleteArtwork(self):
-            global name
-            thumb = os.path.join(TMPDIR, name+'.jpg')
-            self.label.clear()
-            if os.path.isfile(thumb):
-                    os.remove(thumb)
                     
     def get_current_directory(self):
         global name, site, opt, pre_opt, home, siteName
