@@ -5649,7 +5649,7 @@ class Ui_MainWindow(object):
                         new_name = self.epn_arr_list[r].split('	')[2]
                         new_name = new_name.replace('"', '')
             except Exception as err:
-                print(err, '--5474--')
+                logger.error('{} -->5652'.format(err))
         
         if new_name and mode == 'img':
             picn = os.path.join(TMPDIR, new_name+'.jpg')
@@ -5680,13 +5680,12 @@ class Ui_MainWindow(object):
             picn = os.path.join(home, 'default.jpg')
         
         if (os.path.isfile(picn) and opt == "History" 
-                and (site.lower()!= 'video' and site.lower()!= 'music' 
-                and site.lower()!= 'local') and new_name):
+                and site.lower() not in ['video', 'music'] and new_name):
             if siteName and new_name:
                 dir_path = os.path.join(home, 'History', site, siteName, new_name)
             else:
                 dir_path = os.path.join(home, 'History', site, new_name)
-        elif os.path.isfile(picn) and (site == "Local" or site == "Video") and new_name:
+        elif os.path.isfile(picn) and site == "Video" and new_name:
             dir_path = os.path.join(home, 'Local', new_name)
         elif site == "Music" and new_name:
             logger.info('nm={0}'.format(new_name))
