@@ -5573,24 +5573,20 @@ class Ui_MainWindow(object):
                 self.list1.addItem(i)
                     
     def get_current_directory(self):
-        global name, site, opt, pre_opt, home, siteName
-        print(site)
-        print(opt)
-        print(pre_opt)
-        logger.info(name)
+        global name, site, opt, home, siteName
+        logger.info('site:{}, opt:{}, name:{}'.format(site, opt, name))
         if '/' in name:
             name = name.replace('/', '-')
         path = ""
         
-        if (opt == "History" and (site.lower()!= 'video' 
-                and site.lower()!= 'music' and site.lower()!= 'local')):
+        if opt == "History" and site.lower() not in ['video', 'music']:
             if siteName:
                 path= os.path.join(home, 'History', site, siteName, name)
             else:
                 path = os.path.join(home, 'History', site, name)
-        elif (site == "Local" or site == "Video"):
+        elif site == "Video":
             path = os.path.join(home, 'Local', name)
-        elif (site == "Music"):
+        elif site == "Music":
             logger.info(name)
             try:
                 r = self.list2.currentRow()
