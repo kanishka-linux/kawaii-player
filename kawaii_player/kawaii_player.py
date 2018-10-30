@@ -5730,7 +5730,7 @@ class Ui_MainWindow(object):
             self.metadata_copy(dir_path, picn, mode='fanart', img_opt=img_opt)
                     
     def copy_fanart_image(self, url=None, find_name=None):
-        global name, site, opt, pre_opt, home, siteName
+        global site, opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
             site, opt, siteName, '', mode='fanart', find_name=find_name
@@ -5740,7 +5740,7 @@ class Ui_MainWindow(object):
             self.metadata_copy(dir_path, url, mode='fanart', img_opt=img_opt)
     
     def copySummary(self, copy_sum=None, new_name=None, find_name=None):
-        global name, site, opt, pre_opt, home, siteName
+        global site, opt, home, siteName
         
         dir_path, thumbnail, picn, img_opt = self.get_metadata_location(
             site, opt, siteName, new_name, mode='summary',
