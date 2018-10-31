@@ -5965,8 +5965,6 @@ class Ui_MainWindow(object):
         self.frame1.show()
         self.tab_2.setMaximumWidth(self.width_allowed+50)
         self.btnWebReviews_search.hide()
-        #self.progressEpn.setFormat('Wait....')
-        #QtWidgets.QApplication.processEvents()
     
     def got_final_link(self, length):
         if length == len(self.ytdl_arr) - 1:
@@ -5982,8 +5980,8 @@ class Ui_MainWindow(object):
                 if i is not None:
                     empty = False
             if empty:
-                print('empty arr')
-                self.ytdl_arr[:] = []
+                logger.debug('empty arr')
+                self.ytdl_arr.clear()
         else:
             logger.info('--13898--link-fetched-properly')
     
