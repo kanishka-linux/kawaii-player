@@ -5984,26 +5984,6 @@ class Ui_MainWindow(object):
                 self.ytdl_arr.clear()
         else:
             logger.info('--13898--link-fetched-properly')
-    
-    def chkMirrorTwo(self):
-        global site, mirrorNo, siteName
-        mirrorNo = 2
-        if siteName:
-            self.epnfound()
-        mirrorNo = 1
-            
-    def chkMirrorThree(self):
-        global site, mirrorNo, siteName
-        mirrorNo = 3
-        if siteName:
-            self.epnfound()
-        mirrorNo = 1		
-        
-    def chkMirrorDefault(self):
-        global site, mirrorNo, siteName
-        mirrorNo = 1
-        if siteName:
-            self.epnfound()
             
     def setPreOpt(self, option_val=None):
         global pre_opt, opt, site, home
