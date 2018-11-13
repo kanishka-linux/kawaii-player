@@ -6019,7 +6019,6 @@ class Ui_MainWindow(object):
                     opt = option_val
             else:
                 opt = "History"
-            print(site, option_val, ':setpreopt:')
             if site.lower() == 'myserver' and option_val == 'fromtitlelist':
                 self.newoptions('history+offline')
             else:
