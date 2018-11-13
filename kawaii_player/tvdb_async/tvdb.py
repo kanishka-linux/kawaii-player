@@ -19,6 +19,7 @@ along with tvdb-async.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
+import random
 from functools import partial
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
@@ -235,10 +236,14 @@ class TVDB:
         if season.lower() == 'all seasons' and (self.ep_summary or eps):
             if eps is None or eps is True:
                 obj.total = len(slist)
-                for val in slist:
+                for i, val in enumerate(slist):
+                    logger.debug('{} {}'.format(i, obj.total))
                     k, nsid, num, title, link, dt, img_link = val
                     if link:
+                        logger.debug('{} {}-----{} {} {}'.format(i, obj.total, k, nsid, link))
                         self.vnt.get(link, onfinished=partial(self.process_episodes, args[0], ourl, val.copy()))
+                    else:
+                        obj.total -= 1
         return obj
     
     @process_episodes_onfinished
@@ -257,7 +262,13 @@ class TVDB:
                 summary = ''
             k, nsid, num, title, link, dt, img_link = args[2]
             newargs = [k, nsid, num, title, link, dt, img_link, summary]
-            obj.episode_summary.update({nsid:newargs})
+            if not obj.episode_summary.get(nsid):
+                obj.episode_summary.update({nsid:newargs})
+            else:
+                nsid = '-'+nsid + '-' + str(random.randint(0, 100000))
+                logger.debug('\nid already exists, creating new one\n')
+                obj.episode_summary.update({nsid:newargs})
+            logger.debug('{} {}'.format(len(obj.episode_summary), obj.total))
             if len(obj.episode_summary) == obj.total:
                 return obj, 'all'
             else:
@@ -371,3 +382,8 @@ class SeriesObject:
         self.season_posters = {}
         self.total = 0
         self.title = ''
+
+class DummyObject:
+    
+    def __init__(self, content):
+        self.html = content
