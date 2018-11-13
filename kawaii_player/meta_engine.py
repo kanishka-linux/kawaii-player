@@ -286,6 +286,8 @@ class MetaEngine:
                 if ep_val:
                     key_found = True
             if key_found:
+                if ep_val[3] is None:
+                    ep_val[3] = "None"
                 new_name = ep_val[1]+ ' ' + ep_val[3].replace('/', ' - ')
                 summary = 'Air Date: {}\n\n{}: {}\n\n{}'.format(ep_val[-3], ep_val[1], ep_val[3], ep_val[-1])
                 img_url = ep_val[-2]
