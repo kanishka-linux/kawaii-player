@@ -3051,12 +3051,6 @@ class Ui_MainWindow(object):
             
     def osd_hide(self):
         pass
-        """
-        if self.player_val == 'mplayer':
-            self.mpvplayer_val.write(b'\n osd 0 \n')
-        else:
-            self.mpvplayer_val.write(b'\n set osd-level 0 \n')
-        """
         
     def mirrorChange(self):
         global mirrorNo
