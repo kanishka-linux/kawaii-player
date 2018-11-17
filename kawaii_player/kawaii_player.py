@@ -3211,7 +3211,6 @@ class Ui_MainWindow(object):
         r = self.list2.currentRow()
         if r < 0:
             r = 0
-        #QtWidgets.QApplication.processEvents()
         try:
             p1="self.label_epn_"+str(r)+".y()"
             yy=eval(p1)
@@ -3219,14 +3218,11 @@ class Ui_MainWindow(object):
             print(err)
             yy = 0
         self.scrollArea1.verticalScrollBar().setValue(yy-5)
-        #QtWidgets.QApplication.processEvents()
         self.frame1.show()
         self.gridLayout.setContentsMargins(5, 5, 5, 5)
         self.superGridLayout.setContentsMargins(5, 5, 5, 5)
         self.gridLayout1.setContentsMargins(5, 5, 5, 5)
         self.gridLayout2.setContentsMargins(5, 5, 5, 5)
-        #ui.horizontalLayout10.setContentsMargins(0, 0, 0, 0)
-        #ui.horizontalLayout10.setSpacing(0)
         self.gridLayout.setSpacing(5)
         self.gridLayout1.setSpacing(5)
         self.gridLayout2.setSpacing(5)
