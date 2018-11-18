@@ -3257,14 +3257,12 @@ class Ui_MainWindow(object):
             thumbnail_index = self.thumbnail_label_number[0]
             p6 = "self.gridLayout2.addWidget(self.label_epn_"+str(thumbnail_index)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
             exec(p6)
-            #QtWidgets.QApplication.processEvents()
             p2 = "self.label_epn_"+str(thumbnail_index)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
             p3 = "self.label_epn_"+str(thumbnail_index)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
             exec(p2)
             exec(p3)
 
             self.gridLayout.setSpacing(5)
-            #self.gridLayout.setContentsMargins(10, 10, 10, 10)
             self.superGridLayout.setContentsMargins(5, 5, 5, 5)
             if self.wget.processId() > 0:
                 self.goto_epn.hide()
@@ -3278,8 +3276,6 @@ class Ui_MainWindow(object):
             self.superGridLayout.setContentsMargins(5, 5, 5, 5)
             self.gridLayout1.setContentsMargins(5, 5, 5, 5)
             self.gridLayout2.setContentsMargins(5, 5, 5, 5)
-            #ui.horizontalLayout10.setContentsMargins(0, 0, 0, 0)
-            #ui.horizontalLayout10.setSpacing(0)
             self.gridLayout.setSpacing(5)
             self.gridLayout1.setSpacing(5)
             self.gridLayout2.setSpacing(5)
