@@ -3904,8 +3904,7 @@ class Ui_MainWindow(object):
         r = self.list3.currentRow()
         item = self.list3.item(r)
         if item and not self.lock_process:
-            if (site == "PlayLists" or bookmark
-                    or site == "Local" or site =="Music"):
+            if site in ["PlayLists", "Music"] or bookmark:
                 self.options('local') 
         
     def prev_thumbnails(self):
