@@ -4135,7 +4135,6 @@ class Ui_MainWindow(object):
             if picn != "No.jpg" and os.path.exists(picn):
                 if dimn:
                     picn = self.image_fit_option(picn, '', fit_size=6, widget_size=(int(dimn[0]), int(dimn[1])))
-                #img = QtGui.QPixmap(picn, "1")
                 picn = re.sub('poster.jpg', 'thumbnail.jpg', picn)
             return (picn, summary)
         elif br_cnt_opt == "image":
@@ -4159,9 +4158,6 @@ class Ui_MainWindow(object):
             exec(p8)
             if value_str == 'deleted':
                 total_till = total_till+2
-            if total_till%(2*iconv_r_poster) == 0:
-                #QtWidgets.QApplication.processEvents()
-                pass
                 
     def next_page(self, value_str):
         global site, name, embed, opt, pre_opt, mirrorNo
