@@ -74,9 +74,9 @@ class MetaEngine:
     
     def get_ddglinks(self, nam, src=None):
         m = []
-        if src == 'tvdb' or src == 'tvdb+ddg':
+        if src in ['tvdb', 'tvdb+ddg']:
             new_url = 'https://duckduckgo.com/html/?q='+nam+'+tvdb'
-        elif src == 'tmdb' or src == 'tmdb+ddg':
+        elif src in ['tmdb', 'tmdb+ddg']:
             new_url = 'https://duckduckgo.com/html/?q='+nam+'+themoviedb'
         content = ccurl(new_url)
         soup = BeautifulSoup(content, 'lxml')
@@ -87,11 +87,11 @@ class MetaEngine:
             if 'href' in str(new_url):
                 new_link = new_url['href']
                 final_link = re.search('http[^"]*', new_link).group()
-                if src == 'tvdb' or src == 'tvdb+ddg':
+                if src in ['tvdb', 'tvdb+ddg']:
                     if ('tvdb.com' in final_link and 'tab=episode' not in final_link 
                             and 'tab=seasonall' not in final_link):
                         m.append(final_link)
-                elif src == 'tmdb' or src == 'tmdb+ddg':
+                elif src in ['tmdb', 'tmdb+ddg']:
                     if 'themoviedb.org' in final_link:
                         m.append(final_link)
                 if m:
