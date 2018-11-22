@@ -288,17 +288,20 @@ class FindPosterThread(QtCore.QThread):
             self.summary_signal.emit(name, new_summary, 'summary')
         if url.endswith('/en'):
             url = url.rsplit('/', 1)[0]
+        burl = url + '/images/backdrops'
         url = url + '/images/posters'
         content = ccurl(url)
+        bcontent = ccurl(burl)
         posters_link = re.findall('https://image.tmdb.org/[^"]*original[^"]*.jpg', content)
+        fanart_link = re.findall('https://image.tmdb.org/[^"]*original[^"]*.jpg', bcontent)
+        if not fanart_link:
+            fanart_link = posters_link
         if posters_link:
             posters_link = random.sample(posters_link, len(posters_link))
-            if len(posters_link) == 1:
-                url = posters_link[0]
-                ccurl(url+'#'+'-o'+'#'+thumb)
-            elif len(posters_link) >= 2:
-                ccurl(posters_link[0]+'#'+'-o'+'#'+thumb)
-                ccurl(posters_link[1]+'#'+'-o'+'#'+fanart)
+            ccurl(posters_link[0]+'#'+'-o'+'#'+thumb)
+        if fanart_link:
+            fanart_link = random.sample(fanart_link, len(fanart_link))
+            ccurl(fanart_link[0]+'#'+'-o'+'#'+fanart)
     
     def init_search(self, nam, url, direct_url, thumb, fanart, src_site):
         final_link = ""
