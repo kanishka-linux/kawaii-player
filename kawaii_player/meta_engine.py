@@ -679,8 +679,7 @@ def update_image_list(image_dict, dest_dir, site):
         update_image_list_method(image_dict, dest_dir, site)
 
 def update_image_list_method(image_dict, dest_dir, site):
-    if (site != 'Music' and site != 'PlayLists'
-            and site != 'NONE' and site != 'MyServer'):
+    if site not in ['Music', 'PlayLists', 'NONE', 'MyServer']:
         r = 0
         start_pt = 0
         start_now = True
