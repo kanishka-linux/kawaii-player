@@ -2556,7 +2556,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 and not path.startswith('relative_path=')) or got_http_image):
             if not got_http_image:
                 start_counter = 0
-                while ui.mpv_thumbnail_lock:
+                while ui.mpv_thumbnail_lock.locked():
                     time.sleep(0.5)
                     start_counter += 1
                     if start_counter > 120:
