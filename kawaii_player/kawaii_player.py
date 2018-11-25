@@ -1441,6 +1441,7 @@ class Ui_MainWindow(object):
         self.list_with_thumbnail = True
         self.mpvplayer_val = QtCore.QProcess()
         self.system_bgcolor = ''
+        self.thumbnail_engine = 'ffmpegthumbnailer'
         self.torrent_show_piece_map = False
         self.torrent_status_command = 'default'
         self.mpv_start = False
@@ -1934,7 +1935,7 @@ class Ui_MainWindow(object):
                     if not fanart_name.endswith('default'):
                         fanart_new = fanart_name + '-new.' + ext
                         picn = self.image_fit_option(
-                                fanart, fanart_new, fit_size=6, widget=ui.label_new
+                                fanart, fanart_new, fit_size=11, widget=ui.label_new
                                 )
                         if os.path.exists(fanart_new):
                             self.label_new.setPixmap(QtGui.QPixmap(fanart_new, "1"))
@@ -2635,7 +2636,7 @@ class Ui_MainWindow(object):
         
         new_tmp = '"'+TMPDIR+'"'
         if not self.mpv_thumbnail_lock:
-            if OSNAME == 'posix':
+            if OSNAME == 'posix' and self.thumbnail_engine == "ffmpegthumbnailer":
                 if width_allowed:
                     wd = str(width_allowed)
                 else:
@@ -2700,16 +2701,20 @@ class Ui_MainWindow(object):
                                         "--start="+str(inter)+"%", "--frames=1"
                                         , path])
                     else:
+                        if OSNAME == "posix":
+                            shell = False
+                        else:
+                            shell = True
                         if self.player_val == 'mpv':
                             new_tmp = new_tmp.replace('"', '')
                             subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
                             "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                            "--start="+str(inter)+"%", "--frames=1", path], shell=True)
+                            "--start="+str(inter)+"%", "--frames=1", path], shell=shell)
                         elif self.player_val == 'mplayer':
                             subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
                             '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
                             "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
-                            path], shell=True)
+                            path], shell=shell)
                         
                     picn_path = os.path.join(TMPDIR, '00000001.jpg')
                     if os.path.exists(picn_path):
@@ -6451,9 +6456,11 @@ class Ui_MainWindow(object):
             if os.path.exists(picn) and not picn.endswith("default.jpg"):
                 if self.player_theme == "default":
                     widget = self.label
+                    fit_size = 6
                 else:
                     widget = self.label_new
-                self.image_fit_option(picn, new_picn, fit_size=6, widget=widget)
+                    fit_size = 11
+                self.image_fit_option(picn, new_picn, fit_size=fit_size, widget=widget)
                 if os.path.isfile(new_picn):
                     widget.setPixmap(QtGui.QPixmap(new_picn, "1"))
                     
@@ -8120,6 +8127,29 @@ class Ui_MainWindow(object):
                         offset = (int((screen_width-wsize)/2), int((screen_height-baseheight)/2))
                     else:
                         offset = (int((0)), int((screen_height-baseheight)/2))
+                    bg.paste(img, offset)
+                    try:
+                        bg.save(str(fanart), 'JPEG', quality=100)
+                    except Exception as err:
+                        print(err)
+                        self.handle_png_to_jpg(fanart, bg)
+                elif fit_size == 11:
+                    width = widget.maximumWidth()
+                    baseheight = height = widget.maximumHeight()
+                    logger.debug('{} -----> {} {}'.format(fit_size, width, baseheight))
+                    try:
+                        img = Image.open(str(picn))
+                    except Exception as e:
+                        print(e, 'Error in opening image, videoImage, ---13284')
+                        picn = os.path.join(home, 'default.jpg')
+                        img = Image.open(str(picn))
+                    wpercent = (baseheight / float(img.size[1]))
+                    wsize = int((float(img.size[0]) * float(wpercent)))
+                    sz = (wsize, baseheight)
+                    
+                    img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
+                    bg = Image.new(color, (width, height), color_val)
+                    offset = (int((width-wsize)/2), int((height-baseheight)/2))
                     bg.paste(img, offset)
                     try:
                         bg.save(str(fanart), 'JPEG', quality=100)
@@ -13505,6 +13535,13 @@ def main():
                         if k:
                             if k in ['no', 'master', 'slave']:
                                 ui.pc_to_pc_casting = k
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('THUMBNAIL_ENGINE='):
+                    try:
+                        k = j.lower()
+                        if k and k in ["mpv", "ffmpegthumbnailer"]:
+                            ui.thumbnail_engine = k
                     except Exception as e:
                         print(e)
                 elif i.startswith('LIVE_PREVIEW_QUALITY='):
