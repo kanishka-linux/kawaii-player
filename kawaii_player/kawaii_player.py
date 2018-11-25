@@ -8107,7 +8107,7 @@ class Ui_MainWindow(object):
                     wpercent = (baseheight / float(img.size[1]))
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
-                    bg = Image.new(color, (wsize+20, baseheight), color_val)
+                    bg = Image.new(color, (wsize+20, baseheight))
                     offset = (0, 0)
                     bg.paste(img, offset)
                     try:
@@ -8152,10 +8152,10 @@ class Ui_MainWindow(object):
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     sz = (wsize, baseheight)
                     
-                    img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
-                    bg = Image.new(color, (width, height), color_val)
-                    offset = (int((width-wsize)/2), int((height-baseheight)/2))
-                    bg.paste(img, offset)
+                    img = img.resize(sz, PIL.Image.ANTIALIAS)
+                    bg = Image.new(color, sz, "black")
+                    #offset = (int((width-wsize)/2), int((height-baseheight)/2))
+                    bg.paste(img)
                     try:
                         bg.save(str(fanart), 'JPEG', quality=100)
                     except Exception as err:
