@@ -1096,6 +1096,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text38.setText("PC To PC Casting")
         self.other_settings.append('pc_to_pc_casting')
         
+        self.line39 = QtWidgets.QComboBox()
+        self.line39.addItem('ffmpegthumbnailer')
+        self.line39.addItem('mpv')
+        
+        index = self.line39.findText(ui.thumbnail_engine)
+        self.line39.setCurrentIndex(index)
+        self.text39 = QtWidgets.QLabel()
+        self.text39.setText("Thumbnail Engine")
+        self.other_settings.append('thumbnail_engine')
+        
         for index, j in enumerate(self.other_settings):
             i = index + 1
             text = eval('self.text3{}'.format(i))
