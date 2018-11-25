@@ -1902,7 +1902,7 @@ class Ui_MainWindow(object):
         self.downloadWget = []
         self.downloadWget_cnt = 0
         self.lock_process = False
-        self.mpv_thumbnail_lock = False
+        self.mpv_thumbnail_lock = Lock()
     
     def set_mainwindow_palette(self, fanart, first_time=None, theme=None):
         if theme is None or theme == 'default':
@@ -2635,7 +2635,8 @@ class Ui_MainWindow(object):
         inter = str(interval)
         
         new_tmp = '"'+TMPDIR+'"'
-        if not self.mpv_thumbnail_lock:
+        self.mpv_thumbnail_lock.acquire(timeout=5)
+        try:
             if OSNAME == 'posix' and self.thumbnail_engine == "ffmpegthumbnailer":
                 if width_allowed:
                     wd = str(width_allowed)
@@ -2644,8 +2645,6 @@ class Ui_MainWindow(object):
                         wd = str(self.width_allowed)
                     else:
                         wd = str(self.label_new.maximumWidth())
-                if from_client:
-                    self.mpv_thumbnail_lock = True
                 if path.endswith('.mp3') or path.endswith('.flac'):
                     try:
                         f = mutagen.File(path)
@@ -2663,8 +2662,6 @@ class Ui_MainWindow(object):
                     subprocess.call(["ffmpegthumbnailer", "-i", path, "-o", picn, 
                                 "-t", str(inter), '-q', '10', '-s', wd])
                 logger.info("{0}:{1}".format(path, picn))
-                if from_client:
-                    self.mpv_thumbnail_lock = False
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                     #self.image_fit_option(picn, picn, fit_size=6, widget_size=(480, 360))
                     self.create_new_image_pixel(picn, 128)
@@ -2693,7 +2690,6 @@ class Ui_MainWindow(object):
                 else:
                     if inter.endswith('s'):
                         inter = inter[:-1]
-                    self.mpv_thumbnail_lock = True
                     if 'youtube.com' in path:
                         new_tmp = new_tmp.replace('"', '')
                         subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
@@ -2705,17 +2701,25 @@ class Ui_MainWindow(object):
                             shell = False
                         else:
                             shell = True
+                        proc = None
                         if self.player_val == 'mpv':
                             new_tmp = new_tmp.replace('"', '')
-                            subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
+                            proc = subprocess.Popen(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
                             "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
                             "--start="+str(inter)+"%", "--frames=1", path], shell=shell)
                         elif self.player_val == 'mplayer':
-                            subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
+                            proc = subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
                             '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
                             "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
                             path], shell=shell)
-                        
+                        counter = 0
+                        while proc and proc.poll() == None:
+                            time.sleep(0.1)
+                            counter += 1
+                            logger.debug("sleeping {}".format(counter))
+                            if counter > 20:
+                                proc.terminate()
+                                break
                     picn_path = os.path.join(TMPDIR, '00000001.jpg')
                     if os.path.exists(picn_path):
                         shutil.copy(picn_path, picn)
@@ -2724,7 +2728,8 @@ class Ui_MainWindow(object):
                             #self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
                             self.create_new_image_pixel(picn, 128)
                             self.create_new_image_pixel(picn, 480)
-                    self.mpv_thumbnail_lock = False
+        finally:
+            self.mpv_thumbnail_lock.release()
     
     def create_new_image_pixel(self, art_url, pixel):
         art_url_name = str(pixel)+'px.'+os.path.basename(art_url)
@@ -13808,8 +13813,10 @@ def main():
             f.write("\n#GET_LIBRARY=pycurl,curl,wget")
             if OSNAME == 'nt':
                 f.write("\nGET_LIBRARY=curl")
+                f.write("\nTHUMBNAIL_ENGINE=mpv")
             else:
                 f.write("\nGET_LIBRARY=pycurl")
+                f.write("\nTHUMBNAIL_ENGINE=ffmpegthumbnailer")
             f.write("\n#IMAGE_FIT_OPTION=0-9")
             f.write("\nIMAGE_FIT_OPTION=3")
             f.write("\nAUTH=NONE")
