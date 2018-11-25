@@ -2639,7 +2639,10 @@ class Ui_MainWindow(object):
                 if width_allowed:
                     wd = str(width_allowed)
                 else:
-                    wd = str(self.width_allowed)
+                    if self.player_theme == 'default':
+                        wd = str(self.width_allowed)
+                    else:
+                        wd = str(self.label_new.maximumWidth())
                 if from_client:
                     self.mpv_thumbnail_lock = True
                 if path.endswith('.mp3') or path.endswith('.flac'):
@@ -6445,12 +6448,15 @@ class Ui_MainWindow(object):
             label_name = 'label.'+os.path.basename(picn)
             path_thumb, new_title = os.path.split(picn)
             new_picn = os.path.join(path_thumb, label_name)
-            if os.path.exists(picn):
-                if not picn.endswith('default.jpg'):
-                    if not os.path.exists(new_picn):
-                        self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
-                    if os.path.isfile(new_picn):
-                        self.label.setPixmap(QtGui.QPixmap(new_picn, "1"))
+            if os.path.exists(picn) and not picn.endswith("default.jpg"):
+                if self.player_theme == "default":
+                    widget = self.label
+                else:
+                    widget = self.label_new
+                self.image_fit_option(picn, new_picn, fit_size=6, widget=widget)
+                if os.path.isfile(new_picn):
+                    widget.setPixmap(QtGui.QPixmap(new_picn, "1"))
+                    
             txt_file = new_title.replace('.jpg', '.txt', 1)
             txt_path = os.path.join(path_thumb, txt_file)
             if os.path.isfile(txt_path):
