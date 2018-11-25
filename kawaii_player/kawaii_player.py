@@ -8340,7 +8340,8 @@ class Ui_MainWindow(object):
         else:
             img_opt = 2
         logger.info('img_opt={0}'.format(img_opt))
-        self.label.clear()
+        if self.player_theme == "default":
+            self.label.clear()
         print(self.label.maximumWidth(), '--max--width--label--')
         try:
             image_dir, image_name = os.path.split(fanart)
@@ -8376,7 +8377,10 @@ class Ui_MainWindow(object):
                     print(e, '--10147--')
                     
                 logger.info(picn)
-                self.label.setPixmap(QtGui.QPixmap(picn, "1"))
+                if self.player_theme != "default" and "thumbnail_server" in picn:
+                    logger.debug("Escaping thumbnail label for theme = {}".format(self.player_theme))
+                else:
+                    self.label.setPixmap(QtGui.QPixmap(picn, "1"))
                 if not self.float_window.isHidden():
                     picn = self.image_fit_option(
                         picn, fanart, fit_size=2, widget=self.float_window
@@ -11335,13 +11339,13 @@ class Ui_MainWindow(object):
                             self.videoImage(thumb_path, thumb_path, thumb_path, '')
                     except Exception as e:
                         logger.error('Error in getting Thumbnail: {0}'.format(e))
-            elif site.lower() == 'video' or site.lower() == 'local' or site.lower() == 'playlists':
+            elif site.lower() in ['video', 'playlists']:
                 if site == "Video":
                     self.media_data.update_video_count('mark', finalUrl, rownum=row)
                 try:
                     thumb_path = self.get_thumbnail_image_path(row, self.epn_arr_list[row])
                     logger.info("thumbnail path = {0}".format(thumb_path))
-                    if os.path.exists(thumb_path):
+                    if os.path.exists(thumb_path) and self.player_theme == "default":
                         self.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
                     logger.error('Error in getting Thumbnail -14179- epnfound: {0}'.format(e))
@@ -11349,7 +11353,7 @@ class Ui_MainWindow(object):
                 try:
                     thumb_path = self.get_thumbnail_image_path(row, self.epn_arr_list[row])
                     logger.info("thumbnail path = {0}".format(thumb_path))
-                    if os.path.exists(thumb_path):
+                    if os.path.exists(thumb_path) and self.player_theme == "default":
                         self.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
                     logger.error('Error in getting Thumbnail: {0}'.format(e))
