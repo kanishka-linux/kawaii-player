@@ -1072,7 +1072,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                             try:
                                 thumb_path = ui.get_thumbnail_image_path(row, ui.epn_arr_list[row])
                                 logger.info("thumbnail path = {0}".format(thumb_path))
-                                if os.path.exists(thumb_path):
+                                if os.path.exists(thumb_path) and ui.player_theme == "default":
                                     ui.videoImage(thumb_path, thumb_path, thumb_path, '')
                             except Exception as e:
                                 logger.info('Error in getting Thumbnail: {0}'.format(e))
@@ -1080,7 +1080,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         ui.media_data.update_video_count('mark', finalUrl)
                         thumb_path = ui.get_thumbnail_image_path(row, ui.epn_arr_list[row])
                         logger.info("thumbnail path = {0}".format(thumb_path))
-                        if os.path.exists(thumb_path):
+                        if os.path.exists(thumb_path) and ui.player_theme == "default":
                             ui.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
                     logger.error('Error in getting Thumbnail--1620-- - localvideogetinlist: {0}'.format(e))
