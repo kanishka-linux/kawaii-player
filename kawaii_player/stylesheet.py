@@ -151,7 +151,7 @@ class WidgetStyleSheet:
             qbtn = '10%'
             #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             for widget in [gui.tab_2, gui.tab_5, gui.tab_6, gui.go_opt,
-                           gui.text, gui.text_save_btn, gui.search_on_type_btn,
+                           gui.text, gui.cover_label, gui.text_save_btn, gui.search_on_type_btn,
                            gui.frame, gui.frame1, gui.torrent_frame, gui.float_window]:
                 if widget in [gui.text_save_btn, gui.search_on_type_btn, gui.frame1]:
                     alpha = '60%'
@@ -624,6 +624,9 @@ class WidgetStyleSheet:
             gui.text.setStyleSheet("""
                     border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
                     """.format(gui.list_text_color_focus, bgcolor))
+            gui.cover_label.setStyleSheet("""
+                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
+                    """.format(gui.list_text_color_focus, bgcolor))
             gui.list_poster.setStyleSheet("""QListWidget{{
                 border-radius:3px;background-color :{2}; border: 1px solid rgba(0,0,0,20%);
                 }}
@@ -674,7 +677,7 @@ class WidgetStyleSheet:
                            bold=font_bold, font=gui.global_font)
                         )
             if widget != gui.list2:
-                for widget_item in ([gui.line, gui.text, gui.frame1, gui.frame,
+                for widget_item in ([gui.line, gui.text, gui.cover_label, gui.frame1, gui.frame,
                                 gui.torrent_frame, gui.float_window,
                                 gui.search_on_type_btn, gui.tab_6, gui.tab_5]): 
                     if widget_item == gui.tab_6:
