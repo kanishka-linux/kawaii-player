@@ -89,7 +89,17 @@ class ThumbnailWidget(QtWidgets.QLabel):
             self.setObjectName(_fromUtf8(obj_name))
             if obj_name == 'label_new':
                 self.tooltip = "Click on Fanart to Play Focussed Video Directly Inside Fanart Frame"
-        
+    
+    def show(self):
+        if self.objectName() == "label" and ui.player_theme != "system":
+            ui.textd.show()
+        super(ThumbnailWidget, self).show()
+    
+    def hide(self):
+        if self.objectName() == "label" and ui.player_theme != "system":
+            ui.textd.hide()
+        super(ThumbnailWidget, self).hide()
+    
     def resizeEvent(self, event):
         if self.objectName() == 'label_new':
             if not ui.list1.isHidden() and not ui.list2.isHidden() and not ui.text.isHidden():
