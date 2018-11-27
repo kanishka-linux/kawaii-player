@@ -272,7 +272,7 @@ class Ui_MainWindow(object):
         self.vertical_layout_new.setObjectName(_fromUtf8('vertical_layout_new'))
         self.gridLayout.addLayout(self.vertical_layout_new, 0, 1, 1, 1)
         
-        self.VerticalLayoutLabel = QtWidgets.QHBoxLayout()
+        self.VerticalLayoutLabel = QtWidgets.QGridLayout()
         self.VerticalLayoutLabel.setObjectName(_fromUtf8("VerticalLayoutLabel"))
         #self.gridLayout.addLayout(self.VerticalLayoutLabel, 0, 1, 1, 1)
         self.vertical_layout_new.insertLayout(1, self.VerticalLayoutLabel)
@@ -301,6 +301,11 @@ class Ui_MainWindow(object):
         self.text = QtWidgets.QTextEdit(MainWindow)
         self.text.setAcceptRichText(False)
         self.text.setObjectName(_fromUtf8("text"))
+        
+        self.cover_label = QtWidgets.QWidget(MainWindow)
+        #self.cover_label.setAcceptRichText(False)
+        self.cover_label.setObjectName(_fromUtf8("cover_label"))
+        
         self.text.copyAvailable.connect(self.text_editor_changed)
         self.text_save_btn = QtWidgets.QPushButton(MainWindow)
         self.text_save_btn.setText('Save')
@@ -319,8 +324,10 @@ class Ui_MainWindow(object):
         self.text.lineWrapMode()
         #self.VerticalLayoutLabel.setStretch(2, 1)
         self.vertical_layout_new.insertWidget(0, self.label_new)
-        self.VerticalLayoutLabel.insertWidget(0, self.label, 0)
-        self.VerticalLayoutLabel.insertWidget(1, self.text, 0)
+        self.VerticalLayoutLabel.addWidget(self.label, 0, 0, 1, 1)
+        self.VerticalLayoutLabel.addWidget(self.text, 0, 1, 1, 1)
+        self.VerticalLayoutLabel.addWidget(self.cover_label, 0, 0, 1, 1)
+        
         #self.VerticalLayoutLabel.setStretch(1, 2)
         ##self.VerticalLayoutLabel.addStretch(1)#after label + text
         #self.text.hide()
@@ -331,7 +338,7 @@ class Ui_MainWindow(object):
         self.VerticalLayoutLabel.setSpacing(5)
         self.VerticalLayoutLabel.setContentsMargins(0, 0, 0, 0)
         
-        self.vertical_layout_new.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignBottom)
+        self.vertical_layout_new.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         self.vertical_layout_new.setSpacing(5)
         self.vertical_layout_new.setContentsMargins(0, 0, 0, 0)
         
@@ -573,12 +580,17 @@ class Ui_MainWindow(object):
         
         self.text_width = screen_width-3*self.width_allowed-35
         self.text.setMaximumWidth(self.text_width)
-        self.text.setMaximumHeight(self.height_allowed)
+        self.text.setMaximumHeight(self.height_allowed+50)
         self.text.setMinimumWidth(self.width_allowed)
         self.label.setMaximumHeight(self.height_allowed)
         self.label.setMinimumHeight(self.height_allowed)
         self.label.setMaximumWidth(self.width_allowed)
         self.label.setMinimumWidth(self.width_allowed)
+        self.cover_label.setMaximumHeight(self.height_allowed+50)
+        self.cover_label.setMinimumHeight(self.height_allowed)
+        self.cover_label.setMaximumWidth(self.width_allowed)
+        self.cover_label.setMinimumWidth(self.width_allowed)
+        
         self.label_new_width = screen_width-2*self.width_allowed-35
         self.label_new.setMaximumWidth(self.label_new_width)
         #self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
@@ -587,7 +599,7 @@ class Ui_MainWindow(object):
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
         self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
-        
+        #self.label.setScaledContents(True)
         #self.label.setMaximumSize(QtCore.QSize(280, 250))
         #self.label.setMinimumSize(QtCore.QSize(280, 250))
         
@@ -6219,6 +6231,8 @@ class Ui_MainWindow(object):
         audio_id = 'auto'
         sub_id = 'auto'
         self.title_list_changed = True
+        if self.label.hasScaledContents():
+            self.label.setScaledContents(False)
         if site!= "Music":
             self.subtitle_track.setText("SUB")
             self.audio_track.setText("A/V")
@@ -6468,6 +6482,10 @@ class Ui_MainWindow(object):
                 self.image_fit_option(picn, new_picn, fit_size=fit_size, widget=widget)
                 if os.path.isfile(new_picn):
                     widget.setPixmap(QtGui.QPixmap(new_picn, "1"))
+                if site == "PlayLists" and self.player_theme != "default":
+                    if not self.label.hasScaledContents():
+                        self.label.setScaledContents(True)
+                    self.label.setPixmap(QtGui.QPixmap(new_picn, "1"))
                     
             txt_file = new_title.replace('.jpg', '.txt', 1)
             txt_path = os.path.join(path_thumb, txt_file)
@@ -6778,7 +6796,8 @@ class Ui_MainWindow(object):
         self.list2.clear()
         self.label.clear()
         self.text.clear()
-        
+        if self.label.hasScaledContents():
+            self.label.setScaledContents(False)
         if site == "PlayLists":
             self.mirror_change.hide()
             self.line.setPlaceholderText("No Search Option")
@@ -14157,6 +14176,8 @@ def main():
         print('--ip--thread--started--')
     #MainWindow.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
     html_default_arr = html_default_arr + ui.addons_option_arr
+    if ui.player_theme == "system":
+        ui.cover_label.hide()
     MainWindow.show()
     
     if len(sys.argv) >= 2:
