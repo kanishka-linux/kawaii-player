@@ -92,12 +92,12 @@ class ThumbnailWidget(QtWidgets.QLabel):
     
     def show(self):
         if self.objectName() == "label" and ui.player_theme != "system":
-            ui.textd.show()
+            ui.cover_label.show()
         super(ThumbnailWidget, self).show()
     
     def hide(self):
         if self.objectName() == "label" and ui.player_theme != "system":
-            ui.textd.hide()
+            ui.cover_label.hide()
         super(ThumbnailWidget, self).hide()
     
     def resizeEvent(self, event):
