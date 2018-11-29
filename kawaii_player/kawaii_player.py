@@ -3312,9 +3312,9 @@ class Ui_MainWindow(object):
     
     @GUISignals.check_master_mode('stop')
     def playerStop(self, msg=None, restart=None, *args):
-        global thumbnail_indicator, total_till, browse_cnt
+        global thumbnail_indicator
         global iconv_r_indicator, iconv_r, show_hide_cover
-        global show_hide_playlist, show_hide_titlelist
+        global show_hide_titlelist
         global sub_id, audio_id
         change_spacing = False
         if self.mpvplayer_val.processId() > 0 or msg:
