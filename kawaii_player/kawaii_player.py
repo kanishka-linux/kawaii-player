@@ -3533,7 +3533,6 @@ class Ui_MainWindow(object):
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == "mpv":
                     txt_osd = '\n set osd-level 1 \n'
-                    #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause no \n')
                     self.player_play_pause.setText(self.player_buttons['pause'])
                     counter = str(datetime.timedelta(seconds=int(self.progress_counter)))
@@ -3560,7 +3559,6 @@ class Ui_MainWindow(object):
             if self.mpvplayer_val.processId() > 0:
                 if self.player_val == "mpv":
                     txt_osd = '\n set osd-level 3 \n'
-                    #self.mpvplayer_val.write(bytes(txt_osd, 'utf-8'))
                     self.mpvplayer_val.write(b'\n set pause yes \n')
                     self.player_play_pause.setText(self.player_buttons['play'])
                     counter = str(datetime.timedelta(seconds=int(self.progress_counter)))
