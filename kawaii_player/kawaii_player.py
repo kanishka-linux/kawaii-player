@@ -10294,8 +10294,6 @@ class Ui_MainWindow(object):
                                 msg_str = 'Volume'
                             msg = '\n show-text "{}: {}%" \n'.format(msg_str, self.player_volume)
                             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
-                            #self.frame_extra_toolbar.slider_volume.pressed = False
-                            #self.frame_extra_toolbar.slider_volume.setValue(int(self.player_volume))
                 elif "LENGTH_SECONDS=" in a:
                     mpl = re.search('LENGTH_SECONDS=[0-9]+[:][0-9]+[:][0-9]+', a)
                     if not mpl:
@@ -10536,7 +10534,6 @@ class Ui_MainWindow(object):
                         if self.append_audio_start:
                             if self.append_audio_gapless:
                                 if self.append_counter > 0:
-                                    #self.append_counter = 0
                                     self.mpv_execute_command('set aid 2', self.cur_row, timer=2000)
                                 else:
                                     self.mpv_execute_command('set aid 2', self.cur_row)
@@ -10657,7 +10654,6 @@ class Ui_MainWindow(object):
                 if "PAUSE" in a:
                     if buffering_mplayer != 'yes':
                         self.player_play_pause.setText(self.player_buttons['play'])
-                        #print('set play button text = Play')
                     if MainWindow.isFullScreen() and self.layout_mode != "Music":
                         self.gridLayout.setSpacing(0)
                         self.frame1.show()
@@ -10745,7 +10741,6 @@ class Ui_MainWindow(object):
                         c = None
                         c_int = 0
                         if "%" in a:
-                            #print a
                             m = a.split(' ')
                             print(m)
                             if m:
@@ -10767,7 +10762,6 @@ class Ui_MainWindow(object):
                                 t = t.replace('(Paused Caching..Wait) ', '')
                         except:
                             t = ""
-                        #print(t, ' --t val--')
                         if buffering_mplayer == "yes" or self.mplayer_pause_buffer:
                             print('buffering mplayer')
                             if 'Cache:' not in t:
@@ -10780,7 +10774,6 @@ class Ui_MainWindow(object):
                             elif ((not self.mplayer_timer.isActive()) 
                                     and (self.video_local_stream) and c_int > 5):
                                 self.mplayer_timer.start(1000)
-                            #buffering_mplayer = "no"
                         else:
                             if c_int and c:
                                 out = "(Paused) "+t+' Cache:'+c
@@ -10790,10 +10783,8 @@ class Ui_MainWindow(object):
                             if ((not self.mplayer_timer.isActive()) 
                                     and (self.video_local_stream) and c_int > 5):
                                 self.mplayer_timer.start(1000)
-                        #print(out, '--out--')
                     else:
                         if "%" in a:
-                            #print a
                             m = a.split(' ')
                             try:
                                 c = m[-2]
@@ -10803,9 +10794,7 @@ class Ui_MainWindow(object):
                             c = "0%"
                     
                         t = re.findall('A:[^.]*', a)
-                        #print t
                         l = re.sub('A:[^0-9]*', '', t[0])
-                        #l = int(l)
                         l =int(l)*1000
                         
                         if self.mplayerLength == 1:
@@ -10881,7 +10870,6 @@ class Ui_MainWindow(object):
                     if self.player_setLoop_var:
                         t2 = bytes('\n'+"loadfile "+(current_playing_file_path)+" replace"+'\n', 'utf-8')
                         self.mpvplayer_val.write(t2)
-                        #print(t2)
                         return 0
                     else:
                         if not self.queue_url_list:
