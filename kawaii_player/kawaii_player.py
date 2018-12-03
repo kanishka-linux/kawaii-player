@@ -10927,7 +10927,6 @@ class Ui_MainWindow(object):
             logger.error('{0}::dataready-exception'.format(err))
         
     def started(self):
-        global epn, new_epn
         global site
         if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
             length_1 = self.list2.count()
