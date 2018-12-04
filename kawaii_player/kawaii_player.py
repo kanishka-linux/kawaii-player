@@ -10999,7 +10999,7 @@ class Ui_MainWindow(object):
                 self.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 
     def infoPlay(self, command):
-        global site, new_epn, mpv_indicator, cache_empty
+        global site, mpv_indicator, cache_empty
         self.eof_reached = False
         self.eof_lock = False
         self.mpv_playback_duration = 0
