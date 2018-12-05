@@ -11159,7 +11159,7 @@ class Ui_MainWindow(object):
                     logger.error(e)
     
     def localGetInList(self, eofcode=None):
-        global site, epn, mirrorNo
+        global site, epn
         global finalUrl, home, buffering_mplayer
         global audio_id, sub_id, siteName, artist_name_mplayer
         global new_epn
