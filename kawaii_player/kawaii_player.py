@@ -11229,7 +11229,6 @@ class Ui_MainWindow(object):
                             self, logger, 'yt', finalUrl, self.quality_val,
                             self.ytdl_path, row)
                         self.epn_wait_thread.start()
-                #self.external_url = self.get_external_url_status(finalUrl)
         
         self.adjust_thumbnail_window(row)
             
@@ -11294,7 +11293,6 @@ class Ui_MainWindow(object):
                 self.mpvplayer_started = False
                 self.external_audio_file = False
                 self.infoPlay(command)
-                #self.external_url = False
                 logger.debug('{}-restart{}'.format(self.player_val, command))
         elif not self.epn_wait_thread.isRunning() and not self.gapless_playback:
             command = self.mplayermpv_command(
