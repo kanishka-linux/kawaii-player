@@ -12428,7 +12428,6 @@ class Ui_MainWindow(object):
             self.tray_widget.right_menu._detach_video()
             
         self.music_mode_dim_show = True
-        #self.list_with_thumbnail = False
         self.image_fit_option_val = 3
         
         print('Music Mode')
@@ -12443,12 +12442,9 @@ class Ui_MainWindow(object):
         MainWindow.hide()
         MainWindow.setMaximumWidth(ui.music_mode_dim[2])
         MainWindow.setMaximumHeight(ui.music_mode_dim[3])
-        #MainWindow.showMaximized()
-        #MainWindow.hide()
         MainWindow.show()
         self.text.show()
         self.label.show()
-        #self.label_new.show()
         show_hide_cover = 1
         self.tab_5.hide()
         show_hide_player = 0
@@ -12468,7 +12464,6 @@ class Ui_MainWindow(object):
             show_hide_titlelist = 0
             self.list2.setCurrentRow(music_arr_setting[2])
             self.list2.show()
-            #ui.goto_epn.show()
             show_hide_playlist = 1
             self.list2.setFocus()
         self.widget_style.change_list2_style()
