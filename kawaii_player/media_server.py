@@ -3427,13 +3427,13 @@ class ThreadServerLocal(QtCore.QThread):
             if not ui.https_media_server:
                 server_address = ('', self.port)
                 self.httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
-                self.set_local_ip_val()
+                #self.set_local_ip_val()
                 self.media_server_start.emit('http')
             elif ui.https_media_server and os.path.exists(cert):
                 server_address = ('', self.port)
                 self.httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
                 self.httpd.socket = ssl.wrap_socket(self.httpd.socket, certfile=cert, ssl_version=ssl.PROTOCOL_TLSv1_2)
-                self.set_local_ip_val()
+                #self.set_local_ip_val()
                 self.media_server_start.emit('https')
             #httpd = MyTCPServer(server_address, HTTPServer_RequestHandler)
         except OSError as e:
