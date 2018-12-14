@@ -12574,8 +12574,6 @@ class Ui_MainWindow(object):
                 self.list2.setAlternatingRowColors(False)
                 self.list3.setAlternatingRowColors(False)
                 self.label_new.clear()
-            #self.VerticalLayoutLabel_Dock3.setSpacing(5)
-            #self.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
             
     def watch_external_video(self, var, mode=None, start_now=None):
         global site, home
