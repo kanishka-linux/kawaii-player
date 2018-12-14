@@ -12748,7 +12748,6 @@ class Ui_MainWindow(object):
                             f = open(file_name, 'w').close()
                         self.list1.clear()
                         self.list1.addItem('TMP_PLAYLIST')
-                        #self.list1.hide()
                         self.list1.show()
                         self.list1.setFocus()
                         self.list1.setCurrentRow(0)
@@ -12789,7 +12788,6 @@ class Ui_MainWindow(object):
                             or '.wma' in z or '.mpg' in z or '.mpeg' in z):
                         m.append(os.path.join(path_local_dir, z))
                 m = naturallysorted(m)
-                #print m
                 self.epn_arr_list[:] = []
                 j = 0
                 row = 0
