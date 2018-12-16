@@ -12836,7 +12836,6 @@ class Ui_MainWindow(object):
         else:
             ht = int(2.5 * self.height_allowed)
         self.label_new.setMaximumSize(QtCore.QSize(wd, ht))
-        #self.label_new.setMinimumSize(QtCore.QSize(wd, ht))
         if ui.layout_mode == 'Music':
             ui.label_new.hide()
         self.apply_new_style(mode='dark')
