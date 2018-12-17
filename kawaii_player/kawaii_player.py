@@ -10895,9 +10895,7 @@ class Ui_MainWindow(object):
                         print(a)
                         self.quit_really = "yes"
                     if self.quit_really == "no" and not self.epn_wait_thread.isRunning():
-                        if (site == "Local" or site == "Video" 
-                                or site == "Music" or site == "PlayLists" 
-                                or site == "None" or site == 'MyServer'):
+                        if site in ["Video", "Music", "PlayLists", "None", "MyServer"]:
                             if self.queue_url_list:
                                 if isinstance(self.queue_url_list[0], tuple):
                                     self.localGetInList(eofcode='end')
