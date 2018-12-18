@@ -43,7 +43,7 @@ class BrowserPage(QWebPage):
         if 'youtube' in url.toString():
             return 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
         else:
-            return 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
+            return 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:63.0) Gecko/20100101 Firefox/63.0'
 
 
 class Browser(QtWebKitWidgets.QWebView):
@@ -60,7 +60,7 @@ class Browser(QtWebKitWidgets.QWebView):
         self.setPage(self.web)
         self.nam = NetManager(default_block=True)
         self.web.setNetworkAccessManager(self.nam)
-        self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0'
+        self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:63.0) Gecko/20100101 Firefox/63.0'
         self.img_url = ''
         self.quality = quality
         self.site = site
