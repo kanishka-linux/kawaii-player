@@ -8,7 +8,7 @@ from functools import partial
 from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from player_functions import ccurl, write_files
+from player_functions import ccurl, write_files, open_files
 from thread_modules import DownloadThread
 
 
