@@ -480,7 +480,7 @@ class Ui_MainWindow(object):
                                 
         self.check_symbol = '\u2714'
         self.torrent_frame = QtWidgets.QFrame(MainWindow)
-        self.torrent_frame.setMaximumSize(QtCore.QSize(300, 16777215))
+        #self.torrent_frame.setMaximumSize(QtCore.QSize(300, 16777215))
         self.torrent_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.torrent_frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.torrent_frame.setObjectName(_fromUtf8("torrent_frame"))
@@ -576,6 +576,7 @@ class Ui_MainWindow(object):
         self.list4.setMaximumWidth(self.width_allowed)
         self.list5.setMaximumWidth(self.width_allowed)
         self.list6.setMaximumWidth(self.width_allowed)
+        self.torrent_frame.setMaximumWidth(self.width_allowed)
         self.goto_epn.setMaximumWidth(self.width_allowed)
         
         self.text_width = screen_width-3*self.width_allowed-35
@@ -3359,7 +3360,7 @@ class Ui_MainWindow(object):
             else:
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
-            if self.tab_6.isHidden() and (str(self.idw) == str(int(self.tab_5.winId()))):
+            if (self.tab_6.isHidden() and (str(self.idw) == str(int(self.tab_5.winId())))) or msg == "darwin":
                 change_spacing = True
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
@@ -5485,7 +5486,8 @@ class Ui_MainWindow(object):
             self.force_fs = True
         else:
             self.dockWidget_3.show()
-            MainWindow.showNormal()
+            if platform.system().lower() != "darwin":
+                MainWindow.showNormal()
             MainWindow.showMaximized()
             self.force_fs = False
     
@@ -10206,7 +10208,7 @@ class Ui_MainWindow(object):
             if (self.player_val.lower() == 'mpv' and self.mplayerLength
                     and ("EOF code: 1" in a
                     or "HTTP error 403 Forbidden" in a 
-                    or self.progress_counter > self.mplayerLength + 1
+                    or self.progress_counter > self.mplayerLength + 2
                     or 'finished playback, success (reason 0)' in a)):
                 if not self.eof_reached and not self.player_setLoop_var:
                     self.eof_reached = True
@@ -10962,9 +10964,11 @@ class Ui_MainWindow(object):
         self.mplayer_finished_counter += 1
         logger.debug(self.mpvplayer_val.processId())
         logger.debug('mpvplayer_started = {0}'.format(self.mpvplayer_started))
-        if (self.quit_really == 'no' and self.mpvplayer_val.processId() == 0
+        if (self.quit_really == 'no' and self.mpvplayer_val.processId() == 0 and platform.system().lower() == "linux"
                 and OSNAME == 'posix' and self.mpvplayer_started and self.mplayer_finished_counter == 1):
             self.player_restart()
+        if platform.system().lower() == "darwin":
+            self.playerStop(msg="darwin")
             
     def player_restart(self):
         global thumbnail_indicator
@@ -11572,7 +11576,17 @@ class Ui_MainWindow(object):
             command = command + ' -vf screenshot="{0}"'.format(self.screenshot_directory)
         elif player.lower() == "mpv":
             self.mpv_custom_pause = False
-            command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
+            if platform.system().lower() == "darwin":
+                command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
+ --cache-initial=0 --cache-seek-min=100 --cache-pause\
+ --idle -msg-level=all=v --osd-level=1 --cursor-autohide=5\
+ --ytdl=no\
+ --input-file=/dev/stdin --input-terminal=no\
+ --input-vo-keyboard=no --autofit=50% --no-native-fs --fs --ontop --video-aspect {0} -wid {1} --input-conf="{2}"\
+ --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
+                                      self.screenshot_directory)
+            else:
+                command = 'mpv --cache-secs=120 --cache=auto --cache-default=100000\
  --cache-initial=0 --cache-seek-min=100 --cache-pause\
  --idle -msg-level=all=v --osd-level=1 --cursor-autohide=no\
  --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
