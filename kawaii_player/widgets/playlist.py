@@ -27,6 +27,7 @@ import base64
 import urllib.parse
 from urllib.parse import urlparse
 import json
+import platform
 from collections import OrderedDict
 from functools import partial
 from bs4 import BeautifulSoup
@@ -132,7 +133,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         path_dir = os.path.join(home, 'History', site, old_name)
         if os.path.exists(path_dir):
             if os.name == 'posix':
-                subprocess.Popen(['xdg-open', path_dir])
+                if platform.system().lower() == "linux":
+                    subprocess.Popen(['xdg-open', path_dir])
+                else:
+                    subprocess.Popen(['open', path_dir])
             elif os.name == 'nt':
                 subprocess.Popen(['start', path_dir], shell=True)
         else:
