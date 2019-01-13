@@ -27,6 +27,7 @@ import hashlib
 import base64
 import subprocess
 import urllib
+import platform
 from tempfile import mkstemp, mkdtemp
 from io import StringIO, BytesIO
 import pycurl
@@ -38,7 +39,10 @@ OSNAME = os.name
 def send_notification(txt, display=None, code=None):
     try:
         if os.name == 'posix':
-            subprocess.Popen(['notify-send', txt])
+            if platform.system().lower() == "linux":
+                subprocess.Popen(["notify-send", txt])
+            else:
+                subprocess.Popen(["terminal-notifier", "-message", txt, "-title", "Kawaii-Player"])
         elif os.name == 'nt' and code == 0:
             print(txt)
         elif os.name == 'nt' and display != 'posix':
@@ -48,7 +52,10 @@ def send_notification(txt, display=None, code=None):
 
 def get_lan_ip():
     if OSNAME == 'posix':
-        a = subprocess.check_output(['ip', 'addr', 'show'])
+        if platform.system().lower() == "linux":
+            a = subprocess.check_output(['ip', 'addr', 'show'])
+        else:
+            a = subprocess.check_output(['ifconfig'])
         b = str(a, 'utf-8')
         print(b)
         c = re.findall('inet [^ ]*', b)
