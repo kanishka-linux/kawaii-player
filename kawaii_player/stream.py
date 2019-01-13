@@ -355,9 +355,6 @@ class ThreadServer(QtCore.QThread):
             self.ip = get_lan_ip()
             txt = 'Your New Address is '+self.ip + '\n Please restart the player'
             send_notification(txt)
-            #change_config_file(self.ip, self.port)
-            #server_address = (self.ip, self.port)
-            #self.ui.local_ip = self.ip
         if server_start:
             print('running server...at..'+self.ip+':'+str(self.port))
             httpd.serve_forever()
