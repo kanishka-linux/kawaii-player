@@ -28,7 +28,7 @@ from socketserver import ThreadingMixIn
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 import libtorrent as lt
-from player_functions import send_notification, get_home_dir
+from player_functions import send_notification, get_home_dir, get_lan_ip
 
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
@@ -352,7 +352,7 @@ class ThreadServer(QtCore.QThread):
             print(err, '----->error')
             txt = 'Your local IP changed..or port is blocked\n..Trying to find new IP'
             send_notification(txt)
-            self.ip = get_ip()
+            self.ip = get_lan_ip()
             txt = 'Your New Address is '+self.ip + '\n Please restart the player'
             send_notification(txt)
             change_config_file(self.ip, self.port)
