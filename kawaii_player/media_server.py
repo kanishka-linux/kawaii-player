@@ -53,6 +53,477 @@ except Exception as e:
     notify_txt = 'python3 bindings for libtorrent are broken\nTorrent Streaming feature will be disabled'
     send_notification(notify_txt, display='posix')
 
+class DoGETSignal(QtCore.QObject):
+    new_signal_gui = pyqtSignal(str)
+    stop_signal_torrent = pyqtSignal(str)
+    control_signal_player = pyqtSignal(int, str)
+    nav_remote_player = pyqtSignal(str)
+    delete_torrent_signal_remote = pyqtSignal(str)
+    update_signal_db = pyqtSignal(str)
+    total_navigation_signal = pyqtSignal(str, str, str, bool)
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        self.new_signal_gui.connect(goto_ui_jump)
+        self.stop_signal_torrent.connect(stop_torrent_from_client)
+        self.control_signal_player.connect(start_player_remotely)
+        self.nav_remote_player.connect(navigate_player_remotely)
+        self.delete_torrent_signal_remote.connect(delete_torrent_history)
+        self.update_signal_db.connect(update_databse_signal)
+        self.total_navigation_signal.connect(total_ui_navigation)
+
+    def total_navigation(self, st, st_o, opt, shuffle):
+        self.total_navigation_signal.emit(st, st_o, opt, shuffle)
+
+    def new_signal(self, val):
+        self.new_signal_gui.emit(val)
+
+    def stop_signal(self, val):
+        self.stop_signal_torrent.emit(val)
+
+    def control_signal(self, index, val):
+        self.control_signal_player.emit(index, val)
+
+    def nav_remote(self, val):
+        self.nav_remote_player.emit(val)
+
+    def delete_torrent_signal(self, val):
+        self.delete_torrent_signal_remote.emit(val)
+
+    def update_signal(self, val):
+        self.update_signal_db.emit(val)
+    
+@pyqtSlot(str)
+def goto_ui_jump(nm):
+    global getdb
+    url = getdb.epn_return_from_bookmark(nm, from_client=True)
+
+
+@pyqtSlot(str)
+def stop_torrent_from_client(nm):
+    #ui.stop_torrent(from_client=True)
+    ui.label_torrent_stop.clicked.emit()
+
+"""
+@pyqtSlot(str)
+def get_my_ip_regularly(nm):
+    new_thread = getIpThread(interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
+    new_thread.start()
+"""
+
+@pyqtSlot(int, str)
+def start_player_remotely(nm, mode):
+    global ui, MainWindow
+    if mode == 'normal' and ui.list2.count():
+        if nm < ui.list2.count() and nm >= 0:
+            ui.cur_row = nm
+        else:
+            ui.cur_row = (nm%ui.list2.count())
+        ui.list2.setCurrentRow(ui.cur_row)
+        item = ui.list2.item(ui.cur_row)
+        if item and ui.web_control == 'master':
+            ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        elif item and ui.web_control == 'slave':
+            ui.gui_signals.playlist_command('playlist', ui.cur_row)
+    elif mode == 'queue':
+        nm = nm - 1
+        ui.queue_item_external = nm
+        if ui.web_control == 'master':
+            ui.set_queue_item_btn.clicked.emit()
+        else:
+            ui.gui_signals.playlist_command('queue', nm)
+    elif mode == 'queue_remove':
+        ui.queue_item_external_remove = nm
+        ui.remove_queue_item_btn.clicked.emit()
+    elif mode == 'playpause':
+        if ui.web_control == 'master':
+            ui.player_play_pause.clicked.emit()
+        else:
+            ui.settings_box.play_pause.clicked.emit()
+    elif mode == 'playpause_play':
+        ui.player_play_pause_play.clicked.emit()
+    elif mode == 'playpause_pause':
+        ui.player_play_pause_pause.clicked.emit()
+    elif mode == 'show_player':
+        ui.player_show_btn.clicked.emit()
+    elif mode == 'hide_player':
+        ui.player_hide_btn.clicked.emit()
+    elif ui.mpvplayer_val.processId() > 0 or ui.web_control == 'slave':
+        if mode == 'stop':
+            if ui.web_control == 'master':
+                if MainWindow.isFullScreen():
+                    ui.player_fullscreen.clicked.emit()
+                ui.player_stop.clicked.emit()
+            else:
+                ui.settings_box.playerstop.clicked.emit()
+        elif mode == 'loop':
+            if ui.web_control == 'master':
+                ui.player_loop_file.clicked.emit()
+            else:
+                ui.settings_box.play_loop.clicked.emit()
+        elif mode == 'next':
+            if ui.web_control == 'master':
+                ui.player_next.clicked.emit()
+            else:
+                ui.settings_box.playernext.clicked.emit()
+        elif mode == 'prev':
+            if ui.web_control == 'master':
+                ui.player_prev.clicked.emit()
+            else:
+                ui.settings_box.playerprev.clicked.emit()
+        elif mode == 'seek':
+            if nm == 10:
+                if ui.web_control == 'master':
+                    ui.player_seek_10.clicked.emit()
+                else:
+                    ui.settings_box.playerseek10.clicked.emit()
+            elif nm == -10:
+                if ui.web_control == 'master':
+                    ui.player_seek_10_.clicked.emit()
+                else:
+                    ui.settings_box.playerseek_10.clicked.emit()
+            elif nm == 60:
+                if ui.web_control == 'master':
+                    ui.player_seek_60.clicked.emit()
+                else:
+                    ui.settings_box.playerseek60.clicked.emit()
+            elif nm == -60:
+                if ui.web_control == 'master':
+                    ui.player_seek_60_.clicked.emit()
+                else:
+                    ui.settings_box.playerseek_60.clicked.emit()
+            elif nm == 300:
+                if ui.web_control == 'master':
+                    ui.player_seek_5m.clicked.emit()
+                else:
+                    ui.settings_box.playerseek5m.clicked.emit()
+            elif nm == -300:
+                if ui.web_control == 'master':
+                    ui.player_seek_5m_.clicked.emit()
+                else:
+                    ui.settings_box.playerseek_5m.clicked.emit()
+            else:
+                ui.client_seek_val = nm
+                if ui.web_control == 'master':
+                    ui.player_seek_all.clicked.emit()
+                else:
+                    ui.settings_box.playerseekabs.clicked.emit()
+        elif mode == 'volume':
+            if nm == 5:
+                if ui.web_control == 'master':
+                    ui.player_vol_5.clicked.emit()
+                else:
+                    ui.settings_box.playervol5.clicked.emit()
+            elif nm == -5:
+                if ui.web_control == 'master':
+                    ui.player_vol_5_.clicked.emit()
+                else:
+                    ui.settings_box.playervol_5.clicked.emit()
+        elif mode == 'fullscreen':
+            if ui.web_control == 'master':
+                ui.player_fullscreen.clicked.emit()
+            else:
+                ui.settings_box.toggle_fs.clicked.emit()
+        elif mode == 'toggle_subtitle':
+            if ui.web_control == 'master':
+                ui.subtitle_track.clicked.emit()
+            else:
+                ui.settings_box.toggle_sub.clicked.emit()
+        elif mode == 'toggle_audio':
+            if ui.web_control == 'master':
+                ui.audio_track.clicked.emit()
+            else:
+                ui.settings_box.toggle_aud.clicked.emit()
+        elif mode == 'add_subtitle':
+            ui.add_external_subtitle.clicked.emit()
+
+def find_and_set_index(st, st_o, srch):
+    index = None
+    mode = -1
+    if srch.endswith('.hash'):
+        srch = srch.rsplit('.', 1)[0]
+    if st.lower() == 'video':
+        mode = 0
+    elif st.lower() == 'music':
+        if st_o.lower().startswith('playlist'):
+            mode = 2
+        else:
+            mode = 1
+        
+    for i, val in enumerate(ui.original_path_name):
+        val = val.strip()
+        if mode == 0 and '\t' in val:
+            new_val = val.split('\t')[1]
+        elif mode == 2:
+            new_val = val
+        else:
+            new_val = val
+        hash_val = bytes(new_val, 'utf-8')
+        h = hashlib.sha256(hash_val)
+        hash_dir = h.hexdigest()
+        if hash_dir == srch:
+            index = i
+            break
+    if index is not None:
+        if index < ui.list1.count():
+            ui.list1.setFocus()
+            ui.list1.setCurrentRow(index)
+            item = ui.list1.item(index)
+            if item:
+                ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+
+@pyqtSlot(str, str, str, bool)
+def total_ui_navigation(st, st_o, srch, shuffle):
+    global ui
+    logger.debug('\n{0}::{1}::{2}::{3}\n'.format(st, st_o, srch, shuffle))
+    if shuffle:
+       ui.player_btn_update_list2.clicked.emit() 
+    elif st:
+        if st.lower() == 'video':
+            index = ui.btn1.findText('Video')
+            site = 'Video'
+            ui.set_parameters_value(siteval=site)
+            if index >= 0 and ui.btn1.currentText().lower() != 'video':
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            list3_index = 0
+            if st_o.lower() != 'update' and st_o.lower() != 'updateall':
+                for i in range(0, ui.list3.count()):
+                    item = ui.list3.item(i)
+                    txt = item.text()
+                    if txt.lower() == st_o.lower():
+                        if not ui.list3.currentItem():
+                            ui.list3.setFocus()
+                            ui.list3.setCurrentRow(0)
+                        if ui.list3.currentItem().text().lower() != txt.lower():
+                            ui.set_parameters_value(op=txt)
+                            ui.list3.setCurrentRow(i)
+                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            #time.sleep(0.5)
+                            break
+                find_and_set_index(st, st_o, srch)
+        elif st.lower() == 'music':
+            index = ui.btn1.findText('Music')
+            site = 'Music'
+            ui.set_parameters_value(siteval=site)
+            if index >= 0 and ui.btn1.currentText().lower() != 'music':
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            list3_index = 0
+            if (st_o.lower() == 'artist' or st_o.lower() == 'album'
+                    or st_o.lower() == 'directory' or st_o.lower() == 'playlist'):
+                for i in range(0, ui.list3.count()):
+                    item = ui.list3.item(i)
+                    txt = item.text()
+                    if txt.lower() == st_o.lower():
+                        if not ui.list3.currentItem():
+                            ui.list3.setFocus()
+                            ui.list3.setCurrentRow(0)
+                        if ui.list3.currentItem().text().lower() != txt.lower():
+                            ui.set_parameters_value(op=txt)
+                            ui.list3.setCurrentRow(i)
+                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            time.sleep(0.5)
+                            break
+                find_and_set_index(st, st_o, srch)
+        elif st.lower() == 'playlists':
+            index = ui.btn1.findText('PlayLists')
+            site = 'PlayLists'
+            ui.set_parameters_value(siteval=site)
+            if index >= 0 and ui.btn1.currentText().lower() != 'playlists':
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            ui.list3.setFocus()
+            ui.list3.setCurrentRow(0)
+            item = ui.list3.item(0)
+            if srch:
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                logger.debug('::::::::{0}'.format(srch))
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        logger.debug(':::::row:::{0}::::::::'.format(row))
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                            ui.gui_signals.click_title_list('playlist_click_from_client')
+                            time.sleep(0.5)
+                            if ui.instant_cast_play in range(0, ui.list2.count()) and srch.lower() == 'tmp_playlist':
+                                ui.list2.setCurrentRow(ui.instant_cast_play)
+                                item = ui.list2.item(ui.instant_cast_play)
+                                if item:
+                                    ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                                    ui.instant_cast_play = -1
+        elif st.lower() == 'bookmark':
+            index = ui.btn1.findText('Bookmark')
+            if index >= 0 and ui.btn1.currentText().lower() != 'bookmark':
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            ui.list3.setFocus()
+            if st_o:
+                if st_o.lower() == 'bookmark':
+                    st_o = 'all'
+                for i in range(0, ui.list3.count()):
+                    item = ui.list3.item(i)
+                    txt = item.text()
+                    if txt.lower() == st_o.lower():
+                        ui.list3.setCurrentRow(i)
+                        time.sleep(0.5)
+                        break
+                logger.debug('::::::::{0}'.format(srch))
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        logger.debug(':::::row:::{0}::::::::'.format(row))
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        elif st:
+            index = ui.btn1.findText('Addons')
+            if index >= 0 and ui.btn1.currentText().lower() != 'addons':
+                ui.btn1.setCurrentIndex(0)
+                ui.btn1.setCurrentIndex(index)
+            time.sleep(0.5)
+            index_val = ''
+            for i,j in enumerate(ui.addons_option_arr):
+                if j.lower() == st.lower():
+                    index_val = j
+                    break
+            if index_val:
+                site = index_val
+                ui.set_parameters_value(siteval=site)
+                index = ui.btnAddon.findText(index_val)
+                if index >= 0 and ui.btnAddon.currentText().lower() != site.lower():
+                    ui.btnAddon.setCurrentIndex(0)
+                    ui.btnAddon.setCurrentIndex(index)
+                time.sleep(0.5)
+                list_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
+                if not ui.list3.currentItem():
+                    ui.list3.setFocus()
+                    ui.list3.setCurrentRow(0)
+                if len(list_item) > 0 and ui.list3.currentItem().text().lower() != 'history':
+                    for i in list_item:
+                        row = ui.list3.row(i)
+                        ui.list3.setFocus()
+                        ui.list3.setCurrentRow(row)
+                        item = ui.list3.item(row)
+                        if item:
+                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                time.sleep(0.5)
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                if len(list_item) > 0:
+                    for i in list_item:
+                        row = ui.list1.row(i)
+                        ui.list1.setFocus()
+                        ui.list1.setCurrentRow(row)
+                        item = ui.list1.item(row)
+                        if item:
+                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                    
+
+@pyqtSlot(str)
+def navigate_player_remotely(nm):
+    global ui
+    index = ui.btn1.findText('PlayLists')
+    site = 'PlayLists'
+    ui.set_parameters_value(siteval=site)
+    if index >= 0:
+        ui.btn1.setCurrentIndex(0)
+        ui.btn1.setCurrentIndex(index)
+    time.sleep(0.5)
+    ui.list3.setFocus()
+    ui.list3.setCurrentRow(0)
+    list_item = ui.list1.findItems(nm, QtCore.Qt.MatchExactly)
+    if len(list_item) > 0:
+        for i in list_item:
+            row = ui.list1.row(i)
+            ui.list1.setFocus()
+            ui.list1.setCurrentRow(row)
+            item = ui.list1.item(row)
+            if item:
+                ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            
+    
+
+@pyqtSlot(str)
+def update_databse_signal(mode):
+    global ui
+    if mode == 'video':
+        video_dir = os.path.join(home, 'VideoDB')
+        if not os.path.exists(video_dir):
+            os.makedirs(video_dir)
+        video_db = os.path.join(video_dir, 'Video.db')
+        video_file = os.path.join(video_dir, 'Video.txt')
+        video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
+        
+        if not os.path.exists(video_db):
+            ui.media_data.create_update_video_db(video_db, video_file, video_file_bak, update_progress_show=False)
+        else:
+            ui.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, 'Update', update_progress_show=False)
+    elif mode == 'music':
+        music_dir = os.path.join(home, 'Music')
+        if not os.path.exists(music_dir):
+            os.makedirs(music_dir)
+        music_db = os.path.join(home, 'Music', 'Music.db')
+        music_file = os.path.join(home, 'Music', 'Music.txt')
+        music_file_bak = os.path.join(home, 'Music', 'Music_bak.txt')
+        if not os.path.exists(music_db):
+            ui.media_data.create_update_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
+        else:
+            ui.media_data.update_on_start_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
+
+
+@pyqtSlot(str)
+def delete_torrent_history(nm):
+    global home, ui
+    if ui.stream_session:
+        t_list = ui.stream_session.get_torrents()
+        for i in t_list:
+            chk_name = i.name()
+            if chk_name == nm:
+                ui.stream_session.remove_torrent(i)
+                logger.info('removing--torrent--{0}'.format(chk_name))
+    if nm:
+        #ui.stop_torrent(from_client=True)
+        hist_folder = os.path.join(home, 'History', 'Torrent')
+        hist_txt = os.path.join(hist_folder, 'history.txt')
+        hist_torrent = os.path.join(hist_folder, nm+'.torrent')
+        hist_torrent_folder = os.path.join(hist_folder, nm)
+        down_location = os.path.join(ui.torrent_download_folder, nm)
+        if os.path.exists(hist_txt):
+            lines = open_files(hist_txt, lines_read=True)
+            new_lines = [i.strip() for i in lines]
+            try:
+                indx = new_lines.index(nm)
+            except ValueError as e:
+                print(e)
+                indx = -1
+            if indx != -1 and indx >= 0:
+                del new_lines[indx]
+                
+            write_files(hist_txt, new_lines, line_by_line=True)
+            if os.path.isdir(hist_torrent_folder):
+                shutil.rmtree(hist_torrent_folder)
+                logger.info('removed-folder:-{0}'.format(hist_torrent_folder))
+                if os.path.isfile(hist_torrent):
+                    os.remove(hist_torrent)
+                    logger.info('removed-torrent:-{0}'.format(hist_torrent))
+                if os.path.exists(down_location):
+                    if os.path.isdir(down_location):
+                        shutil.rmtree(down_location)
+                    elif os.path.isfile(down_location):
+                        os.remove(down_location)
+                    logger.info('removed-torrent files:-{0}'.format(down_location))
+            else:
+                logger.info('nothing to delete: wrong file name')
 
 class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
@@ -62,6 +533,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     playlist_auth_dict = {}
     playlist_m3u_dict = {}
     playlist_shuffle_list = []
+    nav_signals = DoGETSignal()
     
     def process_HEAD(self):
         global ui, logger, getdb
@@ -113,13 +585,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 nm = str(base64.b64decode(nm).decode('utf-8'))
                 if nm.split('&')[4] == 'True':
                     old_nm = nm
-                    new_torrent_signal = doGETSignal()
                     if ui.https_media_server:
                         https_val = 'https'
                     else:
                         https_val = 'http'
                     nm = https_val+"://"+ui.local_ip+':'+str(ui.local_port)+'/'
-                    new_torrent_signal.new_signal.emit(old_nm)
+                    self.nav_signals.new_signal(old_nm)
                 else:
                     nm = getdb.epn_return_from_bookmark(nm, from_client=True)
             except Exception as e:
@@ -297,8 +768,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.instant_cast_play = int(play_row)
                 if ui.instant_cast_play >= len(lines) or ui.instant_cast_play < 0:
                     ui.instant_cast_play = 0
-                nav_remote = doGETSignal()
-                nav_remote.total_navigation.emit('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
+                self.nav_signals.total_navigation('PlayLists', 'PlayLists', 'TMP_PLAYLIST', False)
             else:
                 ui.queue_url_list = ui.queue_url_list + lines
                 ui.queue_item_external = -100
@@ -329,8 +799,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     subtitle_path = 'file:///{}'.format(subtitle_path.replace('\\', '/'))
                 if ui.mpvplayer_val.processId() > 0:
                     ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
-                    remote_signal = doGETSignal()
-                    remote_signal.control_signal.emit(-1000, 'add_subtitle')
+                    self.nav_signals.control_signal(-1000, 'add_subtitle')
             self.final_message(bytes('Subtitle Recieved', 'utf-8'))
         elif self.path.startswith('/sending_command') and ui.pc_to_pc_casting == 'slave':
             content = self.rfile.read(int(self.headers['Content-Length']))
@@ -1219,8 +1688,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.write_to_tmp_playlist(epnArrList)
                 if self.playlist_shuffle_list and shuffle_list:
                     ui.epn_arr_list = self.playlist_shuffle_list.copy()
-                    nav_remote = doGETSignal()
-                    nav_remote.total_navigation.emit('', '', '', shuffle_list)
+                    self.nav_signals.total_navigation('', '', '', shuffle_list)
         elif (path.lower().startswith('channel_sync.')):
             if path.endswith('.html') or path.endswith('.htm'):
                 pls_txt = '<ol id="playlist">'
@@ -1423,8 +1891,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 if self.playlist_shuffle_list and shuffle_list:
                     ui.epn_arr_list = self.playlist_shuffle_list.copy()
-                nav_remote = doGETSignal()
-                nav_remote.total_navigation.emit(st_arr[0], st_arr[1],
+                self.nav_signals.total_navigation(st_arr[0], st_arr[1],
                                                  st_arr[2], shuffle_list)
             
             if not pls_cache: 
@@ -1456,15 +1923,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     row_num = -1000
                 if ui.remote_control and ui.remote_control_field:
                     b = b'Playing file'
-                    remote_signal = doGETSignal()
                     if path.startswith('playlist_'):
-                        remote_signal.control_signal.emit(row_num, 'normal')
+                        self.nav_signals.control_signal(row_num, 'normal')
                     elif path.startswith('queueitem_'):
                         b = b'queued'
-                        remote_signal.control_signal.emit(row_num, 'queue')
+                        self.nav_signals.control_signal(row_num, 'queue')
                     elif path.startswith('queue_remove_item_'):
                         b = b'queued item removed'
-                        remote_signal.control_signal.emit(row_num, 'queue_remove')
+                        self.nav_signals.control_signal(row_num, 'queue_remove')
                     self.final_message(b)
                 else:
                     b = b'Remote Control Not Allowed'
@@ -1475,8 +1941,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'locking file'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'loop')
+                self.nav_signals.control_signal(-1000, 'loop')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1484,8 +1949,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = 'playpause:{0}'.format(ui.cur_row)
                 self.final_message(bytes(b, 'utf-8'))
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'playpause')
+                self.nav_signals.control_signal(-1000, 'playpause')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1493,8 +1957,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = 'playpause_pause:{0}'.format(ui.cur_row)
                 self.final_message(bytes(b, 'utf-8'))
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'playpause_pause')
+                self.nav_signals.control_signal(-1000, 'playpause_pause')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1502,8 +1965,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = 'playpause_play:{0}'.format(ui.cur_row)
                 self.final_message(bytes(b, 'utf-8'))
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'playpause_play')
+                self.nav_signals.control_signal(-1000, 'playpause_play')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1511,8 +1973,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek +10s'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(10, 'seek')
+                self.nav_signals.control_signal(10, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1520,8 +1981,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek -10s'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-10, 'seek')
+                self.nav_signals.control_signal(-10, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1529,8 +1989,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek 60s'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(60, 'seek')
+                self.nav_signals.control_signal(60, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1538,8 +1997,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek -60s'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-60, 'seek')
+                self.nav_signals.control_signal(-60, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1547,8 +2005,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek 300s'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(300, 'seek')
+                self.nav_signals.control_signal(300, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1585,8 +2042,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek -300s'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-300, 'seek')
+                self.nav_signals.control_signal(-300, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1607,8 +2063,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     print(err, '--1358--seek-abs--')
                 seek_str = 'seek {0}/{1}'.format(seek_val, ui.mplayerLength)
                 self.final_message(bytes(seek_str, 'utf-8'))
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(seek_val, 'seek')
+                self.nav_signals.control_signal(seek_val, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1616,8 +2071,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'volume +5'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(5, 'volume')
+                self.nav_signals.control_signal(5, 'volume')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1625,8 +2079,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'volume -5'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-5, 'volume')
+                self.nav_signals.control_signal(-5, 'volume')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1634,8 +2087,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'stop playing'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'stop')
+                self.nav_signals.control_signal(-1000, 'stop')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1643,8 +2095,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = 'Next:{0}'.format(str((ui.cur_row+1)%ui.list2.count()))
                 self.final_message(bytes(b, 'utf-8'))
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'next')
+                self.nav_signals.control_signal(-1000, 'next')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1652,8 +2103,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = 'Prev:{0}'.format(str((ui.cur_row-1)%ui.list2.count()))
                 self.final_message(bytes(b, 'utf-8'))
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'prev')
+                self.nav_signals.control_signal(-1000, 'prev')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1661,8 +2111,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'Toggle Fullscreen'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'fullscreen')
+                self.nav_signals.control_signal(-1000, 'fullscreen')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1670,8 +2119,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'show_player'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'show_player')
+                self.nav_signals.control_signal(-1000, 'show_player')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1679,8 +2127,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'hide_player'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'hide_player')
+                self.nav_signals.control_signal(-1000, 'hide_player')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1688,8 +2135,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'toggle_subtitle'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'toggle_subtitle')
+                self.nav_signals.control_signal(-1000, 'toggle_subtitle')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1697,8 +2143,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if ui.remote_control and ui.remote_control_field:
                 b = b'toggle_audio'
                 self.final_message(b)
-                remote_signal = doGETSignal()
-                remote_signal.control_signal.emit(-1000, 'toggle_audio')
+                self.nav_signals.control_signal(-1000, 'toggle_audio')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -1815,8 +2260,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         else:
                             mode = row_num_val
                         #print(row_num, '--row--num--playlist--', mode)
-                        remote_signal = doGETSignal()
-                        remote_signal.control_signal.emit(row_num, mode)
+                        self.nav_signals.control_signal(row_num, mode)
                     else:
                         if not process_url:
                             b = b'Remote Control Not Allowed'
@@ -1855,7 +2299,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 
                 if torrent_stream:
                     old_nm = nm
-                    new_torrent_signal = doGETSignal()
                     if ui.https_media_server:
                         https_val = 'https'
                     else:
@@ -1874,8 +2317,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             else:
                                 mode = row_num_val
                             logger.info('{0}--row--num--playlist--{1}'.format(row_num, mode))
-                            remote_signal = doGETSignal()
-                            remote_signal.control_signal_external.emit(row_num, mode)
+                            self.nav_signals.control_signal_external(row_num, mode)
                             b = b'OK'
                             self.final_message(b)
                         else:
@@ -1899,7 +2341,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             loc = get_torrent_download_location(old_nm, home, ui.torrent_download_folder)
                             self.process_image_url(loc)
                         else:
-                            new_torrent_signal.new_signal.emit(old_nm)
+                            self.nav_signals.new_signal(old_nm)
                             logger.info('--nm---{0}'.format(nm))
                             self.process_url(nm, get_bytes)
                 else:
@@ -1914,8 +2356,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             else:
                                 mode = row_num_val
                             logger.info('{0}--row--num--playlist--{1}'.format(row_num, mode))
-                            remote_signal = doGETSignal()
-                            remote_signal.control_signal_external.emit(row_num, mode)
+                            self.nav_signals.control_signal_external(row_num, mode)
                             b = b'OK'
                             self.final_message(b)
                         else:
@@ -1931,8 +2372,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print(e)
         elif path.startswith('stop_torrent'):
             try:
-                new_torrent_signal = doGETSignal()
-                new_torrent_signal.stop_signal.emit('from client')
+                self.nav_signals.stop_signal('from client')
                 msg = 'Torrent Stopped'
                 msg = bytes(msg, 'utf-8')
                 self.final_message(msg)
@@ -2161,16 +2601,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if ui.remote_control and ui.remote_control_field and ret_val:
                     ui.btn1.setCurrentIndex(0)
                     ui.btnAddon.setCurrentIndex(0)
-                    nav_remote = doGETSignal()
-                    nav_remote.total_navigation.emit('Torrent', 'History', ret_val, False)
+                    self.nav_signals.total_navigation('Torrent', 'History', ret_val, False)
             elif new_url.startswith('delete'):
                 var_name = new_url.replace('delete&', '', 1)
                 if var_name:
                     msg = 'Deleting Torrent: {}, Refresh history'.format(var_name)
                     msg = bytes(msg, 'utf-8')
                     self.final_message(msg)
-                    new_torrent_signal = doGETSignal()
-                    new_torrent_signal.delete_torrent_signal.emit(var_name)
+                    self.nav_signals.delete_torrent_signal(var_name)
                 else:
                     msg = "Wrong Parameters: Don't do that again without selecting Torrent from the list".format(var_name)
                     msg = bytes(msg, 'utf-8')
@@ -2282,8 +2720,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 else:
                     val = 'music'
                     ui.media_server_cache_music.clear()
-                remote_signal = doGETSignal()
-                remote_signal.update_signal.emit(val)
+                self.nav_signals.update_signal(val)
                 msg = '{0} section updated successfully: refresh browser'.format(val)
                 msg = bytes(msg, 'utf-8')
                 self.final_message(msg)
@@ -2903,456 +3340,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             print(e)
 
 
-class doGETSignal(QtCore.QObject):
-    new_signal = pyqtSignal(str)
-    stop_signal = pyqtSignal(str)
-    control_signal = pyqtSignal(int, str)
-    nav_remote = pyqtSignal(str)
-    delete_torrent_signal = pyqtSignal(str)
-    update_signal = pyqtSignal(str)
-    total_navigation = pyqtSignal(str, str, str, bool)
-    def __init__(self):
-        QtCore.QObject.__init__(self)
-        self.new_signal.connect(goto_ui_jump)
-        self.stop_signal.connect(stop_torrent_from_client)
-        self.control_signal.connect(start_player_remotely)
-        self.nav_remote.connect(navigate_player_remotely)
-        self.delete_torrent_signal.connect(delete_torrent_history)
-        self.update_signal.connect(update_databse_signal)
-        self.total_navigation.connect(total_ui_navigation)
-        
-@pyqtSlot(str)
-def goto_ui_jump(nm):
-    global getdb
-    url = getdb.epn_return_from_bookmark(nm, from_client=True)
 
-
-@pyqtSlot(str)
-def stop_torrent_from_client(nm):
-    #ui.stop_torrent(from_client=True)
-    ui.label_torrent_stop.clicked.emit()
-
-"""
-@pyqtSlot(str)
-def get_my_ip_regularly(nm):
-    new_thread = getIpThread(interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
-    new_thread.start()
-"""
-
-@pyqtSlot(int, str)
-def start_player_remotely(nm, mode):
-    global ui, MainWindow
-    if mode == 'normal' and ui.list2.count():
-        if nm < ui.list2.count() and nm >= 0:
-            ui.cur_row = nm
-        else:
-            ui.cur_row = (nm%ui.list2.count())
-        ui.list2.setCurrentRow(ui.cur_row)
-        item = ui.list2.item(ui.cur_row)
-        if item and ui.web_control == 'master':
-            ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-        elif item and ui.web_control == 'slave':
-            ui.gui_signals.playlist_command('playlist', ui.cur_row)
-    elif mode == 'queue':
-        nm = nm - 1
-        ui.queue_item_external = nm
-        if ui.web_control == 'master':
-            ui.set_queue_item_btn.clicked.emit()
-        else:
-            ui.gui_signals.playlist_command('queue', nm)
-    elif mode == 'queue_remove':
-        ui.queue_item_external_remove = nm
-        ui.remove_queue_item_btn.clicked.emit()
-    elif mode == 'playpause':
-        if ui.web_control == 'master':
-            ui.player_play_pause.clicked.emit()
-        else:
-            ui.settings_box.play_pause.clicked.emit()
-    elif mode == 'playpause_play':
-        ui.player_play_pause_play.clicked.emit()
-    elif mode == 'playpause_pause':
-        ui.player_play_pause_pause.clicked.emit()
-    elif mode == 'show_player':
-        ui.player_show_btn.clicked.emit()
-    elif mode == 'hide_player':
-        ui.player_hide_btn.clicked.emit()
-    elif ui.mpvplayer_val.processId() > 0 or ui.web_control == 'slave':
-        if mode == 'stop':
-            if ui.web_control == 'master':
-                if MainWindow.isFullScreen():
-                    ui.player_fullscreen.clicked.emit()
-                ui.player_stop.clicked.emit()
-            else:
-                ui.settings_box.playerstop.clicked.emit()
-        elif mode == 'loop':
-            if ui.web_control == 'master':
-                ui.player_loop_file.clicked.emit()
-            else:
-                ui.settings_box.play_loop.clicked.emit()
-        elif mode == 'next':
-            if ui.web_control == 'master':
-                ui.player_next.clicked.emit()
-            else:
-                ui.settings_box.playernext.clicked.emit()
-        elif mode == 'prev':
-            if ui.web_control == 'master':
-                ui.player_prev.clicked.emit()
-            else:
-                ui.settings_box.playerprev.clicked.emit()
-        elif mode == 'seek':
-            if nm == 10:
-                if ui.web_control == 'master':
-                    ui.player_seek_10.clicked.emit()
-                else:
-                    ui.settings_box.playerseek10.clicked.emit()
-            elif nm == -10:
-                if ui.web_control == 'master':
-                    ui.player_seek_10_.clicked.emit()
-                else:
-                    ui.settings_box.playerseek_10.clicked.emit()
-            elif nm == 60:
-                if ui.web_control == 'master':
-                    ui.player_seek_60.clicked.emit()
-                else:
-                    ui.settings_box.playerseek60.clicked.emit()
-            elif nm == -60:
-                if ui.web_control == 'master':
-                    ui.player_seek_60_.clicked.emit()
-                else:
-                    ui.settings_box.playerseek_60.clicked.emit()
-            elif nm == 300:
-                if ui.web_control == 'master':
-                    ui.player_seek_5m.clicked.emit()
-                else:
-                    ui.settings_box.playerseek5m.clicked.emit()
-            elif nm == -300:
-                if ui.web_control == 'master':
-                    ui.player_seek_5m_.clicked.emit()
-                else:
-                    ui.settings_box.playerseek_5m.clicked.emit()
-            else:
-                ui.client_seek_val = nm
-                if ui.web_control == 'master':
-                    ui.player_seek_all.clicked.emit()
-                else:
-                    ui.settings_box.playerseekabs.clicked.emit()
-        elif mode == 'volume':
-            if nm == 5:
-                if ui.web_control == 'master':
-                    ui.player_vol_5.clicked.emit()
-                else:
-                    ui.settings_box.playervol5.clicked.emit()
-            elif nm == -5:
-                if ui.web_control == 'master':
-                    ui.player_vol_5_.clicked.emit()
-                else:
-                    ui.settings_box.playervol_5.clicked.emit()
-        elif mode == 'fullscreen':
-            if ui.web_control == 'master':
-                ui.player_fullscreen.clicked.emit()
-            else:
-                ui.settings_box.toggle_fs.clicked.emit()
-        elif mode == 'toggle_subtitle':
-            if ui.web_control == 'master':
-                ui.subtitle_track.clicked.emit()
-            else:
-                ui.settings_box.toggle_sub.clicked.emit()
-        elif mode == 'toggle_audio':
-            if ui.web_control == 'master':
-                ui.audio_track.clicked.emit()
-            else:
-                ui.settings_box.toggle_aud.clicked.emit()
-        elif mode == 'add_subtitle':
-            ui.add_external_subtitle.clicked.emit()
-
-def find_and_set_index(st, st_o, srch):
-    index = None
-    mode = -1
-    if srch.endswith('.hash'):
-        srch = srch.rsplit('.', 1)[0]
-    if st.lower() == 'video':
-        mode = 0
-    elif st.lower() == 'music':
-        if st_o.lower().startswith('playlist'):
-            mode = 2
-        else:
-            mode = 1
-        
-    for i, val in enumerate(ui.original_path_name):
-        val = val.strip()
-        if mode == 0:
-            new_val = val.split('\t')[1]
-        elif mode == 2:
-            new_val = val
-        else:
-            new_val = val
-        hash_val = bytes(new_val, 'utf-8')
-        h = hashlib.sha256(hash_val)
-        hash_dir = h.hexdigest()
-        if hash_dir == srch:
-            index = i
-            break
-    if index is not None:
-        if index < ui.list1.count():
-            ui.list1.setFocus()
-            ui.list1.setCurrentRow(index)
-            item = ui.list1.item(index)
-            if item:
-                ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
-
-@pyqtSlot(str, str, str, bool)
-def total_ui_navigation(st, st_o, srch, shuffle):
-    global ui
-    logger.debug('\n{0}::{1}::{2}::{3}\n'.format(st, st_o, srch, shuffle))
-    if shuffle:
-       ui.player_btn_update_list2.clicked.emit() 
-    elif st:
-        if st.lower() == 'video':
-            index = ui.btn1.findText('Video')
-            site = 'Video'
-            ui.set_parameters_value(siteval=site)
-            if index >= 0 and ui.btn1.currentText().lower() != 'video':
-                ui.btn1.setCurrentIndex(0)
-                ui.btn1.setCurrentIndex(index)
-            time.sleep(0.5)
-            list3_index = 0
-            if st_o.lower() != 'update' and st_o.lower() != 'updateall':
-                for i in range(0, ui.list3.count()):
-                    item = ui.list3.item(i)
-                    txt = item.text()
-                    if txt.lower() == st_o.lower():
-                        if not ui.list3.currentItem():
-                            ui.list3.setFocus()
-                            ui.list3.setCurrentRow(0)
-                        if ui.list3.currentItem().text().lower() != txt.lower():
-                            ui.set_parameters_value(op=txt)
-                            ui.list3.setCurrentRow(i)
-                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                            time.sleep(0.5)
-                            break
-                find_and_set_index(st, st_o, srch)
-        elif st.lower() == 'music':
-            index = ui.btn1.findText('Music')
-            site = 'Music'
-            ui.set_parameters_value(siteval=site)
-            if index >= 0 and ui.btn1.currentText().lower() != 'music':
-                ui.btn1.setCurrentIndex(0)
-                ui.btn1.setCurrentIndex(index)
-            time.sleep(0.5)
-            list3_index = 0
-            if (st_o.lower() == 'artist' or st_o.lower() == 'album'
-                    or st_o.lower() == 'directory' or st_o.lower() == 'playlist'):
-                for i in range(0, ui.list3.count()):
-                    item = ui.list3.item(i)
-                    txt = item.text()
-                    if txt.lower() == st_o.lower():
-                        if not ui.list3.currentItem():
-                            ui.list3.setFocus()
-                            ui.list3.setCurrentRow(0)
-                        if ui.list3.currentItem().text().lower() != txt.lower():
-                            ui.set_parameters_value(op=txt)
-                            ui.list3.setCurrentRow(i)
-                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                            time.sleep(0.5)
-                            break
-                find_and_set_index(st, st_o, srch)
-        elif st.lower() == 'playlists':
-            index = ui.btn1.findText('PlayLists')
-            site = 'PlayLists'
-            ui.set_parameters_value(siteval=site)
-            if index >= 0 and ui.btn1.currentText().lower() != 'playlists':
-                ui.btn1.setCurrentIndex(0)
-                ui.btn1.setCurrentIndex(index)
-            time.sleep(0.5)
-            ui.list3.setFocus()
-            ui.list3.setCurrentRow(0)
-            item = ui.list3.item(0)
-            if srch:
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
-                logger.debug('::::::::{0}'.format(srch))
-                if len(list_item) > 0:
-                    for i in list_item:
-                        row = ui.list1.row(i)
-                        ui.list1.setFocus()
-                        ui.list1.setCurrentRow(row)
-                        item = ui.list1.item(row)
-                        logger.debug(':::::row:::{0}::::::::'.format(row))
-                        if item:
-                            #ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                            ui.gui_signals.click_title_list('playlist_click_from_client')
-                            time.sleep(0.5)
-                            if ui.instant_cast_play in range(0, ui.list2.count()) and srch.lower() == 'tmp_playlist':
-                                ui.list2.setCurrentRow(ui.instant_cast_play)
-                                item = ui.list2.item(ui.instant_cast_play)
-                                if item:
-                                    ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                                    ui.instant_cast_play = -1
-        elif st.lower() == 'bookmark':
-            index = ui.btn1.findText('Bookmark')
-            if index >= 0 and ui.btn1.currentText().lower() != 'bookmark':
-                ui.btn1.setCurrentIndex(0)
-                ui.btn1.setCurrentIndex(index)
-            time.sleep(0.5)
-            ui.list3.setFocus()
-            if st_o:
-                if st_o.lower() == 'bookmark':
-                    st_o = 'all'
-                for i in range(0, ui.list3.count()):
-                    item = ui.list3.item(i)
-                    txt = item.text()
-                    if txt.lower() == st_o.lower():
-                        ui.list3.setCurrentRow(i)
-                        time.sleep(0.5)
-                        break
-                logger.debug('::::::::{0}'.format(srch))
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
-                if len(list_item) > 0:
-                    for i in list_item:
-                        row = ui.list1.row(i)
-                        ui.list1.setFocus()
-                        ui.list1.setCurrentRow(row)
-                        item = ui.list1.item(row)
-                        logger.debug(':::::row:::{0}::::::::'.format(row))
-                        if item:
-                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
-        elif st:
-            index = ui.btn1.findText('Addons')
-            if index >= 0 and ui.btn1.currentText().lower() != 'addons':
-                ui.btn1.setCurrentIndex(0)
-                ui.btn1.setCurrentIndex(index)
-            time.sleep(0.5)
-            index_val = ''
-            for i,j in enumerate(ui.addons_option_arr):
-                if j.lower() == st.lower():
-                    index_val = j
-                    break
-            if index_val:
-                site = index_val
-                ui.set_parameters_value(siteval=site)
-                index = ui.btnAddon.findText(index_val)
-                if index >= 0 and ui.btnAddon.currentText().lower() != site.lower():
-                    ui.btnAddon.setCurrentIndex(0)
-                    ui.btnAddon.setCurrentIndex(index)
-                time.sleep(0.5)
-                list_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
-                if not ui.list3.currentItem():
-                    ui.list3.setFocus()
-                    ui.list3.setCurrentRow(0)
-                if len(list_item) > 0 and ui.list3.currentItem().text().lower() != 'history':
-                    for i in list_item:
-                        row = ui.list3.row(i)
-                        ui.list3.setFocus()
-                        ui.list3.setCurrentRow(row)
-                        item = ui.list3.item(row)
-                        if item:
-                            ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                time.sleep(0.5)
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
-                if len(list_item) > 0:
-                    for i in list_item:
-                        row = ui.list1.row(i)
-                        ui.list1.setFocus()
-                        ui.list1.setCurrentRow(row)
-                        item = ui.list1.item(row)
-                        if item:
-                            ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
-                    
-
-@pyqtSlot(str)
-def navigate_player_remotely(nm):
-    global ui
-    index = ui.btn1.findText('PlayLists')
-    site = 'PlayLists'
-    ui.set_parameters_value(siteval=site)
-    if index >= 0:
-        ui.btn1.setCurrentIndex(0)
-        ui.btn1.setCurrentIndex(index)
-    time.sleep(0.5)
-    ui.list3.setFocus()
-    ui.list3.setCurrentRow(0)
-    list_item = ui.list1.findItems(nm, QtCore.Qt.MatchExactly)
-    if len(list_item) > 0:
-        for i in list_item:
-            row = ui.list1.row(i)
-            ui.list1.setFocus()
-            ui.list1.setCurrentRow(row)
-            item = ui.list1.item(row)
-            if item:
-                ui.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
-            
-    
-
-@pyqtSlot(str)
-def update_databse_signal(mode):
-    global ui
-    if mode == 'video':
-        video_dir = os.path.join(home, 'VideoDB')
-        if not os.path.exists(video_dir):
-            os.makedirs(video_dir)
-        video_db = os.path.join(video_dir, 'Video.db')
-        video_file = os.path.join(video_dir, 'Video.txt')
-        video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
-        
-        if not os.path.exists(video_db):
-            ui.media_data.create_update_video_db(video_db, video_file, video_file_bak, update_progress_show=False)
-        else:
-            ui.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, 'Update', update_progress_show=False)
-    elif mode == 'music':
-        music_dir = os.path.join(home, 'Music')
-        if not os.path.exists(music_dir):
-            os.makedirs(music_dir)
-        music_db = os.path.join(home, 'Music', 'Music.db')
-        music_file = os.path.join(home, 'Music', 'Music.txt')
-        music_file_bak = os.path.join(home, 'Music', 'Music_bak.txt')
-        if not os.path.exists(music_db):
-            ui.media_data.create_update_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
-        else:
-            ui.media_data.update_on_start_music_db(music_db, music_file, music_file_bak, update_progress_show=False)
-
-
-@pyqtSlot(str)
-def delete_torrent_history(nm):
-    global home, ui
-    if ui.stream_session:
-        t_list = ui.stream_session.get_torrents()
-        for i in t_list:
-            chk_name = i.name()
-            if chk_name == nm:
-                ui.stream_session.remove_torrent(i)
-                logger.info('removing--torrent--{0}'.format(chk_name))
-    if nm:
-        #ui.stop_torrent(from_client=True)
-        hist_folder = os.path.join(home, 'History', 'Torrent')
-        hist_txt = os.path.join(hist_folder, 'history.txt')
-        hist_torrent = os.path.join(hist_folder, nm+'.torrent')
-        hist_torrent_folder = os.path.join(hist_folder, nm)
-        down_location = os.path.join(ui.torrent_download_folder, nm)
-        if os.path.exists(hist_txt):
-            lines = open_files(hist_txt, lines_read=True)
-            new_lines = [i.strip() for i in lines]
-            try:
-                indx = new_lines.index(nm)
-            except ValueError as e:
-                print(e)
-                indx = -1
-            if indx != -1 and indx >= 0:
-                del new_lines[indx]
-                
-            write_files(hist_txt, new_lines, line_by_line=True)
-            if os.path.isdir(hist_torrent_folder):
-                shutil.rmtree(hist_torrent_folder)
-                logger.info('removed-folder:-{0}'.format(hist_torrent_folder))
-                if os.path.isfile(hist_torrent):
-                    os.remove(hist_torrent)
-                    logger.info('removed-torrent:-{0}'.format(hist_torrent))
-                if os.path.exists(down_location):
-                    if os.path.isdir(down_location):
-                        shutil.rmtree(down_location)
-                    elif os.path.isfile(down_location):
-                        os.remove(down_location)
-                    logger.info('removed-torrent files:-{0}'.format(down_location))
-            else:
-                logger.info('nothing to delete: wrong file name')
 
 
 class ThreadedHTTPServerLocal(ThreadingMixIn, HTTPServer):
