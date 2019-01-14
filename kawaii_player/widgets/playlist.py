@@ -61,7 +61,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.discover_slave_thread = None
         
     def mouseMoveEvent(self, event): 
-        if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
+        if ui.auto_hide_dock and not ui.dockWidget_3.isHidden() and platform.system().lower() != "darwin":
             ui.dockWidget_3.hide()
         if ui.tab_5.arrow_timer.isActive():
             ui.tab_5.arrow_timer.stop()

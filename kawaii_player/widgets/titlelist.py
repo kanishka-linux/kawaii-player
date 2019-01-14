@@ -21,6 +21,7 @@ import os
 import re
 import sqlite3
 import shutil
+import platform
 from PyQt5 import QtCore, QtWidgets
 from player_functions import write_files, open_files, send_notification
 
@@ -41,7 +42,7 @@ class TitleListWidget(QtWidgets.QListWidget):
         logger = logr
 
     def mouseMoveEvent(self, event): 
-        if ui.auto_hide_dock and not ui.dockWidget_3.isHidden():
+        if ui.auto_hide_dock and not ui.dockWidget_3.isHidden() and platform.system().lower() != "darwin":
             ui.dockWidget_3.hide()
         self.setFocus()
     """

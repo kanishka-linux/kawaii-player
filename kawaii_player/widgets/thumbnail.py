@@ -22,6 +22,7 @@ import shutil
 import re
 import subprocess
 import time
+import platform
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files
 
@@ -623,7 +624,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.progressEpn.setValue(0)
                     ui.progressEpn.setFormat((''))
                 """
-        if ui.auto_hide_dock:
+        if ui.auto_hide_dock and platform.system().lower() != "darwin":
             ui.dockWidget_3.hide()
         if ui.search_on_type_btn.isHidden():
             self.setFocus()
