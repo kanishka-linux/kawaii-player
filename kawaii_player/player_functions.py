@@ -162,7 +162,7 @@ def get_config_options(file_name, value_field):
                     i, j = i.split('=')
                 except Exception as e:
                     print(e, 'wrong values in config file')
-                    return req_val
+                    continue
                 j = j.strip()
                 if str(i.lower()) == str(value_field.lower()):
                     req_val = j
