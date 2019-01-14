@@ -231,7 +231,7 @@ except AttributeError:
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow, media_data=None, home_val=None,
-                scr_width=None, scr_height=None):
+                scr_width=None, scr_height=None, variable_width_list=None):
         global BASEDIR, screen_width, screen_height, home
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.set_globals(self)
@@ -565,19 +565,24 @@ class Ui_MainWindow(object):
                 os.makedirs(home)
         self.screen_size = (screen_width, screen_height)
         self.width_allowed = int((screen_width)/4.5)
+        if variable_width_list:
+            self.width_allowed1 = int((screen_width)/2)
+            self.variable_width_list = True
+        else:
+            self.width_allowed1 = self.width_allowed
+            self.variable_width_list = False
         self.height_allowed = (self.width_allowed/aspect) #int((screen_height)/3.3)
         self.frame_height = int(self.height_allowed/2.5)
         self.image_aspect_allowed = (self.width_allowed/self.height_allowed)
-        print(self.width_allowed, '--width--allowed--')
-        self.list1.setMaximumWidth(self.width_allowed)
-        self.list2.setMaximumWidth(self.width_allowed)
+        self.list1.setMaximumWidth(self.width_allowed1)
+        self.list2.setMaximumWidth(self.width_allowed1)
         self.list2.setIconSize(QtCore.QSize(128, 128))
-        self.frame.setMaximumWidth(self.width_allowed)
-        self.list4.setMaximumWidth(self.width_allowed)
-        self.list5.setMaximumWidth(self.width_allowed)
-        self.list6.setMaximumWidth(self.width_allowed)
-        self.torrent_frame.setMaximumWidth(self.width_allowed)
-        self.goto_epn.setMaximumWidth(self.width_allowed)
+        self.frame.setMaximumWidth(self.width_allowed1)
+        self.list4.setMaximumWidth(self.width_allowed1)
+        self.list5.setMaximumWidth(self.width_allowed1)
+        self.list6.setMaximumWidth(self.width_allowed1)
+        self.torrent_frame.setMaximumWidth(self.width_allowed1)
+        self.goto_epn.setMaximumWidth(self.width_allowed1)
         
         self.text_width = screen_width-3*self.width_allowed-35
         self.text.setMaximumWidth(self.text_width)
@@ -594,10 +599,12 @@ class Ui_MainWindow(object):
         
         self.label_new_width = screen_width-2*self.width_allowed-35
         self.label_new.setMaximumWidth(self.label_new_width)
+        self.label_new.setMinimumWidth(self.width_allowed1)
+        
         #self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
         self.label_new.setMaximumHeight(2.5*self.height_allowed)
         #self.label_new.setScaledContents(True)
-        self.progress.setMaximumSize(QtCore.QSize(self.width_allowed, 16777215))
+        self.progress.setMaximumSize(QtCore.QSize(self.width_allowed1, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
         self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
         #self.label.setScaledContents(True)
@@ -1686,7 +1693,7 @@ class Ui_MainWindow(object):
         self.yt = YTDL(self)
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
-        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed, int(screen_height/1.5)))
+        self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed1, int(screen_height/1.5)))
         self.web_control = 'master'
         self.gui_signals = GUISignals(self, MainWindow)
         
@@ -12966,13 +12973,24 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     media_data = MediaDatabase(home=home, logger=logger)
     screen_resolution = app.desktop().screenGeometry()
+    scr = QtWidgets.QDesktopWidget().screenGeometry()
+    print(scr.width(), scr.height())
     screen_width = screen_resolution.width()
     screen_height = screen_resolution.height()
     print(screen_height, screen_width)
+    variable_width_list = get_config_options(HOME_OPT_FILE, 'VARIABLE_WIDTH_LIST')
+    try:
+        if variable_width_list and variable_width_list.lower() in ["true", "yes"]:
+            variable_width_list = True
+        else:
+            variable_width_list = False
+    except Exception as e:
+        logger.error(e)
+        variable_width_list = False
     MainWindow = MainWindowWidget()
     MainWindow.setMouseTracking(True)
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow, media_data=media_data)
+    ui.setupUi(MainWindow, media_data=media_data, variable_width_list=variable_width_list)
     ui.media_data.set_ui(ui)
     ui.tab_5.set_mpvplayer(player=ui.player_val, mpvplayer=ui.mpvplayer_val)
     ui.getdb = ServerLib(ui, home, BASEDIR, TMPDIR, logger)
@@ -13863,6 +13881,7 @@ def main():
             f.write("\nLIST_TEXT_COLOR_FOCUS=violet")
             f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
             f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
+            f.write("\nVARIABLE_WIDTH_LIST=True")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
