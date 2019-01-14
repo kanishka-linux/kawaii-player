@@ -92,7 +92,6 @@ class MainWindowWidget(QtWidgets.QWidget):
                     ui.btn1.setFocus()
                 ui.logger.info('show options sidebar')
             elif px <= x-dock_w and ui.auto_hide_dock:
-                print(px, x-dock_w)
                 ui.dockWidget_3.hide()
                 if not ui.list1.isHidden() and ui.player_val != 'mplayer':
                     ui.list1.setFocus()
