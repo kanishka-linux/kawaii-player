@@ -824,6 +824,17 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text112 = QtWidgets.QLabel()
         self.text112.setText("Allow Window Titlebar")
         self.param_list.append('window_frame')
+
+        self.line113 = QtWidgets.QComboBox()
+        self.line113.addItem("True")
+        self.line113.addItem("False")
+        self.line113.setToolTip("Useful for large screens and dual monitor setup, allowing automatic resizing of various lists. Also useful in single panel mode with either playlist or titlelist hidden.")
+        index = self.line113.findText(str(ui.variable_width_list))
+        self.line113.setCurrentIndex(index)
+        self.text113 = QtWidgets.QLabel()
+        self.text113.setText("Variable Width List")
+        self.text113.setToolTip("Useful for large screens and dual monitor setup, allowing automatic resizing of various lists. Also useful in single panel mode with either playlist or titlelist hidden.")
+        self.param_list.append('variable_width_list')
         
         for i, j in enumerate(self.param_list):
             index = i+1
@@ -1648,6 +1659,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         if obj_value.lower() in ['true', 'false']:
             if var_name == 'window_frame':
                 ui.tray_widget.right_menu._remove_frame()
+            elif var_name == 'variable_width_list':
+                send_notification("Restart the player, to see the effect.")
             else:
                 exec('ui.{} = {}'.format(var_name, obj_value.title()))
                 if var_name == 'list_with_thumbnail':
