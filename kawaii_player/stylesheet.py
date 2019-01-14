@@ -24,7 +24,7 @@ class WidgetStyleSheet:
         if gui.list_with_thumbnail:
             height = '128px'
         else:
-            height = '30px'
+            height = '{}px'.format(gui.global_font_size*3)
         if gui.font_bold:
             font_bold = 'bold'
         else:
@@ -462,7 +462,7 @@ class WidgetStyleSheet:
                     border:rgba(0, 0, 0, 30%);border-radius: {2};
                     }}
                     QListWidget:item {{
-                    height: 30px;
+                    height: {height}px;
                     }}
                     QListWidget:item:selected:active {{
                     background:rgba(0, 0, 0, 20%);
@@ -474,11 +474,11 @@ class WidgetStyleSheet:
                     QMenu{{
                         font: 12px;color:black;background-image:url('1.png');
                     }}
-                    """.format(gui.list_text_color, gui.list_text_color_focus, border,bold=font_bold))
+                    """.format(gui.list_text_color, gui.list_text_color_focus, border,bold=font_bold, height=gui.global_font_size*3))
             if gui.list_with_thumbnail:
                 ht = '128px'
             else:
-                ht = '30px'
+                ht = '{}px'.format(gui.global_font_size*3)
             gui.list2.setStyleSheet(
                 """
                 QListWidget{{
@@ -544,7 +544,7 @@ class WidgetStyleSheet:
             if gui.list_with_thumbnail:
                 ht = '128px'
             else:
-                ht = '30px'
+                ht = '{}px'.format(gui.global_font_size*3)
             gui.list2.setStyleSheet("""
                 QListWidget{{font: bold 12px;
                 color:{1};background:rgba(0, 0, 0, 30%);
@@ -564,7 +564,7 @@ class WidgetStyleSheet:
                 if gui.list_with_thumbnail:
                     ht = '128px'
                 else:
-                    ht = '30px'
+                    ht = '{}px'.format(gui.global_font_size)
                 #gui.list2.setAlternatingRowColors(False)
                 gui.list2.setStyleSheet("""QListWidget{{
                 border-radius:3px;
@@ -590,17 +590,17 @@ class WidgetStyleSheet:
                     border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
                     }}
                     QListWidget:item {{
-                    height: 30px;
+                    height: {height}px;
                     }}
                     QListWidget:item:selected:active {{
                     background:rgba(0, 0, 0, 10%);
                     color: {0};
                     }}
-                    """.format(gui.list_text_color_focus, bgcolor))
+                    """.format(gui.list_text_color_focus, bgcolor, height=gui.global_font_size*3))
                 if gui.list_with_thumbnail:
                     ht = '128px'
                 else:
-                    ht = '30px'
+                    ht = '{}px'.format(gui.global_font_size)
                 #gui.list2.setAlternatingRowColors(False)
                 gui.list2.setStyleSheet("""QListWidget{{
                 border-radius:3px;background-color :{2}; border: 1px solid rgba(0,0,0,20%);
@@ -642,7 +642,7 @@ class WidgetStyleSheet:
             if gui.list_with_thumbnail:
                 height = '128px'
             else:
-                height = '30px'
+                height = '{}px'.format(gui.global_font_size*3)
             gui.list2.setStyleSheet("""QListWidget{{
                 color:{1};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
                 font: {bold} ;
@@ -995,7 +995,7 @@ class WidgetStyleSheet:
                     font: {bold};
                     }}
                     QListWidget:item {{
-                    height: 30px;
+                    height: {height}px;
                     }}
                     QListWidget:item:selected:active {{
                     background:rgba(0, 0, 0, 20%);
@@ -1022,5 +1022,5 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                     }}
                     """.format(gui.list_text_color, gui.list_text_color_focus,
-                               bold=font_bold, font=gui.global_font)
+                               bold=font_bold, font=gui.global_font, height=gui.global_font_size*3)
                             )
