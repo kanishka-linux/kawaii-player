@@ -13881,7 +13881,7 @@ def main():
             f.write("\nLIST_TEXT_COLOR_FOCUS=violet")
             f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
             f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
-            f.write("\nVARIABLE_WIDTH_LIST=True")
+            f.write("\nVARIABLE_WIDTH_LIST=False")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
