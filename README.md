@@ -674,7 +674,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
     
     kawaii-player from v2.5+ onwards is being released with experimental binary for 64-bit windows 10. This binary packs all the python based dependencies (except python3-libtorrent) along with mpv and curl. Just grab the binary for windows from release section, extract it, go to extracted folder and then click on **kawaii_player** file to launch the application. In **~\.config\kawaii-player\other_options.txt** file, windows users have to change 'Preferences->Other->Get Library' to 'curl' from pycurl, if it is not already curl. Users can also change 'YTDL_PATH=DEFAULT' to 'YTDL_PATH=AUTOMATIC', that will grab updated youtube-dl automatically, for playing youtube videos. On windows youtube-dl requires 'msvc 2010 redistributable package (x86)' - which they have to install from microsoft's website.
 
-6. Tips for macOs users (Installing dependencies, only git master branch).
+6. Tips for macOs users (Installing dependencies).
 
         $ brew install mpv mplayer ffmpeg ffmepegthumbnailer wget openssl terminal-notifier pyqt5 --with-python libtorrent-rasterbar --with-python
         
@@ -682,9 +682,9 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
         
         $ PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip3 install --no-cache-dir pycurl
     
-    Once dependencies are installed, use git master branch and install package manuall using setup.py as mentiond in the common method above.
+    Proper support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manuall using setup.py as mentiond in the common method above. 
     
-    Tested only with macOS Mojave. On macOS, kawaii-player will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore playing video within thumbnails will also won't work. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
+    kawaii-player has beent tested only with macOS Mojave. On macOS, kawaii-player will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore playing video within thumbnails won't work along with varios thumbnail modes and detached video mode. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
 
 # Dependencies
 
