@@ -28,7 +28,7 @@ from setuptools import setup
  GNU/Linux users should install dependencies manually using their native
  package manager
 """
-if platform.system().lower() == 'linux':
+if os.name == 'posix':
     install_dependencies = []
 else:
     install_dependencies = [
@@ -37,7 +37,7 @@ else:
         ]
 setup(
     name='kawaii-player', 
-    version='3.8.0', 
+    version='3.9.0', 
     license='GPLv3', 
     author='kanishka-linux', 
     author_email='kanishka.linux@gmail.com', 
