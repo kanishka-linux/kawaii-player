@@ -682,7 +682,9 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
         
         $ PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip3 install --no-cache-dir pycurl
     
-    Proper support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manuall using setup.py as mentiond in the common method above. 
+    Proper support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manually using setup.py as mentiond in the common method above. 
+    
+    After opening the application go to **Preferences->Config**, check **Use this config file** and add/modify vo=libmpv and ao=coreaudio. Users can modify other parameters also as per need and then need to save changes, before playing any video.
     
     kawaii-player has beent tested only with macOS Mojave. On macOS, kawaii-player will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore playing video within thumbnails won't work along with varios thumbnail modes and detached video mode. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
 
