@@ -1630,7 +1630,10 @@ class Ui_MainWindow(object):
         self.get_fetch_library = 'pycurl'
         self.image_fit_option_val = 3
         self.tmp_folder_remove = 'no'
-        self.video_mode_index = 1
+        if platform.system().lower() == "darwin":
+            self.video_mode_index = 3
+        else:
+            self.video_mode_index = 1
         self.current_thumbnail_position = (0, 0, 1, 1)
         self.fullscreen_mode = 0
         self.mplayer_pause_buffer = False
@@ -2492,6 +2495,9 @@ class Ui_MainWindow(object):
             self.video_mode_index = 5
         if self.mpvplayer_val.processId() > 0:
             self.mpvplayer_val.kill()
+        if platform.system().lower() == "darwin":
+            self.video_mode_index = 3
+            self.comboBoxMode.setCurrentIndex(2)
     
     def change_fanart_aspect(self, var):
         dir_name = self.get_current_directory()
@@ -3377,18 +3383,22 @@ class Ui_MainWindow(object):
                 else:
                     self.tab_5.showNormal()
                     self.tab_5.hide()
+                    logger.debug(self.view_mode)
                     if self.tab_2.isHidden():
                         if self.fullscreen_mode == 0:
-                            if show_hide_titlelist == 1:
-                                self.list1.show()
-                            if show_hide_cover == 1:
-                                self.label.show()
-                                if self.layout_mode != 'Music':
-                                    self.label_new.show()
-                                self.text.show()
-                            if show_hide_titlelist == 1:
-                                self.list2.show()
-                            self.list2.setFocus()
+                            if self.view_mode in ["thumbnail", "thumbnail_light"] and msg == "darwin":
+                                pass
+                            else:
+                                if show_hide_titlelist == 1:
+                                    self.list1.show()
+                                if show_hide_cover == 1:
+                                    self.label.show()
+                                    if self.layout_mode != 'Music':
+                                        self.label_new.show()
+                                    self.text.show()
+                                if show_hide_titlelist == 1:
+                                    self.list2.show()
+                                self.list2.setFocus()
                         elif self.fullscreen_mode == 1:
                             self.tab_6.show()
                             self.frame2.show()
@@ -14331,7 +14341,10 @@ def main():
             f.write("\nDefault_Mode="+str(def_val))
             f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
             f.write("\nMusic_Mode="+str(music_val))
-            f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
+            if platform.system().lower() == "darwin":
+                f.write("\nVideo_Mode_Index="+str(2))
+            else:
+                f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
             f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
             f.write("\nUpload_Speed="+str(ui.setuploadspeed))
             f.write("\nForce_FS={0}".format(ui.force_fs))
