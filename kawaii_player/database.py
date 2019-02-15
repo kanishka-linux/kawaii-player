@@ -695,13 +695,16 @@ class MediaDatabase():
     def get_tag_lib(self, path):
         if SONG_TAGS:
             if SONG_TAGS == 'mutagen':
-                t = mutagen.File(path, easy=True)
+                tag_file = mutagen.File(path, easy=True)
             elif SONG_TAGS == 'taglib':
-                t = taglib.File(path)
+                tag_file = taglib.File(path)
         else:
             t = {}
         m = []
-        tags = t.tags
+        if tag_file is not None:
+            tags = tag_file.tags
+        else:
+            tags = None
         ar1 = 'Unknown'
         al1 = 'Unknown'
         ti1 = os.path.basename(path)
