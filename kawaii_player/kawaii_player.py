@@ -8496,7 +8496,8 @@ class Ui_MainWindow(object):
             new_epn = new_epn[1:]
         new_epn = new_epn.replace('/', '-')
         new_epn = new_epn.replace('"', '')
-        new_epn = re.sub('"|.mkv|.mp4|.avi', '', new_epn)
+        new_epn = new_epn.replace('?', '_')
+        new_epn = re.sub('"|.mkv|.mp4|.avi|.webm', '', new_epn)
         if new_epn.startswith('.'):
             new_epn = new_epn[1:]
         opt_val = self.btn1.currentText().lower()
@@ -8511,9 +8512,6 @@ class Ui_MainWindow(object):
             new_epn = new_epn+'.mp4'
         
         logger.debug(new_epn)
-        if OSNAME == 'nt':
-            if '?' in new_epn:
-                new_epn = new_epn.replace('?', '_')
         try:
             if (site.lower() == 'playlists' or self.music_playlist):
                 try:
@@ -8531,8 +8529,8 @@ class Ui_MainWindow(object):
         if (site.lower() != 'video' and site.lower() != 'music' 
                 and site.lower() != 'local' and site.lower() != 'playlists' 
                 and site.lower() != 'none'):
-            new_epn_mkv = new_epn
             new_epn_mp4 = new_epn
+            new_epn_mkv = new_epn.rsplit('.', 1)[0] + ".mkv"
             file_name_mkv = os.path.join(self.default_download_location, title, new_epn_mkv)
             file_name_mp4 = os.path.join(self.default_download_location, title, new_epn_mp4)
         elif (site.lower() == 'playlists' or opt_val == 'youtube' or self.music_playlist):
@@ -8544,13 +8542,13 @@ class Ui_MainWindow(object):
                     st = self.if_path_is_rel(st)
             st = st.replace('"', '')
             if st.startswith('http'):
-                new_epn_mkv = new_epn
                 new_epn_mp4 = new_epn
+                new_epn_mkv = new_epn.rsplit('.', 1)[0] + ".mkv"
                 file_name_mkv = os.path.join(self.default_download_location, title, new_epn_mkv)
                 file_name_mp4 = os.path.join(self.default_download_location, title, new_epn_mp4)
             else:
                 new_epn_mkv = os.path.basename(st)
-                new_epn_mp4 = new_epn_mkv
+                new_epn_mp4 = new_epn_mkv.rsplit('.')[0] + ".mp4"
                 file_name_mkv = st
                 file_name_mp4 = st
         elif (site.lower() == 'video' or site.lower() == 'music' 
@@ -8570,6 +8568,12 @@ class Ui_MainWindow(object):
                         if st.startswith('abs_path=') or st.startswith('relative_path='):
                             st = self.if_path_is_rel(st)
                         file_name_mkv = file_name_mp4 = st
+        if file_name_mkv and not os.path.exists(file_name_mkv):
+            mkv_dir, file_name = os.path.split(file_name_mkv)
+            file_name_mkv = os.path.join(mkv_dir, file_name.rsplit('.', 1)[0] + ".webm")
+        if file_name_mp4 and not os.path.exists(file_name_mp4):
+            mp4_dir, file_name = os.path.split(file_name_mp4)
+            file_name_mp4 = os.path.join(mp4_dir, file_name.rsplit('.', 1)[0] + ".webm")
         logger.info('function---15025--{0}-{1}'.format(file_name_mkv, file_name_mp4))
         return file_name_mp4, file_name_mkv
         
@@ -8755,7 +8759,6 @@ class Ui_MainWindow(object):
         global site, artist_name_mplayer
         
         file_path_name_mp4, file_path_name_mkv = self.get_file_name(row, list_widget)
-        
         if ((os.path.exists(file_path_name_mp4) or os.path.exists(file_path_name_mkv)) 
                 and (site.lower() != 'video' and site.lower() != 'music' 
                 and site.lower() != 'local') and not self.video_local_stream):
@@ -9939,8 +9942,12 @@ class Ui_MainWindow(object):
     def start_offline_mode_post(self, finalUrl, row, title=None, new_epn=None):
         global site, name
         referer = False
+        finalUrl_hdr = None
         if not isinstance(finalUrl, list):
-            finalUrl = finalUrl.replace('"', '')
+            if "::" in finalUrl:
+                finalUrl_hdr = finalUrl.split("::")[0]
+            else:
+                finalUrl = finalUrl.replace('"', '')
         else:
             rfr = finalUrl[1]
             logger.info(rfr)
@@ -9980,6 +9987,7 @@ class Ui_MainWindow(object):
             fetch_library = 'wget'
         else:
             fetch_library = self.get_fetch_library
+        command = None
         if finalUrl.startswith('http'):
             finalUrl = finalUrl.strip()
             if not referer:
@@ -9987,6 +9995,10 @@ class Ui_MainWindow(object):
             else:
                 command = wget_string(finalUrl, npn, fetch_library, rfr)
             logger.info(command)
+        elif finalUrl_hdr:
+            finalUrl = finalUrl.replace("::", " ")
+            command = '{} "{}"'.format(finalUrl, npn)
+        if command:
             self.infoWget(command, 0, fetch_library)
         self.download_video = 0
         
