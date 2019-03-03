@@ -247,11 +247,7 @@ class YTDL:
             final_url = final_url_aud.strip()
             logger.debug('\n only audio required since music mode has been selected \n')
         elif mode == 'offline':
-            final_url_list = video_dict.get('22')
-            if not final_url_list:
-                final_url_list = video_dict.get('18')
-            if final_url_list:
-                final_url = final_url_list[-1]
+            final_url = '"{}"::"{}"::{}'.format(youtube_dl, url, "-o")
         if (sub_arr and self.ui.mpvplayer_val.processId() == 0) or not self.ui.gapless_network_stream:
             self.ui.gui_signals.subtitle_fetch(sub_arr)
         elif sub_arr and self.ui.gapless_network_stream:
