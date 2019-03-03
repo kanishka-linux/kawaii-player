@@ -1243,18 +1243,17 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line48 = QtWidgets.QComboBox()
         self.line48.addItem("False")
-        self.line48.addItem("True")
         index = self.line48.findText(str(ui.use_single_network_stream))
         self.line48.setCurrentIndex(index)
         self.text48 = QtWidgets.QLabel()
         self.text48.setText("Use Single Network Stream For\nGapless Playback")
         self.text48.setWordWrap(True)
         self.player_list.append('use_single_network_stream')
-        msg = "Setting it True (Default) will Disable separate audio and video files.\
+        msg = "This option has been deprecated from v3.9.1+. In earlier versions, \
+        setting it True would have Disabled separate audio and video files.\
         Useful only for gapless playback and prefetching of network streams.\
-        This option won't be of any use if gapless playback of network stream is disabled.\
-        For experiment, Try setting it to False and see what happens with gapless\
-        playback, if ytdl fetches separate audio and video streams."
+        This option won't be of any use if gapless playback of network stream is disabled."
+        
         self.text48.setToolTip('<html>{}</html>'.format(msg))
         
         self.line49 = QtWidgets.QComboBox()

@@ -1489,7 +1489,7 @@ class Ui_MainWindow(object):
         self.gapless_network_stream_disabled = False
         self.gapless_playback_disabled = False
         self.mpv_prefetch_url_started = False
-        self.use_single_network_stream = True
+        self.use_single_network_stream = False
         self.mpv_prefetch_url_thread = QtCore.QThread()
         self.title_list_changed = False
         self.fullscreen_video = False
@@ -13567,13 +13567,7 @@ def main():
                     except Exception as e:
                         print(e)
                 elif i.startswith('USE_SINGLE_NETWORK_STREAM='):
-                    try:
-                        k = j.lower()
-                        if k:
-                            if k == 'no' or k == 'false' or k == '0':
-                                ui.use_single_network_stream = False
-                    except Exception as e:
-                        print(e)
+                    ui.use_single_network_stream = False
                 elif i.startswith('LIVE_PREVIEW='):
                     try:
                         k = j.lower()
