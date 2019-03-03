@@ -115,6 +115,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 path = path[:-1]
             if os.path.exists(path):
                 path_dir, path_file = os.path.split(path)
+            if site.lower() == "playlists" and path.startswith('http'):
+                file_1, file_2 = ui.get_file_name(row, self)
+                if file_1:
+                    path_dir, path_file = os.path.split(file_1)
+                elif file_2:
+                    path_dir, path_file = os.path.split(file_2)
         elif opt.lower() == 'history':
             if ui.list1.currentItem():
                 itemlist = ui.list1.currentItem()
