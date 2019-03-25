@@ -3344,7 +3344,7 @@ class Ui_MainWindow(object):
         change_spacing = False
         if self.player_val == "libmpv":
             print(self.tab_5.mpv.time_remaining)
-            self.tab_5.mpv.command("stop")
+            self.mpvplayer_val.write(bytes("stop", "utf-8"))
         if self.mpvplayer_val.processId() > 0 or msg or self.player_val == "libmpv":
             logger.warning(self.progress_counter)
             if self.player_val == 'mpv':
@@ -5518,7 +5518,7 @@ class Ui_MainWindow(object):
             
     def fullscreenToggle(self):
         if self.player_val == "libmpv":
-            self.tab_5.mpv.command("set", "pause", "yes")
+            self.mpvplayer_val.write(bytes("set pause yes", "utf-8"))
         else:
             pass
         if not MainWindow.isFullScreen():
@@ -8697,9 +8697,8 @@ class Ui_MainWindow(object):
                 if self.tmp_pls_file_lines:
                     write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                 self.playback_mode = 'playlist'
-                self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
+                self.mpvplayer_val.write(bytes("loadlist {}".format(self.tmp_pls_file), "utf-8"))
                 self.tab_5.mpv.playlist_pos = self.cur_row
-                #self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ""))
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
                 setinfo = True
@@ -12943,6 +12942,7 @@ class Ui_MainWindow(object):
         self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
+        
         self.tab_5.setMouseTracking(True)
         self.tab_5.hide()
         self.tab_5_layout = QtWidgets.QVBoxLayout(self.tab_5)
@@ -12950,6 +12950,7 @@ class Ui_MainWindow(object):
         self.tab_5_layout.setSpacing(0)
         self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         self.idw = str(int(self.tab_5.winId()))
+        #self.tab_5_layout.insertWidget(1, self.frame1)
             
 def main():
     global ui, MainWindow, name, pgn, genre_num, site, epn

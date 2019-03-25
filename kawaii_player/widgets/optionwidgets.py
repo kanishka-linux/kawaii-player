@@ -994,6 +994,7 @@ class GSBCSlider(QtWidgets.QSlider):
                 label_value = eval('self.parent.{}_value'.format(name))
                 label_value.setPlaceholderText(str(val))
         else:
+            cmd = None
             if name == 'zoom':
                 label_value = eval('self.parent.{}_value'.format(name))
                 zoom_val = 0.001* val
@@ -1024,6 +1025,8 @@ class GSBCSlider(QtWidgets.QSlider):
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 ui.gsbc_dict.update({name:val})
+            if cmd and ui.player_val == "libmpv":
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
         
 class SubtitleSlider(QtWidgets.QSlider):
 

@@ -62,12 +62,27 @@ class QProcessExtra(QtCore.QProcess):
                 #print(self.ui.tab_5.mpv.track_list)
             else:
                 try:
-                    self.ui.tab_5.mpv.command(*cmd_arr)
-                    if "sub-font-size" in cmd:
-                        font_size = cmd.split(" ")[-1]
+                    
+                    if "sub-font-size" in cmd_arr:
+                        font_size = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_font_size = font_size
                         print(font_size)
-                    self.ui.tab_5.mpv.command("show-text", "{}".format(cmd))
+                    elif "sub-font" in cmd_arr:
+                        sub_font = cmd_arr[-1]
+                        self.ui.tab_5.mpv.sub_font = sub_font.replace('"', "")
+                        print(sub_font)
+                    elif "sub-color" in cmd_arr:
+                        sub_color = cmd_arr[-1]
+                        self.ui.tab_5.mpv.sub_color = sub_color.replace('"', "")
+                    elif "sub-border-color" in cmd_arr:
+                        sub_border_color = cmd_arr[-1]
+                        self.ui.tab_5.mpv.sub_border_color = sub_border_color.replace('"', "")
+                    elif "sub-shadow-color" in cmd_arr:
+                        sub_shadow_color = cmd_arr[-1]
+                        self.ui.tab_5.mpv.sub_shadow_color = sub_shadow_color.replace('"', "")
+                    else:
+                        self.ui.tab_5.mpv.command(*cmd_arr)
+                    #self.ui.tab_5.mpv.command("show-text", "{}".format(cmd))
                 except Exception as e:
                     print(e)
                     self.ui.tab_5.mpv.command("show-text", "not found: {}, {}".format(cmd, e), 5000)
@@ -346,6 +361,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         MainWindow.showMaximized()
         self.setParent(MainWindow)
         self.ui.gridLayout.addWidget(self, 0, 1, 1, 1)
+        self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
         self.setMouseTracking(True)
         self.showNormal()
         self.setFocus()
@@ -420,10 +436,10 @@ class MpvOpenglWidget(QOpenGLWidget):
                             self.ui.tab_2.hide()
                         if self.player_val in self.ui.playback_engine:
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                        #MainWindow.showFullScreen()
-                        MainWindow.hide()
+                        MainWindow.showFullScreen()
+                        #MainWindow.hide()
                         
-                        self.setParent(None)
+                        #self.setParent(None)
                          
                         self.ui.fullscreen_video = True
                         #self.showFullScreen()
@@ -479,8 +495,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.ui.fullscreen_video = False
                     #self.setParent(MainWindow)
                     
-                    print("defulllllllllllllllllllllll")
-                    self.setParent(MainWindow)
+                    #self.setParent(MainWindow)
                     self.ui.gridLayout.addWidget(self, 0, 1, 1, 1)
                     self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
                     self.setMouseTracking(True)
