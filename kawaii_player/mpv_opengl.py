@@ -4,6 +4,7 @@
     
 """
 import os
+import platform
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot
 from PyQt5.QtWidgets import QOpenGLWidget, QApplication
@@ -92,9 +93,14 @@ class QProcessExtra(QtCore.QProcess):
 
 class MpvOpenglWidget(QOpenGLWidget):
     
-    mpv = MPV(vo='libmpv', ao='coreaudio', ytdl=True,
+    mpv = MPV(vo='libmpv', ytdl=True,
               keep_open=True, idle=True)
-    
+    if platform.system().lower() == "darwin":
+        mpv.ao = "coreaudio"
+    elif os.name == "posix":
+        mpv.ao = "pulse"
+    elif os.name == "nt":
+        mpv.ao = "wasapi"
     def __init__(self, parent=None, ui=None, logr=None, tmp=None):
         global gui, MainWindow, screen_width, screen_height, logger
         print(ui, logr, tmp, "--")
