@@ -4,11 +4,12 @@ from collections import OrderedDict
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import ccurl, open_files
 
-class PlayerWidget(QtWidgets.QWidget):
 
+class PlayerWidget(QtWidgets.QWidget):
+    
     def __init__(self, parent, ui=None, logr=None, tmp=None):
         super(PlayerWidget, self).__init__(parent)
-        global MainWindow, logger, TMPDIR, screen_width, screen_height
+        global MainWindow, logger, TMPDIR, screen_width, screen_height, uii
         self.cycle_pause = 0
         self.ui = ui
         MainWindow = parent
@@ -16,7 +17,7 @@ class PlayerWidget(QtWidgets.QWidget):
         TMPDIR = tmp
         self.mpvplayer = None
         self.player_val = None
-        self.ui.total_seek = 0
+        #self.ui.total_seek = 0
         self.dblclk = False
         self.setAcceptDrops(True)
         self.arrow_timer = QtCore.QTimer()
@@ -49,6 +50,7 @@ class PlayerWidget(QtWidgets.QWidget):
             '?', '>', '<', '"', ':', '}', '{', '|', '+', '_', 'sharp',
             ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
             ]
+            
     
     def dragEnterEvent(self, event):
         data = event.mimeData()
@@ -93,6 +95,8 @@ class PlayerWidget(QtWidgets.QWidget):
             self.player_val = self.ui.player_val
         
     def seek_mplayer(self):
+        uii.slider.setValue(uii.progress_counter)
+        self.seek_timer.start(500)
         if self.player_val == "mplayer":
             t = bytes('\n'+"seek " + str(self.ui.total_seek)+'\n', 'utf-8')
             self.mpvplayer.write(t)
@@ -180,12 +184,12 @@ class PlayerWidget(QtWidgets.QWidget):
             self.ui.new_tray_widget.setMaximumHeight(wid_height)
             self.ui.new_tray_widget.show()
             self.ui.float_timer.start(1000)
-        if (self.player_val == "mplayer" or self.player_val == "mpv"):
+        if self.player_val in self.ui.playback_engine:
             if self.arrow_timer.isActive():
                 self.arrow_timer.stop()
             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             self.arrow_timer.start(2000)
-        if MainWindow.isFullScreen():
+        if MainWindow.isFullScreen() or self.ui.player_val == "libmpv":
             ht = self.height()
             if pos.y() <= ht and pos.y() > ht - 5 and self.ui.frame1.isHidden():
                 self.ui.gridLayout.setSpacing(0)
@@ -493,11 +497,12 @@ class PlayerWidget(QtWidgets.QWidget):
         logger.debug('release'.format(event.key()))
         
     def keyPressEvent(self, event):
-        if self.player_val.lower() == 'mpv':
+        print(self, event)
+        if self.player_val.lower() in ['mpv', 'libmpv']:
             key = None
             modifier = None
             no_modifier = False
-            logger.debug('press {}'.format(event.key()))
+            logger.debug('press {}::{}'.format(event.key(), self.event_dict))
             event_text = event.text()
             if event.modifiers() == QtCore.Qt.ControlModifier or self.event_dict['ctrl']:
                 modifier = 'ctrl+'
@@ -559,15 +564,18 @@ class PlayerWidget(QtWidgets.QWidget):
                             self.ui.new_tray_widget.hide()
                 command = self.mpv_default.get(key)
                 logger.debug(command)
+                print(">>>>>>>>>>>>>>>>>>>>")
                 if not command:
                     command = self.mpv_custom.get(key)
                 logger.debug(command)
+                print("''''''''''''''''''''''''''===")
                 if command:
                     command_list = command.split('::')
                     for part in command_list:
                         if part in self.function_map:
                             myfunction = self.function_map.get(part)
                             myfunction()
+                            print(part, "----->", myfunction)
                         elif part.startswith('ignore'):
                             pass
                         elif part.startswith('add'):
@@ -576,7 +584,10 @@ class PlayerWidget(QtWidgets.QWidget):
                             cmd = '\n {} \n'.format(part)
                             command_string = bytes(cmd, 'utf-8')
                             logger.debug(command_string)
-                            self.mpvplayer.write(command_string)
+                            part = part.split()
+                            print(part, "------------>>>>>>>>>>>>>>>>>>>>>>>>>>>part..")
+                            self.ui.mpvplayer_val.write(command_string)
+                            
             if no_modifier:
                 for i in self.event_dict:
                     self.event_dict[i] = False
@@ -1225,7 +1236,7 @@ class KeyBoardShortcuts:
         default_key_map['w'] = 'add video-zoom -0.01'
         default_key_map['r'] = 'add sub-pos -1'
         default_key_map['t'] = 'add sub-pos +1'
-        default_key_map['M'] = 'osd_show_property_text ${filename}'
+        default_key_map['M'] = 'show-text "file: ${filename}"'
         
         default_key_map['shift+right'] = 'no-osd seek  1 exact'
         default_key_map['shift+left'] = 'no-osd seek -1 exact'

@@ -22,6 +22,7 @@ import datetime
 from functools import partial
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from widgets.optionwidgets import QPushButtonExtra
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -104,45 +105,45 @@ class FloatWindowWidget(QtWidgets.QWidget):
         self.f.setFrameShadow(QtWidgets.QFrame.Raised)
         self.horiz = QtWidgets.QHBoxLayout(self.f)
 
-        self.p = QtWidgets.QPushButton(self)
+        self.p = QPushButtonExtra(self)
         self.p.setText(ui.player_buttons['play'])
-        self.p.clicked.connect(ui.playerPlayPause)
+        self.p.clicked_connect(ui.playerPlayPause)
 
-        self.pr = QtWidgets.QPushButton(self)
+        self.pr = QPushButtonExtra(self)
         self.pr.setText(ui.player_buttons['prev'])
-        self.pr.clicked.connect(ui.mpvPrevEpnList)
+        self.pr.clicked_connect(ui.mpvPrevEpnList)
 
-        self.ne = QtWidgets.QPushButton(self)
+        self.ne = QPushButtonExtra(self)
         self.ne.setText(ui.player_buttons['next'])
-        self.ne.clicked.connect(ui.mpvNextEpnList)
+        self.ne.clicked_connect(ui.mpvNextEpnList)
 
-        self.st = QtWidgets.QPushButton(self)
+        self.st = QPushButtonExtra(self)
         self.st.setText(ui.player_buttons['stop'])
-        self.st.clicked.connect(ui.playerStop)
+        self.st.clicked_connect(ui.playerStop)
 
-        self.attach = QtWidgets.QPushButton(self)
+        self.attach = QPushButtonExtra(self)
         self.attach.setText(ui.player_buttons['attach'])
-        self.attach.clicked.connect(tray.right_menu._detach_video)
+        self.attach.clicked_connect(tray.right_menu._detach_video)
         self.attach.setToolTip('Attach Video')
 
-        self.qt = QtWidgets.QPushButton(self)
+        self.qt = QPushButtonExtra(self)
         self.qt.setText(ui.player_buttons['quit'])
-        self.qt.clicked.connect(QtWidgets.qApp.quit)
+        self.qt.clicked_connect(QtWidgets.qApp.quit)
         self.qt.setToolTip('Quit Player')
 
-        self.lock = QtWidgets.QPushButton(self)
+        self.lock = QPushButtonExtra(self)
         self.lock.setText(ui.player_buttons['unlock'])
-        self.lock.clicked.connect(lambda x=0: ui.playerLoopFile(self.lock))
+        self.lock.clicked_connect(lambda x=0: ui.playerLoopFile(self.lock))
 
-        self.h_mode = QtWidgets.QPushButton(self)
+        self.h_mode = QPushButtonExtra(self)
         self.h_mode.setText('--')
         self.h_mode.setToolTip('<html>Turn on/off auto hide behaviour of toolbar. Use ESC key, to show/hide toolbar</html>')
-        self.h_mode.clicked.connect(self.lock_toolbar)
+        self.h_mode.clicked_connect(self.lock_toolbar)
 
-        self.cover_mode = QtWidgets.QPushButton(self)
+        self.cover_mode = QPushButtonExtra(self)
         self.cover_mode.setText(ui.player_buttons['up'])
         self.cover_mode.setToolTip('Cover Entire Frame')
-        self.cover_mode.clicked.connect(self.cover_frame)
+        self.cover_mode.clicked_connect(self.cover_frame)
 
         self.horiz.insertWidget(0, self.h_mode, 0)
         self.horiz.insertWidget(1, self.cover_mode, 0)
@@ -173,7 +174,6 @@ class FloatWindowWidget(QtWidgets.QWidget):
 
         QPushButton{border-radius:0px;max-height:30px;}
         QPushButton::hover{background-color: yellow;color: black;}
-        QPushButton:pressed{background-color: violet;}
         """)
         self.title.setStyleSheet("font:bold 10px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);height:15px;")
         self.title1.setStyleSheet("font: bold 10px;color:white;background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);height:15px;")

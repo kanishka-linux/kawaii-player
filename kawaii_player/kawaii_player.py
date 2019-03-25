@@ -183,6 +183,9 @@ from settings_widget import LoginAuth, LoginPCToPC, OptionsSettings
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
+from mpv_opengl import MpvOpenglWidget, QProcessExtra
+    
+    
 from widgets.thumbnail import ThumbnailWidget, TitleThumbnailWidget
 from widgets.thumbnail import TitleListWidgetPoster, TabThumbnail
 from widgets.playlist import PlaylistWidget
@@ -194,11 +197,12 @@ from thread_modules import FindPosterThread, ThreadingThumbnail, GetSubThread
 from thread_modules import ThreadingExample, DownloadThread, UpdateMusicThread
 from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
 from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
-from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail
+from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail, observe_prop, Observe
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 from vinanti import Vinanti
 from tvdb_async import TVDB
+from multiprocessing import Process
 
 
 class DoGetSignalNew(QtCore.QObject):
@@ -307,10 +311,10 @@ class Ui_MainWindow(object):
         self.cover_label.setObjectName(_fromUtf8("cover_label"))
         
         self.text.copyAvailable.connect(self.text_editor_changed)
-        self.text_save_btn = QtWidgets.QPushButton(MainWindow)
+        self.text_save_btn = QPushButtonExtra(MainWindow)
         self.text_save_btn.setText('Save')
         self.text_save_btn.setMinimumSize(QtCore.QSize(30, 25))
-        self.text_save_btn.clicked.connect(self.save_text_edit)
+        self.text_save_btn.clicked_connect(self.save_text_edit)
         self.text_save_btn.hide()
         self.text_save_btn_timer = QtCore.QTimer()
         #self.text.setMaximumSize(QtCore.QSize(450, 250))
@@ -400,11 +404,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.frame)
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         
-        self.backward = QtWidgets.QPushButton(self.frame)
+        self.backward = QPushButtonExtra(self.frame)
         self.backward.setObjectName(_fromUtf8("backward"))
         self.horizontalLayout_3.addWidget(self.backward)
         
-        self.hide_btn_list1 = QtWidgets.QPushButton(self.frame)
+        self.hide_btn_list1 = QPushButtonExtra(self.frame)
         self.hide_btn_list1.setObjectName(_fromUtf8("hide_btn_list1"))
         
         self.hide_btn_list1.setMinimumHeight(30)
@@ -418,7 +422,7 @@ class Ui_MainWindow(object):
         self.hide_btn_list1.setMenu(self.hide_btn_list1_menu)
         self.hide_btn_list1.setCheckable(True)
         self.hide_btn_list1.setText('Order')
-        self.filter_btn = QtWidgets.QPushButton(self.frame)
+        self.filter_btn = QPushButtonExtra(self.frame)
         self.filter_btn.setObjectName(_fromUtf8("filter_btn"))
         
         self.filter_btn.setMinimumHeight(30)
@@ -435,7 +439,7 @@ class Ui_MainWindow(object):
         self.go_page.setMinimumHeight(30)
         self.go_page.setPlaceholderText('Filter')
         
-        self.forward = QtWidgets.QPushButton(self.frame)
+        self.forward = QPushButtonExtra(self.frame)
         self.forward.setObjectName(_fromUtf8("forward"))
         self.horizontalLayout_3.addWidget(self.forward)
         self.forward.hide()
@@ -491,7 +495,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_torrent_frame.setObjectName(_fromUtf8("horizontalLayout_torrent_frame"))
         self.torrent_frame.hide()
         
-        self.label_torrent_stop = QtWidgets.QPushButton(self.torrent_frame)
+        self.label_torrent_stop = QPushButtonExtra(self.torrent_frame)
         self.label_torrent_stop.setObjectName(_fromUtf8("label_torrent_stop"))
         self.label_torrent_stop.setText(self.player_buttons['stop'])
         self.label_torrent_stop.setMinimumWidth(24)
@@ -639,56 +643,56 @@ class Ui_MainWindow(object):
         self.horizontalLayout_31.insertWidget(1, self.progressEpn, 0)
         self.horizontalLayout_31.insertWidget(2, self.slider, 0)
         
-        self.player_opt_toolbar= QtWidgets.QPushButton(self.player_opt)
+        self.player_opt_toolbar= QPushButtonExtra(self.player_opt)
         self.player_opt_toolbar.setObjectName(_fromUtf8("player_opt_toolbar"))
         self.horizontalLayout_player_opt.insertWidget(0, self.player_opt_toolbar, 0)
         self.player_opt_toolbar.setText("Menu")
         self.player_opt_toolbar.setToolTip('Shift+G')
         
-        self.sd_hd = QtWidgets.QPushButton(self.player_opt)
+        self.sd_hd = QPushButtonExtra(self.player_opt)
         self.sd_hd.setObjectName(_fromUtf8("sd_hd"))
         self.horizontalLayout_player_opt.insertWidget(1, self.sd_hd, 0)
         self.sd_hd.setText("BEST")
         self.sd_hd.setToolTip('Select Quality')
         
-        self.subtitle_track = QtWidgets.QPushButton(self.player_opt)
+        self.subtitle_track = QPushButtonExtra(self.player_opt)
         self.subtitle_track.setObjectName(_fromUtf8("subtitle_track"))
         self.horizontalLayout_player_opt.insertWidget(2, self.subtitle_track, 0)
         self.subtitle_track.setText("SUB")
         self.subtitle_track.setToolTip('Toggle Subtitle (J)')
         
-        self.audio_track = QtWidgets.QPushButton(self.player_opt)
+        self.audio_track = QPushButtonExtra(self.player_opt)
         self.audio_track.setObjectName(_fromUtf8("audio_track"))
         self.horizontalLayout_player_opt.insertWidget(3, self.audio_track, 0)
         self.audio_track.setText("A/V")
         self.audio_track.setToolTip('Toggle Audio (K)')
         
-        self.player_loop_file = QtWidgets.QPushButton(self.player_opt)
+        self.player_loop_file = QPushButtonExtra(self.player_opt)
         self.player_loop_file.setObjectName(_fromUtf8("player_loop_file"))
         self.horizontalLayout_player_opt.insertWidget(4, self.player_loop_file, 0)
         self.player_loop_file.setText(self.player_buttons['unlock'])
         self.player_loop_file.setToolTip('Lock/unLock File (L)')
         #self.player_loop_file.hide()
         
-        self.player_stop = QtWidgets.QPushButton(self.player_opt)
+        self.player_stop = QPushButtonExtra(self.player_opt)
         self.player_stop.setObjectName(_fromUtf8("player_stop"))
         self.horizontalLayout_player_opt.insertWidget(5, self.player_stop, 0)
         self.player_stop.setText(self.player_buttons['stop'])
         self.player_stop.setToolTip('Stop (Q)')
         
-        self.player_play_pause = QtWidgets.QPushButton(self.player_opt)
+        self.player_play_pause = QPushButtonExtra(self.player_opt)
         self.player_play_pause.setObjectName(_fromUtf8("player_play_pause"))
         self.horizontalLayout_player_opt.insertWidget(6, self.player_play_pause, 0)
         self.player_play_pause.setText(self.player_buttons['play'])
         self.player_play_pause.setToolTip('Play/Pause (Space)')
         
-        self.player_prev = QtWidgets.QPushButton(self.player_opt)
+        self.player_prev = QPushButtonExtra(self.player_opt)
         self.player_prev.setObjectName(_fromUtf8("player_prev"))
         self.horizontalLayout_player_opt.insertWidget(7, self.player_prev, 0)
         self.player_prev.setText(self.player_buttons['prev'])
         self.player_prev.setToolTip('Previous (Comma)')
         
-        self.player_next = QtWidgets.QPushButton(self.player_opt)
+        self.player_next = QPushButtonExtra(self.player_opt)
         self.player_next.setObjectName(_fromUtf8("player_next"))
         self.horizontalLayout_player_opt.insertWidget(8, self.player_next, 0)
         self.player_next.setText(self.player_buttons['next'])
@@ -696,62 +700,62 @@ class Ui_MainWindow(object):
         
         
         
-        self.player_showhide_title_list = QtWidgets.QPushButton(self.player_opt)
+        self.player_showhide_title_list = QPushButtonExtra(self.player_opt)
         self.player_showhide_title_list.setObjectName(_fromUtf8("player_showhide_title_list"))
         self.horizontalLayout_player_opt.insertWidget(9, self.player_showhide_title_list, 0)
         self.player_showhide_title_list.setText('T')
-        self.player_showhide_title_list.clicked.connect(lambda x=0:self.playerPlaylist("Show/Hide Title List"))
+        self.player_showhide_title_list.clicked_connect(lambda x=0:self.playerPlaylist("Show/Hide Title List"))
         self.player_showhide_title_list.setToolTip('Show/Hide Title List')
         
-        self.player_showhide_playlist = QtWidgets.QPushButton(self.player_opt)
+        self.player_showhide_playlist = QPushButtonExtra(self.player_opt)
         self.player_showhide_playlist.setObjectName(_fromUtf8("player_showhide_playlist"))
         self.horizontalLayout_player_opt.insertWidget(10, self.player_showhide_playlist, 0)
         #self.player_showhide_playlist.setText('\u2118')
         self.player_showhide_playlist.setText('PL')
-        self.player_showhide_playlist.clicked.connect(
+        self.player_showhide_playlist.clicked_connect(
             lambda x=0:self.playerPlaylist("Show/Hide Playlist"))
         self.player_showhide_playlist.setToolTip('Show/Hide Playlist')
         
-        self.queue_manage = QtWidgets.QPushButton(self.player_opt)
+        self.queue_manage = QPushButtonExtra(self.player_opt)
         self.queue_manage.setObjectName(_fromUtf8("queue_manage"))
         self.horizontalLayout_player_opt.insertWidget(11, self.queue_manage, 0)
         self.queue_manage.setText("Q")
         self.queue_manage.setToolTip('Show/Hide Queue')
         #self.queue_manage.setMinimumWidth(30)
-        self.queue_manage.clicked.connect(self.queue_manage_list)
+        self.queue_manage.clicked_connect(self.queue_manage_list)
         
         
         
-        self.player_filter = QtWidgets.QPushButton(self.player_opt)
+        self.player_filter = QPushButtonExtra(self.player_opt)
         self.player_filter.setObjectName(_fromUtf8("player_filter"))
         self.horizontalLayout_player_opt.insertWidget(12, self.player_filter, 0)
         self.player_filter.setText('Y')
         self.player_filter.setToolTip('Show/Hide Filter and other options (Ctrl+F)')
-        self.player_filter.clicked.connect(self.show_hide_filter_toolbar)
+        self.player_filter.clicked_connect(self.show_hide_filter_toolbar)
         
-        self.btnWebHide = QtWidgets.QPushButton(self.player_opt)
+        self.btnWebHide = QPushButtonExtra(self.player_opt)
         self.btnWebHide.setObjectName(_fromUtf8("btnWebHide"))
         self.horizontalLayout_player_opt.insertWidget(13, self.btnWebHide, 0)
         self.btnWebHide.setText(self.player_buttons['browser'])
-        self.btnWebHide.clicked.connect(self.webHide)
+        self.btnWebHide.clicked_connect(self.webHide)
         self.btnWebHide.setToolTip('Show/Hide Browser (Ctrl+X)')
         
-        self.vol_manage = QtWidgets.QPushButton(self.player_opt)
+        self.vol_manage = QPushButtonExtra(self.player_opt)
         self.vol_manage.setObjectName(_fromUtf8("vol_manage"))
         self.horizontalLayout_player_opt.insertWidget(14, self.vol_manage, 0)
         self.vol_manage.setText('E')
         self.vol_manage.setToolTip('Extra Toolbar')
         #self.queue_manage.setMinimumWidth(30)
-        self.vol_manage.clicked.connect(self.player_volume_manager)
+        self.vol_manage.clicked_connect(self.player_volume_manager)
         #self.vol_manage.setStyleSheet("text-align: bottom;")
         #self.vol_manage.hide()
         
-        self.detach_video_button = QtWidgets.QPushButton(self.player_opt)
+        self.detach_video_button = QPushButtonExtra(self.player_opt)
         self.detach_video_button.setText(self.player_buttons['attach'])
         self.detach_video_button.setToolTip('Detach Video (aka Picture in Picture)')
         self.horizontalLayout_player_opt.insertWidget(15, self.detach_video_button, 0)
         
-        self.player_playlist = QtWidgets.QPushButton(self.player_opt)
+        self.player_playlist = QPushButtonExtra(self.player_opt)
         self.player_playlist.setObjectName(_fromUtf8("player_playlist"))
         self.horizontalLayout_player_opt.insertWidget(16, self.player_playlist, 0)
         self.player_playlist.setText("More")
@@ -770,168 +774,168 @@ class Ui_MainWindow(object):
                 self.player_menu.addAction(i, lambda x=i:self.playerPlaylist(x)))
                 
         
-        self.player_seek_10 = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_10 = QPushButtonExtra(self.player_opt)
         self.player_seek_10.setObjectName(_fromUtf8("player_seek_10"))
         self.horizontalLayout_player_opt.insertWidget(17, self.player_seek_10, 0)
         self.player_seek_10.setText('+10s')
-        self.player_seek_10.clicked.connect(lambda x=0: self.seek_to_val(10))
+        self.player_seek_10.clicked_connect(lambda x=0: self.seek_to_val(10))
         self.player_seek_10.hide()
         
-        self.player_seek_10_ = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_10_ = QPushButtonExtra(self.player_opt)
         self.player_seek_10_.setObjectName(_fromUtf8("player_seek_10_"))
         self.horizontalLayout_player_opt.insertWidget(18, self.player_seek_10_, 0)
         self.player_seek_10_.setText('-10s')
-        self.player_seek_10_.clicked.connect(lambda x=0: self.seek_to_val(-10))
+        self.player_seek_10_.clicked_connect(lambda x=0: self.seek_to_val(-10))
         self.player_seek_10_.hide()
         
-        self.player_vol_5 = QtWidgets.QPushButton(self.player_opt)
+        self.player_vol_5 = QPushButtonExtra(self.player_opt)
         self.player_vol_5.setObjectName(_fromUtf8("player_vol_5"))
         self.horizontalLayout_player_opt.insertWidget(19, self.player_vol_5, 0)
         self.player_vol_5.setText('+5')
-        self.player_vol_5.clicked.connect(lambda x=0: self.seek_to_vol_val(5))
+        self.player_vol_5.clicked_connect(lambda x=0: self.seek_to_vol_val(5))
         self.player_vol_5.hide()
         
-        self.player_vol_5_ = QtWidgets.QPushButton(self.player_opt)
+        self.player_vol_5_ = QPushButtonExtra(self.player_opt)
         self.player_vol_5_.setObjectName(_fromUtf8("player_vol_5_"))
         self.horizontalLayout_player_opt.insertWidget(20, self.player_vol_5_, 0)
         self.player_vol_5_.setText('-5')
-        self.player_vol_5_.clicked.connect(lambda x=0: self.seek_to_vol_val(-5))
+        self.player_vol_5_.clicked_connect(lambda x=0: self.seek_to_vol_val(-5))
         self.player_vol_5_.hide()
         
-        self.player_fullscreen = QtWidgets.QPushButton(self.player_opt)
+        self.player_fullscreen = QPushButtonExtra(self.player_opt)
         self.player_fullscreen.setObjectName(_fromUtf8("player_fullscreen"))
         self.horizontalLayout_player_opt.insertWidget(21, self.player_fullscreen, 0)
         self.player_fullscreen.setText('F')
-        self.player_fullscreen.clicked.connect(self.remote_fullscreen)
+        self.player_fullscreen.clicked_connect(self.remote_fullscreen)
         self.player_fullscreen.hide()
         
-        self.player_seek_60 = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_60 = QPushButtonExtra(self.player_opt)
         self.player_seek_60.setObjectName(_fromUtf8("player_seek_60"))
         self.horizontalLayout_player_opt.insertWidget(22, self.player_seek_60, 0)
         self.player_seek_60.setText('60s')
-        self.player_seek_60.clicked.connect(lambda x=0: self.seek_to_val(60))
+        self.player_seek_60.clicked_connect(lambda x=0: self.seek_to_val(60))
         self.player_seek_60.hide()
         
-        self.player_seek_60_ = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_60_ = QPushButtonExtra(self.player_opt)
         self.player_seek_60_.setObjectName(_fromUtf8("player_seek_60_"))
         self.horizontalLayout_player_opt.insertWidget(23, self.player_seek_60_, 0)
         self.player_seek_60_.setText('-60s')
-        self.player_seek_60_.clicked.connect(lambda x=0: self.seek_to_val(-60))
+        self.player_seek_60_.clicked_connect(lambda x=0: self.seek_to_val(-60))
         self.player_seek_60_.hide()
         
-        self.player_seek_5m = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_5m = QPushButtonExtra(self.player_opt)
         self.player_seek_5m.setObjectName(_fromUtf8("player_seek_5m"))
         self.horizontalLayout_player_opt.insertWidget(24, self.player_seek_5m, 0)
         self.player_seek_5m.setText('5m')
-        self.player_seek_5m.clicked.connect(lambda x=0: self.seek_to_val(300))
+        self.player_seek_5m.clicked_connect(lambda x=0: self.seek_to_val(300))
         self.player_seek_5m.hide()
         
-        self.player_seek_5m_ = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_5m_ = QPushButtonExtra(self.player_opt)
         self.player_seek_5m_.setObjectName(_fromUtf8("player_seek_5m_"))
         self.horizontalLayout_player_opt.insertWidget(25, self.player_seek_5m_, 0)
         self.player_seek_5m_.setText('-5m')
-        self.player_seek_5m_.clicked.connect(lambda x=0: self.seek_to_val(-300))
+        self.player_seek_5m_.clicked_connect(lambda x=0: self.seek_to_val(-300))
         self.player_seek_5m_.hide()
         
         self.client_seek_val = 0
         
-        self.player_seek_all = QtWidgets.QPushButton(self.player_opt)
+        self.player_seek_all = QPushButtonExtra(self.player_opt)
         self.player_seek_all.setObjectName(_fromUtf8("player_seek_all"))
         self.horizontalLayout_player_opt.insertWidget(26, self.player_seek_all, 0)
         self.player_seek_all.setText('all')
-        self.player_seek_all.clicked.connect(self.seek_to_val_abs)
+        self.player_seek_all.clicked_connect(self.seek_to_val_abs)
         self.player_seek_all.hide()
         
-        self.player_play_pause_play = QtWidgets.QPushButton(self.player_opt)
+        self.player_play_pause_play = QPushButtonExtra(self.player_opt)
         self.player_play_pause_play.setObjectName(_fromUtf8("player_play_pause_play"))
         self.horizontalLayout_player_opt.insertWidget(27, self.player_play_pause_play, 0)
         self.player_play_pause_play.setText('play')
-        self.player_play_pause_play.clicked.connect(self.player_force_play)
+        self.player_play_pause_play.clicked_connect(self.player_force_play)
         self.player_play_pause_play.hide()
         
-        self.player_play_pause_pause = QtWidgets.QPushButton(self.player_opt)
+        self.player_play_pause_pause = QPushButtonExtra(self.player_opt)
         self.player_play_pause_pause.setObjectName(_fromUtf8("player_play_pause_pause"))
         self.horizontalLayout_player_opt.insertWidget(28, self.player_play_pause_pause, 0)
         self.player_play_pause_pause.setText('pause')
-        self.player_play_pause_pause.clicked.connect(self.player_force_pause)
+        self.player_play_pause_pause.clicked_connect(self.player_force_pause)
         self.player_play_pause_pause.hide()
         
-        self.player_show_btn = QtWidgets.QPushButton(self.player_opt)
+        self.player_show_btn = QPushButtonExtra(self.player_opt)
         self.player_show_btn.setObjectName(_fromUtf8("player_show_btn"))
         self.horizontalLayout_player_opt.insertWidget(29, self.player_show_btn, 0)
         self.player_show_btn.setText('Show')
-        self.player_show_btn.clicked.connect(MainWindow.show)
+        self.player_show_btn.clicked_connect(MainWindow.show)
         self.player_show_btn.hide()
         
-        self.player_hide_btn = QtWidgets.QPushButton(self.player_opt)
+        self.player_hide_btn = QPushButtonExtra(self.player_opt)
         self.player_hide_btn.setObjectName(_fromUtf8("player_hide_btn"))
         self.horizontalLayout_player_opt.insertWidget(30, self.player_hide_btn, 0)
         self.player_hide_btn.setText('Hide')
-        self.player_hide_btn.clicked.connect(MainWindow.hide)
+        self.player_hide_btn.clicked_connect(MainWindow.hide)
         self.player_hide_btn.hide()
         
-        self.player_btn_update_list2 = QtWidgets.QPushButton(self.player_opt)
+        self.player_btn_update_list2 = QPushButtonExtra(self.player_opt)
         self.player_btn_update_list2.setObjectName(_fromUtf8("player_btn_update_list2"))
         self.horizontalLayout_player_opt.insertWidget(31, self.player_btn_update_list2, 0)
         self.player_btn_update_list2.setText('Shuffle')
-        self.player_btn_update_list2.clicked.connect(self.update_list2)
+        self.player_btn_update_list2.clicked_connect(self.update_list2)
         self.player_btn_update_list2.hide()
         
-        self.quick_url_play_btn = QtWidgets.QPushButton(self.player_opt)
+        self.quick_url_play_btn = QPushButtonExtra(self.player_opt)
         self.quick_url_play_btn.setObjectName(_fromUtf8("quick_url_play_btn"))
         self.horizontalLayout_player_opt.insertWidget(32, self.quick_url_play_btn, 0)
         self.quick_url_play_btn.setText('quick')
-        self.quick_url_play_btn.clicked.connect(self.quick_url_play_method)
+        self.quick_url_play_btn.clicked_connect(self.quick_url_play_method)
         self.quick_url_play_btn.hide()
         
-        self.set_quality_server_btn = QtWidgets.QPushButton(self.player_opt)
+        self.set_quality_server_btn = QPushButtonExtra(self.player_opt)
         self.set_quality_server_btn.setObjectName(_fromUtf8("set_quality_server_btn"))
         self.horizontalLayout_player_opt.insertWidget(33, self.set_quality_server_btn, 0)
         self.set_quality_server_btn.setText('quality')
-        self.set_quality_server_btn.clicked.connect(self.set_quality_server_btn_method)
+        self.set_quality_server_btn.clicked_connect(self.set_quality_server_btn_method)
         self.set_quality_server_btn.hide()
         
-        self.set_queue_item_btn = QtWidgets.QPushButton(self.player_opt)
+        self.set_queue_item_btn = QPushButtonExtra(self.player_opt)
         self.set_queue_item_btn.setObjectName(_fromUtf8("set_queue_item_btn"))
         self.horizontalLayout_player_opt.insertWidget(34, self.set_queue_item_btn, 0)
         self.set_queue_item_btn.setText('queue')
-        self.set_queue_item_btn.clicked.connect(self.set_queue_item_btn_method)
+        self.set_queue_item_btn.clicked_connect(self.set_queue_item_btn_method)
         self.set_queue_item_btn.hide()
         self.queue_item_external = -1
         
-        self.remove_queue_item_btn = QtWidgets.QPushButton(self.player_opt)
+        self.remove_queue_item_btn = QPushButtonExtra(self.player_opt)
         self.remove_queue_item_btn.setObjectName(_fromUtf8("remove_queue_item_btn"))
         self.horizontalLayout_player_opt.insertWidget(35, self.remove_queue_item_btn, 0)
         self.remove_queue_item_btn.setText('remove queue')
-        self.remove_queue_item_btn.clicked.connect(self.remove_queue_item_btn_method)
+        self.remove_queue_item_btn.clicked_connect(self.remove_queue_item_btn_method)
         self.remove_queue_item_btn.hide()
         self.queue_item_external_remove = -1
         
-        self.add_external_subtitle = QtWidgets.QPushButton(self.player_opt)
+        self.add_external_subtitle = QPushButtonExtra(self.player_opt)
         self.add_external_subtitle.setObjectName(_fromUtf8("add_external_subtitle"))
         self.horizontalLayout_player_opt.insertWidget(36, self.add_external_subtitle, 0)
         self.add_external_subtitle.setText('Add Sub')
-        self.add_external_subtitle.clicked.connect(self.check_and_start_getsub_method)
+        self.add_external_subtitle.clicked_connect(self.check_and_start_getsub_method)
         self.add_external_subtitle.hide()
         
-        self.text_change_button = QtWidgets.QPushButton(self.player_opt)
+        self.text_change_button = QPushButtonExtra(self.player_opt)
         self.text_change_button.setObjectName(_fromUtf8("text_change_button"))
         self.horizontalLayout_player_opt.insertWidget(37, self.text_change_button, 0)
         self.text_change_button.setText('Text')
-        self.text_change_button.clicked.connect(self.apply_text_change)
+        self.text_change_button.clicked_connect(self.apply_text_change)
         self.text_change_button.hide()
         self.text_change_content = ''
         
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
         
-        self.mirror_change = QtWidgets.QPushButton(self.goto_epn)
+        self.mirror_change = QPushButtonExtra(self.goto_epn)
         self.mirror_change.setObjectName(_fromUtf8("mirror_change"))
         self.horizontalLayout_goto_epn.insertWidget(1, self.mirror_change, 0)
         self.mirror_change.setText("Mirror")
         self.mirror_change.hide()
         
-        self.goto_epn_filter = QtWidgets.QPushButton(self.goto_epn)
+        self.goto_epn_filter = QPushButtonExtra(self.goto_epn)
         self.goto_epn_filter.setObjectName(_fromUtf8("Filter Button"))
         self.horizontalLayout_goto_epn.insertWidget(2, self.goto_epn_filter, 0)
         self.goto_epn_filter.setText("Filter")
@@ -943,7 +947,7 @@ class Ui_MainWindow(object):
         self.goto_epn_filter_txt.setPlaceholderText("Filter")
         #self.goto_epn_filter_txt.hide()
         
-        self.player_playlist1 = QtWidgets.QPushButton(self.goto_epn)
+        self.player_playlist1 = QPushButtonExtra(self.goto_epn)
         self.player_playlist1.setObjectName(_fromUtf8("player_playlist1"))
         self.horizontalLayout_goto_epn.insertWidget(4, self.player_playlist1, 0)
         self.player_playlist1.setText("Order")
@@ -984,6 +988,10 @@ class Ui_MainWindow(object):
         self.mpv_input_conf = os.path.join(home, 'src', 'input.conf')
         self.custom_key_file = os.path.join(home, 'src', 'customkey')
         self.tab_5 = PlayerWidget(MainWindow, ui=self, logr= logger, tmp=TMPDIR)
+        self.tab_5_layout = QtWidgets.QVBoxLayout(self.tab_5)
+        self.tab_5_layout.setContentsMargins(0,0,0,0)
+        self.tab_5_layout.setSpacing(0)
+        self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         #self.tab_5 = tab5(None)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         #self.tabWidget1.addTab(self.tab_5, _fromUtf8(""))
@@ -1094,32 +1102,32 @@ class Ui_MainWindow(object):
         
         
         
-        self.btnWebClose = QtWidgets.QPushButton(self.tab_2)
+        self.btnWebClose = QPushButtonExtra(self.tab_2)
         self.btnWebClose.setObjectName(_fromUtf8("btnWebClose"))
         self.btnWebClose.setMaximumSize(200, 50)
         self.horizLayout_web.insertWidget(1, self.btnWebClose, 0)
         self.btnWebClose.setText(self.player_buttons['close'])
-        self.btnWebClose.clicked.connect(self.webClose)
+        self.btnWebClose.clicked_connect(self.webClose)
         
-        self.btnWebResize = QtWidgets.QPushButton(self.tab_2)
+        self.btnWebResize = QPushButtonExtra(self.tab_2)
         self.btnWebResize.setObjectName(_fromUtf8("btnWebResize"))
         self.btnWebResize.setMaximumSize(200, 50)
         self.horizLayout_web.insertWidget(2, self.btnWebResize, 0)
         self.btnWebResize.setText(self.player_buttons['resize'])
-        self.btnWebResize.clicked.connect(self.webResize)
+        self.btnWebResize.clicked_connect(self.webResize)
         
-        self.btnWebPrev = QtWidgets.QPushButton(self.tab_2)
+        self.btnWebPrev = QPushButtonExtra(self.tab_2)
         self.btnWebPrev.setObjectName(_fromUtf8("btnWebPrev"))
         self.btnWebPrev.setMaximumSize(200, 50)
         self.horizLayout_web.insertWidget(3, self.btnWebPrev, 0)
-        self.btnWebPrev.clicked.connect(self.go_prev_web_page)
+        self.btnWebPrev.clicked_connect(self.go_prev_web_page)
         self.btnWebPrev.setText(self.player_buttons['pr'])
         
-        self.btnWebNext = QtWidgets.QPushButton(self.tab_2)
+        self.btnWebNext = QPushButtonExtra(self.tab_2)
         self.btnWebNext.setObjectName(_fromUtf8("btnWebNext"))
         self.btnWebNext.setMaximumSize(200, 50)
         self.horizLayout_web.insertWidget(4, self.btnWebNext, 0)
-        self.btnWebNext.clicked.connect(self.go_next_web_page)
+        self.btnWebNext.clicked_connect(self.go_next_web_page)
         self.btnWebNext.setText(self.player_buttons['nxt'])
         
         self.btnWebReviews = QtWidgets.QComboBox(self.tab_2)
@@ -1127,12 +1135,12 @@ class Ui_MainWindow(object):
         self.horizLayout_web.insertWidget(5, self.btnWebReviews, 0)
         self.btnWebReviews.setMaximumSize(200, 50)
         
-        self.btnGoWeb = QtWidgets.QPushButton(self.tab_2)
+        self.btnGoWeb = QPushButtonExtra(self.tab_2)
         self.btnGoWeb.setObjectName(_fromUtf8("btnGoWeb"))
         self.horizLayout_web.insertWidget(6, self.btnGoWeb, 0)
         self.btnGoWeb.setMaximumSize(200, 50)
         self.btnGoWeb.setText("Go")
-        self.btnGoWeb.clicked.connect(
+        self.btnGoWeb.clicked_connect(
             lambda x=0: self.reviewsWeb(action='btn_pushed')
             )
         
@@ -1153,7 +1161,7 @@ class Ui_MainWindow(object):
         
         self.btn2 = QtWidgets.QComboBox(self.dockWidgetContents_3)
         self.btn2.setObjectName(_fromUtf8("btn2"))
-        self.btn3 = QtWidgets.QPushButton(self.dockWidgetContents_3)
+        self.btn3 = QPushButtonExtra(self.dockWidgetContents_3)
         self.btn3.setObjectName(_fromUtf8("btn3"))
         self.btn3.setMinimumHeight(30)
         
@@ -1234,7 +1242,7 @@ class Ui_MainWindow(object):
         self.comboBoxMode = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
         self.comboBoxMode.setObjectName(_fromUtf8("comboBoxMode"))
         
-        self.btn20 = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
+        self.btn20 = QPushButtonExtra(self.scrollAreaWidgetContents)
         self.btn20.setObjectName(_fromUtf8("btn20"))
         
         self.labelFrame2 = QtWidgets.QLabel(self.scrollAreaWidgetContents)
@@ -1246,7 +1254,7 @@ class Ui_MainWindow(object):
         self.label_search.setObjectName(_fromUtf8("label_search"))
         self.label_search.setMaximumWidth(100)
         
-        self.btn201 = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
+        self.btn201 = QPushButtonExtra(self.scrollAreaWidgetContents)
         self.btn201.setObjectName(_fromUtf8("btn201"))
         self.float_window = QLabelFloat()
         self.float_window.set_globals(self, home)
@@ -1302,7 +1310,7 @@ class Ui_MainWindow(object):
         self.btn10.setMaximumSize(QtCore.QSize(350, 16777215))
         self.comboBox20.setMaximumSize(QtCore.QSize(100, 16777215))
         
-        self.chk = QtWidgets.QPushButton(self.dockWidget_3) 
+        self.chk = QPushButtonExtra(self.dockWidget_3) 
         self.chk.setObjectName(_fromUtf8("chk"))
         self.chk.setText("mpv")
         self.comboView = QtWidgets.QComboBox(self.dockWidget_3) 
@@ -1314,7 +1322,7 @@ class Ui_MainWindow(object):
         self.btnOpt.setObjectName(_fromUtf8("btnOpt"))
         self.horizontalLayout_7.addWidget(self.btnOpt)
         self.btnOpt.hide()
-        self.go_opt = QtWidgets.QPushButton(MainWindow)
+        self.go_opt = QPushButtonExtra(MainWindow)
         self.go_opt.setObjectName(_fromUtf8("go_opt"))
         self.horizontalLayout_7.addWidget(self.go_opt)
         self.go_opt.hide()
@@ -1329,34 +1337,34 @@ class Ui_MainWindow(object):
         self.horizontalLayout10.addWidget(self.scrollArea)
         self.scrollArea1.setWidget(self.scrollAreaWidgetContents1)
         self.horizontalLayout10.addWidget(self.scrollArea1)
-        self.btn4 = QtWidgets.QPushButton(self.dockWidgetContents_3)
+        self.btn4 = QPushButtonExtra(self.dockWidgetContents_3)
         self.btn4.setObjectName(_fromUtf8("btn4"))
         self.btn4.setMinimumHeight(30)
         self.btn4.setText('--')
         self.btn4.setToolTip('Auto-Hide On/Off')
-        self.btn4.clicked.connect(self.close_frame_btn)
+        self.btn4.clicked_connect(self.close_frame_btn)
         self.auto_hide_dock = True
         
-        self.btn_orient = QtWidgets.QPushButton(self.dockWidgetContents_3)
+        self.btn_orient = QPushButtonExtra(self.dockWidgetContents_3)
         self.btn_orient.setObjectName(_fromUtf8("btn_orient"))
         self.btn_orient.setMinimumHeight(30)
         self.btn_orient.setText(self.player_buttons['right'])
         self.btn_orient.setToolTip('Move Dock to Right')
-        self.btn_orient.clicked.connect(self.orient_dock)
+        self.btn_orient.clicked_connect(self.orient_dock)
         self.orientation_dock = 'left'
         
-        self.btn_quit = QtWidgets.QPushButton(self.dockWidgetContents_3)
+        self.btn_quit = QPushButtonExtra(self.dockWidgetContents_3)
         self.btn_quit.setObjectName(_fromUtf8("btn_quit"))
         self.btn_quit.setMinimumHeight(30)
         self.btn_quit.setText(self.player_buttons['quit'])
         self.btn_quit.setToolTip('Quit')
-        self.btn_quit.clicked.connect(QtWidgets.qApp.quit)
+        self.btn_quit.clicked_connect(QtWidgets.qApp.quit)
         
         self.horiz_close_frame.insertWidget(0, self.btn_quit, 0)
         self.horiz_close_frame.insertWidget(1, self.btn_orient, 0)
         self.horiz_close_frame.insertWidget(2, self.btn4, 0)
         
-        self.btnHistory = QtWidgets.QPushButton(self.dockWidgetContents_3)
+        self.btnHistory = QPushButtonExtra(self.dockWidgetContents_3)
         self.btnHistory.setObjectName(_fromUtf8("btnHistory"))
         self.btnHistory.hide()
         
@@ -1459,7 +1467,7 @@ class Ui_MainWindow(object):
         self.torrent_type = 'file'
         self.torrent_handle = ''
         self.list_with_thumbnail = True
-        self.mpvplayer_val = QtCore.QProcess()
+        self.mpvplayer_val = QProcessExtra(ui=self)
         self.system_bgcolor = ''
         self.thumbnail_engine = 'ffmpegthumbnailer'
         self.torrent_show_piece_map = False
@@ -1563,7 +1571,7 @@ class Ui_MainWindow(object):
         self.newlistfound_thread_box = []
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
-        self.playback_engine = ["mpv", 'mplayer']
+        self.playback_engine = ["mpv", 'mplayer', 'libmpv']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -1669,7 +1677,7 @@ class Ui_MainWindow(object):
                 screen_width, screen_height
                 )
         self.list_poster.hide()
-        #self.settings_close_btn = QtWidgets.QPushButton(MainWindow)
+        #self.settings_close_btn = QPushButtonExtra(MainWindow)
         #self.settings_close_btn.hide()
         self.settings_box = OptionsSettings(MainWindow, self, TMPDIR)
         self.settings_box.setMaximumWidth(screen_width-self.width_allowed-35)
@@ -1783,28 +1791,28 @@ class Ui_MainWindow(object):
         self.scrollArea1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.retranslateUi(MainWindow)
         
-        self.player_opt_toolbar.clicked.connect(self.player_opt_toolbar_dock)
-        self.sd_hd.clicked.connect(self.selectQuality)
-        self.goto_epn_filter.clicked.connect(self.goto_epn_filter_on)
-        self.audio_track.clicked.connect(self.toggleAudio)
-        self.subtitle_track.clicked.connect(self.toggleSubtitle)
-        self.player_stop.clicked.connect(self.playerStop)
-        self.player_prev.clicked.connect(self.mpvPrevEpnList)
-        self.player_play_pause.clicked.connect(self.playerPlayPause)
-        self.player_loop_file.clicked.connect(
+        self.player_opt_toolbar.clicked_connect(self.player_opt_toolbar_dock)
+        self.sd_hd.clicked_connect(self.selectQuality)
+        self.goto_epn_filter.clicked_connect(self.goto_epn_filter_on)
+        self.audio_track.clicked_connect(self.toggleAudio)
+        self.subtitle_track.clicked_connect(self.toggleSubtitle)
+        self.player_stop.clicked_connect(self.playerStop)
+        self.player_prev.clicked_connect(self.mpvPrevEpnList)
+        self.player_play_pause.clicked_connect(self.playerPlayPause)
+        self.player_loop_file.clicked_connect(
             partial(self.playerLoopFile, self.player_loop_file)
             )
-        self.player_next.clicked.connect(self.mpvNextEpnList)
-        self.mirror_change.clicked.connect(self.mirrorChange)
-        self.btn20.clicked.connect(lambda r = 0: self.thumbnailHide('clicked'))
-        self.btn201.clicked.connect(self.prev_thumbnails)
+        self.player_next.clicked_connect(self.mpvNextEpnList)
+        self.mirror_change.clicked_connect(self.mirrorChange)
+        self.btn20.clicked_connect(lambda r = 0: self.thumbnailHide('clicked'))
+        self.btn201.clicked_connect(self.prev_thumbnails)
         
-        #self.go_opt.clicked.connect(self.go_opt_options)
+        #self.go_opt.clicked_connect(self.go_opt_options)
         #self.btn10.currentIndexChanged['int'].connect(self.browse_epn)
         self.line.returnPressed.connect(self.searchNew)
         self.label_down_speed.returnPressed.connect(self.set_new_download_speed)
         self.label_up_speed.returnPressed.connect(self.set_new_upload_speed)
-        self.label_torrent_stop.clicked.connect(self.stop_torrent)
+        self.label_torrent_stop.clicked_connect(self.stop_torrent)
         self.page_number.returnPressed.connect(self.gotopage)
         self.btn1.currentIndexChanged['int'].connect(self.ka)
         self.btnAddon.currentIndexChanged['int'].connect(self.ka2)
@@ -1822,17 +1830,17 @@ class Ui_MainWindow(object):
         self.list3.itemDoubleClicked['QListWidgetItem*'].connect(
             lambda var = 'clicked':self.newoptions('clicked')
             )
-        self.forward.clicked.connect(lambda r= "": self.nextp('next'))
-        self.backward.clicked.connect(lambda r= "": self.backp('back'))
-        self.filter_btn.clicked.connect(self.filter_btn_options)
-        self.hide_btn_list1.clicked.connect(self.hide_btn_list1_pressed)
+        self.forward.clicked_connect(lambda r= "": self.nextp('next'))
+        self.backward.clicked_connect(lambda r= "": self.backp('back'))
+        self.filter_btn.clicked_connect(self.filter_btn_options)
+        self.hide_btn_list1.clicked_connect(self.hide_btn_list1_pressed)
         self.go_page.textChanged['QString'].connect(self.filter_list)
         self.search_on_type_btn.textChanged['QString'].connect(self.search_on_type)
         self.label_search.textChanged['QString'].connect(self.filter_label_list)
         self.goto_epn_filter_txt.textChanged['QString'].connect(self.filter_epn_list_txt)
-        self.btn3.clicked.connect(self.addToLibrary)
-        self.btnHistory.clicked.connect(self.setPreOpt)
-        self.chk.clicked.connect(self.preview)
+        self.btn3.clicked_connect(self.addToLibrary)
+        self.btnHistory.clicked_connect(self.setPreOpt)
+        self.chk.clicked_connect(self.preview)
         
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -1840,6 +1848,9 @@ class Ui_MainWindow(object):
         self.line.setPlaceholderText("Search")
         self.label_search.setPlaceholderText("Filter")
         self.go_page.setPlaceholderText("Filter")
+
+        self.observer_thread = Observe(self, logger)
+        self.obs = None
         
     def retranslateUi(self, MainWindow):
         global home
@@ -3331,7 +3342,10 @@ class Ui_MainWindow(object):
         global show_hide_titlelist
         global sub_id, audio_id
         change_spacing = False
-        if self.mpvplayer_val.processId() > 0 or msg:
+        if self.player_val == "libmpv":
+            print(self.tab_5.mpv.time_remaining)
+            self.tab_5.mpv.command("stop")
+        if self.mpvplayer_val.processId() > 0 or msg or self.player_val == "libmpv":
             logger.warning(self.progress_counter)
             if self.player_val == 'mpv':
                 counter = self.progress_counter
@@ -3560,6 +3574,8 @@ class Ui_MainWindow(object):
                     self.mpv_execute_command(cmd, '', 100)
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
+            elif self.player_val == "libmpv":
+                self.tab_5.mpv.pause = False
             else:
                 if self.list2.currentItem():
                     self.cur_row = self.list2.currentRow()
@@ -3586,6 +3602,8 @@ class Ui_MainWindow(object):
                     self.mpv_execute_command(cmd, '', 100)
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
+            elif self.player_val == "libmpv":
+                self.tab_5.mpv.pause = True
             else:
                 if self.list2.currentItem():
                     self.cur_row = self.list2.currentRow()
@@ -5313,6 +5331,7 @@ class Ui_MainWindow(object):
                 if not status:
                     self.widget_dict[i].hide()
             self.tab_2.show()
+            self.tab_2.update()
         else:
             self.tab_2.hide()
             for i in self.browser_dict_widget:
@@ -5321,6 +5340,7 @@ class Ui_MainWindow(object):
                     self.widget_dict[i].show()
             
         self.frame1.show()
+        MainWindow.update()
             
     def IconView(self):
         global total_till, browse_cnt
@@ -5497,6 +5517,10 @@ class Ui_MainWindow(object):
             QtWidgets.QApplication.processEvents()
             
     def fullscreenToggle(self):
+        if self.player_val == "libmpv":
+            self.tab_5.mpv.command("set", "pause", "yes")
+        else:
+            pass
         if not MainWindow.isFullScreen():
             self.dockWidget_3.hide()
             MainWindow.showFullScreen()
@@ -5507,6 +5531,10 @@ class Ui_MainWindow(object):
                 MainWindow.showNormal()
             MainWindow.showMaximized()
             self.force_fs = False
+        if self.player_val == "libmpv" and not self.tab_5.pause_timer.isActive():
+            self.tab_5.pause_timer.start(1000)
+        else:
+            pass
     
     
     def shuffleList(self):
@@ -6544,6 +6572,7 @@ class Ui_MainWindow(object):
             self.mpvplayer_val.kill()
             self.mpvplayer_started = False
             self.epnfound()
+        send_notification("please restart kawaii-player")
     
     def nextp(self, val):
         global opt, pgn, genre_num, browse_cnt
@@ -8642,12 +8671,13 @@ class Ui_MainWindow(object):
         else:
             current_playing_file_path = finalUrl
         setinfo = False
-        if (self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
-                and not finalUrl.startswith('http') and not self.external_audio_file):
+        if ((self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
+                and not finalUrl.startswith('http') and not self.external_audio_file)
+                or self.player_val == "libmpv"):
             epnShow = "Playing: {0}".format(self.epn_name_in_list)
             msg = None
             cmd = None
-            if not self.gapless_playback:
+            if not self.gapless_playback and self.player_val != "libmpv":
                 finalUrl = finalUrl.replace('"', '')
                 if OSNAME == 'nt':
                     finalUrl = 'file:///{}'.format(finalUrl.replace('\\', '/'))
@@ -8661,9 +8691,18 @@ class Ui_MainWindow(object):
                 if msg and cmd:
                     self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+                setinfo = True
+            elif self.player_val == "libmpv":
+                self.use_playlist_method()
+                if self.tmp_pls_file_lines:
+                    write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
+                self.playback_mode = 'playlist'
+                self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
+                self.tab_5.mpv.playlist_pos = self.cur_row
+                #self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ""))
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
-            setinfo = True
+                setinfo = True
         else:
             if self.mpvplayer_val.processId()>0:
                 self.mpvplayer_val.kill()
@@ -8726,12 +8765,13 @@ class Ui_MainWindow(object):
                             ]
                     }
                 )
-        if setinfo and (site!= 'Music' or rem_quit):
-            if self.mplayer_SubTimer.isActive():
-                self.mplayer_SubTimer.stop()
-            self.mplayer_SubTimer.start(1000)
-        if not self.external_SubTimer.isActive():
-            self.external_SubTimer.start(3000)
+        if self.player_val != "libmpv":
+            if setinfo and (site!= 'Music' or rem_quit):
+                if self.mplayer_SubTimer.isActive():
+                    self.mplayer_SubTimer.stop()
+                self.mplayer_SubTimer.start(1000)
+            if not self.external_SubTimer.isActive():
+                self.external_SubTimer.start(3000)
         MainWindow.setWindowTitle(self.epn_name_in_list)
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle(self.epn_name_in_list)
@@ -9728,7 +9768,7 @@ class Ui_MainWindow(object):
             if self.float_window.isHidden():
                 self.tab_5.hide()
         else:
-            if self.player_val in ['mpv', 'mplayer']:
+            if self.player_val in ['mpv', 'mplayer', 'libmpv']:
                 self.tab_5.show()
                 self.list1.hide()
                 self.frame.hide()
@@ -12898,6 +12938,18 @@ class Ui_MainWindow(object):
             QtWidgets.QApplication.processEvents()
         except Exception as err:
             logger.error(err)
+
+    def setup_opengl_widget(self):
+        self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR)
+        self.tab_5.setObjectName(_fromUtf8("tab_5"))
+        self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
+        self.tab_5.setMouseTracking(True)
+        self.tab_5.hide()
+        self.tab_5_layout = QtWidgets.QVBoxLayout(self.tab_5)
+        self.tab_5_layout.setContentsMargins(0, 0, 0, 0)
+        self.tab_5_layout.setSpacing(0)
+        self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+        self.idw = str(int(self.tab_5.winId()))
             
 def main():
     global ui, MainWindow, name, pgn, genre_num, site, epn
@@ -14131,7 +14183,7 @@ def main():
         ui.tray_widget = SystemAppIndicator(ui_widget=ui, home=home, window=MainWindow, logr=logger)
         ui.tray_widget.right_menu.setup_globals(screen_width, screen_height)
         ui.tray_widget.show()
-        ui.detach_video_button.clicked.connect(ui.tray_widget.right_menu._detach_video)
+        ui.detach_video_button.clicked_connect(ui.tray_widget.right_menu._detach_video)
     except Exception as e:
         logger.error('System Tray Failed with Exception: {0}'.format(e))
         ui.tray_widget = None
@@ -14250,6 +14302,8 @@ def main():
         input_conf = os.path.join(RESOURCE_DIR, 'input.conf')
         if os.path.isfile(input_conf):
             shutil.copy(input_conf, ui.mpv_input_conf)
+    if ui.player_val == "libmpv":
+        ui.setup_opengl_widget()
         
     try:
         if os.path.isfile(ui.settings_box.config_file_name) and ui.use_custom_config_file:

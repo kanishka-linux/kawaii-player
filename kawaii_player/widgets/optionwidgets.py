@@ -4,12 +4,24 @@ import time
 import hashlib
 import shutil
 import subprocess
+import platform
 from functools import partial
 import PIL
 from PIL import Image
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
 from thread_modules import DiscoverServer
+
+class QPushButtonExtra(QtWidgets.QPushButton):
+
+    def __init__(self, parent=None):
+        super(QPushButtonExtra, self).__init__(parent)
+
+    def clicked_connect(self, callbak):
+        if platform.system().lower() == "darwin":
+            super(QPushButtonExtra, self).pressed.connect(callbak)
+        else:
+            super(QPushButtonExtra, self).clicked.connect(callbak)
 
 class SidebarWidget(QtWidgets.QListWidget):
     """
@@ -468,7 +480,7 @@ class MySlider(QtWidgets.QSlider):
         #t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
-        elif ui.player_val == "mpv":
+        elif ui.player_val in ["mpv", "libmpv"]:
             l=str((datetime.timedelta(seconds=t)))
         else:
             l = str(0)
@@ -676,10 +688,12 @@ class MySlider(QtWidgets.QSlider):
             print(old_val, new_val, int((new_val-old_val)/1000))
         else:
             print(old_val, new_val, int(new_val-old_val))
-        if ui.mpvplayer_val.processId() > 0:
+        if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
             if ui.player_val == "mpv":
                 var = bytes('\n '+"seek "+str(new_val)+" absolute"+' \n', 'utf-8')
                 ui.mpvplayer_val.write(var)
+            elif ui.player_val == "libmpv":
+                ui.tab_5.mpv.command("seek", new_val, "absolute")
             elif ui.player_val =="mplayer":
                 seek_val = int((new_val-old_val)/1000)
                 var = bytes('\n '+"seek "+str(seek_val)+' \n', 'utf-8')
@@ -984,7 +998,7 @@ class GSBCSlider(QtWidgets.QSlider):
                 label_value = eval('self.parent.{}_value'.format(name))
                 zoom_val = 0.001* val
                 label_value.setPlaceholderText(str(zoom_val))
-                if ui.player_val.lower() == 'mpv':
+                if ui.player_val.lower() in ['mpv', 'libmpv']:
                     cmd = '\n set video-zoom {} \n'.format(zoom_val)
                 else:
                     cmd = '\n set_property panscan {} \n'.format(zoom_val)
@@ -994,7 +1008,7 @@ class GSBCSlider(QtWidgets.QSlider):
                 label_value = eval('self.parent.{}_value'.format(name))
                 speed_val = 1 + 0.01* val
                 label_value.setPlaceholderText(str(speed_val))
-                if ui.player_val.lower() == 'mpv':
+                if ui.player_val.lower() in ['mpv', 'libmpv']:
                     cmd = '\n set speed {} \n'.format(speed_val)
                 else:
                     cmd = '\n set_property speed {} \n'.format(speed_val)
@@ -1003,7 +1017,7 @@ class GSBCSlider(QtWidgets.QSlider):
             else:
                 label_value = eval('self.parent.{}_value'.format(name))
                 label_value.setPlaceholderText(str(val))
-                if ui.player_val.lower() == 'mpv':
+                if ui.player_val.lower() in ['mpv', 'libmpv']:
                     cmd = '\n set {} {} \n'.format(name, val)
                 else:
                     cmd = '\n set_property {} {} \n'.format(name, val)
@@ -1108,6 +1122,7 @@ class SubtitleSlider(QtWidgets.QSlider):
                 value_str = str(value)
                 label_value.setPlaceholderText(value_str[:4])
         else:
+            cmd = None
             if name == 'text':
                 label_value = eval('self.parent.subtitle_{}_value'.format(name))
                 label_value.setPlaceholderText(str(val))
@@ -1147,7 +1162,7 @@ class SubtitleSlider(QtWidgets.QSlider):
                 value = val * 0.01
                 value_str = str(value)
                 label_value.setPlaceholderText(value_str[:4])
-                if ui.player_val.lower() == 'mpv':
+                if ui.player_val.lower() in ['mpv', 'libmpv']:
                     cmd = '\n set sub-scale {} \n'.format(value)
                 else:
                     cmd = '\n set_property sub_scale {} \n'.format(value)
@@ -1185,6 +1200,8 @@ class SubtitleSlider(QtWidgets.QSlider):
                 ui.subtitle_dict.update({'sub-spacing':str(value)})
                 if ui.mpvplayer_val.processId() > 0:
                     ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            if ui.player_val == "libmpv" and cmd:
+                ui.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 
 
 class QLineCustomFont(QtWidgets.QLineEdit):
@@ -1220,20 +1237,20 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.tab_frame_layout.setSpacing(5)
         self.tab_frame_layout.setContentsMargins(5,5,5,5)
         
-        self.general_tab_btn = QtWidgets.QPushButton(self.tab_frame)
+        self.general_tab_btn = QPushButtonExtra(self.tab_frame)
         self.tab_frame_layout.insertWidget(0, self.general_tab_btn, 0)
         self.general_tab_btn.setText('General')
-        self.general_tab_btn.clicked.connect(self.general_tab_show)
+        self.general_tab_btn.clicked_connect(self.general_tab_show)
         
-        self.subtitle_tab_btn = QtWidgets.QPushButton(self.tab_frame)
+        self.subtitle_tab_btn = QPushButtonExtra(self.tab_frame)
         self.tab_frame_layout.insertWidget(1, self.subtitle_tab_btn, 0)
         self.subtitle_tab_btn.setText('Subtitle')
-        self.subtitle_tab_btn.clicked.connect(self.subtitle_tab_show)
+        self.subtitle_tab_btn.clicked_connect(self.subtitle_tab_show)
         
-        self.master_slave_tab_btn = QtWidgets.QPushButton(self.tab_frame)
+        self.master_slave_tab_btn = QPushButtonExtra(self.tab_frame)
         self.tab_frame_layout.insertWidget(2, self.master_slave_tab_btn, 0)
         self.master_slave_tab_btn.setText('Master')
-        self.master_slave_tab_btn.clicked.connect(self.toggle_master_slave)
+        self.master_slave_tab_btn.clicked_connect(self.toggle_master_slave)
         msg = ('<html>Toggle use of Extra Toolbar between Master and Slave.\
                 Only useful in PC-To-PC casting mode.\
                 Toggle it to Slave, in order to use controls available in\
@@ -1326,137 +1343,137 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.btn_aspect_label.setText('Aspect\nRatio')
         self.buttons_layout.addWidget(self.btn_aspect_label, 0, 0, 2, 1)
         
-        self.btn_aspect_original = QtWidgets.QPushButton(self)
+        self.btn_aspect_original = QPushButtonExtra(self)
         self.btn_aspect_original.setText('Original')
-        self.btn_aspect_original.clicked.connect(partial(self.change_aspect, 'original', 'btn_aspect_original'))
+        self.btn_aspect_original.clicked_connect(partial(self.change_aspect, 'original', 'btn_aspect_original'))
         self.buttons_layout.addWidget(self.btn_aspect_original, 0, 1, 1, 2)
         
-        self.btn_aspect_disable = QtWidgets.QPushButton(self)
+        self.btn_aspect_disable = QPushButtonExtra(self)
         self.btn_aspect_disable.setText('Disable')
-        self.btn_aspect_disable.clicked.connect(partial(self.change_aspect, 'disable', 'btn_aspect_disable'))
+        self.btn_aspect_disable.clicked_connect(partial(self.change_aspect, 'disable', 'btn_aspect_disable'))
         self.buttons_layout.addWidget(self.btn_aspect_disable, 0, 3, 1, 1)
         
-        self.btn_aspect_4_3 = QtWidgets.QPushButton(self)
+        self.btn_aspect_4_3 = QPushButtonExtra(self)
         self.btn_aspect_4_3.setText('4:3')
-        self.btn_aspect_4_3.clicked.connect(partial(self.change_aspect, '4:3', 'btn_aspect_4_3'))
+        self.btn_aspect_4_3.clicked_connect(partial(self.change_aspect, '4:3', 'btn_aspect_4_3'))
         self.buttons_layout.addWidget(self.btn_aspect_4_3, 1, 1, 1, 1)
         
-        self.btn_aspect_16_9 = QtWidgets.QPushButton(self)
+        self.btn_aspect_16_9 = QPushButtonExtra(self)
         self.btn_aspect_16_9.setText('16:9')
-        self.btn_aspect_16_9.clicked.connect(partial(self.change_aspect, '16:9', 'btn_aspect_16_9'))
+        self.btn_aspect_16_9.clicked_connect(partial(self.change_aspect, '16:9', 'btn_aspect_16_9'))
         self.buttons_layout.addWidget(self.btn_aspect_16_9, 1, 2, 1, 1)
         
-        self.btn_aspect_235 = QtWidgets.QPushButton(self)
+        self.btn_aspect_235 = QPushButtonExtra(self)
         self.btn_aspect_235.setText('2.35:1')
-        self.btn_aspect_235.clicked.connect(partial(self.change_aspect, '2.35:1', 'btn_aspect_235'))
+        self.btn_aspect_235.clicked_connect(partial(self.change_aspect, '2.35:1', 'btn_aspect_235'))
         self.buttons_layout.addWidget(self.btn_aspect_235, 1, 3, 1, 1)
         
         self.btn_scr_label = QtWidgets.QLabel(self)
         self.btn_scr_label.setText('Screenshot')
         self.buttons_layout.addWidget(self.btn_scr_label, 2, 0, 1, 1)
         
-        self.btn_scr_1 = QtWidgets.QPushButton(self)
+        self.btn_scr_1 = QPushButtonExtra(self)
         self.btn_scr_1.setText('1')
-        self.btn_scr_1.clicked.connect(partial(self.execute_command, 'async screenshot', 'btn_scr_1'))
+        self.btn_scr_1.clicked_connect(partial(self.execute_command, 'async screenshot', 'btn_scr_1'))
         self.buttons_layout.addWidget(self.btn_scr_1, 2, 1, 1, 1)
         self.btn_scr_1.setToolTip("Take Screenshot with subtitle")
         
-        self.btn_scr_2 = QtWidgets.QPushButton(self)
+        self.btn_scr_2 = QPushButtonExtra(self)
         self.btn_scr_2.setText('2')
-        self.btn_scr_2.clicked.connect(partial(self.execute_command, 'async screenshot video', 'btn_scr_2'))
+        self.btn_scr_2.clicked_connect(partial(self.execute_command, 'async screenshot video', 'btn_scr_2'))
         self.buttons_layout.addWidget(self.btn_scr_2, 2, 2, 1, 1)
         self.btn_scr_2.setToolTip("Take Screenshot without subtitle")
         
-        self.btn_scr_3 = QtWidgets.QPushButton(self)
+        self.btn_scr_3 = QPushButtonExtra(self)
         self.btn_scr_3.setText('3')
-        self.btn_scr_3.clicked.connect(partial(self.execute_command, 'async screenshot window', 'btn_scr_3'))
+        self.btn_scr_3.clicked_connect(partial(self.execute_command, 'async screenshot window', 'btn_scr_3'))
         self.buttons_layout.addWidget(self.btn_scr_3, 2, 3, 1, 1)
         self.btn_scr_3.setToolTip("Take Screenshot with window")
         """
-        self.btn_speed_half = QtWidgets.QPushButton(self)
+        self.btn_speed_half = QPushButtonExtra(self)
         self.btn_speed_half.setText('0.5x')
-        self.btn_speed_half.clicked.connect(partial(self.adjust_speed, '0.5'))
+        self.btn_speed_half.clicked_connect(partial(self.adjust_speed, '0.5'))
         self.buttons_layout.addWidget(self.btn_speed_half, 3, 0, 1, 1)
         self.btn_speed_half.setToolTip('Half Speed')
         
-        self.btn_speed_reset = QtWidgets.QPushButton(self)
+        self.btn_speed_reset = QPushButtonExtra(self)
         self.btn_speed_reset.setText('1x')
-        self.btn_speed_reset.clicked.connect(partial(self.adjust_speed, '1.0'))
+        self.btn_speed_reset.clicked_connect(partial(self.adjust_speed, '1.0'))
         self.buttons_layout.addWidget(self.btn_speed_reset, 3, 1, 1, 1)
         self.btn_speed_reset.setToolTip('Original Speed')
         
-        self.btn_speed_did = QtWidgets.QPushButton(self)
+        self.btn_speed_did = QPushButtonExtra(self)
         self.btn_speed_did.setText('1.5x')
-        self.btn_speed_did.clicked.connect(partial(self.adjust_speed, '1.5'))
+        self.btn_speed_did.clicked_connect(partial(self.adjust_speed, '1.5'))
         self.buttons_layout.addWidget(self.btn_speed_did, 3, 2, 1, 1)
         self.btn_speed_did.setToolTip('Multiply speed by 1.5')
         
-        self.btn_speed_twice = QtWidgets.QPushButton(self)
+        self.btn_speed_twice = QPushButtonExtra(self)
         self.btn_speed_twice.setText('2x')
-        self.btn_speed_twice.clicked.connect(partial(self.adjust_speed, '2.0'))
+        self.btn_speed_twice.clicked_connect(partial(self.adjust_speed, '2.0'))
         self.buttons_layout.addWidget(self.btn_speed_twice, 3, 3, 1, 1)
         self.btn_speed_twice.setToolTip('Multiply speed by 2')
         """
-        self.btn_sub_minus = QtWidgets.QPushButton(self)
+        self.btn_sub_minus = QPushButtonExtra(self)
         self.btn_sub_minus.setText('Sub-')
-        self.btn_sub_minus.clicked.connect(partial(self.execute_command, 'add sub-delay -0.1', 'btn_sub_minus'))
+        self.btn_sub_minus.clicked_connect(partial(self.execute_command, 'add sub-delay -0.1', 'btn_sub_minus'))
         self.buttons_layout.addWidget(self.btn_sub_minus, 4, 0, 1, 1)
         self.btn_sub_minus.setToolTip('Add Subtitle Delay of -0.1s')
         
-        self.btn_sub_plus = QtWidgets.QPushButton(self)
+        self.btn_sub_plus = QPushButtonExtra(self)
         self.btn_sub_plus.setText('Sub+')
-        self.btn_sub_plus.clicked.connect(partial(self.execute_command, 'add sub-delay +0.1', 'btn_sub_plus'))
+        self.btn_sub_plus.clicked_connect(partial(self.execute_command, 'add sub-delay +0.1', 'btn_sub_plus'))
         self.buttons_layout.addWidget(self.btn_sub_plus, 4, 1, 1, 1)
         self.btn_sub_plus.setToolTip('Add Subtitle Delay of +0.1s')
         
-        self.btn_aud_minus = QtWidgets.QPushButton(self)
+        self.btn_aud_minus = QPushButtonExtra(self)
         self.btn_aud_minus.setText('A-')
-        self.btn_aud_minus.clicked.connect(partial(self.execute_command, 'add audio-delay -0.1', 'btn_aud_minus'))
+        self.btn_aud_minus.clicked_connect(partial(self.execute_command, 'add audio-delay -0.1', 'btn_aud_minus'))
         self.buttons_layout.addWidget(self.btn_aud_minus, 4, 2, 1, 1)
         self.btn_aud_minus.setToolTip('Add Audio Delay of -0.1s')
         
-        self.btn_aud_plus = QtWidgets.QPushButton(self)
+        self.btn_aud_plus = QPushButtonExtra(self)
         self.btn_aud_plus.setText('A+')
-        self.btn_aud_plus.clicked.connect(partial(self.execute_command, 'add audio-delay +0.1', 'btn_aud_plus'))
+        self.btn_aud_plus.clicked_connect(partial(self.execute_command, 'add audio-delay +0.1', 'btn_aud_plus'))
         self.buttons_layout.addWidget(self.btn_aud_plus, 4, 3, 1, 1)
         self.btn_aud_plus.setToolTip('Add Audio Delay of +0.1s')
         
-        self.btn_chapter_minus = QtWidgets.QPushButton(self)
+        self.btn_chapter_minus = QPushButtonExtra(self)
         self.btn_chapter_minus.setText('Chapter-')
-        self.btn_chapter_minus.clicked.connect(partial(self.add_chapter, '-', 'btn_chapter_minus'))
+        self.btn_chapter_minus.clicked_connect(partial(self.add_chapter, '-', 'btn_chapter_minus'))
         self.buttons_layout.addWidget(self.btn_chapter_minus, 5, 0, 1, 2)
         
-        self.btn_chapter_plus = QtWidgets.QPushButton(self)
+        self.btn_chapter_plus = QPushButtonExtra(self)
         self.btn_chapter_plus.setText('Chapter+')
-        self.btn_chapter_plus.clicked.connect(partial(self.add_chapter, '+', 'btn_chapter_plus'))
+        self.btn_chapter_plus.clicked_connect(partial(self.add_chapter, '+', 'btn_chapter_plus'))
         self.buttons_layout.addWidget(self.btn_chapter_plus, 5, 2, 1, 2)
         
-        self.btn_show_stat = QtWidgets.QPushButton(self)
+        self.btn_show_stat = QPushButtonExtra(self)
         self.btn_show_stat.setText('Stats')
         self.btn_show_stat.setToolTip('<html>Show Some Statistics on Video. Applicable only for mpv v0.28+</html>')
-        self.btn_show_stat.clicked.connect(
+        self.btn_show_stat.clicked_connect(
             partial(self.execute_command, 'script-binding stats/display-stats-toggle', 'btn_show_stat')
             )
         self.buttons_layout.addWidget(self.btn_show_stat, 6, 0, 1, 1)
         
-        self.btn_fs_window = QtWidgets.QPushButton(self)
+        self.btn_fs_window = QPushButtonExtra(self)
         self.btn_fs_window.setText('FS')
         self.btn_fs_window.setToolTip('Toggle Application Fullscreen')
-        #self.btn_fs_window.clicked.connect(ui.fullscreenToggle)
-        self.btn_fs_window.clicked.connect(partial(self.execute_command, 'TAFS', 'btn_fs_window'))
+        #self.btn_fs_window.clicked_connect(ui.fullscreenToggle)
+        self.btn_fs_window.clicked_connect(partial(self.execute_command, 'TAFS', 'btn_fs_window'))
         self.buttons_layout.addWidget(self.btn_fs_window, 6, 1, 1, 1)
         
-        self.btn_fs_video = QtWidgets.QPushButton(self)
+        self.btn_fs_video = QPushButtonExtra(self)
         self.btn_fs_video.setText('F')
         self.btn_fs_video.setToolTip('Toggle Video Fullscreen')
-        #self.btn_fs_window.clicked.connect(ui.fullscreenToggle)
-        self.btn_fs_video.clicked.connect(partial(self.execute_command, 'TVFS', 'btn_fs_video'))
+        #self.btn_fs_window.clicked_connect(ui.fullscreenToggle)
+        self.btn_fs_video.clicked_connect(partial(self.execute_command, 'TVFS', 'btn_fs_video'))
         self.buttons_layout.addWidget(self.btn_fs_video, 6, 2, 1, 1)
         
-        self.btn_external_sub = QtWidgets.QPushButton(self)
+        self.btn_external_sub = QPushButtonExtra(self)
         self.btn_external_sub.setText('ES')
         self.btn_external_sub.setToolTip('Load External Subtitle')
-        self.btn_external_sub.clicked.connect(partial(self.execute_command, 'external-subtitle', 'btn_external_sub'))
+        self.btn_external_sub.clicked_connect(partial(self.execute_command, 'external-subtitle', 'btn_external_sub'))
         self.buttons_layout.addWidget(self.btn_external_sub, 6, 3, 1, 1)
         
         self.volume_layout = QtWidgets.QGridLayout(self)
@@ -1535,8 +1552,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.font_color_label.setToolTip('<html>Set Subtitle Text Color</html>')
         self.font_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.font_color_label, 1, 0, 1, 1)
-        self.font_color_value = QtWidgets.QPushButton(self)
-        self.font_color_value.clicked.connect(
+        self.font_color_value = QPushButtonExtra(self)
+        self.font_color_value.clicked_connect(
             partial(self.choose_color, self.font_color_value, 'text', 'font_color_value')
             )
         self.sub_grid.addWidget(self.font_color_value, 1, 1, 1, 3)
@@ -1546,8 +1563,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.border_color_label.setToolTip('<html>Set Subtitle Border Color</html>')
         self.border_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.border_color_label, 2, 0, 1, 1)
-        self.border_color_value = QtWidgets.QPushButton(self)
-        self.border_color_value.clicked.connect(
+        self.border_color_value = QPushButtonExtra(self)
+        self.border_color_value.clicked_connect(
             partial(self.choose_color, self.border_color_value, 'border', 'border_color_value')
             )
         self.sub_grid.addWidget(self.border_color_value, 2, 1, 1, 3)
@@ -1557,8 +1574,8 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.shadow_color_label.setToolTip('<html>Set Subtitle Shadow Color</html>')
         self.shadow_color_label.setWordWrap(True)
         self.sub_grid.addWidget(self.shadow_color_label, 3, 0, 1, 1)
-        self.shadow_color_value = QtWidgets.QPushButton(self)
-        self.shadow_color_value.clicked.connect(
+        self.shadow_color_value = QPushButtonExtra(self)
+        self.shadow_color_value.clicked_connect(
             partial(self.choose_color, self.shadow_color_value, 'shadow', 'shadow_color_value')
             )
         self.sub_grid.addWidget(self.shadow_color_value, 3, 1, 1, 3)
@@ -2025,9 +2042,15 @@ class ExtraToolBar(QtWidgets.QFrame):
             elif msg == 'TAFS':
                 ui.fullscreenToggle()
             elif msg == 'TVFS':
-                if ui.mpvplayer_val.processId() > 0:
-                    ui.tab_5.toggle_fullscreen_mode()
-            elif ui.mpvplayer_val.processId() > 0:
+                if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
+                    if ui.player_val == "libmpv":
+                        ui.tab_5.mpv.command("set", "pause", "yes")
+                        MainWindow.showMaximized()
+                        ui.force_fs = False
+                        ui.tab_5.fs_timer.start(2000)
+                    else:
+                        ui.tab_5.toggle_fullscreen_mode()
+            elif ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
                 if ui.player_val.lower() == 'mplayer':
                     if 'sub-delay' in msg or 'audio-delay' in msg:
                         msg = msg.replace('add ', '')
@@ -2043,12 +2066,12 @@ class ExtraToolBar(QtWidgets.QFrame):
                 ui.mpvplayer_val.write(bmsg)
                 pmsg = None
                 if 'sub-delay' in msg:
-                    if ui.player_val.lower() == 'mpv':
+                    if ui.player_val.lower() in ['mpv', 'libmpv']:
                         pmsg = '\n show-text "Sub delay: ${sub-delay}" \n'
                     else:
                         pmsg = '\n osd_show_property_text "Sub delay: ${sub_delay}" \n'
                 elif 'audio-delay' in msg:
-                    if ui.player_val.lower() == 'mpv':
+                    if ui.player_val.lower() in ['mpv', 'libmpv']:
                         pmsg = '\n show-text "A-V delay: ${audio-delay}" \n'
                     else:
                         pmsg = '\n osd_show_property_text "A-V delay: ${audio_delay}" \n'
@@ -2062,17 +2085,17 @@ class ExtraToolBar(QtWidgets.QFrame):
             ui.settings_box.slave_commands(data=data_dict)
         else:
             if val == '-':
-                if ui.player_val.lower() == 'mpv':
+                if ui.player_val.lower() in ['mpv', 'libmpv']:
                     msg = bytes('\n add chapter -1 \n', 'utf-8')
                 else:
                     msg = bytes('\n seek_chapter -1 0 \n', 'utf-8')
             else:
-                if ui.player_val.lower() == 'mpv':
+                if ui.player_val.lower() in ['mpv', 'libmpv']:
                     msg = bytes('\n add chapter 1 \n', 'utf-8')
                 else:
                     msg = bytes('\n seek_chapter +1 0 \n', 'utf-8')
             ui.mpvplayer_val.write(msg)
-            if ui.player_val.lower() == 'mpv':
+            if ui.player_val.lower() in ['mpv', 'libmpv']:
                 pmsg = bytes('\n show-text "Chapter: ${chapter}" \n', 'utf-8')
             else:
                 pmsg = bytes('\n osd_show_property_text "Chapter: ${chapter}" \n', 'utf-8')
