@@ -40,6 +40,8 @@ class GUISignals(QtCore.QObject):
     title_signal = pyqtSignal(str)
     slave_status_signal = pyqtSignal(str)
     torrent_status_signal = pyqtSignal(str)
+    observe_signal = pyqtSignal(float)
+    opengl_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -60,6 +62,8 @@ class GUISignals(QtCore.QObject):
         self.title_signal.connect(self.title_clicked)
         self.slave_status_signal.connect(self.track_slave_status)
         self.torrent_status_signal.connect(self.update_torrent_status_window)
+        self.observe_signal.connect(self.mpv_observe_signal)
+        self.opengl_signal.connect(self.update_opengl_widget)
         self.first_time = True
         
     def set_text(self, text):
@@ -107,6 +111,27 @@ class GUISignals(QtCore.QObject):
         
     def update_torrent_status(self, val):
         self.torrent_status_signal.emit(val)
+
+    def update_observe(self, val):
+        self.observe_signal.emit(val)
+
+    def update_opengl(self, val):
+        self.opengl_signal.emit(val)
+
+    @staticmethod
+    def update_opengl_widget(val):
+        if ui.tab_5.window().isMinimized():
+            ui.tab_5.makeCurrent()
+            ui.tab_5.self.paintGL()
+            ui.tab_5.context().swapBuffers(ui.tab_5.context().surface())
+            ui.tab_5.swapped()
+            ui.tab_5.doneCurrent()
+        else:
+            ui.tab_5.update()
+            
+    @staticmethod
+    def mpv_observe_signal(val):
+        ui.slider.setValue(int(val))
     
     @staticmethod
     def update_torrent_status_window(value):
