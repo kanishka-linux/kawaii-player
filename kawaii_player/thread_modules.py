@@ -32,6 +32,84 @@ from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import ccurl, write_files, open_files, send_notification
+from player import PlayerWidget
+from multiprocessing import Process
+
+
+def observe_prop(ui, logr, mp, y=0):
+    print(ui, logr, mp, y)
+    while True:
+        x = mp.time_pos
+        if x is None:
+            print(x)
+            #ui.slider.setValue(y)
+        else:
+            pass
+            #ui.slider.setValue(int(y))
+        time.sleep(0.5)
+        y += 1
+        print(y, ui, logr, mp, ui.progress_counter)
+        #ui.slider.setValue(int(y))
+
+
+class Observe(QtCore.QThread):
+    gotlink = pyqtSignal(float)
+    def __init__(self, ui_widget, logr):
+        QtCore.QThread.__init__(self)
+        global ui, logger
+        ui = ui_widget
+        logger = logr
+        self.gotlink.connect(start_player_directly_observe)
+
+    def __del__(self):
+        self.wait()                        
+
+    def run(self):
+        while True:
+            x = PlayerWidget.mpv.time_pos
+            if x is None:
+                print(x)
+            else:
+                self.gotlink.emit(x)
+            time.sleep(0.5)
+            
+        
+@pyqtSlot(float)
+def start_player_directly_observe(time_pos):
+    global ui
+    print(time_pos)
+    #ui.tab_5.paintGL()
+    ui.tab_5.update()
+    ui.slider.setValue(int(time_pos))
+    ui.tab_5.update()
+    #ui.slider.valueChanged(int(time_pos))
+
+"""
+class ObservePreview(QtCore.QThread):
+    gotlink = pyqtSignal(float)
+    def __init__(self, ui_widget):
+        QtCore.QThread.__init__(self)
+        global ui, logger
+        ui = ui_widget
+        self.gotlink.connect(apply_pic_preview)
+        self.mpv = None
+        self.image_list = []
+        
+    def __del__(self):
+        self.wait()                        
+
+    def settings(self, image):
+        self.image_list.append(image)
+        
+    def run(self):
+        while True:
+            x = PlayerWidget.mpv.time_pos
+            if x is None:
+                print(x)
+            else:
+                self.gotlink.emit(x)
+            time.sleep(0.5)
+"""
 
 class FindPosterThread(QtCore.QThread):
 
