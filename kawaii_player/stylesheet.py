@@ -196,7 +196,6 @@ class WidgetStyleSheet:
                         {min_height};
                         }}
                     QPushButton::hover{{background-color: yellow;color: black;}}
-                    QPushButton:pressed{{background-color: violet;}}
                     QLineEdit{{
                         font:{bold};color:white;background:rgba(0,0,0,30%);
                         {min_height};border:rgba(0, 0, 0, 30%);}}
@@ -288,7 +287,7 @@ class WidgetStyleSheet:
                 QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
                 QPushButton{border-radius:0px;max-height:30px;}
                 QPushButton::hover{background-color: yellow;color: black;}
-                QPushButton:pressed{background-color: violet;}""")
+                """)
             
             
             gui.settings_box.setStyleSheet("""
@@ -332,7 +331,6 @@ class WidgetStyleSheet:
                     QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                     max-height:40px; font: {bold};}}
                     QPushButton::hover{{background-color: yellow;color: black;}}
-                    QPushButton:pressed{{background-color: violet;}}
                     QLineEdit{{color:{color};background:rgba(0,0,0,10%);
                     max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                     QTextEdit{{color:{color};background:rgba(0,0,0,10%);
@@ -719,7 +717,6 @@ class WidgetStyleSheet:
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                         {min_height}; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
-                        QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{
                             color:white;background:rgba(0,0,0,10%);
                             {min_height};border:rgba(0, 0, 0, 10%); font: {bold}
@@ -814,7 +811,7 @@ class WidgetStyleSheet:
                     QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
                     QPushButton{max-height:30px;border:rgba(0, 0, 0, 30%)}
                     QPushButton::hover{background-color: yellow;color: black;}
-                    QPushButton:pressed{background-color: violet;}""")
+                    """)
                 
                 gui.settings_box.setStyleSheet("""
                         QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
@@ -857,7 +854,6 @@ class WidgetStyleSheet:
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                         max-height:40px; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
-                        QPushButton:pressed{{background-color: violet;}}
                         QLineEdit{{color:{color};background:rgba(0,0,0,10%);
                         max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                         QTextEdit{{color:{color};background:rgba(0,0,0,10%);
