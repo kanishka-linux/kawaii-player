@@ -233,12 +233,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         ratio = self.windowHandle().devicePixelRatio()
         w = int(self.width() * ratio)
         h = int(self.height() * ratio)
-        _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
-        
-    def resizeGL(self, width, height):
-        ratio = self.windowHandle().devicePixelRatio()
-        w = int(width * ratio)
-        h = int(height * ratio)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
         
     @pyqtSlot()
@@ -358,7 +353,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         wd = self.width()
         ht = self.height()
         val = self.mpv.fullscreen
-        print(val, "-->>>>>>>>>fs--\n\n\n")
         if val is False or val is None:
             self.mpv.fullscreen = True
             self.player_fs(mode='fs')
@@ -465,29 +459,17 @@ class MpvOpenglWidget(QOpenGLWidget):
                             self.ui.tab_2.hide()
                         if self.player_val in self.ui.playback_engine:
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                        MainWindow.showFullScreen()
-                        #MainWindow.hide()
+                        #MainWindow.showFullScreen()
+                        MainWindow.hide()
                         
-                        #self.setParent(None)
+                        self.setParent(None)
                          
                         self.ui.fullscreen_video = True
-                        #self.showFullScreen()
-                        #self.setWindowFlags(QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.WindowMaximizeButtonHint | QtCore.Qt.WindowCloseButtonHint)
-                        #self.setWindowState(QtCore.Qt.WindowFullScreen)
+                        
                         self.showFullScreen()
-                        #MainWindow.showFullScreen()
-                        #self.update()
                         self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
                         self.setFocus()
                         self.setMouseTracking(True)
-                        QtWidgets.QApplication.processEvents()
-                        self.makeCurrent()
-                        #self.paintGL()
-                        #self.update()
-
-                        #self.context().swapBuffers(self.context().surface())
-                        #self.swapped()
-                        #self.update()
                 elif mode == "nofs":
                     self.mpv.command("set", "pause", "yes")
                     self.ui.gridLayout.setSpacing(5)
@@ -522,9 +504,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if self.ui.orientation_dock == 'right':
                         self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                     self.ui.fullscreen_video = False
-                    #self.setParent(MainWindow)
+                    self.setParent(MainWindow)
                     
-                    #self.setParent(MainWindow)
                     self.ui.gridLayout.addWidget(self, 0, 1, 1, 1)
                     self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
                     self.setMouseTracking(True)
@@ -532,13 +513,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.setFocus()
                     MainWindow.show() 
                     MainWindow.showMaximized()
-                    #MainWindow.show()
-                    self.makeCurrent()
-                    #self.paintGL()
-                    #self.update()
-                    #self.doneCurrent()
-                    #self.update()
-                    #QtWidgets.QApplication.processEvents()
+                    
             else:
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
