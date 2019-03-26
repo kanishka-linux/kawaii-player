@@ -19,6 +19,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import datetime
+import platform
 import urllib.parse
 from functools import partial
 from PyQt5 import QtCore, QtGui
@@ -182,12 +183,13 @@ class GUISignals(QtCore.QObject):
         
     @pyqtSlot(str)
     def track_slave_status(self, val):
+        float_check =  lambda x: int(x) if x.isnumeric() else int(float(x))
         val_arr = val.split('::')
         if len(val_arr) > 3 and ui.mpvplayer_val.processId() == 0:
-            length = int(val_arr[0])
-            counter = int(val_arr[1])
-            row = int(val_arr[2]) - 1
-            que = int(val_arr[3])
+            length = float_check(val_arr[0])
+            counter = float_check(val_arr[1])
+            row = float_check(val_arr[2]) - 1
+            que = float_check(val_arr[3])
             nlen = str(datetime.timedelta(seconds=int(length)))
             tme = str(datetime.timedelta(seconds=int(counter)))
             if row != ui.list2.currentRow() or self.first_time:
@@ -299,7 +301,10 @@ class GUISignals(QtCore.QObject):
             widget_val = urllib.parse.unquote(widget_val)
             if widget_name == 'widget' and widget_val in widget_list:
                 widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
-                widget.clicked.emit()
+                if ui.player_val == "libmpv" and platform.system().lower() == "darwin":
+                    widget.pressed.emit()
+                else:
+                    widget.clicked.emit()
             elif widget_name in ['font_color_value', 'border_color_value', 'shadow_color_value']:
                 ui.frame_extra_toolbar.apply_slave_subtitile_effects(widget_name, widget_val)
             elif widget_name in ['checkbox_bold', 'checkbox_italic', 'checkbox_gray', 'checkbox_dont']:
