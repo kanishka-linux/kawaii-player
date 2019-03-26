@@ -183,6 +183,7 @@ from settings_widget import LoginAuth, LoginPCToPC, OptionsSettings
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
+from mpv import MPV
 from mpv_opengl import MpvOpenglWidget, QProcessExtra
     
     
@@ -1468,6 +1469,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.quit_now = False
         self.system_bgcolor = ''
         self.thumbnail_engine = 'ffmpegthumbnailer'
         self.torrent_show_piece_map = False
@@ -4998,6 +5000,7 @@ class Ui_MainWindow(object):
             
     def epnClicked(self, dock_check=None):
         global MainWindow
+        self.quit_now = False
         self.cur_row = self.list2.currentRow()
         thumb_mode = False
         self.progressEpn.setValue(0)
@@ -8937,6 +8940,15 @@ class Ui_MainWindow(object):
                     return file_path_name_mkv
         elif self.wget.processId() > 0 and play_now:
             return True
+        elif site.lower() in ["playlists", "myserver"] and self.player_val == "libmpv":
+            self.use_playlist_method()
+            if self.tmp_pls_file_lines:
+                write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
+            self.playback_mode = 'playlist'
+            self.mpvplayer_val.write(bytes("loadlist {}".format(self.tmp_pls_file), "utf-8"))
+            self.tab_5.mpv.playlist_pos = self.cur_row
+            self.tab_5.mpv.prefetch_playlist = True
+            return True
         else:
             return False
 
@@ -9216,6 +9228,15 @@ class Ui_MainWindow(object):
                     rfr=referer)
             logger.info(command)
             self.infoPlay(command)
+        elif self.player_val == "libmpv":
+            self.tab_5.mpv.stop = True
+            self.tab_5.mpv.loop_playlist = False
+            #if aurl:
+            #    self.tab_5.mpv.command("audio-files", aurl.replace('"', ""))
+            if surl:
+                self.tab_5.mpv.sub_file = surl.replace('"', "")
+            self.tab_5.mpv.play(finalUrl.replace('"', ""))
+            self.tab_5.audio = aurl.replace('"', "")
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = str(int(self.tab_5.winId()))
@@ -9479,6 +9500,8 @@ class Ui_MainWindow(object):
                 command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                 logger.info(command)
                 self.infoPlay(command)
+            elif self.player_val == "libmpv":
+                self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ""))
             else:
                 finalUrl = finalUrl.replace('"', '')
                 if self.player_val.lower() in ['mpv', 'mplayer']:

@@ -63,22 +63,23 @@ class QProcessExtra(QtCore.QProcess):
                 #print(self.ui.tab_5.mpv.track_list)
             else:
                 try:
-                    
-                    if "sub-font-size" in cmd_arr:
+                    if cmd_arr[0] in ["stop", "quit"]:
+                        self.ui.quit_now = True
+                    if "sub-font-size" in cmd_arr[0]:
                         font_size = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_font_size = font_size
                         print(font_size)
-                    elif "sub-font" in cmd_arr:
+                    elif "sub-font" in cmd_arr[0]:
                         sub_font = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_font = sub_font.replace('"', "")
                         print(sub_font)
-                    elif "sub-color" in cmd_arr:
+                    elif "sub-color" in cmd_arr[0]:
                         sub_color = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_color = sub_color.replace('"', "")
-                    elif "sub-border-color" in cmd_arr:
+                    elif "sub-border-color" in cmd_arr[0]:
                         sub_border_color = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_border_color = sub_border_color.replace('"', "")
-                    elif "sub-shadow-color" in cmd_arr:
+                    elif "sub-shadow-color" in cmd_arr[0]:
                         sub_shadow_color = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_shadow_color = sub_shadow_color.replace('"', "")
                     else:
@@ -93,8 +94,7 @@ class QProcessExtra(QtCore.QProcess):
 
 class MpvOpenglWidget(QOpenGLWidget):
     
-    mpv = MPV(vo='libmpv', ytdl=True,
-              keep_open=True, idle=True)
+    mpv = MPV(vo='libmpv', ytdl=True, loop_playlist="inf", idle=True)
     if platform.system().lower() == "darwin":
         mpv.ao = "coreaudio"
     elif os.name == "posix":
@@ -147,6 +147,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             ]
         self.aboutToResize.connect(self.resized)
         self.aboutToCompose.connect(self.compose)
+        self.audio = None
 
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
@@ -185,6 +186,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             z = 'duration is {:.2f}s'.format(value)
             gui.progress_counter = value
             gui.slider.setValue(value)
+            if gui.tab_5.audio and int(value) in range(0, 3):
+                gui.tab_5.mpv.command("audio-add", gui.tab_5.audio, "select")
+                gui.tab_5.audio = None
+                print("addiong..audio..", gui.tab_5.audio, )
     
     @mpv.property_observer('eof-reached')
     def eof_observer(_name, value):
@@ -194,6 +199,24 @@ class MpvOpenglWidget(QOpenGLWidget):
             gui.list2.setCurrentRow(gui.cur_row)
         else:
             gui.cur_row = gui.list2.currentRow()
+
+    @mpv.property_observer('idle-active')
+    def idle_observer(_name, value):
+        print("idle.. value", value, _name)
+        if ('gui' in globals() and value is True
+                and gui.tab_5.mpv.playlist_count == 1
+                and gui.list2.count() > 1
+                and gui.quit_now is False):
+            print("only single playlist..")
+            gui.tab_5.mpv.loop_playlist = False
+            gui.tab_5.mpv.loop_file = False
+            gui.tab_5.mpv.stop = True
+            gui.cur_row = (gui.cur_row + 1) % gui.list2.count()
+            gui.list2.setCurrentRow(gui.cur_row)
+            item = gui.list2.item(gui.cur_row)
+            if item:
+                gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        
             
     @mpv.property_observer('duration')
     def time_duration(_name, value):
