@@ -14326,8 +14326,6 @@ def main():
         input_conf = os.path.join(RESOURCE_DIR, 'input.conf')
         if os.path.isfile(input_conf):
             shutil.copy(input_conf, ui.mpv_input_conf)
-    if ui.player_val == "libmpv":
-        ui.setup_opengl_widget()
         
     try:
         if os.path.isfile(ui.settings_box.config_file_name) and ui.use_custom_config_file:
@@ -14336,6 +14334,8 @@ def main():
                 ui.mpvplayer_string_list = config_dict['str']
     except Exception as err:
         logger.error(err)
+    if ui.player_val == "libmpv":
+        ui.setup_opengl_widget()
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
