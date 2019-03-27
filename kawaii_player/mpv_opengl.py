@@ -94,13 +94,7 @@ class QProcessExtra(QtCore.QProcess):
 
 class MpvOpenglWidget(QOpenGLWidget):
     
-    mpv = MPV(vo='libmpv', ytdl=True, loop_playlist="inf", idle=True)
-    if platform.system().lower() == "darwin":
-        mpv.ao = "coreaudio"
-    elif os.name == "posix":
-        mpv.ao = "pulse"
-    elif os.name == "nt":
-        mpv.ao = "wasapi"
+    
     def __init__(self, parent=None, ui=None, logr=None, tmp=None):
         global gui, MainWindow, screen_width, screen_height, logger
         print(ui, logr, tmp, "--")
@@ -109,6 +103,21 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.ui = ui
         MainWindow = parent
         logger = logr
+        self.args_dict = {'vo':'libmpv', 'ytdl':True, 'loop_playlist':'inf', 'idle':True}
+        if platform.system().lower() == "darwin":
+            self.args_dict.update({"ao":"coreaudio"})
+        elif os.name == "posix":
+            self.args_dict.update({"ao":"pulse"})
+        elif os.name == "nt":
+            self.args_dict.update({"ao":"wasapi"})
+        if gui.mpvplayer_string_list and gui.use_custom_config_file:
+            self.create_args_dict()
+        self.mpv = MPV(**self.args_dict)
+        self.mpv.observe_property("time-pos", self.time_observer)
+        self.mpv.observe_property("eof-reached", self.eof_observer)
+        self.mpv.observe_property("idle-active", self.idle_observer)
+        self.mpv.observe_property("duration", self.time_duration)
+        
         self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
         self.on_update_c = OpenGlCbUpdateFn(self.on_update)
         self.on_update_fake_c = OpenGlCbUpdateFn(self.on_update_fake)
@@ -152,7 +161,20 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.aboutToResize.connect(self.resized)
         self.aboutToCompose.connect(self.compose)
         self.audio = None
-
+        
+        
+    def create_args_dict(self):
+        for param in gui.mpvplayer_string_list:
+            if "=" in param:
+                k, v = param.split("=", 1)
+            else:
+                k = param
+                v = True
+            if k.startswith('--'):
+                k = k[2:]
+            k = k.replace("-", "_")
+            self.args_dict.update({k:v})
+            
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
             self.mpvplayer = mpvplayer
@@ -184,37 +206,36 @@ class MpvOpenglWidget(QOpenGLWidget):
             else:
                 logger.debug('player not focussed')
     
-    @mpv.property_observer('time-pos')
-    def time_observer(_name, value):
+    def time_observer(self, _name, value):
         if value is not None:
             z = 'duration is {:.2f}s'.format(value)
-            gui.progress_counter = value
-            gui.slider.setValue(value)
-            if gui.tab_5.audio and int(value) in range(0, 3):
-                gui.tab_5.mpv.command("audio-add", gui.tab_5.audio, "select")
-                gui.tab_5.audio = None
-                print("addiong..audio..", gui.tab_5.audio, )
+            if (value - gui.progress_counter) >= 1:
+                gui.progress_counter = value
+                #gui.slider.setValue(value)
+                gui.progressEpn.setFormat(('{:.2f}/{:.2f}'.format(value, gui.mplayerLength)))
+            if self.audio and int(value) in range(0, 3):
+                self.mpv.command("audio-add", self.audio, "select")
+                self.audio = None
+                print("addiong..audio..", self.audio)
     
-    @mpv.property_observer('eof-reached')
-    def eof_observer(_name, value):
+    def eof_observer(self, _name, value):
         print("eof.. value", value, _name)
-        gui.cur_row = gui.tab_5.mpv.playlist_pos
+        gui.cur_row = self.mpv.playlist_pos
         if gui.cur_row is not None:
             gui.list2.setCurrentRow(gui.cur_row)
         else:
             gui.cur_row = gui.list2.currentRow()
 
-    @mpv.property_observer('idle-active')
-    def idle_observer(_name, value):
+    def idle_observer(self, _name, value):
         print("idle.. value", value, _name)
         if ('gui' in globals() and value is True
-                and gui.tab_5.mpv.playlist_count == 1
+                and self.mpv.playlist_count == 1
                 and gui.list2.count() > 1
                 and gui.quit_now is False):
             print("only single playlist..")
-            gui.tab_5.mpv.loop_playlist = False
-            gui.tab_5.mpv.loop_file = False
-            gui.tab_5.mpv.stop = True
+            self.mpv.loop_playlist = False
+            self.mpv.loop_file = False
+            self.mpv.stop = True
             gui.cur_row = (gui.cur_row + 1) % gui.list2.count()
             gui.list2.setCurrentRow(gui.cur_row)
             item = gui.list2.item(gui.cur_row)
@@ -222,13 +243,12 @@ class MpvOpenglWidget(QOpenGLWidget):
                 gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         
             
-    @mpv.property_observer('duration')
-    def time_duration(_name, value):
+    def time_duration(self, _name, value):
         if value is not None:
             z = 'duration is {:.2f}s'.format(value)
             gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
-            gui.slider.setRange(0, int(gui.mplayerLength))
+            #gui.slider.setRange(0, int(gui.mplayerLength))
         
     def initializeGL(self):
         _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
