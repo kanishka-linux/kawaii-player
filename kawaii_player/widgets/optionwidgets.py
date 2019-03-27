@@ -693,7 +693,10 @@ class MySlider(QtWidgets.QSlider):
                 var = bytes('\n '+"seek "+str(new_val)+" absolute"+' \n', 'utf-8')
                 ui.mpvplayer_val.write(var)
             elif ui.player_val == "libmpv":
-                ui.tab_5.mpv.command("seek", new_val, "absolute")
+                try:
+                    ui.tab_5.mpv.command("seek", new_val, "absolute")
+                except Exception as err:
+                    print(err)
             elif ui.player_val =="mplayer":
                 seek_val = int((new_val-old_val)/1000)
                 var = bytes('\n '+"seek "+str(seek_val)+' \n', 'utf-8')
