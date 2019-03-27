@@ -127,6 +127,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.fs_timer.timeout.connect(self.toggle_fullscreen_mode)
         self.fs_timer.setSingleShot(True)
         
+        self.mx_timer = QtCore.QTimer()
+        self.mx_timer.timeout.connect(MainWindow.showMaximized)
+        self.mx_timer.setSingleShot(True)
+        
         self.player_val = "libmpv"
         screen_width = gui.screen_size[0]
         screen_height = gui.screen_size[1]
@@ -233,7 +237,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         ratio = self.windowHandle().devicePixelRatio()
         w = int(self.width() * ratio)
         h = int(self.height() * ratio)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        try:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        except Exception as err:
+            logger.error(err)
         _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
         
     @pyqtSlot()
@@ -411,7 +418,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpvplayer.write(msg_byt)
 
     def player_fs(self, mode=None):
-        self.mpv.command("set", "pause", "yes")
+        if platform.system().lower() == "darwin":
+            self.mpv.command("set", "pause", "yes")
         if not self.ui.idw or self.ui.idw == str(int(self.winId())):
             if self.player_val == "libmpv":
                 if mode == 'fs':
@@ -459,10 +467,11 @@ class MpvOpenglWidget(QOpenGLWidget):
                             self.ui.tab_2.hide()
                         if self.player_val in self.ui.playback_engine:
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                        #MainWindow.showFullScreen()
-                        MainWindow.hide()
-                        
-                        self.setParent(None)
+                        if platform.system().lower() == "darwin":
+                            MainWindow.hide()
+                            self.setParent(None)
+                        else:
+                            MainWindow.showFullScreen()
                          
                         self.ui.fullscreen_video = True
                         
@@ -471,7 +480,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.setFocus()
                         self.setMouseTracking(True)
                 elif mode == "nofs":
-                    self.mpv.command("set", "pause", "yes")
+                    if platform.system().lower() == "darwin":
+                        self.mpv.command("set", "pause", "yes")
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(5)
                     self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
@@ -511,8 +521,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.setMouseTracking(True)
                     self.showNormal()
                     self.setFocus()
-                    MainWindow.show() 
-                    MainWindow.showMaximized()
+                    #MainWindow.show()
+                    if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
+                        self.mx_timer.start(1000) 
                     
             else:
                 if self.ui.detach_fullscreen:
@@ -606,7 +617,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.ui.float_window.showFullScreen()
                     else:
                         self.ui.float_window.showNormal()
-        if not self.pause_timer.isActive():
+        if not self.pause_timer.isActive() and platform.system().lower() == "darwin":
             self.pause_timer.start(1000)
                         
 
