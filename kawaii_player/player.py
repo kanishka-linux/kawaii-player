@@ -564,18 +564,15 @@ class PlayerWidget(QtWidgets.QWidget):
                             self.ui.new_tray_widget.hide()
                 command = self.mpv_default.get(key)
                 logger.debug(command)
-                print(">>>>>>>>>>>>>>>>>>>>")
                 if not command:
                     command = self.mpv_custom.get(key)
                 logger.debug(command)
-                print("''''''''''''''''''''''''''===")
                 if command:
                     command_list = command.split('::')
                     for part in command_list:
                         if part in self.function_map:
                             myfunction = self.function_map.get(part)
                             myfunction()
-                            print(part, "----->", myfunction)
                         elif part.startswith('ignore'):
                             pass
                         elif part.startswith('add'):
@@ -585,7 +582,6 @@ class PlayerWidget(QtWidgets.QWidget):
                             command_string = bytes(cmd, 'utf-8')
                             logger.debug(command_string)
                             part = part.split()
-                            print(part, "------------>>>>>>>>>>>>>>>>>>>>>>>>>>>part..")
                             self.ui.mpvplayer_val.write(command_string)
                             
             if no_modifier:
