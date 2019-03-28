@@ -1573,6 +1573,7 @@ class Ui_MainWindow(object):
         self.newlistfound_thread_box = []
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
+        self.mpvplayer_aspect_float = {'0':-1, '1':1.777777778, '2':1.3333333333, '3':2.35, '4':0}
         self.playback_engine = ["mpv", 'mplayer', 'libmpv']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
@@ -1799,12 +1800,12 @@ class Ui_MainWindow(object):
         self.audio_track.clicked_connect(self.toggleAudio)
         self.subtitle_track.clicked_connect(self.toggleSubtitle)
         self.player_stop.clicked_connect(self.playerStop)
-        self.player_prev.clicked_connect(self.mpvPrevEpnList)
+        self.player_prev.clicked_connect(self.mpv_prev)
         self.player_play_pause.clicked_connect(self.playerPlayPause)
         self.player_loop_file.clicked_connect(
             partial(self.playerLoopFile, self.player_loop_file)
             )
-        self.player_next.clicked_connect(self.mpvNextEpnList)
+        self.player_next.clicked_connect(self.mpv_next)
         self.mirror_change.clicked_connect(self.mirrorChange)
         self.btn20.clicked_connect(lambda r = 0: self.thumbnailHide('clicked'))
         self.btn201.clicked_connect(self.prev_thumbnails)
@@ -1939,6 +1940,18 @@ class Ui_MainWindow(object):
         self.downloadWget_cnt = 0
         self.lock_process = False
         self.mpv_thumbnail_lock = Lock()
+
+    def mpv_next(self):
+        if self.player_val == "libmpv":
+            self.tab_5.get_next()
+        else:
+            self.mpvNextEpnList()
+
+    def mpv_prev(self):
+        if self.player_val == "libmpv":
+            self.tab_5.get_previous()
+        else:
+            self.mpvPrevEpnList()
     
     def set_mainwindow_palette(self, fanart, first_time=None, theme=None):
         if theme is None or theme == 'default':
@@ -3541,8 +3554,8 @@ class Ui_MainWindow(object):
             self.player_loop_file.setText(self.player_buttons['lock'])
             self.new_tray_widget.lock.setText(self.player_buttons['lock'])
             self.quit_really = 'no'
-            if self.mpvplayer_val.processId() > 0:
-                if self.player_val == 'mpv':
+            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+                if self.player_val in ['mpv', 'libmpv']:
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
@@ -3552,8 +3565,8 @@ class Ui_MainWindow(object):
             self.player_setLoop_var = False
             self.player_loop_file.setText(self.player_buttons['unlock'])
             self.new_tray_widget.lock.setText(self.player_buttons['unlock'])
-            if self.mpvplayer_val.processId() > 0:
-                if self.player_val == 'mpv':
+            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+                if self.player_val in ['mpv', 'libmpv']:
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
@@ -3564,8 +3577,8 @@ class Ui_MainWindow(object):
     def playerPlayPause(self, *args):
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
-            if self.mpvplayer_val.processId() > 0:
-                if self.player_val == "mpv":
+            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+                if self.player_val in ["mpv", "libmpv"]:
                     txt_osd = '\n set osd-level 1 \n'
                     self.mpvplayer_val.write(b'\n set pause no \n')
                     self.player_play_pause.setText(self.player_buttons['pause'])
@@ -3576,8 +3589,6 @@ class Ui_MainWindow(object):
                     self.mpv_execute_command(cmd, '', 100)
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
-            elif self.player_val == "libmpv":
-                self.tab_5.mpv.pause = False
             else:
                 if self.list2.currentItem():
                     self.cur_row = self.list2.currentRow()
@@ -3592,8 +3603,8 @@ class Ui_MainWindow(object):
                         finalUrl = self.epn_return(self.cur_row)
                         self.play_file_now(finalUrl, win_id=self.idw)
         elif txt == self.player_buttons['pause']:
-            if self.mpvplayer_val.processId() > 0:
-                if self.player_val == "mpv":
+            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+                if self.player_val in ["mpv", "libmpv"]:
                     txt_osd = '\n set osd-level 3 \n'
                     self.mpvplayer_val.write(b'\n set pause yes \n')
                     self.player_play_pause.setText(self.player_buttons['play'])
@@ -3604,8 +3615,6 @@ class Ui_MainWindow(object):
                     self.mpv_execute_command(cmd, '', 100)
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
-            elif self.player_val == "libmpv":
-                self.tab_5.mpv.pause = True
             else:
                 if self.list2.currentItem():
                     self.cur_row = self.list2.currentRow()
@@ -8700,7 +8709,7 @@ class Ui_MainWindow(object):
                 if self.tmp_pls_file_lines:
                     write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                 self.playback_mode = 'playlist'
-                self.mpvplayer_val.write(bytes("loadlist {}".format(self.tmp_pls_file), "utf-8"))
+                self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
                 self.tab_5.mpv.playlist_pos = self.cur_row
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
@@ -8945,7 +8954,7 @@ class Ui_MainWindow(object):
             if self.tmp_pls_file_lines:
                 write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
             self.playback_mode = 'playlist'
-            self.mpvplayer_val.write(bytes("loadlist {}".format(self.tmp_pls_file), "utf-8"))
+            self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
             self.tab_5.mpv.playlist_pos = self.cur_row
             self.tab_5.mpv.prefetch_playlist = True
             return True

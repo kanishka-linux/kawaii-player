@@ -4,6 +4,8 @@
     
 """
 import os
+import re
+import time
 import platform
 import locale
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -32,6 +34,14 @@ class QProcessExtra(QtCore.QProcess):
         super(QProcessExtra, self).__init__(parent)
         self.ui = ui
         
+    def filter_command(self, cmd):
+        file_path = re.search('"(?P<file>(.?)*)"', cmd).group('file')
+        command = re.sub('"(.?)*"', "", cmd)
+        arr = command.split()
+        arr.insert(1, file_path)
+        self.ui.tab_5.mpv.command(*arr)
+        return file_path
+        
     def write(self, cmd):
         if self.ui.player_val == "libmpv":
             print(cmd)
@@ -40,9 +50,10 @@ class QProcessExtra(QtCore.QProcess):
             print(cmd_arr)
             if cmd_arr[0] == "show-text":
                 cmd_tail = cmd.split(" ", 1)[-1]
-                if cmd_tail.startswith('"') or cmd_tail.startswith("'"):
-                   cmd = cmd[:-1]
-                   cmd = cmd[1:] 
+                if cmd_tail.startswith('"'):
+                   cmd = cmd.replace('"', "")
+                elif cmd_tail.startswith("'"):
+                   cmd = cmd.replace("'", '')
                 if "filename" in cmd_tail:
                     filename = self.ui.tab_5.mpv.filename
                     cmd_tail = "filename: {}".format(filename)
@@ -59,9 +70,12 @@ class QProcessExtra(QtCore.QProcess):
                     sid = self.ui.tab_5.mpv.sid
                     cmd_tail = "Sub: {}".format(sid)
                 self.ui.tab_5.mpv.command("show-text", cmd_tail)
-                print(self.ui.tab_5.mpv.property_list)
-                print(self.ui.tab_5.mpv.chapter_list)
-                #print(self.ui.tab_5.mpv.track_list)
+            elif cmd_arr[0] == "sub-add":
+                sub_file = self.filter_command(cmd)
+                self.ui.tab_5.mpv.command("show-text", "Adding-subtitle: {}".format(sub_file))
+            elif cmd_arr[0] == "loadfile":
+                file_path = self.filter_command(cmd)
+                self.ui.tab_5.mpv.command("show-text", "loading: {}".format(file_path))
             else:
                 try:
                     if cmd_arr[0] in ["stop", "quit"]:
@@ -85,7 +99,6 @@ class QProcessExtra(QtCore.QProcess):
                         self.ui.tab_5.mpv.sub_shadow_color = sub_shadow_color.replace('"', "")
                     else:
                         self.ui.tab_5.mpv.command(*cmd_arr)
-                    #self.ui.tab_5.mpv.command("show-text", "{}".format(cmd))
                 except Exception as e:
                     print(e)
                     self.ui.tab_5.mpv.command("show-text", "not found: {}, {}".format(cmd, e), 5000)
@@ -163,6 +176,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.aboutToResize.connect(self.resized)
         self.aboutToCompose.connect(self.compose)
         self.audio = None
+        self.ratio = None
+        self.dim = None
         
         
     def create_args_dict(self):
@@ -211,10 +226,11 @@ class MpvOpenglWidget(QOpenGLWidget):
     def time_observer(self, _name, value):
         if value is not None:
             z = 'duration is {:.2f}s'.format(value)
-            if (value - gui.progress_counter) >= 1:
+            if abs(value - gui.progress_counter) >= 0.5:
+                fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
                 gui.progress_counter = value
-                #gui.slider.setValue(value)
-                gui.progressEpn.setFormat(('{:.2f}/{:.2f}'.format(value, gui.mplayerLength)))
+                gui.slider.setValue(int(value))
+                gui.progressEpn.setFormat(('{}/{}'.format(fn(value), fn(gui.mplayerLength))))
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
                 self.audio = None
@@ -250,7 +266,8 @@ class MpvOpenglWidget(QOpenGLWidget):
             z = 'duration is {:.2f}s'.format(value)
             gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
-            #gui.slider.setRange(0, int(gui.mplayerLength))
+            gui.progress_counter = 0
+            gui.slider.setRange(0, int(gui.mplayerLength))
         
     def initializeGL(self):
         _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
@@ -307,23 +324,95 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setFocus()
         PlayerWidget.mouseMoveEvent(self, event)
 
-    def change_aspect_ratio(self):
-        pass
+    def change_aspect_ratio(self, key=None):
+        self.ui.mpvplayer_aspect_cycle = int(key)
+        aspect_val = self.ui.mpvplayer_aspect_float.get(str(self.ui.mpvplayer_aspect_cycle))
+        self.mpv.video_aspect = aspect_val
 
     def start_player_loop(self):
-        pass
+        PlayerWidget.start_player_loop()
 
     def show_hide_status_frame(self):
-        pass
+        PlayerWidget.show_hide_status_frame()
 
     def toggle_play_pause(self):
-        self.ui.tab_5.mpv.command("cycle", "pause")
+        PlayerWidget.toggle_play_pause()
 
     def load_subtitle_from_file(self):
-        pass
+        PlayerWidget.load_subtitle_from_file()
 
     def load_subtitle_from_network(self):
-        pass
+        PlayerWidget.load_subtitle_from_network()
+
+    def load_external_sub(self, mode=None, subtitle=None, title=None):
+        if mode is None:
+            fname = QtWidgets.QFileDialog.getOpenFileNames(
+                    MainWindow, 'Select Subtitle file', self.ui.last_dir)
+            if fname:
+                logger.info(fname)
+                if fname[0]:
+                    self.ui.last_dir, file_choose = os.path.split(fname[0][0])
+                    title_sub = fname[0][0]
+                    if self.player_val == "mplayer":
+                        txt = '\n sub_load "{}" \n'.format(title_sub)
+                        txt_b = bytes(txt, 'utf-8')
+                        logger.info("{0} - {1}".format(txt_b, txt))
+                        gui.mpvplayer_val.write(txt_b)
+                    else:
+                        txt = '\n sub-add "{}" select \n'.format(title_sub)
+                        txt_b = bytes(txt, 'utf-8')
+                        logger.info("{0} - {1}".format(txt_b, txt))
+                        gui.mpvplayer_val.write(txt_b)
+            self.ui.acquire_subtitle_lock = False
+        elif mode == 'network':
+            site = self.ui.get_parameters_value(st='site')['site']
+            if site.lower() == 'myserver':
+                title_sub = self.ui.final_playing_url + '.original.subtitle'
+                if self.player_val == "mplayer":
+                    txt = '\n sub_load "{}" \n'.format(title_sub)
+                    txt_b = bytes(txt, 'utf-8')
+                    logger.info("{0} - {1}".format(txt_b, txt))
+                    gui.mpvplayer_val.write(txt_b)
+                else:
+                    txt = '\n sub-add "{}" select \n'.format(title_sub)
+                    txt_b = bytes(txt, 'utf-8')
+                    logger.info("{0} - {1}".format(txt_b, txt))
+                    gui.mpvplayer_val.write(txt_b)
+            else:
+                logger.warning('Not Allowed')
+        elif mode == 'drop':
+            title_sub = subtitle
+            logger.debug(title_sub)
+            if self.player_val == "mplayer":
+                txt = '\n sub_load "{}" \n'.format(title_sub)
+                txt_b = bytes(txt, 'utf-8')
+                logger.info("{0} - {1}".format(txt_b, txt))
+                gui.mpvplayer_val.write(txt_b)
+            else:
+                txt = '\n sub-add "{}" select \n'.format(title_sub)
+                txt_b = bytes(txt, 'utf-8')
+                logger.info("{0} - {1}".format(txt_b, txt))
+                gui.mpvplayer_val.write(txt_b)
+        elif mode in ['load', 'auto']:
+            ext_find = subtitle.split('.')
+            if len(ext_find) >= 2:
+                lang = ext_find[-2]
+                ext = ext_find[-1]
+            else:
+                lang = ext_find[-1]
+                ext = ext_find[-1]
+            if self.ui.player_val == "mplayer":
+                cmd = 'sub_load "{}"'.format(subtitle)
+            else:
+                cmd = 'sub-add "{}" auto {} {}'.format(subtitle, lang, lang)
+            if self.ui.list2.currentItem():
+                row = self.ui.list2.currentRow()
+            else:
+                row = 0
+            if mode == 'auto':
+                self.ui.mpv_execute_command(cmd, row, 1000)
+            else:
+                self.ui.mpv_execute_command(cmd, row)
 
     def add_parameter(self, cmd):
         if ' ' in cmd:
@@ -437,7 +526,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.ui.quit_really = "yes"
         msg = '"Stop After current file"'
         msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
-        self.mpvplayer.write(msg_byt)
+        gui.mpvplayer_val.write(msg_byt)
 
     def player_fs(self, mode=None):
         if platform.system().lower() == "darwin":
