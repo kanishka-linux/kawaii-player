@@ -466,7 +466,23 @@ class MySlider(QtWidgets.QSlider):
         ui.logger.debug('{}::{}'.format(self.file_type, ui.final_playing_url))
         if self.file_type in ['network', 'music', 'unknown']:
             self.final_url = ui.final_playing_url
-            
+
+    def mpv_preview(self, preview_dir, t, scale, newpicn, url):
+        self.preview_lock.acquire()
+        picn = os.path.join(preview_dir, '00000001.jpg')
+        self.mpv.vo_image_jpeg_quality = ui.live_preview_quality
+        self.mpv.vo_image_outdir = preview_dir
+        self.mpv.start = t
+        if scale is not None:
+            self.mpv.vf = "scale={}:{}".format(scale[0], scale[1])
+        if not os.path.exists(newpicn):
+            self.mpv.play(url)
+        self.mpv.wait_for_property("idle-active", lambda x : x)
+        if os.path.exists(picn) and not os.path.exists(newpicn):
+            shutil.move(picn, newpicn)
+        self.mpv.stop = True
+        self.preview_lock.release()
+    
     def mouseMoveEvent(self, event):
         if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
             self.setFocus()
@@ -504,18 +520,9 @@ class MySlider(QtWidgets.QSlider):
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
             if ui.player_val == "libmpv":
-                self.preview_lock.acquire()
-                self.mpv.vo_image_jpeg_quality = ui.live_preview_quality
-                self.mpv.vo_image_outdir = self.preview_dir
-                self.mpv.start = int(t)
-                self.mpv.vf = "scale={}:{}".format(ui.label.maximumWidth(), ui.label.maximumHeight())
-                if not os.path.exists(newpicn):
-                    self.mpv.play(ui.final_playing_url)
-                self.mpv.wait_for_property("idle-active", lambda x : x)
-                if os.path.exists(picn) and not os.path.exists(newpicn):
-                    shutil.move(picn, newpicn)
-                self.mpv.stop = True
-                self.preview_lock.release()
+                self.mpv_preview(self.preview_dir, t,
+                                (ui.label.maximumWidth(), ui.label.maximumHeight()),
+                                newpicn, ui.final_playing_url)
                 self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
         else:
             if self.tooltip is None:
