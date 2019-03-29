@@ -11,6 +11,8 @@ from PIL import Image
 from PyQt5 import QtCore, QtWidgets, QtGui
 from player_functions import write_files
 from thread_modules import DiscoverServer
+from mpv import MPV
+from threading import Lock
 
 class QPushButtonExtra(QtWidgets.QPushButton):
 
@@ -391,6 +393,8 @@ class MySlider(QtWidgets.QSlider):
         self.empty_preview_dir = False
         self.check_dimension_again = False
         self.preview_dir = None
+        self.preview_lock = Lock()
+        self.mpv = MPV(vo="image", ytdl="no", quiet=True, aid="no", sid="no", frames=1, idle=True)
         
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
@@ -422,13 +426,17 @@ class MySlider(QtWidgets.QSlider):
             self.tooltip.hideText()
         self.enter = False
         self.check_dimension_again = True
-        
+        #self.mpv.terminate()
+        picn = os.path.join(self.preview_dir, '00000001.jpg')
+        if os.path.exists(picn):
+            os.remove(picn)
+            
     def enterEvent(self, event):
         self.enter = True
         if self.final_url != ui.final_playing_url:
             self.check_and_set_file_type()
             if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
-                    and ui.live_preview in ['slow', 'fast']):
+                    and ui.live_preview in ['slow', 'fast'] or ui.player_val == "libmpv"):
                 self.create_preview_dir()
         self.mouseMoveEvent(event)
     
@@ -467,11 +475,10 @@ class MySlider(QtWidgets.QSlider):
         if self.final_url != ui.final_playing_url:
             self.check_and_set_file_type()
             if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
-                    and ui.live_preview in ['slow', 'fast']):
+                    and ui.live_preview in ['slow', 'fast'] or ui.player_val == "libmpv"):
                 self.create_preview_dir()
                 
         self.preview_counter += 1
-        #self.setToolTip('') 
         t = ((event.x() - self.x())/self.width())
         if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:
             t = int(t*self.maximum())
@@ -489,13 +496,27 @@ class MySlider(QtWidgets.QSlider):
         change_aspect = False
         if not os.path.exists(ui.preview_download_folder):
             os.makedirs(ui.preview_download_folder)
-        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
+        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video' or ui.player_val == "libmpv":
             if self.preview_dir is None:
                 self.create_preview_dir()
             command = 'mpv --vo=image --vo-image-jpeg-quality={} --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.live_preview_quality, self.preview_dir, int(t), ui.final_playing_url)
             picn = os.path.join(self.preview_dir, '00000001.jpg')
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
+            if ui.player_val == "libmpv":
+                self.preview_lock.acquire()
+                self.mpv.vo_image_jpeg_quality = ui.live_preview_quality
+                self.mpv.vo_image_outdir = self.preview_dir
+                self.mpv.start = int(t)
+                self.mpv.vf = "scale={}:{}".format(ui.label.maximumWidth(), ui.label.maximumHeight())
+                if not os.path.exists(newpicn):
+                    self.mpv.play(ui.final_playing_url)
+                self.mpv.wait_for_property("idle-active", lambda x : x)
+                if os.path.exists(picn) and not os.path.exists(newpicn):
+                    shutil.move(picn, newpicn)
+                self.mpv.stop = True
+                self.preview_lock.release()
+                self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -568,7 +589,7 @@ class MySlider(QtWidgets.QSlider):
             point = None
             rect = None
             self.apply_pic(picn, x, y, length)
-            if self.preview_pending:
+            if self.preview_pending and ui.player_val != "libmpv":
                 while self.preview_counter >= 0:
                     self.preview_counter -= 1
                 ui.logger.debug('\n{}::{}\n'.format(len(self.preview_pending), self.preview_counter))
@@ -587,7 +608,7 @@ class MySlider(QtWidgets.QSlider):
     
     def apply_pic(self, picn, x, y, length, resize=None, only_text=None):
         if resize:
-            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, 2*self.half_size)
+            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, self.half_size)
         else:
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
         if ui.live_preview_style == 'tooltip':
@@ -651,8 +672,6 @@ class MySlider(QtWidgets.QSlider):
                     self.check_dimension_again = True
             except Exception as err:
                 ui.logger.error(err)
-            #self.pic.clear()
-            #if not resize:
             if os.path.isfile(picn):
                 if not only_text:
                     self.pic.setPixmap(QtGui.QPixmap(picn, "1"))
