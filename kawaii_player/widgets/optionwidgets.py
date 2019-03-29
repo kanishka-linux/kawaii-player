@@ -5,6 +5,7 @@ import hashlib
 import shutil
 import subprocess
 import platform
+import locale
 from functools import partial
 import PIL
 from PIL import Image
@@ -394,6 +395,7 @@ class MySlider(QtWidgets.QSlider):
         self.check_dimension_again = False
         self.preview_dir = None
         self.preview_lock = Lock()
+        locale.setlocale(locale.LC_NUMERIC, 'C')
         self.mpv = MPV(vo="image", ytdl="no", quiet=True, aid="no", sid="no", frames=1, idle=True)
         
     def keyPressEvent(self, event):
