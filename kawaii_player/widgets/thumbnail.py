@@ -1413,7 +1413,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 inter = str(interval)+'s'
                 path = str(path)
                 
-                if site == "PlayLists":
+                if site == "PlayLists" and ui.player_val != "libmpv":
                     rfr_url = str((ui.epn_arr_list[num]).split('	')[2])
                     rfr_url1 = rfr_url.replace('"', '')
                     rfr_url1 = rfr_url1.replace("'", '')
