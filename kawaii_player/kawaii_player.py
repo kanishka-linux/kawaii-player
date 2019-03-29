@@ -1489,7 +1489,7 @@ class Ui_MainWindow(object):
         self.live_preview = 'fast'
         self.master_casting_subdict = {}
         self.live_preview_quality = '90'
-        self.live_preview_style = 'widget'
+        self.live_preview_style = 'tooltip'
         self.playback_mode = 'single'
         self.append_counter = 0
         self.append_audio_start = False
