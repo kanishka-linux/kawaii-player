@@ -9245,7 +9245,8 @@ class Ui_MainWindow(object):
             if surl:
                 self.tab_5.mpv.sub_file = surl.replace('"', "")
             self.tab_5.mpv.play(finalUrl.replace('"', ""))
-            self.tab_5.audio = aurl.replace('"', "")
+            if aurl:
+                self.tab_5.audio = aurl.replace('"', "")
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = str(int(self.tab_5.winId()))
