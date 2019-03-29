@@ -84,32 +84,6 @@ def start_player_directly_observe(time_pos):
     ui.tab_5.update()
     #ui.slider.valueChanged(int(time_pos))
 
-"""
-class ObservePreview(QtCore.QThread):
-    gotlink = pyqtSignal(float)
-    def __init__(self, ui_widget):
-        QtCore.QThread.__init__(self)
-        global ui, logger
-        ui = ui_widget
-        self.gotlink.connect(apply_pic_preview)
-        self.mpv = None
-        self.image_list = []
-        
-    def __del__(self):
-        self.wait()                        
-
-    def settings(self, image):
-        self.image_list.append(image)
-        
-    def run(self):
-        while True:
-            x = PlayerWidget.mpv.time_pos
-            if x is None:
-                print(x)
-            else:
-                self.gotlink.emit(x)
-            time.sleep(0.5)
-"""
 
 class FindPosterThread(QtCore.QThread):
 
