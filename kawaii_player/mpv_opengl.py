@@ -268,6 +268,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             gui.mplayerLength = int(value)
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
+            gui.final_playing_url = self.mpv.path
         
     def initializeGL(self):
         _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
@@ -336,7 +337,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         PlayerWidget.show_hide_status_frame()
 
     def toggle_play_pause(self):
-        PlayerWidget.toggle_play_pause()
+        PlayerWidget.toggle_play_pause(self)
 
     def load_subtitle_from_file(self):
         PlayerWidget.load_subtitle_from_file()
