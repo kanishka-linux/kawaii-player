@@ -2687,7 +2687,8 @@ class Ui_MainWindow(object):
         inter = str(interval)
         
         new_tmp = '"'+TMPDIR+'"'
-        self.mpv_thumbnail_lock.acquire(timeout=5)
+        if self.player_val != "libmpv":
+            self.mpv_thumbnail_lock.acquire(timeout=5)
         try:
             if OSNAME == 'posix' and self.thumbnail_engine == "ffmpegthumbnailer":
                 if width_allowed:
@@ -2742,46 +2743,54 @@ class Ui_MainWindow(object):
                 else:
                     if inter.endswith('s'):
                         inter = inter[:-1]
-                    if 'youtube.com' in path:
-                        new_tmp = new_tmp.replace('"', '')
-                        subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
-                                        "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                                        "--start="+str(inter)+"%", "--frames=1"
-                                        , path])
-                    else:
-                        if OSNAME == "posix":
-                            shell = False
-                        else:
-                            shell = True
-                        proc = None
-                        if self.player_val == 'mpv':
-                            new_tmp = new_tmp.replace('"', '')
-                            proc = subprocess.Popen(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
-                            "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                            "--start="+str(inter)+"%", "--frames=1", path], shell=shell)
-                        elif self.player_val == 'mplayer':
-                            proc = subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
-                            '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
-                            "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
-                            path], shell=shell)
-                        counter = 0
-                        while proc and proc.poll() == None:
-                            time.sleep(0.1)
-                            counter += 1
-                            logger.debug("sleeping {}".format(counter))
-                            if counter > 20:
-                                proc.terminate()
-                                break
-                    picn_path = os.path.join(TMPDIR, '00000001.jpg')
-                    if os.path.exists(picn_path):
-                        shutil.copy(picn_path, picn)
-                        os.remove(picn_path)
+                    if self.player_val == "libmpv":
+                        if "youtube.com" in path:
+                            self.slider.mpv.ytdl = "yes"
+                        self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path)
                         if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                            #self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
                             self.create_new_image_pixel(picn, 128)
                             self.create_new_image_pixel(picn, 480)
+                    else:
+                        if 'youtube.com' in path:
+                            new_tmp = new_tmp.replace('"', '')
+                            subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
+                                            "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
+                                            "--start="+str(inter)+"%", "--frames=1"
+                                            , path])
+                        else:
+                            if OSNAME == "posix":
+                                shell = False
+                            else:
+                                shell = True
+                                proc = None
+                                if self.player_val == 'mpv':
+                                    new_tmp = new_tmp.replace('"', '')
+                                    proc = subprocess.Popen(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
+                                    "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
+                                    "--start="+str(inter)+"%", "--frames=1", path], shell=shell)
+                                elif self.player_val == 'mplayer':
+                                    proc = subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
+                                    '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
+                                    "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
+                                    path], shell=shell)
+                                counter = 0
+                                while proc and proc.poll() == None:
+                                    time.sleep(0.1)
+                                    counter += 1
+                                    logger.debug("sleeping {}".format(counter))
+                                    if counter > 20:
+                                        proc.terminate()
+                                        break
+                        picn_path = os.path.join(TMPDIR, '00000001.jpg')
+                        if os.path.exists(picn_path):
+                            shutil.copy(picn_path, picn)
+                            os.remove(picn_path)
+                            if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
+                                self.create_new_image_pixel(picn, 128)
+                                self.create_new_image_pixel(picn, 480)
         finally:
-            self.mpv_thumbnail_lock.release()
+            if self.player_val != "libmpv":
+                self.mpv_thumbnail_lock.release()
     
     def create_new_image_pixel(self, art_url, pixel):
         art_url_name = str(pixel)+'px.'+os.path.basename(art_url)
