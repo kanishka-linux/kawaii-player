@@ -126,7 +126,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.args_dict.update({"ao":"wasapi"})
         if gui.mpvplayer_string_list and gui.use_custom_config_file:
             self.create_args_dict()
-        locale.setlocale(locale.LC_NUMERIC, 'C')
+        try:
+            locale.setlocale(locale.LC_NUMERIC, 'C')
+        except Exception as err:
+            logger.error(err)
         self.mpv = MPV(**self.args_dict)
         self.mpv.observe_property("time-pos", self.time_observer)
         self.mpv.observe_property("eof-reached", self.eof_observer)
