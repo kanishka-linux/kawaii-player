@@ -9,6 +9,10 @@ class MainWindowWidget(QtWidgets.QWidget):
     def __init__(self):
         super(MainWindowWidget, self).__init__()
         self.setAcceptDrops(True)
+        self.windowTitleChanged.connect(self.title_changed)
+
+    def title_changed(self, title):
+        self.setWindowTitle(title)
         
     def dragEnterEvent(self, event):
         data = event.mimeData()
