@@ -26,6 +26,12 @@ class QPushButtonExtra(QtWidgets.QPushButton):
         else:
             super(QPushButtonExtra, self).clicked.connect(callbak)
 
+    def clicked_emit(self):
+        if platform.system().lower() == "darwin":
+            super(QPushButtonExtra, self).pressed.emit()
+        else:
+            super(QPushButtonExtra, self).clicked.emit()
+
 class SidebarWidget(QtWidgets.QListWidget):
     """
     Options Sidebar Widget
@@ -815,7 +821,7 @@ class VolumeSlider(QtWidgets.QSlider):
             ui.settings_box.slave_commands(data=data_dict)
         else:
             ui.player_volume = str(val)
-            if ui.mpvplayer_val.processId() > 0:
+            if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
                 ui.seek_to_vol_val(val, action='pressed')
                 ui.logger.debug(val)
                 
