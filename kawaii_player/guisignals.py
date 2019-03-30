@@ -43,6 +43,7 @@ class GUISignals(QtCore.QObject):
     torrent_status_signal = pyqtSignal(str)
     observe_signal = pyqtSignal(float)
     opengl_signal = pyqtSignal(str)
+    preview_signal = pyqtSignal(str, str, bool, int, int, int, int, str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -65,8 +66,12 @@ class GUISignals(QtCore.QObject):
         self.torrent_status_signal.connect(self.update_torrent_status_window)
         self.observe_signal.connect(self.mpv_observe_signal)
         self.opengl_signal.connect(self.update_opengl_widget)
+        self.preview_signal.connect(self.preview_generated_new)
         self.first_time = True
-        
+
+    def generate_preview(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
+        self.preview_signal.emit(picn, length, change_aspect, tsec, counter, x, y, source_val)
+    
     def set_text(self, text):
         self.text = text
     
@@ -118,7 +123,7 @@ class GUISignals(QtCore.QObject):
 
     def update_opengl(self, val):
         self.opengl_signal.emit(val)
-
+    
     @staticmethod
     def update_opengl_widget(val):
         if ui.tab_5.window().isMinimized():
@@ -180,7 +185,11 @@ class GUISignals(QtCore.QObject):
                     func(*args, **kargs)
             return wrapper
         return real_deco
-        
+
+    @pyqtSlot(str, str, bool, int, int, int, int, str)
+    def preview_generated_new(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
+        ui.slider.preview_generated(picn, length, change_aspect, tsec, counter, x, y, source_val)
+    
     @pyqtSlot(str)
     def track_slave_status(self, val):
         float_check =  lambda x: int(x) if x.isnumeric() else int(float(x))
