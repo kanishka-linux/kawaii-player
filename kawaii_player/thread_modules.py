@@ -57,20 +57,14 @@ class Observe(QtCore.QThread):
     def __init__(self, ui_widget, logr):
         QtCore.QThread.__init__(self)
         global ui, logger
-        ui = ui_widget
-        logger = logr
-        self.gotlink.connect(start_player_directly_observe)
+        
 
     def __del__(self):
         self.wait()                        
 
     def run(self):
         while True:
-            x = PlayerWidget.mpv.time_pos
-            if x is None:
-                print(x)
-            else:
-                self.gotlink.emit(x)
+            
             time.sleep(0.5)
             
         
@@ -1121,7 +1115,10 @@ class PlayerGetEpn(QtCore.QThread):
                 elif self.epn_type == 'yt_title':
                     self.get_title_signal.emit(finalUrl, self.final)
                 elif self.epn_type in ['yt_prefetch_av', 'yt_prefetch_a']:
-                    self.final_epn_prefetch_signal.emit(finalUrl, self.row, self.epn_type)
+                    if ui.player_val == "libmpv":
+                        ui.tab_5.prefetch_url = (finalUrl, self.row, self.epn_type)
+                    else:
+                        self.final_epn_prefetch_signal.emit(finalUrl, self.row, self.epn_type)
                 else:
                     self.get_epn_signal.emit(finalUrl, str(self.row))
             else:
