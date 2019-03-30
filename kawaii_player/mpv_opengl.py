@@ -65,10 +65,14 @@ class QProcessExtra(QtCore.QProcess):
                     cmd_tail = "Chapter: {} / {} {}".format(chapter, total, meta)
                 elif "${aid}" in cmd_tail:
                     aid = self.ui.tab_5.mpv.aid
-                    cmd_tail = "Audio: {}".format(aid)
+                    cmd_tail = self.ui.tab_5.get_track_property(aid, "audio")
+                    if cmd_tail is None:
+                        cmd_tail = "Aud: None"
                 elif "${sid}" in cmd_tail:
                     sid = self.ui.tab_5.mpv.sid
-                    cmd_tail = "Sub: {}".format(sid)
+                    cmd_tail = self.ui.tab_5.get_track_property(sid, "sub")
+                    if cmd_tail is None:
+                        cmd_tail = "Sub: None"
                 self.ui.tab_5.mpv.command("show-text", cmd_tail)
             elif cmd_arr[0] == "sub-add":
                 sub_file = self.filter_command(cmd)
@@ -132,6 +136,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property("eof-reached", self.eof_observer)
         self.mpv.observe_property("idle-active", self.idle_observer)
         self.mpv.observe_property("duration", self.time_duration)
+        self.mpv.observe_property("sub", self.sub_changed)
+        self.mpv.observe_property("audio", self.audio_changed)
         
         self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
         self.on_update_c = OpenGlCbUpdateFn(self.on_update)
@@ -176,11 +182,31 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.aboutToResize.connect(self.resized)
         self.aboutToCompose.connect(self.compose)
         self.audio = None
+        self.subtitle = None
         self.ratio = None
         self.dim = None
-        
+        self.track_list = None
+        self.chapter_list = None
+        self.prefetch_url = None
+        self.window_title_set = False
         
     def create_args_dict(self):
+        if gui.gsbc_dict:
+            for key, value in gui.gsbc_dict.items():
+                self.args_dict.update({key:value})
+        if gui.subtitle_dict and gui.apply_subtitle_settings:
+            for key, value in gui.subtitle_dict.items():
+                self.args_dict.update({key:value})
+        elif gui.subtitle_dict and not gui.apply_subtitle_settings:
+            scale = gui.subtitle_dict.get('sub-scale')
+            if scale:
+                self.args_dict.update({'sub-scale': scale})
+        if gui.gapless_playback or gui.gapless_network_stream:
+            self.args_dict.update({'gapless-audio':True})
+            self.args_dict.update({'prefetch-playlist': True})
+        if gui.player_volume and gui.player_volume.isnumeric():
+            self.args_dict.update({'volume': gui.player_volume})
+            
         for param in gui.mpvplayer_string_list:
             if "=" in param:
                 k, v = param.split("=", 1)
@@ -191,6 +217,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 k = k[2:]
             k = k.replace("-", "_")
             self.args_dict.update({k:v})
+            
             
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
@@ -222,35 +249,101 @@ class MpvOpenglWidget(QOpenGLWidget):
                 logger.debug('player has focus')
             else:
                 logger.debug('player not focussed')
-    
+
+    def get_track_property(self, id_val, id_type):
+        txt = None
+        if self.track_list:
+            for i in self.track_list:
+                idval = i.get("id")
+                idtype = i.get("type")
+                if idval == id_val and idtype == id_type:
+                    lang = i.get("lang")
+                    if idval and len(idtype) > 3:
+                        idtype = idtype[:3]
+                    if idtype:
+                        idtype = idtype.title()
+                    if lang is None:
+                        lang = "auto"
+                    txt = "{}: {}.{}".format(idtype, idval, lang)
+                    break
+        return txt
+        
+    def sub_changed(self, _name, value):
+        logger.debug('{} {} {}'.format(_name, value, "--sub--"))
+        if value is False:
+            gui.subtitle_track.setText("Sub: None")
+        else:
+            txt = self.get_track_property(value, "sub")
+            if txt:
+                gui.subtitle_track.setText(txt)
+        print(self.chapter_list)
+                
+    def audio_changed(self, _name, value):
+        logger.debug("{} {} {}".format(_name, value, "--audio--"))
+        if value is False:
+            gui.audio_track.setText("A: None")
+        else:
+            txt = self.get_track_property(value, "audio")
+            if txt:
+                gui.audio_track.setText(txt)
+        
     def time_observer(self, _name, value):
         if value is not None:
-            z = 'duration is {:.2f}s'.format(value)
             if abs(value - gui.progress_counter) >= 0.5:
                 fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
                 gui.progress_counter = value
-                gui.slider.setValue(int(value))
-                gui.progressEpn.setFormat(('{}/{}'.format(fn(value), fn(gui.mplayerLength))))
+                gui.slider.valueChanged.emit(int(value))
+                cache = self.mpv.demuxer_cache_duration
+                file_size = self.mpv.file_size
+                if file_size:
+                    file_size = round((file_size)/(1024*1024), 2)
+                if cache and gui.mplayerLength > 0:
+                    percent = int((value/gui.mplayerLength)*100)
+                    display_string = '{}%  {} / {}  Cache: {}s  Size: {} M'.format(percent, fn(value), fn(gui.mplayerLength), int(cache), file_size)
+                else:
+                    display_string = '{}/{}  Size: {} M'.format(fn(value), fn(gui.mplayerLength), file_size)
+                gui.progressEpn.setFormat((display_string))
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
+                logger.debug("{} {}".format("adding..audio..", self.audio))
                 self.audio = None
-                print("addiong..audio..", self.audio)
+            if self.subtitle and int(value) in range(0, 3):
+                if "::" in self.subtitle:
+                    for sub in self.subtitle.split("::"):
+                        self.mpv.command("sub-add", sub)
+                else:
+                    self.mpv.command("sub-add", self.subtitle, "select")
+                logger.debug("{} {}".format("adding..subtitle..", self.audio))
+                self.subtitle = None
+            if gui.gapless_network_stream and not gui.queue_url_list:
+                if gui.progress_counter > int(gui.mplayerLength/2):
+                    if (gui.cur_row + 1) < gui.list2.count():
+                        item_index = gui.cur_row + 1
+                    else:
+                        item_index = 0
+                    if gui.tmp_pls_file_dict.get(item_index) is False and gui.list2.count() > 1:
+                        gui.start_gapless_stream_process(item_index)
+            if self.prefetch_url and isinstance(self.prefetch_url, tuple) and gui.gapless_network_stream:
+                finalUrl, row, type_val = self.prefetch_url
+                gui.epnfound_now_start_prefetch(finalUrl, row, type_val)
+                self.prefetch_url = None
     
     def eof_observer(self, _name, value):
-        print("eof.. value", value, _name)
-        gui.cur_row = self.mpv.playlist_pos
-        if gui.cur_row is not None:
+        logger.debug("{} {}".format("eof.. value", value, _name))
+        cur_row = self.mpv.playlist_pos
+        if (self.mpv.playlist_count > 1) and (cur_row and cur_row < gui.list2.count() and gui.list2.count() > 1):
+            gui.cur_row = cur_row
             gui.list2.setCurrentRow(gui.cur_row)
         else:
             gui.cur_row = gui.list2.currentRow()
+        self.set_window_title_and_epn()
 
     def idle_observer(self, _name, value):
-        print("idle.. value", value, _name)
-        if ('gui' in globals() and value is True
-                and self.mpv.playlist_count == 1
+        logger.debug("{} {}".format("idle.. value", value, _name))
+        if (value is True and self.mpv.playlist_count == 1
                 and gui.list2.count() > 1
                 and gui.quit_now is False):
-            print("only single playlist..")
+            logger.debug("only single playlist..")
             self.mpv.loop_playlist = False
             self.mpv.loop_file = False
             self.mpv.stop = True
@@ -260,6 +353,13 @@ class MpvOpenglWidget(QOpenGLWidget):
             if item:
                 gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         
+    def set_window_title_and_epn(self):
+        epn = gui.list2.item(gui.cur_row).text()
+        if epn.startswith(gui.check_symbol):
+            epn = epn[1:]
+        MainWindow.windowTitleChanged.emit(epn)
+        gui.epn_name_in_list = epn
+        self.mpv.command("show-text", epn, 2000)
             
     def time_duration(self, _name, value):
         if value is not None:
@@ -269,7 +369,9 @@ class MpvOpenglWidget(QOpenGLWidget):
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
             gui.final_playing_url = self.mpv.path
-        
+            self.track_list = self.mpv.track_list
+            self.chapter_list = self.mpv.chapter_list
+            
     def initializeGL(self):
         _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
 
@@ -334,7 +436,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         PlayerWidget.start_player_loop()
 
     def show_hide_status_frame(self):
-        PlayerWidget.show_hide_status_frame()
+        PlayerWidget.show_hide_status_frame(self)
 
     def toggle_play_pause(self):
         PlayerWidget.toggle_play_pause(self)
@@ -592,6 +694,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.setFocus()
                         self.setMouseTracking(True)
                 elif mode == "nofs":
+                    #self.hide()
                     if platform.system().lower() == "darwin":
                         self.mpv.command("set", "pause", "yes")
                     self.ui.gridLayout.setSpacing(5)
@@ -634,6 +737,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.showNormal()
                     self.setFocus()
                     #MainWindow.show()
+                    #MainWindow.showMaximized()
                     if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
                         self.mx_timer.start(1000) 
                     
