@@ -394,10 +394,17 @@ class MySlider(QtWidgets.QSlider):
         self.empty_preview_dir = False
         self.check_dimension_again = False
         self.preview_dir = None
+        self.time_format = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
         self.preview_lock = Lock()
+        #self.setTickPosition(QtWidgets.QSlider.TickPosition.TicksAbove)
+        #self.setTickInterval(100)
+        self.valueChanged.connect(self.set_value)
         locale.setlocale(locale.LC_NUMERIC, 'C')
         self.mpv = MPV(vo="image", ytdl="no", quiet=True, aid="no", sid="no", frames=1, idle=True)
-        
+
+    def set_value(self, val):
+        self.setSliderPosition(val)
+    
     def keyPressEvent(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier 
                 and event.key() == QtCore.Qt.Key_Right):
@@ -419,7 +426,7 @@ class MySlider(QtWidgets.QSlider):
         else:
             super(MySlider, self).keyPressEvent(event)
     
-    def leaveEvent(self, event):
+    def leaveEvent(self, event, source=None):
         if self.tooltip_timer.isActive():
             self.tooltip_timer.stop()
         self.preview_pending[:] = []
@@ -429,18 +436,19 @@ class MySlider(QtWidgets.QSlider):
         self.enter = False
         self.check_dimension_again = True
         #self.mpv.terminate()
-        picn = os.path.join(self.preview_dir, '00000001.jpg')
-        if os.path.exists(picn):
-            os.remove(picn)
+        if self.preview_dir:
+            picn = os.path.join(self.preview_dir, '00000001.jpg')
+            if os.path.exists(picn):
+                os.remove(picn)
             
-    def enterEvent(self, event):
+    def enterEvent(self, event, source=None):
         self.enter = True
         if self.final_url != ui.final_playing_url:
             self.check_and_set_file_type()
             if (self.file_type == 'video' and ui.mpvplayer_val.processId() > 0
                     and ui.live_preview in ['slow', 'fast'] or ui.player_val == "libmpv"):
                 self.create_preview_dir()
-        self.mouseMoveEvent(event)
+        self.mouseMoveEvent(event, source=source)
     
     def create_preview_dir(self):
         file_name_bytes = bytes(ui.final_playing_url, 'utf-8')
@@ -485,7 +493,7 @@ class MySlider(QtWidgets.QSlider):
         self.mpv.stop = True
         self.preview_lock.release()
     
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event, source=None):
         if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
             self.setFocus()
         if self.tooltip_timer.isActive():
@@ -512,9 +520,13 @@ class MySlider(QtWidgets.QSlider):
         if '.' in l:
             l = l.split('.')[0]
         change_aspect = False
+        if source is not None:
+            source_val = source.widget_name
+        else:
+            source_val = "none"
         if not os.path.exists(ui.preview_download_folder):
             os.makedirs(ui.preview_download_folder)
-        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video' or ui.player_val == "libmpv":
+        if ui.live_preview in ['fast', 'slow'] and (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") and self.file_type == 'video':
             if self.preview_dir is None:
                 self.create_preview_dir()
             command = 'mpv --vo=image --vo-image-jpeg-quality={} --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.live_preview_quality, self.preview_dir, int(t), ui.final_playing_url)
@@ -525,13 +537,19 @@ class MySlider(QtWidgets.QSlider):
                 self.mpv_preview(self.preview_dir, t,
                                 (ui.label.maximumWidth(), ui.label.maximumHeight()),
                                 newpicn, ui.final_playing_url)
-                self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
+                #self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
+                
+                ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.x(), event.y(), source_val)
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
             else:
-                point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height())
-                rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+                if source_val and source_val == "progressbar":
+                    offset = 50
+                else:
+                    offset = 0
+                point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height() - offset)
+                rect = QtCore.QRect(self.parent.x(), self.parent.y() - offset , self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
             self.setToolTip('')
@@ -578,7 +596,7 @@ class MySlider(QtWidgets.QSlider):
                 self.preview_process.finished.connect(partial(self.preview_generated, picn, length, change_aspect, tsec, counter, x, y))
                 QtCore.QTimer.singleShot(1, partial(self.preview_process.start, command))
             
-    def preview_generated(self, picn, length, change_aspect, tsec, counter, x, y):
+    def preview_generated(self, picn, length, change_aspect, tsec, counter, x, y, source_val=None):
         #self.tooltip_widget.hide()
         self.preview_counter -= 1
         self.lock = True
@@ -597,7 +615,7 @@ class MySlider(QtWidgets.QSlider):
             ui.logger.debug('\n{}::{}\n'.format(txt, tsec))
             point = None
             rect = None
-            self.apply_pic(picn, x, y, length)
+            self.apply_pic(picn, x, y, length, source_val=source_val)
             if self.preview_pending and ui.player_val != "libmpv":
                 while self.preview_counter >= 0:
                     self.preview_counter -= 1
@@ -615,9 +633,10 @@ class MySlider(QtWidgets.QSlider):
                     args[6], args[7], args[8], lock=False
                     )
     
-    def apply_pic(self, picn, x, y, length, resize=None, only_text=None):
+    def apply_pic(self, picn, x, y, length, resize=None, only_text=None, source_val=None):
+        
         if resize:
-            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, self.half_size)
+            txt = '<html><img src="{0}" width="{2}"><p>{1}</p><html>'.format(picn, length, 100)
         else:
             txt = '<html><img src="{}"><p>{}</p><html>'.format(picn, length)
         if ui.live_preview_style == 'tooltip':
@@ -646,8 +665,14 @@ class MySlider(QtWidgets.QSlider):
                     x_cord = self.parent.x()
                 else:
                     x_cord = x_cord - self.half_size
-                point = QtCore.QPoint(x_cord, y_cord)
-                rect = QtCore.QRect(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
+                if source_val and source_val == "progressbar":
+                    offset = 50
+                else:
+                    offset = 0
+                print(offset)
+                point = QtCore.QPoint(x_cord, y_cord - offset)
+                rect = QtCore.QRect(self.parent.x(), self.parent.y() - offset, self.parent.width(), self.parent.height())
+                #print(self.parent.x(), self.parent.y(), self.parent.width(), self.parent.height())
                 if (not self.preview_pending or resize or ui.live_preview == 'slow') and self.enter:
                     self.tooltip.showText(point, txt, self, rect, 3000)
         elif ui.live_preview_style == 'widget':
@@ -695,12 +720,12 @@ class MySlider(QtWidgets.QSlider):
                 if (not self.preview_pending or resize or ui.live_preview == 'slow') and self.enter:
                     self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
                     self.tooltip_widget.show()
-                    self.txt.setText(length)
+                    self.txt.setText(self.time_format(length))
                 
     def update_tooltip(self):
         self.tooltip_widget.hide()
         
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event, source=None):
         self.preview_counter = 0
         old_val = int(self.value())
         t = ((event.x() - self.x())/self.width())
@@ -830,6 +855,26 @@ class QProgressBarCustom(QtWidgets.QProgressBar):
                     self.gui.label_torrent_stop.setToolTip('Stop Current Download')
                 else:
                     self.gui.torrent_frame.hide()
+
+class QProgressBarFrame(QtWidgets.QProgressBar):
+    
+    def __init__(self, parent, gui):
+        super(QProgressBarFrame, self).__init__(parent)
+        self.gui = gui
+        self.widget_name = "progressbar"
+        #self.setToolTip(True)
+        
+    def mouseMoveEvent(self, ev):
+        self.gui.slider.mouseMoveEvent(ev, source=self)
+
+    def mousePressEvent(self, ev):
+        self.gui.slider.mousePressEvent(ev, source=self)
+
+    def leaveEvent(self, ev):
+        self.gui.slider.leaveEvent(ev, source=self)
+
+    def enterEvent(self, ev):
+        self.gui.slider.enterEvent(ev, source=self)
 
 class QLineCustom(QtWidgets.QLineEdit):
     
