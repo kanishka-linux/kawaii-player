@@ -715,13 +715,13 @@ class PlayerWidget(QtWidgets.QWidget):
         mpv_indicator = param_dict['mpv_indicator']
         site = param_dict['site']
         if not pause_indicator:
-            self.mpvplayer.write(b'\n set pause yes \n')
+            self.ui.mpvplayer_val.write(b'\n set pause yes \n')
             if MainWindow.isFullScreen() and self.ui.fullscreen_video:
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
             pause_indicator.append("Pause")
         else:
-            self.mpvplayer.write(b'\n set pause no \n')
+            self.ui.mpvplayer_val.write(b'\n set pause no \n')
             if MainWindow.isFullScreen():
                 if (site != "Music" and self.ui.tab_6.isHidden()
                         and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
