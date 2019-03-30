@@ -346,7 +346,7 @@ class Ui_MainWindow(object):
         self.vertical_layout_new.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         self.vertical_layout_new.setSpacing(5)
         self.vertical_layout_new.setContentsMargins(0, 0, 0, 0)
-        
+
         self.list1 = TitleListWidget(MainWindow, self, home, TMPDIR, logger)
         self.list1.setObjectName(_fromUtf8("list1"))
         #self.list1.setMaximumSize(QtCore.QSize(400, 16777215))
@@ -541,8 +541,9 @@ class Ui_MainWindow(object):
         #self.gridLayout.addWidget(self.frame1, 1, 0, 1, 1)
     
         
-        self.progressEpn = QtWidgets.QProgressBar(self.frame1)
+        self.progressEpn = QProgressBarFrame(self.frame1, self)
         self.progressEpn.setObjectName(_fromUtf8("progressEpn"))
+        self.progressEpn.setMouseTracking(True)
         #self.gridLayout.addWidget(self.progressEpn, 1, 0, 1, 1)
         self.progressEpn.setMinimum(0)
         self.progressEpn.setMaximum(100)
@@ -3144,7 +3145,7 @@ class Ui_MainWindow(object):
     @GUISignals.check_master_mode('toggle_aud')
     def toggleAudio(self, *args):
         global audio_id
-        if self.mpvplayer_val.processId() > 0:
+        if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
             if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
                     self.mpvplayer_val.write(b'\n osd 1 \n')
@@ -3158,7 +3159,8 @@ class Ui_MainWindow(object):
                 self.mpvplayer_val.write(b'\n cycle audio \n')
                 self.mpvplayer_val.write(b'\n print-text "AUDIO_KEY_ID=${aid}" \n')
                 self.mpvplayer_val.write(b'\n show-text "${aid}" \n')
-        self.audio_track.setText("A:"+str(audio_id))
+        if self.player_val != "libmpv":
+            self.audio_track.setText("A:"+str(audio_id))
             
     def load_external_sub(self):
         global sub_id, current_playing_file_path
@@ -3234,7 +3236,7 @@ class Ui_MainWindow(object):
     @GUISignals.check_master_mode('toggle_sub')
     def toggleSubtitle(self, *args):
         global sub_id
-        if self.mpvplayer_val.processId() > 0:
+        if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
             if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
                     self.mpvplayer_val.write(b'\n osd 1 \n')
@@ -3247,7 +3249,8 @@ class Ui_MainWindow(object):
                 self.mpvplayer_val.write(b'\n cycle sub \n')
                 self.mpvplayer_val.write(b'\n print-text "SUB_KEY_ID=${sid}" \n')
                 self.mpvplayer_val.write(b'\n show-text "${sid}" \n')
-        self.subtitle_track.setText('Sub:'+str(sub_id))
+        if self.player_val != "libmpv":
+            self.subtitle_track.setText('Sub:'+str(sub_id))
     
     def mark_epn_thumbnail_label_new(self, txt, index):
         if txt.startswith('#'):
@@ -9130,8 +9133,8 @@ class Ui_MainWindow(object):
                 else:
                     nsurl = 'sub-file="{}"'.format(surl)
         logger.debug('{}::{}::{}'.format(aurl, nsurl, mode))
-        if self.mpvplayer_val.processId() > 0 and mode not in ['thumbnail', 'thumbnail_gapless']:
-            if self.mpv_prefetch_url_started:
+        if (self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv") and mode not in ['thumbnail', 'thumbnail_gapless']:
+            if self.mpv_prefetch_url_started and self.player_val != "libmpv":
                 cmd_arr = []
                 append_audio = False
                 if aurl:
@@ -9160,6 +9163,22 @@ class Ui_MainWindow(object):
                         counter, partial(self.mpv_execute_command, cmd, row_val)
                         )
                     counter += 500
+            elif self.mpv_prefetch_url_started and self.player_val == "libmpv":
+                cmd_arr = [ ["loadfile", url_lnk, "append"],
+                        ["playlist-move", self.list2.count(), row_val],
+                        ["playlist-remove", row_val+1]
+                    ]
+                if aurl:
+                    self.tab_5.audio = aurl
+                if surl:
+                    self.tab_5.subtitle = surl
+                
+                for cmd in cmd_arr:
+                    self.tab_5.mpv.command(*cmd)
+                    time.sleep(0.01)
+                    logger.debug(cmd)
+                self.mpv_prefetch_url_started = False
+                self.tmp_pls_file_dict.update({row_val:True})
         else:
             if mode == 'thumbnail_gapless' and not url_lnk.startswith('http'):
                 from_function = None
@@ -9183,7 +9202,13 @@ class Ui_MainWindow(object):
             self.mpvplayer_val.kill()
         else:
             cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
-            self.mpvplayer_val.write(cmdb)
+            if isinstance(cmd, list) and self.player_val == "mpv":
+                print(cmd, "-->")
+                self.tab_5.mpv.command(*cmd)
+                self.mpv_prefetch_url_started = False
+                self.tmp_pls_file_dict.update({row:True})
+            else:
+                self.mpvplayer_val.write(cmdb)
             if cmd.startswith('set prefetch-playlist'):
                 self.mpv_prefetch_url_started = False
                 self.tmp_pls_file_dict.update({row:True})
@@ -9249,13 +9274,13 @@ class Ui_MainWindow(object):
         elif self.player_val == "libmpv":
             self.tab_5.mpv.stop = True
             self.tab_5.mpv.loop_playlist = False
-            #if aurl:
-            #    self.tab_5.mpv.command("audio-files", aurl.replace('"', ""))
-            if surl:
-                self.tab_5.mpv.sub_file = surl.replace('"', "")
             self.tab_5.mpv.play(finalUrl.replace('"', ""))
             if aurl:
-                self.tab_5.audio = aurl.replace('"', "")
+                self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
+                self.tab_5.mpv.command("audio-add", aurl.replace('"', ""), "select")
+            if surl:
+                self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
+                self.tab_5.mpv.command("sub-add", surl.replace('"', ""), "select")
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = str(int(self.tab_5.winId()))
@@ -14450,6 +14475,8 @@ def main():
                 f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
             f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
             f.write("\nUpload_Speed="+str(ui.setuploadspeed))
+            if platform.system().lower() == "darwin":
+                ui.force_fs = False
             f.write("\nForce_FS={0}".format(ui.force_fs))
             f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
             f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
