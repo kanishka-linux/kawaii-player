@@ -2220,7 +2220,7 @@ class Ui_MainWindow(object):
             
     def quick_torrent_play_method(self, url):
         if self.torrent_serve_thread.isRunning():
-            self.label_torrent_stop.clicked.emit()
+            self.label_torrent_stop.clicked_emit()
         time.sleep(0.5)
         hist_folder = os.path.join(home, 'History', 'Torrent')
         hist_name = self.getdb.record_torrent(url, hist_folder)
@@ -10785,7 +10785,7 @@ class Ui_MainWindow(object):
                             else:
                                 self.getQueueInList(eofcode='end')
                     elif self.quit_really == "yes": 
-                        self.player_stop.clicked.emit()
+                        self.player_stop.clicked_emit()
                         self.list2.setFocus()
             elif self.player_val.lower() == "mplayer":
                 if "PAUSE" in a:
@@ -11056,7 +11056,7 @@ class Ui_MainWindow(object):
                             exec(q3)
                             QtWidgets.QApplication.processEvents()
                     elif self.quit_really == "yes":
-                        self.player_stop.clicked.emit() 
+                        self.player_stop.clicked_emit() 
                         self.list2.setFocus()
         except Exception as err:
             logger.error('{0}::dataready-exception'.format(err))
@@ -13348,8 +13348,6 @@ def main():
                                 ui.player_volume = j
                             else:
                                 ui.player_volume = '50'
-                            if ui.player_volume.isnumeric():
-                                ui.frame_extra_toolbar.slider_volume.setValue(int(ui.player_volume))
                     except Exception as err:
                         logger.error(err)
                 elif i.startswith('CLICKED_LABEL_NEW='):
@@ -13362,7 +13360,7 @@ def main():
                 elif i.startswith('APPLY_SUBTITLE_SETTINGS='):
                     try:
                         j = j.strip()
-                        if j.lower() == 'false':
+                        if j.lower() == 'false' and ui.player_val != "libmpv":
                             ui.apply_subtitle_settings = False
                             ui.frame_extra_toolbar.checkbox_dont.setChecked(True)
                     except Exception as err:
@@ -14380,6 +14378,8 @@ def main():
         logger.error(err)
     if ui.player_val == "libmpv":
         ui.setup_opengl_widget()
+    if ui.player_volume.isnumeric():
+        ui.frame_extra_toolbar.slider_volume.setValue(int(ui.player_volume))
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 

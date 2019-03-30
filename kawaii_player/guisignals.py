@@ -168,19 +168,19 @@ class GUISignals(QtCore.QObject):
                         and gui.pc_to_pc_casting == 'master'
                         and gui.mpvplayer_val.processId() == 0):
                     if value == 'stop':
-                        gui.settings_box.playerstop.clicked.emit()
+                        gui.settings_box.playerstop.clicked_emit()
                     elif value == 'playpause':
-                        gui.settings_box.play_pause.clicked.emit()
+                        gui.settings_box.play_pause.clicked_emit()
                     elif value == 'toggle_sub':
-                        gui.settings_box.toggle_sub.clicked.emit()
+                        gui.settings_box.toggle_sub.clicked_emit()
                     elif value == 'toggle_aud':
-                        gui.settings_box.toggle_aud.clicked.emit()
+                        gui.settings_box.toggle_aud.clicked_emit()
                     elif value == 'next':
-                        gui.settings_box.playernext.clicked.emit()
+                        gui.settings_box.playernext.clicked_emit()
                     elif value == 'prev':
-                        gui.settings_box.playerprev.clicked.emit()
+                        gui.settings_box.playerprev.clicked_emit()
                     elif value == 'loop':
-                        gui.settings_box.play_loop.clicked.emit()
+                        gui.settings_box.play_loop.clicked_emit()
                 else:
                     func(*args, **kargs)
             return wrapper
@@ -310,10 +310,7 @@ class GUISignals(QtCore.QObject):
             widget_val = urllib.parse.unquote(widget_val)
             if widget_name == 'widget' and widget_val in widget_list:
                 widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
-                if ui.player_val == "libmpv" and platform.system().lower() == "darwin":
-                    widget.pressed.emit()
-                else:
-                    widget.clicked.emit()
+                widget.clicked_emit()
             elif widget_name in ['font_color_value', 'border_color_value', 'shadow_color_value']:
                 ui.frame_extra_toolbar.apply_slave_subtitile_effects(widget_name, widget_val)
             elif widget_name in ['checkbox_bold', 'checkbox_italic', 'checkbox_gray', 'checkbox_dont']:

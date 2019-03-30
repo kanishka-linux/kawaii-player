@@ -101,7 +101,7 @@ def goto_ui_jump(nm):
 @pyqtSlot(str)
 def stop_torrent_from_client(nm):
     #ui.stop_torrent(from_client=True)
-    ui.label_torrent_stop.clicked.emit()
+    ui.label_torrent_stop.clicked_emit()
 
 """
 @pyqtSlot(str)
@@ -128,113 +128,113 @@ def start_player_remotely(nm, mode):
         nm = nm - 1
         ui.queue_item_external = nm
         if ui.web_control == 'master':
-            ui.set_queue_item_btn.clicked.emit()
+            ui.set_queue_item_btn.clicked_emit()
         else:
             ui.gui_signals.playlist_command('queue', nm)
     elif mode == 'queue_remove':
         ui.queue_item_external_remove = nm
-        ui.remove_queue_item_btn.clicked.emit()
+        ui.remove_queue_item_btn.clicked_emit()
     elif mode == 'playpause':
         if ui.web_control == 'master':
-            ui.player_play_pause.clicked.emit()
+            ui.player_play_pause.clicked_emit()
         else:
-            ui.settings_box.play_pause.clicked.emit()
+            ui.settings_box.play_pause.clicked_emit()
     elif mode == 'playpause_play':
-        ui.player_play_pause_play.clicked.emit()
+        ui.player_play_pause_play.clicked_emit()
     elif mode == 'playpause_pause':
-        ui.player_play_pause_pause.clicked.emit()
+        ui.player_play_pause_pause.clicked_emit()
     elif mode == 'show_player':
-        ui.player_show_btn.clicked.emit()
+        ui.player_show_btn.clicked_emit()
     elif mode == 'hide_player':
-        ui.player_hide_btn.clicked.emit()
-    elif ui.mpvplayer_val.processId() > 0 or ui.web_control == 'slave':
+        ui.player_hide_btn.clicked_emit()
+    elif (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") or ui.web_control == 'slave':
         if mode == 'stop':
             if ui.web_control == 'master':
                 if MainWindow.isFullScreen():
-                    ui.player_fullscreen.clicked.emit()
-                ui.player_stop.clicked.emit()
+                    ui.player_fullscreen.clicked_emit()
+                ui.player_stop.clicked_emit()
             else:
-                ui.settings_box.playerstop.clicked.emit()
+                ui.settings_box.playerstop.clicked_emit()
         elif mode == 'loop':
             if ui.web_control == 'master':
-                ui.player_loop_file.clicked.emit()
+                ui.player_loop_file.clicked_emit()
             else:
-                ui.settings_box.play_loop.clicked.emit()
+                ui.settings_box.play_loop.clicked_emit()
         elif mode == 'next':
             if ui.web_control == 'master':
-                ui.player_next.clicked.emit()
+                ui.player_next.clicked_emit()
             else:
-                ui.settings_box.playernext.clicked.emit()
+                ui.settings_box.playernext.clicked_emit()
         elif mode == 'prev':
             if ui.web_control == 'master':
-                ui.player_prev.clicked.emit()
+                ui.player_prev.clicked_emit()
             else:
-                ui.settings_box.playerprev.clicked.emit()
+                ui.settings_box.playerprev.clicked_emit()
         elif mode == 'seek':
             if nm == 10:
                 if ui.web_control == 'master':
-                    ui.player_seek_10.clicked.emit()
+                    ui.player_seek_10.clicked_emit()
                 else:
-                    ui.settings_box.playerseek10.clicked.emit()
+                    ui.settings_box.playerseek10.clicked_emit()
             elif nm == -10:
                 if ui.web_control == 'master':
-                    ui.player_seek_10_.clicked.emit()
+                    ui.player_seek_10_.clicked_emit()
                 else:
-                    ui.settings_box.playerseek_10.clicked.emit()
+                    ui.settings_box.playerseek_10.clicked_emit()
             elif nm == 60:
                 if ui.web_control == 'master':
-                    ui.player_seek_60.clicked.emit()
+                    ui.player_seek_60.clicked_emit()
                 else:
-                    ui.settings_box.playerseek60.clicked.emit()
+                    ui.settings_box.playerseek60.clicked_emit()
             elif nm == -60:
                 if ui.web_control == 'master':
-                    ui.player_seek_60_.clicked.emit()
+                    ui.player_seek_60_.clicked_emit()
                 else:
-                    ui.settings_box.playerseek_60.clicked.emit()
+                    ui.settings_box.playerseek_60.clicked_emit()
             elif nm == 300:
                 if ui.web_control == 'master':
-                    ui.player_seek_5m.clicked.emit()
+                    ui.player_seek_5m.clicked_emit()
                 else:
-                    ui.settings_box.playerseek5m.clicked.emit()
+                    ui.settings_box.playerseek5m.clicked_emit()
             elif nm == -300:
                 if ui.web_control == 'master':
-                    ui.player_seek_5m_.clicked.emit()
+                    ui.player_seek_5m_.clicked_emit()
                 else:
-                    ui.settings_box.playerseek_5m.clicked.emit()
+                    ui.settings_box.playerseek_5m.clicked_emit()
             else:
                 ui.client_seek_val = nm
                 if ui.web_control == 'master':
-                    ui.player_seek_all.clicked.emit()
+                    ui.player_seek_all.clicked_emit()
                 else:
-                    ui.settings_box.playerseekabs.clicked.emit()
+                    ui.settings_box.playerseekabs.clicked_emit()
         elif mode == 'volume':
             if nm == 5:
                 if ui.web_control == 'master':
-                    ui.player_vol_5.clicked.emit()
+                    ui.player_vol_5.clicked_emit()
                 else:
-                    ui.settings_box.playervol5.clicked.emit()
+                    ui.settings_box.playervol5.clicked_emit()
             elif nm == -5:
                 if ui.web_control == 'master':
-                    ui.player_vol_5_.clicked.emit()
+                    ui.player_vol_5_.clicked_emit()
                 else:
-                    ui.settings_box.playervol_5.clicked.emit()
+                    ui.settings_box.playervol_5.clicked_emit()
         elif mode == 'fullscreen':
             if ui.web_control == 'master':
-                ui.player_fullscreen.clicked.emit()
+                ui.player_fullscreen.clicked_emit()
             else:
-                ui.settings_box.toggle_fs.clicked.emit()
+                ui.settings_box.toggle_fs.clicked_emit()
         elif mode == 'toggle_subtitle':
             if ui.web_control == 'master':
-                ui.subtitle_track.clicked.emit()
+                ui.subtitle_track.clicked_emit()
             else:
-                ui.settings_box.toggle_sub.clicked.emit()
+                ui.settings_box.toggle_sub.clicked_emit()
         elif mode == 'toggle_audio':
             if ui.web_control == 'master':
-                ui.audio_track.clicked.emit()
+                ui.audio_track.clicked_emit()
             else:
-                ui.settings_box.toggle_aud.clicked.emit()
+                ui.settings_box.toggle_aud.clicked_emit()
         elif mode == 'add_subtitle':
-            ui.add_external_subtitle.clicked.emit()
+            ui.add_external_subtitle.clicked_emit()
 
 def find_and_set_index(st, st_o, srch):
     index = None
@@ -276,7 +276,7 @@ def total_ui_navigation(st, st_o, srch, shuffle):
     global ui
     logger.debug('\n{0}::{1}::{2}::{3}\n'.format(st, st_o, srch, shuffle))
     if shuffle:
-       ui.player_btn_update_list2.clicked.emit() 
+       ui.player_btn_update_list2.clicked_emit() 
     elif st:
         if st.lower() == 'video':
             index = ui.btn1.findText('Video')
@@ -772,7 +772,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 ui.queue_url_list = ui.queue_url_list + lines
                 ui.queue_item_external = -100
-                ui.set_queue_item_btn.clicked.emit()
+                ui.set_queue_item_btn.clicked_emit()
             if ui.remote_control_field:
                 ui.remote_control = True
             self.final_message(bytes('OK', 'utf-8'))
@@ -2780,7 +2780,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     ui.navigate_playlist_history.clear()
                     ui.quick_url_play = url
                     logger.debug(ui.quick_url_play)
-                    ui.quick_url_play_btn.clicked.emit()
+                    ui.quick_url_play_btn.clicked_emit()
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -2791,7 +2791,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     ui.client_quality_val = qual
                     if ui.remote_control and ui.remote_control_field:
                         ui.quality_val = qual
-                        ui.set_quality_server_btn.clicked.emit()
+                        ui.set_quality_server_btn.clicked_emit()
                     msg = 'quality set to: {0}'.format(ui.client_quality_val)
                 else:
                     msg = 'wrong parameters'

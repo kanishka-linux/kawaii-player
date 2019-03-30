@@ -412,7 +412,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.float_window.showNormal()
 
     def player_quit(self, msg=None):
-        self.ui.player_stop.clicked.emit()
+        self.ui.player_stop.clicked_emit()
         
     def load_external_sub(self, mode=None, subtitle=None, title=None):
         if mode is None:
