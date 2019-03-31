@@ -185,6 +185,23 @@ class GUISignals(QtCore.QObject):
                     func(*args, **kargs)
             return wrapper
         return real_deco
+        
+    @staticmethod
+    def check_master_mode_playlist(value):
+        def real_deco(func):
+            def wrapper(*args, **kargs):
+                gui = args[0]
+                if (gui.extra_toolbar_control == 'slave'
+                        and gui.pc_to_pc_casting == 'master'
+                        and ui.slave_live_status):
+                    if ui.list2.currentItem():
+                        ui.list2.start_pc_to_pc_casting("playlist", ui.list2.currentRow())
+                    else:
+                        func(*args, **kargs)
+                else:
+                    func(*args, **kargs)
+            return wrapper
+        return real_deco
 
     @pyqtSlot(str, str, bool, int, int, int, int, str)
     def preview_generated_new(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
@@ -192,6 +209,7 @@ class GUISignals(QtCore.QObject):
     
     @pyqtSlot(str)
     def track_slave_status(self, val):
+        print(val, "from-slave")
         float_check =  lambda x: int(x) if x.isnumeric() else int(float(x))
         val_arr = val.split('::')
         if len(val_arr) > 3 and ui.mpvplayer_val.processId() == 0:
@@ -199,16 +217,18 @@ class GUISignals(QtCore.QObject):
             counter = float_check(val_arr[1])
             row = float_check(val_arr[2]) - 1
             que = float_check(val_arr[3])
+            print(counter, length)
             nlen = str(datetime.timedelta(seconds=int(length)))
             tme = str(datetime.timedelta(seconds=int(counter)))
-            if row != ui.list2.currentRow() or self.first_time:
+            if (counter in range(0, 5) and row != ui.list2.currentRow()) or self.first_time:
                 ui.list2.setCurrentRow(row)
                 self.first_time = False
             slider_max = ui.slider.maximum()
             if length != slider_max:
                 ui.slider.setRange(0, length)
-            if ui.list2.currentItem():
-                title = ui.list2.currentItem().text()
+            item = ui.list2.item(row)
+            if item:
+                title = item.text()
             else:
                 title = 'Not Available'
             ui.slider.setValue(counter)

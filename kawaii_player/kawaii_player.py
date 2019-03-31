@@ -1943,17 +1943,19 @@ class Ui_MainWindow(object):
         self.lock_process = False
         self.mpv_thumbnail_lock = Lock()
 
-    def mpv_next(self):
-        if self.player_val == "libmpv":
+    @GUISignals.check_master_mode('next')
+    def mpv_next(self, *args):
+        if self.player_val == "libmpv" and self.tab_5.mpv.playlist_count > 0:
             self.tab_5.get_next()
         else:
-            self.mpvNextEpnList()
-
-    def mpv_prev(self):
-        if self.player_val == "libmpv":
+            self.mpvNextEpnList(*args)
+            
+    @GUISignals.check_master_mode('prev')
+    def mpv_prev(self, *args):
+        if self.player_val == "libmpv" and self.tab_5.mpv.playlist_count > 0:
             self.tab_5.get_previous()
         else:
-            self.mpvPrevEpnList()
+            self.mpvPrevEpnList(*args)
     
     def set_mainwindow_palette(self, fanart, first_time=None, theme=None):
         if theme is None or theme == 'default':
@@ -5020,7 +5022,8 @@ class Ui_MainWindow(object):
                     m = re.findall('Location: [^\n]*', content)
                     finalUrl = re.sub('Location: |\r', '', m[-1])
         return finalUrl
-            
+    
+    @GUISignals.check_master_mode_playlist('epnclicked')
     def epnClicked(self, dock_check=None):
         global MainWindow
         self.quit_now = False
@@ -5075,14 +5078,12 @@ class Ui_MainWindow(object):
             else:
                 self.tab_5.player_fs(mode='fs')
     
-    @GUISignals.check_master_mode('next')
     def mpvNextEpnList(self, play_row=None, mode=None, *args):
         global epn, site
         print(play_row, '--play_row--', mode)
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
         if self.mpvplayer_val.processId() > 0:
-            print("-----------inside-------")
             if play_row != None and mode == 'play_now':
                 self.cur_row = play_row
             else:
@@ -5178,7 +5179,6 @@ class Ui_MainWindow(object):
                     print(self.mpvplayer_val.processId(), '--mpvnext---')
                     self.getNextInList(eofcode='next')
                     
-    @GUISignals.check_master_mode('prev')
     def mpvPrevEpnList(self, *args):
         global epn, site
         global current_playing_file_path
