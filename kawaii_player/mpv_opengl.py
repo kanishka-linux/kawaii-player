@@ -82,8 +82,13 @@ class QProcessExtra(QtCore.QProcess):
                         cmd_tail = "Subtitle: Disabled"
                 elif 'osd-sym-cc' in cmd:
                     print(cmd)
-                    display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
-                    cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
+                    if "pause" in cmd:
+                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
+                        cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
+                    else:
+                        cmd_list = cmd.split()
+                        cmd_list = cmd_list[1:]
+                        cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b'' + bytes(''.join(cmd_list), "utf-8")
                 if cmd_tail:    
                     self.ui.tab_5.mpv.command("show-text", cmd_tail)
             elif cmd_arr[0] == "sub-add":
@@ -96,7 +101,7 @@ class QProcessExtra(QtCore.QProcess):
                 try:
                     if cmd_arr[0] in ["stop", "quit"]:
                         self.ui.quit_now = True
-                    if "set pause" or "cycle pause" in cmd:
+                    if "set pause" in cmd or "cycle pause" in cmd:
                         self.ui.tab_5.mpv.command(*cmd_arr)
                         display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
                         cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
@@ -207,6 +212,14 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.prefetch_url = None
         self.window_title_set = False
         self.mpv_queue_tuple = None
+        
+        self.mpv_default_modified = {}
+        for key, value in self.mpv_default.items():
+            if "seek" in value:
+                self.mpv_default_modified.update({key:value.split()})
+        
+        self.modifiers = set([QtCore.Qt.ShiftModifier, QtCore.Qt.ControlModifier, QtCore.Qt.AltModifier])
+        self.total_keys = {**self.alphanumeric_keys, **self.non_alphanumeric_keys}
         
     def create_args_dict(self):
         if gui.gsbc_dict:
@@ -325,12 +338,13 @@ class MpvOpenglWidget(QOpenGLWidget):
         if value is not None:
             if abs(value - gui.progress_counter) >= 0.5:
                 display_string = self.display_play_pause_string(value)
-                gui.slider.valueChanged.emit(int(value))
                 file_size = self.mpv.file_size
                 if file_size:
                     file_size = round((file_size)/(1024*1024), 2)
                     display_string = "{} Size: {} M".format(display_string, file_size)
-                gui.progressEpn.setFormat((display_string))
+                if not gui.frame1.isHidden():
+                    gui.slider.valueChanged.emit(int(value))
+                    gui.progressEpn.setFormat((display_string))
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
                 logger.debug("{} {}".format("adding..audio..", self.audio))
@@ -441,8 +455,17 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.terminate()
     
     def keyPressEvent(self, event):
-        PlayerWidget.keyPressEvent(self, event)
-
+        key = self.total_keys.get(event.key())
+        if key and event.modifiers() not in self.modifiers:
+            cmd = self.mpv_default_modified.get(key)
+        else:
+            cmd = None
+        if cmd:
+            logger.debug(cmd)
+            self.mpv.command(*cmd)
+        else:
+            PlayerWidget.keyPressEvent(self, event)
+        
     def keyReleaseEvent(self, event):
         PlayerWidget.keyReleaseEvent(self, event)
         
