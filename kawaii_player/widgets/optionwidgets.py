@@ -551,7 +551,7 @@ class MySlider(QtWidgets.QSlider):
                 self.setToolTip(l)
             else:
                 if source_val and source_val == "progressbar":
-                    offset = 50
+                    offset = 25
                 else:
                     offset = 0
                 point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height() - offset)
@@ -672,7 +672,7 @@ class MySlider(QtWidgets.QSlider):
                 else:
                     x_cord = x_cord - self.half_size
                 if source_val and source_val == "progressbar":
-                    offset = 50
+                    offset = 25
                 else:
                     offset = 0
                 print(offset)
