@@ -726,7 +726,7 @@ class MySlider(QtWidgets.QSlider):
                 if (not self.preview_pending or resize or ui.live_preview == 'slow') and self.enter:
                     self.tooltip_widget.setGeometry(x_cord, y_cord, 128, 128)
                     self.tooltip_widget.show()
-                    self.txt.setText(self.time_format(length))
+                    self.txt.setText(length)
                 
     def update_tooltip(self):
         self.tooltip_widget.hide()
