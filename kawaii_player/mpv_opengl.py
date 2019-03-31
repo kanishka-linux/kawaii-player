@@ -48,6 +48,7 @@ class QProcessExtra(QtCore.QProcess):
             cmd = str(cmd, "utf-8").strip()
             cmd_arr = cmd.split()
             print(cmd_arr)
+            show_duration = None
             if cmd_arr[0] == "show-text":
                 cmd_tail = cmd.split(" ", 1)[-1]
                 if cmd_tail.startswith('"'):
@@ -61,37 +62,51 @@ class QProcessExtra(QtCore.QProcess):
                     chapter = self.ui.tab_5.mpv.chapter
                     total = self.ui.tab_5.mpv.chapters
                     meta = self.ui.tab_5.mpv.chapter_metadata
-                    print(meta)
-                    cmd_tail = "Chapter: {} / {} {}".format(chapter, total, meta)
+                    if meta:
+                        title = meta.get("TITLE")
+                    else:
+                        title = None
+                    if title:
+                        cmd_tail = "{} / {}".format(title, total)
+                    else:
+                        cmd_tail = "Chapter: {} / {}".format(chapter, total)
                 elif "${aid}" in cmd_tail:
                     aid = self.ui.tab_5.mpv.aid
                     cmd_tail = self.ui.tab_5.get_track_property(aid, "audio")
                     if cmd_tail is None:
-                        cmd_tail = "Aud: None"
+                        cmd_tail = "Audio: Disabled"
                 elif "${sid}" in cmd_tail:
                     sid = self.ui.tab_5.mpv.sid
                     cmd_tail = self.ui.tab_5.get_track_property(sid, "sub")
                     if cmd_tail is None:
-                        cmd_tail = "Sub: None"
-                self.ui.tab_5.mpv.command("show-text", cmd_tail)
+                        cmd_tail = "Subtitle: Disabled"
+                elif 'osd-sym-cc' in cmd:
+                    print(cmd)
+                    display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
+                    cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
+                if cmd_tail:    
+                    self.ui.tab_5.mpv.command("show-text", cmd_tail)
             elif cmd_arr[0] == "sub-add":
                 sub_file = self.filter_command(cmd)
-                self.ui.tab_5.mpv.command("show-text", "Adding-subtitle: {}".format(sub_file))
+                self.ui.tab_5.mpv.command("show-text", "Adding-subtitle: {}".format(sub_file), 2000)
             elif cmd_arr[0] == "loadfile":
                 file_path = self.filter_command(cmd)
-                self.ui.tab_5.mpv.command("show-text", "loading: {}".format(file_path))
+                self.ui.tab_5.mpv.command("show-text", "loading: {}".format(file_path), 2000)
             else:
                 try:
                     if cmd_arr[0] in ["stop", "quit"]:
                         self.ui.quit_now = True
-                    if "sub-font-size" in cmd_arr[0]:
+                    if "set pause" or "cycle pause" in cmd:
+                        self.ui.tab_5.mpv.command(*cmd_arr)
+                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
+                        cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
+                        self.ui.tab_5.mpv.command("show-text", cmd_tail, 2000)
+                    elif "sub-font-size" in cmd_arr[0]:
                         font_size = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_font_size = font_size
-                        print(font_size)
                     elif "sub-font" in cmd_arr[0]:
                         sub_font = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_font = sub_font.replace('"', "")
-                        print(sub_font)
                     elif "sub-color" in cmd_arr[0]:
                         sub_color = cmd_arr[-1]
                         self.ui.tab_5.mpv.sub_color = sub_color.replace('"', "")
@@ -121,7 +136,9 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.ui = ui
         MainWindow = parent
         logger = logr
-        self.args_dict = {'vo':'libmpv', 'ytdl':True, 'loop_playlist':'inf', 'idle':True}
+        self.args_dict = {'vo':'libmpv', 'ytdl':True,
+                         'loop_playlist':'inf', 'idle':True,
+                         'audio-display': 'attachment'}
         if platform.system().lower() == "darwin":
             self.args_dict.update({"ao":"coreaudio"})
         elif os.name == "posix":
@@ -189,6 +206,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.chapter_list = None
         self.prefetch_url = None
         self.window_title_set = False
+        self.mpv_queue_tuple = None
         
     def create_args_dict(self):
         if gui.gsbc_dict:
@@ -217,7 +235,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 k = k[2:]
             k = k.replace("-", "_")
             self.args_dict.update({k:v})
-            
+
             
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
@@ -258,13 +276,13 @@ class MpvOpenglWidget(QOpenGLWidget):
                 idtype = i.get("type")
                 if idval == id_val and idtype == id_type:
                     lang = i.get("lang")
-                    if idval and len(idtype) > 3:
-                        idtype = idtype[:3]
+                    if idtype and len(idtype) > 2:
+                        idtype = idtype[:1]
                     if idtype:
                         idtype = idtype.title()
                     if lang is None:
                         lang = "auto"
-                    txt = "{}: {}.{}".format(idtype, idval, lang)
+                    txt = "{}:{} ({})".format(idtype, idval, lang)
                     break
         return txt
         
@@ -286,22 +304,32 @@ class MpvOpenglWidget(QOpenGLWidget):
             txt = self.get_track_property(value, "audio")
             if txt:
                 gui.audio_track.setText(txt)
-        
+
+    def display_play_pause_string(self, value):
+        display_string = "None"
+        if value is not None:
+            fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
+            gui.progress_counter = value
+            cache = self.mpv.demuxer_cache_duration
+            if gui.mplayerLength > 0:
+                percent = int((value/gui.mplayerLength)*100)
+            else:
+                percent = 0
+            if not cache:
+                cache = 0
+            if gui.mplayerLength > 0:
+                display_string = '{}%  {} / {}  Cache: {}s'.format(percent, fn(value), fn(gui.mplayerLength), int(cache))
+        return display_string
+    
     def time_observer(self, _name, value):
         if value is not None:
             if abs(value - gui.progress_counter) >= 0.5:
-                fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
-                gui.progress_counter = value
+                display_string = self.display_play_pause_string(value)
                 gui.slider.valueChanged.emit(int(value))
-                cache = self.mpv.demuxer_cache_duration
                 file_size = self.mpv.file_size
                 if file_size:
                     file_size = round((file_size)/(1024*1024), 2)
-                if cache and gui.mplayerLength > 0:
-                    percent = int((value/gui.mplayerLength)*100)
-                    display_string = '{}%  {} / {}  Cache: {}s  Size: {} M'.format(percent, fn(value), fn(gui.mplayerLength), int(cache), file_size)
-                else:
-                    display_string = '{}/{}  Size: {} M'.format(fn(value), fn(gui.mplayerLength), file_size)
+                    display_string = "{} Size: {} M".format(display_string, file_size)
                 gui.progressEpn.setFormat((display_string))
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
