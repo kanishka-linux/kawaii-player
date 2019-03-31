@@ -797,7 +797,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 write_files(subtitle_path, val, line_by_line=False)
                 if os.name == 'nt':
                     subtitle_path = 'file:///{}'.format(subtitle_path.replace('\\', '/'))
-                if ui.mpvplayer_val.processId() > 0:
+                if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
                     ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
                     self.nav_signals.control_signal(-1000, 'add_subtitle')
             self.final_message(bytes('Subtitle Recieved', 'utf-8'))
