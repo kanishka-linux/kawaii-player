@@ -1470,6 +1470,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.osx_native_fullscreen = True
         self.quit_now = False
         self.system_bgcolor = ''
         self.thumbnail_engine = 'ffmpegthumbnailer'
@@ -2857,10 +2858,11 @@ class Ui_MainWindow(object):
         elif self.list2.isHidden():
             self.list1.hide()
             self.frame.hide()
-            self.list2.show()
-            self.list2.setFocus()
             show_hide_titlelist = 0
-            show_hide_playlist = 1
+            if self.pc_to_pc_casting != "slave" and not MainWindow.isFullScreen():
+                self.list2.show()
+                self.list2.setFocus()
+                show_hide_playlist = 1
         self.update_list2()
         
     def hide_torrent_info(self):
@@ -13837,6 +13839,17 @@ def main():
                     except Exception as e:
                         print(e)
                         ui.anime_review_site = False
+                elif i.startswith('OSX_NATIVE_FULLSCREEN='):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.osx_native_fullscreen = True
+                            else:
+                                ui.osx_native_fullscreen = False
+                    except Exception as e:
+                        print(e)
+                        ui.osx_native_fullscreen = True
                 elif i.startswith('THEME='):
                     try:
                         k = j.lower()
@@ -14016,6 +14029,7 @@ def main():
             f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
             f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
             f.write("\nVARIABLE_WIDTH_LIST=False")
+            f.write("\nOSX_NATIVE_FULLSCREEN=True")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':

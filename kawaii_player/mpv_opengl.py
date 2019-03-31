@@ -681,7 +681,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                             self.ui.tab_2.hide()
                         if self.player_val in self.ui.playback_engine:
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                        if platform.system().lower() == "darwin":
+                        if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
                             MainWindow.hide()
                             self.setParent(None)
                         else:

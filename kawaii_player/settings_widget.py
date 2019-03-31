@@ -1143,7 +1143,22 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'othersettings'))
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'othersettings'))
-                
+
+        self.line301 = QtWidgets.QComboBox()
+        self.line301.addItem('False')
+        self.line301.addItem('True')
+        self.line301.setObjectName('OSX_NATIVE_FULLSCREEN')
+        index = self.line301.findText(str(ui.osx_native_fullscreen))
+        self.line301.setCurrentIndex(index)
+        self.text301 = QtWidgets.QLabel()
+        self.text301.setText("OSX Native Fullscreen")
+        self.other_settings.append('osx_native_fullscreen')
+        self.gl4.addWidget(self.text301, 10, 0, 1, 1)
+        self.gl4.addWidget(self.line301, 10, 1, 1, 2)
+        self.line301.currentIndexChanged['int'].connect(
+            partial(self.combobox_changed, self.line301, 'osx_native_fullscreen', 'othersettings')
+            )
+        
     def library(self):
         self.list_library = QtWidgets.QListWidget()
         self.list_library.setObjectName("list_library")
