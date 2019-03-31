@@ -532,7 +532,7 @@ class MySlider(QtWidgets.QSlider):
             source_val = "none"
         if not os.path.exists(ui.preview_download_folder):
             os.makedirs(ui.preview_download_folder)
-        if ui.live_preview in ['fast', 'slow'] and (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") and self.file_type == 'video':
+        if ui.live_preview in ['fast', 'slow'] and (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") and self.file_type == 'video' and ui.extra_toolbar_control == "master":
             if self.preview_dir is None:
                 self.create_preview_dir()
             command = 'mpv --vo=image --vo-image-jpeg-quality={} --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.live_preview_quality, self.preview_dir, int(t), ui.final_playing_url)
