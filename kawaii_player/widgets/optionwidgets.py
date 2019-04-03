@@ -15,6 +15,19 @@ from thread_modules import DiscoverServer
 from mpv import MPV
 from threading import Lock
 
+class QBrowserWidget(QtWidgets.QWidget):
+
+    def __init__(self, uiwidget, parent):
+        QtWidgets.QWidget.__init__(self, parent)
+        global ui
+        ui = uiwidget
+        self.setMouseTracking(True)
+        
+    def mouseMoveEvent(self, event):
+        self.setFocus()
+        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        
+
 class QPushButtonExtra(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
