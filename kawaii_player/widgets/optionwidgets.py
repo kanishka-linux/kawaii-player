@@ -504,6 +504,8 @@ class MySlider(QtWidgets.QSlider):
         self.mpv.start = t
         if scale is not None:
             self.mpv.vf = "scale={}:{}".format(scale[0], scale[1])
+        else:
+            self.mpv.vf = ""
         if not os.path.exists(newpicn):
             self.mpv.play(url)
         self.mpv.wait_for_property("idle-active", lambda x : x)
