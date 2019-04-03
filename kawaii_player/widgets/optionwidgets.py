@@ -497,14 +497,15 @@ class MySlider(QtWidgets.QSlider):
             self.final_url = ui.final_playing_url
 
     def mpv_preview(self, preview_dir, t, scale, newpicn, url):
-        self.preview_lock.acquire()
+        #self.preview_lock.acquire()
         picn = os.path.join(preview_dir, '00000001.jpg')
-        self.mpv.vo_image_jpeg_quality = ui.live_preview_quality
         self.mpv.vo_image_outdir = preview_dir
         self.mpv.start = t
         if scale is not None:
+            self.mpv.vo_image_jpeg_quality = ui.live_preview_quality
             self.mpv.vf = "scale={}:{}".format(scale[0], scale[1])
         else:
+            self.mpv.vo_image_jpeg_quality = 90
             self.mpv.vf = ""
         if not os.path.exists(newpicn):
             self.mpv.play(url)
@@ -512,7 +513,7 @@ class MySlider(QtWidgets.QSlider):
         if os.path.exists(picn) and not os.path.exists(newpicn):
             shutil.move(picn, newpicn)
         self.mpv.stop = True
-        self.preview_lock.release()
+        #self.preview_lock.release()
     
     def mouseMoveEvent(self, event, source=None):
         if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
