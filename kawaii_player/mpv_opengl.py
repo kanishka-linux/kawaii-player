@@ -248,7 +248,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 k = k[2:]
             k = k.replace("-", "_")
             self.args_dict.update({k:v})
-
+        self.args_dict.update({"vo":"libmpv"})
             
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
