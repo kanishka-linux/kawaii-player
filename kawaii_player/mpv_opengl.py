@@ -462,7 +462,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             cmd = None
         if cmd:
             logger.debug(cmd)
-            self.mpv.command(*cmd)
+            try:
+                self.mpv.command(*cmd)
+            except Exception as err:
+                logger.error(err)
         else:
             PlayerWidget.keyPressEvent(self, event)
         
