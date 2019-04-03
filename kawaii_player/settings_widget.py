@@ -25,6 +25,7 @@ import hashlib
 import pickle
 import ipaddress
 import subprocess
+import platform
 from functools import partial
 from urllib.parse import urlparse
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -488,7 +489,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.global_font = found
             else:
                 self.global_font = QtGui.QFont().defaultFamily()
-            ui.global_font_size = 10
+            ui.global_font_size = 12
             ui.font_bold = False
             ui.thumbnail_text_color = 'lightgray'
             ui.thumbnail_text_color_focus = 'green'
@@ -508,7 +509,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.global_font = found
             else:
                 self.global_font = QtGui.QFont().defaultFamily()
-            ui.global_font_size = 10
+            ui.global_font_size = 12
             ui.font_bold = True
             ui.thumbnail_text_color = 'white'
             ui.thumbnail_text_color_focus = 'green'
@@ -1214,7 +1215,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line44 = QtWidgets.QLineEdit()
         if len(ui.playback_engine) > 2:
-            extra_players = [i for i in ui.playback_engine if i not in ['mpv', 'mplayer']]
+            extra_players = [i for i in ui.playback_engine if i not in ['mpv', 'mplayer', 'libmpv']]
             extra_string = ','.join(extra_players)
         else:
             extra_string = 'None'
@@ -1527,7 +1528,21 @@ class OptionsSettings(QtWidgets.QTabWidget):
             ui.use_custom_config_file = False
         change_opt_file(self.option_file, 'USE_CUSTOM_CONFIG_FILE=',
                         'USE_CUSTOM_CONFIG_FILE={}'.format(ui.use_custom_config_file))
-        
+
+    def get_vo(self):
+        if platform.system().lower() == "darwin":
+            return "libmpv"
+        else:
+            return "gpu"
+            
+    def get_ao(self):
+        if platform.system().lower() == "darwin":
+            return "coreaudio"
+        elif os.name == "posix":
+            return "pulse"
+        elif os.name == "nt":
+            return "wasapi"
+    
     def basic_params(self, player=None, mode=None):
         mpv_cmd = []
         if mode is None:
@@ -1538,7 +1553,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                         mpv_cmd = mpv_cmd_dict['file']
             except Exception as err:
                 logger.error(err)
-        
+        vo = self.get_vo()
+        ao = self.get_ao()
         if not ui.video_outputs or not ui.audio_outputs:
             ui.video_outputs, ui.audio_outputs = self.get_audio_video_outputs()
             change_opt_file(self.option_file, 'AUDIO_OUTPUTS=', 'AUDIO_OUTPUTS={}'.format(ui.audio_outputs))
@@ -1548,9 +1564,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 "##Define Custom Settings Here for mpv. Comment out lines as per need",
                 '##Write string with space in double quotes',
                 "##Available Video Outputs (vo): {}".format(ui.video_outputs),
-                "vo=gpu",
+                "vo={}".format(vo),
                 "##Available Audio Outputs (ao): {}".format(ui.audio_outputs),
-                "ao=pulse",
+                "ao={}".format(ao),
                 '##Set OSD level',
                 '#osd-level=1',
                 "#Cache Settings",

@@ -545,14 +545,14 @@ class MySlider(QtWidgets.QSlider):
             source_val = "none"
         if not os.path.exists(ui.preview_download_folder):
             os.makedirs(ui.preview_download_folder)
-        if ui.live_preview in ['fast', 'slow'] and (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") and self.file_type == 'video' and ui.extra_toolbar_control == "master":
+        if ui.live_preview in ['fast', 'slow'] and (ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "mpv"]) and self.file_type == 'video' and ui.extra_toolbar_control == "master":
             if self.preview_dir is None:
                 self.create_preview_dir()
             command = 'mpv --vo=image --vo-image-jpeg-quality={} --no-sub --ytdl=no --quiet -aid=no -sid=no --vo-image-outdir="{}" --start={} --frames=1 "{}"'.format(ui.live_preview_quality, self.preview_dir, int(t), ui.final_playing_url)
             picn = os.path.join(self.preview_dir, '00000001.jpg')
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
-            if ui.player_val == "libmpv":
+            if ui.player_val in ["libmpv", "mpv"]:
                 self.mpv_preview(self.preview_dir, t,
                                 (ui.label.maximumWidth(), ui.label.maximumHeight()),
                                 newpicn, ui.final_playing_url)
@@ -570,7 +570,7 @@ class MySlider(QtWidgets.QSlider):
                 point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height() - offset)
                 rect = QtCore.QRect(self.parent.x(), self.parent.y() - offset , self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
-        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video':
+        if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video' and ui.player_val not in ["mpv", "libmpv"]:
             self.setToolTip('')
             if os.path.isfile(newpicn) and self.final_url == ui.final_playing_url:
                 use_existing = True

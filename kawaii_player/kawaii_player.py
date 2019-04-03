@@ -1473,7 +1473,7 @@ class Ui_MainWindow(object):
         self.osx_native_fullscreen = True
         self.quit_now = False
         self.system_bgcolor = ''
-        self.thumbnail_engine = 'ffmpegthumbnailer'
+        self.thumbnail_engine = 'mpv'
         self.torrent_show_piece_map = False
         self.torrent_status_command = 'default'
         self.mpv_start = False
@@ -1535,7 +1535,7 @@ class Ui_MainWindow(object):
         except Exception as err:
             logger.error(err)
             self.global_font = 'Ubuntu'
-        self.global_font_size = 10
+        self.global_font_size = 12
         self.show_search_thumbnail = False
         self.tab_6_size_indicator = []
         self.tab_6_player = False
@@ -2684,117 +2684,119 @@ class Ui_MainWindow(object):
             #self.btn4.setToolTip('Auto Hide On')
             self.auto_hide_dock = True
             self.dockWidget_3.hide()
-            
+
+    def legacy_ffmpegthumbnailer(self, picn, interval, path,
+                                  width_allowed=None, from_client=None):
+        path = path.replace('"', '')
+        inter = str(interval)
+        
+        new_tmp = '"'+TMPDIR+'"'
+        
+        if OSNAME == 'posix' and self.thumbnail_engine == "ffmpegthumbnailer":
+            if width_allowed:
+                wd = str(width_allowed)
+            else:
+                if self.player_theme == 'default':
+                    wd = str(self.width_allowed)
+                else:
+                    wd = str(self.label_new.maximumWidth())
+            if path.endswith('.mp3') or path.endswith('.flac'):
+                try:
+                    f = mutagen.File(path)
+                    artwork = f.tags['APIC:'].data
+                    with open(picn, 'wb') as img:
+                        img.write(artwork) 
+                except Exception as e:
+                    try:
+                        f = open(picn, 'w').close()
+                        print(e, '--9048--')
+                    except Exception as e:
+                        print(e, '--9065--')
+                        
+            else:
+                subprocess.call(["ffmpegthumbnailer", "-i", path, "-o", picn, 
+                            "-t", str(inter), '-q', '10', '-s', wd])
+            logger.info("{0}:{1}".format(path, picn))
+            if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
+                #self.image_fit_option(picn, picn, fit_size=6, widget_size=(480, 360))
+                self.create_new_image_pixel(picn, 128)
+                self.create_new_image_pixel(picn, 480)
+                label_name = 'label.'+os.path.basename(picn)
+                path_thumb, new_title = os.path.split(picn)
+                new_picn = os.path.join(path_thumb, label_name)
+                if not os.path.exists(new_picn):
+                    self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
+                
     def generate_thumbnail_method(self, picn, interval, path,
                                   width_allowed=None, from_client=None):
         path = path.replace('"', '')
         inter = str(interval)
         
         new_tmp = '"'+TMPDIR+'"'
-        if self.player_val != "libmpv":
-            self.mpv_thumbnail_lock.acquire(timeout=5)
-        try:
-            if OSNAME == 'posix' and self.thumbnail_engine == "ffmpegthumbnailer":
-                if width_allowed:
-                    wd = str(width_allowed)
-                else:
-                    if self.player_theme == 'default':
-                        wd = str(self.width_allowed)
-                    else:
-                        wd = str(self.label_new.maximumWidth())
-                if path.endswith('.mp3') or path.endswith('.flac'):
-                    try:
-                        f = mutagen.File(path)
-                        artwork = f.tags['APIC:'].data
-                        with open(picn, 'wb') as img:
-                            img.write(artwork) 
-                    except Exception as e:
-                        try:
-                            f = open(picn, 'w').close()
-                            print(e, '--9048--')
-                        except Exception as e:
-                            print(e, '--9065--')
-                            
-                else:
-                    subprocess.call(["ffmpegthumbnailer", "-i", path, "-o", picn, 
-                                "-t", str(inter), '-q', '10', '-s', wd])
-                logger.info("{0}:{1}".format(path, picn))
+        
+        if path.endswith('.mp3') or path.endswith('.flac'):
+            try:
+                f = mutagen.File(path)
+                artwork = f.tags['APIC:'].data
+                with open(picn, 'wb') as img:
+                    img.write(artwork) 
+            except Exception as e:
+                try:
+                    f = open(picn, 'w').close()
+                    print(e, '--9048--')
+                except Exception as e:
+                    print(e, '--9065--')
+            logger.info("{0}:{1}".format(path, picn))
+            if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
+                self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+        else:
+            if inter.endswith('s'):
+                inter = inter[:-1]
+            if self.player_val in ["libmpv", "mpv"]:
+                if "youtube.com" in path:
+                    self.slider.mpv.ytdl = "yes"
+                self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path)
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                    #self.image_fit_option(picn, picn, fit_size=6, widget_size=(480, 360))
                     self.create_new_image_pixel(picn, 128)
                     self.create_new_image_pixel(picn, 480)
-                    label_name = 'label.'+os.path.basename(picn)
-                    path_thumb, new_title = os.path.split(picn)
-                    new_picn = os.path.join(path_thumb, label_name)
-                    if not os.path.exists(new_picn):
-                        self.image_fit_option(picn, new_picn, fit_size=6, widget=self.label)
             else:
-                if path.endswith('.mp3') or path.endswith('.flac'):
-                    try:
-                        f = mutagen.File(path)
-                        artwork = f.tags['APIC:'].data
-                        with open(picn, 'wb') as img:
-                            img.write(artwork) 
-                    except Exception as e:
-                        try:
-                            f = open(picn, 'w').close()
-                            print(e, '--9048--')
-                        except Exception as e:
-                            print(e, '--9065--')
-                    logger.info("{0}:{1}".format(path, picn))
-                    if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                        self.image_fit_option(picn, picn, fit_size=6, widget=self.label)
+                if 'youtube.com' in path:
+                    new_tmp = new_tmp.replace('"', '')
+                    subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
+                                    "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
+                                    "--start="+str(inter)+"%", "--frames=1"
+                                    , path])
                 else:
-                    if inter.endswith('s'):
-                        inter = inter[:-1]
-                    if self.player_val == "libmpv":
-                        if "youtube.com" in path:
-                            self.slider.mpv.ytdl = "yes"
-                        self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path)
-                        if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                            self.create_new_image_pixel(picn, 128)
-                            self.create_new_image_pixel(picn, 480)
+                    if OSNAME == "posix":
+                        shell = False
                     else:
-                        if 'youtube.com' in path:
-                            new_tmp = new_tmp.replace('"', '')
-                            subprocess.call(["mpv", "--vo=image", "--no-sub", "--ytdl=yes", "--quiet", 
-                                            "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                                            "--start="+str(inter)+"%", "--frames=1"
-                                            , path])
-                        else:
-                            if OSNAME == "posix":
-                                shell = False
-                            else:
-                                shell = True
-                                proc = None
-                                if self.player_val == 'mpv':
-                                    new_tmp = new_tmp.replace('"', '')
-                                    proc = subprocess.Popen(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
-                                    "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
-                                    "--start="+str(inter)+"%", "--frames=1", path], shell=shell)
-                                elif self.player_val == 'mplayer':
-                                    proc = subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
-                                    '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
-                                    "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
-                                    path], shell=shell)
-                                counter = 0
-                                while proc and proc.poll() == None:
-                                    time.sleep(0.1)
-                                    counter += 1
-                                    logger.debug("sleeping {}".format(counter))
-                                    if counter > 20:
-                                        proc.terminate()
-                                        break
-                        picn_path = os.path.join(TMPDIR, '00000001.jpg')
-                        if os.path.exists(picn_path):
-                            shutil.copy(picn_path, picn)
-                            os.remove(picn_path)
-                            if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
-                                self.create_new_image_pixel(picn, 128)
-                                self.create_new_image_pixel(picn, 480)
-        finally:
-            if self.player_val != "libmpv":
-                self.mpv_thumbnail_lock.release()
+                        shell = True
+                    proc = None
+                    if self.player_val == 'mpv':
+                        new_tmp = new_tmp.replace('"', '')
+                        proc = subprocess.Popen(["mpv", "--vo=image", "--no-sub", "--ytdl=no", 
+                        "--quiet", "-aid=no", "-sid=no", "--vo-image-outdir="+new_tmp, 
+                        "--start="+str(inter)+"%", "--frames=1", path], shell=shell)
+                    elif self.player_val == 'mplayer':
+                        proc = subprocess.call(["mplayer", "-nosub", "-nolirc", "-nosound", 
+                        '-vo', "jpeg:quality=100:outdir="+new_tmp, "-ss", str(inter), 
+                        "-endpos", "1", "-frames", "1", "-vf", "scale=320:180", 
+                        path], shell=shell)
+                    counter = 0
+                    while proc and proc.poll() == None:
+                        time.sleep(0.1)
+                        counter += 1
+                        logger.debug("sleeping {}".format(counter))
+                        if counter > 20:
+                            proc.terminate()
+                            break
+                picn_path = os.path.join(TMPDIR, '00000001.jpg')
+                if os.path.exists(picn_path):
+                    shutil.copy(picn_path, picn)
+                    os.remove(picn_path)
+                    if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
+                        self.create_new_image_pixel(picn, 128)
+                        self.create_new_image_pixel(picn, 480)
     
     def create_new_image_pixel(self, art_url, pixel):
         art_url_name = str(pixel)+'px.'+os.path.basename(art_url)
@@ -13989,7 +13991,7 @@ def main():
                 f.write("\nTHUMBNAIL_ENGINE=mpv")
             else:
                 f.write("\nGET_LIBRARY=pycurl")
-                f.write("\nTHUMBNAIL_ENGINE=ffmpegthumbnailer")
+                f.write("\nTHUMBNAIL_ENGINE=mpv")
             f.write("\n#IMAGE_FIT_OPTION=0-9")
             f.write("\nIMAGE_FIT_OPTION=3")
             f.write("\nAUTH=NONE")
