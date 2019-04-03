@@ -1576,7 +1576,7 @@ class Ui_MainWindow(object):
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
         self.mpvplayer_aspect_float = {'0':-1, '1':1.777777778, '2':1.3333333333, '3':2.35, '4':0}
-        self.playback_engine = ["mpv", 'mplayer', 'libmpv']
+        self.playback_engine = ["mpv", 'libmpv', 'mplayer']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -9838,7 +9838,7 @@ class Ui_MainWindow(object):
             if self.float_window.isHidden():
                 self.tab_5.hide()
         else:
-            if self.player_val in ['mpv', 'mplayer', 'libmpv']:
+            if self.player_val in ['mpv', 'libmpv', 'mplayer']:
                 self.tab_5.show()
                 self.list1.hide()
                 self.frame.hide()
