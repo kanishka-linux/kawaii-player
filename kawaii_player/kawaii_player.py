@@ -2004,6 +2004,8 @@ class Ui_MainWindow(object):
             if self.fullscreen_video:
                 self.gridLayout.setSpacing(5)
                 self.superGridLayout.setSpacing(5)
+                if platform.system().lower() == "darwin":
+                    self.tab_5.setMinimumWidth(0)
             self.frame_extra_toolbar.show()
             if self.list2.isHidden():
                 self.list2.show()
@@ -2018,6 +2020,8 @@ class Ui_MainWindow(object):
             if self.fullscreen_video:
                 self.gridLayout.setSpacing(0)
                 self.superGridLayout.setSpacing(0)
+                if platform.system().lower() == "darwin":
+                    self.tab_5.setMinimumWidth(MainWindow.width())
             self.frame_extra_toolbar.slider_volume.pressed = False
             self.frame_extra_toolbar.hide()
             if self.frame_extra_toolbar.playlist_hide:
@@ -3723,6 +3727,8 @@ class Ui_MainWindow(object):
                 if self.fullscreen_video:
                     self.gridLayout.setSpacing(0)
                     self.superGridLayout.setSpacing(0)
+                    if platform.system().lower() == "darwin":
+                        self.tab_5.setMinimumWidth(MainWindow.width())
                 ht = self.list2.height() 
                 self.list2.hide()
                 self.goto_epn.hide()
@@ -3738,6 +3744,8 @@ class Ui_MainWindow(object):
                 if self.fullscreen_video:
                     self.gridLayout.setSpacing(5)
                     self.superGridLayout.setSpacing(5)
+                    if platform.system().lower() == "darwin":
+                        self.tab_5.setMinimumWidth(0)
                 self.list2.show()
                 show_hide_playlist = 1
                 if MainWindow.isFullScreen():

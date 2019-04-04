@@ -655,6 +655,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.mpv.command("playlist-prev")
 
     def quit_player(self, msg=None):
+        self.ui.tab_5.setMinimumWidth(0)
         MainWindow.show()
         MainWindow.showMaximized()
         self.setParent(MainWindow)
@@ -747,6 +748,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
                         self.setFocus()
                         self.setMouseTracking(True)
+                        if platform.system().lower() == "darwin":
+                            self.ui.tab_5.setMinimumWidth(MainWindow.width())
+                            
                 elif mode == "nofs":
                     #self.hide()
                     if platform.system().lower() == "darwin":
@@ -792,6 +796,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.setFocus()
                     #MainWindow.show()
                     #MainWindow.showMaximized()
+                    self.ui.tab_5.setMinimumWidth(0)
                     if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
                         self.mx_timer.start(1000) 
                     
