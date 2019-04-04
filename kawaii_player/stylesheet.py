@@ -285,7 +285,7 @@ class WidgetStyleSheet:
                     )
             gui.player_opt.setStyleSheet("""
                 QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
-                QPushButton{border-radius:0px;max-height:30px;}
+                QPushButton{border-radius:0px;max-height:64px;}
                 QPushButton::hover{background-color: yellow;color: black;}
                 """)
             
@@ -809,7 +809,7 @@ class WidgetStyleSheet:
                         )
                 gui.player_opt.setStyleSheet("""
                     QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
-                    QPushButton{max-height:30px;border:rgba(0, 0, 0, 30%)}
+                    QPushButton{max-height:64px;border:rgba(0, 0, 0, 30%)}
                     QPushButton::hover{background-color: yellow;color: black;}
                     """)
                 
