@@ -52,7 +52,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.set_ip_btn = QPushButtonExtra(self)
             self.set_ip_btn.setText("Check")
             self.set_ip_btn.setToolTip('Check your current IP Address OR\nUser can manually enter the field in the form "ip_address:port_number"')
-            self.set_ip_btn.clicked.connect(self._set_local_ip)
+            self.set_ip_btn.clicked_connect(self._set_local_ip)
 
             self.set_default_download = QtWidgets.QLineEdit(self)
             self.set_default_download.setText(self.ui.default_download_location)
@@ -62,7 +62,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.default_download_btn = QPushButtonExtra(self)
             self.default_download_btn.setText("Set Directory")
             self.default_download_btn.setToolTip('Set Default Download Location')
-            self.default_download_btn.clicked.connect(self._set_download_location)
+            self.default_download_btn.clicked_connect(self._set_download_location)
 
             self.backg = QtWidgets.QComboBox(self)
             self.backg.addItem('KEEP_BACKGROUND_CONSTANT=yes')
@@ -89,11 +89,11 @@ class LoginAuth(QtWidgets.QDialog):
                 self.img_opt.setCurrentIndex(0)
             self.ok_btn = QPushButtonExtra(self)
             self.ok_btn.setText("OK")
-            self.ok_btn.clicked.connect(self._set_params)
+            self.ok_btn.clicked_connect(self._set_params)
 
             self.cancel_btn = QPushButtonExtra(self)
             self.cancel_btn.setText("Cancel")
-            self.cancel_btn.clicked.connect(self.hide)
+            self.cancel_btn.clicked_connect(self.hide)
 
             self.grid.addWidget(self.set_ip, 0, 0, 1, 1)
             self.grid.addWidget(self.set_ip_btn, 0, 1, 1, 1)
@@ -114,7 +114,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.repeat_phrase.setEchoMode(QtWidgets.QLineEdit.Password)
             self.btn_create = QPushButtonExtra(self)
             self.btn_create.setText("Create SSL Certificate")
-            self.btn_create.clicked.connect(self.handleSsl)
+            self.btn_create.clicked_connect(self.handleSsl)
             self.setWindowTitle('SSL')
             layout = QtWidgets.QVBoxLayout(self)
             layout.addWidget(self.pass_phrase)
@@ -129,12 +129,12 @@ class LoginAuth(QtWidgets.QDialog):
             if not media_server:
                 self.btn_login = QPushButtonExtra(self)
                 self.btn_login.setText("Login")
-                self.btn_login.clicked.connect(self.handleLogin)
+                self.btn_login.clicked_connect(self.handleLogin)
                 self.setWindowTitle('Credentials Required')
             else:
                 self.btn_login = QPushButtonExtra(self)
                 self.btn_login.setText('Set')
-                self.btn_login.clicked.connect(self._set_password)
+                self.btn_login.clicked_connect(self._set_password)
                 self.setWindowTitle('SET User and Password')
             layout = QtWidgets.QVBoxLayout(self)
             layout.addWidget(self.text_name)
@@ -338,7 +338,7 @@ class LoginPCToPC(QtWidgets.QDialog):
         self.text_pass.setEchoMode(QtWidgets.QLineEdit.Password)
         self.btn_login = QPushButtonExtra(self)
         self.btn_login.setText('Login')
-        self.btn_login.clicked.connect(self.handle_login)
+        self.btn_login.clicked_connect(self.handle_login)
         self.setWindowTitle('Credentials Required')
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.text_name)
@@ -554,96 +554,96 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.remote_on = QPushButtonExtra()
         self.gl9.addWidget(self.remote_on, 0, 0, 1, 1)
         self.remote_on.setText('Remote Off')
-        self.remote_on.clicked.connect(partial(self.slave_commands, 'remote_on.htm'))
+        self.remote_on.clicked_connect(partial(self.slave_commands, 'remote_on.htm'))
         self.remote_on.hide()
         
         self.play_pause = QPushButtonExtra()
         self.gl9.addWidget(self.play_pause, 0, 0, 1, 1)
         self.play_pause.setText('Play/Pause')
-        self.play_pause.clicked.connect(partial(self.slave_commands, 'playpause'))
+        self.play_pause.clicked_connect(partial(self.slave_commands, 'playpause'))
         
         self.play_loop = QPushButtonExtra()
         self.gl9.addWidget(self.play_loop, 0, 1, 1, 1)
         self.play_loop.setText('Loop')
-        self.play_loop.clicked.connect(partial(self.slave_commands, 'lock'))
+        self.play_loop.clicked_connect(partial(self.slave_commands, 'lock'))
         
         self.toggle_fs = QPushButtonExtra()
         self.gl9.addWidget(self.toggle_fs, 0, 2, 1, 1)
         self.toggle_fs.setText('F')
-        self.toggle_fs.clicked.connect(partial(self.slave_commands, 'fullscreen'))
+        self.toggle_fs.clicked_connect(partial(self.slave_commands, 'fullscreen'))
         self.toggle_fs.setToolTip('Toggle Fullscreen')
         
         self.playerstop = QPushButtonExtra()
         self.gl9.addWidget(self.playerstop, 0, 3, 1, 1)
         self.playerstop.setText('Stop')
-        self.playerstop.clicked.connect(partial(self.slave_commands, 'playerstop'))
+        self.playerstop.clicked_connect(partial(self.slave_commands, 'playerstop'))
         
         self.playerprev = QPushButtonExtra()
         self.gl9.addWidget(self.playerprev, 1, 0, 1, 1)
         self.playerprev.setText('Prev')
-        self.playerprev.clicked.connect(partial(self.slave_commands, 'playprev'))
+        self.playerprev.clicked_connect(partial(self.slave_commands, 'playprev'))
         
         self.playernext = QPushButtonExtra()
         self.gl9.addWidget(self.playernext, 1, 1, 1, 1)
         self.playernext.setText('Next')
-        self.playernext.clicked.connect(partial(self.slave_commands, 'playnext'))
+        self.playernext.clicked_connect(partial(self.slave_commands, 'playnext'))
         
         self.playervol_5 = QPushButtonExtra()
         self.gl9.addWidget(self.playervol_5, 1, 2, 1, 1)
         self.playervol_5.setText('vol--')
-        self.playervol_5.clicked.connect(partial(self.slave_commands, 'volume_5'))
+        self.playervol_5.clicked_connect(partial(self.slave_commands, 'volume_5'))
         
         self.playervol5 = QPushButtonExtra()
         self.gl9.addWidget(self.playervol5, 1, 3, 1, 1)
         self.playervol5.setText('vol++')
-        self.playervol5.clicked.connect(partial(self.slave_commands, 'volume5'))
+        self.playervol5.clicked_connect(partial(self.slave_commands, 'volume5'))
         
         self.playerseek_10 = QPushButtonExtra()
         self.gl9.addWidget(self.playerseek_10, 2, 0, 1, 1)
         self.playerseek_10.setText('-10s')
-        self.playerseek_10.clicked.connect(partial(self.slave_commands, 'seek_10'))
+        self.playerseek_10.clicked_connect(partial(self.slave_commands, 'seek_10'))
         
         self.playerseek10 = QPushButtonExtra()
         self.gl9.addWidget(self.playerseek10, 2, 1, 1, 1)
         self.playerseek10.setText('+10s')
-        self.playerseek10.clicked.connect(partial(self.slave_commands, 'seek10'))
+        self.playerseek10.clicked_connect(partial(self.slave_commands, 'seek10'))
         
         self.playerseek_60 = QPushButtonExtra()
         self.gl9.addWidget(self.playerseek_60, 2, 2, 1, 1)
         self.playerseek_60.setText('-60s')
-        self.playerseek_60.clicked.connect(partial(self.slave_commands, 'seek_60'))
+        self.playerseek_60.clicked_connect(partial(self.slave_commands, 'seek_60'))
         
         self.playerseek60 = QPushButtonExtra()
         self.gl9.addWidget(self.playerseek60, 2, 3, 1, 1)
         self.playerseek60.setText('+60s')
-        self.playerseek60.clicked.connect(partial(self.slave_commands, 'seek60'))
+        self.playerseek60.clicked_connect(partial(self.slave_commands, 'seek60'))
         
         self.playerseek_5m = QPushButtonExtra()
         self.gl9.addWidget(self.playerseek_5m, 3, 0, 1, 1)
         self.playerseek_5m.setText('-5m')
-        self.playerseek_5m.clicked.connect(partial(self.slave_commands, 'seek_5m'))
+        self.playerseek_5m.clicked_connect(partial(self.slave_commands, 'seek_5m'))
         
         self.playerseek5m = QPushButtonExtra()
         self.gl9.addWidget(self.playerseek5m, 3, 1, 1, 1)
         self.playerseek5m.setText('+5m')
-        self.playerseek5m.clicked.connect(partial(self.slave_commands, 'seek5m'))
+        self.playerseek5m.clicked_connect(partial(self.slave_commands, 'seek5m'))
         
         self.toggle_sub = QPushButtonExtra()
         self.gl9.addWidget(self.toggle_sub, 3, 2, 1, 1)
         self.toggle_sub.setText('Sub')
-        self.toggle_sub.clicked.connect(partial(self.slave_commands, 'toggle_subtitle'))
+        self.toggle_sub.clicked_connect(partial(self.slave_commands, 'toggle_subtitle'))
         self.toggle_sub.setToolTip('Toggle Subtitle')
         
         self.toggle_aud = QPushButtonExtra()
         self.gl9.addWidget(self.toggle_aud, 3, 3, 1, 1)
         self.toggle_aud.setText('Audio')
-        self.toggle_aud.clicked.connect(partial(self.slave_commands, 'toggle_audio'))
+        self.toggle_aud.clicked_connect(partial(self.slave_commands, 'toggle_audio'))
         self.toggle_aud.setToolTip('Toggle Audio')
         
         self.playerseekabs = QPushButtonExtra()
         self.gl9.addWidget(self.playerseekabs, 3, 4, 1, 1)
         self.playerseekabs.setText('abs')
-        self.playerseekabs.clicked.connect(partial(self.slave_commands, 'seek_abs_'))
+        self.playerseekabs.clicked_connect(partial(self.slave_commands, 'seek_abs_'))
         self.playerseekabs.hide()
         
         self.slave_label = QtWidgets.QTextEdit()
@@ -871,7 +871,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text11.setText("Local Stream IP")
         self.btn11 = QPushButtonExtra()
         self.btn11.setText(" Check IP ")
-        self.btn11.clicked.connect(partial(self.check_and_set_ip, self.line11, 'local_ip_stream'))
+        self.btn11.clicked_connect(partial(self.check_and_set_ip, self.line11, 'local_ip_stream'))
         self.media_param.append('local_ip_stream')
         
         self.line12 = QtWidgets.QComboBox()
@@ -950,19 +950,19 @@ class OptionsSettings(QtWidgets.QTabWidget):
     def mediaserver_extra_buttons(self, index=None, mode=None):
         if index and mode == 1:
             self.line021 = QPushButtonExtra(ui.action_player_menu[8].text())
-            self.line021.clicked.connect(partial(self.media_server_start, 'broadcast server'))
+            self.line021.clicked_connect(partial(self.media_server_start, 'broadcast server'))
             self.gl2.addWidget(self.line021, index, 2, 1, 1)
             
             self.line022 = QPushButtonExtra('Username/Password')
-            self.line022.clicked.connect(partial(self.media_server_start, 'username'))
+            self.line022.clicked_connect(partial(self.media_server_start, 'username'))
             self.gl2.addWidget(self.line022, index+1, 0, 1, 1)
             
             self.line19 = QPushButtonExtra(ui.action_player_menu[7].text())
-            self.line19.clicked.connect(partial(self.media_server_start, 'start'))
+            self.line19.clicked_connect(partial(self.media_server_start, 'start'))
             self.gl2.addWidget(self.line19, index+1, 1, 1, 1)
             
             self.line020 = QPushButtonExtra(ui.action_player_menu[9].text())
-            self.line020.clicked.connect(partial(self.media_server_start, 'remote_control'))
+            self.line020.clicked_connect(partial(self.media_server_start, 'remote_control'))
             self.gl2.addWidget(self.line020, index+1, 2, 1, 1)
             
             
@@ -989,7 +989,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text21.setText("Torrent Stream IP")
         self.btn21 = QPushButtonExtra()
         self.btn21.setText(" Check IP ")
-        self.btn21.clicked.connect(partial(self.check_and_set_ip, self.line21, 'local_ip'))
+        self.btn21.clicked_connect(partial(self.check_and_set_ip, self.line21, 'local_ip'))
         self.torrent_param.append('local_ip')
         
         self.line22 = QtWidgets.QLineEdit()
@@ -998,7 +998,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text22.setText("Torrent Download Folder")
         self.btn22 = QPushButtonExtra()
         self.btn22.setText(" Set Location ")
-        self.btn22.clicked.connect(partial(self.set_folder, self.line22, 'torrent_download_folder'))
+        self.btn22.clicked_connect(partial(self.set_folder, self.line22, 'torrent_download_folder'))
         self.torrent_param.append('torrent_download_folder')
         
         self.line23 = QtWidgets.QLineEdit()
@@ -1039,7 +1039,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text31.setText("Default Download Location")
         self.btn31 = QPushButtonExtra()
         self.btn31.setText(" Set Location ")
-        self.btn31.clicked.connect(partial(self.set_folder, self.line31, 'default_download_location'))
+        self.btn31.clicked_connect(partial(self.set_folder, self.line31, 'default_download_location'))
         self.other_settings.append('default_download_location')
         
         self.line32 = QtWidgets.QComboBox()
@@ -1180,8 +1180,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
             for i in lines:
                 i = i.strip()
                 self.list_library.addItem(i)
-        self.add_library_btn.clicked.connect(self.add_folder_to_library)
-        self.remove_library_btn.clicked.connect(self.remove_folder_from_library)
+        self.add_library_btn.clicked_connect(self.add_folder_to_library)
+        self.remove_library_btn.clicked_connect(self.remove_folder_from_library)
             
     def player_settings(self):
         self.player_list = []
@@ -1240,7 +1240,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.player_list.append('screenshot_directory')
         self.btn45 = QPushButtonExtra()
         self.btn45.setText('  Set  ')
-        self.btn45.clicked.connect(partial(self.set_folder, self.line45, 'screenshot_directory'))
+        self.btn45.clicked_connect(partial(self.set_folder, self.line45, 'screenshot_directory'))
         
         self.line46 = QtWidgets.QComboBox()
         self.line46.addItem("False")
@@ -1414,12 +1414,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.btn_default_settings = QPushButtonExtra('Default Settings')
         self.gl7.addWidget(self.btn_default_settings, 1, 1, 1, 1)
-        self.btn_default_settings.clicked.connect(self.get_default_config_settings)
+        self.btn_default_settings.clicked_connect(self.get_default_config_settings)
         self.btn_default_settings.setMinimumHeight(30)
         
         self.btn_confirm = QPushButtonExtra('Save Changes')
         self.gl7.addWidget(self.btn_confirm, 1, 2, 1, 1)
-        self.btn_confirm.clicked.connect(self.save_config_settings)
+        self.btn_confirm.clicked_connect(self.save_config_settings)
         self.btn_confirm.setMinimumHeight(30)
         
     def apply_tab_shortcuts(self):
@@ -1436,12 +1436,12 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.btn_shortcut_default = QPushButtonExtra('Default Settings')
         self.gl8.addWidget(self.btn_shortcut_default, 1, 0, 1, 1)
-        self.btn_shortcut_default.clicked.connect(self.get_default_shortcuts_settings)
+        self.btn_shortcut_default.clicked_connect(self.get_default_shortcuts_settings)
         self.btn_shortcut_default.setMinimumHeight(30)
         
         self.btn_shortcut_confirm = QPushButtonExtra('Save Changes')
         self.gl8.addWidget(self.btn_shortcut_confirm, 1, 1, 1, 1)
-        self.btn_shortcut_confirm.clicked.connect(self.save_shortcut_settings)
+        self.btn_shortcut_confirm.clicked_connect(self.save_shortcut_settings)
         self.btn_shortcut_confirm.setMinimumHeight(30)
     
     def get_default_config_settings(self):
