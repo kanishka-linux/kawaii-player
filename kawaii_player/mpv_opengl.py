@@ -82,7 +82,7 @@ class QProcessExtra(QtCore.QProcess):
                         cmd_tail = "Subtitle: Disabled"
                 elif 'osd-sym-cc' in cmd:
                     print(cmd)
-                    if "pause" in cmd:
+                    if "pause" in cmd or "2000" in cmd:
                         display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
                         cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
                     else:
@@ -271,7 +271,6 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def resized(self):
         self.setFocus()
-        self.update()
         
     def arrow_hide(self):
         if gui.player_val in ['mpv', 'mplayer', 'libmpv']:
@@ -656,6 +655,7 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def quit_player(self, msg=None):
         self.ui.tab_5.setMinimumWidth(0)
+        self.ui.tab_5.setMinimumHeight(0)
         MainWindow.show()
         MainWindow.showMaximized()
         self.setParent(MainWindow)
@@ -750,6 +750,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.setMouseTracking(True)
                         if platform.system().lower() == "darwin":
                             self.ui.tab_5.setMinimumWidth(MainWindow.width())
+                            if self.ui.player_theme == "dark":
+                                self.ui.tab_5.setMinimumHeight(MainWindow.height())
                             
                 elif mode == "nofs":
                     #self.hide()
@@ -797,6 +799,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     #MainWindow.show()
                     #MainWindow.showMaximized()
                     self.ui.tab_5.setMinimumWidth(0)
+                    self.ui.tab_5.setMinimumHeight(0)
                     if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
                         self.mx_timer.start(1000) 
                     
