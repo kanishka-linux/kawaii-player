@@ -182,6 +182,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mx_timer = QtCore.QTimer()
         self.mx_timer.timeout.connect(MainWindow.showMaximized)
         self.mx_timer.setSingleShot(True)
+
+        self.fs_timer_now = QtCore.QTimer()
+        self.fs_timer_now.timeout.connect(self.only_fs_tab)
+        self.fs_timer_now.setSingleShot(True)
         
         self.player_val = "libmpv"
         screen_width = gui.screen_size[0]
@@ -220,7 +224,11 @@ class MpvOpenglWidget(QOpenGLWidget):
         
         self.modifiers = set([QtCore.Qt.ShiftModifier, QtCore.Qt.ControlModifier, QtCore.Qt.AltModifier])
         self.total_keys = {**self.alphanumeric_keys, **self.non_alphanumeric_keys}
-        
+
+    def only_fs_tab(self):
+        self.setMinimumWidth(MainWindow.width())
+        self.setMinimumHeight(MainWindow.height())
+            
     def create_args_dict(self):
         if gui.gsbc_dict:
             for key, value in gui.gsbc_dict.items():
@@ -739,19 +747,16 @@ class MpvOpenglWidget(QOpenGLWidget):
                         if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
                             MainWindow.hide()
                             self.setParent(None)
+                            self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
                         else:
                             MainWindow.showFullScreen()
-                         
                         self.ui.fullscreen_video = True
                         
                         self.showFullScreen()
-                        self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
                         self.setFocus()
                         self.setMouseTracking(True)
                         if platform.system().lower() == "darwin":
-                            self.ui.tab_5.setMinimumWidth(MainWindow.width())
-                            if self.ui.player_theme == "dark":
-                                self.ui.tab_5.setMinimumHeight(MainWindow.height())
+                            self.setMinimumWidth(MainWindow.width())
                             
                 elif mode == "nofs":
                     #self.hide()
@@ -798,8 +803,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.setFocus()
                     #MainWindow.show()
                     #MainWindow.showMaximized()
-                    self.ui.tab_5.setMinimumWidth(0)
-                    self.ui.tab_5.setMinimumHeight(0)
+                    self.setMinimumWidth(0)
+                    self.setMinimumHeight(0)
                     if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
                         self.mx_timer.start(1000) 
                     
