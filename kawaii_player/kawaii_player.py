@@ -9565,7 +9565,7 @@ class Ui_MainWindow(object):
                 else:
                     subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         elif not thread_running:
-            if self.download_video == 0 and self.player_val == "mpv":
+            if self.download_video == 0 and self.player_val in ["mpv", "libmpv"]:
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
@@ -9591,13 +9591,19 @@ class Ui_MainWindow(object):
                             self.queue_url_list.append(finalUrl[i+1])
                         self.queue_url_list.reverse()
                         command = self.mplayermpv_command(self.idw, epnShow, self.player_val)
-                    self.infoPlay(command)
+                    if self.player_val == "mpv":
+                        self.infoPlay(command)
+                    else:
+                        self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ''))
                 else:
                     if '""' in finalUrl:
                         finalUrl = finalUrl.replace('""', '"')
                     command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
-                    self.infoPlay(command)
-            elif self.download_video == 0 and self.player_val != "mpv":
+                    if self.player_val == "mpv":
+                        self.infoPlay(command)
+                    else:
+                        self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ''))
+            elif self.download_video == 0 and self.player_val not in ["mpv", "libmpv"]:
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
@@ -14079,6 +14085,8 @@ def main():
             ui.slave_address = open_files(slave_file, False)
         except Exception as err:
             logger.error(err)
+    if platform.system().lower() == "darwin":
+        ui.widget_style.apply_stylesheet(theme="default")
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
