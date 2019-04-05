@@ -160,6 +160,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property("duration", self.time_duration)
         self.mpv.observe_property("sub", self.sub_changed)
         self.mpv.observe_property("audio", self.audio_changed)
+        self.mpv.observe_property("seeking", self.player_seeking)
         
         self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
         self.on_update_c = OpenGlCbUpdateFn(self.on_update)
@@ -224,6 +225,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         
         self.modifiers = set([QtCore.Qt.ShiftModifier, QtCore.Qt.ControlModifier, QtCore.Qt.AltModifier])
         self.total_keys = {**self.alphanumeric_keys, **self.non_alphanumeric_keys}
+        self.seek_now = False
 
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
@@ -305,7 +307,14 @@ class MpvOpenglWidget(QOpenGLWidget):
                     txt = "{}:{} ({})".format(idtype, idval, lang)
                     break
         return txt
-        
+
+    def player_seeking(self, _name, value):
+        print(_name, value)
+        if value is True:
+            self.seek_now = True
+        else:
+            self.seek_now = False
+    
     def sub_changed(self, _name, value):
         logger.debug('{} {} {}'.format(_name, value, "--sub--"))
         if value is False:
@@ -349,7 +358,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 if file_size:
                     file_size = round((file_size)/(1024*1024), 2)
                     display_string = "{} Size: {} M".format(display_string, file_size)
-                if not gui.frame1.isHidden():
+                if not gui.frame1.isHidden() and not self.seek_now:
                     gui.slider.valueChanged.emit(int(value))
                     gui.progressEpn.setFormat((display_string))
             if self.audio and int(value) in range(0, 3):
