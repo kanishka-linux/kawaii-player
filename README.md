@@ -676,9 +676,9 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 6. Tips for macOs users (Installing dependencies).
 
-        $ brew install mpv mplayer ffmpeg ffmepegthumbnailer wget openssl terminal-notifier pyqt5 --with-python libtorrent-rasterbar --with-python
+        $ brew install mpv mplayer ffmpeg wget openssl terminal-notifier libtorrent-rasterbar --with-python
         
-        $ pip3 install lxml bs4 Pillow mutagen
+        $ pip3 install lxml bs4 Pillow mutagen pyopengl PyQt5 sip PyQtWebEngine
         
         $ PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip3 install --no-cache-dir pycurl
     
@@ -710,9 +710,11 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 - sqlite3 (for managing local music and video database, Addons are not managed by it. Addons are managed using files.)
 
-- mpv or mplayer. (for playing media)
+- mpv (or libmpv - from v4.0+) or mplayer. (for playing media)
 
-- ffmpegthumbnailer(Thumbnail Generator for Local Files)
+- python-opengl (when using libmpv as backend, from v4.0+)
+
+- ffmpegthumbnailer(Thumbnail Generator for Local Files) {not required from v4.0+}
 
 **For extra features such as Youtube support, torrent streaming, MPRIS D-Bus support, desktop notifications and HTTPS:**
 
