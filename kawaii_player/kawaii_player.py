@@ -1470,7 +1470,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
-        self.osx_native_fullscreen = True
+        self.osx_native_fullscreen = False
         self.quit_now = False
         self.system_bgcolor = ''
         self.thumbnail_engine = 'mpv'
@@ -14045,7 +14045,7 @@ def main():
             f.write("\nREMEMBER_VOLUME_PER_VIDEO=False")
             f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
             f.write("\nVARIABLE_WIDTH_LIST=False")
-            f.write("\nOSX_NATIVE_FULLSCREEN=True")
+            f.write("\nOSX_NATIVE_FULLSCREEN=False")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
