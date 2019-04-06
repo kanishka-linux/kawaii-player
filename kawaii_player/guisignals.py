@@ -44,6 +44,8 @@ class GUISignals(QtCore.QObject):
     observe_signal = pyqtSignal(float)
     opengl_signal = pyqtSignal(str)
     preview_signal = pyqtSignal(str, str, bool, int, int, int, int, str)
+    queue_signal = pyqtSignal(str)
+    queue_delete = pyqtSignal(int)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -67,6 +69,8 @@ class GUISignals(QtCore.QObject):
         self.observe_signal.connect(self.mpv_observe_signal)
         self.opengl_signal.connect(self.update_opengl_widget)
         self.preview_signal.connect(self.preview_generated_new)
+        self.queue_signal.connect(self.queue_signal_generated)
+        self.queue_delete.connect(self.queue_delete_signal)
         self.first_time = True
 
     def generate_preview(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
@@ -123,7 +127,13 @@ class GUISignals(QtCore.QObject):
 
     def update_opengl(self, val):
         self.opengl_signal.emit(val)
-    
+
+    def queue_item(self, val):
+        self.queue_signal.emit(val)
+
+    def delete_queue_item(self, val):
+        self.queue_delete.emit(val)
+        
     @staticmethod
     def update_opengl_widget(val):
         if ui.tab_5.window().isMinimized():
@@ -206,7 +216,15 @@ class GUISignals(QtCore.QObject):
     @pyqtSlot(str, str, bool, int, int, int, int, str)
     def preview_generated_new(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
         ui.slider.preview_generated(picn, length, change_aspect, tsec, counter, x, y, source_val)
-    
+
+    @pyqtSlot(str)
+    def queue_signal_generated(self, val):
+        ui.list2.queue_item()
+        
+    @pyqtSlot(int)
+    def queue_delete_signal(self, val):
+        ui.delete_queue_item(val)
+        
     @pyqtSlot(str)
     def track_slave_status(self, val):
         print(val, "from-slave")
