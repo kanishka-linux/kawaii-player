@@ -64,7 +64,7 @@ from functools import partial, reduce
 from urllib.parse import urlparse
 from io import StringIO, BytesIO
 from tempfile import mkstemp, mkdtemp
-from collections import OrderedDict, deque
+from collections import OrderedDict, deque, namedtuple
 from threading import Thread, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
@@ -1544,6 +1544,8 @@ class Ui_MainWindow(object):
         self.queue_stop = False
         self.queue_item = None
         self.history_dict_obj = {}
+        self.history_dict_obj_libmpv = {}
+        self.libmpv_save_prop = namedtuple("prop", "aid sid rem_quit seek_time cur_time asp vol")
         self.series_info_dict = {}
         self.poster_count_start = 0
         self.focus_widget = None
@@ -3381,7 +3383,12 @@ class Ui_MainWindow(object):
         change_spacing = False
         if self.player_val == "libmpv":
             print(self.tab_5.mpv.time_remaining)
-            self.mpvplayer_val.write(bytes("stop", "utf-8"))
+            if msg and msg == "from openglwidget":
+                pass
+            else:
+                self.tab_5.initial_volume_set = False
+                self.tab_5.rem_properties(self.final_playing_url, 0, self.tab_5.mpv.time_pos)
+                self.mpvplayer_val.write(bytes("stop", "utf-8"))
         if self.mpvplayer_val.processId() > 0 or msg or self.player_val == "libmpv":
             logger.warning(self.progress_counter)
             if self.player_val == 'mpv':
@@ -3402,16 +3409,18 @@ class Ui_MainWindow(object):
                 if not param_avail:        
                     asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
                     vol = self.player_volume
-                self.history_dict_obj.update(
-                        {
-                        self.final_playing_url:[
-                            counter, time.time(), sub_id,
-                            audio_id, rem_quit, vol, asp
-                            ]
-                        }
-                    )
-                logger.debug(self.history_dict_obj[self.final_playing_url])
+                if self.player_val != "libmpv":
+                    self.history_dict_obj.update(
+                            {
+                            self.final_playing_url:[
+                                counter, time.time(), sub_id,
+                                audio_id, rem_quit, vol, asp
+                                ]
+                            }
+                        )
+                logger.debug(self.history_dict_obj.get(self.final_playing_url))
                 logger.debug(self.video_parameters)
+                
             if restart:
                 self.quit_really = 'no'
             else:
@@ -8776,7 +8785,7 @@ class Ui_MainWindow(object):
         rem_quit = 0
         vol = 'auto'
         asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
-        if self.final_playing_url in self.history_dict_obj:
+        if self.final_playing_url in self.history_dict_obj and self.player_val != "libmpv":
             seek_time, cur_time, sub_id, audio_id, rem_quit, vol, asp = self.history_dict_obj.get(self.final_playing_url)
             cur_time = time.time()
             self.history_dict_obj.update(
@@ -8791,7 +8800,7 @@ class Ui_MainWindow(object):
                 self.final_playing_url, seek_time, cur_time,
                 sub_id, audio_id, rem_quit, vol, asp
                 ]
-        elif site != 'Music':
+        elif site != 'Music' and self.player_val != "libmpv":
             self.history_dict_obj.update(
                     {
                         self.final_playing_url:[
@@ -11516,7 +11525,17 @@ class Ui_MainWindow(object):
                     logger.error('Error in getting Thumbnail: {0}'.format(e))
         except Exception as e:
             logger.error(e)
-        
+
+    def delete_queue_item(self, row):
+        if self.list6.item(0):
+            old_txt = self.list6.item(0).text()
+            if old_txt.lower().startswith('queue empty:'):
+                self.list6.clear()
+        item = self.list6.item(row)
+        if item:
+            self.list6.takeItem(row)
+            del item
+            
     def getQueueInList(self, eofcode=None):
         global site, artist_name_mplayer
         global sub_id, audio_id, server, current_playing_file_path
@@ -13205,6 +13224,8 @@ def main():
                 if scale:
                     scale = 100 * float(scale)
                     ui.frame_extra_toolbar.subscale_slider.setValue(scale)
+            if '#LIBMPV@WATCH#LATER' in ui.history_dict_obj:
+                ui.history_dict_obj_libmpv = ui.history_dict_obj['#LIBMPV@WATCH#LATER'][0].copy()
                 
     if os.path.isfile(ui.playing_queue_file):
         with open(ui.playing_queue_file, 'rb') as queue_file_read:
@@ -14533,6 +14554,7 @@ def main():
             )
             ui.history_dict_obj.update({'#GSBCH@DICT':[ui.gsbc_dict]})
             ui.history_dict_obj.update({'#SUBTITLE@DICT':[ui.subtitle_dict]})
+            ui.history_dict_obj.update({'#LIBMPV@WATCH#LATER':[ui.history_dict_obj_libmpv]})
         pickle.dump(ui.history_dict_obj, pls_file)
     if ui.mpvplayer_val.processId() > 0:
         ui.mpvplayer_val.kill()

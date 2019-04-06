@@ -743,7 +743,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
             ui.watchToggle()
         elif (event.modifiers() == QtCore.Qt.ControlModifier and 
                 event.key() == QtCore.Qt.Key_Q):
-            self.queue_item()
+            if ui.player_val == "libmpv":
+                ui.gui_signals.queue_item("keyboard_shortcut")
+            else:
+                self.queue_item()
         elif event.key() == QtCore.Qt.Key_Delete:
             param_dict = ui.get_parameters_value(s='site', b='bookmark', o='opt')
             site = param_dict['site']
@@ -1588,7 +1591,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         file_path = os.path.join(home, 'Playlists', item)
                         write_files(file_path, ui.epn_arr_list, True)
             elif action == qitem:
-                self.queue_item()
+                if ui.player_val == "libmpv":
+                    ui.gui_signals.queue_item("context_menu")
+                else:
+                    self.queue_item()
             elif action == view_list:
                 ui.widget_style.change_list2_style(mode=False)
                 if not ui.float_window.isHidden():
@@ -1872,7 +1878,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         f = open(file_path, 'w')
                         f.close()
             elif action == qitem:
-                self.queue_item()
+                if ui.player_val == "libmpv":
+                    ui.gui_signals.queue_item("context_menu")
+                else:
+                    self.queue_item()
             elif action == upspeed:
                 item, ok = QtWidgets.QInputDialog.getText(
                     MainWindow, 'Input Dialog', 'Enter Upload Speed in KB\n0 means unlimited', 
