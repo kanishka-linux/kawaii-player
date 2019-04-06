@@ -2156,7 +2156,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         if ui.player_val == 'mplayer':
                             media_length = media_length/1000
                             progress_counter = progress_counter/1000
-                        msg = str(media_length)+'::'+str(progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))
+                        msg = str(media_length)+'::'+str(progress_counter)+'::'+str(ui.list2.currentRow()+1)+'::'+str(len(ui.queue_url_list))+'::'+str(ui.epn_name_in_list)
                     else:
                         msg = ui.slave_status_string
                     self.final_message(bytes(msg, 'utf-8'))
