@@ -227,7 +227,7 @@ class GUISignals(QtCore.QObject):
         
     @pyqtSlot(str)
     def track_slave_status(self, val):
-        print(val, "from-slave")
+        #print(val, "from-slave")
         float_check =  lambda x: int(x) if x.isnumeric() else int(float(x))
         val_arr = val.split('::')
         if len(val_arr) > 3 and ui.mpvplayer_val.processId() == 0:
@@ -235,6 +235,10 @@ class GUISignals(QtCore.QObject):
             counter = float_check(val_arr[1])
             row = float_check(val_arr[2]) - 1
             que = float_check(val_arr[3])
+            if len(val_arr) > 4 :
+                epn = val_arr[4]
+            else:
+                epn = None
             print(counter, length)
             nlen = str(datetime.timedelta(seconds=int(length)))
             tme = str(datetime.timedelta(seconds=int(counter)))
@@ -249,6 +253,8 @@ class GUISignals(QtCore.QObject):
                 title = item.text()
             else:
                 title = 'Not Available'
+            if epn is not None:
+                title = epn
             ui.slider.setValue(counter)
             ui.progressEpn.setValue(0)
             ui.progressEpn.setFormat((''))
