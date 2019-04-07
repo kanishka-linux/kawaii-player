@@ -119,21 +119,11 @@ class QProcessExtra(QtCore.QProcess):
                         display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
                         cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
                         self.ui.tab_5.mpv.command("show-text", cmd_tail, 2000)
-                    elif "sub-font-size" in cmd_arr[0]:
-                        font_size = cmd_arr[-1]
-                        self.ui.tab_5.mpv.sub_font_size = font_size
-                    elif "sub-font" in cmd_arr[0]:
-                        sub_font = cmd_arr[-1]
-                        self.ui.tab_5.mpv.sub_font = sub_font.replace('"', "")
-                    elif "sub-color" in cmd_arr[0]:
-                        sub_color = cmd_arr[-1]
-                        self.ui.tab_5.mpv.sub_color = sub_color.replace('"', "")
-                    elif "sub-border-color" in cmd_arr[0]:
-                        sub_border_color = cmd_arr[-1]
-                        self.ui.tab_5.mpv.sub_border_color = sub_border_color.replace('"', "")
-                    elif "sub-shadow-color" in cmd_arr[0]:
-                        sub_shadow_color = cmd_arr[-1]
-                        self.ui.tab_5.mpv.sub_shadow_color = sub_shadow_color.replace('"', "")
+                    elif cmd_arr[0] == "set":
+                        cmd_name = cmd_arr[1]
+                        cmd_val = cmd_arr[-1].replace('"', '')
+                        if hasattr(self.ui.tab_5.mpv, cmd_name):
+                            setattr(self.ui.tab_5.mpv, cmd_name, cmd_val)
                     else:
                         self.ui.tab_5.mpv.command(*cmd_arr)
                 except Exception as e:
