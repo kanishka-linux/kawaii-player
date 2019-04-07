@@ -46,6 +46,7 @@ class GUISignals(QtCore.QObject):
     preview_signal = pyqtSignal(str, str, bool, int, int, int, int, str)
     queue_signal = pyqtSignal(str)
     queue_delete = pyqtSignal(int)
+    display_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -71,6 +72,7 @@ class GUISignals(QtCore.QObject):
         self.preview_signal.connect(self.preview_generated_new)
         self.queue_signal.connect(self.queue_signal_generated)
         self.queue_delete.connect(self.queue_delete_signal)
+        self.display_signal.connect(self.display_signal_string)
         self.first_time = True
 
     def generate_preview(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
@@ -133,6 +135,9 @@ class GUISignals(QtCore.QObject):
 
     def delete_queue_item(self, val):
         self.queue_delete.emit(val)
+
+    def display_string(self, val):
+        self.display_signal.emit(val)
         
     @staticmethod
     def update_opengl_widget(val):
@@ -220,6 +225,10 @@ class GUISignals(QtCore.QObject):
     @pyqtSlot(str)
     def queue_signal_generated(self, val):
         ui.list2.queue_item()
+
+    @pyqtSlot(str)
+    def display_signal_string(self, val):
+        ui.progressEpn.setFormat((val))
         
     @pyqtSlot(int)
     def queue_delete_signal(self, val):

@@ -3382,12 +3382,11 @@ class Ui_MainWindow(object):
         global sub_id, audio_id
         change_spacing = False
         if self.player_val == "libmpv":
-            print(self.tab_5.mpv.time_remaining)
             if msg and msg == "from openglwidget":
                 pass
             else:
                 self.tab_5.initial_volume_set = False
-                self.tab_5.rem_properties(self.final_playing_url, 0, self.tab_5.mpv.time_pos)
+                self.tab_5.rem_properties(self.final_playing_url, 0, self.progress_counter)
                 self.mpvplayer_val.write(bytes("stop", "utf-8"))
         if self.mpvplayer_val.processId() > 0 or msg or self.player_val == "libmpv":
             logger.warning(self.progress_counter)

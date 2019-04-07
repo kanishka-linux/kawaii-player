@@ -337,7 +337,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         logger.info("{} {}".format(_name, value))
         if value and isinstance(value, float):
             self.player_volume = value
-            self.ui.player_volume = int(value)
+            self.ui.player_volume = str(int(value))
 
     def quit_watch_later(self, _name, value):
         logger.info("{} {}".format(_name, value))        
@@ -390,7 +390,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     display_string = "{} Size: {} M".format(display_string, file_size)
                 if not gui.frame1.isHidden() and not self.seek_now:
                     gui.slider.valueChanged.emit(int(value))
-                    gui.progressEpn.setFormat((display_string))
+                    gui.gui_signals.display_string((display_string))
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
                 logger.debug("{} {}".format("adding..audio..", self.audio))
@@ -524,7 +524,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.mpv.command("show-text", "Bad Aspect Property: {}".format(aspect_val))
                 self.mpv.sid = sub_id
                 self.mpv.aid = audio_id
-                if gui.restore_volume:
+                if gui.restore_volume and vol:
                     self.mpv.ao_volume = vol
                 param_dict = gui.get_parameters_value(o='opt', s="site")
                 site = param_dict["site"]
