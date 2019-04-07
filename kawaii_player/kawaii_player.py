@@ -3429,6 +3429,8 @@ class Ui_MainWindow(object):
             elif self.player_val.lower() == 'mplayer':
                 self.mpvplayer_val.write(b'\n stop \n')
                 self.mpv_execute_command('kill_process', 0, timer=100)
+            elif self.player_val == 'libmpv':
+                self.tab_5.mpv.command('stop')
             else:
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
