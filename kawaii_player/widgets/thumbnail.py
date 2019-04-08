@@ -718,10 +718,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.list2.setCurrentRow(num)
                     ui.idw = str(int(ui.tab_5.winId()))
                     #ui.play_file_now(finalUrl)
-                    if ui.gapless_playback:
-                        ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail_gapless')
+                    if ui.player_val == "libmpv":
+                        ui.tab_5.mpv.command("loadfile", finalUrl.replace('"', ''))
                     else:
-                        ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail')
+                        if ui.gapless_playback:
+                            ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail_gapless')
+                        else:
+                            ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail')
                     if var_mode == 1:
                         ui.tab_5.player_fs(mode='fs')
                     else:
@@ -882,10 +885,13 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 ui.idw = str(mn)
                 ui.frame1.show()
                 finalUrl = str(finalUrl)
-                if ui.gapless_playback:
-                    ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail_gapless')
+                if ui.player_val == "libmpv":
+                    pass
                 else:
-                    ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail')
+                    if ui.gapless_playback:
+                        ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail_gapless')
+                    else:
+                        ui.epnfound_now_start_prefetch(finalUrl, num, 'thumbnail')
                 #if ui.player_val == "mplayer":
                 #    command = ui.mplayermpv_command(ui.idw, finalUrl, 'mplayer')
                 #    logger.info(command)
@@ -1179,6 +1185,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if ui.video_mode_index == 6:
                     ui.video_mode_index = 1
                     ui.comboBoxMode.setCurrentIndex(0)
+            if ui.player_val == "libmpv":
+                ui.video_mode_index = 1
             if num >= 0:
                 if tmp_idw == ui.idw:
                     if ui.mpvplayer_val.processId() > 0:
