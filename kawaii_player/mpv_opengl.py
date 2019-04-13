@@ -147,7 +147,7 @@ class KeyT(QtCore.QThread):
     def __del__(self):
         self.wait()                        
     
-    def run(self):c
+    def run(self):
         if self.event is not None and self.cmd:
             self.ui.tab_5.mpv.command(*self.cmd)
         
