@@ -1173,6 +1173,8 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     mn = ui.label_new.winId()
                 tmp_idw = str(int(mn))
                 label_watch = True
+                if ui.player_val == "libmpv":
+                    num = -1
             else:
                 label_num = re.sub('label_epn_', '', label_name)
                 num = int(label_num)
