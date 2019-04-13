@@ -40,7 +40,10 @@ class QProcessExtra(QtCore.QProcess):
         command = re.sub('"(.?)*"', "", cmd)
         arr = command.split()
         arr.insert(1, file_path)
-        self.ui.tab_5.mpv.command(*arr)
+        try:
+            self.ui.tab_5.mpv.command(*arr)
+        except Exception as err:
+            print(err)
         return file_path
         
     def write(self, cmd):
@@ -234,7 +237,20 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.player_volume = None
         self.initial_volume_set = False
         self.playlist_backup = False
-
+        self.mpv_reinit = False
+        
+    def init_mpv_again(self):
+        self.mpv_reinit = True
+        pl = self.mpv.playlist
+        pl_pos = self.mpv.playlist_pos
+        time_pos = self.mpv.time_pos
+        vol = self.mpv.ao_volume
+        path = self.mpv.path
+        _mpv_opengl_cb_uninit_gl(self.mpv_gl)
+        self.initializeGL()
+        self.mpv.start = time_pos
+        self.mpv.playlist_pos = pl_pos
+        
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
         self.setMinimumHeight(MainWindow.height())
@@ -266,7 +282,6 @@ class MpvOpenglWidget(QOpenGLWidget):
             k = k.replace("-", "_")
             self.args_dict.update({k:v})
         self.args_dict.update({"vo":"libmpv"})
-        
             
     def set_mpvplayer(self, player=None, mpvplayer=None):
         if mpvplayer:
@@ -439,6 +454,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if item:
                         gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 self.playlist_backup = False
+        if value in [None, True] and self.ui.quit_really:
+            self.mpv.command("stop")
 
     def check_queued_item(self):
         if self.ui.queue_url_list:
@@ -479,7 +496,11 @@ class MpvOpenglWidget(QOpenGLWidget):
         
     def set_window_title_and_epn(self, title=None):
         if title is None:
-            epn = gui.list2.item(gui.cur_row).text()
+            item = gui.list2.item(gui.cur_row)
+            if item:
+                epn = item.text()
+            else:
+                epn = "Unknown"
             if epn.startswith(gui.check_symbol):
                 epn = epn[1:]
         else:
@@ -490,6 +511,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             
     def time_duration(self, _name, value):
         if value is not None:
+            if self.mpv_reinit:
+                self.mpv.start = "none"
+                self.mpv_reinit = False
+            self.ui.quit_really = False
             z = 'duration is {:.2f}s'.format(value)
             gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
@@ -500,22 +525,28 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.chapter_list = self.mpv.chapter_list
             if not self.initial_volume_set:
                 logger.debug("setting..........volume.......{}".format(gui.player_volume))
-                self.mpv.ao_volume = int(gui.player_volume)
-                self.initial_volume_set = True
+                try:
+                    self.mpv.ao_volume = int(gui.player_volume)
+                    self.initial_volume_set = True
+                except Exception as err:
+                    logger.error(err)
             if self.ui.final_playing_url in self.ui.history_dict_obj_libmpv:
                 seek_time, cur_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)
                 if asp == -1 or asp == "-1" or asp is None:
                     asp = "0"
                 aspect_val = self.ui.mpvplayer_aspect_float.get(str(asp))
                 logger.info("restoring.. -> {}".format(self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)))
-                if aspect_val and gui.restore_aspect:
+                if aspect_val and gui.restore_aspect and hasattr(self.mpv, "video_aspect"):
                     self.mpv.video_aspect = aspect_val
                 elif not gui.restore_aspect:
                     self.mpv.command("show-text", "Bad Aspect Property: {}".format(aspect_val))
                 self.mpv.sid = sub_id
                 self.mpv.aid = audio_id
                 if gui.restore_volume and vol:
-                    self.mpv.ao_volume = vol
+                    try:
+                        self.mpv.ao_volume = vol
+                    except Exception as err:
+                        logger.error(err)
                 param_dict = gui.get_parameters_value(o='opt', s="site")
                 site = param_dict["site"]
                 opt = param_dict["opt"]
@@ -530,10 +561,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         ratio = self.windowHandle().devicePixelRatio()
         w = int(self.width() * ratio)
         h = int(self.height() * ratio)
-        try:
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        except Exception as err:
-            logger.error(err)
+        #GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
         
     @pyqtSlot()
@@ -784,6 +812,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setMouseTracking(True)
         self.showNormal()
         self.setFocus()
+        self.mpv.command("audio-remove")
+        self.mpv.command("sub-remove")
+        self.audio = None
+        self.subtitle = None
         self.mpv.command("stop")
         self.ui.playerStop(msg="from openglwidget")
         

@@ -3387,6 +3387,10 @@ class Ui_MainWindow(object):
             else:
                 self.tab_5.initial_volume_set = False
                 self.tab_5.rem_properties(self.final_playing_url, 0, self.progress_counter)
+                self.tab_5.mpv.command("audio-remove")
+                self.tab_5.mpv.command("sub-remove")
+                self.tab_5.audio = None
+                self.tab_5.subtitle = None
                 self.mpvplayer_val.write(bytes("stop", "utf-8"))
         if self.mpvplayer_val.processId() > 0 or msg or self.player_val == "libmpv":
             logger.warning(self.progress_counter)
@@ -9298,8 +9302,9 @@ class Ui_MainWindow(object):
             self.tab_5.mpv.loop_playlist = False
             self.tab_5.mpv.play(finalUrl.replace('"', ""))
             if aurl:
-                self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
-                self.tab_5.mpv.command("audio-add", aurl.replace('"', ""), "select")
+                self.tab_5.audio = aurl
+                #self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
+                #self.tab_5.mpv.command("audio-add", aurl.replace('"', ""), "select")
             if surl:
                 self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
                 self.tab_5.mpv.command("sub-add", surl.replace('"', ""), "select")
