@@ -10,7 +10,7 @@ import platform
 import locale
 from collections import namedtuple
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot
+from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QOpenGLWidget, QApplication
 from PyQt5.QtOpenGL import QGLContext
 
@@ -135,6 +135,26 @@ class QProcessExtra(QtCore.QProcess):
             
         else:
             super(QProcessExtra, self).write(cmd)
+            
+class KeyT(QtCore.QThread):
+    mpv_cmd = pyqtSignal(list)
+    def __init__(self, ui, event, cmd):
+        self.ui = ui
+        QtCore.QThread.__init__(self)
+        self.event = event
+        self.cmd = cmd
+        
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):c
+        if self.event is not None and self.cmd:
+            self.ui.tab_5.mpv.command(*self.cmd)
+        
+@pyqtSlot(list)
+def mpv_cmd_direct(cmd):
+    global ui
+    ui.tab_5.mpv.command(*cmd)
 
 class MpvOpenglWidget(QOpenGLWidget):
     
@@ -238,6 +258,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.initial_volume_set = False
         self.playlist_backup = False
         self.mpv_reinit = False
+        self.key_thread = KeyT(self.ui, None, None)
+        self.key_thread.start()
         
     def init_mpv_again(self):
         self.mpv_reinit = True
@@ -590,8 +612,28 @@ class MpvOpenglWidget(QOpenGLWidget):
             _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_fake_c, None)
         _mpv_opengl_cb_uninit_gl(self.mpv_gl)
         self.mpv.terminate()
-    
+        
     def keyPressEvent(self, event):
+        if event.isAutoRepeat():
+            if not self.key_thread.isRunning():
+                cmd = self.get_mpv_cmd(event)
+                if cmd:
+                    self.key_thread = KeyT(self.ui, event, cmd.copy())
+                    self.key_thread.start()
+                else:
+                    self.keyPressEventO(event)
+        else:
+            self.keyPressEventO(event)
+            
+    def get_mpv_cmd(self, event):
+        key = self.total_keys.get(event.key())
+        if key and event.modifiers() not in self.modifiers:
+            cmd = self.mpv_default_modified.get(key)
+        else:
+            cmd = None
+        return cmd
+            
+    def keyPressEventO(self, event):
         key = self.total_keys.get(event.key())
         if key and event.modifiers() not in self.modifiers:
             cmd = self.mpv_default_modified.get(key)
