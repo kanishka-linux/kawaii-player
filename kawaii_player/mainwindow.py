@@ -13,6 +13,11 @@ class MainWindowWidget(QtWidgets.QWidget):
 
     def title_changed(self, title):
         self.setWindowTitle(title)
+        if ui.new_tray_widget and ui.float_window:
+            if hasattr(ui, "player_val") and ui.player_val == "libmpv":
+                ui.float_window.setWindowTitle(title)
+                ui.new_tray_widget.title.setText("")
+                ui.new_tray_widget.title1.setText("")
         
     def dragEnterEvent(self, event):
         data = event.mimeData()
