@@ -111,11 +111,11 @@ class FloatWindowWidget(QtWidgets.QWidget):
 
         self.pr = QPushButtonExtra(self)
         self.pr.setText(ui.player_buttons['prev'])
-        self.pr.clicked_connect(ui.mpvPrevEpnList)
+        self.pr.clicked_connect(ui.mpv_prev)
 
         self.ne = QPushButtonExtra(self)
         self.ne.setText(ui.player_buttons['next'])
-        self.ne.clicked_connect(ui.mpvNextEpnList)
+        self.ne.clicked_connect(ui.mpv_next)
 
         self.st = QPushButtonExtra(self)
         self.st.setText(ui.player_buttons['stop'])
@@ -386,10 +386,12 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         screen_height = height
 
     def _detach_video(self):
+        if ui.player_val == "libmpv":
+            ui.tab_5.init_mpv_again()
         cur_label_num = ui.thumbnail_label_number[0]
         txt = self.d_vid.text()
         ui.float_window_open = True
-        if ui.mpvplayer_val.processId() > 0:
+        if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
             ui.float_window.setWindowTitle(ui.epn_name_in_list)
         if txt.lower() == '&detach video':
             self.d_vid.setText('&Attach Video')
