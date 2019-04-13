@@ -10,6 +10,7 @@ from functools import partial
 import PIL
 from PIL import Image
 from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import write_files
 from thread_modules import DiscoverServer
 from mpv import MPV
@@ -364,7 +365,32 @@ class QLabelPreview(QtWidgets.QLabel):
     def mousePressEvent(self, event):
         ui.slider.tooltip_widget.hide()
         ui.slider.preview_pending[:] = []
+
+class PreviewThread(QtCore.QThread):
+    preview_cmd = pyqtSignal(list)
+    def __init__(self, slider, gui, func, apply_list):
+        QtCore.QThread.__init__(self)
+        global ui
+        ui = gui
+        self.slider = slider
+        self.func = func
+        self.preview_cmd.connect(preview_slot)
+        self.apply_list = apply_list.copy()
+        #self.preview_list = preview_list.copy()
         
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        if self.func:
+            self.func()
+            self.preview_cmd.emit(self.apply_list)
+
+@pyqtSlot(list)
+def preview_slot(args_list):
+    global ui
+    ui.slider.preview_generated(*args_list)
+    
 class MySlider(QtWidgets.QSlider):
 
     def __init__(self, parent, uiwidget, home_dir, mw):
@@ -420,7 +446,8 @@ class MySlider(QtWidgets.QSlider):
         self.valueChanged.connect(self.set_value)
         locale.setlocale(locale.LC_NUMERIC, 'C')
         self.mpv = MPV(vo="image", ytdl="no", quiet=True, aid="no", sid="no", frames=1, idle=True)
-
+        self.preview_thread_list = []
+        
     def set_value(self, val):
         self.setSliderPosition(val)
     
@@ -497,7 +524,7 @@ class MySlider(QtWidgets.QSlider):
             self.final_url = ui.final_playing_url
 
     def mpv_preview(self, preview_dir, t, scale, newpicn, url):
-        #self.preview_lock.acquire()
+        self.preview_lock.acquire()
         picn = os.path.join(preview_dir, '00000001.jpg')
         self.mpv.vo_image_outdir = preview_dir
         self.mpv.start = t
@@ -513,7 +540,7 @@ class MySlider(QtWidgets.QSlider):
         if os.path.exists(picn) and not os.path.exists(newpicn):
             shutil.move(picn, newpicn)
         self.mpv.stop = True
-        #self.preview_lock.release()
+        self.preview_lock.release()
     
     def mouseMoveEvent(self, event, source=None):
         if ui.player_val != 'mplayer' or ui.mpvplayer_val.processId() == 0:
@@ -556,12 +583,27 @@ class MySlider(QtWidgets.QSlider):
             newpicn = os.path.join(self.preview_dir, "{}.jpg".format(int(t)))
             change_aspect = True
             if ui.player_val in ["libmpv", "mpv"]:
-                self.mpv_preview(self.preview_dir, t,
-                                (ui.label.maximumWidth(), ui.label.maximumHeight()),
-                                newpicn, ui.final_playing_url)
-                #self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
+                #if True:
                 
-                ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.x(), event.y(), source_val)
+                func = partial(self.mpv_preview, self.preview_dir, t,
+                               (ui.label.maximumWidth(), ui.label.maximumHeight()),
+                               newpicn, ui.final_playing_url)
+                apply_list = [newpicn, l, False, t, 0, event.x(), event.y(), source_val]
+                if ui.live_preview == "fast":
+                    func()
+                    ui.gui_signals.generate_preview(*apply_list.copy())
+                else:
+                    if not os.path.exists(newpicn):
+                        pr_thread = PreviewThread(self, ui, func, apply_list)
+                        self.preview_thread_list.append(pr_thread)
+                        self.preview_thread_list[len(self.preview_thread_list)-1].start()
+                    #self.mpv_preview(self.preview_dir, t,
+                    #                (ui.label.maximumWidth(), ui.label.maximumHeight()),
+                    #                newpicn, ui.final_playing_url)
+                    #self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
+                    if os.path.exists(newpicn):
+                        ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.x(), event.y(), source_val)
+                
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
