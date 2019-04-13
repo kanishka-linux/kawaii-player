@@ -625,7 +625,10 @@ class MPV(object):
         """Execute a raw command."""
         args = [name.encode('utf-8')] + [ (arg if type(arg) is bytes else str(arg).encode('utf-8'))
                 for arg in args if arg is not None ] + [None]
-        _mpv_command(self.handle, (c_char_p*len(args))(*args))
+        try:
+            _mpv_command(self.handle, (c_char_p*len(args))(*args))
+        except Exception as err:
+            print(err, args)
 
     def node_command(self, name, *args, decoder=strict_decoder):
         _1, _2, _3, pointer = _make_node_str_list([name, *args])
