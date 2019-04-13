@@ -383,13 +383,17 @@ class PreviewThread(QtCore.QThread):
     
     def run(self):
         if self.func:
-            self.func()
-            self.preview_cmd.emit(self.apply_list)
+            final_point = (self.apply_list[-3], self.apply_list[-2])
+            if self.slider.final_point == final_point:
+                self.func()
+                self.preview_cmd.emit(self.apply_list)
 
 @pyqtSlot(list)
-def preview_slot(args_list):
+def preview_slot(apply_list):
     global ui
-    ui.slider.preview_generated(*args_list)
+    final_point = (apply_list[-3], apply_list[-2])
+    if ui.slider.final_point == final_point:
+        ui.slider.preview_generated(*apply_list)
     
 class MySlider(QtWidgets.QSlider):
 
@@ -447,6 +451,7 @@ class MySlider(QtWidgets.QSlider):
         locale.setlocale(locale.LC_NUMERIC, 'C')
         self.mpv = MPV(vo="image", ytdl="no", quiet=True, aid="no", sid="no", frames=1, idle=True)
         self.preview_thread_list = []
+        self.final_point = None
         
     def set_value(self, val):
         self.setSliderPosition(val)
@@ -523,7 +528,7 @@ class MySlider(QtWidgets.QSlider):
         if self.file_type in ['network', 'music', 'unknown']:
             self.final_url = ui.final_playing_url
 
-    def mpv_preview(self, preview_dir, t, scale, newpicn, url):
+    def mpv_preview(self, preview_dir, t, scale, newpicn, url, final_point=None):
         self.preview_lock.acquire()
         picn = os.path.join(preview_dir, '00000001.jpg')
         self.mpv.vo_image_outdir = preview_dir
@@ -534,7 +539,7 @@ class MySlider(QtWidgets.QSlider):
         else:
             self.mpv.vo_image_jpeg_quality = 90
             self.mpv.vf = ""
-        if not os.path.exists(newpicn):
+        if not os.path.exists(newpicn) and self.final_point == final_point:
             self.mpv.play(url)
         self.mpv.wait_for_property("idle-active", lambda x : x)
         if os.path.exists(picn) and not os.path.exists(newpicn):
@@ -587,7 +592,7 @@ class MySlider(QtWidgets.QSlider):
                 
                 func = partial(self.mpv_preview, self.preview_dir, t,
                                (ui.label.maximumWidth(), ui.label.maximumHeight()),
-                               newpicn, ui.final_playing_url)
+                               newpicn, ui.final_playing_url, (event.x(), event.y()))
                 apply_list = [newpicn, l, False, t, 0, event.x(), event.y(), source_val]
                 if ui.live_preview == "fast":
                     func()
@@ -603,7 +608,7 @@ class MySlider(QtWidgets.QSlider):
                     #self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
                     if os.path.exists(newpicn):
                         ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.x(), event.y(), source_val)
-                
+                    self.final_point = (event.x(), event.y())
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
