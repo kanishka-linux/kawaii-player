@@ -183,7 +183,7 @@ from settings_widget import LoginAuth, LoginPCToPC, OptionsSettings
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
-from mpv import MPV
+from mpv_bak import MPV
 from mpv_opengl import MpvOpenglWidget, QProcessExtra
     
     
@@ -1947,14 +1947,14 @@ class Ui_MainWindow(object):
 
     @GUISignals.check_master_mode('next')
     def mpv_next(self, *args):
-        if self.player_val == "libmpv" and self.tab_5.mpv.playlist_count > 0:
+        if self.player_val == "libmpv" and self.tab_5.mpv.get_property('playlist-count') > 0:
             self.tab_5.get_next()
         else:
             self.mpvNextEpnList(*args)
             
     @GUISignals.check_master_mode('prev')
     def mpv_prev(self, *args):
-        if self.player_val == "libmpv" and self.tab_5.mpv.playlist_count > 0:
+        if self.player_val == "libmpv" and self.tab_5.mpv.get_property('playlist-count') > 0:
             self.tab_5.get_previous()
         else:
             self.mpvPrevEpnList(*args)
@@ -2760,7 +2760,7 @@ class Ui_MainWindow(object):
                 inter = inter[:-1]
             if self.player_val in ["libmpv", "mpv"]:
                 if "youtube.com" in path:
-                    self.slider.mpv.ytdl = "yes"
+                    self.slider.mpv.set_property('ytdl', "yes")
                 self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path)
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                     self.create_new_image_pixel(picn, 128)
@@ -8748,7 +8748,8 @@ class Ui_MainWindow(object):
                     write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                 self.playback_mode = 'playlist'
                 self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
-                self.tab_5.mpv.playlist_pos = self.cur_row
+                #self.tab_5.mpv.command("playlist-pos", self.cur_row)
+                self.tab_5.mpv.set_property("playlist-pos", self.cur_row)
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
                 setinfo = True
@@ -8993,8 +8994,8 @@ class Ui_MainWindow(object):
                 write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
             self.playback_mode = 'playlist'
             self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
-            self.tab_5.mpv.playlist_pos = self.cur_row
-            self.tab_5.mpv.prefetch_playlist = True
+            self.tab_5.mpv.set_property('playlist-pos', self.cur_row)
+            self.tab_5.mpv.set_property('prefetch-playlist', 'yes')
             return True
         else:
             return False
@@ -9298,16 +9299,17 @@ class Ui_MainWindow(object):
             logger.info(command)
             self.infoPlay(command)
         elif self.player_val == "libmpv":
-            self.tab_5.mpv.stop = True
-            self.tab_5.mpv.loop_playlist = False
-            self.tab_5.mpv.play(finalUrl.replace('"', ""))
+            self.tab_5.mpv.command('stop')
+            self.tab_5.mpv.set_property('loop-playlist', 'no')
+            self.tab_5.mpv.command('loadfile', finalUrl.replace('"', ""))
             if aurl:
                 self.tab_5.audio = aurl
                 #self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
                 #self.tab_5.mpv.command("audio-add", aurl.replace('"', ""), "select")
             if surl:
-                self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
-                self.tab_5.mpv.command("sub-add", surl.replace('"', ""), "select")
+                self.tab_5.subtitle = surl
+                #self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
+                #self.tab_5.mpv.command("sub-add", surl.replace('"', ""), "select")
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = str(int(self.tab_5.winId()))
@@ -13049,7 +13051,14 @@ class Ui_MainWindow(object):
             logger.error(err)
 
     def setup_opengl_widget(self):
-        self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR)
+        libmpv_api = get_config_options(HOME_OPT_FILE, 'LIBMPV_API')
+        logger.debug(libmpv_api)
+        if isinstance(libmpv_api, str) and libmpv_api.lower() in ["opengl-cb", "opengl-render"]:
+            libmpv_api = libmpv_api.lower()
+        else:
+            libmpv_api = None
+        logger.debug(libmpv_api)
+        self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR, libmpv_api)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
         
@@ -14073,6 +14082,7 @@ def main():
             f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
             f.write("\nVARIABLE_WIDTH_LIST=False")
             f.write("\nOSX_NATIVE_FULLSCREEN=False")
+            f.write("\nLIBMPV_API=OPENGL-CB")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':

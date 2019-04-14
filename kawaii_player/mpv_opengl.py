@@ -6,6 +6,7 @@
 import os
 import re
 import time
+import sys
 import platform
 import locale
 from collections import namedtuple
@@ -16,10 +17,15 @@ from PyQt5.QtOpenGL import QGLContext
 
 from OpenGL import GL
 
-from mpv import MPV, _mpv_get_sub_api, _mpv_opengl_cb_set_update_callback, \
+from mpv_bak import MPV, _mpv_get_sub_api, _mpv_opengl_cb_set_update_callback, \
         _mpv_opengl_cb_init_gl, OpenGlCbGetProcAddrFn, _mpv_opengl_cb_draw, \
         _mpv_opengl_cb_report_flip, MpvSubApi, OpenGlCbUpdateFn, _mpv_opengl_cb_uninit_gl
-
+try:
+    import mpv
+except Exception as err:
+    print(err)
+    print("only opengl-cb api is available")
+    
 from player import PlayerWidget, KeyBoardShortcuts
 
 def get_proc_addr(_, name):
@@ -28,6 +34,30 @@ def get_proc_addr(_, name):
         return 0
     addr = int(glctx.getProcAddress(name.decode('utf-8')))
     return addr
+
+if sys.platform == 'win32':
+    from PyQt5.QtOpenGL import QGLContext
+elif sys.platform == 'darwin':
+    from OpenGL.GLUT import glutGetProcAddress
+else:
+    from OpenGL.platform import PLATFORM
+    from ctypes import c_char_p, c_void_p
+
+def getProcAddress(proc: bytes) -> int:
+    if sys.platform == 'win32':
+        _ctx = QGLContext.currentContext()
+        if _ctx is None:
+            return 0
+        _gpa = (_ctx.getProcAddress, proc.decode())
+    elif sys.platform == 'darwin':
+        _gpa = (glutGetProcAddress, proc)
+    else:
+        _getProcAddress = PLATFORM.getExtensionProcedure
+        _getProcAddress.argtypes = [c_char_p]
+        _getProcAddress.restype = c_void_p
+        _gpa = (_getProcAddress, proc)
+    return _gpa[0](_gpa[1]).__int__()
+
 
 class QProcessExtra(QtCore.QProcess):
     
@@ -60,12 +90,12 @@ class QProcessExtra(QtCore.QProcess):
                 elif cmd_tail.startswith("'"):
                    cmd = cmd.replace("'", '')
                 if "filename" in cmd_tail:
-                    filename = self.ui.tab_5.mpv.filename
+                    filename = self.ui.tab_5.mpv.get_property('filename')
                     cmd_tail = "filename: {}".format(filename)
                 elif "chapter" in cmd_tail:
-                    chapter = self.ui.tab_5.mpv.chapter
-                    total = self.ui.tab_5.mpv.chapters
-                    meta = self.ui.tab_5.mpv.chapter_metadata
+                    chapter = self.ui.tab_5.mpv.get_property('chapter')
+                    total = self.ui.tab_5.mpv.get_property('chapters')
+                    meta = self.ui.tab_5.mpv.get_property('chapter-metadata')
                     if meta:
                         title = meta.get("TITLE")
                     else:
@@ -75,36 +105,43 @@ class QProcessExtra(QtCore.QProcess):
                     else:
                         cmd_tail = "Chapter: {} / {}".format(chapter, total)
                 elif "${aid}" in cmd_tail:
-                    aid = self.ui.tab_5.mpv.aid
+                    aid = self.ui.tab_5.mpv.get_property('aid')
                     cmd_tail = self.ui.tab_5.get_track_property(aid, "audio")
                     if cmd_tail is None:
                         cmd_tail = "Audio: Disabled"
                 elif "${info}" in cmd_tail:
                     cmd_tail = "Info"
                 elif "${sid}" in cmd_tail:
-                    sid = self.ui.tab_5.mpv.sid
+                    sid = self.ui.tab_5.mpv.get_property('sid')
                     cmd_tail = self.ui.tab_5.get_track_property(sid, "sub")
                     if cmd_tail is None:
                         cmd_tail = "Subtitle: Disabled"
                 elif "${sub-delay}" in cmd_tail:
-                    sub_delay = self.ui.tab_5.mpv.sub_delay
+                    sub_delay = self.ui.tab_5.mpv.get_property('sub-delay')
                     if sub_delay:
                         sub_delay = "{} ms".format(int(sub_delay * 1000))
                     cmd_tail = "Sub delay: {}".format(sub_delay)
                 elif "${audio-delay}" in cmd_tail:
-                    audio_delay = self.ui.tab_5.mpv.audio_delay
+                    audio_delay = self.ui.tab_5.mpv.get_property('audio-delay')
                     if audio_delay:
                         audio_delay = "{} ms".format(int(audio_delay * 1000))
                     cmd_tail = "A-V delay: {}".format(audio_delay)
                 elif 'osd-sym-cc' in cmd:
                     print(cmd)
                     if "pause" in cmd or "2000" in cmd:
-                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
-                        cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
+                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.get_property('time-pos'))
+                        if self.ui.tab_5.mpv_api == "opengl-render":
+                            cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + " " + display_string
+                        else:
+                            cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
                     else:
                         cmd_list = cmd.split()
                         cmd_list = cmd_list[1:]
-                        cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b'' + bytes(''.join(cmd_list), "utf-8")
+                        if self.ui.tab_5.mpv_api == "opengl-render":
+                            cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + ' ' + ''.join(cmd_list)
+                        else:
+                            cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + b'' + bytes(''.join(cmd_list), "utf-8")
+                            
                 if cmd_tail:    
                     self.ui.tab_5.mpv.command("show-text", cmd_tail)
             elif cmd_arr[0] == "sub-add":
@@ -119,14 +156,18 @@ class QProcessExtra(QtCore.QProcess):
                         self.ui.quit_now = True
                     if "set pause" in cmd or "cycle pause" in cmd:
                         self.ui.tab_5.mpv.command(*cmd_arr)
-                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.time_pos)
-                        cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
+                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.get_property('time-pos'))
+                        if self.ui.tab_5.mpv_api == "opengl-render":
+                            cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + " " + display_string
+                        else:
+                            cmd_tail = self.ui.tab_5.mpv.osd_sym_cc + b" " + bytes(display_string, "utf-8")
                         self.ui.tab_5.mpv.command("show-text", cmd_tail, 2000)
                     elif cmd_arr[0] == "set":
                         cmd_name = cmd_arr[1]
                         cmd_val = cmd_arr[-1].replace('"', '')
-                        if hasattr(self.ui.tab_5.mpv, cmd_name):
-                            setattr(self.ui.tab_5.mpv, cmd_name, cmd_val)
+                        self.ui.tab_5.mpv.set_property(cmd_name, cmd_val)
+                        #if hasattr(self.ui.tab_5.mpv, cmd_name):
+                        #    setattr(self.ui.tab_5.mpv, cmd_name, cmd_val)
                     else:
                         self.ui.tab_5.mpv.command(*cmd_arr)
                 except Exception as e:
@@ -159,13 +200,18 @@ def mpv_cmd_direct(cmd):
 class MpvOpenglWidget(QOpenGLWidget):
     
     
-    def __init__(self, parent=None, ui=None, logr=None, tmp=None):
+    def __init__(self, parent=None, ui=None, logr=None, tmp=None, mpv_api=None):
         global gui, MainWindow, screen_width, screen_height, logger
         super().__init__(parent)
         gui = ui
         self.ui = ui
         MainWindow = parent
         logger = logr
+        if mpv_api in ["opengl-cb", "opengl-render"]:
+            self.mpv_api = mpv_api
+        else:
+            self.mpv_api = "opengl-cb"
+        logger.debug("using {}".format(self.mpv_api))
         self.args_dict = {'vo':'libmpv', 'ytdl':True,
                          'loop_playlist':'inf', 'idle':True,
                          'audio-display': 'attachment'}
@@ -178,23 +224,13 @@ class MpvOpenglWidget(QOpenGLWidget):
         if gui.mpvplayer_string_list and gui.use_custom_config_file:
             self.create_args_dict()
         locale.setlocale(locale.LC_NUMERIC, 'C')
-        self.mpv = MPV(**self.args_dict)
-        self.mpv.observe_property("time-pos", self.time_observer)
-        self.mpv.observe_property("eof-reached", self.eof_observer)
-        self.mpv.observe_property("idle-active", self.idle_observer)
-        self.mpv.observe_property("duration", self.time_duration)
-        self.mpv.observe_property("sub", self.sub_changed)
-        self.mpv.observe_property("audio", self.audio_changed)
-        self.mpv.observe_property("seeking", self.player_seeking)
-        self.mpv.observe_property("ao-volume", self.volume_observer)
-        self.mpv.observe_property("quit-watch-later", self.quit_watch_later)
         
-        self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
-        self.on_update_c = OpenGlCbUpdateFn(self.on_update)
-        self.on_update_fake_c = OpenGlCbUpdateFn(self.on_update_fake)
-        self.get_proc_addr_c = OpenGlCbGetProcAddrFn(get_proc_addr)
-        _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_c, None)
+        if self.mpv_api == "opengl-render":
+            self.init_opengl_render()
+        else:
+            self.init_opengl_cb()
         self.frameSwapped.connect(self.swapped, Qt.DirectConnection)
+        
         self.arrow_timer = QtCore.QTimer()
         self.arrow_timer.timeout.connect(self.arrow_hide)
         self.arrow_timer.setSingleShot(True)
@@ -260,26 +296,147 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv_reinit = False
         self.key_thread = KeyT(self.ui, None, None)
         self.key_thread.start()
+        self.sub_id = -1
+        self.audio_id = -1
+
+    def init_opengl_cb(self):
+        self.mpv = MPV(**self.args_dict)
+        self.mpv.observe_property("time-pos", self.time_observer)
+        self.mpv.observe_property("eof-reached", self.eof_observer)
+        self.mpv.observe_property("idle-active", self.idle_observer)
+        self.mpv.observe_property("duration", self.time_duration)
+        self.mpv.observe_property("sub", self.sub_changed)
+        self.mpv.observe_property("audio", self.audio_changed)
+        self.mpv.observe_property("seeking", self.player_seeking)
+        self.mpv.observe_property("ao-volume", self.volume_observer)
+        self.mpv.observe_property("quit-watch-later", self.quit_watch_later)
+        self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
+        self.on_update_c = OpenGlCbUpdateFn(self.on_update)
+        self.on_update_fake_c = OpenGlCbUpdateFn(self.on_update_fake)
+        self.get_proc_addr_c = OpenGlCbGetProcAddrFn(get_proc_addr)
+        _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_c, None)
+
+    def init_opengl_render(self):
+        self.mpv = mpv.Context()
+        self.mpv.initialize()
+        for key, value in self.args_dict.items():
+            key = key.replace('_', '-')
+            if isinstance(value, bool):
+                value = 'yes' if value else 'no'
+            self.mpv.set_option(key, value)
+
+        self.mpv.observe_property('time-pos')
+        self.mpv.observe_property('duration')
+        self.mpv.observe_property('eof-reached')
+        self.mpv.observe_property('idle-active')
+        self.mpv.observe_property('sub')
+        self.mpv.observe_property('audio')
+        self.mpv.observe_property('seeking')
+        self.mpv.observe_property('ao-volume')
+        self.mpv.observe_property('quit-watch-later')
+
+        self.observer_map = {
+                    'time-pos': self.time_observer,
+                    'eof-reached': self.eof_observer,
+                    'idle-active': self.idle_observer,
+                    'duration': self.time_duration,
+                    'sub': self.sub_changed,
+                    'audio': self.audio_changed,
+                    'seeking': self.player_seeking,
+                    'ao-volume': self.volume_observer,
+                    'quit-watch-later': self.quit_watch_later
+                    }
+        
+        self.mpv.set_wakeup_callback(self.eventHandler)
+    
+    def eventHandler(self):
+        while self.mpv:
+            try:
+                event = self.mpv.wait_event(.01)
+                if event.id in {mpv.Events.none, mpv.Events.shutdown}:
+                    break
+                elif event.id == mpv.Events.log_message:
+                    pass
+                elif event.id == mpv.Events.property_change:
+                    event_prop = event.data
+                    observer_function = self.observer_map.get(event_prop.name)
+                    if observer_function:
+                        observer_function(event_prop.name, event_prop.data)
+            except mpv.MPVError as err:
+                logger.error(err)
+
+    def initializeGL(self):
+        if self.mpv_api == "opengl-render":
+            try:
+                self.mpv_gl = mpv.OpenGLRenderContext(self.mpv, getProcAddress)
+                self.mpv_gl.set_update_callback(self.maybe_update)
+            except Exception as err:
+                logger.error(err)
+        else:
+            _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
+        
+    def paintGL(self):
+        ratio = self.windowHandle().devicePixelRatio()
+        w = int(self.width() * ratio)
+        h = int(self.height() * ratio)
+        if self.mpv_api == "opengl-render":
+            self.mpv_gl.render(opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
+        else:
+            _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
+        
+    @pyqtSlot()
+    def maybe_update(self):
+        if self.window().isMinimized():
+            self.makeCurrent()
+            self.paintGL()
+            self.context().swapBuffers(self.context().surface())
+            self.swapped()
+            self.doneCurrent()
+        else:
+            self.update()
+
+    def on_update(self, ctx=None):
+        QMetaObject.invokeMethod(self, 'maybe_update')
+        
+    def on_update_fake(self, ctx=None):
+        pass
+
+    def swapped(self):
+        if self.mpv_api == "opengl-render":
+            self.mpv_gl.report_swap()
+        else:
+            _mpv_opengl_cb_report_flip(self.mpv_gl, 0)
+        
+    def closeEvent(self, _):
+        if self.mpv_api == "opengl-render":
+            self.mpv_gl.close()
+        else:
+            self.makeCurrent()
+        if self.mpv_gl:
+            _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_fake_c, None)
+        _mpv_opengl_cb_uninit_gl(self.mpv_gl)
+        self.mpv.terminate()
         
     def init_mpv_again(self):
-        self.mpv_reinit = True
-        pl = self.mpv.playlist
-        pl_pos = self.mpv.playlist_pos
-        time_pos = self.mpv.time_pos
-        tracklist = self.mpv.track_list
-        vol = self.mpv.ao_volume
-        path = self.mpv.path
-        _mpv_opengl_cb_uninit_gl(self.mpv_gl)
-        self.initializeGL()
-        self.mpv.start = time_pos
-        self.mpv.playlist_pos = pl_pos
-        ext_audio = None
-        for track in tracklist:
-            if track.get("type") == "audio" and track.get("selected") and track.get("external-filename"):
-                ext_audio = track.get("external-filename")
-                break
-        if ext_audio:
-            self.mpv.command("audio-add", ext_audio, "select")
+        if self.mpv_api == "opengl-cb":
+            self.mpv_reinit = True
+            pl = self.mpv.playlist
+            pl_pos = self.mpv.playlist_pos
+            time_pos = self.mpv.time_pos
+            tracklist = self.mpv.track_list
+            vol = self.mpv.ao_volume
+            path = self.mpv.path
+            _mpv_opengl_cb_uninit_gl(self.mpv_gl)
+            self.initializeGL()
+            self.mpv.start = time_pos
+            self.mpv.playlist_pos = pl_pos
+            ext_audio = None
+            for track in tracklist:
+                if track.get("type") == "audio" and track.get("selected") and track.get("external-filename"):
+                    ext_audio = track.get("external-filename")
+                    break
+            if ext_audio:
+                self.mpv.command("audio-add", ext_audio, "select")
             
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
@@ -377,7 +534,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def quit_watch_later(self, _name, value):
         logger.info("{} {}".format(_name, value))        
         if value is True:
-            self.rem_properties(rem_quit=1, seek_time=self.mpv.time_pos)
+            self.rem_properties(rem_quit=1, seek_time=self.mpv.get_property('time-pos'))
         
     def sub_changed(self, _name, value):
         logger.debug('{} {} {}'.format(_name, value, "--sub--"))
@@ -404,7 +561,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         if value is not None:
             fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
             gui.progress_counter = value
-            cache = self.mpv.demuxer_cache_duration
+            cache = self.mpv.get_property('demuxer-cache-duration')
             if gui.mplayerLength > 0:
                 percent = int((value/gui.mplayerLength)*100)
             else:
@@ -419,7 +576,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         if value is not None:
             if abs(value - gui.progress_counter) >= 0.5:
                 display_string = self.display_play_pause_string(value)
-                file_size = self.mpv.file_size
+                file_size = self.mpv.get_property('file-size')
                 if file_size:
                     file_size = round((file_size)/(1024*1024), 2)
                     display_string = "{} Size: {} M".format(display_string, file_size)
@@ -464,8 +621,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         
     def eof_observer(self, _name, value):
         logger.debug("{} {}".format("eof.. value", value, _name))
-        cur_row = self.mpv.playlist_pos
-        if (self.mpv.playlist_count > 1) and (cur_row and cur_row < gui.list2.count() and gui.list2.count() > 1):
+        cur_row = self.mpv.get_property('playlist-pos')
+        if (self.mpv.get_property('playlist-count') > 1) and (cur_row and cur_row < gui.list2.count() and gui.list2.count() > 1):
             gui.cur_row = cur_row
             gui.list2.setCurrentRow(gui.cur_row)
         else:
@@ -511,13 +668,13 @@ class MpvOpenglWidget(QOpenGLWidget):
                     
     def idle_observer(self, _name, value):
         logger.debug("{} {}".format("idle.. value", value, _name))
-        if (value is True and self.mpv.playlist_count == 1
+        if (value is True and self.mpv.get_property('playlist-count') == 1
                 and gui.list2.count() > 1
                 and gui.quit_now is False):
             logger.debug("only single playlist..")
-            self.mpv.loop_playlist = False
-            self.mpv.loop_file = False
-            self.mpv.stop = True
+            self.mpv.set_property('loop-playlist', 'no')
+            self.mpv.set_property('loop-file', 'no')
+            self.mpv.command('stop')
             gui.cur_row = (gui.cur_row + 1) % gui.list2.count()
             gui.list2.setCurrentRow(gui.cur_row)
             item = gui.list2.item(gui.cur_row)
@@ -550,13 +707,13 @@ class MpvOpenglWidget(QOpenGLWidget):
             gui.mplayerLength = int(value)
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
-            gui.final_playing_url = self.mpv.path
-            self.track_list = self.mpv.track_list
-            self.chapter_list = self.mpv.chapter_list
+            gui.final_playing_url = self.mpv.get_property('path')
+            self.track_list = self.mpv.get_property('track-list')
+            self.chapter_list = self.mpv.get_property('chapter-list')
             if not self.initial_volume_set:
                 logger.debug("setting..........volume.......{}".format(gui.player_volume))
                 try:
-                    self.mpv.ao_volume = int(gui.player_volume)
+                    self.mpv.set_property('ao-volume', int(gui.player_volume))
                     self.initial_volume_set = True
                 except Exception as err:
                     logger.error(err)
@@ -566,15 +723,15 @@ class MpvOpenglWidget(QOpenGLWidget):
                     asp = "0"
                 aspect_val = self.ui.mpvplayer_aspect_float.get(str(asp))
                 logger.info("restoring.. -> {}".format(self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)))
-                if aspect_val and gui.restore_aspect and hasattr(self.mpv, "video_aspect"):
-                    self.mpv.video_aspect = aspect_val
+                if aspect_val and gui.restore_aspect:
+                    self.mpv.set_property('video-aspect', aspect_val)
                 elif not gui.restore_aspect:
                     self.mpv.command("show-text", "Bad Aspect Property: {}".format(aspect_val))
-                self.mpv.sid = sub_id
-                self.mpv.aid = audio_id
+                self.mpv.set_property('sid', sub_id)
+                self.mpv.set_property('aid', audio_id)
                 if gui.restore_volume and vol:
                     try:
-                        self.mpv.ao_volume = vol
+                        self.mpv.set_property('ao-volume', vol)
                     except Exception as err:
                         logger.error(err)
                 param_dict = gui.get_parameters_value(o='opt', s="site")
@@ -582,44 +739,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                 opt = param_dict["opt"]
                 if rem_quit or (site.lower() == "video" and opt.lower() == "history"):
                     self.mpv.command("seek", seek_time, "absolute")
-                
-            
-    def initializeGL(self):
-        _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
-
-    def paintGL(self):
-        ratio = self.windowHandle().devicePixelRatio()
-        w = int(self.width() * ratio)
-        h = int(self.height() * ratio)
-        #GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
-        
-    @pyqtSlot()
-    def maybe_update(self):
-        if self.window().isMinimized():
-            self.makeCurrent()
-            self.paintGL()
-            self.context().swapBuffers(self.context().surface())
-            self.swapped()
-            self.doneCurrent()
-        else:
-            self.update()
-
-    def on_update(self, ctx=None):
-        QMetaObject.invokeMethod(self, 'maybe_update')
-        
-    def on_update_fake(self, ctx=None):
-        pass
-
-    def swapped(self):
-        _mpv_opengl_cb_report_flip(self.mpv_gl, 0)
-        
-    def closeEvent(self, _):
-        self.makeCurrent()
-        if self.mpv_gl:
-            _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_fake_c, None)
-        _mpv_opengl_cb_uninit_gl(self.mpv_gl)
-        self.mpv.terminate()
         
     def keyPressEvent(self, event):
         if event.isAutoRepeat():
@@ -674,7 +793,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         else:
             self.ui.mpvplayer_aspect_cycle = int(key)
         aspect_val = self.ui.mpvplayer_aspect_float.get(str(self.ui.mpvplayer_aspect_cycle))
-        self.mpv.video_aspect = aspect_val
+        self.mpv.set_property('video-aspect', aspect_val)
         aspect_prop = self.aspect_map.get(str(self.ui.mpvplayer_aspect_cycle))
         self.mpv.command("show-text", "Video-Aspect: {}".format(aspect_prop))
 
@@ -819,38 +938,38 @@ class MpvOpenglWidget(QOpenGLWidget):
     def toggle_fullscreen_mode(self):
         wd = self.width()
         ht = self.height()
-        val = self.mpv.fullscreen
+        val = self.mpv.get_property('fullscreen')
         if val is False or val is None:
-            self.mpv.fullscreen = True
+            self.mpv.set_property('fullscreen', 'yes')
             self.player_fs(mode='fs')
         else:
-            self.mpv.fullscreen = False
+            self.mpv.set_property('fullscreen', 'no')
             self.player_fs(mode='nofs')
                 
 
     def get_next(self):
-        pls_count = self.mpv.playlist_count
-        pls_pos = self.mpv.playlist_pos
+        pls_count = self.mpv.get_property('playlist-count')
+        pls_pos = self.mpv.get_property('playlist-pos')
         print(pls_count, pls_pos)
         if pls_count is not None and pls_pos is not None and pls_count == pls_pos + 1:
-            self.mpv.playlist_pos = 0
+            self.mpv.set_property('playlist-pos', 0)
         else:
             self.mpv.command("playlist-next")
 
     def get_previous(self):
-        pls_count = self.mpv.playlist_count
-        pls_pos = self.mpv.playlist_pos
+        pls_count = self.mpv.get_property('playlist-count')
+        pls_pos = self.mpv.get_property('playlist-pos')
         print(pls_count, pls_pos)
         if pls_count is not None and pls_pos is not None and pls_pos == 0:
-            self.mpv.playlist_pos = pls_count - 1
+            self.mpv.set_property('playlist_pos', pls_count - 1)
         else:
             self.mpv.command("playlist-prev")
 
     def quit_player(self, msg=None):
         if msg == "rem_quit":
-            self.rem_properties(self.ui.final_playing_url, 1, self.mpv.time_pos)
+            self.rem_properties(self.ui.final_playing_url, 1, self.mpv.get_property('time-pos'))
         else:
-            self.rem_properties(self.ui.final_playing_url, 0, self.mpv.time_pos)
+            self.rem_properties(self.ui.final_playing_url, 0, self.mpv.get_property('time-pos'))
         self.initial_volume_set = False
         self.ui.tab_5.setMinimumWidth(0)
         self.ui.tab_5.setMinimumHeight(0)
