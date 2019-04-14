@@ -308,7 +308,10 @@ class MpvEventClientMessage(Structure):
 WakeupCallback = CFUNCTYPE(None, c_void_p)
 
 OpenGlCbUpdateFn = CFUNCTYPE(None, c_void_p)
+MpvRenderUpdateFn = CFUNCTYPE(None, c_void_p)
 OpenGlCbGetProcAddrFn = CFUNCTYPE(c_void_p, c_void_p, c_char_p)
+class MpvRenderContext(Structure):
+    pass
 
 def _handle_func(name, args, restype, errcheck, ctx=MpvHandle):
     func = getattr(backend, name)
@@ -396,6 +399,10 @@ _handle_gl_func('mpv_opengl_cb_render',                 [c_int, c_int],         
 _handle_gl_func('mpv_opengl_cb_report_flip',            [c_ulonglong],                                  c_int)
 _handle_gl_func('mpv_opengl_cb_uninit_gl',              [],                                             c_int)
 
+_handle_gl_func('mpv_render_context_set_update_callback',    [MpvRenderUpdateFn, c_void_p])
+_handle_gl_func('mpv_render_context_create',                [c_char_p, OpenGlCbGetProcAddrFn, c_void_p],    c_int)
+_handle_gl_func('mpv_render_context_render',                 [c_int, c_int],                                 c_int)
+_handle_gl_func('mpv_render_context_free',              [],                                             c_int)
 
 def _mpv_coax_proptype(value, proptype=str):
     """Intelligently coax the given python value into something that can be understood as a proptype property."""
@@ -501,7 +508,7 @@ class _FileLocalProxy(_Proxy):
 
 class _OSDPropertyProxy(_PropertyProxy):
     def __getattr__(self, name):
-        return self.mpv._get_property(_py_to_mpv(name), fmt=MpvFormat.OSD_STRING)
+        return self.mpv.get_property(_py_to_mpv(name), fmt=MpvFormat.OSD_STRING)
 
     def __setattr__(self, _name, _value):
         raise AttributeError('OSD properties are read-only. Please use the regular property API for writing.')
@@ -512,7 +519,7 @@ class _DecoderPropertyProxy(_PropertyProxy):
         super().__setattr__('_decoder', decoder)
 
     def __getattr__(self, name):
-        return self.mpv._get_property(_py_to_mpv(name), decoder=self._decoder)
+        return self.mpv.get_property(_py_to_mpv(name), decoder=self._decoder)
 
     def __setattr__(self, name, value):
         setattr(self.mpv, _py_to_mpv(name), value)
@@ -1047,7 +1054,7 @@ class MPV(object):
         self.loadfile(filename, 'append', **options)
 
     # Property accessors
-    def _get_property(self, name, decoder=strict_decoder, fmt=MpvFormat.NODE):
+    def get_property(self, name, decoder=strict_decoder, fmt=MpvFormat.NODE):
         out = create_string_buffer(sizeof(MpvNode))
         try:
             cval = _mpv_get_property(self.handle, name.encode('utf-8'), fmt, out)
@@ -1063,7 +1070,7 @@ class MPV(object):
         except PropertyUnavailableError as ex:
             return None
 
-    def _set_property(self, name, value):
+    def set_property(self, name, value):
         ename = name.encode('utf-8')
         if isinstance(value, (list, set, dict)):
             _1, _2, _3, pointer = _make_node_str_list(value)
@@ -1072,12 +1079,12 @@ class MPV(object):
             _mpv_set_property_string(self.handle, ename, _mpv_coax_proptype(value))
 
     def __getattr__(self, name):
-        return self._get_property(_py_to_mpv(name), lazy_decoder)
+        return self.get_property(_py_to_mpv(name), lazy_decoder)
 
     def __setattr__(self, name, value):
             try:
                 if name != 'handle' and not name.startswith('_'):
-                    self._set_property(_py_to_mpv(name), value)
+                    self.set_property(_py_to_mpv(name), value)
                 else:
                     super().__setattr__(name, value)
             except AttributeError:
@@ -1094,12 +1101,12 @@ class MPV(object):
     def __getitem__(self, name, file_local=False):
         """Get an option value."""
         prefix = 'file-local-options/' if file_local else 'options/'
-        return self._get_property(prefix+name, lazy_decoder)
+        return self.get_property(prefix+name, lazy_decoder)
 
     def __setitem__(self, name, value, file_local=False):
         """Set an option value."""
         prefix = 'file-local-options/' if file_local else 'options/'
-        return self._set_property(prefix+name, value)
+        return self.set_property(prefix+name, value)
 
     def __iter__(self):
         """Iterate over all option names."""
@@ -1108,6 +1115,6 @@ class MPV(object):
     def option_info(self, name):
         """Get information on the given option."""
         try:
-            return self._get_property('option-info/'+name)
+            return self.get_property('option-info/'+name)
         except AttributeError:
             return None
