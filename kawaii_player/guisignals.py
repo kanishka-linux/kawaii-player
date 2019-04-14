@@ -252,7 +252,7 @@ class GUISignals(QtCore.QObject):
             nlen = str(datetime.timedelta(seconds=int(length)))
             tme = str(datetime.timedelta(seconds=int(counter)))
             if (counter in range(0, 5) and row != ui.list2.currentRow()) or self.first_time:
-                ui.list2.setCurrentRow(row)
+                #ui.list2.setCurrentRow(row)
                 self.first_time = False
             slider_max = ui.slider.maximum()
             if length != slider_max:
@@ -264,6 +264,7 @@ class GUISignals(QtCore.QObject):
                 title = 'Not Available'
             if epn is not None:
                 title = epn
+                MainWindow.windowTitleChanged.emit(title)
             ui.slider.setValue(counter)
             ui.progressEpn.setValue(0)
             ui.progressEpn.setFormat((''))
