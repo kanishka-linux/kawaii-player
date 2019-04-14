@@ -3387,8 +3387,11 @@ class Ui_MainWindow(object):
             else:
                 self.tab_5.initial_volume_set = False
                 self.tab_5.rem_properties(self.final_playing_url, 0, self.progress_counter)
-                self.tab_5.mpv.command("audio-remove")
-                self.tab_5.mpv.command("sub-remove")
+                try:
+                    self.tab_5.mpv.command("audio-remove")
+                    self.tab_5.mpv.command("sub-remove")
+                except Exception as err:
+                    logger.error(err)
                 self.tab_5.audio = None
                 self.tab_5.subtitle = None
                 self.mpvplayer_val.write(bytes("stop", "utf-8"))

@@ -77,7 +77,7 @@ class QProcessExtra(QtCore.QProcess):
         return file_path
         
     def write(self, cmd):
-        if self.ui.player_val == "libmpv":
+        if self.ui.player_val == "libmpv" and self.ui.tab_5.mpv.get_property("idle-active") is False:
             print(cmd)
             cmd = str(cmd, "utf-8").strip()
             cmd_arr = cmd.split()
@@ -173,7 +173,8 @@ class QProcessExtra(QtCore.QProcess):
                 except Exception as e:
                     print(e)
                     self.ui.tab_5.mpv.command("show-text", "not found: {}, {}".format(cmd, e), 5000)
-            
+        elif self.ui.player_val == "libmpv" and self.ui.tab_5.mpv.get_property("idle-active") is True:
+            print("nothing is playing")
         else:
             super(QProcessExtra, self).write(cmd)
             
@@ -437,6 +438,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                     break
             if ext_audio:
                 self.mpv.command("audio-add", ext_audio, "select")
+        else:
+            self.mpv_gl.close()
+            self.initializeGL()
             
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
@@ -981,8 +985,11 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setMouseTracking(True)
         self.showNormal()
         self.setFocus()
-        self.mpv.command("audio-remove")
-        self.mpv.command("sub-remove")
+        try:
+            self.mpv.command("audio-remove")
+            self.mpv.command("sub-remove")
+        except Exception as err:
+            logger.error(err)
         self.audio = None
         self.subtitle = None
         self.mpv.command("stop")
