@@ -266,13 +266,21 @@ class MpvOpenglWidget(QOpenGLWidget):
         pl = self.mpv.playlist
         pl_pos = self.mpv.playlist_pos
         time_pos = self.mpv.time_pos
+        tracklist = self.mpv.track_list
         vol = self.mpv.ao_volume
         path = self.mpv.path
         _mpv_opengl_cb_uninit_gl(self.mpv_gl)
         self.initializeGL()
         self.mpv.start = time_pos
         self.mpv.playlist_pos = pl_pos
-        
+        ext_audio = None
+        for track in tracklist:
+            if track.get("type") == "audio" and track.get("selected") and track.get("external-filename"):
+                ext_audio = track.get("external-filename")
+                break
+        if ext_audio:
+            self.mpv.command("audio-add", ext_audio, "select")
+            
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
         self.setMinimumHeight(MainWindow.height())
