@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import write_files
 from thread_modules import DiscoverServer
-from mpv import MPV
+from mpv_bak import MPV
 from threading import Lock
 
 class QBrowserWidget(QtWidgets.QWidget):
