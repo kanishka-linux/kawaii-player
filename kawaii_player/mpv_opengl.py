@@ -439,8 +439,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             if ext_audio:
                 self.mpv.command("audio-add", ext_audio, "select")
         else:
-            self.mpv_gl.close()
-            self.initializeGL()
+            pass
             
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
