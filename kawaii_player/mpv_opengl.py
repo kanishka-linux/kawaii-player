@@ -539,6 +539,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 item = self.ui.list2.item(self.ui.cur_row)
                 if item:
                     self.ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                    logger.debug("trying again..............")
         
     def volume_observer(self, _name, value):
         logger.info("{} {}".format(_name, value))
