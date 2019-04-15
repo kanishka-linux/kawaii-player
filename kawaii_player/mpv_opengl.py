@@ -422,7 +422,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.terminate()
         
     def init_mpv_again(self):
-        if self.mpv_api == "opengl-cb":
+        if self.mpv_api == "opengl-cb" and platform.system().lower() == "linux":
             self.mpv_reinit = True
             pl = self.mpv.playlist
             pl_pos = self.mpv.playlist_pos
