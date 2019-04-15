@@ -311,6 +311,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property("seeking", self.player_seeking)
         self.mpv.observe_property("ao-volume", self.volume_observer)
         self.mpv.observe_property("quit-watch-later", self.quit_watch_later)
+        self.mpv.observe_property("playback-abort", self.playback_abort_observer)
         self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
         self.on_update_c = OpenGlCbUpdateFn(self.on_update)
         self.on_update_fake_c = OpenGlCbUpdateFn(self.on_update_fake)
@@ -335,6 +336,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property('seeking')
         self.mpv.observe_property('ao-volume')
         self.mpv.observe_property('quit-watch-later')
+        self.mpv.observe_property('playback-abort')
 
         self.observer_map = {
                     'time-pos': self.time_observer,
@@ -345,7 +347,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     'audio': self.audio_changed,
                     'seeking': self.player_seeking,
                     'ao-volume': self.volume_observer,
-                    'quit-watch-later': self.quit_watch_later
+                    'quit-watch-later': self.quit_watch_later,
+                    'playback-abort': self.playback_abort_observer
                     }
         
         self.mpv.set_wakeup_callback(self.eventHandler)
@@ -528,6 +531,15 @@ class MpvOpenglWidget(QOpenGLWidget):
         else:
             self.seek_now = False
 
+    def playback_abort_observer(self, name, value):
+        logger.debug('{} {}, pls = {}'.format(name, value, self.mpv.get_property('playlist')))
+        if self.ui.epn_clicked and value is True:
+            if self.ui.cur_row < self.ui.list2.count():
+                self.ui.list2.setCurrentRow(self.ui.cur_row)
+                item = self.ui.list2.item(self.ui.cur_row)
+                if item:
+                    self.ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        
     def volume_observer(self, _name, value):
         logger.info("{} {}".format(_name, value))
         if value and isinstance(value, float):
@@ -705,6 +717,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.mpv.start = "none"
                 self.mpv_reinit = False
             self.ui.quit_really = False
+            self.ui.epn_clicked = False
             z = 'duration is {:.2f}s'.format(value)
             gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
