@@ -5056,6 +5056,7 @@ class Ui_MainWindow(object):
     def epnClicked(self, dock_check=None):
         global MainWindow
         self.quit_now = False
+        self.epn_clicked = True
         self.cur_row = self.list2.currentRow()
         thumb_mode = False
         self.progressEpn.setValue(0)
@@ -8755,7 +8756,6 @@ class Ui_MainWindow(object):
                 self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
                 #self.tab_5.mpv.command("playlist-pos", self.cur_row)
                 self.tab_5.mpv.set_property("playlist-pos", self.cur_row)
-                self.epn_clicked = True
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
                 setinfo = True
