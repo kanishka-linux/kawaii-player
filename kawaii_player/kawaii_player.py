@@ -1470,6 +1470,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.epn_clicked = False
         self.osx_native_fullscreen = False
         self.quit_now = False
         self.system_bgcolor = ''
@@ -3382,6 +3383,7 @@ class Ui_MainWindow(object):
         global sub_id, audio_id
         change_spacing = False
         if self.player_val == "libmpv":
+            self.epn_clicked = False
             if msg and msg == "from openglwidget":
                 pass
             else:
@@ -8753,6 +8755,7 @@ class Ui_MainWindow(object):
                 self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
                 #self.tab_5.mpv.command("playlist-pos", self.cur_row)
                 self.tab_5.mpv.set_property("playlist-pos", self.cur_row)
+                self.epn_clicked = True
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
                 setinfo = True
