@@ -9,6 +9,7 @@ import time
 import sys
 import platform
 import locale
+from functools import partial 
 from collections import namedtuple
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot, pyqtSignal
@@ -166,8 +167,6 @@ class QProcessExtra(QtCore.QProcess):
                         cmd_name = cmd_arr[1]
                         cmd_val = cmd_arr[-1].replace('"', '')
                         self.ui.tab_5.mpv.set_property(cmd_name, cmd_val)
-                        #if hasattr(self.ui.tab_5.mpv, cmd_name):
-                        #    setattr(self.ui.tab_5.mpv, cmd_name, cmd_val)
                     else:
                         self.ui.tab_5.mpv.command(*cmd_arr)
                 except Exception as e:
@@ -192,14 +191,42 @@ class KeyT(QtCore.QThread):
     def run(self):
         if self.event is not None and self.cmd:
             self.ui.tab_5.mpv.command(*self.cmd)
+            
+class InitAgainThread(QtCore.QThread):
+    mpv_cmd = pyqtSignal(list)
+    def __init__(self, uiw, me):
+        global ui
+        self.ui = uiw
+        ui = uiw
+        QtCore.QThread.__init__(self)
+        self.me = me
+        self.mpv_cmd.connect(mpv_cmd_direct)
+        
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        if self.me.mpv_api == "opengl-cb":
+            _mpv_opengl_cb_uninit_gl(self.me.mpv_gl)
+        else:
+            pass
+        self.me.quit_watch_later('quit-watch-later', True)
+        func = partial(self.me.initializeGL)
+        self.mpv_cmd.emit([func, self.me.mpv_api])
         
 @pyqtSlot(list)
 def mpv_cmd_direct(cmd):
     global ui
-    ui.tab_5.mpv.command(*cmd)
-
-class MpvOpenglWidget(QOpenGLWidget):
+    func, api = cmd
+    if api == "opengl-cb":
+        func()
+    if ui.cur_row < ui.list2.count():
+        ui.list2.setCurrentRow(ui.cur_row)
+        item = ui.list2.item(ui.cur_row)
+        if item:
+            ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
     
+class MpvOpenglWidget(QOpenGLWidget):
     
     def __init__(self, parent=None, ui=None, logr=None, tmp=None, mpv_api=None):
         global gui, MainWindow, screen_width, screen_height, logger
@@ -296,6 +323,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.playlist_backup = False
         self.mpv_reinit = False
         self.key_thread = KeyT(self.ui, None, None)
+        self.init_again_thread = InitAgainThread(self.ui, self)
         self.key_thread.start()
         self.sub_id = -1
         self.audio_id = -1
@@ -384,9 +412,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         w = int(self.width() * ratio)
         h = int(self.height() * ratio)
         if self.mpv_api == "opengl-render":
-            self.mpv_gl.render(opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
+            func = partial(self.mpv_gl.render, opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
         else:
-            _mpv_opengl_cb_draw(self.mpv_gl, self.defaultFramebufferObject(), w, -h)
+            func = partial(_mpv_opengl_cb_draw, self.mpv_gl, self.defaultFramebufferObject(), w, -h)
+        func()
         
     @pyqtSlot()
     def maybe_update(self):
@@ -422,25 +451,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.terminate()
         
     def init_mpv_again(self):
-        if self.mpv_api == "opengl-cb" and platform.system().lower() == "linux":
-            self.mpv_reinit = True
-            pl = self.mpv.playlist
-            pl_pos = self.mpv.playlist_pos
-            time_pos = self.mpv.time_pos
-            tracklist = self.mpv.track_list
-            vol = self.mpv.ao_volume
-            path = self.mpv.path
-            _mpv_opengl_cb_uninit_gl(self.mpv_gl)
-            self.initializeGL()
-            self.mpv.start = time_pos
-            self.mpv.playlist_pos = pl_pos
-            ext_audio = None
-            for track in tracklist:
-                if track.get("type") == "audio" and track.get("selected") and track.get("external-filename"):
-                    ext_audio = track.get("external-filename")
-                    break
-            if ext_audio:
-                self.mpv.command("audio-add", ext_audio, "select")
+        if self.mpv_api in ["opengl-cb", "opengl-render"] and platform.system().lower() == "linux":
+            if not self.init_again_thread.isRunning():
+                self.init_again_thread = InitAgainThread(self.ui, self)
+                self.init_again_thread.start()
         else:
             pass
             
@@ -550,7 +564,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def quit_watch_later(self, _name, value):
         logger.info("{} {}".format(_name, value))        
         if value is True:
-            self.rem_properties(rem_quit=1, seek_time=self.mpv.get_property('time-pos'))
+            self.rem_properties(self.ui.final_playing_url, rem_quit=1, seek_time=self.mpv.get_property('time-pos'))
         
     def sub_changed(self, _name, value):
         logger.debug('{} {} {}'.format(_name, value, "--sub--"))
