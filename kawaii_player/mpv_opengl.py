@@ -209,7 +209,7 @@ class InitAgainThread(QtCore.QThread):
         if self.me.mpv_api == "opengl-cb":
             _mpv_opengl_cb_uninit_gl(self.me.mpv_gl)
         else:
-            pass
+            self.me.mpv_gl.close()
         self.me.quit_watch_later('quit-watch-later', True)
         func = partial(self.me.initializeGL)
         self.mpv_cmd.emit([func, self.me.mpv_api])
