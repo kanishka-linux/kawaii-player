@@ -26,6 +26,7 @@ from functools import partial, wraps
 import collections
 import re
 import traceback
+from enum import IntEnum
 
 if os.name == 'nt':
     backend = CDLL('mpv-1.dll')
@@ -101,6 +102,41 @@ class ErrorCode(object):
         if ex:
             raise ex(ec, *args)
 
+class MpvRenderParamType(c_int):
+    MPV_RENDER_PARAM_INVALID                = 0
+    MPV_RENDER_PARAM_API_TYPE               = 1
+    MPV_RENDER_PARAM_OPENGL_INIT_PARAMS     = 2
+    MPV_RENDER_PARAM_OPENGL_FBO             = 3
+    MPV_RENDER_PARAM_FLIP_Y                 = 4
+    MPV_RENDER_PARAM_DEPTH                  = 5
+    MPV_RENDER_PARAM_ICC_PROFILE            = 6
+    MPV_RENDER_PARAM_AMBIENT_LIGHT          = 7
+    MPV_RENDER_PARAM_X11_DISPLAY            = 8
+    MPV_RENDER_PARAM_WL_DISPLAY             = 9
+    MPV_RENDER_PARAM_ADVANCED_CONTROL       = 10
+    MPV_RENDER_PARAM_NEXT_FRAME_INFO        = 11
+    MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME  = 12
+    MPV_RENDER_PARAM_SKIP_RENDERING         = 13
+    MPV_RENDER_PARAM_DRM_DISPLAY            = 14
+    MPV_RENDER_PARAM_DRM_DRAW_SURFACE_SIZE  = 15
+    
+    def __init__(self, value):
+        self._as_parameter = int(value)
+        
+class MpvRenderParam(Structure):
+    _fields_ = [('type', MpvRenderParamType),
+                ('data', c_void_p)]
+                
+class MpvOpenglFbo(Structure):
+    _fields_ = [('fbo', c_int),
+                ('w', c_int),
+                ('h', c_int),
+                ('internal_format', c_int)]
+    
+class MpvOpenglInitParams(Structure):
+    _fields_ = [('get_proc_address', CFUNCTYPE(c_void_p, c_void_p, c_char_p)),
+                ('get_proc_address_ctx', CFUNCTYPE(None))]
+    
 
 class MpvFormat(c_int):
     NONE        = 0
@@ -310,6 +346,7 @@ WakeupCallback = CFUNCTYPE(None, c_void_p)
 OpenGlCbUpdateFn = CFUNCTYPE(None, c_void_p)
 MpvRenderUpdateFn = CFUNCTYPE(None, c_void_p)
 OpenGlCbGetProcAddrFn = CFUNCTYPE(c_void_p, c_void_p, c_char_p)
+
 class MpvRenderContext(Structure):
     pass
 
@@ -321,6 +358,7 @@ def _handle_func(name, args, restype, errcheck, ctx=MpvHandle):
     if errcheck is not None:
         func.errcheck = errcheck
     globals()['_'+name] = func
+    
 
 def bytes_free_errcheck(res, func, *args):
     notnull_errcheck(res, func, *args)
@@ -399,10 +437,16 @@ _handle_gl_func('mpv_opengl_cb_render',                 [c_int, c_int],         
 _handle_gl_func('mpv_opengl_cb_report_flip',            [c_ulonglong],                                  c_int)
 _handle_gl_func('mpv_opengl_cb_uninit_gl',              [],                                             c_int)
 
-_handle_gl_func('mpv_render_context_set_update_callback',    [MpvRenderUpdateFn, c_void_p])
-_handle_gl_func('mpv_render_context_create',                [c_char_p, OpenGlCbGetProcAddrFn, c_void_p],    c_int)
-_handle_gl_func('mpv_render_context_render',                 [c_int, c_int],                                 c_int)
-_handle_gl_func('mpv_render_context_free',              [],                                             c_int)
+_handle_func('mpv_render_context_set_update_callback',
+             [POINTER(MpvRenderContext), MpvRenderUpdateFn, c_void_p],
+             None, None, None)
+_handle_func('mpv_render_context_create', 
+            [POINTER(POINTER(MpvRenderContext)),
+             MpvHandle, POINTER(MpvRenderParam)],
+             c_int, None, None)
+_handle_func('mpv_render_context_render', [POINTER(MpvRenderContext), POINTER(MpvRenderParam)], c_int, None, None)
+_handle_func('mpv_render_context_free', [POINTER(MpvRenderContext)], c_int, None, None)
+_handle_func('mpv_render_context_report_swap', [POINTER(MpvRenderContext)], None, None, None)
 
 def _mpv_coax_proptype(value, proptype=str):
     """Intelligently coax the given python value into something that can be understood as a proptype property."""
