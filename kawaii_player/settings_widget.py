@@ -845,6 +845,15 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text113.setText("Variable Width List")
         self.text113.setToolTip("Useful for large screens and dual monitor setup, allowing automatic resizing of various lists. Also useful in single panel mode with either playlist or titlelist hidden.")
         self.param_list.append('variable_width_list')
+        msg = "<html>Set Device Pixel Ratio. For normal displays this value is generally 1.0. \
+                \nFor HiDPI or retina displays it may be greater than 1.0. For retina displays, it is 2.0.\
+                \nIn short, if video is appearing smaller then set the value higher than 1.0.</html>"
+        self.line114 = QtWidgets.QLineEdit()
+        self.line114.setPlaceholderText(str(ui.device_pixel_ratio))
+        self.line114.setToolTip(msg)
+        self.text114 = QtWidgets.QLabel()
+        self.text114.setText("Device Pixel Ratio")
+        self.param_list.append('device_pixel_ratio')
         
         for i, j in enumerate(self.param_list):
             index = i+1
@@ -1778,6 +1787,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.local_port = int(port)
         elif var_name == 'torrent_download_limit' and obj_value.isnumeric():
             ui.torrent_download_limit = int(obj_value) * 1024
+        elif var_name == 'device_pixel_ratio':
+            ui.device_pixel_ratio = float(obj_value)
         elif var_name == 'torrent_upload_limit' and obj_value.isnumeric():
             ui.torrent_upload_limit = int(obj_value) * 1024
         elif var_name == 'setuploadspeed' and obj_value.isnumeric():
