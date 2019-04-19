@@ -1276,19 +1276,19 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text47.setToolTip('<html>{}</html>'.format(msg))
         
         self.line48 = QtWidgets.QComboBox()
-        self.line48.addItem("False")
-        index = self.line48.findText(str(ui.use_single_network_stream))
+        self.line48.addItem("opengl-cb")
+        self.line48.addItem("opengl-render")
+        index = self.line48.findText(str(ui.libmpv_api))
         self.line48.setCurrentIndex(index)
         self.text48 = QtWidgets.QLabel()
-        self.text48.setText("Use Single Network Stream For\nGapless Playback")
+        self.text48.setText("libmpv API")
         self.text48.setWordWrap(True)
-        self.player_list.append('use_single_network_stream')
-        msg = "This option has been deprecated from v3.9.1+. In earlier versions, \
-        setting it True would have Disabled separate audio and video files.\
-        Useful only for gapless playback and prefetching of network streams.\
-        This option won't be of any use if gapless playback of network stream is disabled."
+        self.player_list.append('libmpv_api')
+        msg = "<html>choose api if libmpv backend has been selected.\
+                \nIf opengl-render selected, then user will need to install <i>pympv</i> package from PyPI.\
+                \nIt is necessary to restart the application, once this option has been changed</html>"
         
-        self.text48.setToolTip('<html>{}</html>'.format(msg))
+        self.text48.setToolTip(msg)
         
         self.line49 = QtWidgets.QComboBox()
         self.line49.addItem("No")

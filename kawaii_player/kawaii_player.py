@@ -1474,6 +1474,7 @@ class Ui_MainWindow(object):
         self.epn_clicked = False
         self.osx_native_fullscreen = False
         self.device_pixel_ratio = 1.0
+        self.libmpv_api = "opengl-cb"
         self.quit_now = False
         self.system_bgcolor = ''
         self.thumbnail_engine = 'mpv'
@@ -14026,6 +14027,12 @@ def main():
                 elif i.startswith('VIDEO_OUTPUTS='):
                     try:
                         ui.video_outputs = j
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('LIBMPV_API='):
+                    try:
+                        j = j.lower()
+                        ui.libmpv_api = j
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('YTDL_PATH='):
