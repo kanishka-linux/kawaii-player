@@ -42,7 +42,7 @@ class QLineProgress(QtWidgets.QProgressBar):
         t = t*ui.mplayerLength
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
-        elif ui.player_val == "mpv":
+        elif ui.player_val in ["mpv", "libmpv"]:
             l=str((datetime.timedelta(seconds=t)))
         else:
             l = str(0)
@@ -58,8 +58,8 @@ class QLineProgress(QtWidgets.QProgressBar):
             print(old_val, new_val, int((new_val-old_val)/1000))
         else:
             print(old_val, new_val, int(new_val-old_val))
-        if ui.mpvplayer_val.processId() > 0:
-            if ui.player_val == "mpv":
+        if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
+            if ui.player_val in ["mpv", "libmpv"]:
                 var = bytes('\n'+"seek "+str(new_val)+" absolute"+'\n', 'utf-8')
                 ui.mpvplayer_val.write(var)
             elif ui.player_val =="mplayer":
@@ -272,7 +272,7 @@ class FloatWindowWidget(QtWidgets.QWidget):
     def update_progress(self, var_str, var_int):
         self.progress.setFormat(var_str)
         #print(var_int)
-        if ui.player_val == 'mpv' and ui.mplayerLength:
+        if ui.player_val in ['mpv', 'libmpv'] and ui.mplayerLength:
             self.progress.setValue(int((var_int/ui.mplayerLength)*100))
         elif ui.player_val == 'mplayer' and ui.mplayerLength:
             self.progress.setValue(int(((var_int/ui.mplayerLength)*100)))
