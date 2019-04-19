@@ -716,7 +716,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     finalUrl = finalUrl.replace("'", '')
                 if num < ui.list2.count():
                     ui.list2.setCurrentRow(num)
-                    ui.idw = str(int(ui.tab_5.winId()))
+                    ui.idw = ui.get_winid()
                     #ui.play_file_now(finalUrl)
                     if ui.player_val == "libmpv":
                         ui.tab_5.mpv.command("loadfile", finalUrl.replace('"', ''))
@@ -1153,37 +1153,43 @@ class ThumbnailWidget(QtWidgets.QLabel):
             label_watch = False
             logger.debug(label_name)
             if label_name in ['label', 'label_new']:
-                num = ui.list2.currentRow()
-                logger.debug(num)
-                if num < 0 and ui.list2.count() > 0:
-                    num = 0
-                ui.cur_row = num
-                ui.list2.setCurrentRow(num)
-                if label_name == 'label':
-                    ui.video_mode_index = 6
-                    mn = ui.label.winId()
-                else:
-                    if num >= 0:
-                        ui.clicked_label_new = True
-                    ui.video_mode_index = 7
-                    mn = ui.label_new.winId()
-                if ui.player_theme == 'default':
-                    ui.label_new.setMinimumHeight(2.5*ui.height_allowed)
-                    ui.video_mode_index = 7
-                    mn = ui.label_new.winId()
-                tmp_idw = str(int(mn))
-                label_watch = True
                 if ui.player_val == "libmpv":
                     num = -1
+                    tmp_idw = '-1'
+                else:
+                    num = ui.list2.currentRow()
+                    logger.debug(num)
+                    if num < 0 and ui.list2.count() > 0:
+                        num = 0
+                    ui.cur_row = num
+                    ui.list2.setCurrentRow(num)
+                    if label_name == 'label':
+                        ui.video_mode_index = 6
+                        mn = ui.label.winId()
+                    else:
+                        if num >= 0:
+                            ui.clicked_label_new = True
+                        ui.video_mode_index = 7
+                        mn = ui.label_new.winId()
+                    if ui.player_theme == 'default':
+                        ui.label_new.setMinimumHeight(2.5*ui.height_allowed)
+                        ui.video_mode_index = 7
+                        mn = ui.label_new.winId()
+                    tmp_idw = str(int(mn))
+                    label_watch = True
             else:
                 label_num = re.sub('label_epn_', '', label_name)
                 num = int(label_num)
                 ui.cur_row = num
                 ui.list2.setCurrentRow(ui.cur_row)
                 logger.debug('trying to set cur_row :: {}'.format(ui.cur_row))
-                p1 = "ui.label_epn_"+str(num)+".winId()"
-                mn = int(eval(p1))
-                tmp_idw = str(mn)
+                if ui.player_val != "libmpv":
+                    p1 = "ui.label_epn_"+str(num)+".winId()"
+                    mn = int(eval(p1))
+                    tmp_idw = str(mn)
+                else:
+                    mn = -1
+                    tmp_idw = '-1'
                 if ui.video_mode_index == 6:
                     ui.video_mode_index = 1
                     ui.comboBoxMode.setCurrentIndex(0)
