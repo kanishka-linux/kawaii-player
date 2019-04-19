@@ -621,6 +621,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                 if not gui.frame1.isHidden() and not self.seek_now:
                     gui.slider.valueChanged.emit(int(value))
                     gui.gui_signals.display_string((display_string))
+                if not gui.new_tray_widget.isHidden():
+                    gui.new_tray_widget.update_signal.emit(display_string, int(value))
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
                 logger.debug("{} {}".format("adding..audio..", self.audio))
