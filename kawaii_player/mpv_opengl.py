@@ -412,9 +412,11 @@ class MpvOpenglWidget(QOpenGLWidget):
             _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
         
     def paintGL(self):
-        ratio = self.windowHandle().devicePixelRatio()
-        w = int(self.width() * ratio)
-        h = int(self.height() * ratio)
+        #ratio = self.windowHandle().devicePixelRatio()
+        #r = QtGui.QScreen().devicePixelRatio()
+        ratio = self.ui.device_pixel_ratio 
+        w = int(self.width()* ratio)
+        h = int(self.height()* ratio)
         if self.mpv_api == "opengl-render":
             func = partial(self.mpv_gl.render, opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
         else:
@@ -1050,7 +1052,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def player_fs(self, mode=None):
         if platform.system().lower() == "darwin":
             self.mpv.command("set", "pause", "yes")
-        if not self.ui.idw or self.ui.idw == str(int(self.winId())):
+        if not self.ui.idw or self.ui.idw == self.ui.get_winid():
             if self.player_val == "libmpv":
                 if mode == 'fs':
                     if os.name == 'nt' and self.ui.web_review_browser_started:
