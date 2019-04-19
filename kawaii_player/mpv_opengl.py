@@ -94,17 +94,20 @@ class QProcessExtra(QtCore.QProcess):
                     filename = self.ui.tab_5.mpv.get_property('filename')
                     cmd_tail = "filename: {}".format(filename)
                 elif "chapter" in cmd_tail:
-                    chapter = self.ui.tab_5.mpv.get_property('chapter')
-                    total = self.ui.tab_5.mpv.get_property('chapters')
-                    meta = self.ui.tab_5.mpv.get_property('chapter-metadata')
-                    if meta:
-                        title = meta.get("TITLE")
-                    else:
-                        title = None
-                    if title:
-                        cmd_tail = "{} / {}".format(title, total)
-                    else:
-                        cmd_tail = "Chapter: {} / {}".format(chapter, total)
+                    try:
+                        chapter = self.ui.tab_5.mpv.get_property('chapter')
+                        total = self.ui.tab_5.mpv.get_property('chapters')
+                        meta = self.ui.tab_5.mpv.get_property('chapter-metadata')
+                        if meta:
+                            title = meta.get("TITLE")
+                        else:
+                            title = None
+                        if title:
+                            cmd_tail = "{} / {}".format(title, total)
+                        else:
+                            cmd_tail = "Chapter: {} / {}".format(chapter, total)
+                    except Exception as err:
+                        cmd_tail = "Chapters not available"
                 elif "${aid}" in cmd_tail:
                     aid = self.ui.tab_5.mpv.get_property('aid')
                     cmd_tail = self.ui.tab_5.get_track_property(aid, "audio")
