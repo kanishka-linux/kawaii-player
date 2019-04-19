@@ -1001,7 +1001,8 @@ class Ui_MainWindow(object):
         self.tab_5.setMouseTracking(True)
         #self.VerticalLayoutLabel.insertWidget(1, self.tab_5, 0)
         self.tab_5.hide()
-        self.idw = str(int(self.tab_5.winId()))
+        #self.idw = str(int(self.tab_5.winId()))
+        self.idw = "-1"
         #self.tab_5.setMinimumSize(100, 100)
         #self.tab_6 = QtGui.QWidget(MainWindow)
         self.tab_6 = TabThumbnail(MainWindow, self)
@@ -1472,6 +1473,7 @@ class Ui_MainWindow(object):
         self.mpvplayer_val = QProcessExtra(ui=self)
         self.epn_clicked = False
         self.osx_native_fullscreen = False
+        self.device_pixel_ratio = 1.0
         self.quit_now = False
         self.system_bgcolor = ''
         self.thumbnail_engine = 'mpv'
@@ -2034,7 +2036,7 @@ class Ui_MainWindow(object):
     def global_shortcuts(self, val, val_function):
         self.player_focus = False
         if self.mpvplayer_val.processId() > 0:
-            if self.idw == str(int(self.tab_5.winId())):
+            if self.idw == self.get_winid():
                 if self.tab_5.hasFocus():
                     self.player_focus = True
             elif self.idw == str(int(self.label_new.winId())):
@@ -3285,7 +3287,7 @@ class Ui_MainWindow(object):
         exec(p1)
     
     def mark_epn_thumbnail_label(self, num, old_num=None):
-        if self.idw and self.idw != str(int(self.tab_5.winId())) and self.idw != str(int(self.label.winId())):
+        if self.idw and self.idw != self.get_winid() and self.idw != str(int(self.label.winId())):
             try:
                 index = num + self.list2.count()
                 txt = self.list2.item(num).text()
@@ -3443,7 +3445,7 @@ class Ui_MainWindow(object):
             else:
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
-            if (self.tab_6.isHidden() and (str(self.idw) == str(int(self.tab_5.winId())))) or msg == "darwin":
+            if (self.tab_6.isHidden() and (str(self.idw) == self.get_winid())) or msg == "darwin":
                 change_spacing = True
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
@@ -3499,7 +3501,7 @@ class Ui_MainWindow(object):
                     else:
                         pass
                 else:
-                    if ((str(self.idw) != str(int(self.tab_5.winId()))) 
+                    if ((str(self.idw) != self.get_winid()) 
                             and (str(self.idw) != str(int(self.label.winId())))
                             and (str(self.idw) != str(int(self.label_new.winId())))):
                         if iconv_r_indicator:
@@ -3509,7 +3511,7 @@ class Ui_MainWindow(object):
                             self.thumbnail_window_present_mode(mode=5)
                         else:
                             self.thumbnail_window_present_mode()
-                    elif (str(self.idw) == str(int(self.tab_5.winId()))):
+                    elif (str(self.idw) == self.get_winid()):
                         self.tab_5.hide()
                         self.scrollArea1.hide()
                         QtWidgets.QApplication.processEvents()
@@ -3561,7 +3563,7 @@ class Ui_MainWindow(object):
             QtCore.QTimer.singleShot(3000, partial(self.show_cursor_now))
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((''))
-        self.idw = str(int(self.tab_5.winId()))
+        self.idw = self.get_winid()
         if self.video_mode_index in [6, 7]:
             self.set_video_mode()
         if self.orientation_dock == 'right':
@@ -3633,7 +3635,7 @@ class Ui_MainWindow(object):
             else:
                 if self.list2.currentItem():
                     self.cur_row = self.list2.currentRow()
-                    if not self.idw or self.idw == str(int(self.tab_5.winId())):
+                    if not self.idw or self.idw == self.get_winid():
                         self.epnfound()
                     elif self.idw == str(int(self.label.winId())):
                         pass
@@ -5062,7 +5064,7 @@ class Ui_MainWindow(object):
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat(('Wait...'))
         if self.float_window.isHidden():
-            if (self.view_mode == 'thumbnail' and self.idw != str(int(self.tab_5.winId())) and thumbnail_indicator):
+            if (self.view_mode == 'thumbnail' and self.idw != self.get_winid() and thumbnail_indicator):
                 num = self.list2.currentRow()
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvNextEpnList(play_row=num, mode= 'play_now')
@@ -5072,13 +5074,13 @@ class Ui_MainWindow(object):
                 thumb_mode = True
             else:
                 if self.mpvplayer_val.processId() > 0:
-                    if self.idw != str(int(self.tab_5.winId())):
+                    if self.idw != self.get_winid():
                         if self.idw == str(int(self.label_new.winId())):
                             self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
                         else:
                             self.mpvplayer_val.kill()
                             self.mpvplayer_started = False
-                            self.idw = str(int(self.tab_5.winId()))
+                            self.idw = self.get_winid()
                     if self.mpvplayer_started:
                         self.mpvNextEpnList(play_row=self.cur_row, mode='play_now')
                     else:
@@ -5089,7 +5091,7 @@ class Ui_MainWindow(object):
                 if self.auto_hide_dock:
                     self.dockWidget_3.hide()
         else:
-            if not self.idw or self.idw == str(int(self.tab_5.winId())):
+            if not self.idw or self.idw == self.get_winid():
                 self.epnfound()
             elif self.idw == str(int(self.label.winId())) or self.idw == str(int(self.label_new.winId())):
                 self.epnfound()
@@ -5268,7 +5270,7 @@ class Ui_MainWindow(object):
     def thumbnailHide(self, context):
         global total_till, browse_cnt, iconv_r
         global thumbnail_indicator, iconv_r_indicator, total_till_epn
-        self.idw = str(int(self.tab_5.winId()))
+        self.idw = self.get_winid()
         thumbnail_indicator[:]=[]
         if context == "ExtendedQLabel":
             pass
@@ -8679,7 +8681,7 @@ class Ui_MainWindow(object):
                 self.external_audio_file = False
             if OSNAME == 'posix':
                 if not win_id:
-                    self.idw = str(int(self.tab_5.winId()))
+                    self.idw = self.get_winid()
                 else:
                     self.idw = str(win_id)
             elif OSNAME == 'nt':
@@ -8691,9 +8693,9 @@ class Ui_MainWindow(object):
                         self.idw = str(int(eval(p1)))
                     except Exception as e:
                         print(e)
-                        self.idw = str(int(self.tab_5.winId()))
+                        self.idw = self.get_winid()
                 else:
-                    self.idw = str(int(self.tab_5.winId()))
+                    self.idw = self.get_winid()
             from_function = None
             turl = finalUrl.replace('"', '')
             if self.gapless_playback and site in ['Video', 'Music', 'None', 'MyServer', 'PlayLists']:
@@ -8766,7 +8768,7 @@ class Ui_MainWindow(object):
                 self.external_audio_file = False
             if OSNAME == 'posix':
                 if not win_id:
-                    self.idw = str(int(self.tab_5.winId()))
+                    self.idw = self.get_winid()
                 else:
                     self.idw = str(win_id)
             elif OSNAME == 'nt':
@@ -8778,9 +8780,9 @@ class Ui_MainWindow(object):
                         self.idw = str(int(eval(p1)))
                     except Exception as e:
                         print(e)
-                        self.idw = str(int(self.tab_5.winId()))
+                        self.idw = self.get_winid()
                 else:
-                    self.idw = str(int(self.tab_5.winId()))
+                    self.idw = self.get_winid()
             turl = finalUrl.replace('"', '')
             from_function = None
             if self.gapless_playback and site in ['Video', 'Music', 'None', 'MyServer', 'PlayLists']:
@@ -9253,7 +9255,7 @@ class Ui_MainWindow(object):
         finalUrl = url_link
         print(row_val, '--epn--row--')
         if not self.idw:
-            self.idw = str(int(self.tab_5.winId()))
+            self.idw = self.get_winid()
         if row_val.isnumeric():
             row = int(row_val)
             self.cur_row = row
@@ -9318,7 +9320,7 @@ class Ui_MainWindow(object):
                 #self.tab_5.mpv.command("sub-add", surl.replace('"', ""), "select")
         elif self.player_val == "mplayer":
             self.quit_really = "no"
-            self.idw = str(int(self.tab_5.winId()))
+            self.idw = self.get_winid()
             if site != "Music":
                 self.tab_5.show()
             if not referer:
@@ -9551,7 +9553,7 @@ class Ui_MainWindow(object):
                     self.epn_wait_thread.start()
                 
         new_epn = self.epn_name_in_list
-        self.idw = str(int(self.tab_5.winId()))
+        self.idw = self.get_winid()
         if site != "Music":
             self.tab_5.show()
         thread_running = self.epn_wait_thread.isRunning()
@@ -9573,7 +9575,7 @@ class Ui_MainWindow(object):
                 self.infoPlay(command)
             elif self.player_val == "mplayer":
                 self.quit_really = "no"
-                self.idw = str(int(self.tab_5.winId()))
+                self.idw = self.get_winid()
                 if site != "Music":
                     self.tab_5.show()
                 command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
@@ -9641,7 +9643,7 @@ class Ui_MainWindow(object):
                             rfr_url = finalUrl[1]
                             if self.player_val == "mplayer":
                                 self.quit_really = "no"
-                                self.idw = str(int(self.tab_5.winId()))
+                                self.idw = self.get_winid()
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
                                 command = self.mplayermpv_command(self.idw, final_url, self.player_val, rfr=rfr_url)
@@ -9655,7 +9657,7 @@ class Ui_MainWindow(object):
                         else:
                             if self.player_val == "mplayer":
                                 self.quit_really = "no"
-                                self.idw = str(int(self.tab_5.winId()))
+                                self.idw = self.get_winid()
                                 self.tab_5.show()
                                 final_url = str(finalUrl[0])
                                 command = self.mplayermpv_command(self.idw, final_url, self.player_val)
@@ -9682,7 +9684,7 @@ class Ui_MainWindow(object):
                         finalUrl = finalUrl.replace('""', '"')
                     if self.player_val == "mplayer":
                         self.quit_really = "no"
-                        self.idw = str(int(self.tab_5.winId()))
+                        self.idw = self.get_winid()
                         self.tab_5.show()
                         command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                         logger.info(command)
@@ -10018,7 +10020,7 @@ class Ui_MainWindow(object):
         self.label.hide()
         self.label_new.hide()
         self.frame.hide()
-        self.idw = str(int(self.tab_5.winId()))
+        self.idw = self.get_winid()
         self.tab_5.show()
         self.tab_5.setFocus()
         
@@ -11153,7 +11155,7 @@ class Ui_MainWindow(object):
         self.list2.setCurrentRow(num)
         item = self.list2.item(num)
         if item:
-            if ((self.view_mode == 'thumbnail' and self.idw != str(int(self.tab_5.winId()))
+            if ((self.view_mode == 'thumbnail' and self.idw != self.get_winid()
                     and thumbnail_indicator) or self.fullscreen_mode == 1
                     or self.idw == str(int(self.label_new.winId()))):
                 logger.debug('playback inside thumbnails')
@@ -11227,7 +11229,7 @@ class Ui_MainWindow(object):
         global thumbnail_indicator
         if self.epn_name_in_list.startswith('#'):
             self.epn_name_in_list = self.epn_name_in_list.replace('#', '', 1)
-        if (thumbnail_indicator and self.idw == str(int(self.tab_5.winId()))):
+        if (thumbnail_indicator and self.idw == self.get_winid()):
             try:
                 title_num = row + self.list2.count()
                 if self.epn_name_in_list.startswith(self.check_symbol):
@@ -11272,7 +11274,7 @@ class Ui_MainWindow(object):
             except Exception as e:
                 logger.error(e)
         else:
-            if (self.idw and self.idw != str(int(self.tab_5.winId()))
+            if (self.idw and self.idw != self.get_winid()
                     and self.idw != str(int(self.label.winId())) 
                     and self.idw != str(int(self.label_new.winId()))):
                 try:
@@ -11590,7 +11592,7 @@ class Ui_MainWindow(object):
                 self.list6.takeItem(0)
                 del t1
             if not self.idw:
-                self.idw = str(int(self.tab_5.winId()))
+                self.idw = self.get_winid()
             if 'youtube.com' in epnShow.lower():
                 finalUrl = epnShow.replace('"', '')
                 epnShow = finalUrl
@@ -11629,7 +11631,7 @@ class Ui_MainWindow(object):
                 self.list6.takeItem(0)
                 del t1
             if not self.idw:
-                self.idw = str(int(self.tab_5.winId()))
+                self.idw = self.get_winid()
             if 'youtube.com' in epnShow.lower():
                 finalUrl = epnShow.replace('"', '')
                 epnShow = finalUrl
@@ -13074,8 +13076,18 @@ class Ui_MainWindow(object):
         self.tab_5_layout.setContentsMargins(0, 0, 0, 0)
         self.tab_5_layout.setSpacing(0)
         self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
-        self.idw = str(int(self.tab_5.winId()))
+        #self.idw = str(int(self.tab_5.winId()))
+        self.idw = "-1"
         #self.tab_5_layout.insertWidget(1, self.frame1)
+
+    def get_winid(self):
+        if hasattr(self, "player_val"):
+            if self.player_val == "libmpv":
+                return "-1"
+            else:
+                return str(int(self.tab_5.winId()))
+        else:
+            return str(int(self.tab_5.winId()))
             
 def main():
     global ui, MainWindow, name, pgn, genre_num, site, epn
@@ -14000,6 +14012,12 @@ def main():
                             ui.restore_aspect = True
                     except Exception as e:
                         logger.error(e)
+                elif i.startswith('DEVICE_PIXEL_RATIO='):
+                    try:
+                        pxr = float(j)
+                        ui.device_pixel_ratio = pxr
+                    except Exception as e:
+                        logger.error(e)
                 elif i.startswith('AUDIO_OUTPUTS='):
                     try:
                         ui.audio_outputs = j
@@ -14089,6 +14107,7 @@ def main():
             f.write("\nVARIABLE_WIDTH_LIST=False")
             f.write("\nOSX_NATIVE_FULLSCREEN=False")
             f.write("\nLIBMPV_API=OPENGL-CB")
+            f.write("\nDEVICE_PIXEL_RATIO=1.0")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
@@ -14128,8 +14147,8 @@ def main():
             ui.slave_address = open_files(slave_file, False)
         except Exception as err:
             logger.error(err)
-    #if platform.system().lower() == "darwin":
-    #ui.widget_style.apply_stylesheet(theme="default")
+    if platform.system().lower() == "darwin":
+        ui.widget_style.apply_stylesheet(theme="default")
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
     
@@ -14453,6 +14472,8 @@ def main():
         logger.error(err)
     if ui.player_val == "libmpv":
         ui.setup_opengl_widget()
+    else:
+        ui.idw = str(int(ui.tab_5.winId()))
     if ui.player_volume.isnumeric():
         ui.frame_extra_toolbar.slider_volume.setValue(int(ui.player_volume))
     ret = app.exec_()
