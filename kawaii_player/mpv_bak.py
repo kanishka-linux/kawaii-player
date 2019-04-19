@@ -26,7 +26,6 @@ from functools import partial, wraps
 import collections
 import re
 import traceback
-from enum import IntEnum
 
 if os.name == 'nt':
     backend = CDLL('mpv-1.dll')
@@ -54,6 +53,8 @@ class MpvHandle(c_void_p):
 class MpvOpenGLCbContext(c_void_p):
     pass
 
+class MpvRenderContext(Structure):
+    pass
 
 class PropertyUnavailableError(AttributeError):
     pass
@@ -119,9 +120,6 @@ class MpvRenderParamType(c_int):
     MPV_RENDER_PARAM_SKIP_RENDERING         = 13
     MPV_RENDER_PARAM_DRM_DISPLAY            = 14
     MPV_RENDER_PARAM_DRM_DRAW_SURFACE_SIZE  = 15
-    
-    def __init__(self, value):
-        self._as_parameter = int(value)
         
 class MpvRenderParam(Structure):
     _fields_ = [('type', MpvRenderParamType),
@@ -135,8 +133,24 @@ class MpvOpenglFbo(Structure):
     
 class MpvOpenglInitParams(Structure):
     _fields_ = [('get_proc_address', CFUNCTYPE(c_void_p, c_void_p, c_char_p)),
-                ('get_proc_address_ctx', CFUNCTYPE(None))]
+                ('get_proc_address_ctx', c_void_p),
+                ('extra_exts', c_char_p)]
     
+
+def generate_params(handle, gl, addr):
+    api_string = c_char_p(b"MPV_RENDER_API_TYPE_OPENGL")
+    param_1 = MpvRenderParam(MpvRenderParamType.MPV_RENDER_PARAM_API_TYPE, cast(api_string, c_void_p))
+    gl_space = MpvOpenglInitParams(OpenGlCbGetProcAddrFn(gl), None, None)
+    gl_params = byref(gl_space)
+    param_2 = MpvRenderParam(MpvRenderParamType.MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, cast(gl_params, c_void_p))
+    param_0 = MpvRenderParam(MpvRenderParamType.MPV_RENDER_PARAM_INVALID, None)
+    param_00 = MpvRenderParam(MpvRenderParamType.MPV_RENDER_PARAM_INVALID, None)
+    params = [param_1, param_2, param_0, param_00]
+    return (MpvRenderParam * 4)(*params)
+    
+def get_gl_context():
+    ctx = POINTER(MpvRenderContext)()
+    return byref(ctx)
 
 class MpvFormat(c_int):
     NONE        = 0
@@ -347,8 +361,6 @@ OpenGlCbUpdateFn = CFUNCTYPE(None, c_void_p)
 MpvRenderUpdateFn = CFUNCTYPE(None, c_void_p)
 OpenGlCbGetProcAddrFn = CFUNCTYPE(c_void_p, c_void_p, c_char_p)
 
-class MpvRenderContext(Structure):
-    pass
 
 def _handle_func(name, args, restype, errcheck, ctx=MpvHandle):
     func = getattr(backend, name)
