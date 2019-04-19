@@ -190,7 +190,10 @@ class KeyT(QtCore.QThread):
     
     def run(self):
         if self.event is not None and self.cmd:
-            self.ui.tab_5.mpv.command(*self.cmd)
+            try:
+                self.ui.tab_5.mpv.command(*self.cmd)
+            except Exception as err:
+                print(err)
             
 class InitAgainThread(QtCore.QThread):
     mpv_cmd = pyqtSignal(list)
@@ -209,7 +212,8 @@ class InitAgainThread(QtCore.QThread):
         if self.me.mpv_api == "opengl-cb":
             _mpv_opengl_cb_uninit_gl(self.me.mpv_gl)
         else:
-            self.me.mpv_gl.close()
+            if self.me.mpv_gl:
+                self.me.mpv_gl.close()
         self.me.quit_watch_later('quit-watch-later', True)
         func = partial(self.me.initializeGL)
         self.mpv_cmd.emit([func, self.me.mpv_api])
@@ -436,18 +440,20 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def swapped(self):
         if self.mpv_api == "opengl-render":
-            self.mpv_gl.report_swap()
+            if self.mpv_gl:
+                self.mpv_gl.report_swap()
         else:
             _mpv_opengl_cb_report_flip(self.mpv_gl, 0)
         
     def closeEvent(self, _):
         if self.mpv_api == "opengl-render":
-            self.mpv_gl.close()
+            if self.mpv_gl:
+                self.mpv_gl.close()
         else:
             self.makeCurrent()
-        if self.mpv_gl:
-            _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_fake_c, None)
-        _mpv_opengl_cb_uninit_gl(self.mpv_gl)
+            if self.mpv_gl:
+                _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_fake_c, None)
+            _mpv_opengl_cb_uninit_gl(self.mpv_gl)
         self.mpv.terminate()
         
     def init_mpv_again(self):
