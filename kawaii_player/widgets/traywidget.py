@@ -230,7 +230,7 @@ class FloatWindowWidget(QtWidgets.QWidget):
             ui.new_tray_widget.show()
             self.cover_mode.setText(ui.player_buttons['down'])
             self.cover_mode.setToolTip('Restore Default')
-            if (not ui.idw or str(ui.idw) == str(int(ui.tab_5.winId()))
+            if (not ui.idw or str(ui.idw) == ui.get_winid()
                     or str(ui.idw) == str(int(ui.label.winId()))):
                 self.hide_video_window = False
             elif str(ui.idw) == str(int(ui.label_new.winId())):
@@ -395,7 +395,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             ui.float_window.setWindowTitle(ui.epn_name_in_list)
         if txt.lower() == '&detach video':
             self.d_vid.setText('&Attach Video')
-            if str(ui.idw) == str(int(ui.tab_5.winId())) or not ui.idw:
+            if str(ui.idw) == ui.get_winid() or not ui.idw:
                 ui.float_window_layout.insertWidget(0, ui.tab_5, 0)
                 ui.float_window.show()
                 ui.tab_5.show()
@@ -463,7 +463,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                         logger.info('Error in getting Thumbnail: {0}, --line--17659--'.format(e))
         else:
             self.d_vid.setText('&Detach Video')
-            if str(ui.idw) == str(int(ui.tab_5.winId())) or not ui.idw:
+            if str(ui.idw) == ui.get_winid() or not ui.idw:
                 ui.gridLayout.addWidget(ui.tab_5, 0, 1, 1, 1)
             elif str(ui.idw) == str(int(ui.label_new.winId())):
                 ui.vertical_layout_new.insertWidget(0, ui.label_new)
