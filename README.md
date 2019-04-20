@@ -678,7 +678,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
         $ brew install mpv mplayer ffmpeg wget openssl terminal-notifier libtorrent-rasterbar --with-python
         
-        $ pip3 install lxml bs4 Pillow mutagen pyopengl PyQt5 sip PyQtWebEngine
+        $ pip3 install lxml bs4 Pillow mutagen PyOpenGL PyQt5 sip PyQtWebEngine
         
         $ PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip3 install --no-cache-dir pycurl
     
@@ -735,6 +735,8 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 - ffmpeg {for extracting and converting subtitles}
 
 - xvfb {for using the application in headless mode}
+
+- pympv {if using latest libmpv api}
 
 **Dependencies installation in Arch**
 
