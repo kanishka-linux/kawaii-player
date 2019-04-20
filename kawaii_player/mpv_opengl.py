@@ -259,7 +259,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         if gui.mpvplayer_string_list and gui.use_custom_config_file:
             self.create_args_dict()
         locale.setlocale(locale.LC_NUMERIC, 'C')
-        
+        self.mpv_gl = None
         if self.mpv_api == "opengl-render":
             self.init_opengl_render()
         else:
