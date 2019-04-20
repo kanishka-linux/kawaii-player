@@ -235,13 +235,14 @@ def mpv_cmd_direct(cmd):
     
 class MpvOpenglWidget(QOpenGLWidget):
     
-    def __init__(self, parent=None, ui=None, logr=None, tmp=None, mpv_api=None):
+    def __init__(self, parent=None, ui=None, logr=None, tmp=None, mpv_api=None, app=None):
         global gui, MainWindow, screen_width, screen_height, logger
         super().__init__(parent)
         gui = ui
         self.ui = ui
         MainWindow = parent
         logger = logr
+        self.app = app
         if mpv_api in ["opengl-cb", "opengl-render"]:
             self.mpv_api = mpv_api
         else:
@@ -334,6 +335,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.key_thread.start()
         self.sub_id = -1
         self.audio_id = -1
+        self.dpr = 1.0
 
     def init_opengl_cb(self):
         self.mpv = MPV(**self.args_dict)
@@ -415,11 +417,8 @@ class MpvOpenglWidget(QOpenGLWidget):
             _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
         
     def paintGL(self):
-        #ratio = self.windowHandle().devicePixelRatio()
-        #r = QtGui.QScreen().devicePixelRatio()
-        ratio = self.ui.device_pixel_ratio 
-        w = int(self.width()* ratio)
-        h = int(self.height()* ratio)
+        w = int(self.width()* self.dpr)
+        h = int(self.height()* self.dpr)
         if self.mpv_api == "opengl-render":
             func = partial(self.mpv_gl.render, opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
         else:
@@ -522,7 +521,12 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def resized(self):
         self.setFocus()
-        
+        if self.ui.device_pixel_ratio == 0:
+            self.dpr = self.devicePixelRatio()
+        else:
+            self.dpr = self.ui.device_pixel_ratio
+        logger.debug('Device Pixel Ratio: {}'.format(self.dpr))
+            
     def arrow_hide(self):
         if gui.player_val in ['mpv', 'mplayer', 'libmpv']:
             if self.hasFocus():
