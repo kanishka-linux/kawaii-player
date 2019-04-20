@@ -402,7 +402,8 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 ui.thumbnail_label_number = [num, txt]
                 p1 = "ui.gridLayout2.indexOf(ui.label_epn_{0})".format(num)
                 index = eval(p1)
-                print(index, '--index--')
+                if ui.player_val == "libmpv":
+                    ui.video_mode_index = 1
                 ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
                 exec_str = 'ui.label_epn_{0}.change_video_mode({1}, {2})'.format(num, ui.video_mode_index, num)
                 exec(exec_str)
