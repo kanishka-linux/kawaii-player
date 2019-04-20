@@ -14196,7 +14196,7 @@ def main():
             ui.slave_address = open_files(slave_file, False)
         except Exception as err:
             logger.error(err)
-    if platform.system().lower() == "darwin":
+    if platform.system().lower() == "darwin" and ui.player_theme == "dark":
         ui.widget_style.apply_stylesheet(theme="default")
     ui.widget_style.apply_stylesheet(theme=ui.player_theme)
     print(ui.torrent_download_limit, ui.torrent_upload_limit)
