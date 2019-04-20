@@ -834,6 +834,12 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setFocus()
         PlayerWidget.mouseMoveEvent(self, event)
 
+    def mouseEnterEvent(self, event):
+        self.setFocus()
+
+    def leaveEvent(self, event):
+        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        
     def change_aspect_ratio(self, key=None):
         if key is None:
             self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
