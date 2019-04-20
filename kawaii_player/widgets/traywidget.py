@@ -19,6 +19,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import datetime
+import platform
 from functools import partial
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -530,7 +531,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             MainWindow.show()
             if ui.layout_mode == 'Default':
                 MainWindow.showMaximized()
-        ui.widget_style.change_list2_style()
+        if platform.system().lower() == "darwin" and ui.player_theme == "default":
+            ui.widget_style.apply_stylesheet(theme="default")
+        else:
+            ui.widget_style.change_list2_style()
         if ui.cur_row < ui.list2.count():
             ui.list2.setFocus()
             ui.list2.setCurrentRow(ui.cur_row)
