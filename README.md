@@ -676,17 +676,21 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 6. Tips for macOs users (Installing dependencies).
 
-        $ brew install mpv mplayer ffmpeg wget openssl terminal-notifier libtorrent-rasterbar --with-python
+        $ brew install mpv mplayer ffmpeg wget openssl terminal-notifier libtorrent-rasterbar
         
         $ pip3 install lxml bs4 Pillow mutagen PyOpenGL PyQt5 sip PyQtWebEngine
         
         $ PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip3 install --no-cache-dir pycurl
     
-    Proper support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manually using setup.py as mentiond in the common method above. 
+    Support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manually using setup.py as mentiond in the common method above. 
     
     After opening the application go to **Preferences->Config**, check **Use this config file** and add/modify vo=libmpv and ao=coreaudio. Users can modify other parameters also as per need and then need to save changes, before playing any video.
     
-    kawaii-player has beent tested only with macOS Mojave. On macOS, kawaii-player will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore playing video within thumbnails won't work along with varios thumbnail modes and detached video mode. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
+    kawaii-player has beent tested only with macOS Mojave. On macOS, kawaii-player (v3.9) will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore playing video within thumbnails won't work along with varios thumbnail modes and detached video mode. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
+
+    **Update:** From v4.0+ onwards, it is posiible to embed video within kawaii-player application on macOS, by using **libmpv** as backend. Select **libmpv** from sidebar, and restart the application. Make sure that libmpv is located somewhere in the system path.
+
+    Note: If libtorrent-rasterbar is not working for torrent streaming, then edit brew formula and update download url location (point it to libtorrent-rasterbar v1.1.12), and then install it from source. 
 
 # Dependencies
 
