@@ -847,7 +847,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.param_list.append('variable_width_list')
         msg = "<html>Set Device Pixel Ratio. For normal displays this value is generally 1.0. \
                 \nFor HiDPI or retina displays it may be greater than 1.0. For retina displays, it is 2.0.\
-                \nIn short, if video is appearing smaller then set the value higher than 1.0.</html>"
+                \nIn short, if video is appearing smaller then set the value higher than 1.0.\
+                \nIf not sure, set it to 0.0 and the application will try to find out suitable pixel ratio on its own.</html>"
         self.line114 = QtWidgets.QLineEdit()
         self.line114.setPlaceholderText(str(ui.device_pixel_ratio))
         self.line114.setToolTip(msg)
