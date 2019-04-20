@@ -834,26 +834,16 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text112 = QtWidgets.QLabel()
         self.text112.setText("Allow Window Titlebar")
         self.param_list.append('window_frame')
-
-        self.line113 = QtWidgets.QComboBox()
-        self.line113.addItem("True")
-        self.line113.addItem("False")
-        self.line113.setToolTip("Useful for large screens and dual monitor setup, allowing automatic resizing of various lists. Also useful in single panel mode with either playlist or titlelist hidden.")
-        index = self.line113.findText(str(ui.variable_width_list))
-        self.line113.setCurrentIndex(index)
-        self.text113 = QtWidgets.QLabel()
-        self.text113.setText("Variable Width List")
-        self.text113.setToolTip("Useful for large screens and dual monitor setup, allowing automatic resizing of various lists. Also useful in single panel mode with either playlist or titlelist hidden.")
-        self.param_list.append('variable_width_list')
+        
         msg = "<html>Set Device Pixel Ratio. For normal displays this value is generally 1.0. \
-                \nFor HiDPI or retina displays it may be greater than 1.0. For retina displays, it is 2.0.\
+                \nFor HiDPI or retina displays it will be greater than 1.0. For retina displays, it is 2.0.\
                 \nIn short, if video is appearing smaller then set the value higher than 1.0.\
                 \nIf not sure, set it to 0.0 and the application will try to find out suitable pixel ratio on its own.</html>"
-        self.line114 = QtWidgets.QLineEdit()
-        self.line114.setPlaceholderText(str(ui.device_pixel_ratio))
-        self.line114.setToolTip(msg)
-        self.text114 = QtWidgets.QLabel()
-        self.text114.setText("Device Pixel Ratio")
+        self.line113 = QtWidgets.QLineEdit()
+        self.line113.setPlaceholderText(str(ui.device_pixel_ratio))
+        self.line113.setToolTip(msg)
+        self.text113 = QtWidgets.QLabel()
+        self.text113.setText("Device Pixel Ratio")
         self.param_list.append('device_pixel_ratio')
         
         for i, j in enumerate(self.param_list):
