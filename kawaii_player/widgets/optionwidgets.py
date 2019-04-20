@@ -33,6 +33,7 @@ class QPushButtonExtra(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(QPushButtonExtra, self).__init__(parent)
+        self.setMouseTracking(True)
 
     def clicked_connect(self, callbak):
         if platform.system().lower() == "darwin":
@@ -45,7 +46,11 @@ class QPushButtonExtra(QtWidgets.QPushButton):
             super(QPushButtonExtra, self).pressed.emit()
         else:
             super(QPushButtonExtra, self).clicked.emit()
-
+            
+    def mouseMoveEvent(self, event):
+        self.setFocus()
+        
+        
 class SidebarWidget(QtWidgets.QListWidget):
     """
     Options Sidebar Widget

@@ -192,11 +192,11 @@ class PlayerWidget(QtWidgets.QWidget):
             self.arrow_timer.start(1000)
         if MainWindow.isFullScreen() or self.ui.player_val == "libmpv":
             ht = self.height()
-            if pos.y() <= ht and pos.y() > ht - 64 and self.ui.frame1.isHidden():
+            if pos.y() <= ht and pos.y() > ht - 128 and self.ui.frame1.isHidden():
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
                 self.ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            elif pos.y() <= ht-64 and not self.ui.frame1.isHidden():
+            elif pos.y() <= ht-128 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
                 if (site != "Music" and self.ui.tab_6.isHidden() and self.ui.player_val != "libmpv"
