@@ -6,11 +6,12 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 
 class MainWindowWidget(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, app):
         super(MainWindowWidget, self).__init__()
         self.setAcceptDrops(True)
         self.windowTitleChanged.connect(self.title_changed)
-
+        self.app = app
+        
     def title_changed(self, title):
         self.setWindowTitle(title)
         if ui.new_tray_widget and ui.float_window:
@@ -18,6 +19,8 @@ class MainWindowWidget(QtWidgets.QWidget):
                 ui.float_window.setWindowTitle(title)
                 ui.new_tray_widget.title.setText("")
                 ui.new_tray_widget.title1.setText("")
+                if not ui.new_tray_widget.title1.isHidden():
+                    ui.new_tray_widget.title1.hide()
         
     def dragEnterEvent(self, event):
         data = event.mimeData()
@@ -25,6 +28,17 @@ class MainWindowWidget(QtWidgets.QWidget):
             event.accept()
         else:
             event.ignore()
+
+    def resizeEvent(self, event):
+        if "ui" in globals():
+            if hasattr(ui, "screen_size"):
+                rect = self.app.desktop().availableGeometry(self)
+                size_tuple = (rect.width(), rect.height())
+                if ui.screen_size == size_tuple:
+                    ui.logger.debug("same screen dimensions")
+                else:
+                    ui.logger.debug("screen dimensions changed..so resizing")
+                    ui.adjust_widget_size(size_tuple)
     
     def set_globals(self, uiwidget):
         global ui

@@ -1949,6 +1949,48 @@ class Ui_MainWindow(object):
         self.lock_process = False
         self.mpv_thumbnail_lock = Lock()
 
+    def adjust_widget_size(self, size_tuple):
+        global screen_width, screen_size
+        screen_width, screen_height = size_tuple
+        aspect = (screen_width/screen_height)
+        self.screen_size = (screen_width, screen_height)
+        self.width_allowed = int((screen_width)/4.5)
+        self.width_allowed1 = self.width_allowed
+        self.height_allowed = (self.width_allowed/aspect)
+        self.frame_height = int(self.height_allowed/2.5)
+        self.image_aspect_allowed = (self.width_allowed/self.height_allowed)
+        self.list1.setMaximumWidth(self.width_allowed1)
+        self.list2.setMaximumWidth(self.width_allowed1)
+        self.list2.setIconSize(QtCore.QSize(128, 128))
+        self.frame.setMaximumWidth(self.width_allowed1)
+        self.list4.setMaximumWidth(self.width_allowed1)
+        self.list5.setMaximumWidth(self.width_allowed1)
+        self.list6.setMaximumWidth(self.width_allowed1)
+        self.torrent_frame.setMaximumWidth(self.width_allowed1)
+        self.goto_epn.setMaximumWidth(self.width_allowed1)
+        
+        self.text_width = screen_width-3*self.width_allowed-35
+        self.text.setMaximumWidth(self.text_width)
+        self.text.setMaximumHeight(self.height_allowed+50)
+        self.text.setMinimumWidth(self.width_allowed)
+        self.label.setMaximumHeight(self.height_allowed)
+        self.label.setMinimumHeight(self.height_allowed)
+        self.label.setMaximumWidth(self.width_allowed)
+        self.label.setMinimumWidth(self.width_allowed)
+        self.cover_label.setMaximumHeight(self.height_allowed+50)
+        self.cover_label.setMinimumHeight(self.height_allowed)
+        self.cover_label.setMaximumWidth(self.width_allowed)
+        self.cover_label.setMinimumWidth(self.width_allowed)
+        
+        self.label_new_width = screen_width-2*self.width_allowed-35
+        self.label_new.setMaximumWidth(self.label_new_width)
+        self.label_new.setMinimumWidth(self.width_allowed1)
+        
+        self.label_new.setMaximumHeight(2.5*self.height_allowed)
+        self.progress.setMaximumSize(QtCore.QSize(self.width_allowed1, 16777215))
+        self.thumbnail_video_width = int(self.width_allowed*2.5)
+        self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
+        
     @GUISignals.check_master_mode('next')
     def mpv_next(self, *args):
         if self.player_val == "libmpv" and self.tab_5.mpv.get_property('playlist-count') > 0:
@@ -13059,7 +13101,7 @@ class Ui_MainWindow(object):
         except Exception as err:
             logger.error(err)
 
-    def setup_opengl_widget(self):
+    def setup_opengl_widget(self, app):
         libmpv_api = get_config_options(HOME_OPT_FILE, 'LIBMPV_API')
         logger.debug(libmpv_api)
         if isinstance(libmpv_api, str) and libmpv_api.lower() in ["opengl-cb", "opengl-render"]:
@@ -13067,7 +13109,7 @@ class Ui_MainWindow(object):
         else:
             libmpv_api = None
         logger.debug(libmpv_api)
-        self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR, libmpv_api)
+        self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR, libmpv_api, app)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
         
@@ -13200,7 +13242,7 @@ def main():
     except Exception as e:
         logger.error(e)
         variable_width_list = False
-    MainWindow = MainWindowWidget()
+    MainWindow = MainWindowWidget(app)
     MainWindow.setMouseTracking(True)
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow, media_data=media_data, variable_width_list=variable_width_list)
@@ -14478,7 +14520,7 @@ def main():
     except Exception as err:
         logger.error(err)
     if ui.player_val == "libmpv":
-        ui.setup_opengl_widget()
+        ui.setup_opengl_widget(app)
     else:
         ui.idw = str(int(ui.tab_5.winId()))
     if ui.player_volume.isnumeric():
