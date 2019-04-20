@@ -530,6 +530,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                 logger.debug('player has focus')
             else:
                 logger.debug('player not focussed')
+            if (self.ui.fullscreen_video and self.hasFocus() and self.ui.tab_6.isHidden()
+                        and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                self.ui.frame1.hide()
 
     def get_track_property(self, id_val, id_type):
         txt = None
