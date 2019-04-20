@@ -336,6 +336,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.sub_id = -1
         self.audio_id = -1
         self.dpr = 1.0
+        #self.cursor = self.getCursor()
 
     def init_opengl_cb(self):
         self.mpv = MPV(**self.args_dict)
@@ -625,14 +626,18 @@ class MpvOpenglWidget(QOpenGLWidget):
             if abs(value - gui.progress_counter) >= 0.5:
                 display_string = self.display_play_pause_string(value)
                 file_size = self.mpv.get_property('file-size')
+                value_int = int(value)
                 if file_size:
                     file_size = round((file_size)/(1024*1024), 2)
                     display_string = "{} Size: {} M".format(display_string, file_size)
                 if not gui.frame1.isHidden() and not self.seek_now:
-                    gui.slider.valueChanged.emit(int(value))
+                    gui.slider.valueChanged.emit(value_int)
                     gui.gui_signals.display_string((display_string))
                 if not gui.new_tray_widget.isHidden():
                     gui.new_tray_widget.update_signal.emit(display_string, int(value))
+
+                if value_int % 30 == 0:
+                    self.send_fake_event()
             if self.audio and int(value) in range(0, 3):
                 self.mpv.command("audio-add", self.audio, "select")
                 logger.debug("{} {}".format("adding..audio..", self.audio))
@@ -658,6 +663,32 @@ class MpvOpenglWidget(QOpenGLWidget):
                 gui.epnfound_now_start_prefetch(finalUrl, row, type_val)
                 self.prefetch_url = None
 
+    def send_fake_event(self):
+        pos = self.cursor().pos()
+        new_point = QtCore.QPoint(pos.x() + 1, pos.y()+1)
+        self.cursor().setPos(new_point)
+        mouseReleaseEvent = QtGui.QMouseEvent(
+                                QtCore.QEvent.MouseButtonRelease,
+                                new_point,
+                                QtCore.Qt.LeftButton,
+                                QtCore.Qt.LeftButton,
+                                QtCore.Qt.NoModifier,
+                            )
+        self.ui.gui_signals.mouse_move_method((self, mouseReleaseEvent))
+
+        if self.hasFocus() and self.ui.fullscreen_video and not self.ui.frame1.isHidden():
+            pos = self.cursor().pos()
+            new_point = QtCore.QPoint(pos.x() + 1, pos.y()+1)
+            self.cursor().setPos(new_point)
+            mouseMoveEvent = QtGui.QMouseEvent(
+                                    QtCore.QEvent.MouseMove,
+                                    new_point,
+                                    QtCore.Qt.NoButton,
+                                    QtCore.Qt.NoButton,
+                                    QtCore.Qt.NoModifier,
+                                )
+            self.ui.gui_signals.mouse_move_method((self, mouseMoveEvent))
+        
     def rem_properties(self, final_url, rem_quit, seek_time):
         self.ui.history_dict_obj_libmpv.update(
                 {

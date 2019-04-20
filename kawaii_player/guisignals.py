@@ -22,7 +22,7 @@ import datetime
 import platform
 import urllib.parse
 from functools import partial
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from settings_widget import LoginPCToPC
 
@@ -47,6 +47,7 @@ class GUISignals(QtCore.QObject):
     queue_signal = pyqtSignal(str)
     queue_delete = pyqtSignal(int)
     display_signal = pyqtSignal(str)
+    mouse_move_signal = pyqtSignal(tuple)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -74,6 +75,7 @@ class GUISignals(QtCore.QObject):
         self.queue_delete.connect(self.queue_delete_signal)
         self.display_signal.connect(self.display_signal_string)
         self.first_time = True
+        self.mouse_move_signal.connect(self.mouse_move_function)
 
     def generate_preview(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
         self.preview_signal.emit(picn, length, change_aspect, tsec, counter, x, y, source_val)
@@ -138,6 +140,9 @@ class GUISignals(QtCore.QObject):
 
     def display_string(self, val):
         self.display_signal.emit(val)
+
+    def mouse_move_method(self, event):
+        self.mouse_move_signal.emit(event)
         
     @staticmethod
     def update_opengl_widget(val):
@@ -222,6 +227,12 @@ class GUISignals(QtCore.QObject):
     def preview_generated_new(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
         ui.slider.preview_generated(picn, length, change_aspect, tsec, counter, x, y, source_val)
 
+    @pyqtSlot(tuple)
+    def mouse_move_function(self, event_tuple):
+        widget, event = event_tuple
+        print(event)
+        QtWidgets.QApplication.postEvent(widget, event)
+        
     @pyqtSlot(str)
     def queue_signal_generated(self, val):
         ui.list2.queue_item()
