@@ -230,7 +230,6 @@ class GUISignals(QtCore.QObject):
     @pyqtSlot(tuple)
     def mouse_move_function(self, event_tuple):
         widget, event = event_tuple
-        print(event)
         QtWidgets.QApplication.postEvent(widget, event)
         
     @pyqtSlot(str)
