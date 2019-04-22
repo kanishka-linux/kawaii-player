@@ -50,7 +50,7 @@ class PlayerWidget(QtWidgets.QWidget):
             '?', '>', '<', '"', ':', '}', '{', '|', '+', '_', 'sharp',
             ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
             ]
-            
+        self.fake_mousemove_event = ("regular", False)
     
     def dragEnterEvent(self, event):
         data = event.mimeData()
@@ -172,6 +172,7 @@ class PlayerWidget(QtWidgets.QWidget):
     def mouseMoveEvent(self, event):
         self.setFocus()
         pos = event.pos()
+        api, value = self.fake_mousemove_event
         if self.ui.auto_hide_dock and not self.ui.dockWidget_3.isHidden():
             self.ui.dockWidget_3.hide()
         if not self.ui.float_window.isHidden() and self.ui.new_tray_widget.remove_toolbar:
@@ -187,9 +188,12 @@ class PlayerWidget(QtWidgets.QWidget):
         if self.player_val in self.ui.playback_engine:
             if self.arrow_timer.isActive():
                 self.arrow_timer.stop()
-            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-            #self.ui.frame1.show()
-            self.arrow_timer.start(1000)
+            if api == "libmpv" and value:
+                pass
+            else:
+                self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                #self.ui.frame1.show()
+                self.arrow_timer.start(1000)
         if MainWindow.isFullScreen() or self.ui.player_val == "libmpv":
             ht = self.height()
             if pos.y() <= ht and pos.y() > ht - 128 and self.ui.frame1.isHidden():

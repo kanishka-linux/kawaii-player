@@ -664,6 +664,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.prefetch_url = None
 
     def send_fake_event(self):
+        self.fake_mousemove_event = ("libmpv", True)
         pos = self.cursor().pos()
         new_point = QtCore.QPoint(pos.x() + 1, pos.y()+1)
         self.cursor().setPos(new_point)
