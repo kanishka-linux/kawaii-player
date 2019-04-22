@@ -232,6 +232,7 @@ class GUISignals(QtCore.QObject):
         widget, event = event_tuple
         QtWidgets.QApplication.postEvent(widget, event)
         widget.fake_mousemove_event = ("libmpv", False)
+        widget.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
         
     @pyqtSlot(str)
     def queue_signal_generated(self, val):

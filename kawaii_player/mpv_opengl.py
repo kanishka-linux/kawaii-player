@@ -336,6 +336,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.sub_id = -1
         self.audio_id = -1
         self.dpr = 1.0
+        self.fake_mousemove_event = ("libmpv", False)
         #self.cursor = self.getCursor()
 
     def init_opengl_cb(self):
