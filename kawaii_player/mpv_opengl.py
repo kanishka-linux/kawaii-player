@@ -1038,7 +1038,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         pls_pos = self.mpv.get_property('playlist-pos')
         print(pls_count, pls_pos)
         if pls_count is not None and pls_pos is not None and pls_pos == 0:
-            self.mpv.set_property('playlist_pos', pls_count - 1)
+            self.mpv.set_property('playlist-pos', pls_count - 1)
         else:
             self.mpv.command("playlist-prev")
 
