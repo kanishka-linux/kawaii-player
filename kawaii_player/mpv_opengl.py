@@ -677,19 +677,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                                 QtCore.Qt.NoModifier,
                             )
         self.ui.gui_signals.mouse_move_method((self, mouseReleaseEvent))
-
-        if self.hasFocus() and self.ui.fullscreen_video and not self.ui.frame1.isHidden():
-            pos = self.cursor().pos()
-            new_point = QtCore.QPoint(pos.x() + 1, pos.y()+1)
-            self.cursor().setPos(new_point)
-            mouseMoveEvent = QtGui.QMouseEvent(
-                                    QtCore.QEvent.MouseMove,
-                                    new_point,
-                                    QtCore.Qt.NoButton,
-                                    QtCore.Qt.NoButton,
-                                    QtCore.Qt.NoModifier,
-                                )
-            self.ui.gui_signals.mouse_move_method((self, mouseMoveEvent))
         
     def rem_properties(self, final_url, rem_quit, seek_time):
         self.ui.history_dict_obj_libmpv.update(

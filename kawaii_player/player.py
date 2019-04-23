@@ -189,7 +189,7 @@ class PlayerWidget(QtWidgets.QWidget):
             if self.arrow_timer.isActive():
                 self.arrow_timer.stop()
             if api == "libmpv" and value:
-                pass
+                self.fake_mousemove_event = ("libmpv", False)
             else:
                 self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                 #self.ui.frame1.show()
