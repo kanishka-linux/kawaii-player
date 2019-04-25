@@ -9242,6 +9242,11 @@ class Ui_MainWindow(object):
                         )
                     counter += 500
             elif self.mpv_prefetch_url_started and self.player_val == "libmpv":
+                if url_lnk.startswith("https://manifest.") and self.cur_row and self.cur_row+1 < len(self.tmp_pls_file_lines):
+                    url_lnk = self.tmp_pls_file_lines[self.cur_row+1]
+                    aurl = None
+                    surl = None
+                    nsurl = None
                 cmd_arr = [ ["loadfile", url_lnk, "append"],
                         ["playlist-move", self.list2.count(), row_val],
                         ["playlist-remove", row_val+1]
@@ -9327,6 +9332,7 @@ class Ui_MainWindow(object):
             finalUrl = finalUrl[0]
             
         finalUrl = finalUrl.replace('"', '')
+            
         finalUrl = finalUrl.strip()
         finalUrl = '"'+finalUrl+'"'
         try:
