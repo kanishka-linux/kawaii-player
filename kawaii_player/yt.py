@@ -46,7 +46,10 @@ class YTDL:
         yt_sub_folder = os.path.join(home_dir, 'External-Subtitle')
         if ytdl_path:
             if ytdl_path == 'default':
-                youtube_dl = 'youtube-dl'
+                if os.name == "nt":
+                    youtube_dl = 'youtube-dl.exe'
+                else:
+                    youtube_dl = 'youtube-dl'
             else:
                 if os.path.exists(ytdl_path):
                     youtube_dl = ytdl_path
@@ -113,7 +116,8 @@ class YTDL:
                 else:
                     res = 4000
                 if (quality == 'best' and ytdl_path == 'default'
-                        and (reqfrom is None or reqfrom == 'desktop')):
+                        and (reqfrom is None or reqfrom == 'desktop')
+                        and not self.ui.gapless_network_stream):
                     if ytdl_extra:
                         final_url = 'ytdl:' + url
                     else:
@@ -257,6 +261,8 @@ class YTDL:
                     self.vnt.get(url, out=sub_path)
                 final_url = final_url + '::' + sub_path
                 logger.debug(sub_path)
+        if final_url.startswith("https://manifest."):
+            final_url = url
         return final_url
 
     def post_subtitle_fetch(self, *args):
