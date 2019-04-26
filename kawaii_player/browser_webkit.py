@@ -326,7 +326,7 @@ class Browser(QtWebKitWidgets.QWebView):
         self.ui.logger.debug('{}-{}-{}'.format(title, url, file_path))
         t = title + '	'+url+'	'+'NONE'
         write_files(file_path, t, line_by_line=True)
-        self.ui.update_playlist(file_path)
+        #self.ui.update_playlist(file_path)
 
     def contextMenuEvent(self, event):
         self.img_url = ''

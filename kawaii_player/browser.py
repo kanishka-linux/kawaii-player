@@ -324,7 +324,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             print(url, o_url, n_url)
         t = title + '	'+url+'	'+'NONE'
         write_files(file_path, t, line_by_line=True)
-        self.ui.update_playlist(file_path)
+        #self.ui.update_playlist(file_path)
 
     def contextMenuEvent(self, event):
         self.media_url = ''
