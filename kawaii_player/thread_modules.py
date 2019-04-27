@@ -1024,6 +1024,10 @@ class PlayerGetEpn(QtCore.QThread):
         nosignal = False
         mylist = []
         try:
+            if self.final:
+                self.final = self.final.replace('"', "")
+            if hasattr(self, "mode"):
+                logger.debug('type={}, mode={}'.format(self.epn_type, self.mode))
             if self.epn_type == 'yt':
                 finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
                                             logger, mode='a+v')
@@ -1035,11 +1039,17 @@ class PlayerGetEpn(QtCore.QThread):
                     ytmode = 'offline'
                 else:
                     ytmode = 'a+v'
-                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
-                                            logger, mode=ytmode)
+                if self.final.startswith("http"):
+                    finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                                logger, mode=ytmode)
+                else:
+                    finalUrl = self.final
             elif self.epn_type == 'yt_prefetch_a':
-                finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
-                                            logger, mode='music')
+                if self.final.startswith("http"):
+                    finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
+                                                logger, mode='music')
+                else:
+                    finalUrl = self.final
             elif self.epn_type == 'yt_title':
                 finalUrl = ui.yt.get_yt_url(self.final, self.quality, self.yt_path,
                                             logger, mode='TITLE')
@@ -1085,6 +1095,7 @@ class PlayerGetEpn(QtCore.QThread):
                                                    self.mirrorNo, self.quality)
             elif self.epn_type == 'offline':
                 finalUrl = ui.epn_return(self.row, mode=self.mode)
+                logger.debug(finalUrl)
             elif self.epn_type == 'list':
                 mytuple = ui.site_var.getEpnList(self.name, self.opt,
                                                  self.depth_list, self.extra_info,
@@ -1116,6 +1127,7 @@ class PlayerGetEpn(QtCore.QThread):
                     self.get_title_signal.emit(finalUrl, self.final)
                 elif self.epn_type in ['yt_prefetch_av', 'yt_prefetch_a']:
                     if ui.player_val == "libmpv":
+                        logger.debug(finalUrl)
                         ui.tab_5.prefetch_url = (finalUrl, self.row, self.epn_type)
                     else:
                         self.final_epn_prefetch_signal.emit(finalUrl, self.row, self.epn_type)

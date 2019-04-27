@@ -8795,6 +8795,8 @@ class Ui_MainWindow(object):
                 setinfo = True
             elif self.player_val == "libmpv":
                 self.use_playlist_method()
+                if self.cur_row and self.cur_row < len(self.tmp_pls_file_lines):
+                    self.tmp_pls_file_lines[self.cur_row] = finalUrl.replace('"', "")
                 if self.tmp_pls_file_lines:
                     write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                 self.playback_mode = 'playlist'
@@ -9039,8 +9041,16 @@ class Ui_MainWindow(object):
                     return file_path_name_mkv
         elif self.wget.processId() > 0 and play_now:
             return True
-        elif site.lower() in ["playlists", "myserver"] and self.player_val == "libmpv":
+        elif site.lower() in ["playlists", "myserver"] and self.player_val == "libmpv" and play_now:
             self.use_playlist_method()
+            if os.path.exists(file_path_name_mp4):
+                file_path = file_path_name_mp4
+            elif os.path.exists(file_path_name_mp4):
+                file_path = file_path_name_mkv
+            else:
+                file_path = None
+            if file_path is not None and row < len(self.tmp_pls_file_lines):
+                self.tmp_pls_file_lines[row] = file_path
             if self.tmp_pls_file_lines:
                 write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
             self.playback_mode = 'playlist'
@@ -9170,11 +9180,20 @@ class Ui_MainWindow(object):
                     turl = link
                 else:
                     turl = self.tmp_pls_file_lines[row]
+                file_1, file_2 = self.get_file_name(row, self.list2)
+                if os.path.exists(file_1):
+                    file_path = file_1
+                elif os.path.exists(file_2):
+                    file_path = file_2
+                else:
+                    file_path = None
                 if turl.startswith('http') and 'master_abs_path=' not in turl:
                     if site == 'Music':
                         yt_mode = 'yt_prefetch_a'
                     else:
                         yt_mode = 'yt_prefetch_av'
+                    if file_path is not None:
+                        turl = file_path
                     self.mpv_prefetch_url_thread = PlayerGetEpn(
                         self, logger, yt_mode, turl,
                         self.quality_val, self.ytdl_path, row
@@ -9361,12 +9380,8 @@ class Ui_MainWindow(object):
             self.tab_5.mpv.command('loadfile', finalUrl.replace('"', ""))
             if aurl:
                 self.tab_5.audio = aurl
-                #self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
-                #self.tab_5.mpv.command("audio-add", aurl.replace('"', ""), "select")
             if surl:
                 self.tab_5.subtitle = surl
-                #self.tab_5.mpv.wait_for_property("idle-active", lambda x: not x)
-                #self.tab_5.mpv.command("sub-add", surl.replace('"', ""), "select")
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = self.get_winid()
@@ -9942,9 +9957,10 @@ class Ui_MainWindow(object):
         
         if self.if_file_path_exists_then_play(row, self.list2, False):
             finalUrl = self.if_file_path_exists_then_play(row, self.list2, False)
-            finalUrl = finalUrl.replace('"', '')
-            finalUrl = '"'+finalUrl+'"'
-            return finalUrl
+            if isinstance(finalUrl, str):
+                finalUrl = finalUrl.replace('"', '')
+                finalUrl = '"'+finalUrl+'"'
+                return finalUrl
         
         item = self.list2.item(row)
         if item:
@@ -9985,7 +10001,6 @@ class Ui_MainWindow(object):
                     finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
                                                   self.ytdl_path, logger,
                                                   mode=yt_mode)
-        
         if site not in ["PlayLists", "None", "Music", "Video"]:
             if site != "Local":
                 try:
@@ -10197,6 +10212,7 @@ class Ui_MainWindow(object):
             finalUrl = finalUrl.replace("::", " ")
             command = '{} "{}"'.format(finalUrl, npn)
         if command:
+            logger.debug(command)
             self.infoWget(command, 0, fetch_library)
         self.download_video = 0
         

@@ -235,12 +235,12 @@ class YTDL:
             if isinstance(value, list):
                 for entry in value:
                     if isinstance(entry, dict):
-                        url = entry.get('url')
+                        urlsub = entry.get('url')
                         ext = entry.get('ext')
                         if ext != 'ttml':
                             path = '{}.{}.{}'.format(ytid, key, ext)
                             sub_path = os.path.join(sub_folder, path)
-                            sub_arr.append([url, sub_path, title])
+                            sub_arr.append([urlsub, sub_path, title])
         final_url_vid = req_vid[-1]
         final_url_aud = req_aud[-1]
         if final_url_vid and final_url_aud:
