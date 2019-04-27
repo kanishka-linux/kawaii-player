@@ -1024,7 +1024,7 @@ class PlayerGetEpn(QtCore.QThread):
         nosignal = False
         mylist = []
         try:
-            if self.final:
+            if hasattr(self, "final"):
                 self.final = self.final.replace('"', "")
             if hasattr(self, "mode"):
                 logger.debug('type={}, mode={}'.format(self.epn_type, self.mode))
