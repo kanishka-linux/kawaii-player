@@ -10188,7 +10188,7 @@ class Ui_MainWindow(object):
         else:
             new_epn = new_epn+'.mp4'
         if "youtube-dl" in finalUrl and '.' in new_epn:
-            new_epn = new_epn.rsplit(".")[0]
+            new_epn = new_epn.rsplit(".", 1)[0]
         if not title:
             if self.list1.currentItem():
                 title = self.list1.currentItem().text()
