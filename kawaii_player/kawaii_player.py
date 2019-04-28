@@ -9186,7 +9186,8 @@ class Ui_MainWindow(object):
                     file_path = file_2
                 else:
                     file_path = None
-                if turl.startswith('http') and 'master_abs_path=' not in turl:
+                site = self.get_parameters_value(st='site')['site']
+                if turl.startswith('http') and 'master_abs_path=' not in turl and site.lower() != "myserver":
                     if site == 'Music':
                         yt_mode = 'yt_prefetch_a'
                     else:
@@ -10186,6 +10187,8 @@ class Ui_MainWindow(object):
                 new_epn = new_epn+'.mp4'
         else:
             new_epn = new_epn+'.mp4'
+        if "youtube-dl" in finalUrl and '.' in new_epn:
+            new_epn = new_epn.rsplit(".")[0]
         if not title:
             if self.list1.currentItem():
                 title = self.list1.currentItem().text()
