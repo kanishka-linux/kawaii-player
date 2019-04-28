@@ -155,7 +155,10 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                     self.playlist_dict = d
             elif 'list=' in self.url().url():
                 o = soup.find('div', {'id':'content-container'})
-                m = o.findAll('img')
+                if o:
+                    m = o.findAll('img')
+                else:
+                    m = []
                 n = []
                 d = {}
                 for i in m:
