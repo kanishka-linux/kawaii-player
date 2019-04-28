@@ -200,6 +200,22 @@ class KeyT(QtCore.QThread):
                 self.ui.tab_5.mpv.command(*self.cmd)
             except Exception as err:
                 print(err)
+
+class ExecCommand(QtCore.QThread):
+    def __init__(self, ui, func):
+        self.ui = ui
+        QtCore.QThread.__init__(self)
+        self.func = func
+        
+    def __del__(self):
+        self.wait()                        
+    
+    def run(self):
+        if self.func:
+            try:
+                self.func()
+            except Exception as err:
+                print(err)
             
 class InitAgainThread(QtCore.QThread):
     mpv_cmd = pyqtSignal(list)
@@ -341,6 +357,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.dpr = 1.0
         self.fake_mousemove_event = ("libmpv", False)
         self.playing_queue = False
+        self.exec_thread = ExecCommand(self.ui, None)
         #self.cursor = self.getCursor()
 
     def init_opengl_cb(self):
@@ -550,7 +567,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         txt = None
         if self.track_list:
             for i in self.mpv.get_property("track-list"):
-                print(i)
                 idval = i.get("id")
                 idtype = i.get("type")
                 if idval == id_val and idtype == id_type:
@@ -880,7 +896,10 @@ class MpvOpenglWidget(QOpenGLWidget):
                 opt = param_dict["opt"]
                 if rem_quit or (site.lower() == "video" and opt.lower() == "history"):
                     self.mpv.command("seek", seek_time, "absolute")
-            self.try_external_sub()
+            if not self.exec_thread.isRunning():
+                func = partial(self.try_external_sub)
+                self.exec_thread = ExecCommand(self.ui, func)
+                self.exec_thread.start()
         
     def keyPressEvent(self, event):
         if event.isAutoRepeat():
