@@ -154,27 +154,27 @@ class PlaylistWidget(QtWidgets.QListWidget):
         for item in self.selectedItems():
             r = self.row(item)
             if site in ["Music", "Video", "PlayLists", "None"]:
-                file_path = os.path.join(home, 'Playlists', 'Queue')
-                if not os.path.exists(file_path):
-                    f = open(file_path, 'w')
+                file_queue = os.path.join(home, 'Playlists', 'Queue')
+                if not os.path.exists(file_queue):
+                    f = open(file_queue, 'w')
                     f.close()
                 if not ui.queue_url_list:
                     ui.list6.clear()
                 if site.lower() == "playlists":
                     file_1, file_2 = ui.get_file_name(r, ui.list2)
                     if os.path.exists(file_1):
-                        file_path = file_1
+                        file_local = file_1
                     elif os.path.exists(file_2):
-                        file_path = file_2
+                        file_local = file_2
                     else:
-                        file_path = None
+                        file_local = None
                     txt_queue = ui.epn_arr_list[r]
-                    if '\t' in txt_queue and file_path:
+                    if '\t' in txt_queue and file_local:
                         txt_queue_split = txt_queue.split('\t')
-                        txt_queue_split[1] = file_path.replace('"', "")
+                        txt_queue_split[1] = file_local.replace('"', "")
                         txt_queue = '\t'.join(txt_queue_split)
-                    elif file_path:
-                        txt_queue = file_path
+                    elif file_local:
+                        txt_queue = file_local
                 else:
                     txt_queue = ui.epn_arr_list[r]
                 ui.queue_url_list.append(txt_queue)
@@ -186,7 +186,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     txt_load = txt_load.replace('#', '', 1)
                 ui.list6.addItem(txt_load)
                 logger.info(ui.queue_url_list)
-                write_files(file_path, txt_queue, line_by_line=True)
+                write_files(file_queue, txt_queue, line_by_line=True)
             elif ui.video_local_stream:
                 if ui.list6.count() > 0:
                     txt = ui.list6.item(0).text()
