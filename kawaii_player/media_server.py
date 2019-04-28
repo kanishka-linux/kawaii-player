@@ -2214,6 +2214,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 nm = aud
                             elif aud.endswith('.vtt'):
                                 nm = vid
+                            if "youtube-dl" in vid:
+                                nm = aud.replace('"', "")
                 if self.path.endswith('.subtitle'):
                     new_path = self.path.rsplit('.', 1)[0]
                     if new_path.endswith('.reload'):
