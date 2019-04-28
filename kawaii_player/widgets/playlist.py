@@ -160,7 +160,23 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     f.close()
                 if not ui.queue_url_list:
                     ui.list6.clear()
-                txt_queue = ui.epn_arr_list[r]
+                if site.lower() == "playlists":
+                    file_1, file_2 = ui.get_file_name(r, ui.list2)
+                    if os.path.exists(file_1):
+                        file_path = file_1
+                    elif os.path.exists(file_2):
+                        file_path = file_2
+                    else:
+                        file_path = None
+                    txt_queue = ui.epn_arr_list[r]
+                    if '\t' in txt_queue and file_path:
+                        txt_queue_split = txt_queue.split('\t')
+                        txt_queue_split[1] = file_path.replace('"', "")
+                        txt_queue = '\t'.join(txt_queue_split)
+                    elif file_path:
+                        txt_queue = file_path
+                else:
+                    txt_queue = ui.epn_arr_list[r]
                 ui.queue_url_list.append(txt_queue)
                 if '\t' in txt_queue:
                     txt_load = txt_queue.split('\t')[0]
