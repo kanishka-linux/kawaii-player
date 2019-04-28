@@ -8795,13 +8795,12 @@ class Ui_MainWindow(object):
                 setinfo = True
             elif self.player_val == "libmpv":
                 self.use_playlist_method()
-                if self.cur_row and self.cur_row < len(self.tmp_pls_file_lines):
+                if isinstance(self.cur_row, int) and self.cur_row < len(self.tmp_pls_file_lines):
                     self.tmp_pls_file_lines[self.cur_row] = finalUrl.replace('"', "")
                 if self.tmp_pls_file_lines:
                     write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                 self.playback_mode = 'playlist'
                 self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
-                #self.tab_5.mpv.command("playlist-pos", self.cur_row)
                 self.tab_5.mpv.set_property("playlist-pos", self.cur_row)
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
