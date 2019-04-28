@@ -1471,6 +1471,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.stale_playlist = True
         self.epn_clicked = False
         self.osx_native_fullscreen = False
         self.device_pixel_ratio = 1.0
@@ -6438,7 +6439,7 @@ class Ui_MainWindow(object):
     def update_list2(self, epn_arr=None, show_thumb=None):
         global site
         update_pl_thumb = True
-        
+        self.stale_playlist = True
         if not self.epn_arr_list and epn_arr is None:
             pass
         else:
@@ -8800,8 +8801,13 @@ class Ui_MainWindow(object):
                 if self.tmp_pls_file_lines:
                     write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                 self.playback_mode = 'playlist'
-                self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
-                self.tab_5.mpv.set_property("playlist-pos", self.cur_row)
+                if self.tab_5.mpv.get_property("idle-active") is True or self.stale_playlist:
+                    self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
+                    self.stale_playlist = False
+                try:
+                    self.tab_5.mpv.set_property("playlist-pos", self.cur_row)
+                except Exception as err:
+                    logger.error(err)
             else:
                 self.gapless_play_now(win_id, eofcode, finalUrl)
                 setinfo = True
@@ -9053,8 +9059,13 @@ class Ui_MainWindow(object):
             if self.tmp_pls_file_lines:
                 write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
             self.playback_mode = 'playlist'
-            self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
-            self.tab_5.mpv.set_property('playlist-pos', self.cur_row)
+            if self.tab_5.mpv.get_property("idle-active") is True or self.stale_playlist:
+                self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
+                self.stale_playlist = False
+            try:
+                self.tab_5.mpv.set_property('playlist-pos', self.cur_row)
+            except Exception as err:
+                logger.error(err)
             self.tab_5.mpv.set_property('prefetch-playlist', 'yes')
             return True
         else:
