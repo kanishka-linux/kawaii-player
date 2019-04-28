@@ -617,16 +617,16 @@ class Ui_MainWindow(object):
         #self.label.setMaximumSize(QtCore.QSize(280, 250))
         #self.label.setMinimumSize(QtCore.QSize(280, 250))
         
-        self.list1.setWordWrap(True)
+        #self.list1.setWordWrap(True)
         self.list1.setTextElideMode(QtCore.Qt.ElideRight)
-        self.list2.setWordWrap(True)
+        #self.list2.setWordWrap(True)
         self.list2.setTextElideMode(QtCore.Qt.ElideRight)
         self.list2.setBatchSize(10)
-        self.list4.setWordWrap(True)
+        #self.list4.setWordWrap(True)
         self.list4.setTextElideMode(QtCore.Qt.ElideRight)
-        self.list5.setWordWrap(True)
+        #self.list5.setWordWrap(True)
         self.list5.setTextElideMode(QtCore.Qt.ElideRight)
-        self.list6.setWordWrap(True)
+        #self.list6.setWordWrap(True)
         self.list6.setTextElideMode(QtCore.Qt.ElideRight)
         
         #self.gridLayout.setAlignment(QtCore.Qt.AlignLeft)#Can cause video disappear in fullscreen mode
@@ -13452,6 +13452,8 @@ def main():
                         ui.list_with_thumbnail = True
                     else:
                         ui.list_with_thumbnail = False
+                    if ui.list_with_thumbnail:
+                        ui.list2.setWordWrap(True)
                     #ui.widget_style.apply_stylesheet(widget=ui.list2, theme=ui.player_theme)
                 elif "Site_Index" in i:
                     site_i = re.sub('\n', '', j)

@@ -23,8 +23,10 @@ class WidgetStyleSheet:
             gui.list_with_thumbnail = mode
         if gui.list_with_thumbnail:
             height = '128px'
+            gui.list2.setWordWrap(True)
         else:
             height = '{}px'.format(gui.global_font_size*3)
+            gui.list2.setWordWrap(False)
         if gui.font_bold:
             font_bold = 'bold'
         else:
