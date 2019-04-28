@@ -202,18 +202,20 @@ class KeyT(QtCore.QThread):
                 print(err)
 
 class ExecCommand(QtCore.QThread):
-    def __init__(self, ui, func):
+    def __init__(self, ui, func_list):
         self.ui = ui
         QtCore.QThread.__init__(self)
-        self.func = func
+        self.func_list = func_list.copy()
         
     def __del__(self):
         self.wait()                        
     
     def run(self):
-        if self.func:
+        if self.func_list:
             try:
-                self.func()
+                sub_gather_func, try_sub_func = self.func_list
+                sub_arr, sub_lang = sub_gather_func()
+                try_sub_func(sub_arr.copy(), sub_lang.copy())
             except Exception as err:
                 print(err)
             
@@ -357,7 +359,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.dpr = 1.0
         self.fake_mousemove_event = ("libmpv", False)
         self.playing_queue = False
-        self.exec_thread = ExecCommand(self.ui, None)
+        self.exec_thread = ExecCommand(self.ui, [])
         #self.cursor = self.getCursor()
 
     def init_opengl_cb(self):
@@ -755,12 +757,13 @@ class MpvOpenglWidget(QOpenGLWidget):
             if title and title.startswith("#"):
                 title = title[1:]
             self.mpv.command("playlist-clear")
+            url = url.replace('"', "")
             self.mpv.command("loadfile", url)
             self.ui.final_playing_url = url
             self.set_window_title_and_epn(title=title)
             self.playlist_backup = True
 
-    def try_external_sub(self):
+    def gather_external_sub(self, row=None):
         new_path = self.ui.final_playing_url.replace('"', '')
         sub_arr = []
         slang_list = self.mpv.get_property("slang")
@@ -780,7 +783,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             if os.path.exists(sub_path_ass):
                 sub_arr.append({"path":sub_path_ass, "type":"ass", lang: "default"})
         if self.ui.cur_row < len(self.ui.epn_arr_list):
-            ourl = self.ui.epn_arr_list[self.ui.cur_row]
+            if row and row < len(self.ui.epn_arr_list):
+                ourl = self.ui.epn_arr_list[row]
+            else:
+                ourl = self.ui.epn_arr_list[self.ui.cur_row]
             if '\t' in ourl:
                 param = None
                 ourl = ourl.split('\t')[1]
@@ -793,7 +799,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                                 param = q.rsplit('=')[-1]
                                 break
                     if param:
-                        print(param)
                         ext_fn = lambda x: [x+".vtt", x+".srt", x+".ass"]
                         
                         ext_list = list(itertools.chain.from_iterable(list(map(ext_fn, slang_list))))
@@ -803,7 +808,10 @@ class MpvOpenglWidget(QOpenGLWidget):
                                 {"path": os.path.join(self.ui.yt_sub_folder, param+"."+ext),
                                 "type": file_type, "lang": lang}
                                 )
-        for sub in sub_arr:
+        return sub_arr, slang_list
+
+    def try_external_sub(self, sub_arr, slang_list):
+        for sub in sub_arr.copy():
             path = sub.get("path")
             sub_type = sub.get("type")
             lang = sub.get("lang")
@@ -896,9 +904,10 @@ class MpvOpenglWidget(QOpenGLWidget):
                 opt = param_dict["opt"]
                 if rem_quit or (site.lower() == "video" and opt.lower() == "history"):
                     self.mpv.command("seek", seek_time, "absolute")
-            if not self.exec_thread.isRunning():
-                func = partial(self.try_external_sub)
-                self.exec_thread = ExecCommand(self.ui, func)
+            if not self.exec_thread.isRunning() and not self.playlist_backup:
+                func_gather_sub = partial(self.gather_external_sub, self.ui.cur_row)
+                func_try_sub = self.try_external_sub
+                self.exec_thread = ExecCommand(self.ui, [func_gather_sub, func_try_sub])
                 self.exec_thread.start()
         
     def keyPressEvent(self, event):
