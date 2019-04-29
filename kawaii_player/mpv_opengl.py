@@ -238,21 +238,32 @@ class InitAgainThread(QtCore.QThread):
         else:
             if self.me.mpv_gl:
                 self.me.mpv_gl.close()
+        path = self.me.mpv.get_property("path")
+        aud = None
         self.me.quit_watch_later('quit-watch-later', True)
+        if path and not os.path.exists(path):
+            aud = self.me.get_external_audio_file()
         func = partial(self.me.initializeGL)
-        self.mpv_cmd.emit([func, self.me.mpv_api])
-        
+        self.mpv_cmd.emit([func, self.me.mpv_api, self.me, path, aud])
+            
 @pyqtSlot(list)
 def mpv_cmd_direct(cmd):
     global ui
-    func, api = cmd
+    func, api, me, path, aud = cmd
     if api == "opengl-cb":
         func()
-    if ui.cur_row < ui.list2.count():
-        ui.list2.setCurrentRow(ui.cur_row)
-        item = ui.list2.item(ui.cur_row)
-        if item:
-            ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+    try:
+        pls_pos = me.mpv.get_property("playlist-pos")
+        if path and os.path.exists(path):
+            me.mpv.set_property("playlist-pos", pls_pos)
+        else:
+            if aud:
+                me.audio = aud
+            me.mpv.command("loadfile", path)
+            me.mpv.set_property('loop-playlist', 'no')
+            me.mpv.set_property('loop-file', 'no')
+    except Exception as err:
+        print(err)
     
 class MpvOpenglWidget(QOpenGLWidget):
     
@@ -360,6 +371,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.fake_mousemove_event = ("libmpv", False)
         self.playing_queue = False
         self.exec_thread = ExecCommand(self.ui, [])
+        self.started = False
         #self.cursor = self.getCursor()
 
     def init_opengl_cb(self):
@@ -375,6 +387,9 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property("quit-watch-later", self.quit_watch_later)
         self.mpv.observe_property("playback-abort", self.playback_abort_observer)
         self.mpv.observe_property("playlist-pos", self.playlist_position_observer)
+        self.init_mpv_opengl_cb()
+        
+    def init_mpv_opengl_cb(self):
         self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
         self.on_update_c = OpenGlCbUpdateFn(self.on_update)
         self.on_update_fake_c = OpenGlCbUpdateFn(self.on_update_fake)
@@ -454,7 +469,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         
     @pyqtSlot()
     def maybe_update(self):
-        if self.window().isMinimized():
+        if self.isMinimized() or self.isHidden():
             self.makeCurrent()
             self.paintGL()
             self.context().swapBuffers(self.context().surface())
@@ -582,7 +597,18 @@ class MpvOpenglWidget(QOpenGLWidget):
                     txt = "{}:{} ({})".format(idtype, idval, lang)
                     break
         return txt
-
+        
+    def get_external_audio_file(self):
+        aud = None
+        for i in self.mpv.get_property("track-list"):
+            idval = i.get("id")
+            idtype = i.get("type")
+            if idtype == "audio":
+                if i.get("external") and i.get("selected"):
+                    aud = i.get("external-filename")
+                    break
+        return aud
+        
     def player_seeking(self, _name, value):
         logger.info("{} {}".format(_name, value))
         if value is True:
@@ -674,16 +700,18 @@ class MpvOpenglWidget(QOpenGLWidget):
                 if value_int % 30 == 0:
                     self.send_fake_event()
             if self.audio and int(value) in range(0, 3):
-                self.mpv.command("audio-add", self.audio, "select")
-                logger.debug("{} {}".format("adding..audio..", self.audio))
+                if self.mpv.get_property("loop-file") is False:
+                    self.mpv.command("audio-add", self.audio, "select")
+                    logger.debug("{} {}".format("adding..audio..", self.audio))
                 self.audio = None
             if self.subtitle and int(value) in range(0, 3):
-                if "::" in self.subtitle:
-                    for sub in self.subtitle.split("::"):
-                        self.mpv.command("sub-add", sub)
-                else:
-                    self.mpv.command("sub-add", self.subtitle, "select")
-                logger.debug("\n{} {}\n".format("adding..subtitle..", self.subtitle))
+                if self.mpv.get_property("loop-file") is False:
+                    if "::" in self.subtitle:
+                        for sub in self.subtitle.split("::"):
+                            self.mpv.command("sub-add", sub)
+                    else:
+                        self.mpv.command("sub-add", self.subtitle, "select")
+                    logger.debug("\n{} {}\n".format("adding..subtitle..", self.subtitle))
                 self.subtitle = None
             if gui.gapless_network_stream and not gui.queue_url_list:
                 if gui.progress_counter > int(gui.mplayerLength/2):
@@ -825,12 +853,14 @@ class MpvOpenglWidget(QOpenGLWidget):
                     
                     
     def idle_observer(self, _name, value):
-        logger.debug("{} {}".format("idle.. value", value, _name))
+        logger.debug("...{}={}, quit-now={}".format(value, _name, gui.quit_now))
         site = self.ui.get_parameters_value(st='site')['site']
-        if (value is True and self.mpv.get_property('playlist-count') == 1
+        if (value is True and self.started
                 and gui.list2.count() > 1
                 and gui.quit_now is False
-                and site not in self.ui.local_site_list):
+                and site.lower() not in ["video", "music", "none", "myserver"]):
+            if site.lower() == "playlists":
+                self.ui.stale_playlist = True
             logger.debug("only single playlist..")
             self.mpv.set_property('loop-playlist', 'no')
             self.mpv.set_property('loop-file', 'no')
@@ -841,6 +871,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             if item:
                 gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
             self.set_window_title_and_epn(row=gui.cur_row)
+            
         
     def set_window_title_and_epn(self, title=None, row=None):
         if title is None:
@@ -867,6 +898,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.mpv_reinit = False
             self.ui.quit_really = False
             self.ui.epn_clicked = False
+            self.started = True
             z = 'duration is {:.2f}s'.format(value)
             gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
@@ -1164,6 +1196,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             logger.error(err)
         self.audio = None
         self.subtitle = None
+        self.ui.quit_now = True
         self.mpv.command("stop")
         self.ui.playerStop(msg="from openglwidget")
         

@@ -3664,7 +3664,7 @@ class Ui_MainWindow(object):
     def playerPlayPause(self, *args):
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
-            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+            if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False):
                 if self.player_val in ["mpv", "libmpv"]:
                     txt_osd = '\n set osd-level 1 \n'
                     self.mpvplayer_val.write(b'\n set pause no \n')
@@ -3690,7 +3690,7 @@ class Ui_MainWindow(object):
                         finalUrl = self.epn_return(self.cur_row)
                         self.play_file_now(finalUrl, win_id=self.idw)
         elif txt == self.player_buttons['pause']:
-            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+            if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False):
                 if self.player_val in ["mpv", "libmpv"]:
                     txt_osd = '\n set osd-level 3 \n'
                     self.mpvplayer_val.write(b'\n set pause yes \n')
@@ -9277,21 +9277,29 @@ class Ui_MainWindow(object):
                     aurl = None
                     surl = None
                     nsurl = None
-                cmd_arr = [ ["loadfile", url_lnk, "append"],
-                        ["playlist-move", self.list2.count(), row_val],
-                        ["playlist-remove", row_val+1]
-                    ]
-                if aurl:
-                    self.tab_5.audio = aurl
-                if surl:
-                    self.tab_5.subtitle = surl
-                
-                for cmd in cmd_arr:
-                    self.tab_5.mpv.command(*cmd)
-                    time.sleep(0.01)
-                    logger.debug(cmd)
-                self.mpv_prefetch_url_started = False
-                self.tmp_pls_file_dict.update({row_val:True})
+                if self.tab_5.mpv.get_property("playlist-count") == 1:
+                    self.mpv_prefetch_url_started = False
+                    self.tmp_pls_file_dict.update({row_val:True})
+                    if aurl:
+                        self.tab_5.audio = aurl
+                    if surl:
+                        self.tab_5.subtitle = surl
+                else:
+                    cmd_arr = [ ["loadfile", url_lnk, "append"],
+                            ["playlist-move", self.list2.count(), row_val],
+                            ["playlist-remove", row_val+1]
+                        ]
+                    if aurl:
+                        self.tab_5.audio = aurl
+                    if surl:
+                        self.tab_5.subtitle = surl
+                    
+                    for cmd in cmd_arr:
+                        self.tab_5.mpv.command(*cmd)
+                        time.sleep(0.01)
+                        logger.debug(cmd)
+                    self.mpv_prefetch_url_started = False
+                    self.tmp_pls_file_dict.update({row_val:True})
         else:
             if mode == 'thumbnail_gapless' and not url_lnk.startswith('http'):
                 from_function = None
@@ -9305,7 +9313,7 @@ class Ui_MainWindow(object):
             if row_val < self.list2.count():
                 self.list2.setCurrentRow(row_val)
                 self.cur_row = row_val
-                
+    
     def mpv_execute_command(self, cmd, row, timer=None):
         if timer:
             QtCore.QTimer.singleShot(
