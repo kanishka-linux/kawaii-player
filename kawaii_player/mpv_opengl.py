@@ -250,11 +250,13 @@ class InitAgainThread(QtCore.QThread):
 def mpv_cmd_direct(cmd):
     global ui
     func, api, me, path, aud = cmd
+    site = ui.get_parameters_value(st='site')['site']
     if api == "opengl-cb":
         func()
     try:
         pls_pos = me.mpv.get_property("playlist-pos")
-        if path and os.path.exists(path):
+        if (path and os.path.exists(path) 
+                and site.lower() in ["video", "music", "none", "myserver"]):
             me.mpv.set_property("playlist-pos", pls_pos)
         else:
             if aud:
@@ -635,7 +637,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def quit_watch_later(self, _name, value):
         logger.info("{} {}".format(_name, value))        
         if value is True:
-            self.rem_properties(self.ui.final_playing_url, rem_quit=1, seek_time=self.mpv.get_property('time-pos'))
+            self.rem_properties(self.ui.final_playing_url, rem_quit=1, seek_time=self.ui.progress_counter)
         
     def sub_changed(self, _name, value):
         logger.debug('{} {} {}'.format(_name, value, "--sub--"))
@@ -1175,9 +1177,9 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def quit_player(self, msg=None):
         if msg == "rem_quit":
-            self.rem_properties(self.ui.final_playing_url, 1, self.mpv.get_property('time-pos'))
+            self.rem_properties(self.ui.final_playing_url, 1, self.ui.progress_counter)
         else:
-            self.rem_properties(self.ui.final_playing_url, 0, self.mpv.get_property('time-pos'))
+            self.rem_properties(self.ui.final_playing_url, 0, self.ui.progress_counter)
         self.initial_volume_set = False
         self.ui.tab_5.setMinimumWidth(0)
         self.ui.tab_5.setMinimumHeight(0)
