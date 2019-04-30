@@ -10733,7 +10733,7 @@ class Ui_MainWindow(object):
                                     self.frame_timer.stop()
                                 if self.tab_6.isHidden():
                                     self.frame_timer.start(2000)
-                        out1 = out+" ["+self.epn_name_in_list+"]"
+                        out1 = out
                         self.progressEpn.setFormat((out1))
                         if self.mplayerLength == 1:
                             val = 0
