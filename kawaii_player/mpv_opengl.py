@@ -863,15 +863,16 @@ class MpvOpenglWidget(QOpenGLWidget):
                 and site.lower() not in ["video", "music", "none", "myserver"]):
             if site.lower() == "playlists":
                 self.ui.stale_playlist = True
-            logger.debug("only single playlist..")
-            self.mpv.set_property('loop-playlist', 'no')
-            self.mpv.set_property('loop-file', 'no')
-            self.mpv.command('stop')
-            gui.cur_row = (gui.cur_row + 1) % gui.list2.count()
-            gui.list2.setCurrentRow(gui.cur_row)
-            item = gui.list2.item(gui.cur_row)
-            if item:
-                gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            if self.mpv.get_property("playlist-count") == 1:
+                logger.debug("only single playlist..")
+                self.mpv.set_property('loop-playlist', 'no')
+                self.mpv.set_property('loop-file', 'no')
+                self.mpv.command('stop')
+                gui.cur_row = (gui.cur_row + 1) % gui.list2.count()
+                gui.list2.setCurrentRow(gui.cur_row)
+                item = gui.list2.item(gui.cur_row)
+                if item:
+                    gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
             self.set_window_title_and_epn(row=gui.cur_row)
             
         
