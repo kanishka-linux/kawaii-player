@@ -1691,17 +1691,11 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             num = self.currentRow() + 1
             txt = self.currentItem().text()
             ui.labelFrame2.setText('{0}. {1}'.format(num, txt))
-            item = self.currentItem()
-            if not ui.list2.isHidden():
-                self.itemClicked.emit(item)
         
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
-            if ui.list2.isHidden():
-                self.poster_list_clicked()
-                self.title_clicked = True
-            else:
-                ui.list2.setFocus()
+            self.poster_list_clicked()
+            self.title_clicked = True
         elif event.key() == QtCore.Qt.Key_Right:
             nextr = self.currentRow() + 1
             if nextr == self.count():
@@ -1729,6 +1723,9 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                     ui.btn1.setFocus()
                 else:
                     self.setCurrentRow(prev_r)
+        elif event.key() == QtCore.Qt.Key_Backspace:
+            if self.title_clicked:
+                self.show_list(mode="prev")
         elif event.text().isalnum():
                 ui.focus_widget = ui.list1
                 if ui.search_on_type_btn.isHidden():
@@ -1763,16 +1760,43 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         offset = int(extra_width/self.num)
         self.setGridSize(QtCore.QSize(width+offset, ht+32))
         self.setIconSize(QtCore.QSize(width, ht))
-        
     
     def poster_list_clicked(self):
         if self.currentItem():
-            row = self.currentRow()
-            ui.list1.setCurrentRow(row)
-            txt = self.item(row).text()
-            ui.labelFrame2.setText('{0}. {1}'.format(row+1, txt))
-            ui.listfound(row_select=row, show_ep_thumbnail=True)
-            self.title_clicked = True
+            if self.title_clicked:
+                row = self.currentRow()
+                ui.list2.setCurrentRow(row)
+                item = ui.list2.item(row)
+                ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            else:
+                self.setWordWrap(True)
+                self.title_clicked = True
+                row = self.currentRow()
+                ui.list1.setCurrentRow(row)
+                if self.item(row):
+                    txt = self.item(row).text()
+                    ui.labelFrame2.setText('{0}. {1}'.format(row+1, txt))
+                ui.listfound(row_select=row, show_ep_thumbnail=True)
+
+    def refill_items(self, mode):
+        self.setWordWrap(False)
+        for i in range(ui.list1.count()):
+            txt = ui.list1.item(i).text()
+            picn, summary = ui.display_image(i, "image_list", txt_name=txt)
+            if os.path.isfile(picn):
+                self.addItem(txt)
+                self.item(i).setIcon(QtGui.QIcon(picn))
+            else:
+                self.addItem(txt)
+            summary = "<html><h1>{0}</h1><head/><body><p>{1}</p></body></html>".format(txt, summary)
+            self.item(i).setToolTip(summary)
+        if ui.list1.currentItem():
+            row = ui.list1.currentRow()
+            self.setCurrentRow(row)
+        if mode == 'next':
+            ui.dockWidget_3.show()
+        self.title_clicked = False
+        
             
     def show_list(self, mode=None):
         if self.isHidden() or mode == 'next' or mode == 'prev':
@@ -1790,30 +1814,12 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                 status = self.status_dict_poster[i]
                 if not status:
                     ui.widget_dict[i].hide()
-            if mode == 'prev' and self.count() > 0:
-                ui.tab_6.show()
-                self.show()
-                self.setFocus()
-            else:
-                ui.tab_6.show()
-                self.clear()
-                self.show()
-                self.setFocus()
-                for i in range(ui.list1.count()):
-                    txt = ui.list1.item(i).text()
-                    picn, summary = ui.display_image(i, "image_list", txt_name=txt)
-                    if os.path.isfile(picn):
-                        self.addItem(txt)
-                        self.item(i).setIcon(QtGui.QIcon(picn))
-                    else:
-                        self.addItem(txt)
-                    summary = "<html><h1>{0}</h1><head/><body><p>{1}</p></body></html>".format(txt, summary)
-                    self.item(i).setToolTip(summary)
-                if ui.list1.currentItem():
-                    row = ui.list1.currentRow()
-                    self.setCurrentRow(row)
-                if mode == 'next':
-                    ui.dockWidget_3.show()
+            ui.tab_6.show()
+            self.clear()
+            self.show()
+            self.setFocus()
+            self.refill_items(mode)
+                
         else:
             self.hide()
             for i in ui.widget_dict:

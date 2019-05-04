@@ -1337,6 +1337,8 @@ def apply_thumbnail_to_playlist(k, i, title):
             icon_new_pixel = ui.create_new_image_pixel(icon_name, 128)
             if os.path.exists(icon_new_pixel):
                 ui.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+                if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:
+                    ui.list_poster.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
     except Exception as e:
         print(e)
 

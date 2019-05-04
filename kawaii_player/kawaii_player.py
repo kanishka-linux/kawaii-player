@@ -3620,7 +3620,7 @@ class Ui_MainWindow(object):
         self.fullscreen_video = False
         if self.view_mode == "thumbnail_light":
             self.list_poster.show()
-            self.list2.show()
+            #self.list2.show()
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -6448,7 +6448,7 @@ class Ui_MainWindow(object):
         if not self.epn_arr_list and epn_arr is None:
             pass
         else:
-            if self.list2.isHidden() and not show_thumb:
+            if self.list2.isHidden() and not show_thumb and self.view_mode != "thumbnail_light":
                 update_pl_thumb = False
             if epn_arr:
                 new_epn_arr = epn_arr.copy()
@@ -6457,6 +6457,8 @@ class Ui_MainWindow(object):
             print(update_pl_thumb, 'update_playlist_thumb')
             row = self.list2.currentRow()
             self.list2.clear()
+            if self.view_mode == "thumbnail_light":
+                self.list_poster.clear()
             for i in new_epn_arr:
                 i = i.strip()
                 if '	' in i:
@@ -6465,6 +6467,8 @@ class Ui_MainWindow(object):
                 if i.startswith('#'):
                     i = i.replace('#', self.check_symbol, 1)
                 self.list2.addItem(i)
+                if self.view_mode == "thumbnail_light":
+                    self.list_poster.addItem(i)
             self.list2.setCurrentRow(row)
             if self.list1.currentItem():
                 title_list = self.list1.currentItem().text()
@@ -6811,16 +6815,20 @@ class Ui_MainWindow(object):
         print(site)
         found_item_index[:]=[]
         if not self.scrollArea.isHidden() or not self.list_poster.isHidden():
+            if self.view_mode == "thumbnail_light" and self.list_poster.title_clicked:
+                widget = self.list2
+            else:
+                widget = self.list1
             if key:
-                for i in range(self.list1.count()):
-                    srch = str(self.list1.item(i).text()).lower()
+                for i in range(widget.count()):
+                    srch = str(widget.item(i).text()).lower()
                     if key in srch:
                         found_item.append(i)
                         found_item_index.append(1)
                     else:
                         found_item_index.append(0)
             else:
-                for i in range(self.list1.count()):
+                for i in range(widget.count()):
                         found_item_index.append(1)
         else:
             if key:
@@ -8022,7 +8030,8 @@ class Ui_MainWindow(object):
                 self.IconViewEpn(mode=1)
             elif self.view_mode == 'thumbnail_light':
                 #self.IconViewEpn(mode=2)
-                self.list2.show()
+                #self.list2.show()
+                #self.list_poster.clear()
                 self.update_list2()
                 self.frame1.show()
         if self.gapless_playback:
@@ -14558,9 +14567,9 @@ def main():
         else:
             #ui.IconViewEpn(start=True, mode=2)
             ui.experiment_list(mode="show")
-            ui.list2.show()
-            ui.frame1.show()
-            ui.list2.setFocus()
+            #ui.list2.show()
+            #ui.frame1.show()
+            #ui.list2.setFocus()
     logger.debug('FullScreen={}'.format(ui.force_fs))
     if ui.force_fs:
         MainWindow.showFullScreen()
