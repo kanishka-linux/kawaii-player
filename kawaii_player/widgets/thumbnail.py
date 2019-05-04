@@ -1675,7 +1675,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         self.setMaximumWidth(screen_width)
         self.setFlow(QtWidgets.QListWidget.LeftToRight)
         self.setWrapping(True)
-        self.setWordWrap(True)
+        #self.setWordWrap(True)
         self.setTextElideMode(QtCore.Qt.ElideRight)
         self.setViewMode(QtWidgets.QListView.IconMode)
         self.setBatchSize(10)
@@ -1779,11 +1779,11 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                 self.setFocus()
             else:
                 ui.tab_6.show()
-                self.num = int(ui.tab_6.width()/128)
+                self.num = int(ui.screen_size[0]/128)
                 width = int((ui.tab_6.width()-20)/self.num)
                 ht = int(1.6*width)
                 logger.debug('width={}::ht={}'.format(width, ht))
-                self.setGridSize(QtCore.QSize(width, ht))
+                self.setGridSize(QtCore.QSize(width+8, ht+32))
                 self.setIconSize(QtCore.QSize(width, ht))
                 self.clear()
                 self.show()
@@ -1791,15 +1791,13 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                 for i in range(ui.list1.count()):
                     txt = ui.list1.item(i).text()
                     picn, summary = ui.display_image(i, "image_list", txt_name=txt)
-                    #icon_new_pixel = self.create_new_image_pixel(picn, 128)
                     if os.path.isfile(picn):
                         self.addItem(txt)
                         self.item(i).setIcon(QtGui.QIcon(picn))
-                        #os.remove(icon_new_pixel)
                     else:
                         self.addItem(txt)
-                    #summary = "<html><h1>{0}</h1><head/><body><p>{1}</p></body></html>".format(txt, summary)
-                    #self.item(i).setToolTip(summary)
+                    summary = "<html><h1>{0}</h1><head/><body><p>{1}</p></body></html>".format(txt, summary)
+                    self.item(i).setToolTip(summary)
                 if ui.list1.currentItem():
                     row = ui.list1.currentRow()
                     self.setCurrentRow(row)
