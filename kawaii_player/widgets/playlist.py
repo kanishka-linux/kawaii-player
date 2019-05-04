@@ -855,6 +855,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if ui.float_window.isHidden():
                 if not ui.list1.isHidden():
                     ui.list1.setFocus()
+                elif not ui.list_poster.isHidden():
+                    ui.list_poster.setFocus()
                 else:
                     ui.list1.keyPressEvent(event)
             else:

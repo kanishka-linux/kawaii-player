@@ -1691,11 +1691,17 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             num = self.currentRow() + 1
             txt = self.currentItem().text()
             ui.labelFrame2.setText('{0}. {1}'.format(num, txt))
+            item = self.currentItem()
+            if not ui.list2.isHidden():
+                self.itemClicked.emit(item)
         
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
-            self.poster_list_clicked()
-            self.title_clicked = True
+            if ui.list2.isHidden():
+                self.poster_list_clicked()
+                self.title_clicked = True
+            else:
+                ui.list2.setFocus()
         elif event.key() == QtCore.Qt.Key_Right:
             nextr = self.currentRow() + 1
             if nextr == self.count():

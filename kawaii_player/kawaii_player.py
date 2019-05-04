@@ -2034,7 +2034,7 @@ class Ui_MainWindow(object):
                 MainWindow.setPalette(palette)
             if os.path.isfile(fanart) and self.layout_mode != 'Music':
                 self.current_background = fanart
-                if '.' in fanart:
+                if '.' in fanart and self.view_mode != "thumbnail_light":
                     fanart_name, ext = fanart.rsplit('.', 1)
                     if not fanart_name.endswith('default'):
                         fanart_new = fanart_name + '-new.' + ext
@@ -3618,6 +3618,9 @@ class Ui_MainWindow(object):
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle('Kawaii-Player')
         self.fullscreen_video = False
+        if self.view_mode == "thumbnail_light":
+            self.list_poster.show()
+            self.list2.show()
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
