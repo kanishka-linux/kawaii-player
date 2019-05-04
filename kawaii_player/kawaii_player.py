@@ -14556,7 +14556,11 @@ def main():
         if ui.view_mode == 'thumbnail':
             ui.IconViewEpn(start=True, mode=1)
         else:
-            ui.IconViewEpn(start=True, mode=2)
+            #ui.IconViewEpn(start=True, mode=2)
+            ui.experiment_list(mode="show")
+            ui.list2.show()
+            ui.frame1.show()
+            ui.list2.setFocus()
     logger.debug('FullScreen={}'.format(ui.force_fs))
     if ui.force_fs:
         MainWindow.showFullScreen()
