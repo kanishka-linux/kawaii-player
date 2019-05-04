@@ -1967,6 +1967,8 @@ class Ui_MainWindow(object):
         self.list4.setMaximumWidth(self.width_allowed1)
         self.list5.setMaximumWidth(self.width_allowed1)
         self.list6.setMaximumWidth(self.width_allowed1)
+        if hasattr(self, "list_poster"):
+            self.list_poster.setMaximumWidth(screen_width)
         self.torrent_frame.setMaximumWidth(self.width_allowed1)
         self.goto_epn.setMaximumWidth(self.width_allowed1)
         
