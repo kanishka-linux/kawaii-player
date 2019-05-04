@@ -6624,7 +6624,7 @@ class Ui_MainWindow(object):
             label_name = 'label.'+os.path.basename(picn)
             path_thumb, new_title = os.path.split(picn)
             new_picn = os.path.join(path_thumb, label_name)
-            if os.path.exists(picn) and not picn.endswith("default.jpg"):
+            if os.path.exists(picn) and not picn.endswith("default.jpg") and self.list_poster.isHidden():
                 if self.player_theme == "default":
                     widget = self.label
                     fit_size = 6
