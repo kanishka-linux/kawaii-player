@@ -1747,7 +1747,18 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
             self.setFocus()
-            
+
+    def resizeEvent(self, event):
+        self.num = int(self.width()/128)
+        width = int(self.width()/self.num)
+        ht = int(1.6*width)
+        logger.debug('width={}::ht={}'.format(width, ht))
+        extra_width = self.width() - self.num*width
+        offset = int(extra_width/self.num)
+        self.setGridSize(QtCore.QSize(width+offset, ht+32))
+        self.setIconSize(QtCore.QSize(width, ht))
+        
+    
     def poster_list_clicked(self):
         if self.currentItem():
             row = self.currentRow()
@@ -1779,12 +1790,6 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                 self.setFocus()
             else:
                 ui.tab_6.show()
-                self.num = int(ui.screen_size[0]/128)
-                width = int((ui.tab_6.width()-20)/self.num)
-                ht = int(1.6*width)
-                logger.debug('width={}::ht={}'.format(width, ht))
-                self.setGridSize(QtCore.QSize(width+8, ht+32))
-                self.setIconSize(QtCore.QSize(width, ht))
                 self.clear()
                 self.show()
                 self.setFocus()
