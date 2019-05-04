@@ -8018,7 +8018,10 @@ class Ui_MainWindow(object):
             if self.view_mode == 'thumbnail':
                 self.IconViewEpn(mode=1)
             elif self.view_mode == 'thumbnail_light':
-                self.IconViewEpn(mode=2)
+                #self.IconViewEpn(mode=2)
+                self.list2.show()
+                self.update_list2()
+                self.frame1.show()
         if self.gapless_playback:
             self.use_playlist_method()
     
