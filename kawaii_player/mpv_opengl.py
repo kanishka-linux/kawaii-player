@@ -136,7 +136,11 @@ class QProcessExtra(QtCore.QProcess):
                 elif 'osd-sym-cc' in cmd:
                     print(cmd)
                     if "pause" in cmd or "2000" in cmd:
-                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.get_property('time-pos'))
+                        try:
+                            time_pos = self.ui.tab_5.mpv.get_property('time-pos')
+                        except Exception as err:
+                            time_pos = 0
+                        display_string = self.ui.tab_5.display_play_pause_string(time_pos)
                         if self.ui.tab_5.mpv_api == "opengl-render":
                             cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + " " + display_string
                         else:
@@ -162,8 +166,12 @@ class QProcessExtra(QtCore.QProcess):
                     if cmd_arr[0] in ["stop", "quit"]:
                         self.ui.quit_now = True
                     if "set pause" in cmd or "cycle pause" in cmd:
+                        try:
+                            time_pos = self.ui.tab_5.mpv.get_property('time-pos')
+                        except Exception as err:
+                            time_pos = 0
                         self.ui.tab_5.mpv.command(*cmd_arr)
-                        display_string = self.ui.tab_5.display_play_pause_string(self.ui.tab_5.mpv.get_property('time-pos'))
+                        display_string = self.ui.tab_5.display_play_pause_string(time_pos)
                         if self.ui.tab_5.mpv_api == "opengl-render":
                             cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + " " + display_string
                         else:
@@ -213,7 +221,6 @@ class PlayerStatusObserver(QtCore.QThread):
     def core_observer_status(self):
         idle_active = self.ui.tab_5.mpv.get_property('idle-active')
         core_idle = self.ui.tab_5.mpv.get_property('core-idle')
-        print("idle=",idle_active, "core=", core_idle)
         if idle_active in [False, 'no'] and core_idle in [True, 'yes']:
             self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
                 
