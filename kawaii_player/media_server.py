@@ -1028,6 +1028,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             path = self.path.replace('/', '', 1)
             self.get_the_content(path, 0)
         elif (self.path.startswith('/master_abs_path=')
+                or self.path.startswith('/master_relative_path=')
                 or self.path.startswith('/get_current_background')):
             if ui.pc_to_pc_casting == 'master':
                 path = self.path.replace('/', '', 1)
@@ -2270,13 +2271,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
                 self.final_message(b'Wrong parameters --1626--')
-        elif path.startswith('relative_path='):
+        elif path.startswith('relative_path=') or path.startswith('master_relative_path='):
             try:
                 #if '/' in path:
                 #	path = path.rsplit('/', 1)[0]
                 process_url = False
                 logger.info('--------path---{0}'.format(path))
-                path = path.split('relative_path=', 1)[1]
+                if path.startswith('relative_path='):
+                    path = path.split('relative_path=', 1)[1]
+                else:
+                    path = path.split('master_relative_path=', 1)[1]
                 nm = path
                 nm = str(base64.b64decode(nm).decode('utf-8'))
                 logger.info('\n<------------------>{0}\n'.format(nm))

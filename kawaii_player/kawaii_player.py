@@ -9215,7 +9215,8 @@ class Ui_MainWindow(object):
                 else:
                     file_path = None
                 site = self.get_parameters_value(st='site')['site']
-                if turl.startswith('http') and 'master_abs_path=' not in turl and site.lower() != "myserver":
+                if (turl.startswith('http') and 'master_abs_path=' not in turl 
+                        and 'master_relative_path=' not in turl and site.lower() != "myserver"):
                     if site == 'Music':
                         yt_mode = 'yt_prefetch_a'
                     else:

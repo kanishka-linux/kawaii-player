@@ -1293,6 +1293,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     title = title.split(',', 1)[-1].strip()
                     url = new_lines[row+1]
                     url = url.replace('abs_path=', 'master_abs_path=', 1)
+                    if 'relative_path=' in url:
+                        url = url.replace('relative_path=', 'master_relative_path=', 1)
                     local_path = None
                     sub = 'none'
                     ext = 'none'
