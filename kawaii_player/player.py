@@ -719,25 +719,33 @@ class PlayerWidget(QtWidgets.QWidget):
         pause_indicator = param_dict['pause_indicator']
         mpv_indicator = param_dict['mpv_indicator']
         site = param_dict['site']
-        if not pause_indicator:
-            self.ui.mpvplayer_val.write(b'\n set pause yes \n')
-            if MainWindow.isFullScreen() and self.ui.fullscreen_video:
-                self.ui.gridLayout.setSpacing(0)
-                self.ui.frame1.show()
-            pause_indicator.append("Pause")
-        else:
-            self.ui.mpvplayer_val.write(b'\n set pause no \n')
-            if MainWindow.isFullScreen():
-                if (site != "Music" and self.ui.tab_6.isHidden()
-                        and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
-                    self.ui.frame1.hide()
-            pause_indicator.pop()
-            if mpv_indicator:
-                mpv_indicator.pop()
-                cache_empty = 'no'
-                self.ui.set_parameters_value(
-                    cache_val=cache_empty, mpv_i=mpv_indicator)
-                    
+        if self.player_val in ["mpv", "mplayer"]:
+            if not pause_indicator:
+                self.ui.mpvplayer_val.write(b'\n set pause yes \n')
+                if MainWindow.isFullScreen() and self.ui.fullscreen_video:
+                    self.ui.gridLayout.setSpacing(0)
+                    self.ui.frame1.show()
+                pause_indicator.append("Pause")
+            else:
+                self.ui.mpvplayer_val.write(b'\n set pause no \n')
+                if MainWindow.isFullScreen():
+                    if (site != "Music" and self.ui.tab_6.isHidden()
+                            and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
+                        self.ui.frame1.hide()
+                pause_indicator.pop()
+                if mpv_indicator:
+                    mpv_indicator.pop()
+                    cache_empty = 'no'
+                    self.ui.set_parameters_value(
+                        cache_val=cache_empty, mpv_i=mpv_indicator)
+        elif self.player_val == "libmpv":
+            if self.ui.tab_5.mpv.get_property('idle-active') is False:
+                pause = self.ui.tab_5.mpv.get_property("pause")
+                if pause in [True, 'yes']:
+                    self.ui.tab_5.mpv.set_property("pause", "no")
+                elif pause in [False, 'no']:
+                    self.ui.tab_5.mpv.set_property("pause", "yes")
+            
     def load_subtitle_from_file(self):
         self.load_external_sub()
     
