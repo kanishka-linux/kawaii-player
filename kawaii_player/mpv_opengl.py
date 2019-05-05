@@ -221,7 +221,7 @@ class PlayerStatusObserver(QtCore.QThread):
         while True:
             if self.show_status:
                 self.core_observer_status()
-            time.sleep(2)
+            time.sleep(1)
         
 
 class ExecCommand(QtCore.QThread):
@@ -789,12 +789,17 @@ class MpvOpenglWidget(QOpenGLWidget):
         if value is True and self.mpv.get_property("idle-active") is False:
             cache = self.mpv.get_property('demuxer-cache-idle')
             time_pos = self.mpv.get_property('time-pos')
-            if cache is False and time_pos and time_pos > 3:
+            if time_pos and time_pos > 3:
+                self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
                 self.player_observer_thread.show_status = True
             else:
                 self.player_observer_thread.show_status = False
         else:
             self.player_observer_thread.show_status = False
+            if self.mpv.get_property("idle-active") is False:
+                time_pos = self.mpv.get_property('time-pos')
+                if time_pos and time_pos > 3:
+                    self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
     
                     
     def eof_observer(self, _name, value):
