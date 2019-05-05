@@ -25,6 +25,7 @@ import time
 import platform
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files
+from widgets.playlist import PlaylistWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -1644,11 +1645,11 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
     """
 
 
-class TitleListWidgetPoster(QtWidgets.QListWidget):
+class TitleListWidgetPoster(PlaylistWidget):
     
     def __init__(self, parent, uiwidget=None, home_var=None,
                  tmp=None, logr=None, sw=None, sh=None):
-        super(TitleListWidgetPoster, self).__init__(parent)
+        super(TitleListWidgetPoster, self).__init__(parent, uiwidget, home_var, tmp, logr)
         global MainWindow, home, TMPDIR, logger, ui, screen_width, screen_height
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.setAcceptDrops(True)
@@ -1691,7 +1692,7 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
             num = self.currentRow() + 1
             txt = self.currentItem().text()
             ui.labelFrame2.setText('{0}. {1}'.format(num, txt))
-        
+    
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.poster_list_clicked()
@@ -1726,6 +1727,8 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
         elif event.key() == QtCore.Qt.Key_Backspace:
             if self.title_clicked:
                 self.show_list(mode="prev")
+        elif event.key() in [QtCore.Qt.Key_Down, QtCore.Qt.Key_Up]:
+            super(PlaylistWidget, self).keyPressEvent(event)
         elif event.text().isalnum():
                 ui.focus_widget = ui.list1
                 if ui.search_on_type_btn.isHidden():
@@ -1745,6 +1748,10 @@ class TitleListWidgetPoster(QtWidgets.QListWidget):
                     ui.search_on_type_btn.setText(new_txt)
         else:
             super(TitleListWidgetPoster, self).keyPressEvent(event)
+            
+    def contextMenuEvent(self, event):
+        if self.title_clicked:
+            super(TitleListWidgetPoster, self).contextMenuEvent(event)
             
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
