@@ -1730,22 +1730,25 @@ class TitleListWidgetPoster(PlaylistWidget):
         elif event.key() in [QtCore.Qt.Key_Down, QtCore.Qt.Key_Up]:
             super(PlaylistWidget, self).keyPressEvent(event)
         elif event.text().isalnum():
+            if self.title_clicked:
+                ui.focus_widget = ui.list2
+            else:
                 ui.focus_widget = ui.list1
-                if ui.search_on_type_btn.isHidden():
-                    g = self.geometry()
-                    txt = event.text()
-                    ui.search_on_type_btn.setGeometry(
-                        g.x()+self.width()-ui.width_allowed, g.y(),
-                        ui.width_allowed, 32
-                        )
-                    ui.search_on_type_btn.show()
-                    ui.search_on_type_btn.clear()
-                    ui.search_on_type_btn.setText(txt)
-                else:
-                    ui.search_on_type_btn.setFocus()
-                    txt = ui.search_on_type_btn.text()
-                    new_txt = txt+event.text()
-                    ui.search_on_type_btn.setText(new_txt)
+            if ui.search_on_type_btn.isHidden():
+                g = self.geometry()
+                txt = event.text()
+                ui.search_on_type_btn.setGeometry(
+                    g.x()+self.width()-ui.width_allowed, g.y(),
+                    ui.width_allowed, 32
+                    )
+                ui.search_on_type_btn.show()
+                ui.search_on_type_btn.clear()
+                ui.search_on_type_btn.setText(txt)
+            else:
+                ui.search_on_type_btn.setFocus()
+                txt = ui.search_on_type_btn.text()
+                new_txt = txt+event.text()
+                ui.search_on_type_btn.setText(new_txt)
         else:
             super(TitleListWidgetPoster, self).keyPressEvent(event)
             

@@ -991,18 +991,22 @@ class QLineCustomSearch(QtWidgets.QLineEdit):
     
     def go_to_target(self):
         if ui.focus_widget == ui.list1:
-            ui.list1.setFocus()
             if ui.view_mode == 'thumbnail':
+                ui.list1.setFocus()
                 ui.tab_6.setFocus()
                 ui.take_to_thumbnail(mode='title', focus=True)
             elif ui.view_mode == 'thumbnail_light':
                 ui.tab_6.setFocus()
                 ui.list_poster.setFocus()
         elif ui.focus_widget == ui.list2:
-            ui.list2.setFocus()
-            if not ui.tab_6.isHidden():
+            if ui.view_mode == 'thumbnail_light':
                 ui.tab_6.setFocus()
-                ui.take_to_thumbnail(mode='epn', focus=True)
+                ui.list_poster.setFocus()
+            else:
+                ui.list2.setFocus()
+                if not ui.tab_6.isHidden():
+                    ui.tab_6.setFocus()
+                    ui.take_to_thumbnail(mode='epn', focus=True)
         
     def keyPressEvent(self, event):
         print("down")

@@ -2198,8 +2198,8 @@ class Ui_MainWindow(object):
         if index >=0:
             if self.focus_widget == self.list1:
                 try:
-                    self.list1.setCurrentRow(index)
                     if self.view_mode == 'thumbnail' and not self.lock_process:
+                        self.list1.setCurrentRow(index)
                         self.take_to_thumbnail(row=index, mode='title')
                         self.scrollArea.cur_row = index
                     elif self.view_mode == 'thumbnail_light':
@@ -2207,13 +2207,16 @@ class Ui_MainWindow(object):
                 except Exception as err:
                     logger.error(err)
             elif self.focus_widget == self.list2:
-                self.list2.setCurrentRow(index)
-                try:
-                    if not self.tab_6.isHidden():
-                        self.take_to_thumbnail(row=index, mode='epn')
-                        self.scrollArea1.cur_row = index
-                except Exception as err:
-                    logger.error(err)
+                if self.view_mode == "thumbnail_light":
+                    self.list_poster.setCurrentRow(index)
+                else:
+                    self.list2.setCurrentRow(index)
+                    try:
+                        if not self.tab_6.isHidden():
+                            self.take_to_thumbnail(row=index, mode='epn')
+                            self.scrollArea1.cur_row = index
+                    except Exception as err:
+                        logger.error(err)
             
     def remove_queue_item_btn_method(self, row=None):
         row = self.queue_item_external_remove
