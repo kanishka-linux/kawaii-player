@@ -201,6 +201,29 @@ class KeyT(QtCore.QThread):
             except Exception as err:
                 print(err)
 
+class PlayerStatusObserver(QtCore.QThread):
+    def __init__(self, ui):
+        self.ui = ui
+        QtCore.QThread.__init__(self)
+        self.show_status = False
+        
+    def __del__(self):
+        self.wait()
+                                
+    def core_observer_status(self):
+        idle_active = self.ui.tab_5.mpv.get_property('idle-active')
+        core_idle = self.ui.tab_5.mpv.get_property('core-idle')
+        print("idle=",idle_active, "core=", core_idle)
+        if idle_active in [False, 'no'] and core_idle in [True, 'yes']:
+            self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
+                
+    def run(self):
+        while True:
+            if self.show_status:
+                self.core_observer_status()
+            time.sleep(2)
+        
+
 class ExecCommand(QtCore.QThread):
     def __init__(self, ui, func_list):
         self.ui = ui
@@ -320,7 +343,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.fs_timer_now = QtCore.QTimer()
         self.fs_timer_now.timeout.connect(self.only_fs_tab)
         self.fs_timer_now.setSingleShot(True)
-        
+
         self.player_val = "libmpv"
         screen_width = gui.screen_size[0]
         screen_height = gui.screen_size[1]
@@ -367,6 +390,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.key_thread = KeyT(self.ui, None, None)
         self.init_again_thread = InitAgainThread(self.ui, self)
         self.key_thread.start()
+        self.player_observer_thread = PlayerStatusObserver(self.ui)
+        self.player_observer_thread.start()
         self.sub_id = -1
         self.audio_id = -1
         self.dpr = 1.0
@@ -389,6 +414,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property("quit-watch-later", self.quit_watch_later)
         self.mpv.observe_property("playback-abort", self.playback_abort_observer)
         self.mpv.observe_property("playlist-pos", self.playlist_position_observer)
+        self.mpv.observe_property("core-idle", self.core_observer)
         self.init_mpv_opengl_cb()
         
     def init_mpv_opengl_cb(self):
@@ -418,6 +444,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property('quit-watch-later')
         self.mpv.observe_property('playback-abort')
         self.mpv.observe_property('playlist-pos')
+        self.mpv.observe_property('core-idle')
         self.observer_map = {
                     'time-pos': self.time_observer,
                     'eof-reached': self.eof_observer,
@@ -429,7 +456,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     'ao-volume': self.volume_observer,
                     'quit-watch-later': self.quit_watch_later,
                     'playback-abort': self.playback_abort_observer,
-                    'playlist-pos': self.playlist_position_observer
+                    'playlist-pos': self.playlist_position_observer,
+                    'core-idle': self.core_observer
                     }
         
         self.mpv.set_wakeup_callback(self.eventHandler)
@@ -752,7 +780,20 @@ class MpvOpenglWidget(QOpenGLWidget):
                 }
             )
         logger.info("remember-- {}".format(self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)))
-        
+
+    def core_observer(self, _name, value):
+        logger.debug("{} {}".format("core..observer.. value", value))
+        if value is True and self.mpv.get_property("idle-active") is False:
+            cache = self.mpv.get_property('demuxer-cache-idle')
+            time_pos = self.mpv.get_property('time-pos')
+            if cache is False and time_pos and time_pos > 3:
+                self.player_observer_thread.show_status = True
+            else:
+                self.player_observer_thread.show_status = False
+        else:
+            self.player_observer_thread.show_status = False
+    
+                    
     def eof_observer(self, _name, value):
         logger.debug("{} {}".format("eof.. value", value, _name))
         if value is True or value is None:
