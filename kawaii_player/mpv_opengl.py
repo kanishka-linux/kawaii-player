@@ -702,7 +702,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         if value is not None:
             fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
             gui.progress_counter = value
-            cache = self.mpv.get_property('demuxer-cache-duration')
+            try:
+                cache = self.mpv.get_property('demuxer-cache-duration')
+            except Exception as err:
+                cache = 0
             if gui.mplayerLength > 0:
                 percent = int((value/gui.mplayerLength)*100)
             else:
