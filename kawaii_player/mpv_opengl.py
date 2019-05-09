@@ -1381,7 +1381,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if self.ui.orientation_dock == 'right':
                         self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                     self.ui.fullscreen_video = False
-                    self.setParent(MainWindow)
+                    if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
+                        self.setParent(MainWindow)
                     
                     self.ui.gridLayout.addWidget(self, 0, 1, 1, 1)
                     self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
