@@ -2206,6 +2206,8 @@ class Ui_MainWindow(object):
                         self.scrollArea.cur_row = index
                     elif self.view_mode == 'thumbnail_light':
                         self.list_poster.setCurrentRow(index)
+                    else:
+                        self.list1.setCurrentRow(index)
                 except Exception as err:
                     logger.error(err)
             elif self.focus_widget == self.list2:
@@ -2214,7 +2216,7 @@ class Ui_MainWindow(object):
                 else:
                     self.list2.setCurrentRow(index)
                     try:
-                        if not self.tab_6.isHidden():
+                        if not self.tab_6.isHidden() and self.view_mode == "thumbnail":
                             self.take_to_thumbnail(row=index, mode='epn')
                             self.scrollArea1.cur_row = index
                     except Exception as err:
@@ -12435,7 +12437,10 @@ class Ui_MainWindow(object):
                 self.backward.hide()
                 if self.gapless_playback:
                     self.use_playlist_method()
-        
+        if self.view_mode == 'thumbnail_light':
+            self.list_poster.show_list(mode='prev')
+            self.dockWidget_3.show()
+            
     def options(self, val=None):
         global opt, pgn, genre_num, site, name
         global pre_opt, mirrorNo, home, siteName, finalUrlFound
@@ -12666,15 +12671,8 @@ class Ui_MainWindow(object):
             if site == "NotMentioned":
                 print("PlayLists")
             elif self.view_mode == 'thumbnail_light':
-                if self.list_poster.title_clicked:
-                    self.list_poster.show_list(mode='next')
-                    try:
-                        for i in range(0, total_till_epn):
-                            t = "self.label_epn_"+str(i)+".deleteLater()"
-                            exec (t)
-                        total_till_epn=0
-                    except Exception as err:
-                        logger.error(err)
+                self.list_poster.show_list(mode='prev')
+                self.dockWidget_3.show()
             elif self.view_mode == 'thumbnail':
                 self.list1.hide()
                 self.list2.hide()
