@@ -1824,7 +1824,7 @@ class TitleListWidgetPoster(PlaylistWidget):
         
             
     def show_list(self, mode=None):
-        if self.isHidden() or mode in ['next', 'prev']:
+        if self.isHidden() or mode in ['next', 'prev'] or isinstance(mode, dict):
             if mode != 'next' or not self.status_dict_poster:
                 self.status_dict_poster = {
                     'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),

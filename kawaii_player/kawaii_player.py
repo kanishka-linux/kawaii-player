@@ -3626,8 +3626,9 @@ class Ui_MainWindow(object):
             self.float_window.setWindowTitle('Kawaii-Player')
         self.fullscreen_video = False
         if self.view_mode == "thumbnail_light":
+            if self.tab_6.isHidden():
+                self.tab_6.show()
             self.list_poster.show()
-            #self.list2.show()
             
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
@@ -9980,7 +9981,6 @@ class Ui_MainWindow(object):
     
     def initial_view_mode(self):
         global site, show_hide_player
-        
         if site.lower() == "music" and show_hide_player == 0:
             if self.float_window.isHidden():
                 self.tab_5.hide()
@@ -9992,6 +9992,8 @@ class Ui_MainWindow(object):
                 self.text.hide()
                 self.label.hide()
                 self.label_new.hide()
+                if self.view_mode == "thumbnail_light" and self.player_val == "mpv":
+                    self.tab_6.hide()
                 
     def epn_return(self, row, mode=None):
         global site, mirrorNo
