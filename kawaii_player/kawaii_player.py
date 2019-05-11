@@ -2159,7 +2159,9 @@ class Ui_MainWindow(object):
     def experiment_list(self, mode=None):
         self.view_mode = 'thumbnail_light'
         self.list_poster.title_clicked = True
-        if mode == 'show' or mode is None:
+        if isinstance(mode, dict):
+            self.list_poster.show_list(mode=mode)
+        elif mode == 'show' or mode is None:
             self.list_poster.show_list()
         elif mode == 'hide':
             logger.debug(self.list_poster.title_clicked)
@@ -14569,11 +14571,7 @@ def main():
         if ui.view_mode == 'thumbnail':
             ui.IconViewEpn(start=True, mode=1)
         else:
-            #ui.IconViewEpn(start=True, mode=2)
-            ui.experiment_list(mode="show")
-            #ui.list2.show()
-            #ui.frame1.show()
-            #ui.list2.setFocus()
+            ui.experiment_list({"mode":"start", "epi": episode_index, "title_index": name_index})
     logger.debug('FullScreen={}'.format(ui.force_fs))
     if ui.force_fs:
         MainWindow.showFullScreen()
@@ -14669,8 +14667,16 @@ def main():
             f.write("\nOption_Val="+str(opt_val))
             f.write("\nOption_Index="+str(opt_index))
             f.write("\nOption_SiteName="+str(siteName))
-            f.write("\nName_Index="+str(ui.list1.currentRow()))
-            f.write("\nEpisode_Index="+str(ui.list2.currentRow()))
+            if ui.list_poster.isHidden():
+                f.write("\nName_Index="+str(ui.list1.currentRow()))
+                f.write("\nEpisode_Index="+str(ui.list2.currentRow()))
+            else:
+                if ui.list_poster.title_clicked:
+                    f.write("\nName_Index="+str(ui.list1.currentRow()))
+                    f.write("\nEpisode_Index="+str(ui.list_poster.currentRow()))
+                else:
+                    f.write("\nName_Index="+str(ui.list_poster.currentRow()))
+                    f.write("\nEpisode_Index="+str(0))
             f.write("\nShow_Hide_Cover="+str(show_hide_cover))
             f.write("\nShow_Hide_Playlist="+str(show_hide_playlist))
             f.write("\nShow_Hide_Titlelist="+str(show_hide_titlelist))

@@ -724,6 +724,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                 gui.cur_row = cur_row
                 gui.list2.setCurrentRow(gui.cur_row)
                 self.set_window_title_and_epn(row=cur_row)
+                if gui.view_mode == "thumbnail_light" and gui.cur_row < gui.list_poster.count():
+                    gui.list_poster.setCurrentRow(gui.cur_row)
         
     def time_observer(self, _name, value):
         if value is not None:

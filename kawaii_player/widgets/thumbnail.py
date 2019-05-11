@@ -1669,7 +1669,7 @@ class TitleListWidgetPoster(PlaylistWidget):
         ui.horizontalLayout10.addWidget(self)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.itemClicked['QListWidgetItem*'].connect(self.poster_list_clicked)
+        self.itemDoubleClicked['QListWidgetItem*'].connect(self.poster_list_clicked)
         self.currentRowChanged['int'].connect(self.set_title)
         self.hide()
         self.title_clicked = False
@@ -1727,6 +1727,15 @@ class TitleListWidgetPoster(PlaylistWidget):
         elif event.key() == QtCore.Qt.Key_Backspace:
             if self.title_clicked:
                 self.show_list(mode="prev")
+        elif event.key() == QtCore.Qt.Key_W:
+            if (self.title_clicked and self.currentRow() is not None
+                    and isinstance(self.currentRow(), int) and self.currentRow() >= 0):
+                row_epn = self.currentRow()
+                if row_epn < ui.list2.count():
+                    ui.list2.setCurrentRow(row_epn)
+                    ui.watchToggle()
+                    txt = ui.list2.item(row_epn).text()
+                    self.item(row_epn).setText(txt)
         elif event.key() in [QtCore.Qt.Key_Down, QtCore.Qt.Key_Up]:
             super(PlaylistWidget, self).keyPressEvent(event)
         elif event.text().isalnum():
@@ -1779,6 +1788,10 @@ class TitleListWidgetPoster(PlaylistWidget):
                 item = ui.list2.item(row)
                 ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
             else:
+                if ui.list2.currentRow():
+                    row_epn = ui.list2.currentRow()
+                else:
+                    row_epn = 0
                 self.setWordWrap(True)
                 self.title_clicked = True
                 row = self.currentRow()
@@ -1787,6 +1800,8 @@ class TitleListWidgetPoster(PlaylistWidget):
                     txt = self.item(row).text()
                     ui.labelFrame2.setText('{0}. {1}'.format(row+1, txt))
                 ui.listfound(row_select=row, show_ep_thumbnail=True)
+                if isinstance(row_epn, int) and row_epn < self.count():
+                    self.setCurrentRow(row_epn)
 
     def refill_items(self, mode):
         self.setWordWrap(False)
@@ -1809,7 +1824,7 @@ class TitleListWidgetPoster(PlaylistWidget):
         
             
     def show_list(self, mode=None):
-        if self.isHidden() or mode == 'next' or mode == 'prev':
+        if self.isHidden() or mode in ['next', 'prev']:
             if mode != 'next' or not self.status_dict_poster:
                 self.status_dict_poster = {
                     'list1':ui.list1.isHidden(), 'list2':ui.list2.isHidden(),
@@ -1829,7 +1844,13 @@ class TitleListWidgetPoster(PlaylistWidget):
             self.show()
             self.setFocus()
             self.refill_items(mode)
-                
+            if isinstance(mode, dict):
+                title_index = mode.get("title_index")
+                epi = mode.get("epi")
+                if title_index < self.count():
+                    self.setCurrentRow(title_index)
+                    item = self.item(title_index)
+                    self.itemDoubleClicked['QListWidgetItem*'].emit(item)
         else:
             self.hide()
             for i in ui.widget_dict:
