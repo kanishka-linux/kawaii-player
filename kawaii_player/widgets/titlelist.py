@@ -207,11 +207,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                 if opt != "History":
                     ui.listfound()
                 param_dict = ui.get_parameters_value(
-                    s='site', sn='siteName', bu='base_url', e='embed',
+                    s='site', sn='siteName', e='embed',
                     n='name', r='refererNeeded', f='finalUrlFound')
                 site = param_dict['site']
                 siteName = param_dict['siteName']
-                base_url = param_dict['base_url']
+                base_url = None
                 embed = param_dict['embed']
                 name = param_dict['name']
                 refererNeeded = param_dict['refererNeeded']
@@ -602,12 +602,12 @@ class TitleListWidget(QtWidgets.QListWidget):
         bookmark = param_dict['bookmark']
         opt = param_dict['opt']
         param_dict = ui.get_parameters_value(
-            s='site', sn='siteName', bu='base_url', e='embed',
+            s='site', sn='siteName', e='embed',
             n='name', r='refererNeeded', f='finalUrlFound'
             )
         site = param_dict['site']
         siteName = param_dict['siteName']
-        base_url = param_dict['base_url']
+        base_url = None
         embed = param_dict['embed']
         name = param_dict['name']
         refererNeeded = param_dict['refererNeeded']

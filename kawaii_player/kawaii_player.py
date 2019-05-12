@@ -4225,7 +4225,7 @@ class Ui_MainWindow(object):
                 opt = tmp1[1]
             pre_opt = tmp1[2]
             siteName = tmp1[2]
-            base_url = int(tmp1[3])
+            base_url = tmp1[3]
             embed = int(tmp1[4])
             name_tmp = tmp1[5]
             logger.info(name_tmp)
@@ -7675,7 +7675,7 @@ class Ui_MainWindow(object):
                 opt = tmp1[1]
             pre_opt = tmp1[2]
             siteName = tmp1[2]
-            base_url = int(tmp1[3])
+            base_url = tmp1[3]
             embed = int(tmp1[4])
             name = tmp1[5]
             if site=="Local":
