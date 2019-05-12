@@ -1527,6 +1527,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             menu.addMenu(view_menu)
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
+            thumb_wall = view_menu.addAction("Thumbnail Wall Mode (F1)")
             thumb = view_menu.addAction("Thumbnail Grid Mode (Shift+Z)")
             if self.ui.pc_to_pc_casting == 'master':
                 cast_menu = QtWidgets.QMenu(menu)
@@ -1629,6 +1630,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if not self.ui.float_window.isHidden():
                     self.setMaximumHeight(16777215)
                 self.ui.update_list2()
+            elif action == thumb_wall:
+                if self.ui.list1.currentRow():
+                    title_index = self.ui.list1.currentRow()
+                else:
+                    title_index = -1
+                self.ui.experiment_list({"mode":"pls", "epi": self.currentRow(), "title_index": title_index})
             elif action == thumb:
                 if self.currentItem() and self.ui.float_window.isHidden():
                     self.ui.IconViewEpn(mode=3)
@@ -1742,6 +1749,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 menu.addMenu(cast_menu)
             view_list = view_menu.addAction("List Mode (Default)")
             view_list_thumbnail = view_menu.addAction("List With Thumbnail")
+            thumb_wall = view_menu.addAction("Thumbnail Wall Mode (F1)")
             thumb = view_menu.addAction("Thumbnail Grid Mode (Shift+Z)")
             pls = os.listdir(os.path.join(home, 'Playlists'))
             home_n = os.path.join(home, 'Playlists')
@@ -1925,6 +1933,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 if not self.ui.float_window.isHidden():
                     self.setMaximumHeight(16777215)
                 self.ui.update_list2()
+            elif action == thumb_wall:
+                if self.ui.list1.currentRow():
+                    title_index = self.ui.list1.currentRow()
+                else:
+                    title_index = -1
+                self.ui.experiment_list({"mode":"pls", "epi": self.currentRow(), "title_index": title_index})
             elif action == remove_all:
                 for i, j in enumerate(self.ui.epn_arr_list):
                     self.remove_thumbnails(i ,j)

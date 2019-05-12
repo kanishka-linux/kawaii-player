@@ -1847,10 +1847,15 @@ class TitleListWidgetPoster(PlaylistWidget):
             if isinstance(mode, dict):
                 title_index = mode.get("title_index")
                 epi = mode.get("epi")
-                if title_index < self.count():
-                    self.setCurrentRow(title_index)
-                    item = self.item(title_index)
-                    self.itemDoubleClicked['QListWidgetItem*'].emit(item)
+                pls_mode = mode.get("mode")
+                if pls_mode == "pls":
+                    self.title_clicked = False
+                    self.poster_list_clicked()
+                elif mode == "start":
+                    if title_index < self.count():
+                        self.setCurrentRow(title_index)
+                        item = self.item(title_index)
+                        self.itemDoubleClicked['QListWidgetItem*'].emit(item)
         else:
             self.hide()
             for i in ui.widget_dict:
