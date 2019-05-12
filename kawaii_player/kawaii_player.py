@@ -9069,7 +9069,7 @@ class Ui_MainWindow(object):
                     return file_path_name_mkv
         elif self.wget.processId() > 0 and play_now:
             return True
-        elif site.lower() in ["playlists", "myserver"] and self.player_val == "libmpv" and play_now:
+        elif (site.lower() in ["playlists", "myserver"] or self.music_playlist) and self.player_val == "libmpv" and play_now:
             self.use_playlist_method()
             if os.path.exists(file_path_name_mp4):
                 file_path = file_path_name_mp4

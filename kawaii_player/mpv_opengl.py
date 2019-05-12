@@ -423,7 +423,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.exec_thread = ExecCommand(self.ui, [])
         self.started = False
         self.file_size = 0
-        #self.cursor = self.getCursor()
+        self.first_play = True
 
     def init_opengl_cb(self):
         self.mpv = MPV(**self.args_dict)
@@ -671,11 +671,16 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.seek_now = False
 
     def playback_abort_observer(self, name, value):
-        logger.debug('{} {}'.format(name, value))
+        site = self.ui.get_parameters_value(st='site')['site']
+        logger.debug('\n..{} {}..\n'.format(name, value))
         if self.ui.epn_clicked and value is True:
             if self.ui.cur_row < self.ui.list2.count():
                 self.ui.list2.setCurrentRow(self.ui.cur_row)
                 item = self.ui.list2.item(self.ui.cur_row)
+                if self.first_play and site == "Music":
+                    self.mpv.command("stop")
+                    self.ui.player_stop.clicked_emit()
+                    self.first_play = False
                 if item:
                     self.ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                     logger.debug("trying again..............")
@@ -825,7 +830,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                 time_pos = self.mpv.get_property('time-pos')
                 if time_pos and time_pos > 3:
                     self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
-    
                     
     def eof_observer(self, _name, value):
         logger.debug("{} {}".format("eof.. value", value, _name))
@@ -927,10 +931,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                     opt = "auto"
                 self.mpv.command("sub-add", path, opt, "External-Subtitle", lang)
                     
-                    
     def idle_observer(self, _name, value):
-        logger.debug("...{}={}, quit-now={}".format(value, _name, gui.quit_now))
         site = self.ui.get_parameters_value(st='site')['site']
+        logger.debug("...{}={}, quit-now={} site={}".format(value, _name, gui.quit_now, site))
         if (value is True and self.started
                 and gui.list2.count() > 1
                 and gui.quit_now is False
@@ -949,7 +952,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                     gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
             self.set_window_title_and_epn(row=gui.cur_row)
             
-        
     def set_window_title_and_epn(self, title=None, row=None):
         if title is None:
             if isinstance(row, int) and row < self.ui.list2.count():
@@ -1005,8 +1007,14 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.mpv.set_property('video-aspect', aspect_val)
                 elif not gui.restore_aspect:
                     self.mpv.command("show-text", "Bad Aspect Property: {}".format(aspect_val))
-                self.mpv.set_property('sid', sub_id)
-                self.mpv.set_property('aid', audio_id)
+                try:
+                    self.mpv.set_property('sid', sub_id)
+                except:
+                    pass
+                try:
+                    self.mpv.set_property('aid', audio_id)
+                except:
+                    pass
                 if gui.restore_volume and vol:
                     try:
                         self.mpv.set_property('ao-volume', vol)
