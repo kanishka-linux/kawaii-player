@@ -21,6 +21,8 @@ class MainWindowWidget(QtWidgets.QWidget):
                 ui.new_tray_widget.title1.setText("")
                 if not ui.new_tray_widget.title1.isHidden():
                     ui.new_tray_widget.title1.hide()
+                if ui.view_mode == "thumbnail_light":
+                    ui.labelFrame2.setText(title)
         
     def dragEnterEvent(self, event):
         data = event.mimeData()
