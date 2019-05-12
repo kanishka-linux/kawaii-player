@@ -214,6 +214,7 @@ class PlayerStatusObserver(QtCore.QThread):
         self.ui = ui
         QtCore.QThread.__init__(self)
         self.show_status = False
+        self.remove_external_files = False
         
     def __del__(self):
         self.wait()
@@ -228,6 +229,18 @@ class PlayerStatusObserver(QtCore.QThread):
         while True:
             if self.show_status:
                 self.core_observer_status()
+            if self.remove_external_files:
+                try:
+                    self.ui.tab_5.mpv.command("sub-remove")
+                    self.ui.logger.info('removing external subtitles')
+                except Exception as err:
+                    self.ui.logger.debug('no external subtitle loaded')
+                try:
+                    self.ui.tab_5.mpv.command("audio-remove")
+                    self.ui.logger.info('removing external audio')
+                except Exception as err:
+                    self.ui.logger.debug('no external audio loaded')
+                self.remove_external_files = False
             time.sleep(1)
         
 
@@ -409,6 +422,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.playing_queue = False
         self.exec_thread = ExecCommand(self.ui, [])
         self.started = False
+        self.file_size = 0
         #self.cursor = self.getCursor()
 
     def init_opengl_cb(self):
@@ -731,10 +745,9 @@ class MpvOpenglWidget(QOpenGLWidget):
         if value is not None:
             if abs(value - gui.progress_counter) >= 0.5:
                 display_string = self.display_play_pause_string(value)
-                file_size = self.mpv.get_property('file-size')
                 value_int = int(value)
-                if file_size:
-                    file_size = round((file_size)/(1024*1024), 2)
+                if self.file_size:
+                    file_size = round((self.file_size)/(1024*1024), 2)
                     display_string = "{} Size: {} M".format(display_string, file_size)
                 if not gui.frame1.isHidden() and not self.seek_now:
                     gui.slider.valueChanged.emit(value_int)
@@ -966,6 +979,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             z = 'duration is {:.2f}s'.format(value)
             gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
+            try:
+                self.file_size = self.mpv.get_property('file-size')
+            except Exception as err:
+                self.file_size = 0
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
             gui.final_playing_url = self.mpv.get_property('path')
@@ -1253,11 +1270,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setMouseTracking(True)
         self.showNormal()
         self.setFocus()
-        try:
-            self.mpv.command("audio-remove")
-            self.mpv.command("sub-remove")
-        except Exception as err:
-            logger.error(err)
+        self.player_observer_thread.remove_external_files = True
         self.audio = None
         self.subtitle = None
         self.ui.quit_now = True
