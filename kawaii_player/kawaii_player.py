@@ -8965,8 +8965,7 @@ class Ui_MainWindow(object):
                     return file_path_name_mp4
                 else:
                     return file_path_name_mkv
-        elif (site.lower() == 'music' and self.list3.currentItem() 
-                and (os.path.exists(file_path_name_mp4) 
+        elif (self.music_playlist and (os.path.exists(file_path_name_mp4) 
                 or os.path.exists(file_path_name_mkv)) and not self.video_local_stream):
             if self.list3.currentItem().text().lower() == 'playlist':
                 logger.info('now--playing: {0}-{1}--8626'.format(file_path_name_mp4, file_path_name_mkv))
