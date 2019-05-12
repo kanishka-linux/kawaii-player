@@ -3520,7 +3520,7 @@ class Ui_MainWindow(object):
                                 if show_hide_titlelist == 1:
                                     self.list2.show()
                                 self.list2.setFocus()
-                        elif self.fullscreen_mode == 1:
+                        elif self.fullscreen_mode == 1 and self.view_mode != "thumbnail_light":
                             self.tab_6.show()
                             self.frame2.show()
                             self.frame1.show()
@@ -9981,6 +9981,10 @@ class Ui_MainWindow(object):
         global site, show_hide_player
         if site.lower() == "music" and show_hide_player == 0:
             if self.float_window.isHidden():
+                self.tab_5.hide()
+            if self.player_val == "libmpv":
+                self.tab_5.show()
+                time.sleep(0.001)
                 self.tab_5.hide()
         else:
             if self.player_val in ['mpv', 'libmpv', 'mplayer']:
