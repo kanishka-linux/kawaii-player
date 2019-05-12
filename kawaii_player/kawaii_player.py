@@ -3444,11 +3444,7 @@ class Ui_MainWindow(object):
             else:
                 self.tab_5.initial_volume_set = False
                 self.tab_5.rem_properties(self.final_playing_url, 0, self.progress_counter)
-                try:
-                    self.tab_5.mpv.command("audio-remove")
-                    self.tab_5.mpv.command("sub-remove")
-                except Exception as err:
-                    logger.error(err)
+                self.tab_5.player_observer_thread.remove_external_files = True
                 self.tab_5.audio = None
                 self.tab_5.subtitle = None
                 self.mpvplayer_val.write(bytes("stop", "utf-8"))
@@ -6982,7 +6978,11 @@ class Ui_MainWindow(object):
             for i in criteria:
                 self.list1.addItem(i)
                 self.original_path_name.append(i)
-            criteria = ['List', 'Open File', 'Open Url', 'Open Directory']
+            criteria = [
+                'List', 'Open File', 'Open Url',
+                'Append File', 'Append Url',
+                'Open Directory', 'Create Playlist'
+                ]
             for i in criteria:
                 self.list3.addItem(i)
             self.video_local_stream = False
@@ -8037,9 +8037,7 @@ class Ui_MainWindow(object):
             if self.view_mode == 'thumbnail':
                 self.IconViewEpn(mode=1)
             elif self.view_mode == 'thumbnail_light':
-                #self.IconViewEpn(mode=2)
-                #self.list2.show()
-                #self.list_poster.clear()
+                self.list_poster.clear()
                 self.update_list2()
                 self.frame1.show()
         if self.gapless_playback:
@@ -12606,17 +12604,8 @@ class Ui_MainWindow(object):
             if self.list3.currentItem():
                 txt = self.list3.currentItem().text().lower()
                 if txt == 'list':
-                    criteria = os.listdir(os.path.join(home, 'Playlists'))
-                    criteria.sort()
-                    home_n = os.path.join(home, 'Playlists')
-                    criteria = naturallysorted(criteria)
-                    self.original_path_name[:] = []
-                    self.list1.clear()
-                    self.list2.clear()
-                    for i in criteria:
-                        self.list1.addItem(i)
-                        self.original_path_name.append(i)
-                elif txt == 'open file':
+                    self.list_all_playlists()
+                elif txt in ['open file', 'append file']:
                     a = 0
                     print("add")
                     fname = QtWidgets.QFileDialog.getOpenFileNames(
@@ -12627,7 +12616,8 @@ class Ui_MainWindow(object):
                             self.last_dir, file_choose = os.path.split(fname[0][0])
                         self.list2.clear()
                         file_list = fname[0]
-                        self.epn_arr_list[:] = []
+                        if txt == "open file":
+                            self.epn_arr_list.clear()
                         for i in file_list:
                             j = os.path.basename(i)
                             if '.' in j:
@@ -12642,22 +12632,36 @@ class Ui_MainWindow(object):
                                     else:
                                         self.watch_external_video(i)
                         if self.epn_arr_list:
-                            file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
-                            f = open(file_name, 'w').close()
-                            write_files(file_name, self.epn_arr_list, True)
-                            self.list1.clear()
-                            self.list1.addItem('TMP_PLAYLIST')
-                elif txt == 'open url':
+                            if txt == 'open file':
+                                file_name = os.path.join(home, 'Playlists', 'TMP_PLAYLIST')
+                                f = open(file_name, 'w').close()
+                                write_files(file_name, self.epn_arr_list, True)
+                                self.list1.clear()
+                                self.list1.addItem('TMP_PLAYLIST')
+                            else:
+                                self.update_playlist_after_append()
+                elif txt in ['open url', 'append url']:
                     item, ok = QtWidgets.QInputDialog.getText(
                         MainWindow, 'Input Dialog', 'Enter Url of External Media or Playlist')
                     if ok and item:
-                        self.list2.clear()
-                        self.list1.clear()
-                        if item.startswith('http'):
-                            if not self.gapless_network_stream:
-                                self.progressEpn.setFormat('Wait! Trying to get final link.')
-                            QtWidgets.QApplication.processEvents()
-                            self.watch_external_video(item, mode='open url')
+                        if txt == 'open url':
+                            self.list2.clear()
+                            self.list1.clear()
+                            if item.startswith('http'):
+                                if not self.gapless_network_stream:
+                                    self.progressEpn.setFormat('Wait! Trying to get final link.')
+                                QtWidgets.QApplication.processEvents()
+                                self.watch_external_video(item, mode='open url')
+                        else:
+                            item_title = item.rsplit('/')[-1]
+                            if item_title:
+                                item_title = urllib.parse.unquote(item_title)
+                                item_title = re.sub(r'\?|\.|\:', ' - ', item_title)
+                            else:
+                                item_title = 'Title not Available'
+                            new_val = item_title +'\t'+item+'\t'+'NONE'
+                            self.epn_arr_list.append(new_val)
+                            self.update_playlist_after_append()
                 elif txt == 'open directory':
                     fname = QtWidgets.QFileDialog.getExistingDirectory(
                             MainWindow, 'Add Directory', self.last_dir)
@@ -12665,6 +12669,14 @@ class Ui_MainWindow(object):
                         if os.path.exists(fname):
                             self.last_dir = fname
                             self.watch_external_video(fname)
+                elif txt == 'create playlist':
+                    item, ok = QtWidgets.QInputDialog.getText(
+                    MainWindow, 'Input Dialog', 'Enter Playlist Name')
+                    if ok and item:
+                        file_path = os.path.join(home, 'Playlists', item)
+                        if not os.path.exists(file_path):
+                            open(file_path, 'w').close()
+                    self.list_all_playlists()
         self.page_number.setText(str(self.list1.count()))
         
         if ((self.view_mode in ["thumbnail", "thumbnail_light"] or not self.tab_6.isHidden()) 
@@ -12725,7 +12737,34 @@ class Ui_MainWindow(object):
                 show_hide_playlist = 1
         if self.gapless_playback:
             self.use_playlist_method()
-        
+
+    def update_playlist_after_append(self):
+        if self.list1.currentItem():
+            pls_name = self.list1.currentItem().text()
+            pls_loc = os.path.join(self.home_folder, 'Playlists', pls_name)
+            row = self.list1.currentRow()
+        else:
+            pls_loc = os.path.join(self.home_folder, 'Playlists', pls_name)
+            open(pls_loc, 'w').close()
+            row = 0
+            self.list1.clear()
+            self.list1.addItem('TMP_PLAYLIST')
+        write_files(pls_loc, self.epn_arr_list, True)
+        item = self.list1.item(row)
+        if item:
+            self.list1.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            
+    def list_all_playlists(self):
+        home_pls = os.path.join(self.home_folder, 'Playlists')
+        pls_list = os.listdir(home_pls)
+        pls_list = naturallysorted(pls_list)
+        self.original_path_name.clear()
+        self.list1.clear()
+        self.list2.clear()
+        for i in pls_list:
+            self.list1.addItem(i)
+            self.original_path_name.append(i)
+            
     def music_mode_layout(self):
         global screen_width, show_hide_cover, show_hide_player
         global show_hide_playlist, show_hide_titlelist, music_arr_setting
