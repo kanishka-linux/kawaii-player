@@ -738,6 +738,10 @@ class MpvOpenglWidget(QOpenGLWidget):
     def playlist_position_observer(self, _name, value):
         logger.debug("{}-{}".format(_name, value))
         if isinstance(value, int) and value >= 0:
+            if self.first_play and self.ui.music_playlist:
+                self.ui.player_stop.clicked_emit()
+                self.first_play = False
+                logger.debug("first playback")
             cur_row = value
             if (self.mpv.get_property('playlist-count') > 1 and cur_row < gui.list2.count() and gui.list2.count() > 1):
                 gui.cur_row = cur_row
