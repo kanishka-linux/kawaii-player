@@ -1729,10 +1729,10 @@ class TitleListWidgetPoster(PlaylistWidget):
             if self.title_clicked:
                 self.show_list(mode="prev")
         elif event.key() == QtCore.Qt.Key_Minus:
-            self.num -= 1
+            self.num += 1
             self.resizeEvent(None)
         elif event.key() == QtCore.Qt.Key_Equal:
-            self.num += 1
+            self.num -= 1
             self.resizeEvent(None)
         elif event.key() == QtCore.Qt.Key_W:
             if (self.title_clicked and self.currentRow() is not None
