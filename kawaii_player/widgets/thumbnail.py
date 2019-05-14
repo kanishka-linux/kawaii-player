@@ -1824,6 +1824,7 @@ class TitleListWidgetPoster(PlaylistWidget):
         
             
     def show_list(self, mode=None):
+        ui.comboBoxMode.hide()
         if self.isHidden() or mode in ['next', 'prev'] or isinstance(mode, dict):
             if mode != 'next' or not self.status_dict_poster:
                 self.status_dict_poster = {

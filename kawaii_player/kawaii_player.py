@@ -5354,6 +5354,8 @@ class Ui_MainWindow(object):
         self.label_new.show()
         self.frame1.show()
         self.text.show()
+        if self.view_mode == "thumbnail_light":
+            self.comboBoxMode.show()
         self.fullscreen_mode = 0
         if context == "ExtendedQLabel":
             pass
