@@ -1334,7 +1334,11 @@ def apply_thumbnail_to_playlist(k, i, title):
     try:
         if k < ui.list2.count():
             icon_name = ui.get_thumbnail_image_path(k, i, title_list=title)
-            icon_new_pixel = ui.create_new_image_pixel(icon_name, 128)
+            if ui.view_mode == "thumbnail_light":
+                size = 256
+            else:
+                size = 128
+            icon_new_pixel = ui.create_new_image_pixel(icon_name, size)
             if os.path.exists(icon_new_pixel):
                 ui.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
                 if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:

@@ -420,8 +420,8 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 50%);
                 }}
                 QListWidget:item {{
-                height: 256px;
-                width: 128px;
+                height: 312px;
+                width: 256px;
                 }}
                 QListWidget:item:selected:active {{
                 background:rgba(0, 0, 0, 60%);
@@ -631,8 +631,8 @@ class WidgetStyleSheet:
                 border-radius:3px;background-color :{2}; border: 1px solid rgba(0,0,0,20%);
                 }}
                 QListWidget:item {{
-                height: 256px;
-                width: 128px;
+                height: 312px;
+                width: 256px;
                 }}
                 
                 """.format(ht, gui.list_text_color_focus, bgcolor))
@@ -958,8 +958,8 @@ class WidgetStyleSheet:
                     font: {bold};
                     }}
                     QListWidget:item {{
-                    height: 256px;
-                    width:128px;
+                    height: 312px;
+                    width:256px;
                     }}
                     QListWidget:item:selected:active {{
                     background:rgba(0, 0, 0, 30%);

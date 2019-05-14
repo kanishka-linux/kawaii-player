@@ -1771,13 +1771,13 @@ class TitleListWidgetPoster(PlaylistWidget):
             self.setFocus()
 
     def resizeEvent(self, event):
-        self.num = int(self.width()/128)
+        self.num = int(self.width()/256)
         width = int(self.width()/self.num)
         ht = int(1.6*width)
         logger.debug('width={}::ht={}'.format(width, ht))
         extra_width = self.width() - self.num*width
         offset = int(extra_width/self.num)
-        self.setGridSize(QtCore.QSize(width+offset, ht+32))
+        self.setGridSize(QtCore.QSize(width+offset, ht-100))
         self.setIconSize(QtCore.QSize(width, ht))
     
     def poster_list_clicked(self):
