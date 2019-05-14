@@ -1686,6 +1686,7 @@ class TitleListWidgetPoster(PlaylistWidget):
             QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
             ]
         self.status_dict_poster = {}
+        self.num = 6
         
     def set_title(self):
         if self.currentItem():
@@ -1727,6 +1728,12 @@ class TitleListWidgetPoster(PlaylistWidget):
         elif event.key() == QtCore.Qt.Key_Backspace:
             if self.title_clicked:
                 self.show_list(mode="prev")
+        elif event.key() == QtCore.Qt.Key_Minus:
+            self.num -= 1
+            self.resizeEvent(None)
+        elif event.key() == QtCore.Qt.Key_Equal:
+            self.num += 1
+            self.resizeEvent(None)
         elif event.key() == QtCore.Qt.Key_W:
             if (self.title_clicked and self.currentRow() is not None
                     and isinstance(self.currentRow(), int) and self.currentRow() >= 0):
@@ -1771,7 +1778,6 @@ class TitleListWidgetPoster(PlaylistWidget):
             self.setFocus()
 
     def resizeEvent(self, event):
-        self.num = int(self.width()/256)
         width = int(self.width()/self.num)
         ht = int(1.6*width)
         logger.debug('width={}::ht={}'.format(width, ht))
