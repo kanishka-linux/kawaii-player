@@ -1686,7 +1686,7 @@ class TitleListWidgetPoster(PlaylistWidget):
             QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
             ]
         self.status_dict_poster = {}
-        self.num = 6
+        self.num = 9
         
     def set_title(self):
         if self.currentItem():
@@ -1778,13 +1778,13 @@ class TitleListWidgetPoster(PlaylistWidget):
             self.setFocus()
 
     def resizeEvent(self, event):
-        width = int(self.width()/self.num)
+        width = int(self.width()/self.num) - 2
         ht = int(1.6*width)
         logger.debug('width={}::ht={}'.format(width, ht))
         extra_width = self.width() - self.num*width
         offset = int(extra_width/self.num)
-        self.setGridSize(QtCore.QSize(width+offset, ht-100))
-        self.setIconSize(QtCore.QSize(width, ht))
+        self.setGridSize(QtCore.QSize(width+offset, ht))
+        self.setIconSize(QtCore.QSize(width, ht-20))
     
     def poster_list_clicked(self):
         if self.currentItem():
