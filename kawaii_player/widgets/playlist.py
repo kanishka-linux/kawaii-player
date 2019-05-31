@@ -1431,9 +1431,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
             small_nm_2 = '128px.'+new_title
             small_nm_3 = '480px.'+new_title
             small_nm_4 = 'label.'+new_title
+            small_nm_5 = '256px.'+new_title
             new_small_thumb = os.path.join(small_nm_1, small_nm_2)
             small_thumb = os.path.join(small_nm_1, small_nm_3)
             small_label = os.path.join(small_nm_1, small_nm_4)
+            wall_thumb = os.path.join(small_nm_1, small_nm_5)
             logger.info(new_small_thumb)
             if os.path.exists(new_small_thumb):
                 os.remove(new_small_thumb)
@@ -1441,6 +1443,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 os.remove(small_thumb)
             if os.path.exists(small_label):
                 os.remove(small_label)
+            if os.path.exists(wall_thumb):
+                os.remove(wall_thumb)
         elif remove_summary:
             path_thumb, new_title = os.path.split(dest)
             txt_file = new_title.replace('.jpg', '.txt', 1)

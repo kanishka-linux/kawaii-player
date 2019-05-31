@@ -3450,7 +3450,7 @@ class Ui_MainWindow(object):
                 self.mpvplayer_val.write(bytes("stop", "utf-8"))
         if self.mpvplayer_val.processId() > 0 or msg or self.player_val == "libmpv":
             logger.warning(self.progress_counter)
-            if self.player_val == 'mpv':
+            if self.player_val in ['mpv', 'libmpv']:
                 counter = self.progress_counter
             else:
                 counter = (self.progress_counter/1000)
