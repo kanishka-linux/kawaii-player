@@ -1420,7 +1420,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             logger.error(msg)
             send_notification(msg)
         else:
-            logger.error(err)
+            logger.debug("PC To PC Casting Auth Error: {}".format(err))
             self.start_remote_status(url)
             
     def remove_thumbnails(self, row, row_item, remove_summary=None):

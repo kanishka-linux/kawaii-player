@@ -1085,6 +1085,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             allow_chunks = True
             logger.info('allow-chunks={0}'.format(allow_chunks))
         if nm.startswith('http'):
+            netloc = urlparse(nm).netloc
+            torrent_stream_ip = ui.local_ip + ':' + str(ui.local_port)
+            if netloc == torrent_stream_ip:
+                uid = str(uuid.uuid4())
+                if nm.endswith('/'):
+                    nm = '{}&auth_token={}'.format(nm, uid)
+                else:
+                    nm = '{}/&auth_token={}'.format(nm, uid)
+                if len(ui.allowed_access_tokens) > 10:
+                    del ui.allowed_access_tokens[0]
+                ui.allowed_access_tokens.append(uid)
             self.send_response(303)
             self.send_header('Location', nm)
             self.send_header('Connection', 'close')
@@ -1102,7 +1113,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                     
             if nm_ext == 'mp3':
-                self.send_header('Content-type', 'audio/mpeg')
+                self.send_header('Content-type', 'audio/mpeg') 
             else:
                 self.send_header('Content-type', 'video/mp4')
             size = os.stat(nm).st_size

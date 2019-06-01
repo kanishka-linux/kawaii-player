@@ -238,8 +238,12 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         cookie_verified = False
         client_addr = str(self.client_address[0])
         print(client_addr, '--client--248--', self.path)
+        auth_token = None
+        allow_access = False
         if '&pl_id=' in self.path:
             path, pl_id = self.path.rsplit('&pl_id=', 1)
+            if '&auth_token' in pl_id:
+                pl_id, _ = pl_id.rsplit('&', 1)
             del_uid = False
             found_uid = False
             try:
@@ -258,17 +262,24 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 cookie_verified = True
             elif found_uid and del_uid:
                 print('--timeout--')
-
+        if '&auth_token=' in self.path:
+            _, auth_token = self.path.rsplit('&auth_token=', 1)
+            if '&pl_id' in auth_token:
+                auth_token, _ = auth_token.rsplit('&', 1)
+        if auth_token and auth_token in ui_player.allowed_access_tokens:
+            allow_access = True
         if ui_player.media_server_cookie:
             print('--cookie-stream--enabled--', cookie_verified, local_ip_arr)
-            if cookie_verified or client_addr in local_ip_arr:
+            if cookie_verified or client_addr in local_ip_arr or allow_access:
                 print('--cookie-stream-verified--')
                 self.get_the_content(get_bytes)
             else:
                 txt = b'You are not authorized to access the content'
                 self.final_message(txt)
         else:
-            if media_server_key:
+            if allow_access:
+                self.get_the_content(get_bytes)
+            elif media_server_key:
                 key_en = base64.b64encode(bytes(media_server_key, 'utf-8'))
                 key = (str(key_en).replace("b'", '', 1))[:-1]
                 new_key = 'Basic '+key

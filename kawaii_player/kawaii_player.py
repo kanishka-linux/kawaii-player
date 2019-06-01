@@ -1471,6 +1471,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.allowed_access_tokens = []
         self.stale_playlist = True
         self.epn_clicked = False
         self.osx_native_fullscreen = False
