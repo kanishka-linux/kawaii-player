@@ -258,7 +258,6 @@ class GUISignals(QtCore.QObject):
                 epn = val_arr[4]
             else:
                 epn = None
-            print(counter, length)
             nlen = str(datetime.timedelta(seconds=int(length)))
             tme = str(datetime.timedelta(seconds=int(counter)))
             if (counter in range(0, 5) and row != ui.list2.currentRow()) or self.first_time:
@@ -272,13 +271,14 @@ class GUISignals(QtCore.QObject):
                 title = item.text()
             else:
                 title = 'Not Available'
-            if epn is not None:
+            if epn not in [None, ""]:
                 title = epn
+            if title and isinstance(title, str):
                 MainWindow.windowTitleChanged.emit(title)
             ui.slider.setValue(counter)
             ui.progressEpn.setValue(0)
             ui.progressEpn.setFormat((''))
-            ui.progressEpn.setFormat(('{} / {} [{}]'.format(tme, nlen, title)))
+            ui.progressEpn.setFormat(('{} / {}'.format(tme, nlen)))
             
     @pyqtSlot(str)
     def title_clicked(self, val):
