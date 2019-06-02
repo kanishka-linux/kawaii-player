@@ -3442,8 +3442,8 @@ class Ui_MainWindow(object):
         change_spacing = False
         if self.player_val == "libmpv":
             self.epn_clicked = False
-            if msg and msg == "from openglwidget":
-                pass
+            if self.tab_5.stop_msg and self.tab_5.stop_msg == "openglwidget":
+                self.tab_5.stop_msg = None
             else:
                 self.tab_5.initial_volume_set = False
                 self.tab_5.rem_properties(self.final_playing_url, 0, self.progress_counter)
@@ -3602,8 +3602,8 @@ class Ui_MainWindow(object):
                     or self.fullscreen_mode == 1) and not self.force_fs):
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
-                MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-            QtCore.QTimer.singleShot(3000, partial(self.show_cursor_now))
+            self.gui_signals.cursor_method("show")
+            
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((''))
         self.idw = self.get_winid()
@@ -3611,7 +3611,7 @@ class Ui_MainWindow(object):
             self.set_video_mode()
         if self.orientation_dock == 'right':
             self.superGridLayout.addWidget(self.dockWidget_3, 0, 5, 2, 1)
-        MainWindow.setWindowTitle('Kawaii-Player')
+        MainWindow.windowTitleChanged.emit('Kawaii-Player')
         if not self.float_window.isHidden():
             self.float_window.setWindowTitle('Kawaii-Player')
         self.fullscreen_video = False
