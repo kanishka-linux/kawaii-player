@@ -424,6 +424,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.started = False
         self.file_size = 0
         self.first_play = True
+        self.stop_msg = None
 
     def init_opengl_cb(self):
         self.mpv = MPV(**self.args_dict)
@@ -1270,8 +1271,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.initial_volume_set = False
         self.ui.tab_5.setMinimumWidth(0)
         self.ui.tab_5.setMinimumHeight(0)
-        MainWindow.show()
-        MainWindow.showMaximized()
         self.setParent(MainWindow)
         self.ui.gridLayout.addWidget(self, 0, 1, 1, 1)
         self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
@@ -1283,7 +1282,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.subtitle = None
         self.ui.quit_now = True
         self.mpv.command("stop")
-        self.ui.playerStop(msg="from openglwidget")
+        self.stop_msg = "openglwidget"
+        self.ui.player_stop.clicked_emit()
         
     def remember_and_quit(self):
         self.quit_player(msg="rem_quit")
