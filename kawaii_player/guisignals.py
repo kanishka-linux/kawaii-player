@@ -48,6 +48,8 @@ class GUISignals(QtCore.QObject):
     queue_delete = pyqtSignal(int)
     display_signal = pyqtSignal(str)
     mouse_move_signal = pyqtSignal(tuple)
+    adjust_mainwindow_signal = pyqtSignal(tuple)
+    initial_view_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -76,6 +78,8 @@ class GUISignals(QtCore.QObject):
         self.display_signal.connect(self.display_signal_string)
         self.first_time = True
         self.mouse_move_signal.connect(self.mouse_move_function)
+        self.adjust_mainwindow_signal.connect(self.adjust_mainwindow_function)
+        self.initial_view_signal.connect(self.initial_view_signal_function)
 
     def generate_preview(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
         self.preview_signal.emit(picn, length, change_aspect, tsec, counter, x, y, source_val)
@@ -143,6 +147,12 @@ class GUISignals(QtCore.QObject):
 
     def mouse_move_method(self, event):
         self.mouse_move_signal.emit(event)
+        
+    def adjust_mainwindow(self, val):
+        self.adjust_mainwindow_signal.emit(val)
+        
+    def initial_view(self, val):
+        self.initial_view_signal.emit(val)
         
     @staticmethod
     def update_opengl_widget(val):
@@ -245,6 +255,10 @@ class GUISignals(QtCore.QObject):
         ui.delete_queue_item(val)
         
     @pyqtSlot(str)
+    def initial_view_signal_function(self, val):
+        ui.restore_initial_view(val)
+        
+    @pyqtSlot(str)
     def track_slave_status(self, val):
         #print(val, "from-slave")
         float_check =  lambda x: int(x) if x.isnumeric() else int(float(x))
@@ -292,7 +306,11 @@ class GUISignals(QtCore.QObject):
     @pyqtSlot(str)
     def apply_new_text(self, val):
         ui.text.setText(val)
-
+        
+    @pyqtSlot(tuple)
+    def adjust_mainwindow_function(self, val):
+        ui.adjust_widget_size(val)
+        
     @pyqtSlot(str, str)
     def apply_player_subtitle(self, url, title):
         ui.tab_5.load_external_sub(mode='load', subtitle=url, title=title)

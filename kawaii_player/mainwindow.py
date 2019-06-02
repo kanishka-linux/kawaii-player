@@ -33,14 +33,14 @@ class MainWindowWidget(QtWidgets.QWidget):
 
     def resizeEvent(self, event):
         if "ui" in globals():
-            if hasattr(ui, "screen_size"):
+            if hasattr(ui, "screen_size") and hasattr(ui, "gui_signals"):
                 rect = self.app.desktop().availableGeometry(self)
                 size_tuple = (rect.width(), rect.height())
                 if ui.screen_size == size_tuple:
                     ui.logger.debug("same screen dimensions")
                 else:
                     ui.logger.debug("screen dimensions changed..so resizing")
-                    ui.adjust_widget_size(size_tuple)
+                    ui.gui_signals.adjust_mainwindow(size_tuple)
     
     def set_globals(self, uiwidget):
         global ui
