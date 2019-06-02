@@ -3619,7 +3619,7 @@ class Ui_MainWindow(object):
             if self.tab_6.isHidden():
                 self.tab_6.show()
             self.list_poster.show()
-        if self.hide_titlelist_forcefully:
+        if self.hide_titlelist_forcefully and self.list1.isHidden():
             self.player_showhide_title_list.clicked_emit()
     
     def restore_initial_view(self):
