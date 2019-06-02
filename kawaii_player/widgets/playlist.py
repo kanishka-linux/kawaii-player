@@ -1290,7 +1290,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     new_lines = [i.strip() for i in lines if i.strip()]
                 i = 0
                 uid = str(uuid.uuid4())
-                if len(self.ui.master_access_tokens) > 1000:
+                if len(self.ui.master_access_tokens) > 100:
                     self.ui.master_access_tokens.pop()
                 self.ui.master_access_tokens.add(uid)
                 for row in range(0, len(new_lines), 2):
