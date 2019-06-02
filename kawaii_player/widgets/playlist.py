@@ -27,6 +27,7 @@ import base64
 import urllib.parse
 from urllib.parse import urlparse
 import json
+import uuid
 import platform
 from collections import OrderedDict
 from functools import partial
@@ -1288,6 +1289,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     lines = lines[1:]
                     new_lines = [i.strip() for i in lines if i.strip()]
                 i = 0
+                uid = str(uuid.uuid4())
+                if len(self.ui.master_access_tokens) > 1000:
+                    self.ui.master_access_tokens.pop()
+                self.ui.master_access_tokens.add(uid)
                 for row in range(0, len(new_lines), 2):
                     title = new_lines[row]
                     title = title.split(',', 1)[-1].strip()
@@ -1295,6 +1300,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     url = url.replace('abs_path=', 'master_abs_path=', 1)
                     if 'relative_path=' in url:
                         url = url.replace('relative_path=', 'master_relative_path=', 1)
+                    if url.endswith('/'):
+                        url = '{}&master_token={}&'.format(url, uid)
+                    else:
+                        url = '{}/&master_token={}&'.format(url, uid)
                     local_path = None
                     sub = 'none'
                     ext = 'none'

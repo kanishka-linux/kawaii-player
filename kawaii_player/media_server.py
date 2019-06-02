@@ -1032,13 +1032,27 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 or self.path.startswith('/get_current_background')):
             if ui.pc_to_pc_casting == 'master':
                 path = self.path.replace('/', '', 1)
+                master_token = None
+                allow_access = False
+                if '&master_token=' in path:
+                    _, master_token = path.rsplit('&master_token=', 1)
+                    master_token = master_token.split('&')[0]
+                    if master_token and master_token in ui.master_access_tokens:
+                        allow_access = True
+                if path == "get_current_background":
+                    allow_access = True
+                path = re.sub(r'/&master_token=(.?)*&', '', path)
+                self.path = re.sub(r'/&master_token=(.?)*&', '', self.path)
                 if '/' in path:
                     path = path.rsplit('/', 1)[0]
                 try:
                     get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
                 except Exception as e:
                     get_bytes = 0
-                self.get_the_content(path, get_bytes)
+                if allow_access:
+                    self.get_the_content(path, get_bytes)
+                else:
+                    self.final_message(b'Access Denied: invalid access token')
             else:
                 self.final_message(b'Not Allowed')
         else:
