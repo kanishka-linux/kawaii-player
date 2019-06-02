@@ -2202,12 +2202,19 @@ class ExtraToolBar(QtWidgets.QFrame):
             elif msg == 'TVFS':
                 if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
                     if ui.player_val == "libmpv":
-                        ui.tab_5.mpv.command("set", "pause", "yes")
+                        if platform.system().lower() == "darwin":
+                            ui.tab_5.mpv.command("set", "pause", "yes")
                         MainWindow.showMaximized()
                         ui.force_fs = False
-                        ui.tab_5.fs_timer.start(2000)
+                        if platform.system().lower() == "darwin":
+                            ui.tab_5.fs_timer.start(2000)
+                        else:
+                            ui.tab_5.fs_timer.start(500)
                     else:
                         ui.tab_5.toggle_fullscreen_mode()
+                    if ui.tab_5.arrow_timer.isActive():
+                        ui.tab_5.arrow_timer.stop()
+                    ui.tab_5.arrow_timer.start(5000)
             elif ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
                 if ui.player_val.lower() == 'mplayer':
                     if 'sub-delay' in msg or 'audio-delay' in msg:
