@@ -50,6 +50,7 @@ class GUISignals(QtCore.QObject):
     mouse_move_signal = pyqtSignal(tuple)
     adjust_mainwindow_signal = pyqtSignal(tuple)
     initial_view_signal = pyqtSignal(str)
+    cursor_signal = pyqtSignal(str)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -80,6 +81,7 @@ class GUISignals(QtCore.QObject):
         self.mouse_move_signal.connect(self.mouse_move_function)
         self.adjust_mainwindow_signal.connect(self.adjust_mainwindow_function)
         self.initial_view_signal.connect(self.initial_view_signal_function)
+        self.cursor_signal.connect(self.cursor_function)
 
     def generate_preview(self, picn, length, change_aspect, tsec, counter, x, y, source_val):
         self.preview_signal.emit(picn, length, change_aspect, tsec, counter, x, y, source_val)
@@ -153,6 +155,9 @@ class GUISignals(QtCore.QObject):
         
     def initial_view(self, val):
         self.initial_view_signal.emit(val)
+        
+    def cursor_method(self, val):
+        self.cursor_signal.emit(val)
         
     @staticmethod
     def update_opengl_widget(val):
@@ -250,6 +255,13 @@ class GUISignals(QtCore.QObject):
     def display_signal_string(self, val):
         ui.progressEpn.setFormat((val))
         
+    @pyqtSlot(str)
+    def cursor_function(self, val):
+        if val == "show":
+            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        else:
+            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            
     @pyqtSlot(int)
     def queue_delete_signal(self, val):
         ui.delete_queue_item(val)
