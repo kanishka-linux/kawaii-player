@@ -1473,6 +1473,7 @@ class Ui_MainWindow(object):
         self.mpvplayer_val = QProcessExtra(ui=self)
         self.allowed_access_tokens = []
         self.master_access_tokens = set()
+        self.hide_titlelist_forcefully = False
         self.stale_playlist = True
         self.epn_clicked = False
         self.osx_native_fullscreen = False
@@ -3512,16 +3513,7 @@ class Ui_MainWindow(object):
                             if self.view_mode in ["thumbnail", "thumbnail_light"] and msg == "darwin":
                                 pass
                             else:
-                                if show_hide_titlelist == 1:
-                                    self.list1.show()
-                                if show_hide_cover == 1:
-                                    self.label.show()
-                                    if self.layout_mode != 'Music':
-                                        self.label_new.show()
-                                    self.text.show()
-                                if show_hide_titlelist == 1:
-                                    self.list2.show()
-                                self.list2.setFocus()
+                                self.restore_initial_view()
                         elif self.fullscreen_mode == 1 and self.view_mode != "thumbnail_light":
                             self.tab_6.show()
                             self.frame2.show()
@@ -3627,7 +3619,21 @@ class Ui_MainWindow(object):
             if self.tab_6.isHidden():
                 self.tab_6.show()
             self.list_poster.show()
-            
+        if self.hide_titlelist_forcefully:
+            self.player_showhide_title_list.clicked_emit()
+    
+    def restore_initial_view(self):
+        if show_hide_titlelist == 1:
+            self.list1.show()
+        if show_hide_cover == 1:
+            self.label.show()
+            if self.layout_mode != 'Music':
+                self.label_new.show()
+            self.text.show()
+        if show_hide_titlelist == 1:
+            self.list2.show()
+        self.list2.setFocus()
+                                
     def show_cursor_now(self):
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             
@@ -9992,7 +9998,11 @@ class Ui_MainWindow(object):
         else:
             if self.player_val in ['mpv', 'libmpv', 'mplayer']:
                 self.tab_5.show()
-                self.list1.hide()
+                if not self.list1.isHidden():
+                    self.list1.hide()
+                    self.hide_titlelist_forcefully = True
+                else:
+                    self.hide_titlelist_forcefully = False
                 self.frame.hide()
                 self.text.hide()
                 self.label.hide()
