@@ -524,7 +524,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         
     @pyqtSlot()
     def maybe_update(self):
-        if self.isMinimized() or self.isHidden():
+        if (self.isMinimized() or self.isHidden()) and self.mpv_api == "opengl-cb":
             self.makeCurrent()
             self.paintGL()
             self.context().swapBuffers(self.context().surface())
