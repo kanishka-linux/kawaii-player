@@ -3524,7 +3524,8 @@ class Ui_MainWindow(object):
                     logger.debug(self.view_mode)
                     if self.tab_2.isHidden():
                         if self.fullscreen_mode == 0:
-                            if self.view_mode in ["thumbnail", "thumbnail_light"] and msg == "darwin":
+                            if (self.view_mode in ["thumbnail", "thumbnail_light"] 
+                                    and (msg == "darwin" or self.player_val in ["mpv", "mplayer"])):
                                 pass
                             else:
                                 self.restore_initial_view()
