@@ -2520,7 +2520,21 @@ class Ui_MainWindow(object):
         return arg_dict
         
     def remote_fullscreen(self):
-        self.tab_5.toggle_fullscreen_mode()
+        if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+            if self.player_val == "libmpv":
+                if platform.system().lower() == "darwin":
+                    self.tab_5.mpv.command("set", "pause", "yes")
+                MainWindow.showMaximized()
+                self.force_fs = False
+                if platform.system().lower() == "darwin":
+                    self.tab_5.fs_timer.start(2000)
+                else:
+                    self.tab_5.fs_timer.start(100)
+            else:
+                self.tab_5.toggle_fullscreen_mode()
+            if self.tab_5.arrow_timer.isActive():
+                self.tab_5.arrow_timer.stop()
+            self.tab_5.arrow_timer.start(5000)
         
     def seek_to_val_abs(self):
         val = self.client_seek_val
