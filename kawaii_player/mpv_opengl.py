@@ -740,7 +740,6 @@ class MpvOpenglWidget(QOpenGLWidget):
     def playlist_position_observer(self, _name, value):
         logger.debug("{}-{}".format(_name, value))
         self.ui.gui_signals.cursor_method((self, "show"))
-        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         if isinstance(value, int) and value >= 0:
             cur_row = value
             if (self.mpv.get_property('playlist-count') > 1 and cur_row < gui.list2.count() and gui.list2.count() > 1):
