@@ -50,7 +50,7 @@ class GUISignals(QtCore.QObject):
     mouse_move_signal = pyqtSignal(tuple)
     adjust_mainwindow_signal = pyqtSignal(tuple)
     initial_view_signal = pyqtSignal(str)
-    cursor_signal = pyqtSignal(str)
+    cursor_signal = pyqtSignal(tuple)
     
     def __init__(self, uiwidget, mw):
         QtCore.QObject.__init__(self)
@@ -255,12 +255,13 @@ class GUISignals(QtCore.QObject):
     def display_signal_string(self, val):
         ui.progressEpn.setFormat((val))
         
-    @pyqtSlot(str)
+    @pyqtSlot(tuple)
     def cursor_function(self, val):
-        if val == "show":
-            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        widget, opt = val
+        if opt == "show":
+            widget.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         else:
-            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            widget.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
             
     @pyqtSlot(int)
     def queue_delete_signal(self, val):
