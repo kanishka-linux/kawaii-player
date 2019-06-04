@@ -739,8 +739,7 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def playlist_position_observer(self, _name, value):
         logger.debug("{}-{}".format(_name, value))
-        if platform.system().lower() == "darwin":
-            self.ui.gui_signals.cursor_method((self, "show"))
+        self.ui.gui_signals.cursor_method((self, "show"))
         self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         if isinstance(value, int) and value >= 0:
             cur_row = value
@@ -750,8 +749,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.set_window_title_and_epn(row=cur_row)
                 if gui.view_mode == "thumbnail_light" and gui.cur_row < gui.list_poster.count():
                     gui.list_poster.setCurrentRow(gui.cur_row)
-        if platform.system().lower() == "darwin":
-            self.ui.gui_signals.cursor_method((self, "hide"))
+        self.ui.gui_signals.cursor_method((self, "hide"))
         
     def time_observer(self, _name, value):
         if value is not None:
