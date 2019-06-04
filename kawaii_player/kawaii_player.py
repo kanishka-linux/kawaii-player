@@ -1471,6 +1471,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.stop_from_client = False
         self.allowed_access_tokens = []
         self.master_access_tokens = set()
         self.hide_titlelist_forcefully = False
@@ -3624,7 +3625,14 @@ class Ui_MainWindow(object):
                 self.tab_6.show()
             self.list_poster.show()
         if self.hide_titlelist_forcefully and self.list1.isHidden():
-            self.player_showhide_title_list.clicked_emit()
+            self.list1.show()
+        if self.stop_from_client:
+            if self.list1.isHidden():
+                self.list1.show()
+            if self.list2.isHidden():
+                self.list2.show()
+            self.stop_from_client = False
+            
     
     def restore_initial_view(self):
         if show_hide_titlelist == 1:

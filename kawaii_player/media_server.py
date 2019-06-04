@@ -149,6 +149,7 @@ def start_player_remotely(nm, mode):
         ui.player_hide_btn.clicked_emit()
     elif (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") or ui.web_control == 'slave':
         if mode == 'stop':
+            ui.stop_from_client = True
             if ui.web_control == 'master':
                 if MainWindow.isFullScreen():
                     ui.player_fullscreen.clicked_emit()
