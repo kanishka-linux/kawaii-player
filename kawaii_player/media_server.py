@@ -927,9 +927,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 cli_key = hash_obj.hexdigest()
                 #print(cli_key, new_key)
             client_addr = str(self.client_address[0])
-            logger.info('--cli-with-cookie-{0}'.format(client_addr))
-            logger.info('--auth-with-cookie-{0}'.format(ui.client_auth_arr))
-            logger.info('--auth-local-cookie-{0}'.format(ui.local_auth_arr))
+            #logger.info('--cli-with-cookie-{0}'.format(client_addr))
+            #logger.info('--auth-with-cookie-{0}'.format(ui.client_auth_arr))
+            #logger.info('--auth-local-cookie-{0}'.format(ui.local_auth_arr))
             if client_addr in ui.local_auth_arr:
                cookie_set = True 
             elif not cli_key and not cookie_verified:
