@@ -3606,7 +3606,7 @@ class Ui_MainWindow(object):
                     or self.fullscreen_mode == 1) and not self.force_fs):
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
-            self.gui_signals.cursor_method("show")
+            self.gui_signals.cursor_method((MainWindow, "show"))
             
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((''))
