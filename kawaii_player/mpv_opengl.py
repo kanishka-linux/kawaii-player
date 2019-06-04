@@ -629,6 +629,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             if self.hasFocus():
                 self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
                 logger.debug('player has focus')
+                #QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.BlankCursor);
             else:
                 logger.debug('player not focussed')
             if (self.ui.fullscreen_video and self.hasFocus() and self.ui.tab_6.isHidden()
@@ -738,6 +739,9 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def playlist_position_observer(self, _name, value):
         logger.debug("{}-{}".format(_name, value))
+        if platform.system().lower() == "darwin":
+            self.ui.gui_signals.cursor_method((self, "show"))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         if isinstance(value, int) and value >= 0:
             cur_row = value
             if (self.mpv.get_property('playlist-count') > 1 and cur_row < gui.list2.count() and gui.list2.count() > 1):
@@ -746,6 +750,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.set_window_title_and_epn(row=cur_row)
                 if gui.view_mode == "thumbnail_light" and gui.cur_row < gui.list_poster.count():
                     gui.list_poster.setCurrentRow(gui.cur_row)
+        if platform.system().lower() == "darwin":
+            self.ui.gui_signals.cursor_method((self, "hide"))
         
     def time_observer(self, _name, value):
         if value is not None:
@@ -762,7 +768,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     gui.new_tray_widget.update_signal.emit(display_string, int(value))
 
                 if value_int % 30 == 0:
-                    self.send_fake_event()
+                    self.send_fake_event("mouse_release")
             if self.audio and int(value) in range(0, 3):
                 if self.mpv.get_property("loop-file") is False:
                     self.mpv.command("audio-add", self.audio, "select")
@@ -790,19 +796,28 @@ class MpvOpenglWidget(QOpenGLWidget):
                 gui.epnfound_now_start_prefetch(finalUrl, row, type_val)
                 self.prefetch_url = None
 
-    def send_fake_event(self):
+    def send_fake_event(self, val):
         self.fake_mousemove_event = ("libmpv", True)
         pos = self.cursor().pos()
         new_point = QtCore.QPoint(pos.x() + 1, pos.y()+1)
         self.cursor().setPos(new_point)
-        mouseReleaseEvent = QtGui.QMouseEvent(
-                                QtCore.QEvent.MouseButtonRelease,
-                                new_point,
-                                QtCore.Qt.LeftButton,
-                                QtCore.Qt.LeftButton,
-                                QtCore.Qt.NoModifier,
-                            )
-        self.ui.gui_signals.mouse_move_method((self, mouseReleaseEvent))
+        if val == "mouse_release":
+            event = QtGui.QMouseEvent(
+                        QtCore.QEvent.MouseButtonRelease,
+                        new_point,
+                        QtCore.Qt.LeftButton,
+                        QtCore.Qt.LeftButton,
+                        QtCore.Qt.NoModifier,
+                    )
+        elif val == "mouse_move":
+            event = QtGui.QMouseEvent(
+                        QtCore.QEvent.MouseMove,
+                        new_point,
+                        QtCore.Qt.NoButton,
+                        QtCore.Qt.NoButton,
+                        QtCore.Qt.NoModifier,
+                    )
+        self.ui.gui_signals.mouse_move_method((self, event))
         
     def rem_properties(self, final_url, rem_quit, seek_time):
         self.ui.history_dict_obj_libmpv.update(
@@ -1081,9 +1096,10 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def mouseEnterEvent(self, event):
         self.setFocus()
+        self.ui.gui_signals.cursor_method((self, "hide"))
 
     def leaveEvent(self, event):
-        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.ui.gui_signals.cursor_method((self, "show"))
         
     def change_aspect_ratio(self, key=None):
         if key is None:
@@ -1353,7 +1369,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                         if not self.ui.tab_2.isHidden():
                             self.ui.tab_2.hide()
                         if self.player_val in self.ui.playback_engine:
-                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                            self.ui.gui_signals.cursor_method((MainWindow, "hide"))
                         if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
                             MainWindow.hide()
                             self.setParent(None)
@@ -1382,7 +1398,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.ui.progress.show()
                     self.ui.frame1.show()
                     if self.player_val in self.ui.playback_engine:
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                        self.ui.gui_signals.cursor_method((MainWindow, "show"))
                     if not self.ui.force_fs:
                         #MainWindow.showNormal()
                         MainWindow.show()
