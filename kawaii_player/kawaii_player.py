@@ -3691,6 +3691,8 @@ class Ui_MainWindow(object):
     
     @GUISignals.check_master_mode('playpause')
     def playerPlayPause(self, *args):
+        if platform.system().lower() == "darwin":
+            self.gui_signals.cursor_method((self.tab_5, "show"))
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
             if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False):
@@ -3735,6 +3737,8 @@ class Ui_MainWindow(object):
                 if self.list2.currentItem():
                     self.cur_row = self.list2.currentRow()
                     self.epnfound()
+        if platform.system().lower() == "darwin":
+            self.gui_signals.cursor_method((self.tab_5, "hide"))
     
     def player_force_play(self):
         if self.mpvplayer_val.processId() > 0:

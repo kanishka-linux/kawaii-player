@@ -261,7 +261,10 @@ class GUISignals(QtCore.QObject):
         if opt == "show":
             widget.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         else:
-            widget.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            if platform.system().lower() == "darwin" and widget == ui.tab_5:
+                widget.arrow_timer.start(1000)
+            else:
+                widget.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
             
     @pyqtSlot(int)
     def queue_delete_signal(self, val):
