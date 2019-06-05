@@ -151,8 +151,8 @@ def start_player_remotely(nm, mode):
         if mode == 'stop':
             ui.stop_from_client = True
             if ui.web_control == 'master':
-                if MainWindow.isFullScreen():
-                    ui.player_fullscreen.clicked_emit()
+                #if MainWindow.isFullScreen():
+                #    ui.player_fullscreen.clicked_emit()
                 ui.player_stop.clicked_emit()
             else:
                 ui.settings_box.playerstop.clicked_emit()
