@@ -3604,11 +3604,14 @@ class Ui_MainWindow(object):
                                 self.label_new.setFocus()
                         
             if (((MainWindow.isFullScreen() and self.tab_6.isHidden())
-                    or self.fullscreen_mode == 1) and not self.force_fs):
+                    or self.fullscreen_mode == 1) and not self.force_fs
+                    and not self.stop_from_client and self.fullscreen_video):
                 MainWindow.showNormal()
                 MainWindow.showMaximized()
             self.gui_signals.cursor_method((MainWindow, "show"))
-            
+        if self.player_val == "libmpv" and self.fullscreen_video:
+            self.tab_5.setMinimumWidth(0)
+            self.tab_5.setMinimumHeight(0)
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((''))
         self.idw = self.get_winid()
@@ -5185,6 +5188,7 @@ class Ui_MainWindow(object):
                 exec_str = 'self.label_epn_{0}.player_thumbnail_fs(mode="{1}")'.format(num, 'fs')
                 exec(exec_str)
             else:
+                self.tab_5.mpv.set_property('fullscreen', 'yes')
                 self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None, *args):
