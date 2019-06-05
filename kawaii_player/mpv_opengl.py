@@ -1252,7 +1252,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         wd = self.width()
         ht = self.height()
         val = self.mpv.get_property('fullscreen')
-        if val is False or val is None:
+        if (val is False or val is None) or (val and not self.ui.fullscreen_video):
             self.mpv.set_property('fullscreen', 'yes')
             self.player_fs(mode='fs')
         else:
