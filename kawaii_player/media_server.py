@@ -1701,7 +1701,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html; charset=utf-8')
             else:
                 self.send_header('Content-type', 'audio/mpegurl')
-                self.send_header('Content-Disposition', 'attachment; filename={}'.format(playlist_file_name))
+                self.send_header('Content-Disposition', 'attachment; filename={}'.format(playlist_file_name.encode("utf-8")))
             size = len(pls_txt)
             #size = size - get_bytes
             self.send_header('Content-Length', str(size))
