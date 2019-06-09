@@ -791,7 +791,17 @@ class PlayerWidget(QtWidgets.QWidget):
     def remember_and_quit(self):
         self.ui.quit_really = "yes"
         self.ui.playerStop(msg='remember quit')
-            
+        
+    def add_external_audio(self):
+        fname = QtWidgets.QFileDialog.getOpenFileNames(
+                MainWindow, 'Select One or More Files', self.ui.last_dir)
+        sub_dict = {}
+        if fname and fname[0]:
+            for aud in fname[0]:
+                self.ui.last_dir, file_choose = os.path.split(fname[0][0])
+                msg = bytes('\n audio-add "{}" \n'.format(aud), 'utf-8')
+                self.ui.mpvplayer_val.write(msg)
+                    
     def keyPressEventOld(self, event):
         if (event.modifiers() == QtCore.Qt.ControlModifier
                 and event.key() == QtCore.Qt.Key_Right):
@@ -1321,7 +1331,8 @@ class KeyBoardShortcuts:
             'stop-after-current-file':self.parent.stop_after_current_file,
             'quit-watch-later':self.parent.remember_and_quit,
             'cycle sub':self.parent.cycle_player_subtitle,
-            'cycle audio':self.parent.cycle_player_audio
+            'cycle audio':self.parent.cycle_player_audio,
+            'add-external-audio': self.parent.add_external_audio
         }
         return func_map
     

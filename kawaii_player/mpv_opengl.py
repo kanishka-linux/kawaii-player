@@ -1124,6 +1124,16 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def load_subtitle_from_network(self):
         PlayerWidget.load_subtitle_from_network(self)
+        
+    def add_external_audio(self):
+        fname = QtWidgets.QFileDialog.getOpenFileNames(
+                MainWindow, 'Select One or More Files', self.ui.last_dir)
+        sub_dict = {}
+        if fname and fname[0]:
+            for aud in fname[0]:
+                self.ui.last_dir, file_choose = os.path.split(fname[0][0])
+                logger.debug('{}, {}'.format(aud, file_choose))
+                self.mpv.command("audio-add", aud, "select")
 
     def load_external_sub(self, mode=None, subtitle=None, title=None):
         if mode is None:
