@@ -9160,7 +9160,7 @@ class Ui_MainWindow(object):
                 if self.btnAddon.currentIndex() >= 0:
                     default_arr_setting[4]=self.btnAddon.currentIndex()
 
-    def if_path_is_rel(self, path, thumbnail=None):
+    def if_path_is_rel(self, path, thumbnail=None, abs_path=False):
         global my_ipaddress
         nm = ''
         if path.startswith('abs_path='):
@@ -9190,6 +9190,8 @@ class Ui_MainWindow(object):
                     nm = self.epn_return(row)
                     if nm.startswith('"'):
                         nm = nm.replace('"', '')
+                elif abs_path:
+                    pass
                 elif 'youtube.com' in nm and not thumbnail:
                     nm = self.yt.get_yt_url(nm, ui.quality_val,
                                             ui.ytdl_path, logger,

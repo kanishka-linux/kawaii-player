@@ -1294,16 +1294,26 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.ui.master_access_tokens.pop()
                 self.ui.master_access_tokens.add(uid)
                 for row in range(0, len(new_lines), 2):
+                    master_token = True
                     title = new_lines[row]
                     title = title.split(',', 1)[-1].strip()
                     url = new_lines[row+1]
+                    try:
+                        nurl = self.ui.if_path_is_rel(urllib.parse.urlparse(url).path[1:].rsplit('/', 1)[0], abs_path=True)
+                        nurl_netloc = urllib.parse.urlparse(nurl).netloc
+                        if 'youtube.com' in nurl_netloc:
+                            url = nurl
+                            master_token = False
+                    except Exception as err:
+                        logger.error(err)
                     url = url.replace('abs_path=', 'master_abs_path=', 1)
                     if 'relative_path=' in url:
                         url = url.replace('relative_path=', 'master_relative_path=', 1)
-                    if url.endswith('/'):
-                        url = '{}&master_token={}&'.format(url, uid)
-                    else:
-                        url = '{}/&master_token={}&'.format(url, uid)
+                    if master_token:
+                        if url.endswith('/'):
+                            url = '{}&master_token={}&'.format(url, uid)
+                        else:
+                            url = '{}/&master_token={}&'.format(url, uid)
                     local_path = None
                     sub = 'none'
                     ext = 'none'
