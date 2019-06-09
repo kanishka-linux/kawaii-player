@@ -3676,6 +3676,8 @@ class Ui_MainWindow(object):
             if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
                 if self.player_val in ['mpv', 'libmpv']:
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
+                    if self.player_val == "libmpv":
+                        self.mpvplayer_val.write(b'\n show-text Loop current file: yes \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                     cmd = 'osd_show_text "Loop=yes" 2000'
@@ -3687,6 +3689,8 @@ class Ui_MainWindow(object):
             if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
                 if self.player_val in ['mpv', 'libmpv']:
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
+                    if self.player_val == "libmpv":
+                        self.mpvplayer_val.write(b'\n show-text Loop current file: no \n')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                     cmd = 'osd_show_text "Loop=no" 2000'
