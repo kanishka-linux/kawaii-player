@@ -9904,11 +9904,15 @@ class Ui_MainWindow(object):
     def check_and_start_getsub_method(self):
         subval = self.master_casting_subdict.get(self.final_playing_url)
         if subval:
-            if self.player_val == 'mplayer':
-                cmd = 'sub_load "{}"'.format(subval)
-            else:
+            if self.player_val == "libmpv":
                 cmd = 'sub-add "{}" select'.format(subval)
-            self.mpv_execute_command(cmd, self.cur_row, timer=5000)
+                self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
+            else:
+                if self.player_val == 'mplayer':
+                    cmd = 'sub_load "{}"'.format(subval)
+                else:
+                    cmd = 'sub-add "{}" select'.format(subval)
+                self.mpv_execute_command(cmd, self.cur_row, timer=5000)
             
     def start_torrent_stream(self, name_file, epn_index, local_ip,
                              status, path_folder, session, 

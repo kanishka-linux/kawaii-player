@@ -1045,6 +1045,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                 func_try_sub = self.try_external_sub
                 self.exec_thread = ExecCommand(self.ui, [func_gather_sub, func_try_sub])
                 self.exec_thread.start()
+            if self.ui.pc_to_pc_casting == 'slave' and 'master_abs_path=' in self.ui.final_playing_url:
+                self.ui.add_external_subtitle.clicked_emit()
         
     def keyPressEvent(self, event):
         if event.isAutoRepeat():
