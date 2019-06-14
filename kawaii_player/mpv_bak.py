@@ -442,12 +442,15 @@ _handle_func('mpv_get_wakeup_pipe',         [],                                 
 
 _handle_func('mpv_get_sub_api',             [MpvSubApi],                                c_void_p, notnull_errcheck)
 
-_handle_gl_func('mpv_opengl_cb_set_update_callback',    [OpenGlCbUpdateFn, c_void_p])
-_handle_gl_func('mpv_opengl_cb_init_gl',                [c_char_p, OpenGlCbGetProcAddrFn, c_void_p],    c_int)
-_handle_gl_func('mpv_opengl_cb_draw',                   [c_int, c_int, c_int],                          c_int)
-_handle_gl_func('mpv_opengl_cb_render',                 [c_int, c_int],                                 c_int)
-_handle_gl_func('mpv_opengl_cb_report_flip',            [c_ulonglong],                                  c_int)
-_handle_gl_func('mpv_opengl_cb_uninit_gl',              [],                                             c_int)
+try:
+    _handle_gl_func('mpv_opengl_cb_set_update_callback',    [OpenGlCbUpdateFn, c_void_p])
+    _handle_gl_func('mpv_opengl_cb_init_gl',                [c_char_p, OpenGlCbGetProcAddrFn, c_void_p],    c_int)
+    _handle_gl_func('mpv_opengl_cb_draw',                   [c_int, c_int, c_int],                          c_int)
+    _handle_gl_func('mpv_opengl_cb_render',                 [c_int, c_int],                                 c_int)
+    _handle_gl_func('mpv_opengl_cb_report_flip',            [c_ulonglong],                                  c_int)
+    _handle_gl_func('mpv_opengl_cb_uninit_gl',              [],                                             c_int)
+except Exception as err:
+    print("mpv render api not available")
 
 _handle_func('mpv_render_context_set_update_callback',
              [POINTER(MpvRenderContext), MpvRenderUpdateFn, c_void_p],
