@@ -645,7 +645,7 @@ class MPV(object):
         with self._playback_cond:
             self._playback_cond.wait()
 
-    def wait_for_property(self, name, cond=lambda val: val, level_sensitive=True):
+    def wait_for_property(self, name, cond=lambda val: val, level_sensitive=True, timeout=None):
         """Waits until ``cond`` evaluates to a truthy value on the named property. This can be used to wait for
         properties such as ``idle_active`` indicating the player is done with regular playback and just idling around
         """
@@ -655,7 +655,7 @@ class MPV(object):
                 sema.release()
         self.observe_property(name, observer)
         if not level_sensitive or not cond(getattr(self, name.replace('-', '_'))):
-            sema.acquire()
+            sema.acquire(timeout=timeout)
         self.unobserve_property(name, observer)
 
     def __del__(self):
