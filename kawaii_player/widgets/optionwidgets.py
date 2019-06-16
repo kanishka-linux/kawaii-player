@@ -533,7 +533,7 @@ class MySlider(QtWidgets.QSlider):
         if self.file_type in ['network', 'music', 'unknown']:
             self.final_url = ui.final_playing_url
 
-    def mpv_preview(self, preview_dir, t, scale, newpicn, url, final_point=None):
+    def mpv_preview(self, preview_dir, t, scale, newpicn, url, final_point=None, timeout=None):
         self.preview_lock.acquire()
         picn = os.path.join(preview_dir, '00000001.jpg')
         self.mpv.vo_image_outdir = preview_dir
@@ -548,7 +548,7 @@ class MySlider(QtWidgets.QSlider):
                 and (self.ui.live_preview == "fast" 
                 or final_point is None or self.final_point == final_point)):
             self.mpv.play(url)
-        self.mpv.wait_for_property("idle-active", lambda x : x)
+        self.mpv.wait_for_property("idle-active", lambda x : x, timeout=timeout)
         if os.path.exists(picn) and not os.path.exists(newpicn):
             shutil.move(picn, newpicn)
         self.mpv.stop = True
@@ -599,7 +599,7 @@ class MySlider(QtWidgets.QSlider):
                 self.final_point = (event.x(), event.y())
                 func = partial(self.mpv_preview, self.preview_dir, t,
                                (ui.label.maximumWidth(), ui.label.maximumHeight()),
-                               newpicn, ui.final_playing_url, (event.x(), event.y()))
+                               newpicn, ui.final_playing_url, (event.x(), event.y()), timeout=0.5)
                 apply_list = [newpicn, l, False, t, 0, event.x(), event.y(), source_val]
                 if ui.live_preview == "fast" and not os.path.exists(newpicn):
                     func()

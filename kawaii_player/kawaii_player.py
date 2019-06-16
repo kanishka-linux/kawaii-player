@@ -2824,7 +2824,7 @@ class Ui_MainWindow(object):
             if self.player_val in ["libmpv", "mpv"]:
                 if "youtube.com" in path:
                     self.slider.mpv.set_property('ytdl', "yes")
-                self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path)
+                self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path, timeout=5)
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                     self.create_new_image_pixel(picn, 128)
                     self.create_new_image_pixel(picn, 480)
