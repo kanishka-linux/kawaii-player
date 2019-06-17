@@ -558,7 +558,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.terminate()
         
     def init_mpv_again(self):
-        if self.mpv_api in ["opengl-cb", "opengl-render"] and platform.system().lower() == "linux":
+        if self.mpv_api in ["opengl-cb", "opengl-render"] and platform.system().lower() in ["linux", "windows"]:
             if not self.init_again_thread.isRunning():
                 self.init_again_thread = InitAgainThread(self.ui, self)
                 self.init_again_thread.start()
@@ -1337,63 +1337,55 @@ class MpvOpenglWidget(QOpenGLWidget):
         if not self.ui.idw or self.ui.idw == self.ui.get_winid():
             if self.player_val == "libmpv":
                 if mode == 'fs':
-                    if os.name == 'nt' and self.ui.web_review_browser_started:
-                        self.ui.detach_fullscreen = True
+                    if not self.ui.tab_6.isHidden():
+                        self.ui.fullscreen_mode = 1
+                    elif not self.ui.float_window.isHidden():
+                        self.ui.fullscreen_mode = 2
+                    else: 
+                        self.ui.fullscreen_mode = 0
+                    self.ui.superGridLayout.setSpacing(0)
+                    self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
+                    
+                    self.ui.gridLayout.setSpacing(0)
+                    self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
+                    
+                    self.ui.text.hide()
+                    self.ui.label.hide()
+                    self.ui.frame1.hide()
+                    self.ui.tab_6.hide()
+                    self.ui.goto_epn.hide()
+                    if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
+                        self.ui.progress.hide()
+                        if not self.ui.torrent_frame.isHidden():
+                            self.ui.torrent_frame.hide()
+                    self.ui.list2.hide()
+                    self.ui.frame_extra_toolbar.hide()
+                    self.ui.frame_extra_toolbar.playlist_hide = False
+                    self.ui.list6.hide()
+                    self.ui.list1.hide()
+                    self.ui.frame.hide()
+                    self.ui.dockWidget_3.hide()
+                    if self.ui.orientation_dock == 'right':
+                        self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
+                    self.show()
+                    self.setFocus()
+                    if not self.ui.tab_2.isHidden():
+                        self.ui.tab_2.hide()
+                    if self.player_val in self.ui.playback_engine:
+                        self.ui.gui_signals.cursor_method((MainWindow, "hide"))
+                    if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
                         MainWindow.hide()
-                        self.ui.tray_widget.right_menu._detach_video()
-                        if not self.ui.float_window.isFullScreen():
-                            self.ui.float_window.showFullScreen()
-                            self.ui.tab_5.setFocus()
+                        self.setParent(None)
+                        self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
                     else:
-                        if not self.ui.tab_6.isHidden():
-                            self.ui.fullscreen_mode = 1
-                        elif not self.ui.float_window.isHidden():
-                            self.ui.fullscreen_mode = 2
-                        else: 
-                            self.ui.fullscreen_mode = 0
-                        self.ui.superGridLayout.setSpacing(0)
-                        self.ui.superGridLayout.setContentsMargins(0, 0, 0, 0)
-                        
-                        self.ui.gridLayout.setSpacing(0)
-                        self.ui.gridLayout.setContentsMargins(0, 0, 0, 0)
-                        
-                        self.ui.text.hide()
-                        self.ui.label.hide()
-                        self.ui.frame1.hide()
-                        self.ui.tab_6.hide()
-                        self.ui.goto_epn.hide()
-                        if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
-                            self.ui.progress.hide()
-                            if not self.ui.torrent_frame.isHidden():
-                                self.ui.torrent_frame.hide()
-                        self.ui.list2.hide()
-                        self.ui.frame_extra_toolbar.hide()
-                        self.ui.frame_extra_toolbar.playlist_hide = False
-                        self.ui.list6.hide()
-                        self.ui.list1.hide()
-                        self.ui.frame.hide()
-                        self.ui.dockWidget_3.hide()
-                        if self.ui.orientation_dock == 'right':
-                            self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 1, 1, 1)
-                        self.show()
-                        self.setFocus()
-                        if not self.ui.tab_2.isHidden():
-                            self.ui.tab_2.hide()
-                        if self.player_val in self.ui.playback_engine:
-                            self.ui.gui_signals.cursor_method((MainWindow, "hide"))
-                        if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
-                            MainWindow.hide()
-                            self.setParent(None)
-                            self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
-                        else:
-                            MainWindow.showFullScreen()
-                        self.ui.fullscreen_video = True
-                        
-                        self.showFullScreen()
-                        self.setFocus()
-                        self.setMouseTracking(True)
-                        if platform.system().lower() == "darwin":
-                            self.setMinimumWidth(MainWindow.width())
+                        MainWindow.showFullScreen()
+                    self.ui.fullscreen_video = True
+                    
+                    self.showFullScreen()
+                    self.setFocus()
+                    self.setMouseTracking(True)
+                    if platform.system().lower() == "darwin":
+                        self.setMinimumWidth(MainWindow.width())
                             
                 elif mode == "nofs":
                     #self.hide()
@@ -1413,7 +1405,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if not self.ui.force_fs:
                         #MainWindow.showNormal()
                         MainWindow.show()
-                        MainWindow.showMaximized()
+                        if platform.system().lower() in ["darwin", "linux"]:
+                            MainWindow.showMaximized()
                     param_dict = self.ui.get_parameters_value(tl='total_till')
                     total_till = param_dict['total_till']
                     if total_till != 0 or self.ui.fullscreen_mode == 1:

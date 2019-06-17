@@ -1500,7 +1500,10 @@ class Ui_MainWindow(object):
         self.live_preview = 'fast'
         self.master_casting_subdict = {}
         self.live_preview_quality = '90'
-        self.live_preview_style = 'tooltip'
+        if OSNAME == "posix":
+            self.live_preview_style = 'tooltip'
+        else:
+            self.live_preview_style = 'widget'
         self.playback_mode = 'single'
         self.append_counter = 0
         self.append_audio_start = False
@@ -5192,7 +5195,8 @@ class Ui_MainWindow(object):
                 exec_str = 'self.label_epn_{0}.player_thumbnail_fs(mode="{1}")'.format(num, 'fs')
                 exec(exec_str)
             else:
-                self.tab_5.mpv.set_property('fullscreen', 'yes')
+                if self.player_val == "libmpv":
+                    self.tab_5.mpv.set_property('fullscreen', 'yes')
                 self.tab_5.player_fs(mode='fs')
     
     def mpvNextEpnList(self, play_row=None, mode=None, *args):
@@ -10653,7 +10657,8 @@ class Ui_MainWindow(object):
                         self.mpv_start = True
                         try:
                             msg = 'Playing: {0}'.format(self.epn_name_in_list.replace('#', '', 1))
-                            MainWindow.setWindowTitle(self.epn_name_in_list)
+                            if self.epn_name_in_list:
+                                MainWindow.setWindowTitle(self.epn_name_in_list)
                             if not self.float_window.isHidden():
                                 self.float_window.setWindowTitle(self.epn_name_in_list)
                             msg = bytes('\n show-text "{0}" 2000 \n'.format(msg), 'utf-8')
@@ -10857,8 +10862,8 @@ class Ui_MainWindow(object):
                         sub_spacing = self.subtitle_dict.get('sub-spacing')
                         if sub_spacing:
                             cmd = 'set sub-spacing {}'.format(sub_spacing)
-                        QtCore.QTimer.singleShot(
-                            2000, partial(self.mpv_execute_command, cmd, self.cur_row)
+                            QtCore.QTimer.singleShot(
+                                2000, partial(self.mpv_execute_command, cmd, self.cur_row)
                             )
                     if self.gapless_network_stream:
                         if self.append_audio_start:
