@@ -994,7 +994,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.ui.epn_clicked = False
             self.started = True
             z = 'duration is {:.2f}s'.format(value)
-            gui.progressEpn.setFormat((z))
+            #gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
             try:
                 self.file_size = self.mpv.get_property('file-size')
