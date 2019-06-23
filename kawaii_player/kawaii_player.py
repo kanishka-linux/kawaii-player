@@ -2101,7 +2101,7 @@ class Ui_MainWindow(object):
             self.decide_widgets_on_video()
             if not self.torrent_frame.isHidden():
                 self.torrent_frame.hide()
-            if self.fullscreen_video:
+            if self.fullscreen_video and not self.widgets_on_video:
                 self.gridLayout.setSpacing(5)
                 self.superGridLayout.setSpacing(5)
                 if platform.system().lower() == "darwin":
@@ -3899,7 +3899,7 @@ class Ui_MainWindow(object):
                     self.label_new.setMaximumHeight(ht - self.height_allowed - 10)
             else:
                 self.decide_widgets_on_video()
-                if self.fullscreen_video:
+                if self.fullscreen_video and not self.widgets_on_video:
                     self.gridLayout.setSpacing(5)
                     self.superGridLayout.setSpacing(5)
                     if platform.system().lower() == "darwin":
@@ -13343,6 +13343,10 @@ class Ui_MainWindow(object):
         self.tab_5_layout = QtWidgets.QVBoxLayout(self.tab_5)
         self.tab_5_layout.setContentsMargins(0, 0, 0, 0)
         self.tab_5_layout.setSpacing(0)
+        self.gridLayoutVideo.setContentsMargins(0, 0, 0, 0)
+        self.gridLayoutVideo.setSpacing(5)
+        self.gridLayoutVideoPls.setContentsMargins(0, 0, 0, 0)
+        self.gridLayoutVideoPls.setSpacing(5)
         self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
         #self.idw = str(int(self.tab_5.winId()))
         self.idw = "-1"
