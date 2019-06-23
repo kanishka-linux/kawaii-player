@@ -168,6 +168,8 @@ class YTDL:
         logger.debug('yt-link:>>{0}'.format(final_url))
         if mode == 'TITLE' and not final_url:
             final_url = url.split('/')[-1]
+        elif not final_url:
+            final_url = url
         return final_url
 
     def get_final_for_resolution(self, url, youtube_dl, logger, ytdl_extra,
