@@ -846,6 +846,17 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text113.setText("Device Pixel Ratio")
         self.param_list.append('device_pixel_ratio')
         
+        msg = "<html>Allow transparent widgets on fullscreen video. Only available when using libmpv backend.</html>"
+        self.line114 = QtWidgets.QComboBox()
+        self.line114.setToolTip(msg)
+        self.line114.addItem("True")
+        self.line114.addItem("False")
+        index = self.line114.findText(str(ui.widgets_on_video))
+        self.line114.setCurrentIndex(index)
+        self.text114 = QtWidgets.QLabel()
+        self.text114.setText("Widgets On Video")
+        self.param_list.append('widgets_on_video')
+        
         for i, j in enumerate(self.param_list):
             index = i+1
             if index < 10:
