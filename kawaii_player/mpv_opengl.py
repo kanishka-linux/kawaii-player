@@ -1386,9 +1386,12 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.setMouseTracking(True)
                     if platform.system().lower() == "darwin":
                         self.setMinimumWidth(MainWindow.width())
-                            
+                    if self.ui.widgets_on_video:
+                        self.ui.gridLayoutVideo.addWidget(self.ui.frame1, 2, 1, 1, 1)
                 elif mode == "nofs":
                     #self.hide()
+                    if self.ui.widgets_on_video:
+                        self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
                     if platform.system().lower() == "darwin":
                         self.mpv.command("set", "pause", "yes")
                     self.ui.gridLayout.setSpacing(5)
@@ -1438,7 +1441,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.setMinimumHeight(0)
                     if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
                         self.mx_timer.start(1000) 
-                    
             else:
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
