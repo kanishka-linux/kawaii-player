@@ -1471,6 +1471,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.widgets_on_video = True
         self.stop_from_client = False
         self.allowed_access_tokens = []
         self.master_access_tokens = set()
@@ -1870,7 +1871,47 @@ class Ui_MainWindow(object):
 
         self.observer_thread = Observe(self, logger)
         self.obs = None
-        
+    
+    def decide_widgets_on_video(self, over_video=None, widgets="all"):
+        if self.widgets_on_video:
+            if self.player_val == "libmpv" and over_video is False:
+                if widgets == "all":
+                    self.verticalLayout_50.insertWidget(0, self.list2, 0)
+                    self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
+                    
+                    self.verticalLayout_50.insertWidget(1, self.list6, 0)
+                    self.verticalLayout_50.insertWidget(2, self.list5, 0)
+                    self.verticalLayout_50.insertWidget(3, self.goto_epn, 0)
+                    
+                    self.verticalLayout_40.insertWidget(0, self.list1, 0)
+                    self.verticalLayout_40.insertWidget(1, self.list4, 0)
+                    self.verticalLayout_40.insertWidget(2, self.frame, 0)
+                elif widgets == "playlist":
+                    self.verticalLayout_50.insertWidget(0, self.list2, 0)
+                elif widgets == "extra_toolbar":
+                    self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
+                elif widgets == "queuelist":
+                    self.verticalLayout_50.insertWidget(1, self.list6, 0)
+                elif widgets == "epn_search":
+                    self.verticalLayout_50.insertWidget(2, self.list5, 0)
+                elif widgets == "titlelist":
+                    self.verticalLayout_40.insertWidget(0, self.list1, 0)
+                elif widgets == "title_search":
+                    self.verticalLayout_40.insertWidget(1, self.list4, 0)
+            elif self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False:
+                self.gridLayoutVideoPls.addWidget(self.list2, 0, 1, 1, 1)
+                self.gridLayoutVideoPls.addWidget(self.list6, 1, 1, 1, 1)
+                self.gridLayoutVideoPls.addWidget(self.list5, 2, 1, 1, 1)
+                self.gridLayoutVideoPls.addWidget(self.goto_epn, 3, 1, 1, 1)
+                
+                self.gridLayoutVideoPls.addWidget(self.frame_extra_toolbar, 4, 1, 1, 1)
+                
+                self.gridLayoutVideoPls.addWidget(self.list1, 0, 0, 1, 1)
+                self.gridLayoutVideoPls.addWidget(self.list4, 1, 0, 1, 1)
+                self.gridLayoutVideoPls.addWidget(self.frame, 3, 0, 1, 1)
+        else:
+            pass
+            
     def retranslateUi(self, MainWindow):
         global home
         MainWindow.setWindowTitle("Kawaii-Player")
@@ -2057,6 +2098,7 @@ class Ui_MainWindow(object):
     
     def player_volume_manager(self):
         if self.frame_extra_toolbar.isHidden():
+            self.decide_widgets_on_video()
             if not self.torrent_frame.isHidden():
                 self.torrent_frame.hide()
             if self.fullscreen_video:
@@ -2075,6 +2117,7 @@ class Ui_MainWindow(object):
                         self.list2.setCurrentRow(self.cur_row)
                     self.title_list_changed = False
         else:
+            self.decide_widgets_on_video(over_video=False, widgets="extra_toolbar")
             if self.fullscreen_video:
                 self.gridLayout.setSpacing(0)
                 self.superGridLayout.setSpacing(0)
@@ -3071,9 +3114,11 @@ class Ui_MainWindow(object):
         
     def queue_manage_list(self):
         if self.list6.isHidden():
+            self.decide_widgets_on_video()
             self.list6.show()
             self.list6.setFocus()
         else:
+            self.decide_widgets_on_video(over_video=False, widgets="queuelist")
             self.list6.hide()
             
     def goto_epn_filter_on(self):
@@ -3447,6 +3492,9 @@ class Ui_MainWindow(object):
         global show_hide_titlelist
         global sub_id, audio_id
         change_spacing = False
+        if self.widgets_on_video:
+            self.decide_widgets_on_video(over_video=False)
+            self.superGridLayout.addWidget(self.frame1, 1, 1, 1, 1)
         if self.player_val == "libmpv":
             self.epn_clicked = False
             if self.tab_5.stop_msg and self.tab_5.stop_msg == "openglwidget":
@@ -3832,6 +3880,7 @@ class Ui_MainWindow(object):
                 show_hide_player = 1
         elif val == "Show/Hide Playlist":
             if not self.list2.isHidden():
+                self.decide_widgets_on_video(over_video=False, widgets="playlist")
                 if self.fullscreen_video:
                     self.gridLayout.setSpacing(0)
                     self.superGridLayout.setSpacing(0)
@@ -3849,6 +3898,7 @@ class Ui_MainWindow(object):
                     self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                     self.label_new.setMaximumHeight(ht - self.height_allowed - 10)
             else:
+                self.decide_widgets_on_video()
                 if self.fullscreen_video:
                     self.gridLayout.setSpacing(5)
                     self.superGridLayout.setSpacing(5)
@@ -3869,6 +3919,7 @@ class Ui_MainWindow(object):
                 pass
             else:
                 if not self.list1.isHidden():
+                    self.decide_widgets_on_video(over_video=False, widgets="titlelist")
                     ht = self.list1.height()
                     self.list1.hide()
                     self.frame.hide()
@@ -3880,6 +3931,7 @@ class Ui_MainWindow(object):
                         self.label_new.setMaximumWidth(self.text.maximumWidth()+self.width_allowed)
                         self.label_new.setMaximumHeight(ht - self.height_allowed -10)
                 else:
+                    self.decide_widgets_on_video()
                     width = self.label_new.maximumWidth()
                     height = self.label_new.maximumHeight()
                     show_list = True
@@ -6913,6 +6965,7 @@ class Ui_MainWindow(object):
         found_item_index[:]=[]
         
         if key:
+            self.decide_widgets_on_video()
             self.list4.show()
             for i in range(self.list1.count()):
                 srch = str(self.list1.item(i).text())
@@ -6925,6 +6978,7 @@ class Ui_MainWindow(object):
             for i in found_item:
                 self.list4.addItem(i)
         else:
+            self.decide_widgets_on_video(over_video=False, widgets="title_search")
             self.list4.clear()
             self.list4.hide()
             self.list1.show()
@@ -6944,6 +6998,7 @@ class Ui_MainWindow(object):
         
         if key:
             #self.list1.hide()
+            self.decide_widgets_on_video()
             self.list5.show()
             for i in range(len(self.epn_arr_list)):
                 srch = self.epn_arr_list[i]
@@ -6958,6 +7013,7 @@ class Ui_MainWindow(object):
             for i in found_item:
                 self.list5.addItem(i)
         else:
+            self.decide_widgets_on_video(over_video=False, widgets="epn_search")
             self.list5.clear()
             self.list5.hide()
             self.list2.show()
@@ -13268,7 +13324,19 @@ class Ui_MainWindow(object):
         logger.debug(libmpv_api)
         self.tab_5 = MpvOpenglWidget(MainWindow, self, logger, TMPDIR, libmpv_api, app)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
+        self.gridLayoutVideo = QtWidgets.QGridLayout(self.tab_5)
+        self.gridLayoutVideo.setObjectName(_fromUtf8("gridLayoutVideo"))
+        self.gridLayoutVideo.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignBottom)
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
+        
+        self.gridLayoutVideoPls = QtWidgets.QGridLayout(self.tab_5)
+        self.gridLayoutVideo.addLayout(self.gridLayoutVideoPls, 0, 1, 1, 1)
+        self.gridLayoutVideoPls.setObjectName(_fromUtf8("gridLayoutVideoPls"))
+        self.gridLayoutVideoPls.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignBottom)
+        
+        
+        self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
+        
         
         self.tab_5.setMouseTracking(True)
         self.tab_5.hide()
@@ -14218,6 +14286,15 @@ def main():
                     try:
                         pxr = float(j)
                         ui.device_pixel_ratio = pxr
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('WIDGETS_ON_VIDEO='):
+                    try:
+                        val_bool = j.lower()
+                        if val_bool in ['true', 'yes']:
+                            ui.widgets_on_video = True
+                        else:
+                            ui.widgets_on_video = False
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('AUDIO_OUTPUTS='):
