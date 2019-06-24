@@ -643,8 +643,10 @@ class WidgetStyleSheet:
                 height = '128px'
             else:
                 height = '{}px'.format(gui.global_font_size*3)
+            red, green, blue = gui.bg_color_widget_dark_theme
+            redc, greenc, bluec = gui.bg_color_control_frame
             gui.list2.setStyleSheet("""QListWidget{{
-                color:{1};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                color:{1};background:rgba({red},{green},{blue},30%);border:rgba(0,0,0,30%);
                 font: {bold} ;
                 }}
                 QListWidget:item {{
@@ -674,7 +676,7 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
                 """.format(height, gui.list_text_color, gui.list_text_color_focus,
-                           bold=font_bold, font=gui.global_font)
+                           bold=font_bold, font=gui.global_font, red=red, blue=blue, green=green)
                         )
             if widget != gui.list2:
                 for widget_item in ([gui.line, gui.text, gui.cover_label, gui.frame1, gui.frame,
@@ -684,17 +686,21 @@ class WidgetStyleSheet:
                         alpha = '20%'
                     else:
                         alpha = '30%'
-                    if widget == gui.frame1:
+                    if widget_item == gui.frame1:
                         font_size = '11px'
                         if not font_bold:
                             font_size = ''
+                        redt, greent, bluet = (redc, greenc, bluec)
                     else:
                         font_size = ''
+                        redt, greent, bluet = (red, green, blue)
                     widget_item.setStyleSheet("""
                         color:{color};
                         font: {bold} {size};
-                        background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});
-                        """.format(alpha=alpha, color=gui.list_text_color, bold=font_bold, size=font_size))
+                        background:rgba({red},{green},{blue},{alpha});border:rgba(0,0,0,{alpha});
+                        """.format(alpha=alpha, color=gui.list_text_color,
+                                   bold=font_bold, size=font_size, red=redt, green=greent, blue=bluet)
+                                )
                 for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3, gui.goto_epn,
                         gui.frame_extra_toolbar.child_frame, gui.frame_extra_toolbar.tab_frame,
                         gui.frame_extra_toolbar.subtitle_frame]:
@@ -715,7 +721,7 @@ class WidgetStyleSheet:
                         min_height = 'max-height: 30px'
                         
                     frame.setStyleSheet("""
-                        QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
+                        QFrame{{color:white;background:rgba({red},{green},{blue},{alpha});border:rgba(0,0,0,{alpha});}}
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                         {min_height}; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
@@ -806,17 +812,18 @@ class WidgetStyleSheet:
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
                             focus=gui.list_text_color_focus, bold=font_bold,
                             size=gui.global_font_size, font=gui.global_font,
-                            label_alpha=label_alpha, min_height=min_height
+                            label_alpha=label_alpha, min_height=min_height,
+                            red=red, green=green, blue=blue
                             )
                         )
                 gui.player_opt.setStyleSheet("""
-                    QFrame{color:white;background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);}
-                    QPushButton{max-height:64px;border:rgba(0, 0, 0, 30%)}
-                    QPushButton::hover{background-color: yellow;color: black;}
-                    """)
+                    QFrame{{color:white;background:rgba({red},{green},{blue},30%);border:rgba(0,0,0,30%);}}
+                    QPushButton{{max-height:64px;border:rgba(0, 0, 0, 30%)}}
+                    QPushButton::hover{{background-color: yellow;color: black;}}
+                    """.format(red=redc, green=greenc, blue=bluec))
                 
                 gui.settings_box.setStyleSheet("""
-                        QFrame{{color:white;background:rgba(0,0,0,{alpha});border:rgba(0,0,0,{alpha});}}
+                        QFrame{{color:white;background:rgba({red},{green},{blue},{alpha});border:rgba(0,0,0,{alpha});}}
                         QTabWidget{{
                             color:{color};
                             border:rgba(0,0,0,{alpha});background:rgb(56,60,74);
@@ -834,7 +841,7 @@ class WidgetStyleSheet:
                         }}
                         
                         QTabBar:tab{{
-                            color:{color};background:rgba(56,60,74, {alpha});
+                            color:{color};background:rgba({red},{green},{blue}, {alpha});
                         }}
                         
                         QTabBar:tab:selected{{
@@ -909,26 +916,27 @@ class WidgetStyleSheet:
                         }}""".format(
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
                             focus=gui.list_text_color_focus, bold=font_bold,
-                            size=gui.global_font_size, font=gui.global_font)
+                            size=gui.global_font_size, font=gui.global_font,
+                            red=red, blue=blue, green=green)
                         )
                 
                 for widget in [gui.progress, gui.progressEpn]:
-                    widget.setStyleSheet("""QProgressBar{
+                    widget.setStyleSheet("""QProgressBar{{
                     color:white;
-                    background:rgba(0, 0, 0, 30%);
+                    background:rgba({red}, {green}, {blue}, 30%);
                     border:rgba(0, 0, 0, 1%) ;
                     border-radius: 1px;
-                    text-align: center;}
+                    text-align: center;}}
                     
-                    QProgressBar:chunk {
+                    QProgressBar:chunk {{
                     background-color:rgba(0,0,0,30%);
                     width: 10px;
                     margin: 0.5px;
-                    }}""")
+                    }}""".format(red=redc, green=greenc, blue=bluec))
                 gui.slider.setStyleSheet("""QSlider:groove:horizontal {{
                     height: 8px;
                     border:rgba(0, 0, 0, 30%);
-                    background:rgba(0, 0, 0, 30%);
+                    background:rgba({red}, {green}, {blue}, 30%);
                     margin: 2px 0;
                     }}
                     QSlider:handle:horizontal {{
@@ -948,13 +956,13 @@ class WidgetStyleSheet:
                     """.format(
                             alpha=bg, color=gui.list_text_color,
                             bold=font_bold, size=gui.global_font_size+3,
-                            font=gui.global_font
+                            font=gui.global_font, red=redc, green=greenc, blue=bluec
                             )
                         )
                 gui.list_poster.setStyleSheet("""
                     QListWidget{{
                     color:{0};
-                    background:rgba(0, 0, 0, 35%);border:rgba(0, 0, 0, 35%);
+                    background:rgba({red}, {green}, {blue}, 35%);border:rgba(0, 0, 0, 35%);
                     font: {bold};
                     }}
                     QListWidget:item {{
@@ -984,12 +992,14 @@ class WidgetStyleSheet:
                     color: {1};
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                     }}
-                    """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus, bold=font_bold))
+                    """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus,
+                               bold=font_bold, red=red, blue=blue, green=green)
+                    )
                 #gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6, gui.player_menu]:
                     widget.setStyleSheet("""QListWidget{{
-                    color:{0};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
+                    color:{0};background:rgba({red},{green},{blue},30%);border:rgba(0,0,0,30%);
                     font: {bold};
                     }}
                     QListWidget:item {{
@@ -1020,5 +1030,6 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                     }}
                     """.format(gui.list_text_color, gui.list_text_color_focus,
-                               bold=font_bold, font=gui.global_font, height=gui.global_font_size*3)
+                               bold=font_bold, font=gui.global_font, height=gui.global_font_size*3,
+                               red=red, green=green, blue=blue)
                             )

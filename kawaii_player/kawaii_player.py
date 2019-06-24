@@ -1471,6 +1471,9 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.bg_color_dark_theme = (56, 60, 74)
+        self.bg_color_widget_dark_theme = (0, 0, 0)
+        self.bg_color_control_frame = (0, 0, 0)
         self.widgets_on_video = True
         self.stop_from_client = False
         self.allowed_access_tokens = []
@@ -2056,7 +2059,7 @@ class Ui_MainWindow(object):
         else:
             self.mpvPrevEpnList(*args)
     
-    def set_mainwindow_palette(self, fanart, first_time=None, theme=None):
+    def set_mainwindow_palette(self, fanart, first_time=None, theme=None, rgb_tuple=None):
         if theme is None or theme == 'default':
             logger.info('\n{0}:  mainwindow background\n'.format(fanart))
             if fanart.endswith('default.jpg'):
@@ -2076,9 +2079,13 @@ class Ui_MainWindow(object):
                     MainWindow.setPalette(palette)
                     self.current_background = fanart
         elif theme in ['system', 'transparent', 'mix', 'dark']:
-            if theme == 'dark' and first_time:
+            if theme == 'dark' and (first_time or rgb_tuple):
                 palette	= QtGui.QPalette()
-                palette.setColor(MainWindow.backgroundRole(), QtGui.QColor(56,60,74))
+                if rgb_tuple:
+                    r, g, b = rgb_tuple
+                else:
+                    r, g, b = self.bg_color_dark_theme
+                palette.setColor(MainWindow.backgroundRole(), QtGui.QColor(r, g, b))
                 MainWindow.setPalette(palette)
             if os.path.isfile(fanart) and self.layout_mode != 'Music':
                 self.current_background = fanart
@@ -14233,6 +14240,22 @@ def main():
                         list_color = j.lower()
                         if list_color in ui.thumbnail_text_color_dict:
                             ui.list_text_color = list_color
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('BG_COLOR_DARK_THEME='):
+                    try:
+                        color_tuple_string = j.lower()
+                        color_tuple_string = re.sub('\(|\)', '', color_tuple_string)
+                        r, g, b = color_tuple_string.split(',')
+                        ui.bg_color_dark_theme = (int(r), int(g), int(b))
+                    except Exception as e:
+                        logger.error(e)
+                elif i.startswith('BG_COLOR_CONTROL_FRAME='):
+                    try:
+                        color_tuple_string = j.lower()
+                        color_tuple_string = re.sub('\(|\)', '', color_tuple_string)
+                        r, g, b = color_tuple_string.split(',')
+                        ui.bg_color_control_frame = (int(r), int(g), int(b))
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('LIST_TEXT_COLOR_FOCUS='):

@@ -866,14 +866,93 @@ class OptionsSettings(QtWidgets.QTabWidget):
             text = eval('self.text1{}'.format(index_str))
             line = eval('self.line1{}'.format(index_str))
             self.gl1.addWidget(text, index, 0, 1, 1)
-            self.gl1.addWidget(line, index, 1, 1, 1)
+            self.gl1.addWidget(line, index, 1, 1, 5)
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
                 line.currentIndexChanged['int'].connect(partial(self.combobox_changed, line, j, 'appearance'))
             elif isinstance(line, QtWidgets.QLineEdit):
                 line.returnPressed.connect(partial(self.line_entered, line, j, 'appearance'))
+                
+        self.bg_color_label = QtWidgets.QLabel(self)
+        self.bg_color_label.setText('BG Color')
+        self.bg_color_label.setToolTip('<html>Set Background Color. Only works in dark theme.</html>')
+        self.bg_color_label.setWordWrap(True)
+        self.gl1.addWidget(self.bg_color_label, index+1, 0, 1, 1)
+        self.bg_color_value = QPushButtonExtra(self)
+        self.bg_color_value.setToolTip("<html>click to change background color</html>")
+        self.bg_color_value.clicked_connect(
+            partial(self.choose_color, self.bg_color_value, 'bg', 'bg_color_value')
+            )
+        self.gl1.addWidget(self.bg_color_value, index+1, 1, 1, 1)
+        
+        self.bg_color_valued = QPushButtonExtra(self)
+        self.bg_color_valued.setText("D")
+        self.bg_color_valued.setToolTip("<html>Restore Default Background Color</html>")
+        self.bg_color_valued.clicked_connect(
+            partial(self.restore_color, self.bg_color_value, 'bg')
+            )
+        self.gl1.addWidget(self.bg_color_valued, index+1, 2, 1, 1)
+        
+        self.bg_color_label_widgetc = QtWidgets.QLabel(self)
+        self.bg_color_label_widgetc.setText('Control Frame')
+        self.bg_color_label_widgetc.setToolTip('<html>Set Control Frame Color. Only works in dark theme.</html>')
+        self.bg_color_label_widgetc.setWordWrap(True)
+        self.gl1.addWidget(self.bg_color_label_widgetc, index+1, 3, 1, 1)
+        self.bg_color_value_widgetc = QPushButtonExtra(self)
+        self.bg_color_value_widgetc.setToolTip("<html>click to change background color of control frame</html>")
+        self.bg_color_value_widgetc.clicked_connect(
+            partial(self.choose_color, self.bg_color_value_widgetc, 'bg-widget', 'bg_color_value_widgetc')
+            )
+        self.gl1.addWidget(self.bg_color_value_widgetc, index+1, 4, 1, 1)
+        
+        self.bg_color_value_widgetcd = QPushButtonExtra(self)
+        self.bg_color_value_widgetcd.setText("D")
+        self.bg_color_value_widgetcd.setToolTip("<html>Restore Default Color of Control Frame</html>")
+        self.bg_color_value_widgetcd.clicked_connect(
+            partial(self.restore_color, self.bg_color_value_widgetc, 'frame')
+            )
+        self.gl1.addWidget(self.bg_color_value_widgetcd, index+1, 5, 1, 1)
     
+    def restore_color(self, widget, widget_type):
+        if widget_type == "frame":
+            rgb = (0, 0, 0)
+            widget.setStyleSheet('background:rgb({},{}, {});'.format(0, 0, 0))
+            ui.bg_color_control_frame = rgb
+            ui.widget_style.apply_stylesheet(theme=ui.player_theme)
+            change_opt_file(self.option_file, "BG_COLOR_CONTROL_FRAME=", "BG_COLOR_CONTROL_FRAME="+str(rgb))
+        elif widget_type == "bg":
+            rgb = (56, 60, 74)
+            widget.setStyleSheet('background:rgb({},{}, {});'.format(56, 60, 74))
+            ui.set_mainwindow_palette(ui.default_background, first_time=False, theme=ui.player_theme, rgb_tuple=rgb)
+            change_opt_file(self.option_file, "BG_COLOR_DARK_THEME=", "BG_COLOR_DARK_THEME="+str(rgb))
+            ui.bg_color_dark_theme = rgb
+            
+    def choose_color(self, widget, name, widget_name):
+        if widget_name == "bg_color_value":
+            r, g, b = ui.bg_color_dark_theme
+        elif widget_name == "bg_color_value_widgetc":
+            r, g, b = ui.bg_color_control_frame
+        else:
+            r, g, b = (0,0,0)
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(r, g, b))
+        if color.isValid():
+            color_name = color.name().upper()
+            rgb = (color.red(), color.green(), color.blue())
+            widget.setStyleSheet('background:{};'.format(color_name))
+            if widget_name == "bg_color_value":
+                ui.set_mainwindow_palette(ui.default_background, first_time=False, theme=ui.player_theme, rgb_tuple=rgb)
+                change_opt_file(self.option_file, "BG_COLOR_DARK_THEME=", "BG_COLOR_DARK_THEME="+str(rgb))
+                ui.bg_color_dark_theme = rgb
+            elif widget_name == "bg_color_value_widget":
+                ui.bg_color_widget_dark_theme = rgb
+                ui.widget_style.apply_stylesheet(theme=ui.player_theme)
+                change_opt_file(self.option_file, "BG_COLOR_WIDGET_DARK_THEME=", "BG_COLOR_WIDGET_DARK_THEME="+str(rgb))
+            elif widget_name == "bg_color_value_widgetc":
+                ui.bg_color_control_frame = rgb
+                ui.widget_style.apply_stylesheet(theme=ui.player_theme)
+                change_opt_file(self.option_file, "BG_COLOR_CONTROL_FRAME=", "BG_COLOR_CONTROL_FRAME="+str(rgb))
+                
     def mediaserver(self):
         self.media_param = []
         self.line11 = QtWidgets.QLineEdit()
