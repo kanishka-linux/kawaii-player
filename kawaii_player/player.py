@@ -199,7 +199,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     else:
                         msg = bytes("show-text '{}' 1000".format(self.ui.epn_name_in_list), "utf-8")
                         self.ui.mpvplayer_val.write(msg)
-                if self.ui.player_val == "libmpv" and self.ui.fullscreen_video:
+                if self.ui.player_val == "libmpv" and self.ui.fullscreen_video and self.ui.widgets_on_video:
                     self.ui.frame1.show()
                 self.arrow_timer.start(1000)
         if MainWindow.isFullScreen() or self.ui.player_val == "libmpv":
