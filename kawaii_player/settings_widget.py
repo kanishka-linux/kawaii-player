@@ -410,6 +410,19 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.tabs_present = False
         self.setMouseTracking(True)
         self.font_families = ['default']
+        self.color_themes_counter = 0
+        self.default_color_themes = {
+                1: ((56, 60, 74), (0, 0, 0)),
+                2: ((85, 85, 0), (40, 23, 18)),
+                3: ((59, 28, 41), (15, 12, 34)),
+                4: ((83, 41, 0), (19, 16, 42)),
+                5: ((91, 88, 73), (42, 41, 29)),
+                6: ((90, 90, 67), (44, 0, 33)),
+                7: ((117, 80, 130), (23, 29, 58)),
+                8: ((125, 125, 93), (58, 29, 0)),
+                9: ((47, 159, 176), (19, 16, 42)),
+                10: ((127, 101, 60), (44, 0, 33))
+                }
         
     def mouseMoveEvent(self, event):
         if ui.auto_hide_dock:
@@ -476,7 +489,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
     
     def appeareance_setdefault(self):
         if ui.player_theme == 'dark':
-            fonts = ['noto serif', 'noto sans', 'ubuntu']
+            fonts = ['ubuntu mono', 'monaco', 'noto serif', 'noto sans', 'ubuntu']
             found = None
             for font in fonts:
                 for family in self.font_families:
@@ -496,7 +509,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             ui.list_text_color = 'lightgray'
             ui.list_text_color_focus = 'violet'
         elif ui.player_theme == 'default':
-            fonts = ['ubuntu', 'noto sans', 'noto serif']
+            fonts = ['ubuntu', 'monaco', 'ubuntu mono', 'noto sans', 'noto serif']
             found = None
             for font in fonts:
                 for family in self.font_families:
@@ -866,7 +879,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             text = eval('self.text1{}'.format(index_str))
             line = eval('self.line1{}'.format(index_str))
             self.gl1.addWidget(text, index, 0, 1, 1)
-            self.gl1.addWidget(line, index, 1, 1, 5)
+            self.gl1.addWidget(line, index, 1, 1, 6)
             obj_name = text.text().upper().replace(' ', '_')
             line.setObjectName(obj_name)
             if isinstance(line, QtWidgets.QComboBox):
@@ -913,7 +926,24 @@ class OptionsSettings(QtWidgets.QTabWidget):
             partial(self.restore_color, self.bg_color_value_widgetc, 'frame')
             )
         self.gl1.addWidget(self.bg_color_value_widgetcd, index+1, 5, 1, 1)
+        
+        self.bg_color_try = QPushButtonExtra(self)
+        self.bg_color_try.setText("Try")
+        self.bg_color_try.setToolTip("<html>Click To Try Various color themes</html>")
+        self.bg_color_try.clicked_connect(
+            partial(self.try_bg_colors, self.bg_color_try, 'bg-color')
+            )
+        self.gl1.addWidget(self.bg_color_try, index+1, 6, 1, 1)
     
+    def try_bg_colors(self, widget, val):
+        self.color_themes_counter += 1
+        if self.color_themes_counter <= len(self.default_color_themes):
+            rgbw, rgbf = self.default_color_themes.get(self.color_themes_counter)
+            self.set_colors(self.bg_color_value, "bg_color_value", rgbw)
+            self.set_colors(self.bg_color_value_widgetc, "bg_color_value_widgetc", rgbf)
+        else:
+            self.color_themes_counter = 0
+            
     def restore_color(self, widget, widget_type):
         if widget_type == "frame":
             rgb = (0, 0, 0)
@@ -939,7 +969,11 @@ class OptionsSettings(QtWidgets.QTabWidget):
         if color.isValid():
             color_name = color.name().upper()
             rgb = (color.red(), color.green(), color.blue())
-            widget.setStyleSheet('background:{};'.format(color_name))
+            print(rgb)
+            self.set_colors(widget, widget_name, rgb)
+            
+    def set_colors(self, widget, widget_name, rgb):
+            widget.setStyleSheet('background:rgb{};'.format(rgb))
             if widget_name == "bg_color_value":
                 ui.set_mainwindow_palette(ui.default_background, first_time=False, theme=ui.player_theme, rgb_tuple=rgb)
                 change_opt_file(self.option_file, "BG_COLOR_DARK_THEME=", "BG_COLOR_DARK_THEME="+str(rgb))
