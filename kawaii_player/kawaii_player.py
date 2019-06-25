@@ -3896,7 +3896,8 @@ class Ui_MainWindow(object):
                 ht = self.list2.height() 
                 self.list2.hide()
                 self.goto_epn.hide()
-                show_hide_playlist = 0
+                if not self.fullscreen_video:
+                    show_hide_playlist = 0
                 width = self.label_new.maximumWidth()
                 height = self.label_new.maximumHeight()
                 logger.debug('wd={}::ht={}::{}::{}'.format(width, height, screen_width, screen_height))
@@ -3912,7 +3913,8 @@ class Ui_MainWindow(object):
                     if platform.system().lower() == "darwin":
                         self.tab_5.setMinimumWidth(0)
                 self.list2.show()
-                show_hide_playlist = 1
+                if not self.fullscreen_video:
+                    show_hide_playlist = 1
                 if MainWindow.isFullScreen():
                     MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                 if self.list_with_thumbnail:
@@ -3930,7 +3932,8 @@ class Ui_MainWindow(object):
                     ht = self.list1.height()
                     self.list1.hide()
                     self.frame.hide()
-                    show_hide_titlelist = 0
+                    if not self.fullscreen_video:
+                        show_hide_titlelist = 0
                     width = self.label_new.maximumWidth()
                     height = self.label_new.maximumHeight()
                     if width != screen_width or height != screen_height:
@@ -3946,7 +3949,8 @@ class Ui_MainWindow(object):
                         show_list = False
                     if show_list:
                         self.list1.show()
-                        show_hide_titlelist = 1
+                        if not self.fullscreen_video:
+                            show_hide_titlelist = 1
                         if MainWindow.isFullScreen():
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         elif val == "Lock File":
