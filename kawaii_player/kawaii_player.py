@@ -1901,7 +1901,7 @@ class Ui_MainWindow(object):
                     self.verticalLayout_40.insertWidget(0, self.list1, 0)
                 elif widgets == "title_search":
                     self.verticalLayout_40.insertWidget(1, self.list4, 0)
-            elif self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False:
+            elif self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False and self.fullscreen_video:
                 self.gridLayoutVideoPls.addWidget(self.list2, 0, 1, 1, 1)
                 self.gridLayoutVideoPls.addWidget(self.list6, 1, 1, 1, 1)
                 self.gridLayoutVideoPls.addWidget(self.list5, 2, 1, 1, 1)
