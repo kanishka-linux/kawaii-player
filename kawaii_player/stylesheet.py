@@ -821,7 +821,7 @@ class WidgetStyleSheet:
                         )
                 gui.player_opt.setStyleSheet("""
                     QFrame{{color:white;background:rgba({red},{green},{blue},30%);border:rgba(0,0,0,30%);}}
-                    QPushButton{{max-height:64px;border:rgba(0, 0, 0, 30%)}}
+                    QPushButton{{max-height:64px;background:rgba({red},{green},{blue},40%);border:rgba(0, 0, 0, 30%);}}
                     QPushButton::hover{{background-color: yellow;color: black;}}
                     """.format(red=redc, green=greenc, blue=bluec))
                 
