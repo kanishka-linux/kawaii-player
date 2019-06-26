@@ -337,6 +337,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.args_dict.update({"ao":"pulse"})
         elif os.name == "nt":
             self.args_dict.update({"ao":"wasapi"})
+        self.default_args = self.args_dict.copy()
         if gui.mpvplayer_string_list and gui.use_custom_config_file:
             self.create_args_dict()
         locale.setlocale(locale.LC_NUMERIC, 'C')
@@ -427,7 +428,11 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.stop_msg = None
 
     def init_opengl_cb(self):
-        self.mpv = MPV(**self.args_dict)
+        try:
+            self.mpv = MPV(**self.args_dict)
+        except Exception as err:
+            logger.error("\nSome wrong config option. Restoring default\n")
+            self.mpv = MPV(**self.default_args)
         self.mpv.observe_property("time-pos", self.time_observer)
         self.mpv.observe_property("eof-reached", self.eof_observer)
         self.mpv.observe_property("idle-active", self.idle_observer)
@@ -456,8 +461,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             key = key.replace('_', '-')
             if isinstance(value, bool):
                 value = 'yes' if value else 'no'
-            self.mpv.set_option(key, value)
-
+            try:
+                self.mpv.set_option(key, value)
+            except Exception as err:
+                logger.error("Error in setting property: {} => {}, Correct config options.".format(key, value))
         self.mpv.observe_property('time-pos')
         self.mpv.observe_property('duration')
         self.mpv.observe_property('eof-reached')
@@ -1032,7 +1039,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     pass
                 if gui.restore_volume and vol:
                     try:
-                        self.mpv.set_property('ao-volume', vol)
+                        self.mpv.set_property('ao-volume', str(vol))
                     except Exception as err:
                         logger.error(err)
                 param_dict = gui.get_parameters_value(o='opt', s="site")
