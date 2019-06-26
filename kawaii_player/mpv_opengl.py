@@ -1007,6 +1007,10 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.file_size = self.mpv.get_property('file-size')
             except Exception as err:
                 self.file_size = 0
+            try:
+                self.mpv.set_property("ao-volume", str(gui.player_volume))
+            except Exception as err:
+                logger.error(err)
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
             gui.final_playing_url = self.mpv.get_property('path')
