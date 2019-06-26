@@ -1025,7 +1025,7 @@ class WidgetStyleSheet:
                     QMenu::item{{
                     font: {font};
                     color: {0};
-                    background:rgba({redm},{greenm},{bluem});border: rgba(0,0,0, 30%);
+                    background:rgba({redm},{greenm},{bluem}, 50%);border: rgba(0,0,0, 30%);
                     padding: 4px; margin: 2px 2px 2px 10px;
                     }}
                     QMenu::item:selected{{
