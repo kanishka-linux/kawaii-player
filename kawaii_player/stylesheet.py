@@ -645,6 +645,7 @@ class WidgetStyleSheet:
                 height = '{}px'.format(gui.global_font_size*3)
             red, green, blue = gui.bg_color_widget_dark_theme
             redc, greenc, bluec = gui.bg_color_control_frame
+            redm, greenm, bluem = gui.bg_color_dark_theme
             gui.list2.setStyleSheet("""QListWidget{{
                 color:{1};background:rgba({red},{green},{blue},30%);border:rgba(0,0,0,30%);
                 font: {bold} ;
@@ -662,13 +663,13 @@ class WidgetStyleSheet:
                     }}
                 QMenu{{
                 color: white;
-                background: rgb(56,60,74);border: rgba(0,0,0, 30%);
+                background: rgba({redm}, {greenm}, {bluem}, 50%);border: rgba(0,0,0, 30%);
                 padding: 2px;
                 }}
                 QMenu::item{{
                 font: {font};
                 color: {1};
-                background:rgb(56,60,74);border: rgba(0,0,0, 30%);
+                background:rgba({redm}, {greenm}, {bluem}, 50%);border: rgba(0,0,0, 30%);
                 padding: 4px; margin: 2px 2px 2px 10px;
                 }}
                 QMenu::item:selected{{
@@ -676,7 +677,9 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
                 """.format(height, gui.list_text_color, gui.list_text_color_focus,
-                           bold=font_bold, font=gui.global_font, red=red, blue=blue, green=green)
+                           bold=font_bold, font=gui.global_font,
+                           red=red, blue=blue, green=green,
+                           redm=redm, bluem=bluem, greenm=greenm)
                         )
             if widget != gui.list2:
                 for widget_item in ([gui.line, gui.text, gui.cover_label, gui.frame1, gui.frame,
@@ -1016,13 +1019,13 @@ class WidgetStyleSheet:
                     }}
                     QMenu{{
                     color: {1};
-                    background: rgb(56,60,74);border: rgba(0,0,0, 30%);
+                    background: rgba({redm},{greenm},{bluem}, 50%);border: rgba(0,0,0, 30%);
                     padding: 2px;
                     }}
                     QMenu::item{{
                     font: {font};
                     color: {0};
-                    background:rgb(56,60,74);border: rgba(0,0,0, 30%);
+                    background:rgba({redm},{greenm},{bluem});border: rgba(0,0,0, 30%);
                     padding: 4px; margin: 2px 2px 2px 10px;
                     }}
                     QMenu::item:selected{{
@@ -1031,5 +1034,6 @@ class WidgetStyleSheet:
                     }}
                     """.format(gui.list_text_color, gui.list_text_color_focus,
                                bold=font_bold, font=gui.global_font, height=gui.global_font_size*3,
-                               red=red, green=green, blue=blue)
+                               red=red, green=green, blue=blue,
+                               redm=redm, greenm=greenm, bluem=bluem)
                             )
