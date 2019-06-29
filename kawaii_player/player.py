@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import platform
 from collections import OrderedDict
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import ccurl, open_files
