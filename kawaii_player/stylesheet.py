@@ -835,12 +835,12 @@ class WidgetStyleSheet:
                             background-color:rgba(0,0,0,{alpha});
                             }}
                         QTabWidget:pane {{
-                            color:{color};font: {bold} {size_label}px {font};
+                            color:{color};font: {bold} {size}px {font};
                             border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
                         }}
                         
                         QTabBar {{
-                            color:{color};font: {bold} {size_label}px {font};
+                            color:{color};font: {bold} {size}px {font};
                             border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
                             background-color:rgba(0,0,0,{alpha});
                         }}
@@ -869,9 +869,9 @@ class WidgetStyleSheet:
                         max-height:40px; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QLineEdit{{color:{color};background:rgba(0,0,0,10%);
-                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {size_label}px {font};}}
+                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {size}px {font};}}
                         QTextEdit{{color:{color};background:rgba(0,0,0,10%);
-                        border:rgba(0, 0, 0, 10%); font: {bold} {size_label}px {font};}}
+                        border:rgba(0, 0, 0, 10%); font: {bold} {size}px {font};}}
                         
                         QCheckBox{{color:{color};background:rgba(0,0,0,10%);
                         border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
@@ -890,7 +890,7 @@ class WidgetStyleSheet:
                         }}
                         
                         QLabel{{color:{color};background:rgba(0,0,0,0%);
-                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {size_label}px {font};}}
+                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {size}px {font};}}
                         QComboBox {{
                         color: {color};
                         selection-color:yellow;background:rgba(0,0,0,{btn});
@@ -904,7 +904,7 @@ class WidgetStyleSheet:
                         border-radius: 0px;
                         border-color:rgb({redm}, {greenm}, {bluem});
                         color: {color};
-                        font: {bold} {size_label}px {font};
+                        font: {bold} {size}px {font};
                         }}
                         QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
                         QComboBox::drop-down {{
