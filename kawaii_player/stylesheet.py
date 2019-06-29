@@ -750,7 +750,7 @@ class WidgetStyleSheet:
                         color:white;
                         }}
                         QComboBox QAbstractItemView{{
-                        background-color: rgb(54,60,74);
+                        background-color: rgb({redm},{greenm},{bluem});
                         border-radius: 0px;
                         color: {color};
                         font: {bold};
@@ -816,7 +816,9 @@ class WidgetStyleSheet:
                             focus=gui.list_text_color_focus, bold=font_bold,
                             size=gui.global_font_size, font=gui.global_font,
                             label_alpha=label_alpha, min_height=min_height,
-                            red=red, green=green, blue=blue
+                            red=red, green=green, blue=blue,
+                            redm=redm, greenm=greenm, bluem=bluem,
+                            size_label=gui.global_font_size+4
                             )
                         )
                 gui.player_opt.setStyleSheet("""
@@ -833,12 +835,12 @@ class WidgetStyleSheet:
                             background-color:rgba(0,0,0,{alpha});
                             }}
                         QTabWidget:pane {{
-                            color:{color};font: {bold} {font};
+                            color:{color};font: {bold} {size_label}px {font};
                             border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
                         }}
                         
                         QTabBar {{
-                            color:{color};font: {bold} {font};
+                            color:{color};font: {bold} {size_label}px {font};
                             border:rgba(0,0,0,{alpha});background:rgba(56,60,74, {alpha});
                             background-color:rgba(0,0,0,{alpha});
                         }}
@@ -867,9 +869,9 @@ class WidgetStyleSheet:
                         max-height:40px; font: {bold};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QLineEdit{{color:{color};background:rgba(0,0,0,10%);
-                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                        max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {size_label}px {font};}}
                         QTextEdit{{color:{color};background:rgba(0,0,0,10%);
-                        border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
+                        border:rgba(0, 0, 0, 10%); font: {bold} {size_label}px {font};}}
                         
                         QCheckBox{{color:{color};background:rgba(0,0,0,10%);
                         border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
@@ -888,21 +890,21 @@ class WidgetStyleSheet:
                         }}
                         
                         QLabel{{color:{color};background:rgba(0,0,0,0%);
-                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {font};}}
+                        max-height:40px;border:rgba(0, 0, 0, 10%);font: {bold} {size_label}px {font};}}
                         QComboBox {{
                         color: {color};
                         selection-color:yellow;background:rgba(0,0,0,{btn});
                         border:rgba(0, 0, 0, 10%);
-                        padding: 2px 0px 2px 4px;
+                        padding: 0px 2px 0px 4px;
                         font: {bold};
                         max-height: 40px;
                         }}
                         QComboBox QAbstractItemView{{
-                        background-color: rgb(56,60,74);
+                        background-color: rgb({redm},{greenm},{bluem});
                         border-radius: 0px;
-                        border-color:rgb(56,60,74);
+                        border-color:rgb({redm}, {greenm}, {bluem});
                         color: {color};
-                        font: {bold} {font};
+                        font: {bold} {size_label}px {font};
                         }}
                         QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
                         QComboBox::drop-down {{
@@ -920,7 +922,9 @@ class WidgetStyleSheet:
                             alpha=bg, btn=qbtn, color=gui.list_text_color,
                             focus=gui.list_text_color_focus, bold=font_bold,
                             size=gui.global_font_size, font=gui.global_font,
-                            red=red, blue=blue, green=green)
+                            red=red, blue=blue, green=green,
+                            redm=redm, greenm=greenm, bluem=bluem,
+                            size_label=gui.global_font_size+4)
                         )
                 
                 for widget in [gui.progress, gui.progressEpn]:
