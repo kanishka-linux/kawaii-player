@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from collections import OrderedDict
 from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import ccurl, open_files
@@ -112,16 +113,19 @@ class PlayerWidget(QtWidgets.QWidget):
         """
         
     def arrow_hide(self):
-        if self.player_val in ["mplayer", "mpv", "libmpv"]:
-            if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
-                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                self.setFocus()
-                logger.debug("arrow hide")
-            elif self.hasFocus():
-                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                logger.debug('player has focus')
-            else:
-                logger.debug('player not focussed')
+        if platform.system().lower() == "darwin":
+            self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+        else:
+            if self.player_val in ["mplayer", "mpv", "libmpv"]:
+                if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
+                    self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                    self.setFocus()
+                    logger.debug("arrow hide")
+                elif self.hasFocus():
+                    self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                    logger.debug('player has focus')
+                else:
+                    logger.debug('player not focussed')
 
     def frameShowHide(self):
         if MainWindow.isFullScreen() and self.ui.tab_6.isHidden():
@@ -194,13 +198,17 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                 #self.ui.frame1.show()
                 if self.ui.fullscreen_video:
+                    fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
+                    status_string = '{} / {} Title: {}'.format(fn(self.ui.progress_counter),
+                                                               fn(self.ui.mplayerLength),
+                                                               self.ui.epn_name_in_list[:100]) 
                     if self.ui.player_val == "libmpv":
-                        self.ui.tab_5.mpv.command("show-text", self.ui.epn_name_in_list, 1000)
+                        self.ui.tab_5.mpv.command("show-text", status_string, 1000)
                     else:
-                        msg = bytes("show-text '{}' 1000".format(self.ui.epn_name_in_list), "utf-8")
+                        msg = bytes("show-text '{}' 1000".format(status_string), "utf-8")
                         self.ui.mpvplayer_val.write(msg)
-                if self.ui.player_val == "libmpv" and self.ui.fullscreen_video and self.ui.widgets_on_video:
-                    self.ui.frame1.show()
+                #if self.ui.player_val == "libmpv" and self.ui.fullscreen_video and self.ui.widgets_on_video:
+                #    self.ui.frame1.show()
                 self.arrow_timer.start(1000)
         if MainWindow.isFullScreen() or self.ui.player_val == "libmpv":
             ht = self.height()
@@ -211,7 +219,7 @@ class PlayerWidget(QtWidgets.QWidget):
             elif pos.y() <= ht-128 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
-                if (site != "Music" and self.ui.tab_6.isHidden() and self.ui.player_val != "libmpv"
+                if (site != "Music" and self.ui.tab_6.isHidden() and self.ui.fullscreen_video
                         and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                     self.ui.frame1.hide()
                     self.ui.gridLayout.setSpacing(5)
