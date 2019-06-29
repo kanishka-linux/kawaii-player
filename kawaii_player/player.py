@@ -114,19 +114,16 @@ class PlayerWidget(QtWidgets.QWidget):
         """
         
     def arrow_hide(self):
-        if platform.system().lower() == "darwin":
-            self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-        else:
-            if self.player_val in ["mplayer", "mpv", "libmpv"]:
-                if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                    self.setFocus()
-                    logger.debug("arrow hide")
-                elif self.hasFocus():
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
-                    logger.debug('player has focus')
-                else:
-                    logger.debug('player not focussed')
+        if self.player_val in ["mplayer", "mpv", "libmpv"]:
+            if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
+                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                self.setFocus()
+                logger.debug("arrow hide")
+            elif self.hasFocus():
+                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                logger.debug('player has focus')
+            else:
+                logger.debug('player not focussed')
 
     def frameShowHide(self):
         if MainWindow.isFullScreen() and self.ui.tab_6.isHidden():
