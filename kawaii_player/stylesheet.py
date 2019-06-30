@@ -60,7 +60,7 @@ class WidgetStyleSheet:
             gui.list2.setStyleSheet("""
                 QListWidget{{
                 color:{1};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
-                font: {bold} {font};
+                font: {bold} {size}px {font};
                 }}
                 QListWidget:item {{
                 height: {0};
@@ -91,7 +91,7 @@ class WidgetStyleSheet:
                 background:rgba(0, 0, 0, 20%);border: rgba(0,0,0, 30%);
                 }}
                 """.format(height, gui.list_text_color, gui.list_text_color_focus,
-                           bold=font_bold, font=gui.global_font)
+                           bold=font_bold, font=gui.global_font, size=gui.global_font_size)
                         )
                 
     def qmenu_style(self, widget):
