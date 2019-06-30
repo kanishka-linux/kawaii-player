@@ -1390,7 +1390,6 @@ class ExtraToolBar(QtWidgets.QFrame):
         self.super_layout.setContentsMargins(0, 0, 0, 0)
         self.super_layout.setSpacing(0)
         self.tab_frame = QtWidgets.QFrame(self)
-        self.tab_frame.setStyleSheet('background:rgba(0,0,0,0)')
         self.tab_frame_layout = QtWidgets.QHBoxLayout(self.tab_frame)
         self.tab_frame_layout.setSpacing(0)
         self.tab_frame_layout.setContentsMargins(5,5,5,5)
