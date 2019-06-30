@@ -360,7 +360,7 @@ class WidgetStyleSheet:
                     color: {color};
                     selection-color:yellow;background:rgba(0,0,0,{btn});
                     border:rgba(0, 0, 0, 10%);
-                    padding: 2px 0px 2px 4px;
+                    padding: 0px 2px 0px 4px;
                     font: {bold};
                     max-height: 40px;
                     }}
@@ -368,6 +368,7 @@ class WidgetStyleSheet:
                         background-color: rgba(54,60,74);
                         border-radius: 0px;
                         color: {color};
+                        padding: 0px 2px 0px 4px;
                         font: {bold} {font};
                      }}
                     QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
