@@ -1551,7 +1551,7 @@ class Ui_MainWindow(object):
         except Exception as err:
             logger.error(err)
             self.global_font = 'Ubuntu'
-        self.global_font_size = 12
+        self.global_font_size = 14
         self.show_search_thumbnail = False
         self.tab_6_size_indicator = []
         self.tab_6_player = False

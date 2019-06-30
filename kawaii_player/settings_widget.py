@@ -502,7 +502,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 ui.global_font = found
             else:
                 self.global_font = QtGui.QFont().defaultFamily()
-            ui.global_font_size = 12
+            ui.global_font_size = 14
             ui.font_bold = False
             ui.thumbnail_text_color = 'lightgray'
             ui.thumbnail_text_color_focus = 'green'
