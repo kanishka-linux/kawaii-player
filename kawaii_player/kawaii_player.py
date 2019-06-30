@@ -14282,8 +14282,8 @@ def main():
                 elif i.startswith('FONT_BOLD='):
                     try:
                         font_bold = j.lower()
-                        if font_bold in ['false', 'no']:
-                            ui.font_bold = False
+                        if font_bold in ['true', 'yes']:
+                            ui.font_bold = True
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('GLOBAL_FONT_SIZE='):
