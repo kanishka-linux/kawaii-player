@@ -766,7 +766,6 @@ class WidgetStyleSheet:
                         
                         QSlider:groove:horizontal {{
                             height: 8px;
-                            border:rgba(0, 0, 0, 30%);
                             background:rgba(0, 0, 0, 30%);
                             margin: 2px 0;
                             }}
@@ -860,7 +859,7 @@ class WidgetStyleSheet:
                         
                         QListWidget{{
                             color:{color};background:rgba(0,0,0,30%);border:rgba(0,0,0,30%);
-                            font: {bold} {font};
+                            font: {bold} {size}px {font};
                         }}
                         QListWidget:item {{
                             height: 30px;
