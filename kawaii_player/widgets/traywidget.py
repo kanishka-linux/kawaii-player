@@ -394,6 +394,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         ui.float_window_open = True
         if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
             ui.float_window.setWindowTitle(ui.epn_name_in_list)
+            if ui.fullscreen_video:
+                ui.frame_extra_toolbar.btn_fs_video.clicked_emit()
+            elif MainWindow.isFullScreen():
+                ui.frame_extra_toolbar.btn_fs_window.clicked_emit()
         if txt.lower() == '&detach video':
             self.d_vid.setText('&Attach Video')
             if str(ui.idw) == ui.get_winid() or not ui.idw:
