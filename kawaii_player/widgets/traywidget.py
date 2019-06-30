@@ -307,10 +307,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         self.addAction(self.h_mode)
         self.h_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        self.m_mode = QtWidgets.QAction("&Music Mode", self)
-        self.m_mode.triggered.connect(ui.music_mode_layout)
-        self.addAction(self.m_mode)
-        self.m_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
+        #self.m_mode = QtWidgets.QAction("&Music Mode", self)
+        #self.m_mode.triggered.connect(ui.music_mode_layout)
+        #self.addAction(self.m_mode)
+        #self.m_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
         self.v_mode = QtWidgets.QAction("&Video Mode", self)
         self.v_mode.triggered.connect(ui.video_mode_layout)
