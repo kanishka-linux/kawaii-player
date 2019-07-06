@@ -426,6 +426,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.file_size = 0
         self.first_play = True
         self.stop_msg = None
+        self.pointer_moved = False
 
     def init_opengl_cb(self):
         try:
@@ -805,7 +806,12 @@ class MpvOpenglWidget(QOpenGLWidget):
     def send_fake_event(self, val):
         self.fake_mousemove_event = ("libmpv", True)
         pos = self.cursor().pos()
-        new_point = QtCore.QPoint(pos.x() + 1, pos.y()+1)
+        if not self.pointer_moved:
+            new_point = QtCore.QPoint(pos.x() + 1, pos.y())
+            self.pointer_moved = True
+        else:
+            new_point = QtCore.QPoint(pos.x() - 1, pos.y())
+            self.pointer_moved = False
         self.cursor().setPos(new_point)
         if val == "mouse_release":
             event = QtGui.QMouseEvent(
