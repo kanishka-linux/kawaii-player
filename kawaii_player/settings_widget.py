@@ -1330,13 +1330,13 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line43 = QtWidgets.QLineEdit()
         self.line43.setPlaceholderText(str(ui.cache_pause_seconds) + ' (In Seconds)')
-        msg = '<html>Stop this many seconds before starting out again when run\
+        msg = '<html>Pause this many seconds before starting out again when run\
                 out of cache</html>'
         self.text43 = QtWidgets.QLabel()
         self.text43.setText("Cache Pause Seconds")
         self.text43.setToolTip(msg)
         self.player_list.append('cache_pause_seconds')
-        
+        """
         self.line44 = QtWidgets.QLineEdit()
         if len(ui.playback_engine) > 2:
             extra_players = [i for i in ui.playback_engine if i not in ['mpv', 'mplayer', 'libmpv']]
@@ -1356,6 +1356,19 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text44.setText("Extra Players")
         self.text44.setToolTip(msg)
         self.player_list.append('playback_engine')
+        """
+        
+        self.line44 = QtWidgets.QComboBox()
+        self.line44.addItem("False")
+        self.line44.addItem("True")
+        index = self.line44.findText(str(ui.playlist_continue))
+        self.line44.setCurrentIndex(index)
+        self.text44 = QtWidgets.QLabel()
+        self.text44.setText("Playlist Continue")
+        self.player_list.append('playlist_continue')
+        msg = 'True: Allow playback of next playlist entry automatically (default).\n\
+               False: stop playback once file end has reached, meaning only one file will be played.'
+        self.text44.setToolTip('<html>{}</html>'.format(msg))
         
         self.line45 = QtWidgets.QLineEdit()
         self.line45.setPlaceholderText("{}".format(ui.screenshot_directory))

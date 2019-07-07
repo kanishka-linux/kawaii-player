@@ -1471,6 +1471,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.playlist_continue = True
         self.bg_color_dark_theme = (56, 60, 74)
         self.bg_color_widget_dark_theme = (0, 0, 0)
         self.bg_color_control_frame = (0, 0, 0)
@@ -14306,6 +14307,13 @@ def main():
                             ui.restore_volume = True
                     except Exception as e:
                         logger.error(e)
+                elif i.startswith('PLAYLIST_CONTINUE='):
+                    try:
+                        plc = j.lower()
+                        if plc in ['false', 'no']:
+                            ui.playlist_continue = True
+                    except Exception as e:
+                        logger.error(e)
                 elif i.startswith('REMEMBER_ASPECT_PER_VIDEO='):
                     try:
                         asp = j.lower()
@@ -14424,6 +14432,7 @@ def main():
             f.write("\nOSX_NATIVE_FULLSCREEN=False")
             f.write("\nLIBMPV_API=OPENGL-CB")
             f.write("\nDEVICE_PIXEL_RATIO=1.0")
+            f.write("\nPLAYLIST_CONTINUE=True")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
