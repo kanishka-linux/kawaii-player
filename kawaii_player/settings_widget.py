@@ -1638,17 +1638,14 @@ class OptionsSettings(QtWidgets.QTabWidget):
                         i = ''
                 if i and i not in ui.mpvplayer_string_list:
                     ui.mpvplayer_string_list.append('--'+i)
-                if i and ui.player_val == "libmpv":
-                    if "=" in i:
-                        k, v = i.split('=', 1)
-                    else:
-                        k = i
-                        v = True
-                    k = k.replace('-', '_')
-                    ui.tab_5.args_dict.update({k:v})
-                    if hasattr(ui.tab_5.mpv, k):
-                        setattr(ui.tab_5.mpv, k, v)
-                        print("{}={}".format(k, v))
+                
+        if ui.player_val == "libmpv" and hasattr(ui.tab_5, "mpv") and ui.use_custom_config_file:
+            ui.tab_5.create_args_dict()
+            for k, v in ui.tab_5.args_dict.items():
+                if isinstance(v, bool):
+                    v = "yes" if v else "no"
+                k = k.replace("_", "-")
+                ui.tab_5.mpv.set_property(k, v)
         write_files(self.config_file_name, mpv_cmd, line_by_line=True)
         mpv_cmd_dict.update({'file':mpv_cmd})
         mpv_cmd_dict.update({'str':ui.mpvplayer_string_list})
