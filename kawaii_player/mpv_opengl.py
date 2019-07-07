@@ -309,6 +309,9 @@ def mpv_cmd_direct(cmd):
             me.mpv.set_property('loop-file', 'no')
     except Exception as err:
         print(err)
+        
+def mpv_log(level, component, msg):
+    print('[{}] {}: {}'.format(level, component, msg))
     
 class MpvOpenglWidget(QOpenGLWidget):
     
@@ -430,7 +433,7 @@ class MpvOpenglWidget(QOpenGLWidget):
 
     def init_opengl_cb(self):
         try:
-            self.mpv = MPV(**self.args_dict)
+            self.mpv = MPV(log_handler=mpv_log, **self.args_dict)
         except Exception as err:
             logger.error("\nSome wrong config option. Restoring default\n")
             self.mpv = MPV(**self.default_args)
@@ -458,6 +461,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def init_opengl_render(self):
         self.mpv = mpv.Context()
         self.mpv.initialize()
+        self.mpv.set_log_level('no')
         for key, value in self.args_dict.items():
             key = key.replace('_', '-')
             if isinstance(value, bool):
@@ -466,6 +470,15 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.mpv.set_option(key, value)
             except Exception as err:
                 logger.error("Error in setting property: {} => {}, Correct config options.".format(key, value))
+            if key == "msg-level":
+                try:
+                    if "=" in value:
+                        self.mpv.set_log_level(value.rsplit('=', 1)[-1])
+                    else:
+                        self.mpv.set_log_level(value)
+                except Exception as err:
+                    logger.error("Error setting log-level")
+        
         self.mpv.observe_property('time-pos')
         self.mpv.observe_property('duration')
         self.mpv.observe_property('eof-reached')
@@ -502,7 +515,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                 if event.id in {mpv.Events.none, mpv.Events.shutdown}:
                     break
                 elif event.id == mpv.Events.log_message:
-                    pass
+                    event_log = event.data
+                    log_msg = "[{}] {}-{}".format(event_log.level, event_log.prefix, event_log.text.strip())
+                    print(log_msg)
                 elif event.id == mpv.Events.property_change:
                     event_prop = event.data
                     observer_function = self.observer_map.get(event_prop.name)
@@ -592,7 +607,9 @@ class MpvOpenglWidget(QOpenGLWidget):
         if gui.gapless_playback or gui.gapless_network_stream:
             self.args_dict.update({'gapless-audio':True})
             self.args_dict.update({'prefetch-playlist': True})
-            
+        if isinstance(gui.cache_pause_seconds, int) and gui.cache_pause_seconds > 0:
+            self.args_dict.update({'cache-pause': True})
+            self.args_dict.update({'cache-pause-wait': gui.cache_pause_seconds})
         for param in gui.mpvplayer_string_list:
             if "=" in param:
                 k, v = param.split("=", 1)
@@ -683,7 +700,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def playback_abort_observer(self, name, value):
         site = self.ui.get_parameters_value(st='site')['site']
         logger.debug('\n..{} {}..\n'.format(name, value))
-        if self.ui.epn_clicked and value is True:
+        if self.ui.epn_clicked and value is True and self.ui.playlist_continue:
             if self.ui.cur_row < self.ui.list2.count():
                 self.ui.list2.setCurrentRow(self.ui.cur_row)
                 item = self.ui.list2.item(self.ui.cur_row)
@@ -873,8 +890,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if item:
                         gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 self.playlist_backup = False
-        if value in [None, True] and self.ui.quit_really:
+        if (value in [None, True] and (self.ui.quit_really or not self.ui.playlist_continue)):
             self.mpv.command("stop")
+            self.ui.player_stop.clicked_emit()
 
     def check_queued_item(self):
         if self.ui.queue_url_list:
@@ -968,7 +986,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                 and site.lower() not in ["video", "music", "none", "myserver"]):
             if site.lower() == "playlists":
                 self.ui.stale_playlist = True
-            if self.mpv.get_property("playlist-count") == 1:
+            if self.mpv.get_property("playlist-count") == 1 and self.ui.playlist_continue:
                 logger.debug("only single playlist..")
                 self.mpv.set_property('loop-playlist', 'no')
                 self.mpv.set_property('loop-file', 'no')
