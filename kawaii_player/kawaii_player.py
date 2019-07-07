@@ -11019,7 +11019,7 @@ class Ui_MainWindow(object):
                     if "HTTP error 403 Forbidden" in a:
                         print(a)
                         self.quit_really = "yes"
-                    if self.quit_really == "no" and not self.epn_wait_thread.isRunning():
+                    if self.playlist_continue and self.quit_really == "no" and not self.epn_wait_thread.isRunning():
                         if self.tab_5.isHidden() and thumbnail_indicator:
                             length_1 = self.list2.count()
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText(self.epn_name_in_list)"
@@ -11058,7 +11058,7 @@ class Ui_MainWindow(object):
                                 self.getNextInList(eofcode='end')
                             else:
                                 self.getQueueInList(eofcode='end')
-                    elif self.quit_really == "yes": 
+                    elif (self.quit_really == "yes" or not self.playlist_continue): 
                         self.player_stop.clicked_emit()
                         self.list2.setFocus()
             elif self.player_val.lower() == "mplayer":
@@ -14221,7 +14221,8 @@ def main():
                     try:
                         extra_players = j.split(',')
                         for extra_player in extra_players:
-                            if (extra_player not in ui.playback_engine
+                            if (extra_player 
+                                    and extra_player not in ui.playback_engine
                                     and extra_player.lower() != 'none'):
                                 ui.playback_engine.append(extra_player)
                     except Exception as e:
