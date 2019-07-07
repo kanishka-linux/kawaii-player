@@ -1299,7 +1299,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     title = title.split(',', 1)[-1].strip()
                     url = new_lines[row+1]
                     try:
-                        nurl = self.ui.if_path_is_rel(urllib.parse.urlparse(url).path[1:].rsplit('/', 1)[0], abs_path=True)
+                        nurl = self.ui.if_path_is_rel(urllib.parse.urlparse(url).path[1:].rsplit('/', 1)[0],
+                                                      abs_path=True, from_master=True)
                         nurl_netloc = urllib.parse.urlparse(nurl).netloc
                         if 'youtube.com' in nurl_netloc:
                             url = nurl

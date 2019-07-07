@@ -9236,7 +9236,7 @@ class Ui_MainWindow(object):
                 if self.btnAddon.currentIndex() >= 0:
                     default_arr_setting[4]=self.btnAddon.currentIndex()
 
-    def if_path_is_rel(self, path, thumbnail=None, abs_path=False):
+    def if_path_is_rel(self, path, thumbnail=None, abs_path=False, from_master=False):
         global my_ipaddress
         nm = ''
         if path.startswith('abs_path='):
@@ -9303,7 +9303,7 @@ class Ui_MainWindow(object):
                 nm = https_val+"://"+str(self.local_ip)+':'+str(self.local_port)+'/'
                 new_torrent_signal.new_signal.emit(old_nm)
                 logger.info('--nm---{0}'.format(nm))
-            else:
+            elif not from_master:
                 nm = self.getdb.epn_return_from_bookmark(nm, from_client=True)
         return nm
     
@@ -14312,7 +14312,7 @@ def main():
                     try:
                         plc = j.lower()
                         if plc in ['false', 'no']:
-                            ui.playlist_continue = True
+                            ui.playlist_continue = False
                     except Exception as e:
                         logger.error(e)
                 elif i.startswith('REMEMBER_ASPECT_PER_VIDEO='):
