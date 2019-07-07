@@ -426,7 +426,8 @@ def ccurlWget(url, external_cookie=None, user_auth=None, verify_peer=None,
 
 
 def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
-          curl_opt=None, out_file=None, referer=None, post_data=None):
+          curl_opt=None, out_file=None, referer=None, post_data=None,
+          hdr_data=None):
     hdr = USER_AGENT
     if 'youtube.com' in url:
         hdr = 'Mozilla/5.0 (Linux; Android 4.4.4; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36'
@@ -589,8 +590,13 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.setopt(c.WRITEDATA, storage)
         elif curl_opt == '-H':
             c.setopt(c.USERAGENT, hdr)
-            c.setopt(c.NOBODY, 1)
-            c.setopt(c.HEADERFUNCTION, storage.write)
+            if hdr_data and isinstance(hdr_data, dict) and len(hdr_data) > 0:
+                #c.setopt(c.HEADER, True)
+                c.setopt(c.HTTPHEADER, [k+': '+v for k,v in hdr_data.items()])
+                c.setopt(c.WRITEDATA, storage)
+            else:
+                c.setopt(c.NOBODY, 1)
+                c.setopt(c.HEADERFUNCTION, storage.write)
         elif curl_opt == '-d':
             c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
