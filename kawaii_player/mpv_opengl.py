@@ -619,6 +619,14 @@ class MpvOpenglWidget(QOpenGLWidget):
             if k.startswith('--'):
                 k = k[2:]
             k = k.replace("-", "_")
+            if isinstance(v, str) and v.startswith('"'):
+                v = v[1:]
+                if v.endswith('"'):
+                    v = v[:-1]
+            if isinstance(v, str) and v.startswith("'"):
+                v = v[1:]
+                if v.endswith("'"):
+                    v = v[:-1]
             self.args_dict.update({k:v})
         self.args_dict.update({"vo":"libmpv"})
             
