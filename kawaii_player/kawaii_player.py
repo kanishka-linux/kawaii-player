@@ -9194,7 +9194,7 @@ class Ui_MainWindow(object):
                 self.tab_5.mpv.set_property('playlist-pos', self.cur_row)
             except Exception as err:
                 logger.error(err)
-            self.tab_5.mpv.set_property('prefetch-playlist', 'yes')
+            #self.tab_5.mpv.set_property('prefetch-playlist', 'yes')
             return True
         else:
             return False
