@@ -878,7 +878,7 @@ class ServerLib:
         logger.info(tmp_bookmark)
         si_te = tmp_arr[0]
         op_t = tmp_arr[1]
-        site_Name = tmp_arr[2]
+        site_name = tmp_arr[2]
         if len(tmp_arr) == 7:
             na_me = tmp_arr[3]
             if tmp_arr[4] == 'False':
@@ -912,25 +912,23 @@ class ServerLib:
             module = imp.import_module(si_te, plugin_path)
             si_te_var = getattr(module, si_te)(TMPDIR)
             
-        if si_te == "SubbedAnime" or si_te == "DubbedAnime":
-            if si_te == "SubbedAnime":
-                if si_te_var:
-                    try:
-                        finalUrl = si_te_var.getFinalUrl(
-                            site_Name, na_me, ep_n, mirrorNo, category,
-                            ui.client_quality_val) 
-                    except Exception as err:
-                        print(err, '--863--')
-                        return 0
-            elif si_te == "DubbedAnime":
-                if si_te_var:
-                    try:
-                        finalUrl = si_te_var.getFinalUrl(
-                            site_Name, na_me, ep_n, mirrorNo,
-                            ui.client_quality_val) 
-                    except Exception as err:
-                        print(err, '--872--')
-                        return 0
+        if si_te in ["SubbedAnime", "DubbedAnime"]:
+            if si_te == "SubbedAnime" and si_te_var:
+                try:
+                    finalUrl = si_te_var.getFinalUrl(
+                        na_me, ep_n, mirrorNo,
+                        ui.client_quality_val, site_name, category) 
+                except Exception as err:
+                    print(err, '--863--')
+                    return 0
+            elif si_te == "DubbedAnime" and si_te_var:
+                try:
+                    finalUrl = si_te_var.getFinalUrl(
+                        na_me, ep_n, mirrorNo,
+                        ui.client_quality_val, site_name, category) 
+                except Exception as err:
+                    print(err, '--872--')
+                    return 0
         else:
             try:
                 if vi_deo_local_stream:
