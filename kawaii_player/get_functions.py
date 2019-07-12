@@ -446,6 +446,10 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
         nUrl = url
         postfield = ''
         legacy = True
+    if hdr_data and isinstance(hdr_data, dict) and len(hdr_data) > 0:
+        c.setopt(c.HTTPHEADER, [k+': '+v for k,v in hdr_data.items()])
+    else:
+        c.setopt(c.USERAGENT, hdr)
     if '#' in url and legacy:
         curl_opt = nUrl.split('#')[1]
         url = nUrl.split('#')[0]
@@ -515,11 +519,9 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
         else:
             pass
     if verify_peer is False:
-        print(verify_peer,'--verify-peer-')
         c.setopt(c.SSL_VERIFYPEER, False)
     if curl_opt == '-o':
         c.setopt(c.FOLLOWLOCATION, True)
-        c.setopt(c.USERAGENT, hdr)
         if cookie_file:
             c.setopt(c.COOKIEFILE, cookie_file)
         try:
@@ -544,19 +546,16 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
     else:
         if curl_opt == '-I':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.NOBODY, 1)
             c.setopt(c.HEADERFUNCTION, storage.write)
         elif curl_opt == '-Ie':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(pycurl.REFERER, rfr)
             c.setopt(c.NOBODY, 1)
             c.setopt(c.HEADERFUNCTION, storage.write)
         elif curl_opt == '-e':
             c.setopt(c.FOLLOWLOCATION, True)
             c.setopt(pycurl.REFERER, rfr)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
         elif curl_opt == '-IA':
             c.setopt(c.FOLLOWLOCATION, True)
@@ -564,7 +563,6 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.setopt(c.HEADERFUNCTION, storage.write)
         elif curl_opt == '-Icb':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.NOBODY, 1)
             c.setopt(c.HEADERFUNCTION, storage.write)
             if os.path.exists(cookie_file):
@@ -573,7 +571,6 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.setopt(c.COOKIEFILE, cookie_file)
         elif curl_opt == '-Ib':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.NOBODY, 1)
             c.setopt(c.HEADERFUNCTION, storage.write)
             if os.path.exists(cookie_file):
@@ -581,44 +578,35 @@ def ccurl(url, external_cookie=None, user_auth=None, verify_peer=None,
             c.setopt(c.COOKIEFILE, cookie_file)
         elif curl_opt == '-bc':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
             c.setopt(c.COOKIEJAR, cookie_file)
             c.setopt(c.COOKIEFILE, cookie_file)
         elif curl_opt == '-L':
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
         elif curl_opt == '-H':
-            c.setopt(c.USERAGENT, hdr)
             if hdr_data and isinstance(hdr_data, dict) and len(hdr_data) > 0:
                 #c.setopt(c.HEADER, True)
-                c.setopt(c.HTTPHEADER, [k+': '+v for k,v in hdr_data.items()])
                 c.setopt(c.WRITEDATA, storage)
             else:
                 c.setopt(c.NOBODY, 1)
                 c.setopt(c.HEADERFUNCTION, storage.write)
         elif curl_opt == '-d':
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
             c.setopt(c.POSTFIELDS, postfield)
         elif curl_opt == '-postfile':
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.POST, 1)
             c.setopt(c.HTTPPOST, [("parameters",(c.FORM_FILE, post_data))])
             c.setopt(c.WRITEDATA, storage)
         elif curl_opt == '-b':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
             c.setopt(c.COOKIEFILE, cookie_file)
         elif curl_opt == '-c':
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
             c.setopt(c.COOKIEJAR, cookie_file)
         else:
             c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.USERAGENT, hdr)
             c.setopt(c.WRITEDATA, storage)
         try:
             if user_auth is not None:
