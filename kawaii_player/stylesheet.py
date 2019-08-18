@@ -635,8 +635,23 @@ class WidgetStyleSheet:
                 height: 312px;
                 width: 256px;
                 }}
-                
                 """.format(ht, gui.list_text_color_focus, bgcolor))
+            gui.list_poster.setStyleSheet("""
+                    QListWidget{{
+                    font: {bold} {size}px {font};
+                    border-radius:3px;background-color :{bgcolor}; border: 1px solid rgba(0,0,0,20%);
+                    }}
+                    
+                    """.format(bgcolor=bgcolor,
+                               size=gui.global_font_size, font=gui.global_font,
+                               bold=gui.font_bold)
+                    )
+            gui.player_opt.setStyleSheet("""
+                    QPushButton{{max-height:64px;
+                                font: {bold} {size}px {font};}}
+                    """.format(bold=font_bold, size=gui.global_font_size, font=gui.global_font))
+            
+            
         elif theme == 'dark':
             alpha = '30%'
             qbtn = '10%'
