@@ -579,10 +579,6 @@ class WidgetStyleSheet:
                 }}
                 """.format(ht, gui.list_text_color_focus))
             else:
-                gui.progressEpn.setStyleSheet("""QProgressBar{
-                text-align: center;
-                }
-                """)
                 #gui.VerticalLayoutLabel_Dock3.setSpacing(0)
                 #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
@@ -628,14 +624,6 @@ class WidgetStyleSheet:
             gui.cover_label.setStyleSheet("""
                     border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
                     """.format(gui.list_text_color_focus, bgcolor))
-            gui.list_poster.setStyleSheet("""QListWidget{{
-                border-radius:3px;background-color :{2}; border: 1px solid rgba(0,0,0,20%);
-                }}
-                QListWidget:item {{
-                height: 312px;
-                width: 256px;
-                }}
-                """.format(ht, gui.list_text_color_focus, bgcolor))
             gui.list_poster.setStyleSheet("""
                     QListWidget{{
                     font: {bold} {size}px {font};
@@ -650,7 +638,14 @@ class WidgetStyleSheet:
                     QPushButton{{max-height:64px;
                                 font: {bold} {size}px {font};}}
                     """.format(bold=font_bold, size=gui.global_font_size, font=gui.global_font))
-            
+            for widget in [gui.progress, gui.progressEpn]:
+                    widget.setStyleSheet("""QProgressBar{{
+                    background-color:{bgcolor};
+                    text-align: center;}}
+                    
+                    QProgressBar:chunk {{
+                    background-color:{bgcolor};
+                    }}""".format(bgcolor=bgcolor))
             
         elif theme == 'dark':
             alpha = '30%'
