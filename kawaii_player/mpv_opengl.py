@@ -898,7 +898,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if item:
                         gui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 self.playlist_backup = False
-        if (value in [None, True] and (self.ui.quit_really or not self.ui.playlist_continue)):
+        if (value in [None, True] and (self.ui.quit_really == "yes" or not self.ui.playlist_continue)):
             self.mpv.command("stop")
             self.ui.player_stop.clicked_emit()
 
