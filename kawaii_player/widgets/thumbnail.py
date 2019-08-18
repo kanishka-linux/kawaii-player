@@ -1680,7 +1680,7 @@ class TitleListWidgetPoster(PlaylistWidget):
         self.setTextElideMode(QtCore.Qt.ElideRight)
         self.setViewMode(QtWidgets.QListView.IconMode)
         self.setBatchSize(10)
-        self.num = int(screen_width/128)
+        #self.num = int(screen_width/128)
         self.nav_arr = [
             QtCore.Qt.Key_Left, QtCore.Qt.Key_Right,
             QtCore.Qt.Key_Up, QtCore.Qt.Key_Down

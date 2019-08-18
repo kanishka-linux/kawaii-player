@@ -13775,6 +13775,10 @@ def main():
                     dock_o = re.sub('\n', '', j)
                     if dock_o.isdigit():
                         dock_opt = int(dock_o)
+                elif "THUMBNAIL_WALL_NUM" in i:
+                    num_thumbnail = re.sub('\n', '', j)
+                    if num_thumbnail.isnumeric():
+                        ui.list_poster.num = int(num_thumbnail)
                 elif "Show_Hide_Cover" in i:
                     try:
                         show_hide_cover = int(j)
@@ -14913,6 +14917,8 @@ def main():
             f.write("\nVOLUME_VALUE={0}".format(ui.player_volume))
             f.write("\nAPPLY_SUBTITLE_SETTINGS={0}".format(ui.apply_subtitle_settings))
             f.write("\nCLICKED_LABEL_NEW={0}".format(ui.clicked_label_new))
+            if hasattr(ui.list_poster, "num"):
+                f.write("\nTHUMBNAIL_WALL_NUM={0}".format(ui.list_poster.num))
     if ui.wget.processId() > 0 and ui.queue_item:
         if isinstance(ui.queue_item, tuple):
             ui.queue_url_list.insert(0, ui.queue_item)
