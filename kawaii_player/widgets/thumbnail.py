@@ -1732,8 +1732,9 @@ class TitleListWidgetPoster(PlaylistWidget):
             self.num += 1
             self.resizeEvent(None)
         elif event.key() == QtCore.Qt.Key_Equal:
-            self.num -= 1
-            self.resizeEvent(None)
+            if self.num > 1:
+                self.num -= 1
+                self.resizeEvent(None)
         elif event.key() == QtCore.Qt.Key_W:
             if (self.title_clicked and self.currentRow() is not None
                     and isinstance(self.currentRow(), int) and self.currentRow() >= 0):
