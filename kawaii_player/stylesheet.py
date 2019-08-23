@@ -629,7 +629,10 @@ class WidgetStyleSheet:
                     font: {bold} {size}px {font};
                     border-radius:3px;background-color :{bgcolor}; border: 1px solid rgba(0,0,0,20%);
                     }}
-                    
+                    QListWidget:item {{
+                    height: 312px;
+                    width:256px;
+                    }}
                     """.format(bgcolor=bgcolor,
                                size=gui.global_font_size, font=gui.global_font,
                                bold=gui.font_bold)
