@@ -187,6 +187,9 @@ class WidgetStyleSheet:
                     new_height = int(gui.frame_height/2.4)
                     min_height = 'height: {}px'.format(new_height)
                     gui.logger.debug('min-height-box={}'.format(min_height))
+                elif frame == gui.frame2:
+                    label_alpha = '30%'
+                    min_height = 'max-height: {}px'.format(gui.frame2.height())
                 else:
                     label_alpha = '30%'
                     min_height = ''
@@ -215,7 +218,7 @@ class WidgetStyleSheet:
                     color: {color};
                     font: {bold};
                     background-color:rgba(0, 0, 0, {alpha});
-                    max-height: 32px;
+                    {min_height};
                     padding: 0px 0px 0px 4px;
                     }}
                     QComboBox QAbstractItemView{{
@@ -734,6 +737,10 @@ class WidgetStyleSheet:
                         new_height = int(gui.frame_height/2.4)
                         min_height = 'height: {}px'.format(new_height)
                         gui.logger.debug('min-height-box={}'.format(min_height))
+                    elif frame == gui.frame2:
+                        label_alpha = '30%'
+                        qbtn = "30%"
+                        min_height = 'max-height: {}px'.format(gui.frame2.height())
                     else:
                         label_alpha = '10%'
                         min_height = 'max-height: 30px'
@@ -744,8 +751,8 @@ class WidgetStyleSheet:
                         {min_height}; font: {bold} {size}px {font};}}
                         QPushButton::hover{{background-color: yellow;color: black;}}
                         QLineEdit{{
-                            color:white;background:rgba(0,0,0,10%);
-                            {min_height};border:rgba(0, 0, 0, 10%); font: {bold} {size}px {font};
+                            color:white;background:rgba(0,0,0,{label_alpha});
+                            {min_height};border:rgba(0, 0, 0, {label_alpha}); font: {bold} {size}px {font};
                             }}
                         QLabel{{
                             color:{color};background:rgba(0,0,0,{label_alpha});
