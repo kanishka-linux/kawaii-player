@@ -4482,6 +4482,15 @@ class Ui_MainWindow(object):
         font_size = self.global_font_size + 3
         width = int(w)
         height = int(h)
+        width_chunk = self.tab_6.width()/(height+15)
+        rowval = int(width_chunk)
+        offset = (self.tab_6.width() - rowval * height - 5*(rowval-1) + 20)/rowval
+        if rowval <= 4:
+            widthnewnew = height + int(offset) - 25
+        elif rowval in range(5, 8):
+            widthnewnew = height + int(offset) - 15
+        else:
+            widthnewnew = height + int(offset) - 13
         hei_ght= int(h/3)
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
@@ -4491,6 +4500,8 @@ class Ui_MainWindow(object):
         logger.debug(browse_cnt)
         dim_tuple = (height, width)
         self.labelFrame2.setText('Wait...')
+        iconv_r_poster_t = iconv_r_poster
+        iconv_r_poster = rowval
         if total_till==0 or value_str == "not_deleted" or value_str == 'zoom':
             i = 0
             j = iconv_r_poster+1
@@ -4528,7 +4539,8 @@ class Ui_MainWindow(object):
                     p1 = "l_{0} = weakref.ref(self.label_{0})".format(length+i)
                     exec(p1)
                 label_title_txt = eval('self.label_{0}'.format(length+i))
-                label_title_txt.setMinimumWidth(width-10)
+                
+                label_title_txt.setMinimumWidth(widthnewnew)
                 label_title_txt.setMinimumHeight(hei_ght)
                 label_title_txt.setWordWrap(True)
                 label_title_txt.setObjectName('label_{0}'.format(length+i))
@@ -4574,6 +4586,7 @@ class Ui_MainWindow(object):
                     self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i/2), int(length/2)))
                     QtWidgets.QApplication.processEvents()
             self.labelFrame2.setText('Finished!')
+            iconv_r_poster = iconv_r_poster_t
         self.lock_process = False
             
     def thumbnail_label_update(self, clicked_num=None):
@@ -4674,6 +4687,7 @@ class Ui_MainWindow(object):
                     kk = 0
             total_till_epn = length1
             self.scrollArea1.show()
+            self.scrollArea1.setFocus()
             
     def thumbnail_label_update_epn(self, clicked_num=None):
         global total_till, browse_cnt, home, iconv_r, site
@@ -4821,9 +4835,11 @@ class Ui_MainWindow(object):
                     jj = jj + 2*iconv_r
                     kk = 0
                     self.labelFrame2.setText('Wait...{0}/{1}'.format(int(i), int(length)))
+                    #QtWidgets.QApplication.processEvents()
             self.labelFrame2.setText(label_txt)
             total_till_epn = length1
             self.scrollArea1.show()
+            self.scrollArea1.setFocus()
             
     def get_thumbnail_image_path(self, row_cnt, row_string, only_name=None,
                                  title_list=None, start_async=None, send_path=None,
