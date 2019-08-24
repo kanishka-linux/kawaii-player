@@ -4523,19 +4523,19 @@ class Ui_MainWindow(object):
                 label_title.setMouseTracking(True)
                 
                 if value_str == "deleted":
-                    p1 = "self.label_{0} = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)".format(length+i)
+                    p1 = "self.label_{0} = QtWidgets.QLabel(self.scrollAreaWidgetContents)".format(length+i)
                     exec(p1)
                     p1 = "l_{0} = weakref.ref(self.label_{0})".format(length+i)
                     exec(p1)
                 label_title_txt = eval('self.label_{0}'.format(length+i))
-                label_title_txt.setMinimumWidth(width)
-                label_title_txt.setMaximumHeight(hei_ght)
-                label_title_txt.lineWrapMode()
+                label_title_txt.setMinimumWidth(width-10)
+                label_title_txt.setMinimumHeight(hei_ght)
+                label_title_txt.setWordWrap(True)
                 label_title_txt.setObjectName('label_{0}'.format(length+i))
                 self.gridLayout1.addWidget(label_title_txt, j1, k, 1, 1, QtCore.Qt.AlignCenter)
-                label_title_txt.setReadOnly(True)
-                label_title_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-                label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                #label_title_txt.setReadOnly(True)
+                #label_title_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                #label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_title_txt.setStyleSheet(
@@ -4590,7 +4590,7 @@ class Ui_MainWindow(object):
             self.tab_6.setMaximumSize(16777215, 16777215)
         print("width="+str(self.tab_6.width()))
         if iconv_r > 1:
-            w = float((self.tab_6.width()-60)/iconv_r)
+            w = float((self.tab_6.width()-(iconv_r*5+45))/iconv_r)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
@@ -4687,10 +4687,10 @@ class Ui_MainWindow(object):
             self.tab_6.setMaximumSize(self.width_allowed, 16777215)
         else:
             self.tab_6.setMaximumSize(16777215, 16777215)
-        print("width="+str(self.tab_6.width()))
+        logger.debug("width="+str(self.tab_6.width()))
         #QtWidgets.QApplication.processEvents()
         if iconv_r > 1:
-            w = float((self.tab_6.width()-60)/iconv_r)
+            w = float((self.tab_6.width()-(iconv_r*5+45))/iconv_r)
             #h = float((9*w)/16)
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
@@ -4709,8 +4709,8 @@ class Ui_MainWindow(object):
         width = int(w)
         height = int(h)
         hei_ght= int(int(height)/3)
-        print("self.width={}".format(width))
-        print("self.height={}".format(height))
+        logger.info("self.width={}".format(width))
+        logger.info("self.height={}".format(height))
         if self.icon_size_arr:
             self.icon_size_arr[:]=[]
         self.icon_size_arr.append(width)
@@ -4809,7 +4809,7 @@ class Ui_MainWindow(object):
                 if not label_hide:
                     label_epn_txt.setMinimumWidth(width)
                     label_epn_txt.setMaximumWidth(width)
-                    label_epn_txt.setMaximumHeight(hei_ght)
+                    #label_epn_txt.setMaximumHeight(hei_ght)
                     label_epn_txt.setObjectName(_fromUtf8('label_epn_{0}'.format(ii)))
                     label_epn_txt.show()
                 else:
@@ -4946,7 +4946,7 @@ class Ui_MainWindow(object):
         self.labelFrame2.show()
         print("width="+str(self.tab_6.width()))
         if iconv_r > 1:
-            w = float((self.tab_6.width()-60)/iconv_r)
+            w = float((self.tab_6.width()-(iconv_r*5+45))/iconv_r)
             h = int(w/self.image_aspect_allowed)
             if self.tab_5.isHidden() and self.mpvplayer_val:
                 if self.mpvplayer_val.processId() > 0:
@@ -5095,7 +5095,7 @@ class Ui_MainWindow(object):
                     j = j + 2*iconv_r
                     k = 0
                     
-                p1 = "self.label_epn_{} = QtWidgets.QTextEdit(self.scrollAreaWidgetContents1)".format(ii)
+                p1 = "self.label_epn_{} = QtWidgets.QLabel(self.scrollAreaWidgetContents1)".format(ii)
                 exec(p1)
                 p7 = "l_"+str(ii)+" = weakref.ref(self.label_epn_"+str(ii)+")"
                 exec(p7)
@@ -5103,11 +5103,11 @@ class Ui_MainWindow(object):
                 label_epn_txt.setMinimumWidth(width)
                 label_epn_txt.setObjectName(_fromUtf8('label_epn_{}'.format(ii)))
                 self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
-                label_epn_txt.setMaximumHeight(hei_ght)
-                label_epn_txt.lineWrapMode()
-                label_epn_txt.setReadOnly(True)
-                label_epn_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-                label_epn_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                label_epn_txt.setMinimumHeight(hei_ght)
+                label_epn_txt.setWordWrap(True)
+                #label_epn_txt.setReadOnly(True)
+                #label_epn_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                #label_epn_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
                     
                 if nameEpn.startswith('#'):
                     nameEpn = nameEpn.replace('#', self.check_symbol, 1)
@@ -5629,8 +5629,9 @@ class Ui_MainWindow(object):
                 new_cnt = row+self.list1.count()
                 p1 = "self.label_{0}".format(new_cnt)
                 label_number = eval(p1)
-                label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
-                txt = label_number.toPlainText()
+                #label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
+                self.setLabelTextStyle(label_number, self.thumbnail_text_color_focus)
+                txt = label_number.text()
                 label_number.setText(txt)
                 label_number.setAlignment(QtCore.Qt.AlignCenter)
                 self.labelFrame2.setText(txt)
@@ -5645,8 +5646,9 @@ class Ui_MainWindow(object):
                 new_cnt = row+self.list2.count()
                 p1 = "self.label_epn_{0}".format(new_cnt)
                 label_number = eval(p1)
-                label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
-                txt = label_number.toPlainText()
+                #label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
+                self.setLabelTextStyle(label_number, self.thumbnail_text_color_focus)
+                txt = label_number.text()
                 label_number.setText(txt)
                 label_number.setAlignment(QtCore.Qt.AlignCenter)
                 self.labelFrame2.setText(txt)
@@ -11455,6 +11457,38 @@ class Ui_MainWindow(object):
                 self.mpvplayer_started = True
                 if self.player_setLoop_var and self.player_val == 'mpv':
                     QtCore.QTimer.singleShot(15000, self.set_playerLoopFile)
+
+    def setLabelTextStyle(self, label_txt, color):
+        if self.font_bold:
+            font_bold = 'bold'
+        else:
+            font_bold = ''
+        font_size = self.global_font_size + 3
+        if ui.player_theme == 'default':
+            label_txt.setStyleSheet(
+                """font: {bold} {size}px {0};color: {1};
+                QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                background:rgb(56,60,74);
+                }}
+                """.format(self.global_font, color, bold=font_bold, size=font_size)
+                )
+        elif self.player_theme == 'system':
+            label_txt.setStyleSheet(
+                """font: {bold} {size}px {0};color: {1}; background : {bgcolor};
+                QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                background:{bgcolor};
+                }}
+                """.format(self.global_font, color,
+                           bold=font_bold, size=font_size, bgcolor=self.system_bgcolor)
+                )
+        else:
+            label_txt.setStyleSheet(
+                """font: {bold} {size}px {0}; color: {1};
+                QToolTip{{ font: {bold} {size}px {0}; color:{1};
+                background:rgb(56,60,74);
+                }}
+                """.format(self.global_font, color, bold=font_bold, size=font_size)
+                )
                 
     def adjust_thumbnail_window(self, row):
         global thumbnail_indicator
@@ -11487,15 +11521,15 @@ class Ui_MainWindow(object):
                 p1 = "self.label_epn_{0}".format(new_cnt)
                 label_number = eval(p1)
                 label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
-                p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
+                p1 = "self.label_epn_{0}.text()".format(new_cnt)
                 txt = eval(p1)
                 try:
-                    p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
+                    p1 = "self.label_epn_{0}.text('{1}')".format(new_cnt, txt)
                     exec(p1)
                 except Exception as e:
                     print(e, '--line--4597--')
                     try:
-                        p1 = 'self.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
+                        p1 = 'self.label_epn_{0}.text("{1}")'.format(new_cnt, txt)
                         exec(p1)
                     except Exception as e:
                         print(e)
@@ -11533,15 +11567,15 @@ class Ui_MainWindow(object):
                     p1 = "self.label_epn_{0}".format(new_cnt)
                     label_number = eval(p1)
                     label_number.setTextColor(self.thumbnail_text_color_dict[self.thumbnail_text_color_focus])
-                    p1 = "self.label_epn_{0}.toPlainText()".format(new_cnt)
+                    p1 = "self.label_epn_{0}.text()".format(new_cnt)
                     txt = eval(p1)
                     try:
-                        p1 = "self.label_epn_{0}.setText('{1}')".format(new_cnt, txt)
+                        p1 = "self.label_epn_{0}.text('{1}')".format(new_cnt, txt)
                         exec(p1)
                     except Exception as e:
                         print(e, '--line--4597--')
                         try:
-                            p1 = 'self.label_epn_{0}.setText("{1}")'.format(new_cnt, txt)
+                            p1 = 'self.label_epn_{0}.text("{1}")'.format(new_cnt, txt)
                             exec(p1)
                         except Exception as e:
                             print(e)

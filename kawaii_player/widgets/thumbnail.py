@@ -1112,7 +1112,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
             text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
             label_number.setTextColor(text_color_focus)
-            txt = label_number.toPlainText()
+            txt = label_number.text()
             try:
                 label_number.setText(txt)
             except Exception as e:
@@ -1215,7 +1215,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         print(index, '--index--')
         ui.current_thumbnail_position = ui.gridLayout2.getItemPosition(index)
         txt_count = num + ui.list2.count()
-        p1 = "ui.label_epn_{0}.toPlainText()".format(txt_count)
+        p1 = "ui.label_epn_{0}.text()".format(txt_count)
         txt = eval(p1)
         ui.thumbnail_label_number[:] = []
         ui.thumbnail_label_number = [num, txt]

@@ -19,7 +19,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             ui.dockWidget_3.hide()
         if ui.search_on_type_btn.isHidden():
             self.setFocus()
-    
+        
     def sizeAdjust(self, nextR, direction):
         #ui.list1.setCurrentRow(nextR)
         self.cur_row = nextR
@@ -35,8 +35,9 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             label_number = eval(p1)
             self.text_color = ui.thumbnail_text_color_dict[ui.thumbnail_text_color]
             self.text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
-            label_number.setTextColor(self.text_color_focus)
-            txt = label_number.toPlainText()
+            #label_number.setTextColor(self.text_color_focus)
+            ui.setLabelTextStyle(label_number, ui.thumbnail_text_color_focus)
+            txt = label_number.text()
             try:
                 label_number.setText(txt)
             except Exception as e:
@@ -68,8 +69,9 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 new_cnt = str(prevR+ui.list1.count())
                 p1 = "ui.label_{0}".format(new_cnt)
                 label_number = eval(p1)
-                label_number.setTextColor(self.text_color)
-                txt = label_number.toPlainText()
+                #label_number.setTextColor(self.text_color)
+                ui.setLabelTextStyle(label_number, ui.thumbnail_text_color)
+                txt = label_number.text()
                 try:
                     label_number.setText(txt)
                 except Exception as e:
@@ -218,7 +220,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
         if ui.auto_hide_dock:
             ui.dockWidget_3.hide()
         self.setFocus()
-    
+        
     def sizeAdjust(self, nextR, direction):
         ui.list2.setCurrentRow(nextR)
         try:
@@ -233,8 +235,8 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             self.text_color_focus = ui.thumbnail_text_color_dict[ui.thumbnail_text_color_focus]
             p1 = "ui.label_epn_{0}".format(new_cnt)
             label_number = eval(p1)
-            label_number.setTextColor(self.text_color_focus)
-            txt = label_number.toPlainText()
+            ui.setLabelTextStyle(label_number, ui.thumbnail_text_color_focus)
+            txt = label_number.text()
             try:
                 label_number.setText(txt)
             except Exception as e:
@@ -268,8 +270,9 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                     new_cnt = str(prevR+ui.list2.count())
                     p1 = "ui.label_epn_{0}".format(new_cnt)
                     label_number = eval(p1)
-                    label_number.setTextColor(self.text_color)
-                    txt = label_number.toPlainText()
+                    #label_number.setTextColor(self.text_color)
+                    ui.setLabelTextStyle(label_number, ui.thumbnail_text_color)
+                    txt = label_number.text()
                     try:
                         label_number.setText(txt)
                     except Exception as e:
@@ -396,7 +399,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             elif event.key() == QtCore.Qt.Key_Return:
                 num = ui.list2.currentRow()
                 txt_count = num + ui.list2.count()
-                p1 = "ui.label_epn_{0}.toPlainText()".format(txt_count)
+                p1 = "ui.label_epn_{0}.text()".format(txt_count)
                 txt = eval(p1)
                 ui.thumbnail_label_number[:] = []
                 ui.thumbnail_label_number = [num, txt]
