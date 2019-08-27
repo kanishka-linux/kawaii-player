@@ -1471,6 +1471,8 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        #rpitv, hdmitv, laptopscreen, monitorscreen, none, auto
+        self.display_device = "auto"
         self.playlist_continue = True
         self.bg_color_dark_theme = (56, 60, 74)
         self.bg_color_widget_dark_theme = (0, 0, 0)
@@ -2975,22 +2977,25 @@ class Ui_MainWindow(object):
         
     def list1_double_clicked(self):
         global show_hide_titlelist, show_hide_playlist
-        self.listfound()
-        if site == "Music" and not self.list2.isHidden():
-            self.list2.setFocus()
-            self.list2.setCurrentRow(0)
-            self.cur_row = 0
-            self.list1.show()
-            self.list1.setFocus()
-        elif self.list2.isHidden():
-            self.list1.hide()
-            self.frame.hide()
-            show_hide_titlelist = 0
-            if self.pc_to_pc_casting != "slave" and not MainWindow.isFullScreen():
-                self.list2.show()
+        if self.display_device == "rpitv":
+            self.gui_signals.click_title_list('playlist_click_from_client')
+        else:
+            self.listfound()
+            if site == "Music" and not self.list2.isHidden():
                 self.list2.setFocus()
-                show_hide_playlist = 1
-        self.update_list2()
+                self.list2.setCurrentRow(0)
+                self.cur_row = 0
+                self.list1.show()
+                self.list1.setFocus()
+            elif self.list2.isHidden():
+                self.list1.hide()
+                self.frame.hide()
+                show_hide_titlelist = 0
+                if self.pc_to_pc_casting != "slave" and not MainWindow.isFullScreen():
+                    self.list2.show()
+                    self.list2.setFocus()
+                    show_hide_playlist = 1
+            self.update_list2()
         
     def hide_torrent_info(self):
         self.torrent_frame.hide()
@@ -3686,14 +3691,15 @@ class Ui_MainWindow(object):
             if self.tab_6.isHidden():
                 self.tab_6.show()
             self.list_poster.show()
-        if self.hide_titlelist_forcefully and self.list1.isHidden():
-            self.list1.show()
-        if self.stop_from_client:
-            if self.list1.isHidden():
+        if self.display_device != "rpitv":
+            if self.hide_titlelist_forcefully and self.list1.isHidden():
                 self.list1.show()
-            if self.list2.isHidden():
-                self.list2.show()
-            self.stop_from_client = False
+            if self.stop_from_client:
+                if self.list1.isHidden():
+                    self.list1.show()
+                if self.list2.isHidden():
+                    self.list2.show()
+                self.stop_from_client = False
             
     
     def restore_initial_view(self):
@@ -6781,11 +6787,19 @@ class Ui_MainWindow(object):
             if os.path.exists(picn) and not os.stat(picn).st_size:
                     picn = self.default_background
             if self.list_with_thumbnail:
-                icon_new_pixel = self.create_new_image_pixel(picn, 128)
+                if ui.view_mode == "thumbnail_light":
+                    size = 256
+                else:
+                    size = 128
+                icon_new_pixel = self.create_new_image_pixel(picn, size)
                 if os.path.exists(icon_new_pixel):
                     try:
                         if row < self.list2.count():
                             self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+                            if ((ui.view_mode == "thumbnail_light"
+                                    and ui.list_poster.title_clicked)
+                                    or ui.display_device == "rpitv"):
+                                ui.list_poster.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
                     except Exception as err:
                         logger.error(err)
         except Exception as err:
@@ -14407,6 +14421,12 @@ def main():
                         ui.libmpv_api = j
                     except Exception as e:
                         logger.error(e)
+                elif i.startswith('DISPLAY_DEVICE='):
+                    try:
+                        j = j.lower()
+                        ui.display_device = j
+                    except Exception as e:
+                        logger.error(e)
                 elif i.startswith('YTDL_PATH='):
                     try:
                         k = j.lower()
@@ -14488,6 +14508,7 @@ def main():
             f.write("\nLIBMPV_API=OPENGL-CB")
             f.write("\nDEVICE_PIXEL_RATIO=1.0")
             f.write("\nPLAYLIST_CONTINUE=True")
+            f.write("\nDISPLAY_DEVICE=Auto")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':

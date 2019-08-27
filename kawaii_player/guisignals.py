@@ -312,7 +312,15 @@ class GUISignals(QtCore.QObject):
             
     @pyqtSlot(str)
     def title_clicked(self, val):
-        ui.listfound()
+        if ui.display_device == "rpitv":
+            if ui.list1.currentRow():
+                title_index = ui.list1.currentRow()
+            else:
+                title_index = -1
+            ui.experiment_list({"mode":"pls", "epi": ui.list2.currentRow(), "title_index": title_index})
+            ui.listfound(show_ep_thumbnail=True)
+        else:
+            ui.listfound()
         ui.update_list2(show_thumb=True)
     
     @pyqtSlot(str)
