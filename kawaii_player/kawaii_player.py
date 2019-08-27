@@ -1733,6 +1733,8 @@ class Ui_MainWindow(object):
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed1, int(screen_height/1.5)))
         self.web_control = 'master'
         self.gui_signals = GUISignals(self, MainWindow)
+        self.fake_mousemove_event = ("libmpv", False)
+        self.pointer_moved = False
         
         self.browser_dict_widget = {}
         self.update_proc = QtCore.QProcess()
@@ -3691,7 +3693,9 @@ class Ui_MainWindow(object):
             if self.tab_6.isHidden():
                 self.tab_6.show()
             self.list_poster.show()
-        if self.display_device != "rpitv":
+        if self.display_device == "rpitv":
+            self.send_fake_event("mouse_move")
+        else:
             if self.hide_titlelist_forcefully and self.list1.isHidden():
                 self.list1.show()
             if self.stop_from_client:
@@ -10576,6 +10580,34 @@ class Ui_MainWindow(object):
                 {self.final_playing_url:[seek_time, time.time(), ssid, aaid, rem_quit, vvol, aasp]}
                 )
         logger.debug('sid={}::aid={}::vol={}::aspect={}::updating file info'.format(sid, aid, vol, aasp))
+    
+    def send_fake_event(self, val):
+        self.fake_mousemove_event = ("libmpv", True)
+        pos = self.tab_5.cursor().pos()
+        if not self.pointer_moved:
+            new_point = QtCore.QPoint(pos.x() + 1, pos.y())
+            self.pointer_moved = True
+        else:
+            new_point = QtCore.QPoint(pos.x() - 1, pos.y())
+            self.pointer_moved = False
+        self.tab_5.cursor().setPos(new_point)
+        if val == "mouse_release":
+            event = QtGui.QMouseEvent(
+                        QtCore.QEvent.MouseButtonRelease,
+                        new_point,
+                        QtCore.Qt.LeftButton,
+                        QtCore.Qt.LeftButton,
+                        QtCore.Qt.NoModifier,
+                    )
+        elif val == "mouse_move":
+            event = QtGui.QMouseEvent(
+                        QtCore.QEvent.MouseMove,
+                        new_point,
+                        QtCore.Qt.NoButton,
+                        QtCore.Qt.NoButton,
+                        QtCore.Qt.NoModifier,
+                    )
+        self.gui_signals.mouse_move_method((self.tab_5, event))
                                 
     def dataReady(self, p):
         global new_epn, epn, opt, site
@@ -10752,7 +10784,7 @@ class Ui_MainWindow(object):
                         else:
                             self.mplayerLength = int(mpl.split('=')[1])
                         self.slider.setRange(0, int(self.mplayerLength))
-                elif ("AV:" in a or "A:" in a) and not self.eof_reached:
+                elif ("AV:" in a or "A:" in a or "V:" in a) and not self.eof_reached:
                     if not self.mpv_start:
                         self.mpv_start = True
                         try:
