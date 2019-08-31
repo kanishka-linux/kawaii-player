@@ -1284,9 +1284,10 @@ class PlaylistWidget(QtWidgets.QListWidget):
         pls_txt = '#EXTM3U\n'
         if title:
             title = title.split("\n")[0]
+        else:
+            title = "Title not Available"
         pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(title, url)
         browser_data = BrowserData(pls_txt)
-        print(title, url, pls_txt, "<<<<<")
         self.start_pc_to_pc_casting(mode, 0, browser_data)
         
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
