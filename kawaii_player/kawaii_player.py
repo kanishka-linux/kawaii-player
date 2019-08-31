@@ -3695,6 +3695,7 @@ class Ui_MainWindow(object):
             self.list_poster.show()
         if self.display_device == "rpitv":
             self.send_fake_event("mouse_move")
+            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
         else:
             if self.hide_titlelist_forcefully and self.list1.isHidden():
                 self.list1.show()
