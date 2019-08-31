@@ -337,7 +337,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         if platform.system().lower() == "darwin":
             self.args_dict.update({"ao":"coreaudio"})
         elif os.name == "posix":
-            self.args_dict.update({"ao":"pulse"})
+            if hasattr(self.ui, "desktop_session") and self.ui.desktop_session == "lxde-pi":
+                self.args_dict.update({"ao":"alsa"})
+            else:
+                self.args_dict.update({"ao":"pulse"})
         elif os.name == "nt":
             self.args_dict.update({"ao":"wasapi"})
         self.default_args = self.args_dict.copy()
@@ -595,6 +598,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setMinimumHeight(MainWindow.height())
         
     def parse_mpv_config_file(self, file_path=None):
+        self.setup_args_from_gui()
         if file_path is None or not os.path.exists(file_path):
             file_path = os.path.join(os.path.expanduser("~"), ".config/mpv/config")
         if os.path.exists(file_path):
@@ -612,12 +616,24 @@ class MpvOpenglWidget(QOpenGLWidget):
                     else:
                         key = line
                         value = "yes"
+                    value = self.sanitize_values(value)
                     key = key.replace("-", "_")
                     logger.info((key, value))
                     self.args_dict.update({key:value})
-                    #self.mpv.set_property(key, value)
-                    
-    def create_args_dict(self):
+            self.args_dict.update({"vo":"libmpv"})
+            
+    def sanitize_values(self, value):
+        if isinstance(value, str) and value.startswith('"'):
+            value = value[1:]
+            if value.endswith('"'):
+                value = value[:-1]
+        if isinstance(value, str) and value.startswith("'"):
+            value = value[1:]
+            if value.endswith("'"):
+                value = value[:-1]
+        return value
+    
+    def setup_args_from_gui(self):
         self.args_dict.update({'screenshot-directory': gui.screenshot_directory})
         if gui.gsbc_dict:
             for key, value in gui.gsbc_dict.items():
@@ -635,6 +651,9 @@ class MpvOpenglWidget(QOpenGLWidget):
         if isinstance(gui.cache_pause_seconds, int) and gui.cache_pause_seconds > 0:
             self.args_dict.update({'cache-pause': True})
             self.args_dict.update({'cache-pause-wait': gui.cache_pause_seconds})
+        
+    def create_args_dict(self):
+        self.setup_args_from_gui()
         for param in gui.mpvplayer_string_list:
             if "=" in param:
                 k, v = param.split("=", 1)
@@ -644,14 +663,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             if k.startswith('--'):
                 k = k[2:]
             k = k.replace("-", "_")
-            if isinstance(v, str) and v.startswith('"'):
-                v = v[1:]
-                if v.endswith('"'):
-                    v = v[:-1]
-            if isinstance(v, str) and v.startswith("'"):
-                v = v[1:]
-                if v.endswith("'"):
-                    v = v[:-1]
+            v = self.sanitize_values(v)
             self.args_dict.update({k:v})
         self.args_dict.update({"vo":"libmpv"})
             
