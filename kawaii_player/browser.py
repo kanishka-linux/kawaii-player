@@ -378,6 +378,9 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                     arr.append('Play with Kawaii-Player')
                     arr.append('Queue Item')
                     arr.append('Download')
+                    if self.ui.pc_to_pc_casting == 'master':
+                        arr.append('Cast This Item')
+                        arr.append('Cast Queue')
                     if 'ytimg.com' in url:
                         yt_id = url.split('/')[-2]
                         url = 'https://m.youtube.com/watch?v='+yt_id
@@ -450,6 +453,9 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 elif self.selected_text:
                     arr[:] = []
                     arr.append('Copy Summary')
+                if self.ui.pc_to_pc_casting == 'master':
+                    arr.append('Cast This Item')
+                    arr.append('Cast Queue')
                 action = []
                 menu.addSeparator()
 
@@ -531,6 +537,11 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             self.ui.get_final_link(
                 url, self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
                 self.ui.epn_name_in_list, self.hdr)
+        elif option.lower() in ["cast this item", "cast queue"]:
+            if option.lower() == "cast queue":
+                self.ui.list2.process_browser_based_url(copy_summary, url, "queue")
+            else:
+                self.ui.list2.process_browser_based_url(copy_summary, url, "single")
         elif option.lower() == 'add as local playlist':
             self.get_playlist = True
             if self.playlist_dict:

@@ -387,6 +387,9 @@ class Browser(QtWebKitWidgets.QWebView):
                 arr.append('Play with Kawaii-Player')
                 arr.append('Queue Item')
                 arr.append('Download')
+                if self.ui.pc_to_pc_casting == "master":
+                    arr.append("Cast This Item")
+                    arr.append("Cast Queue")
                 if 'ytimg.com' in url.toString():
                     yt_id = url.toString().split('/')[-2]
                     url = QUrl('https://m.youtube.com/watch?v='+yt_id)
@@ -460,6 +463,11 @@ class Browser(QtWebKitWidgets.QWebView):
             self.ui.get_final_link(
                 final_url, self.ui.quality_val, self.ui.ytdl_path, self.ui.logger, 
                 self.ui.epn_name_in_list, self.hdr)
+        elif option.lower() in ["cast this item", "cast queue"]:
+            if option.lower() == "cast queue":
+                self.ui.list2.process_browser_based_url(self.title_page, url, "queue")
+            else:
+                self.ui.list2.process_browser_based_url(self.title_page, url, "single")
         elif option.lower() == 'add as local playlist':
             self.get_playlist = True
             if self.playlist_dict:

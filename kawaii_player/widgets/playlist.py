@@ -36,6 +36,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from player_functions import write_files, open_files, send_notification
 from thread_modules import DiscoverServer
 
+class BrowserData:
+
+    def __init__(self, data):
+        self.html = bytes(data, "utf-8")
+        self.direct_link = True
+
 class PlaylistWidget(QtWidgets.QListWidget):
 
     def __init__(self, parent, uiwidget=None, home_var=None, tmp=None, logr=None):
@@ -1255,7 +1261,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             send_notification('Slave IP Address not set')
                        
                             
-    def start_pc_to_pc_casting(self, mode, row):
+    def start_pc_to_pc_casting(self, mode, row, browser_data=None):
         cur_row = str(row)
         file_path = os.path.join(self.ui.home_folder, 'slave.txt')
         if not os.path.isfile(file_path):
@@ -1266,13 +1272,28 @@ class PlaylistWidget(QtWidgets.QListWidget):
         ipval = item
         http_val = "http"
         if self.ui.https_media_server:
-            http_val = "https" 
-        ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(self.ui.local_ip_stream), str(self.ui.local_port_stream))
-        self.ui.vnt.get(ip, binary=True, timeout=10, verify=False,
-                   onfinished=partial(self.process_pc_to_pc_casting, mode, row, item))
+            http_val = "https"
+        if browser_data:
+            self.process_pc_to_pc_casting(mode, row, item, browser_data)
+        else:
+            ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(self.ui.local_ip_stream), str(self.ui.local_port_stream))
+            self.ui.vnt.get(ip, binary=True, timeout=10, verify=False,
+                            onfinished=partial(self.process_pc_to_pc_casting, mode, row, item))
+
+    def process_browser_based_url(self, title, url, mode):
+        pls_txt = '#EXTM3U\n'
+        if title:
+            title = title.split("\n")[0]
+        pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(title, url)
+        browser_data = BrowserData(pls_txt)
+        print(title, url, pls_txt, "<<<<<")
+        self.start_pc_to_pc_casting(mode, 0, browser_data)
         
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
+        direct_link = False
         content = args[-1].html
+        if isinstance(args[-1], BrowserData):
+            direct_link = args[-1].direct_link
         if content:
             self.ui.slave_live_status = True
             self.ui.gui_signals.first_time = True
@@ -1298,15 +1319,18 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     title = new_lines[row]
                     title = title.split(',', 1)[-1].strip()
                     url = new_lines[row+1]
-                    try:
-                        nurl = self.ui.if_path_is_rel(urllib.parse.urlparse(url).path[1:].rsplit('/', 1)[0],
-                                                      abs_path=True, from_master=True)
-                        nurl_netloc = urllib.parse.urlparse(nurl).netloc
-                        if 'youtube.com' in nurl_netloc:
-                            url = nurl
-                            master_token = False
-                    except Exception as err:
-                        logger.error(err)
+                    if direct_link:
+                        master_token = False
+                    else:
+                        try:
+                            nurl = self.ui.if_path_is_rel(urllib.parse.urlparse(url).path[1:].rsplit('/', 1)[0],
+                                                          abs_path=True, from_master=True)
+                            nurl_netloc = urllib.parse.urlparse(nurl).netloc
+                            if 'youtube.com' in nurl_netloc:
+                                url = nurl
+                                master_token = False
+                        except Exception as err:
+                            logger.error(err)
                     url = url.replace('abs_path=', 'master_abs_path=', 1)
                     if 'relative_path=' in url:
                         url = url.replace('relative_path=', 'master_relative_path=', 1)
@@ -1318,7 +1342,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     local_path = None
                     sub = 'none'
                     ext = 'none'
-                    if '\t' in self.ui.epn_arr_list[i]:
+                    if ui.epn_arr_list and '\t' in self.ui.epn_arr_list[i]:
                         local_path = self.ui.epn_arr_list[i].split('\t')[1]
                     if local_path:
                         local_path = local_path.replace('"', '')
