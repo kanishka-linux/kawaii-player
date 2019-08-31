@@ -343,6 +343,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.default_args = self.args_dict.copy()
         if gui.mpvplayer_string_list and gui.use_custom_config_file:
             self.create_args_dict()
+        elif not gui.use_custom_config_file:
+            self.parse_mpv_config_file()
         locale.setlocale(locale.LC_NUMERIC, 'C')
         self.mpv_gl = None
         if self.mpv_api == "opengl-render":
@@ -591,7 +593,30 @@ class MpvOpenglWidget(QOpenGLWidget):
     def only_fs_tab(self):
         self.setMinimumWidth(MainWindow.width())
         self.setMinimumHeight(MainWindow.height())
-            
+        
+    def parse_mpv_config_file(self, file_path=None):
+        if file_path is None or not os.path.exists(file_path):
+            file_path = os.path.join(os.path.expanduser("~"), ".config/mpv/config")
+        if os.path.exists(file_path):
+            txt = open(file_path).read()
+            if txt:
+                txt_list = txt.split('\n')
+            else:
+                txt_list = []
+            for line in txt_list:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    line = re.sub('#[^\n]*', '', line)
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                    else:
+                        key = line
+                        value = "yes"
+                    key = key.replace("-", "_")
+                    logger.info((key, value))
+                    self.args_dict.update({key:value})
+                    #self.mpv.set_property(key, value)
+                    
     def create_args_dict(self):
         self.args_dict.update({'screenshot-directory': gui.screenshot_directory})
         if gui.gsbc_dict:
