@@ -1473,6 +1473,7 @@ class Ui_MainWindow(object):
         self.mpvplayer_val = QProcessExtra(ui=self)
         #rpitv, hdmitv, laptopscreen, monitorscreen, none, auto
         self.display_device = "auto"
+        self.desktop_session = "lxde"
         self.playlist_continue = True
         self.bg_color_dark_theme = (56, 60, 74)
         self.bg_color_widget_dark_theme = (0, 0, 0)
@@ -13587,6 +13588,7 @@ def main():
     ui.media_data.set_ui(ui)
     ui.tab_5.set_mpvplayer(player=ui.player_val, mpvplayer=ui.mpvplayer_val)
     ui.getdb = ServerLib(ui, home, BASEDIR, TMPDIR, logger)
+    ui.desktop_session = desktop_session
     ui.btn1.setFocus()
     ui.dockWidget_4.hide()
     ui.screen_size = (screen_width, screen_height)
