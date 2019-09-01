@@ -1092,8 +1092,12 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.initial_volume_set = True
                 except Exception as err:
                     logger.error(err)
-            if self.ui.final_playing_url in self.ui.history_dict_obj_libmpv:
-                seek_time, cur_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)
+            if self.ui.pc_to_pc_casting == "slave":
+                saved_url = self.ui.final_playing_url.rsplit("/&master_token=")[0]
+            else:
+                saved_url = self.ui.final_playing_url
+            if saved_url in self.ui.history_dict_obj_libmpv:
+                seek_time, cur_time, sub_id, audio_id, rem_quit, vol, asp = self.ui.history_dict_obj_libmpv.get(saved_url)
                 if asp == -1 or asp == "-1" or asp is None:
                     asp = "0"
                 aspect_val = self.ui.mpvplayer_aspect_float.get(str(asp))

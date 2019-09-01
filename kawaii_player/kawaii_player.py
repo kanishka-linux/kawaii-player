@@ -3530,7 +3530,7 @@ class Ui_MainWindow(object):
                 counter = self.progress_counter
             else:
                 counter = (self.progress_counter/1000)
-            if msg == 'remember quit' or self.stop_from_client:
+            if msg == 'remember quit' or (self.stop_from_client and self.mplayerLength > 480):
                 rem_quit = 1
             else:
                 rem_quit = 0
@@ -3544,8 +3544,9 @@ class Ui_MainWindow(object):
                 if not param_avail:        
                     asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
                     vol = self.player_volume
-                if self.player_val == "libmpv" and self.stop_from_client:
-                    self.tab_5.rem_properties(self.final_playing_url, 1, last_position)
+                if self.player_val == "libmpv" and self.stop_from_client and self.pc_to_pc_casting == "slave":
+                    save_url = self.final_playing_url.rsplit("/&master_token=", 1)[0]
+                    self.tab_5.rem_properties(save_url, rem_quit, last_position)
                 else:
                     self.history_dict_obj.update(
                             {
@@ -3709,7 +3710,7 @@ class Ui_MainWindow(object):
                     self.list1.show()
                 if self.list2.isHidden():
                     self.list2.show()
-                self.stop_from_client = False
+        self.stop_from_client = False
             
     
     def restore_initial_view(self):
