@@ -1376,6 +1376,13 @@ class MpvOpenglWidget(QOpenGLWidget):
         else:
             self.rem_properties(self.ui.final_playing_url, 0, self.ui.progress_counter)
         self.initial_volume_set = False
+        self.player_observer_thread.remove_external_files = True
+        self.audio = None
+        self.subtitle = None
+        self.ui.quit_now = True
+        self.mpv.command("stop")
+        self.stop_msg = "openglwidget"
+        self.ui.player_stop.clicked_emit()
         self.ui.tab_5.setMinimumWidth(0)
         self.ui.tab_5.setMinimumHeight(0)
         self.setParent(MainWindow)
@@ -1384,13 +1391,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.setMouseTracking(True)
         self.showNormal()
         self.setFocus()
-        self.player_observer_thread.remove_external_files = True
-        self.audio = None
-        self.subtitle = None
-        self.ui.quit_now = True
-        self.mpv.command("stop")
-        self.stop_msg = "openglwidget"
-        self.ui.player_stop.clicked_emit()
         
     def remember_and_quit(self):
         self.quit_player(msg="rem_quit")

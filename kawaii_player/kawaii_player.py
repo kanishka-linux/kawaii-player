@@ -3511,8 +3511,10 @@ class Ui_MainWindow(object):
         if self.widgets_on_video:
             self.decide_widgets_on_video(over_video=False)
             self.superGridLayout.addWidget(self.frame1, 1, 1, 1, 1)
+        last_position = 0
         if self.player_val == "libmpv":
             self.epn_clicked = False
+            last_position = self.progress_counter
             if self.tab_5.stop_msg and self.tab_5.stop_msg == "openglwidget":
                 self.tab_5.stop_msg = None
             else:
@@ -3528,7 +3530,7 @@ class Ui_MainWindow(object):
                 counter = self.progress_counter
             else:
                 counter = (self.progress_counter/1000)
-            if msg == 'remember quit':
+            if msg == 'remember quit' or self.stop_from_client:
                 rem_quit = 1
             else:
                 rem_quit = 0
@@ -3542,7 +3544,9 @@ class Ui_MainWindow(object):
                 if not param_avail:        
                     asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
                     vol = self.player_volume
-                if self.player_val != "libmpv":
+                if self.player_val == "libmpv" and self.stop_from_client:
+                    self.tab_5.rem_properties(self.final_playing_url, 1, last_position)
+                else:
                     self.history_dict_obj.update(
                             {
                             self.final_playing_url:[
