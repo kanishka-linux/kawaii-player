@@ -3556,7 +3556,10 @@ class Ui_MainWindow(object):
                                 ]
                             }
                         )
-                logger.debug(self.history_dict_obj.get(self.final_playing_url))
+                if self.player_val == "libmpv":
+                    logger.debug(self.history_dict_obj_libmpv.get(self.final_playing_url))
+                else:
+                    logger.debug(self.history_dict_obj.get(self.final_playing_url))
                 logger.debug(self.video_parameters)
                 
             if restart:
