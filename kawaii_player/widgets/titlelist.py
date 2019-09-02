@@ -1239,7 +1239,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 tmpdict = {}
                 logger.debug(len(ui.history_dict_obj))
                 for i in ui.history_dict_obj:
-                    if i.startswith('#') or os.path.isfile(i):
+                    if (i.startswith('#') or os.path.isfile(i)) and i not in ["#LAST@TITLE", "#LIBMPV@WATCH#LATER"]:
                         tmpdict.update({i:ui.history_dict_obj[i]})
                     else:
                         logger.debug('deleting history of: {}'.format(i))
