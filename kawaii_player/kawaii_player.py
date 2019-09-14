@@ -58,6 +58,7 @@ import platform
 import logging
 import pickle
 import asyncio
+import signal
 import mimetypes
 import http.cookiejar
 from functools import partial, reduce
@@ -13479,6 +13480,145 @@ class Ui_MainWindow(object):
         else:
             return str(int(self.tab_5.winId()))
             
+def save_all_settings_before_quit():
+    global ui, default_arr_setting, music_arr_setting, iconv_r
+    ui.discover_server = False
+    ui.discover_slaves = False
+    ui.broadcast_server = False
+    if ui.dockWidget_3.isHidden() or ui.auto_hide_dock:
+        dock_opt = 0
+    else:
+        dock_opt = 1
+        
+    def_val = ''
+    for i in default_arr_setting:
+        def_val = def_val + str(i) + ', '
+    def_val = def_val[:-1]
+    
+    music_val = ''
+    for i in music_arr_setting:
+        music_val = music_val + str(i)+', '
+    music_val = music_val[:-1]
+    
+    if ui.float_window_open:
+        if ui.float_window.width() != screen_width and ui.float_window.height() != screen_height:
+            ui.float_window_dim = [
+                ui.float_window.pos().x(), ui.float_window.pos().y(), 
+                ui.float_window.width(), ui.float_window.height()
+            ]
+    if ui.music_mode_dim_show:
+        ui.music_mode_dim = [
+            MainWindow.pos().x(), MainWindow.pos().y(), 
+            MainWindow.width(), MainWindow.height()
+            ]
+    if ui.list1.isHidden():
+        show_hide_titlelist = 0
+    else:
+        show_hide_titlelist = 1
+    if ui.list2.isHidden():
+        show_hide_playlist = 0
+    else:
+        show_hide_playlist = 1
+    icon_poster = iconv_r
+    config_path = os.path.join(home, "config.txt")
+    if os.path.exists(config_path):
+        with open(config_path, "w") as f:
+            f.write("VERSION_NUMBER="+str(ui.version_number))
+            f.write("\nDefaultPlayer="+ui.player_val)
+            f.write("\nWindowFrame="+str(ui.window_frame))
+            f.write("\nFloatWindow="+str(ui.float_window_dim))
+            f.write("\nDockPos="+str(ui.orientation_dock))
+            f.write("\nMusicWindowDim="+str(ui.music_mode_dim))
+            f.write("\nMusicModeDimShow="+str(ui.music_mode_dim_show))
+            if iconv_r_indicator:
+                iconv_r = icon_poster = iconv_r_indicator[0]
+            if ui.icon_poster_indicator:
+                icon_poster = ui.icon_poster_indicator[-1]
+            f.write("\nThumbnail_Poster="+str(icon_poster))
+            f.write("\nThumbnail_Size="+str(iconv_r))
+            f.write("\nView="+str(ui.view_mode))
+            f.write("\nQuality="+str(ui.quality_val))
+            f.write("\nSite_Index="+str(ui.btn1.currentIndex()))
+            f.write("\nAddon_Index="+str(ui.btnAddon.currentIndex()))
+            opt_val = opt
+            if ui.list3.currentItem():
+                opt_index = ui.list3.currentRow()
+                opt_txt = ui.list3.currentItem().text()
+                if opt_txt.lower() in ['update', 'updateall']:
+                    opt_val = 'Available'
+                    opt_index = '1'
+            else:
+                opt_index = '0'
+            f.write("\nOption_Val="+str(opt_val))
+            f.write("\nOption_Index="+str(opt_index))
+            f.write("\nOption_SiteName="+str(siteName))
+            if ui.list_poster.isHidden():
+                f.write("\nName_Index="+str(ui.list1.currentRow()))
+                f.write("\nEpisode_Index="+str(ui.list2.currentRow()))
+            else:
+                if ui.list_poster.title_clicked:
+                    f.write("\nName_Index="+str(ui.list1.currentRow()))
+                    f.write("\nEpisode_Index="+str(ui.list_poster.currentRow()))
+                else:
+                    f.write("\nName_Index="+str(ui.list_poster.currentRow()))
+                    f.write("\nEpisode_Index="+str(0))
+            f.write("\nShow_Hide_Cover="+str(show_hide_cover))
+            f.write("\nShow_Hide_Playlist="+str(show_hide_playlist))
+            f.write("\nShow_Hide_Titlelist="+str(show_hide_titlelist))
+            f.write("\nShow_Hide_Player="+str(show_hide_player))
+            f.write("\nDock_Option="+str(dock_opt))
+            f.write("\nPOSX="+str(MainWindow.pos().x()))
+            f.write("\nPOSY="+str(MainWindow.pos().y()))
+            f.write("\nWHeight="+str(MainWindow.height()))
+            f.write("\nWWidth="+str(MainWindow.width()))
+            f.write("\nLayout="+str(ui.layout_mode))
+            f.write("\nDefault_Mode="+str(def_val))
+            f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
+            f.write("\nMusic_Mode="+str(music_val))
+            if platform.system().lower() == "darwin":
+                f.write("\nVideo_Mode_Index="+str(2))
+            else:
+                f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
+            f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
+            f.write("\nUpload_Speed="+str(ui.setuploadspeed))
+            if platform.system().lower() == "darwin":
+                ui.force_fs = False
+            f.write("\nForce_FS={0}".format(ui.force_fs))
+            f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
+            f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
+            f.write("\nVOLUME_VALUE={0}".format(ui.player_volume))
+            f.write("\nAPPLY_SUBTITLE_SETTINGS={0}".format(ui.apply_subtitle_settings))
+            f.write("\nCLICKED_LABEL_NEW={0}".format(ui.clicked_label_new))
+            if hasattr(ui.list_poster, "num"):
+                f.write("\nTHUMBNAIL_WALL_NUM={0}".format(ui.list_poster.num))
+    if ui.wget.processId() > 0 and ui.queue_item:
+        if isinstance(ui.queue_item, tuple):
+            ui.queue_url_list.insert(0, ui.queue_item)
+    if ui.queue_url_list:
+        with open(ui.playing_queue_file, 'wb') as pls_file_queue:
+            pickle.dump(ui.queue_url_list, pls_file_queue)
+    with open(ui.playing_history_file, 'wb') as pls_file:
+        if ui.list1.currentItem():
+            ui.history_dict_obj.update(
+                {
+                    '#LAST@TITLE':[
+                            ui.cur_row, ui.cur_row, ui.list1.currentItem().text(),
+                            '', 1, 'auto', '-1'
+                        ]
+                }
+            )
+            ui.history_dict_obj.update({'#GSBCH@DICT':[ui.gsbc_dict]})
+            ui.history_dict_obj.update({'#SUBTITLE@DICT':[ui.subtitle_dict]})
+            ui.history_dict_obj.update({'#LIBMPV@WATCH#LATER':[ui.history_dict_obj_libmpv]})
+        pickle.dump(ui.history_dict_obj, pls_file)
+    if ui.mpvplayer_val.processId() > 0:
+        ui.mpvplayer_val.kill()
+            
+def sigterm_handler(signal, frame):
+    logger.debug('got SIGTERM, saving settings before quit')
+    save_all_settings_before_quit()
+    sys.exit(0)
+
 def main():
     global ui, MainWindow, name, pgn, genre_num, site, epn
     global embed, opt, mirrorNo
@@ -14920,142 +15060,13 @@ def main():
         ui.idw = str(int(ui.tab_5.winId()))
     if ui.player_volume.isnumeric():
         ui.frame_extra_toolbar.slider_volume.setValue(int(ui.player_volume))
+    signal.signal(signal.SIGTERM, sigterm_handler)
     ret = app.exec_()
     
     """Starting of Final code which will be Executed just before 
     Application Quits"""
-    ui.discover_server = False
-    ui.discover_slaves = False
-    ui.broadcast_server = False
-    if ui.dockWidget_3.isHidden() or ui.auto_hide_dock:
-        dock_opt = 0
-    else:
-        dock_opt = 1
-        
-    def_val = ''
-    for i in default_arr_setting:
-        def_val = def_val + str(i) + ', '
-    def_val = def_val[:-1]
-    
-    music_val = ''
-    for i in music_arr_setting:
-        music_val = music_val + str(i)+', '
-    music_val = music_val[:-1]
-    
-    if ui.float_window_open:
-        if ui.float_window.width() != screen_width and ui.float_window.height() != screen_height:
-            ui.float_window_dim = [
-                ui.float_window.pos().x(), ui.float_window.pos().y(), 
-                ui.float_window.width(), ui.float_window.height()
-            ]
-    if ui.music_mode_dim_show:
-        ui.music_mode_dim = [
-            MainWindow.pos().x(), MainWindow.pos().y(), 
-            MainWindow.width(), MainWindow.height()
-            ]
-    if ui.list1.isHidden():
-        show_hide_titlelist = 0
-    else:
-        show_hide_titlelist = 1
-    if ui.list2.isHidden():
-        show_hide_playlist = 0
-    else:
-        show_hide_playlist = 1
-    icon_poster = iconv_r
-    config_path = os.path.join(home, "config.txt")
-    if os.path.exists(config_path):
-        with open(config_path, "w") as f:
-            f.write("VERSION_NUMBER="+str(ui.version_number))
-            f.write("\nDefaultPlayer="+ui.player_val)
-            f.write("\nWindowFrame="+str(ui.window_frame))
-            f.write("\nFloatWindow="+str(ui.float_window_dim))
-            f.write("\nDockPos="+str(ui.orientation_dock))
-            f.write("\nMusicWindowDim="+str(ui.music_mode_dim))
-            f.write("\nMusicModeDimShow="+str(ui.music_mode_dim_show))
-            if iconv_r_indicator:
-                iconv_r = icon_poster = iconv_r_indicator[0]
-            if ui.icon_poster_indicator:
-                icon_poster = ui.icon_poster_indicator[-1]
-            f.write("\nThumbnail_Poster="+str(icon_poster))
-            f.write("\nThumbnail_Size="+str(iconv_r))
-            f.write("\nView="+str(ui.view_mode))
-            f.write("\nQuality="+str(ui.quality_val))
-            f.write("\nSite_Index="+str(ui.btn1.currentIndex()))
-            f.write("\nAddon_Index="+str(ui.btnAddon.currentIndex()))
-            opt_val = opt
-            if ui.list3.currentItem():
-                opt_index = ui.list3.currentRow()
-                opt_txt = ui.list3.currentItem().text()
-                if opt_txt.lower() in ['update', 'updateall']:
-                    opt_val = 'Available'
-                    opt_index = '1'
-            else:
-                opt_index = '0'
-            f.write("\nOption_Val="+str(opt_val))
-            f.write("\nOption_Index="+str(opt_index))
-            f.write("\nOption_SiteName="+str(siteName))
-            if ui.list_poster.isHidden():
-                f.write("\nName_Index="+str(ui.list1.currentRow()))
-                f.write("\nEpisode_Index="+str(ui.list2.currentRow()))
-            else:
-                if ui.list_poster.title_clicked:
-                    f.write("\nName_Index="+str(ui.list1.currentRow()))
-                    f.write("\nEpisode_Index="+str(ui.list_poster.currentRow()))
-                else:
-                    f.write("\nName_Index="+str(ui.list_poster.currentRow()))
-                    f.write("\nEpisode_Index="+str(0))
-            f.write("\nShow_Hide_Cover="+str(show_hide_cover))
-            f.write("\nShow_Hide_Playlist="+str(show_hide_playlist))
-            f.write("\nShow_Hide_Titlelist="+str(show_hide_titlelist))
-            f.write("\nShow_Hide_Player="+str(show_hide_player))
-            f.write("\nDock_Option="+str(dock_opt))
-            f.write("\nPOSX="+str(MainWindow.pos().x()))
-            f.write("\nPOSY="+str(MainWindow.pos().y()))
-            f.write("\nWHeight="+str(MainWindow.height()))
-            f.write("\nWWidth="+str(MainWindow.width()))
-            f.write("\nLayout="+str(ui.layout_mode))
-            f.write("\nDefault_Mode="+str(def_val))
-            f.write("\nList_Mode_With_Thumbnail="+str(ui.list_with_thumbnail))
-            f.write("\nMusic_Mode="+str(music_val))
-            if platform.system().lower() == "darwin":
-                f.write("\nVideo_Mode_Index="+str(2))
-            else:
-                f.write("\nVideo_Mode_Index="+str(ui.comboBoxMode.currentIndex()))
-            f.write("\nVideo_Aspect="+str(ui.mpvplayer_aspect_cycle))
-            f.write("\nUpload_Speed="+str(ui.setuploadspeed))
-            if platform.system().lower() == "darwin":
-                ui.force_fs = False
-            f.write("\nForce_FS={0}".format(ui.force_fs))
-            f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
-            f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
-            f.write("\nVOLUME_VALUE={0}".format(ui.player_volume))
-            f.write("\nAPPLY_SUBTITLE_SETTINGS={0}".format(ui.apply_subtitle_settings))
-            f.write("\nCLICKED_LABEL_NEW={0}".format(ui.clicked_label_new))
-            if hasattr(ui.list_poster, "num"):
-                f.write("\nTHUMBNAIL_WALL_NUM={0}".format(ui.list_poster.num))
-    if ui.wget.processId() > 0 and ui.queue_item:
-        if isinstance(ui.queue_item, tuple):
-            ui.queue_url_list.insert(0, ui.queue_item)
-    if ui.queue_url_list:
-        with open(ui.playing_queue_file, 'wb') as pls_file_queue:
-            pickle.dump(ui.queue_url_list, pls_file_queue)
-    with open(ui.playing_history_file, 'wb') as pls_file:
-        if ui.list1.currentItem():
-            ui.history_dict_obj.update(
-                {
-                    '#LAST@TITLE':[
-                            ui.cur_row, ui.cur_row, ui.list1.currentItem().text(),
-                            '', 1, 'auto', '-1'
-                        ]
-                }
-            )
-            ui.history_dict_obj.update({'#GSBCH@DICT':[ui.gsbc_dict]})
-            ui.history_dict_obj.update({'#SUBTITLE@DICT':[ui.subtitle_dict]})
-            ui.history_dict_obj.update({'#LIBMPV@WATCH#LATER':[ui.history_dict_obj_libmpv]})
-        pickle.dump(ui.history_dict_obj, pls_file)
-    if ui.mpvplayer_val.processId() > 0:
-        ui.mpvplayer_val.kill()
-    print(ret, '--Return--')
+    logger.debug(('Return code = {}'.format(ret), "Saving settings before quit"))
+    save_all_settings_before_quit()
     del app
     sys.exit(ret)
     
