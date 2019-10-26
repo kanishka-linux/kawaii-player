@@ -1302,11 +1302,22 @@ class PlaylistWidget(QtWidgets.QListWidget):
             lines = content.split('\n')
             new_dict = OrderedDict()
             new_lines = []
-            if mode in ['single', 'playlist', 'queue'] and item:
+            direct_url_link = None
+            if mode == "direct url":
+                line1 = "#EXTINF:0, {}".format(self.ui.epn_name_in_list)
+                line2 = self.ui.final_playing_url
+                if line2.startswith("http"):
+                    new_lines = [line1, line2]
+                    direct_url_link = line2
+                else:
+                    mode = "single"
+            if mode in ['single', 'playlist', 'queue', 'direct url'] and item:
                 if mode in ['single', 'queue']:
                     line1 = lines[2*cur_row+1]
                     line2 = lines[2*cur_row+2]
                     new_lines = [line1, line2]
+                elif mode == "direct url":
+                    pass
                 else:
                     lines = lines[1:]
                     new_lines = [i.strip() for i in lines if i.strip()]
@@ -1329,6 +1340,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             nurl_netloc = urllib.parse.urlparse(nurl).netloc
                             if 'youtube.com' in nurl_netloc:
                                 url = nurl
+                                master_token = False
+                            elif mode == "direct url" and direct_url_link:
+                                url = direct_url_link
                                 master_token = False
                         except Exception as err:
                             logger.error(err)
@@ -1584,6 +1598,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
                 cast_menu_queue = cast_menu.addAction("Queue this Item")
+                cast_menu_direct_url = cast_menu.addAction("Cast Current URL")
                 cast_menu.addSeparator()
                 cast_menu_web = cast_menu.addAction("Show More Controls")
                 cast_menu.addSeparator()
@@ -1635,6 +1650,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
                 elif action == cast_menu_queue:
                     self.start_pc_to_pc_casting('queue', self.currentRow())
+                elif action == cast_menu_direct_url:
+                    self.start_pc_to_pc_casting('direct url', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
                 elif action == clear_session:
@@ -1780,6 +1797,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_file = cast_menu.addAction("Cast this Item")
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
                 cast_menu_queue = cast_menu.addAction("Queue this Item")
+                cast_menu_direct_url = cast_menu.addAction("Cast Current URL")
                 cast_menu_subtitle = cast_menu.addAction("Send Subtitle File")
                 cast_menu.addSeparator()
                 cast_menu_web = cast_menu.addAction("Show More Controls")
@@ -1904,6 +1922,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('playlist', self.currentRow())
                 elif action == cast_menu_queue:
                     self.start_pc_to_pc_casting('queue', self.currentRow())
+                elif action == cast_menu_direct_url:
+                    self.start_pc_to_pc_casting('direct url', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
                 elif action == cast_menu_subtitle:
