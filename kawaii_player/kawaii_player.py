@@ -3720,7 +3720,7 @@ class Ui_MainWindow(object):
     def restore_initial_view(self):
         if show_hide_titlelist == 1:
             self.list1.show()
-        if show_hide_cover == 1:
+        if show_hide_cover == 1 and self.settings_box.isHidden():
             self.label.show()
             if self.layout_mode != 'Music':
                 self.label_new.show()
