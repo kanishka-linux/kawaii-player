@@ -1331,7 +1331,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     title = new_lines[row]
                     title = title.split(',', 1)[-1].strip()
                     url = new_lines[row+1]
-                    if direct_link:
+                    if direct_link or mode == "direct index":
                         master_token = False
                     else:
                         try:
@@ -1402,6 +1402,24 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 else:
                     self.ui.vnt.post(item, files=pls_file, timeout=60, verify=verify,
                                 onfinished=partial(self.final_pc_to_pc_process, pls_file, verify))
+            elif mode == "direct index":
+                request_url = "playlist_{}".format(cur_row)
+                if not item.startswith('http') and not item.startswith('https'):
+                    item = 'http://{}/{}'.format(item, request_url)
+                elif item.endswith('/'):
+                    item = '{}{}'.format(item, request_url)
+                else:
+                    item = '{}/{}'.format(item, request_url)
+                n = urlparse(item)
+                netloc = n.netloc
+                val = self.ui.vnt.cookie_session.get(netloc)
+                verify = self.verify_slave_ssl
+                logger.debug('url={} verify={}'.format(item, verify))
+                if val:
+                    logger.debug('using old session')
+                    self.ui.vnt.get(item, timeout=60, session=True, verify=verify)
+                else:
+                    self.ui.vnt.get(item, timeout=60, verify=verify)
         else:
             msg = 'Most Probably Media Server not started on Master.'
             logger.error(msg)
@@ -1798,6 +1816,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 cast_menu_playlist = cast_menu.addAction("Cast this Playlist")
                 cast_menu_queue = cast_menu.addAction("Queue this Item")
                 cast_menu_direct_url = cast_menu.addAction("Cast Current URL")
+                cast_menu_play_file_at_index = cast_menu.addAction("Play this index")
                 cast_menu_subtitle = cast_menu.addAction("Send Subtitle File")
                 cast_menu.addSeparator()
                 cast_menu_web = cast_menu.addAction("Show More Controls")
@@ -1924,6 +1943,8 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.start_pc_to_pc_casting('queue', self.currentRow())
                 elif action == cast_menu_direct_url:
                     self.start_pc_to_pc_casting('direct url', self.currentRow())
+                elif action == cast_menu_play_file_at_index:
+                    self.start_pc_to_pc_casting('direct index', self.currentRow())
                 elif action == set_cast_slave:
                     self.setup_slave_address()
                 elif action == cast_menu_subtitle:
