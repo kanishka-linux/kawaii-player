@@ -332,8 +332,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                          'loop_playlist':'inf', 'idle':True,
                          'audio-display': 'attachment',
                          'osd_duration': 4000, 'osd_font_size': 25,
-                         'cache': 'auto', 'cache-secs': 120,
-                         'cache_default': 100000}
+                         'cache': 'auto', 'cache-secs': 120}
         if platform.system().lower() == "darwin":
             self.args_dict.update({"ao":"coreaudio"})
         elif os.name == "posix":
