@@ -1645,7 +1645,10 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 if isinstance(v, bool):
                     v = "yes" if v else "no"
                 k = k.replace("_", "-")
-                ui.tab_5.mpv.set_property(k, v)
+                try:
+                    ui.tab_5.mpv.set_property(k, v)
+                except Exception as err:
+                    logger.error((err, k, v))
         write_files(self.config_file_name, mpv_cmd, line_by_line=True)
         mpv_cmd_dict.update({'file':mpv_cmd})
         mpv_cmd_dict.update({'str':ui.mpvplayer_string_list})
