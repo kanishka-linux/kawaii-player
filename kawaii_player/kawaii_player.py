@@ -69,7 +69,10 @@ from collections import OrderedDict, deque, namedtuple
 from threading import Thread, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
-import pycurl
+try:
+    import pycurl
+except Exception as err:
+    print(err)
 from bs4 import BeautifulSoup
 import PIL
 from PIL import Image, ImageDraw

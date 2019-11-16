@@ -30,7 +30,10 @@ import urllib
 import platform
 from tempfile import mkstemp, mkdtemp
 from io import StringIO, BytesIO
-import pycurl
+try:
+    import pycurl
+except Exception as err:
+    print(err)
 from PyQt5 import QtWidgets, QtCore
 from get_functions import wget_string, get_ca_certificate
 

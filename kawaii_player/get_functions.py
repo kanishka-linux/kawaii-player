@@ -21,7 +21,10 @@ import os
 import urllib.parse
 import subprocess
 from io import BytesIO
-import pycurl
+try:
+    import pycurl
+except Exception as err:
+    print(err)
 
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
