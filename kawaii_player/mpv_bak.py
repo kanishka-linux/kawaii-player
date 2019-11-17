@@ -613,7 +613,10 @@ class MPV(object):
             for flag in extra_mpv_flags:
                 _mpv_set_option_string(self.handle, flag.encode('utf-8'), b'')
             for k,v in extra_mpv_opts.items():
-                _mpv_set_option_string(self.handle, k.replace('_', '-').encode('utf-8'), istr(v).encode('utf-8'))
+                try:
+                    _mpv_set_option_string(self.handle, k.replace('_', '-').encode('utf-8'), istr(v).encode('utf-8'))
+                except Exception as err:
+                    print(err, "failed to setup option: {} = {}".format(k, v))
         finally:
             _mpv_initialize(self.handle)
 
