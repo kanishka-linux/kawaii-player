@@ -49,7 +49,7 @@ def send_notification(txt, display=None, code=None):
         elif os.name == 'nt' and code == 0:
             print(txt)
         elif os.name == 'nt' and display != 'posix':
-            subprocess.Popen(['msg', '*', txt])
+            subprocess.Popen(['msg', '/time:3', '*', txt])
     except Exception as e:
         print(e)
 
