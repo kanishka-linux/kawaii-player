@@ -489,6 +489,7 @@ class Ui_MainWindow(object):
                                 
         self.check_symbol = '\u2714'
         self.torrent_frame = QtWidgets.QFrame(MainWindow)
+        self.is_torrent_active = False
         #self.torrent_frame.setMaximumSize(QtCore.QSize(300, 16777215))
         self.torrent_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.torrent_frame.setFrameShadow(QtWidgets.QFrame.Raised)
@@ -3020,7 +3021,7 @@ class Ui_MainWindow(object):
             else:
                 stop_now = True
             if stop_now:
-                if self.video_local_stream or new_video_local_stream:
+                if self.video_local_stream or new_video_local_stream or self.is_torrent_active:
                     if self.torrent_status_thread.isRunning():
                         logger.debug('----------stream-----pausing-----')
                         t_list = self.stream_session.get_torrents()
@@ -3062,6 +3063,7 @@ class Ui_MainWindow(object):
                             del item
                             self.start_offline_mode(0, self.queue_item)
                         logger.debug('queue:{0}::list6:{1}'.format(len(self.queue_url_list, self.list6.count())))
+                self.is_torrent_active = False
         except Exception as e:
             logger.error(e)
     
@@ -3084,6 +3086,7 @@ class Ui_MainWindow(object):
             send_notification(txt)
             self.torrent_frame.hide()
             self.progress.hide()
+            self.is_torrent_active = False
         except Exception as e:
             print(e, '--9368--')
     
@@ -10041,6 +10044,7 @@ class Ui_MainWindow(object):
                              site_name=None, from_client=None):
         global site, home
         torrent_status_thread = None
+        self.is_torrent_active = True
         index = int(epn_index)
         ip_n = local_ip.rsplit(':', 1)
         ip = ip_n[0]

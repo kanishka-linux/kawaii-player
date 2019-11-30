@@ -1438,10 +1438,11 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.ui.frame1.hide()
                     self.ui.tab_6.hide()
                     self.ui.goto_epn.hide()
-                    if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
+                    if self.ui.wget.processId() > 0 or self.ui.video_local_stream or self.ui.is_torrent_active:
                         self.ui.progress.hide()
                         if not self.ui.torrent_frame.isHidden():
                             self.ui.torrent_frame.hide()
+
                     self.ui.list2.hide()
                     self.ui.frame_extra_toolbar.hide()
                     self.ui.frame_extra_toolbar.playlist_hide = False
@@ -1484,7 +1485,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.ui.superGridLayout.setContentsMargins(5, 5, 5, 5)
                     self.ui.list2.show()
                     self.ui.btn20.show()
-                    if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
+                    if self.ui.wget.processId() > 0 or self.ui.video_local_stream or self.ui.is_torrent_active:
                         self.ui.progress.show()
                     self.ui.frame1.show()
                     if self.player_val in self.ui.playback_engine:
