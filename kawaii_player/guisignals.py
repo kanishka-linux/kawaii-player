@@ -309,6 +309,8 @@ class GUISignals(QtCore.QObject):
             ui.progressEpn.setValue(0)
             ui.progressEpn.setFormat((''))
             ui.progressEpn.setFormat(('{} / {}'.format(tme, nlen)))
+            if hasattr(ui.tab_5, "send_fake_event") and counter % 10 == 0:
+                ui.tab_5.send_fake_event("mouse_release")
             
     @pyqtSlot(str)
     def title_clicked(self, val):
