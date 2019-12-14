@@ -5838,35 +5838,27 @@ class Ui_MainWindow(object):
         global opt, site, bookmark
         
         n = []
-        m =[]
+        m = []
         
         if site in ["Music", "Video"] and self.original_path_name:
-                tmp = self.original_path_name[0]
-                if '/' in tmp:
-                    if site == "Video":
-                        self.original_path_name = sorted(
-                            self.original_path_name, 
-                            key = lambda x: x.split('	')[0].lower()
-                            )
-                    else:
-                        self.original_path_name = sorted(
-                            self.original_path_name, 
-                            key = lambda x: os.path.basename(x).lower()
-                            )
-                    for i in self.original_path_name:
-                        if site == "Video":
-                            m.append(i.split('	')[0])
-                        else:
-                            m.append(os.path.basename(i))
+            if site == "Video":
+                self.original_path_name = sorted(
+                    self.original_path_name, 
+                    key = lambda x: x.split('	')[0].lower()
+                    )
+            else:
+                self.original_path_name = sorted(
+                    self.original_path_name, 
+                    key = lambda x: os.path.basename(x).lower()
+                    )
+            for i in self.original_path_name:
+                if site == "Video":
+                    m.append(i.split('	')[0])
                 else:
-                    for i in range(self.list1.count()):
-                        n.append(str(self.list1.item(i).text()))
-                    m = list(set(n))
-                    m.sort()
+                    m.append(os.path.basename(i))
         else:
             self.original_path_name.sort()
             m = self.original_path_name.copy()
-        
         if m and not bookmark:
             self.label.clear()
             self.line.clear()
