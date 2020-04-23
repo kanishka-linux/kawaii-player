@@ -12103,7 +12103,7 @@ class Ui_MainWindow(object):
             self.mpv_custom_pause = False
             if platform.system().lower() == "darwin":
                 command = 'mpv --cache-secs=120 --cache=auto\
- --cache-initial=0 --cache-seek-min=100 --cache-pause\
+ --cache-pause\
  --idle -msg-level=all=v --osd-level=1 --cursor-autohide=5\
  --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
@@ -12112,7 +12112,7 @@ class Ui_MainWindow(object):
                                       self.screenshot_directory)
             else:
                 command = 'mpv --cache-secs=120 --cache=auto\
- --cache-initial=0 --cache-seek-min=100 --cache-pause\
+ --cache-pause\
  --idle -msg-level=all=v --osd-level=1 --cursor-autohide=no\
  --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
