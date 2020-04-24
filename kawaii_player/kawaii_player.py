@@ -12107,7 +12107,7 @@ class Ui_MainWindow(object):
  --idle -msg-level=all=v --osd-level=1 --cursor-autohide=5\
  --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
- --input-vo-keyboard=no --autofit=50% --no-native-fs --fs --ontop --video-aspect {0} -wid {1} --input-conf="{2}"\
+ --input-vo-keyboard=no --autofit=50% --no-native-fs --fs --ontop -wid {1} --input-conf="{2}"\
  --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
                                       self.screenshot_directory)
             else:
@@ -12116,7 +12116,7 @@ class Ui_MainWindow(object):
  --idle -msg-level=all=v --osd-level=1 --cursor-autohide=no\
  --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
- --input-vo-keyboard=no --video-aspect {0} -wid {1} --input-conf="{2}"\
+ --input-vo-keyboard=no -wid {1} --input-conf="{2}"\
  --screenshot-directory="{3}"'.format(aspect_value, idw, self.mpv_input_conf,
                                       self.screenshot_directory)
         else:
