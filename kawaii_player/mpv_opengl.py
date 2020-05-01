@@ -348,6 +348,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         elif not gui.use_custom_config_file:
             self.parse_mpv_config_file()
         locale.setlocale(locale.LC_NUMERIC, 'C')
+        self.track_list = None
+        self.playlist_backup = False
         self.mpv_gl = None
         if self.mpv_api == "opengl-render":
             self.init_opengl_render()
@@ -399,7 +401,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.subtitle = None
         self.ratio = None
         self.dim = None
-        self.track_list = None
         self.chapter_list = None
         self.prefetch_url = None
         self.window_title_set = False
@@ -416,7 +417,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.aspect_map = {'0':'Original', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'Disabled'}
         self.player_volume = None
         self.initial_volume_set = False
-        self.playlist_backup = False
         self.mpv_reinit = False
         self.key_thread = KeyT(self.ui, None, None)
         self.init_again_thread = InitAgainThread(self.ui, self)
