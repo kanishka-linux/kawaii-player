@@ -28,6 +28,8 @@ import base64
 import subprocess
 import urllib
 import platform
+import random
+import string
 from tempfile import mkstemp, mkdtemp
 from io import StringIO, BytesIO
 try:
@@ -53,6 +55,11 @@ def send_notification(txt, display=None, code=None):
     except Exception as e:
         print(e)
 
+def random_string(size):
+    chars=string.ascii_uppercase + string.digits
+    string_generator = (random.choice(chars) for _ in range(size))
+    return ''.join(string_generator)
+ 
 def get_lan_ip():
     if OSNAME == 'posix':
         if platform.system().lower() == "linux":
