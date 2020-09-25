@@ -37,6 +37,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Dependencies and Installation](#dependencies-and-installation)
 
+- [MPV Input IPC Server](#mpv-input-ipc-server)
+
 - [Troubleshooting](#troubleshooting)
 
 - [Brief Documentation](#documentation)
@@ -676,7 +678,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 6. Tips for macOs users (Installing dependencies).
 
-        $ brew install mpv mplayer ffmpeg wget openssl terminal-notifier libtorrent-rasterbar
+        $ brew install mpv mplayer ffmpeg wget openssl terminal-notifier libtorrent-rasterbar socat
         
         $ pip3 install lxml bs4 Pillow mutagen PyOpenGL PyQt5 sip PyQtWebEngine
         
@@ -720,6 +722,8 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 - ffmpegthumbnailer(Thumbnail Generator for Local Files) {not required from v4.0+}
 
+- socat {for using mpv ipc server mode}
+
 **For extra features such as Youtube support, torrent streaming, MPRIS D-Bus support, desktop notifications and HTTPS:**
 
 - libtorrent-rasterbar {For Torrent Streaming Support}
@@ -744,7 +748,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 **Dependencies installation in Arch**
 
-sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen
+sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen socat
 
 **Dependencies installation in Ubuntu 16.04+**
 
@@ -755,6 +759,14 @@ sudo apt install python3 python3-pyqt5 python3-pycurl python3-pil python3-bs4 py
 first enable rpmfusion repository
 
 dnf install mpv mplayer ffmpegthumbnailer python3-qt5 python3-qt5-webkit python3-pycurl python3-lxml python3-beautifulsoup4 python3-pytaglib python3-mutagen rb_libtorrent-python3 curl wget libnotify python3-dbus python3-pillow
+
+## MPV Input IPC Server
+
+MPV has deprecated slave mode, so in order to use mpv binary as playback engine one has to use mpv-input-ipc-server which works somewhat similar to slave mode. One has to pull changes from latest source to use this feature.
+
+In `other_options.txt` file add `MPV_INPUT_IPC_SERVER=True` and restart player. Then select mpv/MPV as playback engine. After that one will be able to use mpv binary as it is.
+
+One needs to have `socat` installed on the system. It is tested only on ArchLinux and OSX. This feature is not supported on Windows for now.
 
 ## Troubleshooting
 
