@@ -61,6 +61,7 @@ import asyncio
 import signal
 import mimetypes
 import http.cookiejar
+import string
 from functools import partial, reduce
 from urllib.parse import urlparse
 from io import StringIO, BytesIO
@@ -85,7 +86,7 @@ from player_functions import write_files, ccurl, send_notification
 from player_functions import wget_string, open_files, get_config_options
 from player_functions import get_tmp_dir, naturallysorted, set_logger
 from player_functions import get_home_dir, change_opt_file, create_ssl_cert
-from player_functions import set_user_password, get_lan_ip
+from player_functions import set_user_password, get_lan_ip, random_string
 from yt import YTDL
 from ds import CustomList
 from meta_engine import MetaEngine
@@ -1639,6 +1640,8 @@ class Ui_MainWindow(object):
         self.download_video = 0
         self.total_seek = 0
         self.new_tray_widget = None
+        self.mpv_input_ipc_server = False
+        self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = 'mpv'
@@ -2069,7 +2072,7 @@ class Ui_MainWindow(object):
             self.tab_5.get_previous()
         else:
             self.mpvPrevEpnList(*args)
-    
+   
     def set_mainwindow_palette(self, fanart, first_time=None, theme=None, rgb_tuple=None):
         if theme is None or theme == 'default':
             logger.info('\n{0}:  mainwindow background\n'.format(fanart))
@@ -12245,6 +12248,8 @@ class Ui_MainWindow(object):
             command = re.sub('--cursor-autohide=no|--no-input-cursor|--no-osc|--no-osd-bar|--ytdl=no', '', command)
         elif player == 'MPLAYER':
             command = re.sub('-wid [0-9]+', '', command)
+        if player.lower() == 'mpv' and self.mpv_input_ipc_server:
+            command = re.sub('--input-file=/dev/stdin', '--input-ipc-server={}'.format(self.mpv_socket), command)
         logger.debug(command)
         if self.player_val.lower() == 'mpv' and self.use_custom_config_file and self.mpvplayer_string_list:
             command = command + ' ' + ' '.join(self.mpvplayer_string_list)
@@ -14572,6 +14577,13 @@ def main():
                             ui.restore_aspect = True
                     except Exception as e:
                         logger.error(e)
+                elif i.startswith('MPV_INPUT_IPC_SERVER='):
+                    try:
+                        ipc_server_val = j.lower()
+                        if ipc_server_val in ['true', 'yes']:
+                            ui.mpv_input_ipc_server = True
+                    except Exception as e:
+                        logger.error(e)
                 elif i.startswith('DEVICE_PIXEL_RATIO='):
                     try:
                         pxr = float(j)
@@ -14691,6 +14703,7 @@ def main():
             f.write("\nDEVICE_PIXEL_RATIO=1.0")
             f.write("\nPLAYLIST_CONTINUE=True")
             f.write("\nDISPLAY_DEVICE=Auto")
+            f.write("\nMPV_INPUT_IPC_SERVER=False")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
     if ui.player_theme == 'mix':
