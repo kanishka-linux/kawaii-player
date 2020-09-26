@@ -12120,7 +12120,7 @@ class Ui_MainWindow(object):
  --no-input-cursor --no-osc --no-osd-bar --ytdl=no\
  --input-file=/dev/stdin --input-terminal=no\
  --input-vo-keyboard=no -wid {1} --input-conf="{2}"\
- --screenshot-directory="{3}"'.format(aspect_value, idw, self.mpv_input_conf,
+ --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
                                       self.screenshot_directory)
         else:
             command = self.player_val
