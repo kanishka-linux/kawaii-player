@@ -2891,7 +2891,11 @@ class Ui_MainWindow(object):
             if self.player_val in ["libmpv", "mpv"]:
                 if "youtube.com" in path:
                     self.slider.mpv.set_property('ytdl', "yes")
-                self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path, timeout=5)
+                if self.display_device == "rpitv":
+                    timeout = 20
+                else:
+                    timeout = 5
+                self.slider.mpv_preview(TMPDIR, '{}%'.format(inter), None, picn, path, timeout=timeout)
                 if os.path.exists(picn) and os.stat(picn).st_size and not from_client:
                     self.create_new_image_pixel(picn, 128)
                     self.create_new_image_pixel(picn, 480)
@@ -6808,7 +6812,7 @@ class Ui_MainWindow(object):
                 else:
                     size = 128
                 icon_new_pixel = self.create_new_image_pixel(picn, size)
-                if os.path.exists(icon_new_pixel):
+                if icon_new_pixel is not None and os.path.exists(icon_new_pixel):
                     try:
                         if row < self.list2.count():
                             self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
