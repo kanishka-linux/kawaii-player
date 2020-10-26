@@ -3532,6 +3532,8 @@ class Ui_MainWindow(object):
             self.decide_widgets_on_video(over_video=False)
             self.superGridLayout.addWidget(self.frame1, 1, 1, 1, 1)
         last_position = 0
+        if self.player_val == "libvlc":
+            self.vlc_mediaplayer.stop()
         if self.player_val == "libmpv":
             self.epn_clicked = False
             last_position = self.progress_counter
@@ -8974,6 +8976,8 @@ class Ui_MainWindow(object):
                 print(self.vlc_media.get_mrl(), "media---path----")
                 self.vlc_mediaplayer.set_media(self.vlc_media)
                 self.vlc_mediaplayer.play()
+                self.mplayerLength = self.vlc_media.get_duration()
+                print(self.mplayerLength, "length...")
             elif not self.gapless_playback and self.player_val != "libmpv":
                 finalUrl = finalUrl.replace('"', '')
                 if OSNAME == 'nt':
@@ -9518,6 +9522,9 @@ class Ui_MainWindow(object):
                 )
         elif cmd == 'kill_process':
             self.mpvplayer_val.kill()
+        elif self.player_val == "libvlc":
+            x = self.vlc_mediaplayer.get_position()
+            self.vlc_mediaplayer.set_position(x + 0.1)
         else:
             cmdb = bytes('\n {} \n'.format(cmd), 'utf-8')
             if isinstance(cmd, list) and self.player_val == "mpv":
@@ -15092,8 +15099,13 @@ def main():
         ui.vlc_instance = vlc.Instance()
         # creating an empty vlc media player
         ui.vlc_mediaplayer = ui.vlc_instance.media_player_new()
-        ui.idw = str(int(ui.tab_5.winId()))
-        ui.vlc_mediaplayer.set_nsobject(ui.idw)
+        ui.idw = int(ui.tab_5.winId())
+        if OSNAME == "nt":
+            ui.vlc_mediaplayer.set_hwnd(ui.idw)
+        elif platform.system().lower() == "darwin":
+            ui.vlc_mediaplayer.set_nsobject(ui.idw)
+        else:
+            ui.vlc_mediaplayer.set_xwindow(ui.idw)
     else:
         ui.idw = str(int(ui.tab_5.winId()))
     if ui.player_volume.isnumeric():

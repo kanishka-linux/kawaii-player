@@ -804,6 +804,7 @@ class MySlider(QtWidgets.QSlider):
         self.preview_counter = 0
         old_val = int(self.value())
         t = ((event.x() - self.x())/self.width())
+        t1 = t
         if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:            
             seek_per = round((t * 100), 2)
             ui.client_seek_val = seek_per
@@ -816,7 +817,13 @@ class MySlider(QtWidgets.QSlider):
             print(old_val, new_val, int((new_val-old_val)/1000))
         else:
             print(old_val, new_val, int(new_val-old_val))
-        if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
+        if ui.player_val == "libvlc":
+            ui.mplayerLength = ui.vlc_mediaplayer.get_length()
+            x = ui.vlc_mediaplayer.get_position()
+            x = int(t1 * ui.mplayerLength/1000)
+            print(x, t1, "len..\n\n")
+            ui.vlc_mediaplayer.set_position(t1)
+        elif ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
             if ui.player_val == "mpv":
                 var = bytes('\n '+"seek "+str(new_val)+" absolute"+' \n', 'utf-8')
                 ui.mpvplayer_val.write(var)
