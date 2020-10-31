@@ -1466,7 +1466,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if self.player_val in self.ui.playback_engine:
                         self.ui.gui_signals.cursor_method((MainWindow, "hide"))
                     if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
-                        MainWindow.hide()
+                        #MainWindow.hide()
                         self.setParent(None)
                         self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
                     else:
