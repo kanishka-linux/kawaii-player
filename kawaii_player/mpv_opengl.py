@@ -1067,6 +1067,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.command("show-text", epn, 2000)
             
     def time_duration(self, _name, value):
+        if value is None:
+            value = self.mpv.get_property("duration")
         if value is not None:
             if self.mpv_reinit:
                 self.mpv.start = "none"
