@@ -281,14 +281,15 @@ class InitAgainThread(QtCore.QThread):
         self.wait()                        
     
     def run(self):
+        path = self.me.mpv.get_property("path")
         if self.me.mpv_api == "opengl-cb":
+            self.me.quit_watch_later('quit-watch-later', True)
             _mpv_opengl_cb_uninit_gl(self.me.mpv_gl)
         else:
+            self.me.mpv.command('quit-watch-later')
             if self.me.mpv_gl:
                 self.me.mpv_gl.close()
-        path = self.me.mpv.get_property("path")
         aud = None
-        self.me.quit_watch_later('quit-watch-later', True)
         if path and not os.path.exists(path):
             aud = self.me.get_external_audio_file()
         func = partial(self.me.initializeGL)
