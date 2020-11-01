@@ -14745,6 +14745,7 @@ def main():
     if os.path.isfile(slave_file):
         try:
             ui.slave_address = open_files(slave_file, False)
+            ui.slave_address.strip()
         except Exception as err:
             logger.error(err)
     if platform.system().lower() == "darwin" and ui.player_theme == "dark":

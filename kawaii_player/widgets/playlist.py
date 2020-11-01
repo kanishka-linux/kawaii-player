@@ -1191,7 +1191,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             msg = re.sub(' +', ' ', msg)
             send_notification(msg)
             logger.info(msg)
-        self.ui.slave_address = item
+        self.ui.slave_address = item.strip()
         return item
     
     def check_local_subtitle(self, path, external=None):
