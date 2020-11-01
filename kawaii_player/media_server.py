@@ -2352,6 +2352,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             self.nav_signals.control_signal_external(row_num, mode)
                             b = b'OK'
                             self.final_message(b)
+                        elif "master_relative_path=" in self.path:
+                            self.nav_signals.new_signal(old_nm)
+                            logger.info('--nm---{0}'.format(nm))
+                            self.process_url(nm, get_bytes)
                         else:
                             b = b'Remote Control Not Allowed'
                             self.final_message(b)
