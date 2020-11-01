@@ -1269,6 +1269,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         else:
             item = open_files(file_path, False)
             self.ui.slave_address = item
+        item = item.strip()
         ipval = item
         http_val = "http"
         if self.ui.https_media_server:
@@ -1291,6 +1292,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         self.start_pc_to_pc_casting(mode, 0, browser_data)
         
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
+        item = item.strip()
         direct_link = False
         content = args[-1].html
         if isinstance(args[-1], BrowserData):
