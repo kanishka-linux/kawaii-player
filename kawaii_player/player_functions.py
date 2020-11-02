@@ -220,6 +220,12 @@ def get_home_dir(mode=None):
         home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player-test')
     else:
         home = os.path.join(os.path.expanduser('~'), '.config', 'kawaii-player')
+        new_home_path = os.path.join(home, "new_home.txt")
+        if os.path.exists(new_home_path):
+            new_home = open_files(new_home_path, False)
+            new_home = new_home.strip()
+            if os.path.isdir(new_home):
+                home = new_home
     return home
 
 def change_opt_file(config_file, old, new):
