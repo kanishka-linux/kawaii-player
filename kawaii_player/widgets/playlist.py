@@ -1239,6 +1239,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                         file_path = os.path.join(self.ui.home_folder, 'slave.txt')
                         if os.path.isfile(file_path):
                             item = open_files(file_path, False)
+                            item = item.strip()
                             with open(sub_json, 'w') as f:
                                 json.dump(sub_dict, f)
                             if not item.startswith('http') and not item.startswith('https'):
