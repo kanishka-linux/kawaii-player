@@ -1604,7 +1604,7 @@ class Ui_MainWindow(object):
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
         self.mpvplayer_aspect_float = {'0':-1, '1':1.777777778, '2':1.3333333333, '3':2.35, '4':0}
-        self.playback_engine = ["mpv", 'libmpv', 'mplayer']
+        self.playback_engine = ["mpv", 'libmpv', 'mplayer', 'vlc', 'cvlc']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -1641,7 +1641,7 @@ class Ui_MainWindow(object):
         self.total_seek = 0
         self.new_tray_widget = None
         self.mpv_input_ipc_server = False
-        self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
+        self.mpv_socket = "/tmp/mpv-socket"
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = 'mpv'
@@ -2588,16 +2588,23 @@ class Ui_MainWindow(object):
         return arg_dict
         
     def remote_fullscreen(self):
-        self.tab_5.toggle_fullscreen_mode()
-        if self.tab_5.arrow_timer.isActive():
-            self.tab_5.arrow_timer.stop()
-        self.tab_5.arrow_timer.start(5000)
+        if self.player_val in ["vlc", "cvlc"]:
+            txt = "fullscreen"
+            self.mpvplayer_val.write(bytes(txt, 'utf-8'))
+        else:
+            self.tab_5.toggle_fullscreen_mode()
+            if self.tab_5.arrow_timer.isActive():
+                self.tab_5.arrow_timer.stop()
+            self.tab_5.arrow_timer.start(5000)
         
     def seek_to_val_abs(self):
         val = self.client_seek_val
         if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n seek {0} 2\n'.format(val)
+        elif self.player_val in ["vlc", "cvlc"]:
+            txt = "seek {}".format(val)
+            txt1 = ""
         else:
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} absolute \n'.format(val)
@@ -2609,6 +2616,9 @@ class Ui_MainWindow(object):
         if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n seek {0}\n'.format(val)
+        elif self.player_val in ["vlc", "cvlc"]:
+            txt = "seek {}".format(val)
+            txt1 = ""
         else:
             txt1 = '\n set osd-level 1 \n'
             txt = '\n osd-msg-bar seek {0} relative+exact \n'.format(val)
@@ -2621,6 +2631,11 @@ class Ui_MainWindow(object):
         if self.player_val.lower() == "mplayer":
             txt1 = '\n osd_show_text "volume: {0}" \n'.format(val)
             txt = '\n set_property volume {0} \n'.format(val)
+        elif self.player_val in ["vlc", "cvlc"]:
+            if val < 0:
+                txt = "key key-vol-down"
+            else:
+                txt = "key key-vol-up"
         else:
             txt1 = '\n set osd-level 1 \n'
             if self.volume_type == 'ao-volume':
@@ -3314,7 +3329,10 @@ class Ui_MainWindow(object):
                 self.mpvplayer_val.write(b'\n show-text "${aid}" \n')
         if self.player_val != "libmpv":
             self.audio_track.setText("A:"+str(audio_id))
+        if self.player_val in ["vlc", "cvlc"]:
+            txt = "key key-audio-track"
             
+            self.mpvplayer_val.write(bytes(txt, "utf-8"))
     def load_external_sub(self):
         global sub_id, current_playing_file_path
         external_sub = False
@@ -3404,6 +3422,10 @@ class Ui_MainWindow(object):
                 self.mpvplayer_val.write(b'\n show-text "${sid}" \n')
         if self.player_val != "libmpv":
             self.subtitle_track.setText('Sub:'+str(sub_id))
+
+        if self.player_val in ["vlc", "cvlc"]:
+            txt = "key key-subtitle-track"
+            self.mpvplayer_val.write(bytes(txt, "utf-8"))
     
     def mark_epn_thumbnail_label_new(self, txt, index):
         if txt.startswith('#'):
@@ -3522,6 +3544,9 @@ class Ui_MainWindow(object):
         global show_hide_titlelist
         global sub_id, audio_id
         change_spacing = False
+        if self.player_val in ["vlc", "cvlc"]:
+            txt = "stop"
+            self.mpvplayer_val.write(bytes(txt, "utf-8"))
         if self.widgets_on_video:
             self.decide_widgets_on_video(over_video=False)
             self.superGridLayout.addWidget(self.frame1, 1, 1, 1, 1)
@@ -3839,6 +3864,9 @@ class Ui_MainWindow(object):
                     self.epnfound()
         if platform.system().lower() == "darwin":
             self.gui_signals.cursor_method((self.tab_5, "hide"))
+        if self.player_val in ["vlc", "cvlc"]:
+            txt = "key key-play-pause"
+            self.mpvplayer_val.write(bytes(txt, "utf-8"))
     
     def player_force_play(self):
         if self.mpvplayer_val.processId() > 0:
@@ -11418,7 +11446,7 @@ class Ui_MainWindow(object):
         
     def started(self):
         global site
-        if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7]:
+        if self.tab_5.isHidden() and thumbnail_indicator and self.video_mode_index not in [6, 7] and self.player_val.lower() in ["mpv", "mplayer"]:
             length_1 = self.list2.count()
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
             exec(q3)
@@ -12126,6 +12154,8 @@ class Ui_MainWindow(object):
  --input-vo-keyboard=no -wid {1} --input-conf="{2}"\
  --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
                                       self.screenshot_directory)
+        elif player.lower() == "vlc":
+            command = "vlc -f --extraintf=oldrc --rc-fake-tty --rc-show-pos --rc-unix {}".format(self.mpv_socket)
         else:
             command = self.player_val
         if a_id:
@@ -12183,7 +12213,7 @@ class Ui_MainWindow(object):
             for key, value in self.subtitle_dict.items():
                 if player.lower() == 'mpv':
                     command = command + ' --{}="{}"'.format(key, value)
-                else:
+                elif player.lower() == 'mplayer':
                     if key == 'sub-font':
                         command = command + ' -{} "{}"'.format('font', value)
                         ass_mplayer.append('Fontname={}'.format(value))

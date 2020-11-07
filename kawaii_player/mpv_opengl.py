@@ -193,6 +193,40 @@ class QProcessExtra(QtCore.QProcess):
             p1 = subprocess.Popen(["echo", cmd], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(["socat", "-", self.ui.mpv_socket], stdin=p1.stdout, stdout=subprocess.PIPE)
             p2.communicate()
+        elif self.ui.player_val in ["vlc", "cvlc"]:
+            cmd_str = cmd.decode("utf-8")
+            if cmd_str.startswith("key"):
+                cmd = cmd_str
+            elif "fullscreen" in cmd_str:
+                cmd = "fullscreen"
+            elif "seek" in cmd_str:
+                cmd = cmd_str
+                cmd_arr = cmd.split()
+                val = int(cmd_arr[1])
+
+                if val == 10:
+                    cmd = "key key-jump+extrashort"
+                elif val == -10:
+                    cmd = "key key-jump-extrashort"
+                elif val == 60:
+                    cmd = "key key-jump+medium"
+                elif val == -60:
+                    cmd = "key key-jump-medium"
+                elif val == 300:
+                    cmd = "key key-jump+long"
+                elif val == -300:
+                    cmd = "key key-jump-long"
+                else:
+                    cmd = cmd_str
+            elif "play" in cmd_str or "pause" in cmd_str:
+                cmd = "key key-play-pause"
+            elif "stop" in cmd_str or "quit" in cmd_str:
+                cmd = "shutdown"
+
+            p1 = subprocess.Popen(["echo", cmd], stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(["socat", "-", self.ui.mpv_socket], stdin=p1.stdout, stdout=subprocess.PIPE)
+            (data, b) = p2.communicate()
+            print(data.decode("utf-8"))
         else:
             super(QProcessExtra, self).write(cmd)
             
