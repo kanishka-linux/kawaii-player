@@ -1641,7 +1641,7 @@ class Ui_MainWindow(object):
         self.total_seek = 0
         self.new_tray_widget = None
         self.mpv_input_ipc_server = False
-        self.mpv_socket = "/tmp/mpv-socket"
+        self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = 'mpv'
@@ -12154,8 +12154,8 @@ class Ui_MainWindow(object):
  --input-vo-keyboard=no -wid {1} --input-conf="{2}"\
  --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
                                       self.screenshot_directory)
-        elif player.lower() == "vlc":
-            command = "vlc -f --extraintf=oldrc --rc-fake-tty --rc-show-pos --rc-unix {}".format(self.mpv_socket)
+        elif player.lower() in ["vlc", "cvlc"]:
+            command = "{} -f --extraintf=oldrc --rc-fake-tty --rc-unix {}".format(player.lower(), self.mpv_socket)
         else:
             command = self.player_val
         if a_id:
