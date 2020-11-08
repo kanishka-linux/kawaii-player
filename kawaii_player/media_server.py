@@ -2201,10 +2201,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         media_length = ui.mplayerLength
                         if ui.mpvplayer_val.processId() > 0 and ui.player_val in ["vlc", "cvlc"]:
                             data = ui.mpvplayer_val.get_vlc_output("get_time")
-                            print(data, "--data--")
                             if data and data.isnumeric():
                                 ui.progress_counter = int(data)
-                            print("progress..")
+                            data = ui.mpvplayer_val.get_vlc_output("get_title")
+                            if data:
+                                ui.epn_name_in_list = data.strip()
                         progress_counter = ui.progress_counter
 
                         if ui.player_val == 'mplayer':

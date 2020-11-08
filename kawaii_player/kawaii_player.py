@@ -10681,12 +10681,6 @@ class Ui_MainWindow(object):
             logger.debug('\n-->{0}<--\n'.format(a))
             if self.player_val in ['vlc', 'cvlc'] and "status change:" in a:
                 self.mpvplayer_val.write(bytes("get_length", "utf-8"))
-                if "status change: ( play state: 4 ): End" in a:
-                    if self.cur_row < self.list2.count()-1 and self.cur_row >= 0:
-                        self.cur_row = self.cur_row + 1
-                    else:
-                        self.cur_row = ((self.cur_row+1) % self.list2.count())
-                    self.list2.setCurrentRow(self.cur_row)
             elif 'volume' in a:
                 logger.debug(a)
             elif 'Video' in a:
