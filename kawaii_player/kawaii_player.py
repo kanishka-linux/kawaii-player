@@ -3778,7 +3778,9 @@ class Ui_MainWindow(object):
             
     def set_playerLoopFile(self):
         if self.mpvplayer_val.processId() > 0:
-            if self.player_val == 'mpv':
+            if self.player_val in ["vlc", "cvlc"]:
+                self.mpvplayer_val.write(b'key key-loop')
+            elif self.player_val == 'mpv':
                 self.mpvplayer_val.write(b'\n set loop-file inf \n')
             else:
                 self.mpvplayer_val.write(b'\n set_property loop 0 \n')
@@ -3796,6 +3798,8 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
                     if self.player_val == "libmpv":
                         self.mpvplayer_val.write(b'\n show-text Loop current file: yes \n')
+                elif self.player_val in ["vlc", "cvlc"]:
+                    self.mpvplayer_val.write(b'key key-loop')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                     cmd = 'osd_show_text "Loop=yes" 2000'
@@ -3809,6 +3813,8 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
                     if self.player_val == "libmpv":
                         self.mpvplayer_val.write(b'\n show-text Loop current file: no \n')
+                elif self.player_val in ["vlc", "cvlc"]:
+                    self.mpvplayer_val.write(b'key key-loop')
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                     cmd = 'osd_show_text "Loop=no" 2000'
@@ -8245,6 +8251,10 @@ class Ui_MainWindow(object):
                         item = self.if_path_is_rel(item, thumbnail=True)
                     if item.startswith('ytdl:'):
                         item = item.replace('ytdl:', '', 1)
+                    if self.player_val in ['vlc', 'cvlc']:
+                        title = "#EXTINF:0, {0}".format(item.rsplit("/")[-1])
+                        self.tmp_pls_file_lines.append(title)
+                        item = urllib.parse.quote(item)
                     self.tmp_pls_file_lines.append(item)
                     if self.gapless_network_stream:
                         self.tmp_pls_file_dict.update({j:False})
@@ -11564,6 +11574,15 @@ class Ui_MainWindow(object):
                 self.mpvplayer_started = True
                 if self.player_setLoop_var and self.player_val == 'mpv':
                     QtCore.QTimer.singleShot(15000, self.set_playerLoopFile)
+                elif self.player_val in ['vlc', 'cvlc'] and self.playback_mode == "playlist":
+                    QtCore.QTimer.singleShot(1000, self.play_vlc_playlist)
+
+    def play_vlc_playlist(self):
+        self.mpvplayer_val.write(bytes("key key-play", "utf-8"))
+        QtCore.QTimer.singleShot(1000, self.play_vlc_playlist_index)
+
+    def play_vlc_playlist_index(self):
+        self.mpvplayer_val.write(bytes("goto {}".format(self.cur_row + 1), "utf-8"))
 
     def setLabelTextStyle(self, label_txt, color):
         if self.font_bold:
@@ -12299,7 +12318,7 @@ class Ui_MainWindow(object):
                     finalUrl = self.yt.get_yt_url(finalUrl, self.quality_val,
                                                   self.ytdl_path, logger,
                                                   mode="offline")
-            if self.gapless_playback and site in self.local_site_list and player.lower() == 'mpv':
+            if self.gapless_playback and site in self.local_site_list and player.lower() in ['mpv', 'vlc', 'cvlc']:
                 if site != 'MyServer' and from_function == 'now_start':
                     command = '{} "{}"'.format(command, finalUrl.replace('"', ''))
                     self.playback_mode = 'single'
@@ -12307,9 +12326,12 @@ class Ui_MainWindow(object):
                 else:
                     if self.tmp_pls_file_lines:
                         write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
-                        command = '{} "{}" --playlist-start={}'.format(
-                            command, self.tmp_pls_file, self.cur_row
-                            )
+                        if self.player_val in ['vlc', 'cvlc']:
+                            command = '{} --no-playlist-autostart {}'.format(command, self.tmp_pls_file)
+                        else:
+                            command = '{} "{}" --playlist-start={}'.format(
+                                command, self.tmp_pls_file, self.cur_row
+                                )
                         self.playback_mode = 'playlist'
             else:
                 command = '{} "{}"'.format(command, finalUrl.replace('"', ''))

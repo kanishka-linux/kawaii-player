@@ -121,7 +121,11 @@ def start_player_remotely(nm, mode):
         ui.list2.setCurrentRow(ui.cur_row)
         item = ui.list2.item(ui.cur_row)
         if item and ui.web_control == 'master':
-            ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            if ui.mpvplayer_val.processId() > 0 and ui.player_val in ["vlc", "cvlc"] and ui.playback_mode == "playlist":
+                ui.mpvplayer_val.write(bytes("goto {}".format(ui.cur_row+1), "utf-8"))
+
+            else:
+                ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         elif item and ui.web_control == 'slave':
             ui.gui_signals.playlist_command('playlist', ui.cur_row)
     elif mode == 'queue':
@@ -163,12 +167,28 @@ def start_player_remotely(nm, mode):
                 ui.settings_box.play_loop.clicked_emit()
         elif mode == 'next':
             if ui.web_control == 'master':
-                ui.player_next.clicked_emit()
+                if ui.player_val in ["vlc", "cvlc"] and ui.playback_mode == "playlist":
+                    if ui.cur_row < ui.list2.count()-1 and ui.cur_row >= 0:
+                        ui.cur_row = ui.cur_row + 1
+                    else:
+                        ui.cur_row = ((ui.cur_row+1)%ui.list2.count())
+                    ui.list2.setCurrentRow(ui.cur_row)
+                    ui.mpvplayer_val.write(bytes("next", "utf-8"))
+                else:
+                    ui.player_next.clicked_emit()
             else:
                 ui.settings_box.playernext.clicked_emit()
         elif mode == 'prev':
             if ui.web_control == 'master':
-                ui.player_prev.clicked_emit()
+                if ui.player_val in ["vlc", "cvlc"] and ui.playback_mode == "playlist":
+                    if ui.cur_row > 0:
+                        ui.cur_row = ui.cur_row - 1
+                    else:
+                        ui.cur_row = ui.list2.count() - 1
+                    ui.list2.setCurrentRow(ui.cur_row)
+                    ui.mpvplayer_val.write(bytes("prev", "utf-8"))
+                else:
+                    ui.player_prev.clicked_emit()
             else:
                 ui.settings_box.playerprev.clicked_emit()
         elif mode == 'seek':

@@ -222,7 +222,10 @@ class QProcessExtra(QtCore.QProcess):
                 cmd = "key key-play-pause"
             elif "stop" in cmd_str or "quit" in cmd_str:
                 cmd = "shutdown"
+            else:
+                cmd = cmd_str
 
+            print(cmd, cmd_str, "--cmd--")
             p1 = subprocess.Popen(["echo", cmd], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(["socat", "-", self.ui.mpv_socket], stdin=p1.stdout, stdout=subprocess.PIPE)
             (data, b) = p2.communicate()
