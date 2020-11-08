@@ -509,6 +509,8 @@ function remote_control_update(){
             var cur_time = arr_val[1];
             var index_row = arr_val[2];
             var queue_list = parseInt(arr_val[3]);
+            var name_in_list = arr_val[4];
+            var playback_engine = arr_val[5];
             
             dur_int = parseInt(total);
             _player_progress.max = dur_int;
@@ -520,7 +522,7 @@ function remote_control_update(){
             
             _player_start_time.innerHTML = cur_val+ '/' + dur_val;
             
-            if (_clicked_num != index_row){
+            if (_clicked_num != index_row || playback_engine == 'vlc' || playback_engine == 'cvlc'){
                 _clicked_num = index_row;
                 first = _playlist.firstChild;
                 var data_num = 1;
@@ -540,8 +542,12 @@ function remote_control_update(){
                 }
                 if (clickedElement){
                     clickedElement.classList.add("selected");
-                    document.title = _clicked_num+" "+clickedElement.title;
                     _final_url = clickedElement.getAttribute('data-mp3');
+                    if(playback_engine == 'vlc' || playback_engine == 'cvlc'){
+                        document.title = name_in_list;
+                    } else{
+                        document.title = _clicked_num+" "+clickedElement.title;
+                    }
                     _player_control_info.innerHTML = document.title;
                     _player_control_image.src = _final_url + '.image'
                     _player.src = _final_url;
