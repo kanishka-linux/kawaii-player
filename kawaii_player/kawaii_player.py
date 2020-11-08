@@ -12348,7 +12348,7 @@ class Ui_MainWindow(object):
                     if self.tmp_pls_file_lines:
                         write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
                         if self.player_val in ['vlc', 'cvlc']:
-                            command = '{} --no-playlist-autostart {}'.format(command, self.tmp_pls_file)
+                            command = '{} --playlist-autostart {}'.format(command, self.tmp_pls_file)
                         else:
                             command = '{} "{}" --playlist-start={}'.format(
                                 command, self.tmp_pls_file, self.cur_row
