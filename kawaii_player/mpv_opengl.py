@@ -80,6 +80,16 @@ class QProcessExtra(QtCore.QProcess):
         except Exception as err:
             print(err)
         return file_path
+
+    def get_vlc_output(self, cmd):
+        p1 = subprocess.Popen(["echo", cmd], stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(["socat", "-", self.ui.mpv_socket], stdin=p1.stdout, stdout=subprocess.PIPE)
+        (data, b) = p2.communicate()
+        print(data.decode("utf-8"))
+        data = data.decode("utf-8")
+        if data:
+            data = data.strip()
+        return data
         
     def write(self, cmd):
         if self.ui.player_val == "libmpv" and self.ui.tab_5.mpv.get_property("idle-active") is False:
@@ -230,6 +240,11 @@ class QProcessExtra(QtCore.QProcess):
             p2 = subprocess.Popen(["socat", "-", self.ui.mpv_socket], stdin=p1.stdout, stdout=subprocess.PIPE)
             (data, b) = p2.communicate()
             print(data.decode("utf-8"))
+            if "get_length" in cmd:
+                data = data.decode("utf-8")
+                data = data.strip()
+                if data.isnumeric():
+                    self.ui.mplayerLength = int(data)
         else:
             super(QProcessExtra, self).write(cmd)
             

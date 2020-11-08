@@ -6807,6 +6807,10 @@ class Ui_MainWindow(object):
         global home, site, name
         num = self.list2.currentRow()
         if self.list2.currentItem() and num < len(self.epn_arr_list) and num >= 0:
+            if self.player_val in ["vlc", "cvlc"]:
+                item_text = self.list2.currentItem().text()
+                MainWindow.setWindowTitle(item_text)
+                self.progressEpn.setFormat((item_text))
             epn_h = self.list2.currentItem().text()
             picn = self.get_thumbnail_image_path(num, self.epn_arr_list[num])
             label_name = 'label.'+os.path.basename(picn)
@@ -10674,8 +10678,16 @@ class Ui_MainWindow(object):
         
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
-            #logger.debug('-->{0}<--'.format(a))
-            if 'volume' in a:
+            logger.debug('\n-->{0}<--\n'.format(a))
+            if self.player_val in ['vlc', 'cvlc'] and "status change:" in a:
+                self.mpvplayer_val.write(bytes("get_length", "utf-8"))
+                if "status change: ( play state: 4 ): End" in a:
+                    if self.cur_row < self.list2.count()-1 and self.cur_row >= 0:
+                        self.cur_row = self.cur_row + 1
+                    else:
+                        self.cur_row = ((self.cur_row+1) % self.list2.count())
+                    self.list2.setCurrentRow(self.cur_row)
+            elif 'volume' in a:
                 logger.debug(a)
             elif 'Video' in a:
                 logger.debug(a)
@@ -11466,7 +11478,10 @@ class Ui_MainWindow(object):
         logger.debug("Process Started")
         logger.debug(self.mpvplayer_val.processId())
         self.mpv_start = False
-        msg = "Loading: "+self.epn_name_in_list+" (Please Wait)"
+        if self.player_val in ["vlc", "cvlc"]:
+            msg = self.epn_name_in_list
+        else:
+            msg = "Loading: "+self.epn_name_in_list+" (Please Wait)"
         self.progressEpn.setValue(0)
         self.progressEpn.setFormat((msg))
         if (MainWindow.isFullScreen() and site!="Music" and self.list2.isHidden()
@@ -12174,7 +12189,7 @@ class Ui_MainWindow(object):
  --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
                                       self.screenshot_directory)
         elif player.lower() in ["vlc", "cvlc"]:
-            command = "{} -f --extraintf=oldrc --rc-fake-tty --rc-unix {}".format(player.lower(), self.mpv_socket)
+            command = "{} -f --verbose 0 --extraintf=oldrc --rc-fake-tty --rc-unix {}".format(player.lower(), self.mpv_socket)
         else:
             command = self.player_val
         if a_id:

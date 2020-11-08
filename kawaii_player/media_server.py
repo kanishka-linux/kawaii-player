@@ -2199,7 +2199,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if ui.remote_control and ui.remote_control_field:
                     if ui.web_control == 'master':
                         media_length = ui.mplayerLength
+                        if ui.mpvplayer_val.processId() > 0 and ui.player_val in ["vlc", "cvlc"]:
+                            data = ui.mpvplayer_val.get_vlc_output("get_time")
+                            print(data, "--data--")
+                            if data and data.isnumeric():
+                                ui.progress_counter = int(data)
+                            print("progress..")
                         progress_counter = ui.progress_counter
+
                         if ui.player_val == 'mplayer':
                             media_length = media_length/1000
                             progress_counter = progress_counter/1000
