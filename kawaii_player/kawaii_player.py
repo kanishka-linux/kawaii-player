@@ -10678,9 +10678,21 @@ class Ui_MainWindow(object):
         
         try:
             a = str(p.readAllStandardOutput(), 'utf-8').strip()
-            logger.debug('\n-->{0}<--\n'.format(a))
+            #logger.debug('\n-->{0}<--\n'.format(a))
             if self.player_val in ['vlc', 'cvlc'] and "status change:" in a:
                 self.mpvplayer_val.write(bytes("get_length", "utf-8"))
+            if self.player_val in ['vlc', 'cvlc'] and "main playlist debug:" in a:
+                pls_item_search = re.search("main playlist debug: using item (?P<row>\d+)\n", a)
+                if pls_item_search:
+                    pls_item_number = int(pls_item_search.group("row"))
+                    if pls_item_number in range(0, self.list2.count()):
+                        self.cur_row = pls_item_number
+                        self.list2.setCurrentRow(self.cur_row)
+                        current_item = self.list2.currentItem(self.cur_row)
+                        text = current_item.text()
+                        self.progressEpn.setFormat((text))
+                        MainWindow.setWindowTitle(text)
+                        self.epn_name_in_list = text
             elif 'volume' in a:
                 logger.debug(a)
             elif 'Video' in a:
@@ -12183,7 +12195,7 @@ class Ui_MainWindow(object):
  --screenshot-directory="{3}"'.format(aspect_value, idw, self.custom_key_file,
                                       self.screenshot_directory)
         elif player.lower() in ["vlc", "cvlc"]:
-            command = "{} -f --verbose 0 --extraintf=oldrc --rc-fake-tty --rc-unix {}".format(player.lower(), self.mpv_socket)
+            command = "{} -f --verbose 2 --extraintf=oldrc --rc-fake-tty --rc-unix {}".format(player.lower(), self.mpv_socket)
         else:
             command = self.player_val
         if a_id:

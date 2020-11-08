@@ -2203,9 +2203,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             data = ui.mpvplayer_val.get_vlc_output("get_time")
                             if data and data.isnumeric():
                                 ui.progress_counter = int(data)
-                            data = ui.mpvplayer_val.get_vlc_output("get_title")
-                            if data:
-                                ui.epn_name_in_list = data.strip()
                         progress_counter = ui.progress_counter
 
                         if ui.player_val == 'mplayer':
