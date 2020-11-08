@@ -2903,7 +2903,7 @@ class Ui_MainWindow(object):
         else:
             if inter.endswith('s'):
                 inter = inter[:-1]
-            if self.player_val in ["libmpv", "mpv"]:
+            if self.player_val in ["libmpv", "mpv", "vlc", "cvlc"]:
                 if "youtube.com" in path:
                     self.slider.mpv.set_property('ytdl', "yes")
                 if self.display_device == "rpitv":
