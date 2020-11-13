@@ -583,7 +583,7 @@ class Ui_MainWindow(object):
         else:
             self.width_allowed1 = self.width_allowed
             self.variable_width_list = False
-        self.height_allowed = (self.width_allowed/aspect) #int((screen_height)/3.3)
+        self.height_allowed = int(self.width_allowed/aspect) #int((screen_height)/3.3)
         self.frame_height = int(self.height_allowed/2.5)
         self.image_aspect_allowed = (self.width_allowed/self.height_allowed)
         self.list1.setMaximumWidth(self.width_allowed1)
@@ -614,7 +614,7 @@ class Ui_MainWindow(object):
         self.label_new.setMinimumWidth(self.width_allowed1)
         
         #self.label_new.setMaximumHeight(screen_height - self.height_allowed - self.frame_height -100)
-        self.label_new.setMaximumHeight(2.5*self.height_allowed)
+        self.label_new.setMaximumHeight(int(2.5*self.height_allowed))
         #self.label_new.setScaledContents(True)
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed1, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
@@ -2022,7 +2022,7 @@ class Ui_MainWindow(object):
         self.screen_size = (screen_width, screen_height)
         self.width_allowed = int((screen_width)/4.5)
         self.width_allowed1 = self.width_allowed
-        self.height_allowed = (self.width_allowed/aspect)
+        self.height_allowed = int(self.width_allowed/aspect)
         self.frame_height = int(self.height_allowed/2.5)
         self.image_aspect_allowed = (self.width_allowed/self.height_allowed)
         self.list1.setMaximumWidth(self.width_allowed1)
@@ -2054,7 +2054,7 @@ class Ui_MainWindow(object):
         self.label_new.setMaximumWidth(self.label_new_width)
         self.label_new.setMinimumWidth(self.width_allowed1)
         
-        self.label_new.setMaximumHeight(2.5*self.height_allowed)
+        self.label_new.setMaximumHeight(int(2.5*self.height_allowed))
         self.progress.setMaximumSize(QtCore.QSize(self.width_allowed1, 16777215))
         self.thumbnail_video_width = int(self.width_allowed*2.5)
         self.frame1.setMaximumSize(QtCore.QSize(16777215, self.frame_height))
@@ -3007,25 +3007,25 @@ class Ui_MainWindow(object):
         
     def list1_double_clicked(self):
         global show_hide_titlelist, show_hide_playlist
-        if self.display_device == "rpitv":
-            self.gui_signals.click_title_list('playlist_click_from_client')
-        else:
-            self.listfound()
-            if site == "Music" and not self.list2.isHidden():
+        #if self.display_device == "rpitv":
+        #    self.gui_signals.click_title_list('playlist_click_from_client')
+        #else:
+        self.listfound()
+        if site == "Music" and not self.list2.isHidden():
+            self.list2.setFocus()
+            self.list2.setCurrentRow(0)
+            self.cur_row = 0
+            self.list1.show()
+            self.list1.setFocus()
+        elif self.list2.isHidden():
+            self.list1.hide()
+            self.frame.hide()
+            show_hide_titlelist = 0
+            if self.pc_to_pc_casting != "slave" and not MainWindow.isFullScreen():
+                self.list2.show()
                 self.list2.setFocus()
-                self.list2.setCurrentRow(0)
-                self.cur_row = 0
-                self.list1.show()
-                self.list1.setFocus()
-            elif self.list2.isHidden():
-                self.list1.hide()
-                self.frame.hide()
-                show_hide_titlelist = 0
-                if self.pc_to_pc_casting != "slave" and not MainWindow.isFullScreen():
-                    self.list2.show()
-                    self.list2.setFocus()
-                    show_hide_playlist = 1
-            self.update_list2()
+                show_hide_playlist = 1
+        self.update_list2()
         
     def hide_torrent_info(self):
         self.torrent_frame.hide()
