@@ -210,6 +210,11 @@ from vinanti import Vinanti
 from tvdb_async import TVDB
 from multiprocessing import Process
 
+try:
+    import vlc
+    print("libvlc detected")
+except Exception as e:
+    pass
 
 class DoGetSignalNew(QtCore.QObject):
     new_signal = pyqtSignal(str)
@@ -1605,7 +1610,7 @@ class Ui_MainWindow(object):
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
         self.mpvplayer_aspect_float = {'0':-1, '1':1.777777778, '2':1.3333333333, '3':2.35, '4':0}
-        self.playback_engine = ["mpv", 'libmpv', 'mplayer', 'vlc', 'cvlc']
+        self.playback_engine = ["mpv", 'libmpv', 'mplayer', 'vlc', 'cvlc', 'libvlc']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -3548,6 +3553,8 @@ class Ui_MainWindow(object):
         if self.player_val in ["vlc", "cvlc"]:
             txt = "stop"
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
+        elif self.player_val == "libvlc":
+            self.vlc_mediaplayer.stop()
         if self.widgets_on_video:
             self.decide_widgets_on_video(over_video=False)
             self.superGridLayout.addWidget(self.frame1, 1, 1, 1, 1)
@@ -8999,11 +9006,11 @@ class Ui_MainWindow(object):
         setinfo = False
         if ((self.mpvplayer_val.processId() > 0 and self.mpvplayer_started
                 and not finalUrl.startswith('http') and not self.external_audio_file)
-                or self.player_val == "libmpv"):
+                or self.player_val in ["libmpv", "libvlc"]):
             epnShow = "Playing: {0}".format(self.epn_name_in_list)
             msg = None
             cmd = None
-            if not self.gapless_playback and self.player_val != "libmpv":
+            if not self.gapless_playback and self.player_val not in ["libmpv", "libvlc"]:
                 finalUrl = finalUrl.replace('"', '')
                 if OSNAME == 'nt':
                     finalUrl = 'file:///{}'.format(finalUrl.replace('\\', '/'))
@@ -9018,6 +9025,11 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.write(bytes(msg, 'utf-8'))
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 setinfo = True
+            elif self.player_val == "libvlc":
+                finalUrl = finalUrl.replace('"', '')
+                self.vlc_media = self.vlc_instance.media_new_path(finalUrl)
+                self.vlc_mediaplayer.set_media(self.vlc_media)
+                self.vlc_mediaplayer.play()
             elif self.player_val == "libmpv":
                 self.use_playlist_method()
                 if isinstance(self.cur_row, int) and self.cur_row < len(self.tmp_pls_file_lines):
@@ -13557,10 +13569,52 @@ class Ui_MainWindow(object):
         if hasattr(self, "player_val"):
             if self.player_val == "libmpv":
                 return "-1"
+            elif self.player_val == "libvlc":
+                return int(self.tab_5.winId())
             else:
                 return str(int(self.tab_5.winId()))
         else:
             return str(int(self.tab_5.winId()))
+
+    def vlc_changed(self, event):
+        pos = self.vlc_mediaplayer.get_time()
+        if pos:
+            p = int(pos)
+            p = int(p/1000)
+            self.slider.setValue(p)
+            t = time.strftime('%H:%M:%S', time.gmtime(p))
+            out1 = "{} / {}".format(t, self.vlc_time)
+            self.progressEpn.setFormat((out1))
+
+    def vlc_media_changed(self, event):
+        length = self.vlc_mediaplayer.get_length()
+        self.mplayerLength = int(length/1000)
+        self.vlc_time = time.strftime('%H:%M:%S', time.gmtime(self.mplayerLength))
+        self.slider.setRange(0, self.mplayerLength)
+
+    def vlc_media_playing(self, event):
+        length = self.vlc_mediaplayer.get_length()
+        self.mplayerLength = int(length/1000)
+        self.vlc_time = time.strftime('%H:%M:%S', time.gmtime(self.mplayerLength))
+        self.slider.setRange(0, self.mplayerLength)
+
+    def setup_vlc_instance(self):
+        self.vlc_instance = vlc.Instance()
+        self.vlc_mediaplayer = ui.vlc_instance.media_player_new()
+        self.vlc_events = self.vlc_mediaplayer.event_manager()
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerTimeChanged, self.vlc_changed)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerMediaChanged, self.vlc_media_changed)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerPlaying , self.vlc_media_playing)
+        # converting window id to string to make
+        # it consistence with mpv/mplayer design
+        self.idw = str(self.get_winid())
+        idw = int(self.idw)
+        if OSNAME == "nt":
+            self.vlc_mediaplayer.set_hwnd(idw)
+        elif platform.system().lower() == "darwin":
+            ui.vlc_mediaplayer.set_nsobject(idw)
+        else:
+            ui.vlc_mediaplayer.set_xwindow(idw)
             
 def save_all_settings_before_quit():
     global ui, default_arr_setting, music_arr_setting, iconv_r
@@ -15147,6 +15201,8 @@ def main():
         logger.error(err)
     if ui.player_val == "libmpv":
         ui.setup_opengl_widget(app)
+    elif ui.player_val == "libvlc":
+        ui.setup_vlc_instance()
     else:
         ui.idw = str(int(ui.tab_5.winId()))
     if ui.player_volume.isnumeric():

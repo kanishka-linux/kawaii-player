@@ -816,7 +816,7 @@ class MySlider(QtWidgets.QSlider):
             print(old_val, new_val, int((new_val-old_val)/1000))
         else:
             print(old_val, new_val, int(new_val-old_val))
-        if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
+        if ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "libvlc"]:
             if ui.player_val == "mpv":
                 var = bytes('\n '+"seek "+str(new_val)+" absolute"+' \n', 'utf-8')
                 ui.mpvplayer_val.write(var)
@@ -825,6 +825,8 @@ class MySlider(QtWidgets.QSlider):
                     ui.tab_5.mpv.command("seek", new_val, "absolute")
                 except Exception as err:
                     print(err)
+            elif ui.player_val == "libvlc":
+                ui.vlc_mediaplayer.set_time(new_val * 1000)
             elif ui.player_val =="mplayer":
                 seek_val = int((new_val-old_val)/1000)
                 var = bytes('\n '+"seek "+str(seek_val)+' \n', 'utf-8')

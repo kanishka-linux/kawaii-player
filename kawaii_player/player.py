@@ -258,9 +258,11 @@ class PlayerWidget(QtWidgets.QWidget):
         self.ui.slider.setValue(t)
     
     def player_fs(self, mode=None):
-        if not self.ui.idw or self.ui.idw == str(int(self.winId())):
+        if not self.ui.idw or self.ui.idw == str(int(self.winId())) or isinstance(self.ui.idw, int):
             if not MainWindow.isHidden():
                 if not MainWindow.isFullScreen() or mode == 'fs':
+                    if self.ui.player_val == "libvlc":
+                        self.ui.vlc_mediaplayer.set_fullscreen(True)
                     if os.name == 'nt' and self.ui.web_review_browser_started:
                         self.ui.detach_fullscreen = True
                         MainWindow.hide()
@@ -338,6 +340,8 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                     self.ui.fullscreen_video = False
             else:
+                if self.ui.player_val == "libvlc":
+                    self.ui.vlc_mediaplayer.set_fullscreen(False)
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
                     self.ui.float_window.showNormal()
@@ -517,7 +521,7 @@ class PlayerWidget(QtWidgets.QWidget):
         
     def keyPressEvent(self, event):
         print(self, event)
-        if self.player_val.lower() in ['mpv', 'libmpv']:
+        if self.player_val.lower() in ['mpv', 'libmpv', 'libvlc']:
             key = None
             modifier = None
             no_modifier = False
@@ -586,7 +590,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 if not command:
                     command = self.mpv_custom.get(key)
                 logger.debug(command)
-                if command:
+                if command and self.ui.player_val in ["mpv", "mplayer"]:
                     command_list = command.split('::')
                     for part in command_list:
                         if part in self.function_map:
@@ -602,7 +606,23 @@ class PlayerWidget(QtWidgets.QWidget):
                             logger.debug(command_string)
                             part = part.split()
                             self.ui.mpvplayer_val.write(command_string)
-                            
+                elif command and self.ui.player_val == "libvlc":
+                    command_list = command.split('::')
+                    for part in command_list:
+                        if part in self.function_map:
+                            myfunction = self.function_map.get(part)
+                            myfunction()
+                        elif part.startswith('ignore'):
+                            pass
+                        elif part.startswith('add'):
+                            self.add_parameter(part)
+                        elif part.startswith('seek'):
+                            seek_val = int(part.split()[-1])
+                            val = self.ui.vlc_mediaplayer.get_time()
+                            if val:
+                                val = int(val) + (seek_val*1000)
+                                print(val)
+                                self.ui.vlc_mediaplayer.set_time(val)
             if no_modifier:
                 for i in self.event_dict:
                     self.event_dict[i] = False
@@ -610,7 +630,7 @@ class PlayerWidget(QtWidgets.QWidget):
             self.keyPressEventOld(event)
     
     def add_parameter(self, cmd):
-        if ' ' in cmd:
+        if ' ' in cmd and self.ui.player_val in ["mpv", "mplayer"]:
             cmd_list = cmd.split(' ')
             cmd_name = cmd_list[1]
             if cmd_name in ['volume', 'ao-volume']:
@@ -628,7 +648,18 @@ class PlayerWidget(QtWidgets.QWidget):
                 command_string = bytes(cmd, 'utf-8')
                 logger.debug(command_string)
                 self.mpvplayer.write(command_string)
-    
+        elif ' ' in cmd and self.ui.player_val == 'libvlc':
+            cmd_list = cmd.split(' ')
+            cmd_name = cmd_list[1]
+            if cmd_name == "seek":
+                cmd_val = int(cmd_list[2])
+                val = self.ui.vlc_mediaplayer.get_time()
+                if val and isnumeric(val):
+                    val = val + (cmd_val*1000)
+                    print(val)
+                    self.ui.vlc_mediaplayer.set_time(val)
+
+
     def change_aspect_ratio(self, key=None):
         if key is None:
             self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
