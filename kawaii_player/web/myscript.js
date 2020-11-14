@@ -905,6 +905,17 @@ function searchFunction(e, mode){
 			})
 			z.value = '';
 		}
+		else if(z.value.startsWith("playbackengine:")){
+			var new_z = z.value.replace("playbackengine:","");
+			var new_url = "playbackengine="+new_z;
+			dict = {};
+			var client = new getRequest();
+				client.get(new_url,function(response) {
+					console.log(response);
+					_title.innerHTML = response;
+			})
+			z.value = '';
+		}
 		else if(z.value.startsWith("sub:")){
 			var new_z = z.value.replace("sub:","");
 			if (new_z == 'on'){

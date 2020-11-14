@@ -1471,6 +1471,7 @@ class Ui_MainWindow(object):
         self.playing_history_file = os.path.join(self.video_db_location, 'historydata')
         self.playing_queue_file = os.path.join(home, 'src', 'queuedata')
         self.tmp_pls_file = os.path.join(TMPDIR, 'tmp_playlist.m3u')
+        self.restart_application = False
         self.tmp_pls_file_lines = []
         self.tmp_pls_file_dict = {}
         self.torrent_type = 'file'
@@ -15158,8 +15159,17 @@ def main():
     logger.debug(('Return code = {}'.format(ret), "Saving settings before quit"))
     save_all_settings_before_quit()
     del app
-    sys.exit(ret)
-    
+    #sys.exit(ret)
+    if os.path.exists(ui.mpv_socket):
+        print("cleaning up socket")
+        os.remove(ui.mpv_socket)
+    if ui.restart_application:
+        print("initiating restart...")
+        python = sys.executable
+        exec_file = os.path.join(BASEDIR, BASEFILE)
+        os.execl(python, python, exec_file)
+    else:
+        sys.exit(ret)
     
 if __name__ == "__main__":
     main()

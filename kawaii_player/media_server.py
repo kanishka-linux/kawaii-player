@@ -2861,6 +2861,22 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print(e)
                 msg = bytes('Error in setting quality', 'utf-8')
             self.final_message(msg)
+        elif path.startswith('playbackengine='):
+            try:
+                playbackengine = path.replace('playbackengine=', '', 1)
+                if playbackengine in ui.playback_engine:
+                    if ui.remote_control and ui.remote_control_field:
+                        ui.player_val = playbackengine
+                        ui.restart_application = True
+                        ui.btn_quit.clicked_emit()
+                    msg = 'restarting application to set: {0} as playback engine'.format(playbackengine)
+                else:
+                    msg = 'wrong parameters'
+                msg = bytes(msg, 'utf-8')
+            except Exception as e:
+                print(e)
+                msg = bytes('Error in setting quality', 'utf-8')
+            self.final_message(msg)
         elif path.startswith('change_playlist_order='):
             ui.media_server_cache_playlist.clear()
             n_path = path.replace('change_playlist_order=', '', 1)
