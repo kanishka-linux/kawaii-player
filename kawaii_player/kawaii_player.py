@@ -2608,7 +2608,7 @@ class Ui_MainWindow(object):
         if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n seek {0} 2\n'.format(val)
-        elif self.player_val in ["vlc", "cvlc"]:
+        elif self.player_val in ["vlc", "cvlc", "libvlc"]:
             txt = "seek {}".format(val)
             txt1 = ""
         else:
@@ -2622,7 +2622,7 @@ class Ui_MainWindow(object):
         if self.player_val == "mplayer":
             txt1 = '\n osd 1 \n'
             txt = '\n seek {0}\n'.format(val)
-        elif self.player_val in ["vlc", "cvlc"]:
+        elif self.player_val in ["vlc", "cvlc", "libvlc"]:
             txt = "seek {}".format(val)
             txt1 = ""
         else:
@@ -2642,6 +2642,11 @@ class Ui_MainWindow(object):
                 txt = "key key-vol-down"
             else:
                 txt = "key key-vol-up"
+        elif self.player_val == "libvlc":
+            if action:
+                txt = "set volume {}".format(val)
+            else:
+                txt = "add volume {}".format(val)
         else:
             txt1 = '\n set osd-level 1 \n'
             if self.volume_type == 'ao-volume':
@@ -3337,8 +3342,10 @@ class Ui_MainWindow(object):
             self.audio_track.setText("A:"+str(audio_id))
         if self.player_val in ["vlc", "cvlc"]:
             txt = "key key-audio-track"
-            
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
+        elif self.player_val == "libvlc":
+            self.mpvplayer_val.write(bytes('cycle audio', "utf-8"))
+
     def load_external_sub(self):
         global sub_id, current_playing_file_path
         external_sub = False
@@ -3432,6 +3439,8 @@ class Ui_MainWindow(object):
         if self.player_val in ["vlc", "cvlc"]:
             txt = "key key-subtitle-track"
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
+        elif self.player_val == "libvlc":
+            self.mpvplayer_val.write(bytes("cycle sub", "utf-8"))
     
     def mark_epn_thumbnail_label_new(self, txt, index):
         if txt.startswith('#'):
@@ -3801,13 +3810,15 @@ class Ui_MainWindow(object):
             self.player_loop_file.setText(self.player_buttons['lock'])
             self.new_tray_widget.lock.setText(self.player_buttons['lock'])
             self.quit_really = 'no'
-            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+            if self.mpvplayer_val.processId() > 0 or self.player_val in ["libmpv", "libvlc"]:
                 if self.player_val in ['mpv', 'libmpv']:
                     self.mpvplayer_val.write(b'\n set loop-file inf \n')
                     if self.player_val == "libmpv":
                         self.mpvplayer_val.write(b'\n show-text Loop current file: yes \n')
                 elif self.player_val in ["vlc", "cvlc"]:
                     self.mpvplayer_val.write(b'key key-loop')
+                elif self.player_val == "libvlc":
+                    self.vlc_set_osd("Loop: yes", 2000)
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
                     cmd = 'osd_show_text "Loop=yes" 2000'
@@ -3816,13 +3827,15 @@ class Ui_MainWindow(object):
             self.player_setLoop_var = False
             self.player_loop_file.setText(self.player_buttons['unlock'])
             self.new_tray_widget.lock.setText(self.player_buttons['unlock'])
-            if self.mpvplayer_val.processId() > 0 or self.player_val == "libmpv":
+            if self.mpvplayer_val.processId() > 0 or self.player_val in ["libmpv", "libvlc"]:
                 if self.player_val in ['mpv', 'libmpv']:
                     self.mpvplayer_val.write(b'\n set loop-file no \n')
                     if self.player_val == "libmpv":
                         self.mpvplayer_val.write(b'\n show-text Loop current file: no \n')
                 elif self.player_val in ["vlc", "cvlc"]:
                     self.mpvplayer_val.write(b'key key-loop')
+                elif self.player_val == "libvlc":
+                    self.vlc_set_osd("Loop: no", 2000)
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
                     cmd = 'osd_show_text "Loop=no" 2000'
@@ -3834,7 +3847,7 @@ class Ui_MainWindow(object):
             self.gui_signals.cursor_method((self.tab_5, "show"))
         txt = self.player_play_pause.text() 
         if txt == self.player_buttons['play']:
-            if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False):
+            if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False) or self.player_val == "libvlc":
                 if self.player_val in ["mpv", "libmpv"]:
                     txt_osd = '\n set osd-level 1 \n'
                     self.mpvplayer_val.write(b'\n set pause no \n')
@@ -3844,6 +3857,8 @@ class Ui_MainWindow(object):
                             + str(self.mpv_playback_duration) + '" 2000')
                     logger.info(cmd)
                     self.mpv_execute_command(cmd, '', 100)
+                elif self.player_val == "libvlc":
+                    self.mpvplayer_val.write(b'pause no')
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
@@ -3860,7 +3875,7 @@ class Ui_MainWindow(object):
                         finalUrl = self.epn_return(self.cur_row)
                         self.play_file_now(finalUrl, win_id=self.idw)
         elif txt == self.player_buttons['pause']:
-            if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False):
+            if self.mpvplayer_val.processId() > 0 or (self.player_val == "libmpv" and self.tab_5.mpv.get_property("idle-active") is False) or self.player_val == "libvlc":
                 if self.player_val in ["mpv", "libmpv"]:
                     txt_osd = '\n set osd-level 3 \n'
                     self.mpvplayer_val.write(b'\n set pause yes \n')
@@ -3870,6 +3885,8 @@ class Ui_MainWindow(object):
                             + str(self.mpv_playback_duration) + '" 2000')
                     logger.info(cmd)
                     self.mpv_execute_command(cmd, '', 100)
+                elif self.player_val == "libvlc":
+                    self.mpvplayer_val.write(b'pause yes')
                 else:
                     self.mpvplayer_val.write(b'\n pausing_toggle osd_show_progression \n')
             else:
@@ -5360,7 +5377,9 @@ class Ui_MainWindow(object):
         print(play_row, '--play_row--', mode)
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
-        if self.mpvplayer_val.processId() > 0:
+        if self.player_val == "libvlc":
+            self.vlc_play_next(play_row)  
+        elif self.mpvplayer_val.processId() > 0:
             if play_row != None and mode == 'play_now':
                 self.cur_row = play_row
             else:
@@ -5461,7 +5480,9 @@ class Ui_MainWindow(object):
         global current_playing_file_path
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
-        if self.mpvplayer_val.processId() > 0:
+        if self.player_val == "libvlc":
+            self.vlc_play_prev()  
+        elif self.mpvplayer_val.processId() > 0:
             print("inside")
             if self.cur_row == 0:
                 self.cur_row = self.list2.count() - 1
@@ -9027,9 +9048,7 @@ class Ui_MainWindow(object):
                 setinfo = True
             elif self.player_val == "libvlc":
                 finalUrl = finalUrl.replace('"', '')
-                self.vlc_media = self.vlc_instance.media_new_path(finalUrl)
-                self.vlc_mediaplayer.set_media(self.vlc_media)
-                self.vlc_mediaplayer.play()
+                self.vlc_play_file(finalUrl)
             elif self.player_val == "libmpv":
                 self.use_playlist_method()
                 if isinstance(self.cur_row, int) and self.cur_row < len(self.tmp_pls_file_lines):
@@ -11869,7 +11888,9 @@ class Ui_MainWindow(object):
         new_epn = self.epn_name_in_list
         finalUrl = finalUrl.replace('"', '')
         finalUrl = '"'+finalUrl+'"'
-        if (self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning()
+        if self.player_val == "libvlc":
+            pass
+        elif (self.mpvplayer_val.processId() > 0 and not self.epn_wait_thread.isRunning()
                 and not self.gapless_playback):
             command = self.mplayermpv_command(
                 self.idw, finalUrl, self.player_val, a_id=audio_id,
@@ -13576,15 +13597,40 @@ class Ui_MainWindow(object):
         else:
             return str(int(self.tab_5.winId()))
 
-    def vlc_changed(self, event):
+    def vlc_time_changed(self, event):
         pos = self.vlc_mediaplayer.get_time()
         if pos:
             p = int(pos)
             p = int(p/1000)
             self.slider.setValue(p)
+            self.progress_counter = p
             t = time.strftime('%H:%M:%S', time.gmtime(p))
             out1 = "{} / {}".format(t, self.vlc_time)
             self.progressEpn.setFormat((out1))
+            t = "%d %b %Y %I:%M:%S %p"
+
+    def vlc_show_osd(self, mode, duration):
+        play = "\u25B6"
+        pause = "\u23F8"
+        if mode in ["time", "time-pause", "time-play"]:
+            t1 = time.strftime('%H:%M:%S', time.gmtime(self.progress_counter))
+            d1 = time.strftime('%H:%M:%S', time.gmtime(self.mplayerLength))
+            t = "%d %b %Y %I:%M:%S %p"
+            if mode == "time-pause":
+                symbol = pause
+            else:
+                symbol = play
+            if mode == "time-play":
+                text = "{} {}".format(symbol, self.epn_name_in_list)
+            elif mode == "time-pause":
+                text = "{} {} / {} {} ({})".format(symbol, t1, d1, self.epn_name_in_list, t)
+            else:
+                text = "{} {} / {}".format(symbol, t1, d1)
+            self.vlc_set_osd(text, duration)
+
+    def vlc_set_osd(self, text, duration=2000):
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, duration)
+        self.vlc_mediaplayer.video_set_marquee_string(vlc.VideoMarqueeOption.Text, bytes(text, "utf-8"))
 
     def vlc_media_changed(self, event):
         length = self.vlc_mediaplayer.get_length()
@@ -13592,23 +13638,117 @@ class Ui_MainWindow(object):
         self.vlc_time = time.strftime('%H:%M:%S', time.gmtime(self.mplayerLength))
         self.slider.setRange(0, self.mplayerLength)
 
+    def vlc_cycle_subtitle(self):
+        sub_id = self.vlc_mediaplayer.video_get_spu()
+        sub_descr_list = self.vlc_mediaplayer.video_get_spu_description()
+        if len(sub_descr_list) > 0:
+            d = dict(sub_descr_list)
+            sub_id += 1
+            description = d.get(sub_id)
+            if description is not None:
+                self.vlc_mediaplayer.video_set_spu(sub_id)
+            elif sub_id == 0 and len(sub_descr_list) > 1:
+                (sub_id, description) = sub_descr_list[1]
+                self.vlc_mediaplayer.video_set_spu(sub_id)
+            else:
+                self.vlc_mediaplayer.video_set_spu(-1)
+                description = d.get(-1)
+            self.vlc_set_osd(description.decode("utf-8"), 2000)
+
+    def vlc_cycle_audio(self):
+        audio_id = self.vlc_mediaplayer.audio_get_track()
+        audio_descr_list = self.vlc_mediaplayer.audio_get_track_description()
+        if len(audio_descr_list) > 0:
+            d = dict(audio_descr_list)
+            audio_id += 1
+            description = d.get(audio_id)
+            if description is not None:
+                self.vlc_mediaplayer.audio_set_track(audio_id)
+            elif audio_id == 0 and len(audio_descr_list) > 1:
+                (audio_id, description) = audio_descr_list[1]
+                self.vlc_mediaplayer.audio_set_track(audio_id)
+            else:
+                self.vlc_mediaplayer.audio_set_track(-1)
+                description = d.get(-1)
+            self.vlc_set_osd(description.decode("utf-8"), 2000)
+
     def vlc_media_playing(self, event):
         length = self.vlc_mediaplayer.get_length()
         self.mplayerLength = int(length/1000)
         self.vlc_time = time.strftime('%H:%M:%S', time.gmtime(self.mplayerLength))
+        self.progress_counter = 0
         self.slider.setRange(0, self.mplayerLength)
+        self.player_play_pause.setText(self.player_buttons['pause'])
+        self.vlc_show_osd("time-play", 2000)
+
+    def vlc_media_paused(self, event):
+        print(vars(event))
+        self.player_play_pause.setText(self.player_buttons['play'])
+        self.vlc_show_osd("time-pause", 0)
+
+    def vlc_media_end_reached(self, event):
+        print(self.player_setLoop_var, "Loop")
+        if self.playlist_continue and not self.player_setLoop_var:
+            self.vlc_play_next()
+        elif self.player_setLoop_var:
+            self.vlc_play_next(self.cur_row)
+
+    def vlc_play_next(self, row=None):
+        if row is None:
+            self.cur_row = (self.cur_row + 1) % self.list2.count()
+        else:
+            self.cur_row = row
+        self.list2.setCurrentRow(self.cur_row)
+        item = self.list2.item(self.cur_row)
+        ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+ 
+    def vlc_play_prev(self, row=None):
+        if row is None:
+            cur_row = self.cur_row
+        else:
+            cur_row = row
+        cur_row = (cur_row - 1) % self.list2.count()
+        self.cur_row = cur_row
+        self.list2.setCurrentRow(self.cur_row)
+        item = self.list2.item(self.cur_row)
+        ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+    
+    def vlc_play_file(self, final_url):
+        self.vlc_media = self.vlc_instance.media_new_path(final_url)
+        self.vlc_mediaplayer.set_media(self.vlc_media)
+        self.vlc_mediaplayer.play()
+
+    #def vlc_build_playlist(self):
+    #    self.use_playlist_method()
+    #    self.vlc_media_list = self.vlc_instance.media_list_new()
+    #    for i, media in enumerate(self.tmp_pls_file_lines):
+    #        if i%2 == 0:
+    #            pass
+    #        else:
+    #            vlc_media = self.vlc_instance.media_new_path(media)
+    #            self.vlc_media_list.add_media(vlc_media)
+    #    self.vlc_mediaplayer.set_media_list(self.vlc_media_list)
 
     def setup_vlc_instance(self):
         self.vlc_instance = vlc.Instance()
         self.vlc_mediaplayer = ui.vlc_instance.media_player_new()
         self.vlc_events = self.vlc_mediaplayer.event_manager()
-        self.vlc_events.event_attach(vlc.EventType.MediaPlayerTimeChanged, self.vlc_changed)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerTimeChanged, self.vlc_time_changed)
         self.vlc_events.event_attach(vlc.EventType.MediaPlayerMediaChanged, self.vlc_media_changed)
         self.vlc_events.event_attach(vlc.EventType.MediaPlayerPlaying , self.vlc_media_playing)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerPlaying , self.vlc_media_playing)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerPaused , self.vlc_media_paused)
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerEndReached , self.vlc_media_end_reached)
         # converting window id to string to make
         # it consistence with mpv/mplayer design
         self.idw = str(self.get_winid())
         idw = int(self.idw)
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Enable, 1)
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 32)  # pixels
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Position, 5)
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.X, 20)
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Y, 20)
+        self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Timeout, 5000)
         if OSNAME == "nt":
             self.vlc_mediaplayer.set_hwnd(idw)
         elif platform.system().lower() == "darwin":

@@ -151,7 +151,7 @@ def start_player_remotely(nm, mode):
         ui.player_show_btn.clicked_emit()
     elif mode == 'hide_player':
         ui.player_hide_btn.clicked_emit()
-    elif (ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv") or ui.web_control == 'slave':
+    elif (ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "libvlc"]) or ui.web_control == 'slave':
         if mode == 'stop':
             ui.stop_from_client = True
             if ui.web_control == 'master':
@@ -818,7 +818,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 write_files(subtitle_path, val, line_by_line=False)
                 if os.name == 'nt':
                     subtitle_path = 'file:///{}'.format(subtitle_path.replace('\\', '/'))
-                if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
+                if ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "libvlc"]:
                     ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
                     self.nav_signals.control_signal(-1000, 'add_subtitle')
             self.final_message(bytes('Subtitle Recieved', 'utf-8'))

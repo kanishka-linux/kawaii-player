@@ -303,11 +303,13 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.setFocus()
                         if not self.ui.tab_2.isHidden():
                             self.ui.tab_2.hide()
-                        if (self.player_val == "mplayer" or self.player_val == "mpv"):
+                        if self.player_val in ["mplayer", "mpv", "libvlc"]:
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
                         MainWindow.showFullScreen()
                         self.ui.fullscreen_video = True
                 else:
+                    if self.ui.player_val == "libvlc":
+                        self.ui.vlc_mediaplayer.set_fullscreen(False)
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(0)
                     self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
@@ -317,7 +319,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.ui.wget.processId() > 0 or self.ui.video_local_stream:
                         self.ui.progress.show()
                     self.ui.frame1.show()
-                    if self.player_val == "mplayer" or self.player_val == "mpv":
+                    if self.player_val in ["mplayer", "mpv", "libvlc"]:
                         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
                     if not self.ui.force_fs:
                         MainWindow.showNormal()
@@ -340,8 +342,6 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                     self.ui.fullscreen_video = False
             else:
-                if self.ui.player_val == "libvlc":
-                    self.ui.vlc_mediaplayer.set_fullscreen(False)
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
                     self.ui.float_window.showNormal()
@@ -608,6 +608,7 @@ class PlayerWidget(QtWidgets.QWidget):
                             self.ui.mpvplayer_val.write(command_string)
                 elif command and self.ui.player_val == "libvlc":
                     command_list = command.split('::')
+                    print(command_list, "cmdddd")
                     for part in command_list:
                         if part in self.function_map:
                             myfunction = self.function_map.get(part)
@@ -616,13 +617,14 @@ class PlayerWidget(QtWidgets.QWidget):
                             pass
                         elif part.startswith('add'):
                             self.add_parameter(part)
-                        elif part.startswith('seek'):
+                        elif part.startswith('seek') or "seek" in part:
                             seek_val = int(part.split()[-1])
                             val = self.ui.vlc_mediaplayer.get_time()
                             if val:
                                 val = int(val) + (seek_val*1000)
                                 print(val)
                                 self.ui.vlc_mediaplayer.set_time(val)
+                                self.ui.vlc_show_osd("time", 1000)
             if no_modifier:
                 for i in self.event_dict:
                     self.event_dict[i] = False
@@ -630,7 +632,7 @@ class PlayerWidget(QtWidgets.QWidget):
             self.keyPressEventOld(event)
     
     def add_parameter(self, cmd):
-        if ' ' in cmd and self.ui.player_val in ["mpv", "mplayer"]:
+        if ' ' in cmd and self.ui.player_val in ["mpv", "mplayer", "libvlc"]:
             cmd_list = cmd.split(' ')
             cmd_name = cmd_list[1]
             if cmd_name in ['volume', 'ao-volume']:

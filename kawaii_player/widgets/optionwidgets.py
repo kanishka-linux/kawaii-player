@@ -892,7 +892,7 @@ class VolumeSlider(QtWidgets.QSlider):
             ui.settings_box.slave_commands(data=data_dict)
         else:
             ui.player_volume = str(val)
-            if ui.mpvplayer_val.processId() > 0 or ui.player_val == "libmpv":
+            if ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "libvlc"]:
                 ui.seek_to_vol_val(val, action='pressed')
                 ui.logger.debug(val)
                 

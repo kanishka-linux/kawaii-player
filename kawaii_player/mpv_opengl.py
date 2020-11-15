@@ -203,6 +203,36 @@ class QProcessExtra(QtCore.QProcess):
             p1 = subprocess.Popen(["echo", cmd], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(["socat", "-", self.ui.mpv_socket], stdin=p1.stdout, stdout=subprocess.PIPE)
             p2.communicate()
+        elif self.ui.player_val == "libvlc":
+            cmd_str = cmd.decode("utf-8")
+            cmd_str = cmd_str.strip()
+            print(cmd_str, "cmd-vlc")
+            if "seek" in cmd_str:
+                cmd = cmd_str
+                cmd_arr = cmd.split()
+                seek_val = int(cmd_arr[1])
+                cur_val = self.ui.vlc_mediaplayer.get_time()
+                if cur_val:
+                    cur_val = int(cur_val) + (seek_val*1000)
+                    self.ui.vlc_mediaplayer.set_time(cur_val)
+            elif "pause" in cmd_str:
+                self.ui.vlc_mediaplayer.pause()
+            elif "cycle sub" in cmd_str:
+                self.ui.vlc_cycle_subtitle()
+            elif "cycle audio" in cmd_str:
+                self.ui.vlc_cycle_audio()
+            elif "set volume" in cmd_str:
+                val = cmd_str.split()[-1]
+                val = int(val)
+                self.ui.vlc_mediaplayer.audio_set_volume(val)
+                self.ui.vlc_set_osd("volume: {}".format(val), 1000)
+            elif "add volume" in cmd_str:
+                val = cmd_str.split()[-1]
+                val = int(val)
+                initial_volume = self.ui.vlc_mediaplayer.audio_get_volume()
+                new_volume = initial_volume + val
+                self.ui.vlc_mediaplayer.audio_set_volume(new_volume)
+                self.ui.vlc_set_osd("volume: {}".format(new_volume), 1000)
         elif self.ui.player_val in ["vlc", "cvlc"]:
             cmd_str = cmd.decode("utf-8")
             if cmd_str.startswith("key"):
