@@ -3632,7 +3632,7 @@ class Ui_MainWindow(object):
             else:
                 self.mpvplayer_val.kill()
             self.player_play_pause.setText(self.player_buttons['play'])
-            if (self.tab_6.isHidden() and (str(self.idw) == self.get_winid())) or msg == "darwin":
+            if (self.tab_6.isHidden() and (str(self.idw) == self.get_winid())) or msg == "darwin" or self.player_val == "libvlc":
                 change_spacing = True
                 if not self.float_window.isHidden():
                     if self.float_window.isFullScreen():
@@ -3646,7 +3646,7 @@ class Ui_MainWindow(object):
                     if self.tab_2.isHidden():
                         if self.fullscreen_mode == 0:
                             if (self.view_mode in ["thumbnail", "thumbnail_light"] 
-                                    and (msg == "darwin" or self.player_val in ["mpv", "mplayer"])):
+                                    and (msg == "darwin" or self.player_val in ["mpv", "mplayer", "libvlc"])):
                                 pass
                             else:
                                 self.restore_initial_view()
@@ -5378,7 +5378,7 @@ class Ui_MainWindow(object):
         self.cache_mpv_counter = '00'
         self.cache_mpv_indicator = False
         if self.player_val == "libvlc":
-            self.vlc_play_next(play_row)  
+            self.vlc_play_next()  
         elif self.mpvplayer_val.processId() > 0:
             if play_row != None and mode == 'play_now':
                 self.cur_row = play_row
@@ -10225,7 +10225,7 @@ class Ui_MainWindow(object):
                 time.sleep(0.001)
                 self.tab_5.hide()
         else:
-            if self.player_val in ['mpv', 'libmpv', 'mplayer']:
+            if self.player_val in ['mpv', 'libmpv', 'mplayer', "libvlc"]:
                 self.tab_5.show()
                 if not self.list1.isHidden():
                     self.list1.hide()
@@ -10236,7 +10236,7 @@ class Ui_MainWindow(object):
                 self.text.hide()
                 self.label.hide()
                 self.label_new.hide()
-                if self.view_mode == "thumbnail_light" and self.player_val == "mpv":
+                if self.view_mode == "thumbnail_light" and self.player_val in ["mpv", "libvlc"]:
                     self.tab_6.hide()
                 
     def epn_return(self, row, mode=None):
@@ -13591,7 +13591,7 @@ class Ui_MainWindow(object):
             if self.player_val == "libmpv":
                 return "-1"
             elif self.player_val == "libvlc":
-                return int(self.tab_5.winId())
+                return str(int(self.tab_5.winId()))
             else:
                 return str(int(self.tab_5.winId()))
         else:
@@ -13741,7 +13741,7 @@ class Ui_MainWindow(object):
         self.vlc_events.event_attach(vlc.EventType.MediaPlayerEndReached , self.vlc_media_end_reached)
         # converting window id to string to make
         # it consistence with mpv/mplayer design
-        self.idw = str(self.get_winid())
+        self.idw = self.get_winid()
         idw = int(self.idw)
         self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Enable, 1)
         self.vlc_mediaplayer.video_set_marquee_int(vlc.VideoMarqueeOption.Size, 32)  # pixels

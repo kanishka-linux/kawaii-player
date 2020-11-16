@@ -261,8 +261,6 @@ class PlayerWidget(QtWidgets.QWidget):
         if not self.ui.idw or self.ui.idw == str(int(self.winId())) or isinstance(self.ui.idw, int):
             if not MainWindow.isHidden():
                 if not MainWindow.isFullScreen() or mode == 'fs':
-                    if self.ui.player_val == "libvlc":
-                        self.ui.vlc_mediaplayer.set_fullscreen(True)
                     if os.name == 'nt' and self.ui.web_review_browser_started:
                         self.ui.detach_fullscreen = True
                         MainWindow.hide()
@@ -307,6 +305,9 @@ class PlayerWidget(QtWidgets.QWidget):
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
                         MainWindow.showFullScreen()
                         self.ui.fullscreen_video = True
+                    if self.ui.player_val == "libvlc":
+                        self.ui.vlc_mediaplayer.set_fullscreen(True)
+ 
                 else:
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(False)

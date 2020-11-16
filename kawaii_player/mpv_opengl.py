@@ -215,6 +215,7 @@ class QProcessExtra(QtCore.QProcess):
                 if cur_val:
                     cur_val = int(cur_val) + (seek_val*1000)
                     self.ui.vlc_mediaplayer.set_time(cur_val)
+                    self.ui.vlc_show_osd("time", 1000)
             elif "pause" in cmd_str:
                 self.ui.vlc_mediaplayer.pause()
             elif "cycle sub" in cmd_str:
