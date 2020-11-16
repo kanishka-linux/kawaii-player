@@ -3818,6 +3818,7 @@ class Ui_MainWindow(object):
                 elif self.player_val in ["vlc", "cvlc"]:
                     self.mpvplayer_val.write(b'key key-loop')
                 elif self.player_val == "libvlc":
+                    self.vlc_set_loop(True)
                     self.vlc_set_osd("Loop: yes", 2000)
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop 0 \n')
@@ -3835,6 +3836,7 @@ class Ui_MainWindow(object):
                 elif self.player_val in ["vlc", "cvlc"]:
                     self.mpvplayer_val.write(b'key key-loop')
                 elif self.player_val == "libvlc":
+                    self.vlc_set_loop(False)
                     self.vlc_set_osd("Loop: no", 2000)
                 else:
                     self.mpvplayer_val.write(b'\n set_property loop -1 \n')
@@ -6836,7 +6838,7 @@ class Ui_MainWindow(object):
         global home, site, name
         num = self.list2.currentRow()
         if self.list2.currentItem() and num < len(self.epn_arr_list) and num >= 0:
-            if self.player_val in ["vlc", "cvlc"]:
+            if self.player_val in ["vlc", "cvlc", "libvlc"]:
                 item_text = self.list2.currentItem().text()
                 MainWindow.setWindowTitle(item_text)
                 self.progressEpn.setFormat((item_text))
@@ -9047,8 +9049,10 @@ class Ui_MainWindow(object):
                     self.mpvplayer_val.write(bytes(cmd, 'utf-8'))
                 setinfo = True
             elif self.player_val == "libvlc":
-                finalUrl = finalUrl.replace('"', '')
-                self.vlc_play_file(finalUrl)
+                #finalUrl = finalUrl.replace('"', '')
+                #self.vlc_play_file(finalUrl)
+                self.vlc_build_playlist()
+                self.vlc_medialist_player.play_item_at_index(self.cur_row)
             elif self.player_val == "libmpv":
                 self.use_playlist_method()
                 if isinstance(self.cur_row, int) and self.cur_row < len(self.tmp_pls_file_lines):
@@ -13682,56 +13686,77 @@ class Ui_MainWindow(object):
         self.vlc_show_osd("time-play", 2000)
 
     def vlc_media_paused(self, event):
-        print(vars(event))
         self.player_play_pause.setText(self.player_buttons['play'])
         self.vlc_show_osd("time-pause", 0)
 
     def vlc_media_end_reached(self, event):
-        print(self.player_setLoop_var, "Loop")
-        if self.playlist_continue and not self.player_setLoop_var:
-            self.vlc_play_next()
-        elif self.player_setLoop_var:
-            self.vlc_play_next(self.cur_row)
+        if not self.player_setLoop_var:
+            self.setup_playing_row("next")
 
-    def vlc_play_next(self, row=None):
+    def setup_playing_row(self, mode, row=None):
         if row is None:
-            self.cur_row = (self.cur_row + 1) % self.list2.count()
+            if mode == "next":
+                self.cur_row = (self.cur_row + 1) % self.list2.count()
+            elif mode == "prev":
+                self.cur_row = (self.cur_row - 1) % self.list2.count()
         else:
             self.cur_row = row
         self.list2.setCurrentRow(self.cur_row)
         item = self.list2.item(self.cur_row)
-        ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+        if item:
+            text = item.text()
+            self.epn_name_in_list = text
+
+    def vlc_play_next(self, row=None):
+        if self.player_setLoop_var:
+            self.vlc_set_osd("Loop is enabled. Repeating same file")
+        else:
+            self.setup_playing_row("next")
+            status = self.vlc_medialist_player.next()
+            if status == -1:
+                self.vlc_medialist_player.play_item_at_index(self.cur_row)
  
     def vlc_play_prev(self, row=None):
-        if row is None:
-            cur_row = self.cur_row
+        if self.player_setLoop_var:
+            self.vlc_set_osd("Loop is enabled. Repeating same file")
         else:
-            cur_row = row
-        cur_row = (cur_row - 1) % self.list2.count()
-        self.cur_row = cur_row
-        self.list2.setCurrentRow(self.cur_row)
-        item = self.list2.item(self.cur_row)
-        ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
+            self.setup_playing_row("prev") 
+            status = self.vlc_medialist_player.previous()
+            if status == -1:
+                self.vlc_medialist_player.play_item_at_index(self.cur_row)
     
     def vlc_play_file(self, final_url):
         self.vlc_media = self.vlc_instance.media_new_path(final_url)
         self.vlc_mediaplayer.set_media(self.vlc_media)
         self.vlc_mediaplayer.play()
 
-    #def vlc_build_playlist(self):
-    #    self.use_playlist_method()
-    #    self.vlc_media_list = self.vlc_instance.media_list_new()
-    #    for i, media in enumerate(self.tmp_pls_file_lines):
-    #        if i%2 == 0:
-    #            pass
-    #        else:
-    #            vlc_media = self.vlc_instance.media_new_path(media)
-    #            self.vlc_media_list.add_media(vlc_media)
-    #    self.vlc_mediaplayer.set_media_list(self.vlc_media_list)
+    def vlc_build_playlist(self):
+        self.use_playlist_method()
+        self.vlc_media_list = self.vlc_instance.media_list_new()
+        for i, media in enumerate(self.tmp_pls_file_lines):
+            vlc_media = self.vlc_instance.media_new_path(media)
+            self.vlc_media_list.add_media(vlc_media)
+        self.vlc_medialist_player.set_media_list(self.vlc_media_list)
+
+    def vlc_set_loop(self, loop):
+        # repeat in vlc -> loop single file
+        # loop in vlc -> repeat entire playlist
+        if loop:
+            self.vlc_medialist_player.set_playback_mode(vlc.PlaybackMode.repeat)
+        else:
+            self.vlc_medialist_player.set_playback_mode(vlc.PlaybackMode.loop)
+
 
     def setup_vlc_instance(self):
         self.vlc_instance = vlc.Instance()
-        self.vlc_mediaplayer = ui.vlc_instance.media_player_new()
+        #self.vlc_mediaplayer = ui.vlc_instance.media_player_new()
+        #self.vlc_medialist = self.vlc_instance.media_list_new()
+        self.vlc_medialist_player = self.vlc_instance.media_list_player_new()
+        self.vlc_mediaplayer = self.vlc_instance.media_player_new()
+
+        self.vlc_medialist_player.set_media_player(self.vlc_mediaplayer)
+        self.vlc_medialist_player.set_playback_mode(vlc.PlaybackMode.loop)
+
         self.vlc_events = self.vlc_mediaplayer.event_manager()
         self.vlc_events.event_attach(vlc.EventType.MediaPlayerTimeChanged, self.vlc_time_changed)
         self.vlc_events.event_attach(vlc.EventType.MediaPlayerMediaChanged, self.vlc_media_changed)
