@@ -6885,9 +6885,7 @@ class Ui_MainWindow(object):
                     try:
                         if row < self.list2.count():
                             self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
-                            if ((ui.view_mode == "thumbnail_light"
-                                    and ui.list_poster.title_clicked)
-                                    or ui.display_device == "rpitv"):
+                            if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:
                                 ui.list_poster.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
                     except Exception as err:
                         logger.error(err)
@@ -9934,7 +9932,7 @@ class Ui_MainWindow(object):
                 else:
                     subprocess.Popen([self.player_val, finalUrl], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         elif not thread_running:
-            if self.download_video == 0 and self.player_val in ["mpv", "libmpv"]:
+            if self.download_video == 0 and self.player_val in ["mpv", "libmpv", "libvlc"]:
                 if self.mpvplayer_val.processId() > 0:
                     self.mpvplayer_val.kill()
                     self.mpvplayer_started = False
@@ -9962,6 +9960,8 @@ class Ui_MainWindow(object):
                         command = self.mplayermpv_command(self.idw, epnShow, self.player_val)
                     if self.player_val == "mpv":
                         self.infoPlay(command)
+                    elif self.player_val == "libvlc":
+                        self.vlc_play_file(finalUrl.replace('"', ''))
                     else:
                         self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ''))
                 else:
@@ -9970,6 +9970,8 @@ class Ui_MainWindow(object):
                     command = self.mplayermpv_command(self.idw, finalUrl, self.player_val)
                     if self.player_val == "mpv":
                         self.infoPlay(command)
+                    elif self.player_val == "libvlc":
+                        self.vlc_play_file(finalUrl.replace('"', ''))
                     else:
                         self.tab_5.mpv.command("loadfile", finalUrl.replace('"', ''))
             elif self.download_video == 0 and self.player_val not in ["mpv", "libmpv"]:
