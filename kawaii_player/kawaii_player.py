@@ -13686,7 +13686,25 @@ class Ui_MainWindow(object):
         self.slider.setRange(0, self.mplayerLength)
         self.player_play_pause.setText(self.player_buttons['pause'])
         self.vlc_show_osd("time-play", 2000)
-
+        self.vlc_attach_external_subtitles()
+   
+    def vlc_attach_external_subtitles(self):
+        media = self.vlc_mediaplayer.get_media()
+        # use dir to get all methods of object
+        # print(dir(self.vlc_mediaplayer))
+        mrl = media.get_mrl()
+        (hd, tail) = os.path.split(mrl)
+        tail = tail.rsplit(".", 1)[0]
+        sub_ext_list = [".srt", ".ass", ".vtt"]
+        for ext in sub_ext_list:
+            subtitle = tail + ext
+            uri = os.path.join(hd, subtitle)
+            if os.path.exists(uri):
+                self.vlc_mediaplayer.add_slave(0, uri, True)
+                sub = urllib.parse.unquote(subtitle)
+                self.vlc_set_osd("Added Subtitle: {}".format(sub), 2000)
+ 
+    
     def vlc_media_paused(self, event):
         self.player_play_pause.setText(self.player_buttons['play'])
         self.vlc_show_osd("time-pause", 0)
