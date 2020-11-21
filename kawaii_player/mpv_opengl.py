@@ -439,13 +439,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         locale.setlocale(locale.LC_NUMERIC, 'C')
         self.track_list = None
         self.playlist_backup = False
-        self.mpv_gl = None
-        if self.mpv_api == "opengl-render":
-            self.init_opengl_render()
-        else:
-            self.init_opengl_cb()
-        self.frameSwapped.connect(self.swapped, Qt.DirectConnection)
-        
+
         self.arrow_timer = QtCore.QTimer()
         self.arrow_timer.timeout.connect(self.arrow_hide)
         self.arrow_timer.setSingleShot(True)
@@ -523,6 +517,12 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.first_play = True
         self.stop_msg = None
         self.pointer_moved = False
+        self.mpv_gl = None
+        if self.mpv_api == "opengl-render":
+            self.init_opengl_render()
+        else:
+            self.init_opengl_cb()
+        self.frameSwapped.connect(self.swapped, Qt.DirectConnection)
 
     def init_opengl_cb(self):
         try:

@@ -1328,7 +1328,6 @@ class Ui_MainWindow(object):
         
         self.chk = QPushButtonExtra(self.dockWidget_3) 
         self.chk.setObjectName(_fromUtf8("chk"))
-        self.chk.setText("mpv")
         self.comboView = QtWidgets.QComboBox(self.dockWidget_3) 
         self.comboView.setObjectName(_fromUtf8("comboView"))
         self.comboView.hide()
@@ -1501,7 +1500,7 @@ class Ui_MainWindow(object):
         self.epn_clicked = False
         self.osx_native_fullscreen = False
         self.device_pixel_ratio = 1.0
-        self.libmpv_api = "opengl-cb"
+        self.libmpv_api = "opengl-render"
         self.quit_now = False
         self.system_bgcolor = ''
         self.thumbnail_engine = 'mpv'
@@ -1658,7 +1657,8 @@ class Ui_MainWindow(object):
         if OSNAME == "nt":
             self.player_val = "libmpv"
         else:
-            self.player_val = 'mpv'
+            self.player_val = "mpv"
+        self.chk.setText(self.player_val)
         self.addons_option_arr = []
         self.mpvplayer_started = False
         self.mplayerLength = 0
@@ -15030,7 +15030,7 @@ def main():
             f.write("\nREMEMBER_ASPECT_PER_VIDEO=True")
             f.write("\nVARIABLE_WIDTH_LIST=False")
             f.write("\nOSX_NATIVE_FULLSCREEN=False")
-            f.write("\nLIBMPV_API=OPENGL-CB")
+            f.write("\nLIBMPV_API=OPENGL-RENDER")
             f.write("\nDEVICE_PIXEL_RATIO=1.0")
             f.write("\nPLAYLIST_CONTINUE=True")
             f.write("\nDISPLAY_DEVICE=Auto")
