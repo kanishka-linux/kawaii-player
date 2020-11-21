@@ -591,7 +591,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 if not command:
                     command = self.mpv_custom.get(key)
                 logger.debug(command)
-                if command and self.ui.player_val in ["mpv", "mplayer"]:
+                if command and self.ui.player_val in ["mpv", "mplayer", "libmpv"]:
                     command_list = command.split('::')
                     for part in command_list:
                         if part in self.function_map:
