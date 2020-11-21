@@ -213,8 +213,10 @@ from multiprocessing import Process
 try:
     import vlc
     print("libvlc detected")
+    LIBVLC = True
 except Exception as e:
-    pass
+    print("libvlc not detected")
+    LIBVLC = False
 
 class DoGetSignalNew(QtCore.QObject):
     new_signal = pyqtSignal(str)
@@ -1610,7 +1612,10 @@ class Ui_MainWindow(object):
         self.myserver_threads_count = 0
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
         self.mpvplayer_aspect_float = {'0':-1, '1':1.777777778, '2':1.3333333333, '3':2.35, '4':0}
-        self.playback_engine = ["mpv", 'libmpv', 'mplayer', 'vlc', 'cvlc', 'libvlc']
+        if OSNAME == "nt":
+            self.playback_engine = ['libmpv']
+        else:
+            self.playback_engine = ["mpv", 'libmpv', 'mplayer', 'cvlc', 'libvlc']
         self.mpvplayer_aspect_cycle = 0
         self.setuploadspeed = 0
         self.custom_mpv_input_conf = False
@@ -12937,8 +12942,14 @@ class Ui_MainWindow(object):
                     di = i.split('	')[1]
                     if os.path.exists(di) or show_all:
                         eptitle = ti.lower()
-                        if (eptitle.startswith('season') or eptitle.startswith('special')
-                                or eptitle.startswith('extra')):
+                        if (eptitle.startswith('season') or
+                                eptitle.startswith('special') or
+                                eptitle.startswith('extra') or
+                                eptitle.startswith('ova') or
+                                eptitle.startswith('movie') or
+                                eptitle.startswith('oped') or
+                                eptitle.startswith('nced') or
+                                eptitle.startswith('bonus')):
                             new_di, new_ti = os.path.split(di)
                             new_di = os.path.basename(new_di)
                             ti = new_di+'-'+ti
@@ -14198,7 +14209,7 @@ def main():
                         player_txt = 'mpv'
                     ui.player_val = player_txt
                     ui.chk.setText(ui.player_val)
-                    if j.strip() in ['MPV', 'MPLAYER']:
+                    if j.strip() in ['MPV', 'MPLAYER', 'vlc']:
                         ui.player_val = j.strip()
                         ui.chk.setText(ui.player_val)
                 elif "WindowFrame" in i:
@@ -15023,6 +15034,8 @@ def main():
             f.write("\nMPV_INPUT_IPC_SERVER=False")
         ui.local_ip_stream = '127.0.0.1'
         ui.local_port_stream = 9001
+        if ui.player_val == "mpv":
+            ui.mpv_input_ipc_server = True
     if ui.player_theme == 'mix':
         QtCore.QTimer.singleShot(
             100, partial(
