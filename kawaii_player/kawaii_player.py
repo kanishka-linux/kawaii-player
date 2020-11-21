@@ -1613,7 +1613,7 @@ class Ui_MainWindow(object):
         self.mpvplayer_aspect = {'0':'-1', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'0'}
         self.mpvplayer_aspect_float = {'0':-1, '1':1.777777778, '2':1.3333333333, '3':2.35, '4':0}
         if OSNAME == "nt":
-            self.playback_engine = ['libmpv']
+            self.playback_engine = ['libmpv', "libvlc"]
         else:
             self.playback_engine = ["mpv", 'libmpv', 'mplayer', 'cvlc', 'libvlc']
         self.mpvplayer_aspect_cycle = 0
@@ -1655,7 +1655,10 @@ class Ui_MainWindow(object):
         self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
-        self.player_val = 'mpv'
+        if OSNAME == "nt":
+            self.player_val = "libmpv"
+        else:
+            self.player_val = 'mpv'
         self.addons_option_arr = []
         self.mpvplayer_started = False
         self.mplayerLength = 0
@@ -15400,7 +15403,11 @@ def main():
     if ui.player_val == "libmpv":
         ui.setup_opengl_widget(app)
     elif ui.player_val == "libvlc":
-        ui.setup_vlc_instance()
+        if LIBVLC:
+            ui.setup_vlc_instance()
+        else:
+            txt = "vlc not found, install vlc and python-vlc package"
+            send_notification(txt)
     else:
         ui.idw = str(int(ui.tab_5.winId()))
     if ui.player_volume.isnumeric():
