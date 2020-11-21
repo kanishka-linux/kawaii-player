@@ -14462,7 +14462,7 @@ def main():
                         print(e,'--20261--')
     else:
         f = open(os.path.join(home, 'config.txt'), 'w')
-        f.write("DefaultPlayer=mpv")
+        f.write("DefaultPlayer={}".format(ui.player_val))
         f.close()
     
     if os.path.exists(os.path.join(home, 'torrent_config.txt')):
