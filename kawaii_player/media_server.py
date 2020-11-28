@@ -1889,6 +1889,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if st_o and not srch:
                         srch = st_o
             st_arr = [st, st_o, srch]
+            epn_arr = []
             myvar = str(st)+'::'+str(st_o)+'::'+str(srch)+'::'+str(srch_exact)+'::'+str(url_format)
             if st.startswith('video') or st.startswith('music') or st.startswith('playlist'):
                 if st.startswith('video'):
@@ -1936,6 +1937,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
             if ui.remote_control and ui.remote_control_field:
+                srch = st_arr[-1]
+                # if playlist is not tied down to video title
+                # e.g playlist created due to random search key
+                # then store result in shuffle list which will be displayed
+                # on the playlist widget
+                if epn_arr and srch and not srch.endswith(".hash") and not shuffle_list:
+                    shuffle_list = True
+                    self.playlist_shuffle_list = epn_arr.copy()
                 if self.playlist_shuffle_list and shuffle_list:
                     ui.epn_arr_list = self.playlist_shuffle_list.copy()
                 self.nav_signals.total_navigation(st_arr[0], st_arr[1],
