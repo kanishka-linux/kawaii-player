@@ -3449,7 +3449,7 @@ class Ui_MainWindow(object):
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
         elif self.player_val == "libvlc":
             self.mpvplayer_val.write(bytes("cycle sub", "utf-8"))
-        if self.tab_5.subtitle_track_count == 0 and self.tab_5.try_subtitle_path and self.player_val == "libmpv":
+        if self.player_val == "libmpv" and self.tab_5.subtitle_track_count == 0 and self.tab_5.try_subtitle_path:
             txt = '\n sub-add "{}" select \n'.format(self.tab_5.try_subtitle_path)
             txt_b = bytes(txt, 'utf-8')
             self.mpvplayer_val.write(txt_b)
@@ -9927,6 +9927,9 @@ class Ui_MainWindow(object):
                 logger.info(command)
                 logger.debug('********8808**********')
                 self.infoPlay(command)
+            elif self.player_val == "libvlc":
+                self.vlc_build_playlist()
+                self.vlc_medialist_player.play_item_at_index(self.cur_row)
             elif self.player_val == "mplayer":
                 self.quit_really = "no"
                 self.idw = self.get_winid()
@@ -13710,8 +13713,9 @@ class Ui_MainWindow(object):
         media = self.vlc_mediaplayer.get_media()
         # use dir to get all methods of object
         # print(dir(self.vlc_mediaplayer))
-        mrl = media.get_mrl()
-        (hd, tail) = os.path.split(mrl)
+        path = media.get_mrl()
+
+        (hd, tail) = os.path.split(path)
         tail = tail.rsplit(".", 1)[0]
         sub_ext_list = [".srt", ".ass", ".vtt"]
         for ext in sub_ext_list:
@@ -13721,7 +13725,20 @@ class Ui_MainWindow(object):
                 self.vlc_mediaplayer.add_slave(0, uri, True)
                 sub = urllib.parse.unquote(subtitle)
                 self.vlc_set_osd("Added Subtitle: {}".format(sub), 2000)
- 
+
+        sub_descr_list = self.vlc_mediaplayer.video_get_spu_description()
+        if len(sub_descr_list) == 0:
+            try_subtitle_path = None
+            if path.startswith('http') and '/master_abs_path=' in path:
+                abs_path = path.split('/master_abs_path=', 1)[1]
+                new_path = str(base64.b64decode(abs_path).decode('utf-8'))
+                try_subtitle_path = new_path + '.original.subtitle'
+            elif path.startswith('http') and '/abs_path=' in path:
+                try_subtitle_path = path + ".original.subtitle"
+
+            if try_subtitle_path:
+                self.vlc_mediaplayer.add_slave(0, try_subtitle_path, False)
+                print("try", try_subtitle_path)
     
     def vlc_media_paused(self, event):
         self.player_play_pause.setText(self.player_buttons['play'])
@@ -13764,7 +13781,10 @@ class Ui_MainWindow(object):
                 self.vlc_medialist_player.play_item_at_index(self.cur_row)
     
     def vlc_play_file(self, final_url):
-        self.vlc_media = self.vlc_instance.media_new_path(final_url)
+        if media.startswith("http:"):
+            self.vlc_media = self.vlc_instance.media_new_location(final_url)
+        else:
+            self.vlc_media = self.vlc_instance.media_new_path(final_url)
         self.vlc_mediaplayer.set_media(self.vlc_media)
         self.vlc_mediaplayer.play()
 
@@ -13772,7 +13792,10 @@ class Ui_MainWindow(object):
         self.use_playlist_method()
         self.vlc_media_list = self.vlc_instance.media_list_new()
         for i, media in enumerate(self.tmp_pls_file_lines):
-            vlc_media = self.vlc_instance.media_new_path(media)
+            if media.startswith("http:"):
+                vlc_media = self.vlc_instance.media_new_location(media)
+            else:
+                vlc_media = self.vlc_instance.media_new_path(media)
             self.vlc_media_list.add_media(vlc_media)
         self.vlc_medialist_player.set_media_list(self.vlc_media_list)
 

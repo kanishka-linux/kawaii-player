@@ -1186,13 +1186,16 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.try_subtitle_path = None
             filename = None
             if path.startswith('http') and '/master_abs_path=' in path:
-                abs_path = path.split('/master_abs_path=', 1)[1]
-                new_path = str(base64.b64decode(abs_path).decode('utf-8'))
-                self.try_subtitle_path = new_path + '.original.subtitle'
-                if "/&master_token=" in new_path:
-                    new_path = path.rsplit("/&master_token=")[0]
-                filename = new_path.rsplit("/")[-1]
-                filename = urllib.parse.unquote(filename)
+                try:
+                    abs_path = path.split('/master_abs_path=', 1)[1]
+                    new_path = str(base64.b64decode(abs_path).decode('utf-8'))
+                    self.try_subtitle_path = new_path + '.original.subtitle'
+                    if "/&master_token=" in new_path:
+                        new_path = path.rsplit("/&master_token=")[0]
+                    filename = new_path.rsplit("/")[-1]
+                    filename = urllib.parse.unquote(filename)
+                except Exception as err:
+                    logger.error(err)
             elif path.startswith('http') and '/abs_path=' in path:
                 self.try_subtitle_path = path + ".original.subtitle"
                 filename = path.rsplit("/")[-1]
