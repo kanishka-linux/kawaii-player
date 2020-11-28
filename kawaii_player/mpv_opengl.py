@@ -10,6 +10,7 @@ import sys
 import platform
 import locale
 import itertools
+import base64
 import urllib.parse
 import hashlib
 from functools import partial 
@@ -517,6 +518,10 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.first_play = True
         self.stop_msg = None
         self.pointer_moved = False
+        self.audio_track_count = 0
+        self.subtitle_track_count = 0
+        self.try_subtitle_path = None
+
         self.mpv_gl = None
         if self.mpv_api == "opengl-render":
             self.init_opengl_render()
@@ -1173,8 +1178,29 @@ class MpvOpenglWidget(QOpenGLWidget):
                 logger.error(err)
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
-            gui.final_playing_url = self.mpv.get_property('path')
+            gui.final_playing_url = path = self.mpv.get_property('path')
             self.track_list = self.mpv.get_property('track-list')
+            self.audio_track_count = [track.get('type') == 'audio' for track in self.track_list].count(True)
+            self.subtitle_track_count = [track.get('type') == 'sub' for track in self.track_list].count(True)
+            abs_path = None
+            self.try_subtitle_path = None
+            filename = None
+            if path.startswith('http') and '/master_abs_path=' in path:
+                abs_path = path.split('/master_abs_path=', 1)[1]
+                new_path = str(base64.b64decode(abs_path).decode('utf-8'))
+                self.try_subtitle_path = new_path + '.original.subtitle'
+                if "/&master_token=" in new_path:
+                    new_path = path.rsplit("/&master_token=")[0]
+                filename = new_path.rsplit("/")[-1]
+                filename = urllib.parse.unquote(filename)
+            elif path.startswith('http') and '/abs_path=' in path:
+                self.try_subtitle_path = path + ".original.subtitle"
+                filename = path.rsplit("/")[-1]
+                filename = urllib.parse.unquote(filename)
+
+            # list all mpv-properties
+            # print(self.mpv.get_property("property-list"))
+
             self.chapter_list = self.mpv.get_property('chapter-list')
             if not self.initial_volume_set:
                 logger.debug("setting..........volume.......{}".format(gui.player_volume))

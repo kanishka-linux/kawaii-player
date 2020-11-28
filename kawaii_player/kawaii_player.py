@@ -3449,7 +3449,11 @@ class Ui_MainWindow(object):
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
         elif self.player_val == "libvlc":
             self.mpvplayer_val.write(bytes("cycle sub", "utf-8"))
-    
+        if self.tab_5.subtitle_track_count == 0 and self.tab_5.try_subtitle_path and self.player_val == "libmpv":
+            txt = '\n sub-add "{}" select \n'.format(self.tab_5.try_subtitle_path)
+            txt_b = bytes(txt, 'utf-8')
+            self.mpvplayer_val.write(txt_b)
+
     def mark_epn_thumbnail_label_new(self, txt, index):
         if txt.startswith('#'):
             txt = txt.replace('#', self.check_symbol, 1)
