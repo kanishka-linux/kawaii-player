@@ -93,7 +93,7 @@ class QProcessExtra(QtCore.QProcess):
         return data
         
     def write(self, cmd):
-        if self.ui.player_val == "libmpv" and self.ui.tab_5.mpv.get_property("idle-active") is False:
+        if self.ui.player_val == "libmpv" and hasattr(self.ui.tab_5, "mpv") and self.ui.tab_5.mpv.get_property("idle-active") is False:
             print(cmd)
             cmd = str(cmd, "utf-8").strip()
             cmd_arr = cmd.split()
@@ -198,7 +198,7 @@ class QProcessExtra(QtCore.QProcess):
                 except Exception as e:
                     print(e)
                     self.ui.tab_5.mpv.command("show-text", "not found: {}, {}".format(cmd, e), 5000)
-        elif self.ui.player_val == "libmpv" and self.ui.tab_5.mpv.get_property("idle-active") is True:
+        elif self.ui.player_val == "libmpv" and hasattr(self.ui.tab_5, "mpv") and self.ui.tab_5.mpv.get_property("idle-active") is True:
             print("nothing is playing")
         elif self.ui.mpv_input_ipc_server and self.ui.player_val.lower() == "mpv":
             p1 = subprocess.Popen(["echo", cmd], stdout=subprocess.PIPE)
