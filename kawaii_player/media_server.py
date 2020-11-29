@@ -127,7 +127,11 @@ def start_player_remotely(nm, mode):
             else:
                 ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
         elif item and ui.web_control == 'slave':
-            ui.gui_signals.playlist_command('playlist', ui.cur_row)
+            if ui.playlist_updated:
+                ui.gui_signals.playlist_command('playlist', ui.cur_row)
+                ui.playlist_updated = False
+            else:
+                ui.gui_signals.playlist_command('direct index', ui.cur_row)
     elif mode == 'queue':
         nm = nm - 1
         ui.queue_item_external = nm
@@ -1891,17 +1895,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             st_arr = [st, st_o, srch]
             epn_arr = []
             myvar = str(st)+'::'+str(st_o)+'::'+str(srch)+'::'+str(srch_exact)+'::'+str(url_format)
-            if st.startswith('video') or st.startswith('music') or st.startswith('playlist'):
-                if st.startswith('video'):
-                    pls_txt = ui.media_server_cache_video.get(myvar)
-                elif st.startswith('music'):
-                    if not st_o.startswith('playlist'):
-                        pls_txt = ui.media_server_cache_music.get(myvar)
-                else:
-                    pls_txt = ui.media_server_cache_playlist.get(myvar)
-                if pls_txt and path != 'stream_continue.htm' and not shuffle_list:
-                    logger.debug('Sending From Cache')
-                    pls_cache = True
+            # commenting out caching related code
+            #if st.startswith('video') or st.startswith('music') or st.startswith('playlist'):
+            #    if st.startswith('video'):
+            #        pls_txt = ui.media_server_cache_video.get(myvar)
+            #    elif st.startswith('music'):
+            #        if not st_o.startswith('playlist'):
+            #            pls_txt = ui.media_server_cache_music.get(myvar)
+            #    else:
+            #        pls_txt = ui.media_server_cache_playlist.get(myvar)
+            #    if pls_txt and path != 'stream_continue.htm' and not shuffle_list:
+            #        logger.debug('Sending From Cache')
+            #        pls_cache = True
             if st and st_o and srch and not pls_cache:
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)
@@ -1950,13 +1955,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.nav_signals.total_navigation(st_arr[0], st_arr[1],
                                                  st_arr[2], shuffle_list)
             
-            if not pls_cache: 
-                if st.startswith('video'):
-                    ui.media_server_cache_video.update({myvar:pls_txt})
-                elif st.startswith('music'):
-                    ui.media_server_cache_music.update({myvar:pls_txt})
-                elif st.startswith('playlist'):
-                    ui.media_server_cache_playlist.update({myvar:pls_txt})
+            # commenting out caching related code
+            # if not pls_cache:
+            #    if st.startswith('video'):
+            #        ui.media_server_cache_video.update({myvar:pls_txt})
+            #    elif st.startswith('music'):
+            #        ui.media_server_cache_music.update({myvar:pls_txt})
+            #    elif st.startswith('playlist'):
+            #        ui.media_server_cache_playlist.update({myvar:pls_txt})
         elif path.lower() == 'play' or not path:
             self.row = ui.list2.currentRow()
             if self.row < 0:

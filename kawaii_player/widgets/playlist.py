@@ -1277,9 +1277,11 @@ class PlaylistWidget(QtWidgets.QListWidget):
             http_val = "https"
         if browser_data:
             self.process_pc_to_pc_casting(mode, row, item, browser_data)
+        elif mode == 'direct index':
+            self.process_pc_to_pc_casting(mode, row, item, [])
         else:
             ip = '{}://{}:{}/stream_continue.m3u'.format(http_val, str(self.ui.local_ip_stream), str(self.ui.local_port_stream))
-            self.ui.vnt.get(ip, binary=True, timeout=10, verify=False,
+            self.ui.vnt.get(ip, binary=True, timeout=60, verify=False,
                             onfinished=partial(self.process_pc_to_pc_casting, mode, row, item))
 
     def process_browser_based_url(self, title, url, mode):
@@ -1295,7 +1297,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
     def process_pc_to_pc_casting(self, mode, cur_row, item, *args):
         item = item.strip()
         direct_link = False
-        content = args[-1].html
+        if args and hasattr(args[-1], "html"):
+            content = args[-1].html
+        elif mode == "direct index":
+            content = b"Not required"
+        else:
+            content = None
         if isinstance(args[-1], BrowserData):
             direct_link = args[-1].direct_link
         if content:
@@ -1417,12 +1424,13 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 netloc = n.netloc
                 val = self.ui.vnt.cookie_session.get(netloc)
                 verify = self.verify_slave_ssl
+                pls_file = ""
                 logger.debug('url={} verify={}'.format(item, verify))
                 if val:
                     logger.debug('using old session')
-                    self.ui.vnt.get(item, timeout=60, session=True, verify=verify)
+                    self.ui.vnt.get(item, timeout=60, session=True, verify=verify, onfinished=partial(self.final_pc_to_pc_process, pls_file, verify))
                 else:
-                    self.ui.vnt.get(item, timeout=60, verify=verify)
+                    self.ui.vnt.get(item, timeout=60, verify=verify, onfinished=partial(self.final_pc_to_pc_process, pls_file, verify))
         else:
             msg = 'Most Probably Media Server not started on Master.'
             logger.error(msg)

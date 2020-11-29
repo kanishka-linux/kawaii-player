@@ -1484,6 +1484,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.playlist_updated = False
         #rpitv, hdmitv, laptopscreen, monitorscreen, none, auto
         self.display_device = "auto"
         self.desktop_session = "lxde"
@@ -6672,6 +6673,7 @@ class Ui_MainWindow(object):
         global site
         update_pl_thumb = True
         self.stale_playlist = True
+        self.playlist_updated = True
         if not self.epn_arr_list and epn_arr is None:
             pass
         else:
