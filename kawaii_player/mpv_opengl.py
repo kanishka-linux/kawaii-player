@@ -43,6 +43,10 @@ def get_proc_addr(_, name):
 
 if sys.platform == 'win32':
     from PyQt5.QtOpenGL import QGLContext
+    try:
+        from ctypes import windll
+    except Exception as err:
+        print(err)
 elif sys.platform == 'darwin':
     from OpenGL.GLUT import glutGetProcAddress
 else:
@@ -1117,6 +1121,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                 self.mpv.command("sub-add", path, opt, "External-Subtitle", lang)
                     
     def idle_observer(self, _name, value):
+        if value is True:
+            self.disable_screen_auto_turnoff(False)
         site = self.ui.get_parameters_value(st='site')['site']
         logger.debug("...{}={}, quit-now={} site={}".format(value, _name, gui.quit_now, site))
         if (value is True and self.started
@@ -1154,7 +1160,17 @@ class MpvOpenglWidget(QOpenGLWidget):
         MainWindow.windowTitleChanged.emit(epn)
         gui.epn_name_in_list = epn
         self.mpv.command("show-text", epn, 2000)
-            
+
+    def disable_screen_auto_turnoff(self, value):
+        try:
+            if os.name == "nt":
+                if value:
+                    windll.kernel32.SetThreadExecutionState(0x80000002)
+                else:
+                    windll.kernel32.SetThreadExecutionState(0x80000000)
+        except Exception as err:
+            logger.error(err)
+
     def time_duration(self, _name, value):
         if value is None:
             value = self.mpv.get_property("duration")
@@ -1168,6 +1184,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             z = 'duration is {:.2f}s'.format(value)
             #gui.progressEpn.setFormat((z))
             gui.mplayerLength = int(value)
+            self.disable_screen_auto_turnoff(True)
             try:
                 self.file_size = self.mpv.get_property('file-size')
             except Exception as err:
