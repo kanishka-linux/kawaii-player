@@ -39,6 +39,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [MPV Input IPC Server](#mpv-input-ipc-server)
 
+- [Using VLC backend](#using-vlc-backend)
+
 - [Troubleshooting](#troubleshooting)
 
 - [Brief Documentation](#documentation)
@@ -397,7 +399,10 @@ Web Interface, contains a search text box which can be used to send text command
         $ yt:getsub (get subtitle if available)
         
         Youtub-Quick-command
-        $ytq:{any link supported by ytdl or torrent http/magnet link}
+        $ ytq:{any link supported by ytdl or torrent http/magnet link}
+
+        Change-playback engine
+        $ playbackengine:libmpv/libvlc etc.. (It will restart the application)
     
 * **About Playlist Support:** Web Interface allows creation and manipulation of playlists. It also supports navigation through playlist history for the current session. The playlist, which is displayed on the web interface also provides contextmenu that provides variety of options. This contextmenu is shown on right clicking any playlist entry. On android firefox, users have to press playlist entry to see the contextmenu. On android chrome, users have to press the thumbnail image to see the contextmenu.
 
@@ -746,6 +751,10 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 - pympv {if using latest libmpv api}
 
+- python-vlc {for using libvlc as playback engine, useful mainly for Raspberry-Pi 4+ models}
+
+- vlc {for using vlc/cvlc binary as playback engine, useful mainly for Raspberry-Pi 4+ models}
+
 **Dependencies installation in Arch**
 
 sudo pacman -S python python-pyqt5 qt5-webengine python-dbus python-pycurl python-pillow python-beautifulsoup4 python-lxml curl libnotify mpv mplayer ffmpegthumbnailer sqlite3 libtorrent-rasterbar youtube-dl wget python-mutagen socat
@@ -767,6 +776,33 @@ MPV has deprecated slave mode, so in order to use mpv binary as playback engine 
 In `other_options.txt` file add `MPV_INPUT_IPC_SERVER=True` and restart player. Then select mpv/MPV as playback engine. After that one will be able to use mpv binary as it is.
 
 One needs to have `socat` installed on the system. It is tested only on ArchLinux and OSX. This feature is not supported on Windows for now.
+
+## Using VLC Backend
+
+Users can use vlc as a backend if required (latest commit).
+
+Users can select vlc/cvlc/libvlc as backend.
+
+For using `libvlc`, one needs to install python-vlc
+
+```
+pip install python-vlc
+```
+
+For using vlc/cvlc, only vlc binary needs to be installed on the system
+
+Featurewise vlc backend haven't reached parity with mpv backend. So many mpv based features won't work with vlc.
+
+The functionality has been added mainly to work with Raspberry-pi 4, and control playback via web interface;
+since, VLC provides good hardware accelerated video experience on RPi.
+
+## Setup New Config Directory
+
+(This feature is available only in the latest changes.)
+
+Create `~/.config/kawaii-player/new_home.txt` file. And add new directory location for config directory, after that restart player.
+
+One needs to copy manually all config files and directory to new location in the beginning, otherwise application will recreate all configs considering config folder as empty.
 
 ## Troubleshooting
 
