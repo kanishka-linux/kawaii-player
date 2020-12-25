@@ -633,6 +633,12 @@ class MpvOpenglWidget(QOpenGLWidget):
                     observer_function = self.observer_map.get(event_prop.name)
                     if observer_function:
                         observer_function(event_prop.name, event_prop.data)
+                elif event.id == mpv.Events.tracks_switched:
+                    prop_name = "sub"
+                    prop_data = self.mpv.get_property("sid")
+                    observer_function = self.observer_map.get(prop_name)
+                    if observer_function:
+                        observer_function(prop_name, prop_data)
             except mpv.MPVError as err:
                 logger.error(err)
 
@@ -1231,7 +1237,10 @@ class MpvOpenglWidget(QOpenGLWidget):
                 filename = urllib.parse.unquote(filename)
 
             # list all mpv-properties
-            # print(self.mpv.get_property("property-list"))
+            #property_list = self.mpv.get_property("property-list")
+            #property_list.sort()
+            #for prop in property_list:
+            #    print(prop)
 
             self.chapter_list = self.mpv.get_property('chapter-list')
             if not self.initial_volume_set:
