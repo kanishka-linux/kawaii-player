@@ -157,6 +157,12 @@ class QProcessExtra(QtCore.QProcess):
                         except Exception as err:
                             time_pos = 0
                         display_string = self.ui.tab_5.display_play_pause_string(time_pos)
+                        if "pause-string-with-details" in cmd:
+                            if self.ui.tab_5.audio_info_text:
+                                display_string = "{}  {}".format(display_string, self.ui.tab_5.audio_info_text)
+                            if self.ui.tab_5.subtitle_info_text:
+                                display_string = "{}  {}".format(display_string, self.ui.tab_5.subtitle_info_text)
+                            display_string = "{}\n{}".format(display_string, self.ui.epn_name_in_list)
                         if self.ui.tab_5.mpv_api == "opengl-render":
                             cmd_tail = self.ui.tab_5.mpv.get_property('osd-sym-cc') + " " + display_string
                         else:
@@ -316,7 +322,7 @@ class PlayerStatusObserver(QtCore.QThread):
         idle_active = self.ui.tab_5.mpv.get_property('idle-active')
         core_idle = self.ui.tab_5.mpv.get_property('core-idle')
         if idle_active in [False, 'no'] and core_idle in [True, 'yes']:
-            self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
+            self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string-with-details')
                 
     def run(self):
         while True:
@@ -525,6 +531,8 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.audio_track_count = 0
         self.subtitle_track_count = 0
         self.try_subtitle_path = None
+        self.audio_info_text = None
+        self.subtitle_info_text = None
 
         self.mpv_gl = None
         if self.mpv_api == "opengl-render":
@@ -868,22 +876,26 @@ class MpvOpenglWidget(QOpenGLWidget):
     def sub_changed(self, _name, value):
         logger.debug('{} {} {}'.format(_name, value, "--sub--"))
         self.sub_id = value
+        txt = "Sub: None"
         if value is False:
-            gui.subtitle_track.setText("Sub: None")
+            gui.subtitle_track.setText(txt)
         else:
             txt = self.get_track_property(value, "sub")
             if txt:
                 gui.subtitle_track.setText(txt)
+        self.subtitle_info_text = txt
                 
     def audio_changed(self, _name, value):
         self.audio_id = value
         logger.debug("{} {} {}".format(_name, value, "--audio--"))
+        txt = "A: None"
         if value is False:
-            gui.audio_track.setText("A: None")
+            gui.audio_track.setText(txt)
         else:
             txt = self.get_track_property(value, "audio")
             if txt:
                 gui.audio_track.setText(txt)
+        self.audio_info_text = txt
 
     def display_play_pause_string(self, value):
         display_string = "None"
