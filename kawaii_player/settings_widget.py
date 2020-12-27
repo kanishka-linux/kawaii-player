@@ -700,7 +700,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         netloc = n.netloc
         val = ui.vnt.cookie_session.get(netloc)
         verify = ui.list2.verify_slave_ssl
-        print(addr, ip, request_url, netloc, val, verify)
+        print(addr, ip, request_url, netloc, val, verify, cmd)
         logger.debug('url={} verify={}'.format(addr, verify))
         if val:
             if cmd in ['remote_on.htm', 'remote_off.htm', 'lock']:
@@ -708,6 +708,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
                            onfinished=partial(self.slave_remote_on_off, cmd))
             elif data:
                 ui.vnt.post(addr, session=True, verify=verify, timeout=10, data=data)
+            elif cmd == 'playpause' and ui.slave_live_status == False:
+                ui.slave_live_status = True
+                ui.vnt.get(addr, session=True, verify=verify, timeout=60, onfinished=partial(ui.list2.final_pc_to_pc_process, "pls", verify))
             else:
                 ui.vnt.get(addr, session=True, verify=verify, timeout=60)
         else:
@@ -716,6 +719,9 @@ class OptionsSettings(QtWidgets.QTabWidget):
                            onfinished=partial(self.slave_remote_on_off, cmd))
             elif data:
                 ui.vnt.post(addr, verify=verify, timeout=10, data=data)
+            elif cmd == 'playpause' and ui.slave_live_status == False:
+                ui.slave_live_status = True
+                ui.vnt.get(addr, verify=verify, timeout=60, onfinished=partial(ui.list2.final_pc_to_pc_process, "pls", verify))
             else:
                 ui.vnt.get(addr, timeout=60, verify=verify)
     
