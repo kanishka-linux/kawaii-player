@@ -387,8 +387,10 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         screen_height = height
 
     def _detach_video(self):
-        if ui.player_val == "libmpv":
-            ui.tab_5.init_mpv_again()
+        if ui.player_val == "libmpv" and platform.system().lower() in ["linux", "windows"]:
+            # disabling detached-video-mode when using libmpv on linux and windows
+            # due to unpredictable behaviour of opengl-render api
+            return 0
         cur_label_num = ui.thumbnail_label_number[0]
         txt = self.d_vid.text()
         ui.float_window_open = True
