@@ -194,7 +194,15 @@ class MediaDatabase():
                     w[:] = []
                     i = os.path.normpath(i)
                     di, na = os.path.split(i)
-                    ti = os.path.basename(di)
+                    metadata_file = os.path.join(di, "metadata.txt")
+                    if os.path.exists(metadata_file):
+                        content = open(metadata_file, "r").read()
+                        content_lines = content.split("\n")
+                        metadata = [(i.split(":")[0].lower(), i.split(":")[1]) for i in content_lines if ":" in i]
+                        metadata_dict = dict(metadata)
+                        ti = metadata_dict.get("title")
+                    else:
+                        ti = os.path.basename(di)
                     pa = i
                     if j == 0:
                         dir_cmp.append(di)
@@ -407,7 +415,15 @@ class MediaDatabase():
                 w[:] = []
                 i = os.path.normpath(i)
                 di, na = os.path.split(i)
-                ti = os.path.basename(di)
+                metadata_file = os.path.join(di, "metadata.txt")
+                if os.path.exists(metadata_file):
+                    content = open(metadata_file, "r").read()
+                    content_lines = content.split("\n")
+                    metadata = [(i.split(":")[0].lower(), i.split(":")[1]) for i in content_lines if ":" in i]
+                    metadata_dict = dict(metadata)
+                    ti = metadata_dict.get("title")
+                else:
+                    ti = os.path.basename(di)
                 pa = i
                 if 'movie' in di.lower():
                     category = self.ui.category_dict['movies']
