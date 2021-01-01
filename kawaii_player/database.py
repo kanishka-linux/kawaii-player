@@ -198,7 +198,7 @@ class MediaDatabase():
                     if os.path.exists(metadata_file):
                         content = open(metadata_file, "r").read()
                         content_lines = content.split("\n")
-                        metadata = [(i.split(":")[0].lower(), i.split(":")[1]) for i in content_lines if ":" in i]
+                        metadata = [(i.split(":")[0].lower(), i.split(":", 1)[-1].strip()) for i in content_lines if ":" in i]
                         metadata_dict = dict(metadata)
                         ti = metadata_dict.get("title")
                     else:
@@ -419,7 +419,7 @@ class MediaDatabase():
                 if os.path.exists(metadata_file):
                     content = open(metadata_file, "r").read()
                     content_lines = content.split("\n")
-                    metadata = [(i.split(":")[0].lower(), i.split(":")[1]) for i in content_lines if ":" in i]
+                    metadata = [(i.split(":")[0].lower(), i.split(":", 1)[-1].strip()) for i in content_lines if ":" in i]
                     metadata_dict = dict(metadata)
                     ti = metadata_dict.get("title")
                 else:

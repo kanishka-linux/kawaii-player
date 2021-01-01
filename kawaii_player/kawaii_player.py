@@ -12940,7 +12940,7 @@ class Ui_MainWindow(object):
             else:
                 m = self.media_data.get_video_db(video_db, video_opt, "")
             for i in m:
-                artist.append(i[0]+'	'+i[1])
+                artist.append("{}\t{}".format(i[0], i[1]))
             self.list1.clear()
             self.original_path_name[:] = []
             logger.info('\n{0}::\n'.format(video_opt))
