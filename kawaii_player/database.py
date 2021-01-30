@@ -26,12 +26,12 @@ from player_functions import open_files, send_notification
 
 try:
     try:
-        import taglib
-        SONG_TAGS = 'taglib'
-    except Exception as err:
-        print(err, '--6--')
         import mutagen
         SONG_TAGS = 'mutagen'
+    except Exception as err:
+        print(err, '--6--')
+        import taglib
+        SONG_TAGS = 'taglib'
 except Exception as err:
     print(err, '--10--')
     SONG_TAGS = None
