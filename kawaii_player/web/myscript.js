@@ -1143,6 +1143,61 @@ function toggle_audio_player(){
 	})    
 }
 
+function goto_previous_chapter(){
+	var client = new postRequest();
+    let data = {'param': 'click', 'widget': 'btn_chapter_minus'};
+	client.post('sending_web_command', data, function(response) {
+	console.log(response);
+	})
+}
+
+function goto_next_chapter(){
+	var client = new postRequest();
+    let data = {'param': 'click', 'widget': 'btn_chapter_plus'};
+	client.post('sending_web_command', data, function(response) {
+	console.log(response);
+	})
+}
+
+function toggle_fullscreen_window(){
+	var client = new postRequest();
+    let data = {'param': 'click', 'widget': 'btn_fs_window'};
+	client.post('sending_web_command', data, function(response) {
+	console.log(response);
+	})
+}
+
+function show_video_stats(){
+	var client = new postRequest();
+    let data = {'param': 'click', 'widget': 'btn_show_stat'};
+	client.post('sending_web_command', data, function(response) {
+	console.log(response);
+	})
+}
+
+function show_video_stats(){
+	var client = new postRequest();
+    let data = {'param': 'click', 'widget': 'btn_show_stat'};
+	client.post('sending_web_command', data, function(response) {
+	console.log(response);
+	})
+}
+
+function change_aspect_ratio(){
+    let aspect_ratio = document.getElementById("aspect_ratio").value;
+    if(aspect_ratio == ""){
+        console.log("no aspect ratio selected");
+    }else{
+	    var client = new postRequest();
+        let data = {'param': 'click', 'widget': aspect_ratio};
+	    client.post('sending_web_command', data, function(response) {
+	    console.log(response);
+	})
+    }
+}
+
+
+
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");

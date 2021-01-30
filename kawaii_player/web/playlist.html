@@ -66,6 +66,20 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
     <button id="fullscreen" title="Toggle Fullscreen">F</button>
     <button id="toggle_audio" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
     <button id="toggle_subtitle" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
+    <button id="prev_chapter" title="Prev Chapter" onclick="goto_previous_chapter()">Chapter-</button>
+    <button id="next_chapter" title="Next Chapter-" onclick="goto_next_chapter()">Chapter+</button>
+    <button id="toggle_fullscreen_window" title="Toggle Fullscreen Window" onclick="toggle_fullscreen_window()">FS</button>
+    <button id="show_stats" title="Video Stats" onclick="show_video_stats()">Stats</button>
+    <div id="aspect_selection" class="select_aspect_ratio">
+    <select id="aspect_ratio" onchange="change_aspect_ratio()">
+        <option value="">Aspect Ratio</option>
+        <option value="btn_aspect_original">Original</option>
+        <option value="btn_aspect_disable">Disable</option>
+        <option value="btn_aspect_4_3">4:3</option>
+        <option value="btn_aspect_16_9">16:9</option>
+        <option value="btn_aspect_235">2.35:1</option>
+    </select>
+    </div>
     <button id="show_player" title="Show Player" onclick="show_player_window()">Show</button>
     <button id="hide_player" title="Hide Player" onclick="hide_player_window()">Hide</button>
     <button id="toggle_master" title="Toggle Master" onclick="toggle_master_slave()">Master</button>

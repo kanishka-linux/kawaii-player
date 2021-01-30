@@ -1676,6 +1676,7 @@ class ExtraToolBar(QtWidgets.QFrame):
     def toggle_master_slave(self):
         txt = self.master_slave_tab_btn.text()
         if txt.lower() == 'master':
+            ui.web_control = "slave"
             self.master_slave_tab_btn.setText('Slave')
             ui.extra_toolbar_control = 'slave'
             if not ui.settings_box.tabs_present:
@@ -1683,6 +1684,7 @@ class ExtraToolBar(QtWidgets.QFrame):
         else:
             self.master_slave_tab_btn.setText('Master')
             ui.extra_toolbar_control = 'master'
+            ui.web_control = "master"
     
     def generate_subtitle_frame(self):
         try:

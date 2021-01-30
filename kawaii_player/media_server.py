@@ -835,6 +835,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 param, value = value, param
             self.final_message(bytes('Command Recieved', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
+        elif self.path.startswith('/sending_web_command'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            param = "param={}".format(content.get("param"))
+            value = "widget={}".format(content.get("widget"))
+            self.final_message(bytes('Command Recieved', 'utf-8'))
+            ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
 
@@ -2078,6 +2087,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 else:
                     ui.web_control = 'master'
                 self.final_message(bytes(ui.web_control, 'utf-8'))
+                ui.frame_extra_toolbar.master_slave_tab_btn.clicked_emit()
                 if not ui.settings_box.tabs_present:
                     ui.gui_signals.box_settings('hide')
             else:

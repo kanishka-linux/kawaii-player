@@ -700,7 +700,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         netloc = n.netloc
         val = ui.vnt.cookie_session.get(netloc)
         verify = ui.list2.verify_slave_ssl
-        print(addr, ip, request_url, netloc, val, verify, cmd)
+        print(addr, ip, request_url, netloc, val, verify, cmd, data)
         logger.debug('url={} verify={}'.format(addr, verify))
         if val:
             if cmd in ['remote_on.htm', 'remote_off.htm', 'lock']:

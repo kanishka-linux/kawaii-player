@@ -434,6 +434,24 @@ height: 12px;
     color: black;   
 }
 
+.select_aspect_ratio select{
+
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-decoration: none;
+    float:left;
+    width: 25%;
+    height: 64px;
+    max-width: 100%;
+    text-align: center;
+}
+
+.select_aspect_ratio select:hover{
+    background-color: #aab7b8;
+    color: black;
+}
 .site_selection button{
     background-color: white;
     border: none;
@@ -581,7 +599,8 @@ height: 12px;
     /*width:86px;*/
     display: grid;
     width: 25%;
-    height: 32px;
+    height: 64px;
+    line-height: 48px;
     /*grid-template-columns: repeat(auto-fill, minmax(32px, 86px));*/
 }
 
