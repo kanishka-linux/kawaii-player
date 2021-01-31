@@ -80,6 +80,12 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
         <option value="btn_aspect_235">2.35:1</option>
     </select>
     </div>
+    <button id="apply_label" title="Click to apply selected label" onclick="apply_video_category()">Apply Label</button>
+    <div id="apply_category" class="select_video_category">
+    <select id="video_label">
+        <option value="">Select Label</option>
+    </select>
+    </div>
     <button id="show_player" title="Show Player" onclick="show_player_window()">Show</button>
     <button id="hide_player" title="Hide Player" onclick="hide_player_window()">Hide</button>
     <button id="toggle_master" title="Toggle Master" onclick="toggle_master_slave()">Master</button>
@@ -94,10 +100,13 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">--</button>
 <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
 <button id="logout">Logout</button>
+<!--
+deprecated these four buttons
 <button id="first_playlist" onclick="get_first_playlist()" title="Navigate to first accessed playlist">First</button>
 <button id="prev_playlist" onclick="get_previous_playlist()" title="Navigate to Previous Playlist">Prev</button>
 <button id="next_playlist" onclick="get_next_playlist()" title="Navigate to Next Playlist">Next</button>
 <button id="last_playlist" onclick="get_last_playlist()" title="Navigate to Last accessed playlist">Last</button>
+-->
 <!--&#x1f5d1;wastebasket-->
 </div>
 

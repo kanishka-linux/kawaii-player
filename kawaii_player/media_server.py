@@ -35,6 +35,7 @@ import importlib as imp
 import subprocess
 import urllib.parse
 import urllib.request
+import sqlite3
 from urllib.parse import urlparse
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -844,6 +845,40 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             value = "widget={}".format(content.get("widget"))
             self.final_message(bytes('Command Recieved', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
+        elif self.path.startswith('/modify_category'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            category = content.get("category")
+            paths = []
+            if category in ui.category_array:
+                playlist = content.get("playlist")
+                for i in playlist:
+                    path = i.split('abs_path=', 1)[1].rsplit("/", 1)[0]
+                    abs_path = str(base64.b64decode(path).decode('utf-8'))
+                    if os.path.exists(abs_path):
+                        paths.append(abs_path)
+
+                if paths:
+                    conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                    cur = conn.cursor()
+                    query_params = [category] + paths
+                    if len(paths) == 1:
+                        qr = 'Update Video Set Category=? Where Path=?'
+                    else: 
+                        s = ", ".join(['?']*len(paths))
+                        qr = 'Update Video Set Category=? Where Path in ({})'.format(s)
+                    cur.execute(qr, tuple(query_params))
+                    logger.debug(qr)
+                    conn.commit()
+                    conn.close()
+                    msg = "playlist added to category {}".format(category)
+                else:
+                    msg = "invalid video paths"
+            else:
+                msg = "category does not exists"
+            self.final_message(bytes(msg, 'utf-8'))
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
 
@@ -1433,8 +1468,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         global html_default_arr, home, ui, logger
         #extra_fields = ''
 
-        extra_fields = 'RemoteField:{0};RemoteControl:{1};Thumbnails:{2};WebControl:{3};'.format(
-            ui.remote_control_field, ui.remote_control, ui.show_client_thumbnails, ui.web_control
+        extra_fields = 'RemoteField:{0};RemoteControl:{1};Thumbnails:{2};WebControl:{3};categories:{4};'.format(
+            ui.remote_control_field, ui.remote_control, ui.show_client_thumbnails, ui.web_control, ",".join(ui.category_array)
             )
         for i in html_default_arr:
             if i.lower() == 'video':

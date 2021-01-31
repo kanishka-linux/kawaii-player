@@ -1196,7 +1196,24 @@ function change_aspect_ratio(){
     }
 }
 
-
+function apply_video_category(){
+    let video_label = document.getElementById("video_label").value;
+    if(video_label == ""){
+        _title.innerHTML = "No label selected";
+    }else{
+        let pls_nodes = document.getElementById("playlist");
+        let pls_arr = []
+        for(let i=0;i<pls_nodes.children.length;i++)
+        {pls_arr.push(pls_nodes.children[i].getAttribute("data-mp3"))
+        }
+	    var client = new postRequest();
+        let data = {'category': video_label, 'playlist': pls_arr};
+	    client.post('modify_category', data, function(response) {
+	    console.log(response);
+        _title.innerHTML = response;
+	})
+    }
+}
 
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
@@ -1846,6 +1863,19 @@ function onDocReady(){
 	}else if (w[3].toLowerCase() == 'webcontrol:slave'){
         _toggle_master.innerHTML = 'Slave';
 		}
+  
+    if (w[4].startsWith("categories:")){
+        let categories = w[4].split(":")[1].split(",");
+        let cat_select = document.getElementById("video_label");
+        for(let i in categories){
+            let label = categories[i];
+            var new_opt = document.createElement("option");
+            new_opt.text = label;
+            new_opt.value = label;
+            cat_select.appendChild(new_opt);
+        }
+        
+	}
     
 	var x = document.getElementById("site").value;
 	console.log(x);

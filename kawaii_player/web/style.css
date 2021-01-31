@@ -452,6 +452,26 @@ height: 12px;
     background-color: #aab7b8;
     color: black;
 }
+
+.select_video_category select{
+
+    background-color: white;
+    border: none;
+    color: black;
+    padding:7px;
+    text-decoration: none;
+    float:left;
+    width: 25%;
+    height: 64px;
+    max-width: 100%;
+    text-align: center;
+}
+
+.select_video_category select:hover{
+    background-color: #aab7b8;
+    color: black;
+}
+
 .site_selection button{
     background-color: white;
     border: none;
