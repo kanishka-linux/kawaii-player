@@ -1215,6 +1215,32 @@ function apply_video_category(){
     }
 }
 
+function rename_video_title(){
+
+    let select = document.getElementById("third_select");
+    let index = select.selectedIndex;
+    let title = "";
+    if(index >= 0){
+        title = select[index].text;
+    }
+    let prompt_val = prompt("Enter New Title:", title)
+	if(prompt_val != null && prompt_val != ''){
+        let pls_nodes = document.getElementById("playlist");
+        let pls_arr = []
+        for(let i=0;i<pls_nodes.children.length;i++)
+        {pls_arr.push(pls_nodes.children[i].getAttribute("data-mp3"))
+        }
+	    var client = new postRequest();
+        let data = {'title': prompt_val, 'playlist': pls_arr};
+	    client.post('rename_title', data, function(response) {
+	    console.log(response);
+        _title.innerHTML = response;
+	})
+    }else{
+        _title.innerHTML = "nothing entered";
+    }
+}
+
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");

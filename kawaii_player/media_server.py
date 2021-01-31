@@ -879,6 +879,45 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 msg = "category does not exists"
             self.final_message(bytes(msg, 'utf-8'))
+        elif self.path.startswith('/rename_title'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            title = content.get("title")
+            paths = []
+            if title and len(title) < 100:
+                playlist = content.get("playlist")
+                for i in playlist:
+                    path = i.split('abs_path=', 1)[1].rsplit("/", 1)[0]
+                    abs_path = str(base64.b64decode(path).decode('utf-8'))
+                    if os.path.exists(abs_path):
+                        paths.append(abs_path)
+
+                if paths:
+                    conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                    cur = conn.cursor()
+                    query_params = [title] + paths
+                    if len(paths) == 1:
+                        qr = 'Update Video Set Title=? Where Path=?'
+                    else: 
+                        s = ", ".join(['?']*len(paths))
+                        qr = 'Update Video Set Title=? Where Path in ({})'.format(s)
+                    cur.execute(qr, tuple(query_params))
+                    rows_changed = cur.rowcount
+                    logger.debug(qr)
+                    conn.commit()
+                    conn.close()
+                    if rows_changed > 0:
+                        msg = "Title Changed to {}, rows affected = {}".format(title, rows_changed)
+                    else:
+                        msg = "0 rows affected, Title not changed"
+
+                else:
+                    msg = "invalid video paths"
+            else:
+                msg = "no title"
+            self.final_message(bytes(msg, 'utf-8'))
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
 
