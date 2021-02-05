@@ -1241,6 +1241,29 @@ function rename_video_title(){
     }
 }
 
+function fetch_poster(mode){
+
+    console.log(mode)
+    let select = document.getElementById("third_select");
+    let index = select.selectedIndex;
+    let title = "";
+    if(index >= 0){
+        title = select[index].text;
+    }
+    let prompt_val = prompt("Enter URL of the poster:", "")
+	if(prompt_val != null && prompt_val != ''){
+	    var client = new postRequest();
+        let data = {'url': prompt_val, 'title': title, 'mode': mode, 'site_option': 'video'};
+	    client.post('fetch-posters', data, function(response) {
+	    console.log(response);
+        _title.innerHTML = response;
+	})
+    }else{
+        _title.innerHTML = "nothing entered";
+    }
+}
+
+
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");

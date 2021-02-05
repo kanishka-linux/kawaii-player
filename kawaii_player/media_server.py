@@ -845,6 +845,22 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             value = "widget={}".format(content.get("widget"))
             self.final_message(bytes('Command Recieved', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
+        elif self.path.startswith('/fetch-posters'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            title = content.get("title")
+            url = content.get("url")
+            mode = content.get("mode")
+            site_option = content.get("site_option")
+            if mode == "poster" and title is not None and url is not None and url.startswith("http"):
+                ui.remove_fanart(site_option, title, "remove_poster")
+                ui.fetch_fanart(site_option, url, title, "poster")
+            elif mode == "fanart" and title is not None and url is not None and url.startswith("http"):
+                ui.remove_fanart(site_option, title, "remove_fanart")
+                ui.fetch_fanart(site_option, url, title, "fanart")
+            self.final_message(bytes('Command Recieved', 'utf-8'))
         elif self.path.startswith('/modify_category'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):

@@ -2699,7 +2699,45 @@ class Ui_MainWindow(object):
         if platform.system().lower() == "darwin":
             self.video_mode_index = 3
             self.comboBoxMode.setCurrentIndex(2)
-    
+
+    def remove_fanart(self, site_option, title, action=None):
+        path = self.get_metadata_directory(site_option, title)
+        print(path, "path....")
+
+        if path is not None and action == "remove_poster":
+            posters = [i for i in os.listdir(path) if "poster.jpg" in i or "thumbnail.jpg" in i]
+            for i in posters:
+                full_path = os.path.join(path, i)
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+        elif path is not None and action == "remove_fanart":
+            path = ui.get_current_directory()
+            fanart = [i for i in os.listdir(path) if "fanart" in i]
+            for i in fanart:
+                full_path = os.path.join(path, i)
+                if os.path.exists(full_path):
+                    os.remove(full_path)   
+
+    def fetch_fanart(self, site_option, url, title, mode=None):
+        path = self.get_metadata_directory(site_option, title)
+        print(path, url, "fetch..")
+        if mode == "fanart":
+            fanart_path = os.path.join(path, "fanart.jpg")
+            print(fanart_path, "--")
+            self.vnt.get(url, out=fanart_path)
+        elif mode == "poster":
+            poster_path = os.path.join(path, "poster.jpg")
+            print(poster_path, "--")
+            self.vnt.get(url, out=poster_path)
+
+    def get_metadata_directory(self, site_option, title):
+        global home
+        if site_option == "video" and title is not None:
+            path = os.path.join(home, "Local", title)
+        else:
+            path = None
+        return path
+ 
     def change_fanart_aspect(self, var):
         dir_name = self.get_current_directory()
         fanart = os.path.join(dir_name, 'fanart.jpg')
