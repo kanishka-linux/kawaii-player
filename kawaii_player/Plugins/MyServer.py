@@ -166,7 +166,7 @@ class MyServer:
                 print(link_text)
                 if link_text:
                     link_text = link_text.text
-                    arr = re.search('Video[^"]*', link_text).group()
+                    arr = re.search('Video:[^"]*', link_text).group()
                     arr_split = arr.split(';')
                     print(arr_split)
                     old_j = None
