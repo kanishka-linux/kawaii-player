@@ -588,17 +588,13 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 2. Arch Users can also get package from AUR. [Latest release](https://aur.archlinux.org/packages/kawaii-player/), thanks to **Nocipher** and [git-version](https://aur.archlinux.org/packages/kawaii-player-git/), thanks to **SolarAquarion**.
 
-3. For Ubuntu or Debian based distro.
+3. For Ubuntu or Debian based distros.
 	
-	- Users can directly go to Release section and download appropriate .deb package and install it using
+	- Users can directly go to Release section, download appropriate .deb package, and install it using
  
-			sudo gdebi pkg_name.deb. 
+			sudo apt install ./kawaii-player-<version>.deb
 
-		If 'gdebi' is not installed then install it using 
-
-			'sudo apt-get install gdebi'. 
-
-	- If user wants to install the application directly from source:
+	- If a user wants to install the application directly from source:
 		
 			$ git clone https://github.com/kanishka-linux/kawaii-player
              
@@ -609,9 +605,9 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
             
 			$ python3 create_deb.py
 		
-			Above three steps will create .deb package from latest source, which users can install using gdebi.
+			The above steps will create a .deb package from latest source, which users can install using apt.
 				
-	- **gdebi** will resolve all the dependencies while installing the package. Normally **dpkg -i** is used for installing .deb package in Debian based distros, but 'dpkg' won't install dependencies automatically, which users have to install manually as per instructions given below. Hence try to use **gdebi** for convenience.
+	- Specifying the path to the .deb is important when installing, otherwise apt will look for the package `kawaii‑player‑<version>.deb` online instead of the working directory.
 	
 	- PyQt5 available in ubuntu repository is normally older compared to latest release and packages QtWebKit (which has been deprecated since Qt-5.6) instead of QtWebEngine. If user wants to try the application with latest PyQt5 version with QtWebEngine as browser backend, then they should install the application first as per the steps given above and then they should use following command to install PyQt5 using pip (only possible for 64-bit systems).
 	
