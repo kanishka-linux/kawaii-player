@@ -28,6 +28,9 @@ usr_share = os.path.join(dest_dir,'usr','share','applications')
 usr_bin = os.path.join(dest_dir,'usr','bin')
 usr_share_kawaii = os.path.join(dest_dir,'usr','share','kawaii-player')
 
+class DpkgDebError(Exception):
+	pass
+
 if dest_dir:
 	if os.path.exists(dest_dir):
 		shutil.rmtree(dest_dir)
@@ -38,8 +41,14 @@ if dest_dir:
 	shutil.copy(exec_file,usr_bin)
 	shutil.copy(desk_file,usr_share)
 	shutil.copytree(src_dir,usr_share_kawaii)
-	subprocess.call(['dpkg-deb','--build',dest_dir])
-	deb_pkg = os.path.basename(dest_dir)+'.deb'
-	print('deb package created successfully in current directory. Now install the package using command: \n\nsudo gdebi {0}\n\n'.format(deb_pkg))
+	dpkg_errcode = subprocess.call(['dpkg-deb','--build',dest_dir])
+	deb_pkg = './'+os.path.basename(dest_dir)+'.deb'
+	if not dpkg_errcode:
+		if os.path.exists(deb_pkg):
+			print('.deb package created successfully in current directory. Now install the package using command: \n\nsudo apt install {}\n\n'.format(deb_pkg))
+		else:
+			raise FileNotFoundError('{} not found'.format(deb_pkg))
+	else:
+		raise DpkgDebError
 else:
 	print('no version number in control file')
