@@ -158,6 +158,7 @@ def start_player_remotely(nm, mode):
         ui.player_hide_btn.clicked_emit()
     elif (ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "libvlc"]) or ui.web_control == 'slave':
         if mode == 'stop':
+            ui.update_video_playlist_status("row")
             ui.stop_from_client = True
             if ui.web_control == 'master':
                 #if MainWindow.isFullScreen():
@@ -2075,7 +2076,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if nm.startswith('"'):
                 nm = nm.replace('"', '')
             self.process_url(nm, get_bytes)
-        elif path.startswith('playlist_') or path.startswith('queueitem_') or path.startswith('queue_remove_item_'):
+        elif path.startswith('playlist_') or path.startswith('queueitem_') or path.startswith('queue_remove_item_') or path.startswith("play_last_item_"):
             try:
                 pl, row = path.rsplit('_', 1)
                 if row.isnumeric():
@@ -2085,6 +2086,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if ui.remote_control and ui.remote_control_field:
                     b = b'Playing file'
                     if path.startswith('playlist_'):
+                        self.nav_signals.control_signal(row_num, 'normal')
+                    elif path.startswith("play_last_item_"):
+                        row_num = ui.read_from_video_playlist_status("row")
                         self.nav_signals.control_signal(row_num, 'normal')
                     elif path.startswith('queueitem_'):
                         b = b'queued'

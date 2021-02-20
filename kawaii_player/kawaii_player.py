@@ -1484,6 +1484,7 @@ class Ui_MainWindow(object):
         self.torrent_handle = ''
         self.list_with_thumbnail = True
         self.mpvplayer_val = QProcessExtra(ui=self)
+        self.current_video_metadata_path = None
         self.playlist_updated = False
         #rpitv, hdmitv, laptopscreen, monitorscreen, none, auto
         self.display_device = "auto"
@@ -7912,6 +7913,7 @@ class Ui_MainWindow(object):
         global siteName
         global screen_height, screen_width
         
+        self.current_video_metadata_path = None
         new_dir_path = None
         fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
         thumbnail = os.path.join(TMPDIR, name+'-thumbnail.jpg')
@@ -8308,6 +8310,9 @@ class Ui_MainWindow(object):
                     logger.info(picn)
                 else:
                     os.makedirs(dir_path)
+                self.current_video_metadata_path = dir_path
+                self.cur_row = self.read_from_video_playlist_status("row")
+                
         self.current_background = fanart
         self.update_list2()
         if show_ep_thumbnail:
@@ -8458,7 +8463,24 @@ class Ui_MainWindow(object):
                         self.videoImage(thumb_path, thumb_path, thumb_path, '')
                 except Exception as e:
                     print('No Thumbnail Available: {0}'.format(e))
-                    
+
+    def read_from_video_playlist_status(self, option=None):
+        row = 0
+        if option == "row" and self.current_video_metadata_path and os.path.exists(self.current_video_metadata_path):
+            status_file = os.path.join(self.current_video_metadata_path, "status.txt")
+            if os.path.exists(status_file):
+                content = open(status_file).read()
+                content = content.strip()
+                if content.isnumeric():
+                    row = int(content)
+        return row
+
+    def update_video_playlist_status(self, option=None):
+        if option == "row" and ui.current_video_metadata_path and os.path.exists(ui.current_video_metadata_path):
+            status_file = os.path.join(ui.current_video_metadata_path, "status.txt")
+            with open(status_file, "w") as f:
+                f.write("{}".format(ui.cur_row))
+
     def round_corner(self, im, rad):
         circle = Image.new('L', (rad * 2, rad * 2), 0)
         draw = ImageDraw.Draw(circle)

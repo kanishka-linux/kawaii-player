@@ -2688,6 +2688,13 @@ function get_last_playlist(){
 	})
 }
 
+function play_last_item_from_playlist(){
+    var client = new getRequest();
+	client.get('play_last_item_0', function(response) {
+        console.log(response);
+	})
+}
+
 function get_first_playlist(){
     var client = new getRequest();
 	client.get('get_first_playlist', function(response) {
