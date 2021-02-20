@@ -1262,7 +1262,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             send_notification('Slave IP Address not set')
                        
                             
-    def start_pc_to_pc_casting(self, mode, row, browser_data=None):
+    def start_pc_to_pc_casting(self, mode, row, browser_data=None, direct_link=None):
         cur_row = str(row)
         file_path = os.path.join(self.ui.home_folder, 'slave.txt')
         if not os.path.isfile(file_path):
@@ -1275,7 +1275,16 @@ class PlaylistWidget(QtWidgets.QListWidget):
         http_val = "http"
         if self.ui.https_media_server:
             http_val = "https"
-        if browser_data:
+        if mode == "play quick":
+            if not item.startswith('http') and not item.startswith('https'):
+                item = 'http://{}/{}'.format(item, direct_link)
+            elif item.endswith('/'):
+                item = '{}{}'.format(item, direct_link)
+            else:
+                item = '{}/{}'.format(item, direct_link)
+            logger.debug(item)
+            self.ui.vnt.get(item, binary=True, timeout=60, verify=False) 
+        elif browser_data:
             self.process_pc_to_pc_casting(mode, row, item, browser_data)
         elif mode == 'direct index':
             self.process_pc_to_pc_casting(mode, row, item, [])

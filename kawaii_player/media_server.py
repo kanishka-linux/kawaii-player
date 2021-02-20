@@ -2966,11 +2966,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 url = self.path.replace('/youtube_quick=', '', 1)
                 logger.debug(url)
                 if url.startswith('http') or url.startswith('magnet:'):
-                    ui.media_server_cache_playlist.clear()
-                    ui.navigate_playlist_history.clear()
-                    ui.quick_url_play = url
-                    logger.debug(ui.quick_url_play)
-                    ui.quick_url_play_btn.clicked_emit()
+                    if ui.web_control == "slave":
+                        ui.list2.start_pc_to_pc_casting("play quick", 0, None, path)
+                    else:
+                        ui.media_server_cache_playlist.clear()
+                        ui.navigate_playlist_history.clear()
+                        ui.quick_url_play = url
+                        logger.debug(ui.quick_url_play)
+                        ui.quick_url_play_btn.clicked_emit()
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -3489,19 +3492,27 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             nm = vid
                     self.process_offline_mode(nm, pls, title, msg=False, captions=sub_title, url=url)
             else:
+                content = None
                 try:
                     req = urllib.request.Request(
                         url, data=None, headers={'User-Agent': 'Mozilla/5.0'}
                         )
-                    f = urllib.request.urlopen(req)
-                    content = f.read().decode('utf-8')
+                    resp = urllib.request.urlopen(req)
+                    info = resp.info()
+                    content_type = info.get_content_type() 
+                    if content_type == "text/html":
+                        content = resp.read().decode('utf-8')
                 except Exception as e:
                     print(e, '---2279---')
                     return op_success
-                soup = BeautifulSoup(content, 'lxml')
-                title = soup.title.text.strip()
-                logger.info(title)
-                url = 'ytdl:'+url
+                if content:
+                    soup = BeautifulSoup(content, 'lxml')
+                    title = soup.title.text.strip()
+                    logger.info(title)
+                    url = 'ytdl:'+url
+                else:
+                    title = url.rsplit("/", 1)[-1]
+                    title = urllib.parse.unquote(title)
                 new_line = title + '\t' + url + '\t' + 'NONE'
                 pls_path = os.path.join(home, 'Playlists', pls)
                 if os.path.exists(pls_path):
