@@ -3642,7 +3642,7 @@ class Ui_MainWindow(object):
                 rem_quit = 1
             else:
                 rem_quit = 0
-            if abs(self.mplayerLength - counter) < 120:
+            if abs(self.mplayerLength - counter) < 120 or counter < 60:
                 rem_quit = 0
             if site != 'Music' or rem_quit:
                 param_avail = False
@@ -3654,7 +3654,7 @@ class Ui_MainWindow(object):
                 if not param_avail:        
                     asp = self.mpvplayer_aspect.get(str(self.mpvplayer_aspect_cycle))
                     vol = self.player_volume
-                if self.player_val == "libmpv" and self.stop_from_client and self.pc_to_pc_casting == "slave":
+                if self.player_val == "libmpv" and self.stop_from_client:
                     save_url = self.final_playing_url.rsplit("/&master_token=", 1)[0]
                     self.tab_5.rem_properties(save_url, rem_quit, last_position)
                 else:

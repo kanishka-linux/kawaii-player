@@ -183,6 +183,11 @@ def start_player_remotely(nm, mode):
                 else:
                     ui.player_next.clicked_emit()
             else:
+                if ui.cur_row < ui.list2.count()-1 and ui.cur_row >= 0:
+                    ui.cur_row = ui.cur_row + 1
+                else:
+                    ui.cur_row = ((ui.cur_row+1)%ui.list2.count())
+                ui.list2.setCurrentRow(ui.cur_row)
                 ui.settings_box.playernext.clicked_emit()
         elif mode == 'prev':
             if ui.web_control == 'master':
@@ -196,6 +201,11 @@ def start_player_remotely(nm, mode):
                 else:
                     ui.player_prev.clicked_emit()
             else:
+                if ui.cur_row > 0:
+                    ui.cur_row = ui.cur_row - 1
+                else:
+                    ui.cur_row = ui.list2.count() - 1
+                ui.list2.setCurrentRow(ui.cur_row)
                 ui.settings_box.playerprev.clicked_emit()
         elif mode == 'seek':
             if nm == 10:
