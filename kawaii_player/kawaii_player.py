@@ -3642,6 +3642,8 @@ class Ui_MainWindow(object):
                 rem_quit = 1
             else:
                 rem_quit = 0
+            if abs(self.mplayerLength - counter) < 120:
+                rem_quit = 0
             if site != 'Music' or rem_quit:
                 param_avail = False
                 if self.video_parameters:
