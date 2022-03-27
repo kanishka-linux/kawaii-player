@@ -106,7 +106,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         if self.objectName() == 'label_new':
             if not ui.list1.isHidden() and not ui.list2.isHidden() and not ui.text.isHidden():
                 self.setMaximumWidth(ui.label_new_width)
-                self.setMaximumHeight(2.5*ui.height_allowed)
+                self.setMaximumHeight(int(2.5*ui.height_allowed))
                 ui.text.setMaximumWidth(ui.text_width)
                 self.prev_dim_label = (self.maximumWidth(), self.maximumHeight())
                 self.rect = QtCore.QRect(self.x()+20, self.y()+20, self.width()-40, self.height()-40)
