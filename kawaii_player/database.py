@@ -92,7 +92,7 @@ class MediaDatabase():
         q = queryType
         qVal = str(queryVal)
         print(music_db)
-        error_occured = False
+        error_occurred = False
         if q.lower() == "directory":
             if not qVal:
                 cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
@@ -126,9 +126,9 @@ class MediaDatabase():
                     cur.execute('SELECT distinct Title, Directory FROM Video Where Category=? order by Title', (cat_type,))
                 except Exception as err:
                     self.logger.info(err)
-                    error_occured = True
+                    error_occurred = True
                     rows = [('none','none')]
-        if not error_occured:
+        if not error_occurred:
             rows = cur.fetchall()
             if q.lower() in ['history', 'recent']:
                 rows_access = []

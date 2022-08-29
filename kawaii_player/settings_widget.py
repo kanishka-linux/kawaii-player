@@ -1394,7 +1394,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.text46.setText("Gapless Playback")
         self.player_list.append('gapless_playback')
         msg = 'Experimental. Useful for playlist containing local files and for \
-               aceesing media server library in p2p mode. Do not use it on playlist\
+               accessing media server library in p2p mode. Do not use it on playlist\
                with mix of local files and network streams'
         self.text46.setToolTip('<html>{}</html>'.format(msg))
         

@@ -2092,7 +2092,7 @@ class ExtraToolBar(QtWidgets.QFrame):
                 if cmd:
                     self.execute_command(cmd)
                 
-    def apply_slave_subtitile_effects(self, widget_name, color_name):
+    def apply_slave_subtitle_effects(self, widget_name, color_name):
         widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
         widget.setStyleSheet('background:{};'.format(color_name))
         cmd = None

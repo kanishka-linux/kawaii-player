@@ -967,7 +967,7 @@ class MPV(object):
         self._event_callbacks.append(callback)
 
     def unregister_event_callback(self, callback):
-        """Unregiser an event callback."""
+        """Unregister an event callback."""
         self._event_callbacks.remove(callback)
 
     def event_callback(self, *event_types):
@@ -1051,7 +1051,7 @@ class MPV(object):
         don't do that.
 
         BIG FAT WARNING: mpv's key binding mechanism is pretty powerful.  This means, you essentially get arbitrary code
-        exectution through key bindings. This interface makes some limited effort to sanitize the keydef given in the
+        execution through key bindings. This interface makes some limited effort to sanitize the keydef given in the
         first parameter, but YOU SHOULD NOT RELY ON THIS IN FOR SECURITY. If your input comes from config files, this is
         completely fine--but, if you are about to pass untrusted input into this parameter, better double-check whether
         this is secure in your case.
