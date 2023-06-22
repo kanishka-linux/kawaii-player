@@ -406,7 +406,7 @@ _mpv_create = backend.mpv_create
 _handle_func('mpv_create_client',           [c_char_p],                                 MpvHandle, notnull_errcheck)
 _handle_func('mpv_client_name',             [],                                         c_char_p, errcheck=None)
 _handle_func('mpv_initialize',              [],                                         c_int, ec_errcheck)
-_handle_func('mpv_detach_destroy',          [],                                         None, errcheck=None)
+_handle_func('mpv_destroy',          [],                                         None, errcheck=None)
 _handle_func('mpv_terminate_destroy',       [],                                         None, errcheck=None)
 _handle_func('mpv_load_config_file',        [c_char_p],                                 c_int, ec_errcheck)
 _handle_func('mpv_get_time_us',             [],                                         c_ulonglong, errcheck=None)
@@ -439,15 +439,6 @@ _handle_func('mpv_wait_event',              [c_double],                         
 _handle_func('mpv_wakeup',                  [],                                         None, errcheck=None)
 _handle_func('mpv_set_wakeup_callback',     [WakeupCallback, c_void_p],                 None, errcheck=None)
 _handle_func('mpv_get_wakeup_pipe',         [],                                         c_int, errcheck=None)
-
-_handle_func('mpv_get_sub_api',             [MpvSubApi],                                c_void_p, notnull_errcheck)
-
-_handle_gl_func('mpv_opengl_cb_set_update_callback',    [OpenGlCbUpdateFn, c_void_p])
-_handle_gl_func('mpv_opengl_cb_init_gl',                [c_char_p, OpenGlCbGetProcAddrFn, c_void_p],    c_int)
-_handle_gl_func('mpv_opengl_cb_draw',                   [c_int, c_int, c_int],                          c_int)
-_handle_gl_func('mpv_opengl_cb_render',                 [c_int, c_int],                                 c_int)
-_handle_gl_func('mpv_opengl_cb_report_flip',            [c_ulonglong],                                  c_int)
-_handle_gl_func('mpv_opengl_cb_uninit_gl',              [],                                             c_int)
 
 try:
     _handle_func('mpv_render_context_set_update_callback',
@@ -539,7 +530,7 @@ def _event_loop(event_handle, playback_cond, event_callbacks, message_handlers, 
                 if target in message_handlers:
                     message_handlers[target](*args)
             if eid == MpvEventID.SHUTDOWN:
-                _mpv_detach_destroy(event_handle)
+                _mpv_destroy(event_handle)
                 return
         except Exception as e:
             traceback.print_exc()

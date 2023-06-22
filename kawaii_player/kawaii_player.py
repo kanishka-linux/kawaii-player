@@ -188,7 +188,6 @@ from settings_widget import LoginAuth, LoginPCToPC, OptionsSettings
 from media_server import ThreadServerLocal
 from database import MediaDatabase
 from player import PlayerWidget
-from mpv_bak import MPV
 from mpv_opengl import MpvOpenglWidget, QProcessExtra
     
     
@@ -13642,7 +13641,7 @@ class Ui_MainWindow(object):
     def setup_opengl_widget(self, app):
         libmpv_api = get_config_options(HOME_OPT_FILE, 'LIBMPV_API')
         logger.debug(libmpv_api)
-        if isinstance(libmpv_api, str) and libmpv_api.lower() in ["opengl-cb", "opengl-render"]:
+        if isinstance(libmpv_api, str) and libmpv_api.lower() == "opengl-render":
             libmpv_api = libmpv_api.lower()
         else:
             libmpv_api = None

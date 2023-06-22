@@ -23,14 +23,11 @@ import subprocess
 
 from OpenGL import GL
 
-from mpv_bak import MPV, _mpv_get_sub_api, _mpv_opengl_cb_set_update_callback, \
-        _mpv_opengl_cb_init_gl, OpenGlCbGetProcAddrFn, _mpv_opengl_cb_draw, \
-        _mpv_opengl_cb_report_flip, MpvSubApi, OpenGlCbUpdateFn, _mpv_opengl_cb_uninit_gl
 try:
     import mpv
 except Exception as err:
     print(err)
-    print("only opengl-cb api is available")
+    print("mpv opengl-render API not detected. Please install pympv")
     
 from player import PlayerWidget, KeyBoardShortcuts
 
@@ -376,13 +373,9 @@ class InitAgainThread(QtCore.QThread):
     
     def run(self):
         path = self.me.mpv.get_property("path")
-        if self.me.mpv_api == "opengl-cb":
-            self.me.quit_watch_later('quit-watch-later', True)
-            _mpv_opengl_cb_uninit_gl(self.me.mpv_gl)
-        else:
-            self.me.mpv.command('quit-watch-later')
-            if self.me.mpv_gl:
-                self.me.mpv_gl.close()
+        self.me.mpv.command('quit-watch-later')
+        if self.me.mpv_gl:
+            self.me.mpv_gl.close()
         aud = None
         if path and not os.path.exists(path):
             aud = self.me.get_external_audio_file()
@@ -394,8 +387,6 @@ def mpv_cmd_direct(cmd):
     global ui
     func, api, me, path, aud = cmd
     site = ui.get_parameters_value(st='site')['site']
-    if api == "opengl-cb":
-        func()
     try:
         pls_pos = me.mpv.get_property("playlist-pos")
         if (path and os.path.exists(path) 
@@ -423,10 +414,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         MainWindow = parent
         logger = logr
         self.app = app
-        if mpv_api in ["opengl-cb", "opengl-render"]:
-            self.mpv_api = mpv_api
-        else:
-            self.mpv_api = "opengl-cb"
+        self.mpv_api = mpv_api
         logger.debug("using {}".format(self.mpv_api))
         self.args_dict = {'vo':'libmpv', 'ytdl':True,
                          'loop_playlist':'inf', 'idle':True,
@@ -535,10 +523,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.subtitle_info_text = None
 
         self.mpv_gl = None
-        if self.mpv_api == "opengl-render":
-            self.init_opengl_render()
-        else:
-            self.init_opengl_cb()
+        self.init_opengl_render()
         self.frameSwapped.connect(self.swapped, Qt.DirectConnection)
 
     def init_opengl_cb(self):
@@ -560,13 +545,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property("playlist-pos", self.playlist_position_observer)
         self.mpv.observe_property("core-idle", self.core_observer)
         self.init_mpv_opengl_cb()
-        
-    def init_mpv_opengl_cb(self):
-        self.mpv_gl = _mpv_get_sub_api(self.mpv.handle, MpvSubApi.MPV_SUB_API_OPENGL_CB)
-        self.on_update_c = OpenGlCbUpdateFn(self.on_update)
-        self.on_update_fake_c = OpenGlCbUpdateFn(self.on_update_fake)
-        self.get_proc_addr_c = OpenGlCbGetProcAddrFn(get_proc_addr)
-        _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_c, None)
 
     def init_opengl_render(self):
         self.mpv = mpv.Context()
@@ -621,7 +599,7 @@ class MpvOpenglWidget(QOpenGLWidget):
     def eventHandler(self):
         while self.mpv:
             try:
-                event = self.mpv.wait_event(.01)
+                event = self.mpv.wait_event(1)
                 if event.id in {mpv.Events.none, mpv.Events.shutdown}:
                     break
                 elif event.id == mpv.Events.log_message:
@@ -633,44 +611,25 @@ class MpvOpenglWidget(QOpenGLWidget):
                     observer_function = self.observer_map.get(event_prop.name)
                     if observer_function:
                         observer_function(event_prop.name, event_prop.data)
-                elif event.id == mpv.Events.tracks_switched:
-                    prop_name = "sub"
-                    prop_data = self.mpv.get_property("sid")
-                    observer_function = self.observer_map.get(prop_name)
-                    if observer_function:
-                        observer_function(prop_name, prop_data)
             except mpv.MPVError as err:
                 logger.error(err)
 
     def initializeGL(self):
-        if self.mpv_api == "opengl-render":
             try:
                 self.mpv_gl = mpv.OpenGLRenderContext(self.mpv, getProcAddress)
                 self.mpv_gl.set_update_callback(self.maybe_update)
             except Exception as err:
                 logger.error(err)
-        else:
-            _mpv_opengl_cb_init_gl(self.mpv_gl, None, self.get_proc_addr_c, None)
         
     def paintGL(self):
         w = int(self.width()* self.dpr)
         h = int(self.height()* self.dpr)
-        if self.mpv_api == "opengl-render":
-            func = partial(self.mpv_gl.render, opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
-        else:
-            func = partial(_mpv_opengl_cb_draw, self.mpv_gl, self.defaultFramebufferObject(), w, -h)
+        func = partial(self.mpv_gl.render, opengl_fbo={"w": w, "h": h, "fbo": self.defaultFramebufferObject()}, flip_y=True)
         func()
         
     @pyqtSlot()
     def maybe_update(self):
-        if (self.isMinimized() or self.isHidden()) and self.mpv_api == "opengl-cb":
-            self.makeCurrent()
-            self.paintGL()
-            self.context().swapBuffers(self.context().surface())
-            self.swapped()
-            self.doneCurrent()
-        else:
-            self.update()
+        self.update()
 
     def on_update(self, ctx=None):
         QMetaObject.invokeMethod(self, 'maybe_update')
@@ -679,25 +638,16 @@ class MpvOpenglWidget(QOpenGLWidget):
         pass
 
     def swapped(self):
-        if self.mpv_api == "opengl-render":
-            if self.mpv_gl:
-                self.mpv_gl.report_swap()
-        else:
-            _mpv_opengl_cb_report_flip(self.mpv_gl, 0)
+        if self.mpv_gl:
+            self.mpv_gl.report_swap()
         
     def closeEvent(self, _):
-        if self.mpv_api == "opengl-render":
-            if self.mpv_gl:
-                self.mpv_gl.close()
-        else:
-            self.makeCurrent()
-            if self.mpv_gl:
-                _mpv_opengl_cb_set_update_callback(self.mpv_gl, self.on_update_fake_c, None)
-            _mpv_opengl_cb_uninit_gl(self.mpv_gl)
+        if self.mpv_gl:
+            self.mpv_gl.close()
         self.mpv.terminate()
         
     def init_mpv_again(self):
-        if self.mpv_api in ["opengl-cb", "opengl-render"] and platform.system().lower() in ["linux", "windows"]:
+        if self.mpv_api == "opengl-render" and platform.system().lower() in ["linux", "windows"]:
             if not self.init_again_thread.isRunning():
                 self.init_again_thread = InitAgainThread(self.ui, self)
                 self.init_again_thread.start()
