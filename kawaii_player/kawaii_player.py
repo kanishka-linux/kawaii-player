@@ -3021,7 +3021,7 @@ class Ui_MainWindow(object):
                 img = Image.open(str(art_url))
                 wpercent = (basewidth / float(img.size[0]))
                 hsize = int((float(img.size[1]) * float(wpercent)))
-                img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                 try:
                     img.save(str(abs_path_thumb))
                 except Exception as err:
@@ -3037,7 +3037,7 @@ class Ui_MainWindow(object):
                     img = Image.open(str(self.default_background))
                     wpercent = (basewidth / float(img.size[0]))
                     hsize = int((float(img.size[1]) * float(wpercent)))
-                    img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                    img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                     try:
                         img.save(str(abs_path_thumb))
                     except Exception as err:
@@ -3052,7 +3052,7 @@ class Ui_MainWindow(object):
                 img = Image.open(str(self.default_background))
                 wpercent = (basewidth / float(img.size[0]))
                 hsize = int((float(img.size[1]) * float(wpercent)))
-                img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                 try:
                     img.save(str(abs_path_thumb))
                 except Exception as err:
@@ -8546,7 +8546,7 @@ class Ui_MainWindow(object):
                         hsize = int((float(img.size[1]) * float(wpercent)))
                     
                     if widget == self.float_window or alt_asp:
-                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                        img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                         bg = Image.new(color, (basewidth, widget.height()))
                         if hsize < widget.height():
                             offset = int((widget.height() - hsize)/2)
@@ -8563,7 +8563,7 @@ class Ui_MainWindow(object):
                             self.handle_png_to_jpg(tmp_img, bg)
                         return tmp_img
                     else:
-                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                        img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                         bg = Image.new(color, (basewidth, hsize))
                         bg.paste(img, (0, 0))
                         try:
@@ -8581,7 +8581,7 @@ class Ui_MainWindow(object):
                         img = Image.open(str(picn))
                     wpercent = (baseheight / float(img.size[1]))
                     wsize = int((float(img.size[0]) * float(wpercent)))
-                    img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
+                    img = img.resize((wsize, baseheight), PIL.Image.LANCZOS)
                     #img.save(str(fanart), 'JPEG', quality=100)
                     bg = Image.new(color, (wsize, screen_height))
                     bg.paste(img, (0, 0))
@@ -8600,7 +8600,7 @@ class Ui_MainWindow(object):
                         img = Image.open(str(picn))
                     wpercent = (baseheight / float(img.size[1]))
                     wsize = int((float(img.size[0]) * float(wpercent)))
-                    img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
+                    img = img.resize((wsize, baseheight), PIL.Image.LANCZOS)
                     bg = Image.new(color, (wsize+20, baseheight))
                     offset = (0, 0)
                     bg.paste(img, offset)
@@ -8620,7 +8620,7 @@ class Ui_MainWindow(object):
                     wpercent = (baseheight / float(img.size[1]))
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     sz = (wsize, baseheight)
-                    img = img.resize((wsize, baseheight), PIL.Image.ANTIALIAS)
+                    img = img.resize((wsize, baseheight), PIL.Image.LANCZOS)
                     bg = Image.new(color, (screen_width, screen_height), color_val)
                     if fit_size == 5:
                         offset = (int((screen_width-wsize)/2), int((screen_height-baseheight)/2))
@@ -8646,7 +8646,7 @@ class Ui_MainWindow(object):
                     wsize = int((float(img.size[0]) * float(wpercent)))
                     sz = (wsize, baseheight)
                     
-                    img = img.resize(sz, PIL.Image.ANTIALIAS)
+                    img = img.resize(sz, PIL.Image.LANCZOS)
                     bg = Image.new(color, sz, "black")
                     #offset = (int((width-wsize)/2), int((height-baseheight)/2))
                     bg.paste(img)
@@ -8675,7 +8675,7 @@ class Ui_MainWindow(object):
                     #bg = Image.open(os.path.join(home, 'default.jpg'))
                     if hsize < screen_height:
                         sz = (basewidth, hsize)
-                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                        img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                         offset = (20,20)
                         #new_offset = (20+basewidth, 20)
                         bg.paste(img, offset)
@@ -8688,7 +8688,7 @@ class Ui_MainWindow(object):
                     else:
                         wp = float(baseheight/hsize)
                         nbw = int(float(wp)*float(basewidth))
-                        img = img.resize((nbw, baseheight), PIL.Image.ANTIALIAS)
+                        img = img.resize((nbw, baseheight), PIL.Image.LANCZOS)
                         offset = (20, 20)
                         if fit_size == 9:
                             new_offset = (40+nbw, 20)
@@ -8739,10 +8739,10 @@ class Ui_MainWindow(object):
                     if hsize > baseheight:
                         wp = float(baseheight/hsize)
                         nbw = int(float(wp)*float(basewidth))
-                        img = img.resize((nbw, baseheight), PIL.Image.ANTIALIAS)
+                        img = img.resize((nbw, baseheight), PIL.Image.LANCZOS)
                         offset = (int((basewidth-nbw)/2), 0)
                     else:
-                        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+                        img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
                         offset = (0, int((baseheight-hsize)/2))
                     bg.paste(img, offset)
                     
@@ -8810,10 +8810,10 @@ class Ui_MainWindow(object):
         if hsize > baseheight:
             wp = float(baseheight/hsize)
             nbw = int(float(wp)*float(basewidth))
-            img = img.resize((nbw, baseheight), PIL.Image.ANTIALIAS)
+            img = img.resize((nbw, baseheight), PIL.Image.LANCZOS)
             bg = Image.new('RGB', (nbw, baseheight))
         else:
-            img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+            img = img.resize((basewidth, hsize), PIL.Image.LANCZOS)
             bg = Image.new('RGB', (basewidth, hsize))
         tmp_img = (os.path.join(TMPDIR, 'new_tmp.jpg'))
         bg.paste(img, (0, 0))
