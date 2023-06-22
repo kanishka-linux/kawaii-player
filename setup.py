@@ -28,16 +28,14 @@ from setuptools import setup
  GNU/Linux users should install dependencies manually using their native
  package manager
 """
-if os.name == 'posix':
-    install_dependencies = []
-else:
-    install_dependencies = [
+install_dependencies = [
         'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl',
-        'certifi', 'PyQtWebEngine', 'PyOpenGL'
+        'certifi', 'PyQtWebEngine', 'PyOpenGL',
+        'pympv @ git+https://github.com/marcan/pympv.git'
         ]
 setup(
     name='kawaii-player', 
-    version='5.0.0',
+    version='5.1.0',
     license='GPLv3', 
     author='kanishka-linux', 
     author_email='kanishka.linux@gmail.com', 
