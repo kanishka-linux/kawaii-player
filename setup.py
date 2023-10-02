@@ -29,7 +29,7 @@ from setuptools import setup
  package manager
 """
 install_dependencies = [
-        'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl',
+        'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl', 'yt-dlp',
         'certifi', 'PyQtWebEngine', 'PyOpenGL',
         'pympv @ git+https://github.com/marcan/pympv.git'
         ]

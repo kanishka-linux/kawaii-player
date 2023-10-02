@@ -47,21 +47,21 @@ class YTDL:
         if ytdl_path:
             if ytdl_path == 'default':
                 if os.name == "nt":
-                    youtube_dl = 'youtube-dl.exe'
+                    youtube_dl = 'yt-dlp.exe'
                 else:
-                    youtube_dl = 'youtube-dl'
+                    youtube_dl = 'yt-dlp'
             else:
                 if os.path.exists(ytdl_path):
                     youtube_dl = ytdl_path
                 else:
-                    if ytdl_path.endswith('ytdl') or ytdl_path.endswith('ytdl.exe'):
+                    if ytdl_path.endswith('yt-dlp') or ytdl_path.endswith('yt-dlp.exe'):
                         send_notification('Please Wait! Getting Latest youtube-dl')
                         youtube_dl = ytdl_path
-                        if ytdl_path.endswith('ytdl'):
-                            ccurl('https://yt-dl.org/downloads/latest/youtube-dl'+'#-o#'+ytdl_path)
+                        if ytdl_path.endswith('yt-dlp'):
+                            ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'+'#-o#'+ytdl_path)
                             subprocess.Popen(['chmod', '+x', ytdl_path])
                         else:
-                            ccurl('https://yt-dl.org/latest/youtube-dl.exe'+'#-o#'+ytdl_path)
+                            ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe'+'#-o#'+ytdl_path)
                         update_time = str(int(time.time()))
                         if not os.path.exists(ytdl_stamp):
                             f = open(ytdl_stamp, 'w')
@@ -69,9 +69,9 @@ class YTDL:
                             f.close() 
                     else:
                         send_notification('youtube-dl path does not exists!')
-                        youtube_dl = 'youtube-dl'
+                        youtube_dl = 'yt-dlp'
         else:
-            youtube_dl = 'youtube-dl'
+            youtube_dl = 'yt-dlp'
             
         logger.info(youtube_dl)
         ytdl_extra = False
@@ -136,7 +136,7 @@ class YTDL:
             send_notification(txt)
             final_url = ''
             updated_already = False
-            if ytdl_path.endswith('ytdl') or ytdl_path.endswith('ytdl.exe'):
+            if ytdl_path.endswith('yt-dlp') or ytdl_path.endswith('yt-dlp.exe'):
                 if os.path.exists(ytdl_stamp):
                     content = open(ytdl_stamp, 'r').read()
                     try:
@@ -150,10 +150,10 @@ class YTDL:
                 if not updated_already:
                     send_notification('Please Wait! Getting Latest youtube-dl')
                     if ytdl_path.endswith('ytdl'):
-                        ccurl('https://yt-dl.org/downloads/latest/youtube-dl'+'#-o#'+ytdl_path)
+                        ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'+'#-o#'+ytdl_path)
                         subprocess.Popen(['chmod', '+x', ytdl_path])
                     else:
-                        ccurl('https://yt-dl.org/latest/youtube-dl.exe'+'#-o#'+ytdl_path)
+                        ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe'+'#-o#'+ytdl_path)
                     send_notification('Updated youtube-dl, Now Try Playing Video Again!')
                     update_time = str(int(time.time()))
                     if os.path.exists(ytdl_stamp):

@@ -1745,6 +1745,8 @@ class OptionsSettings(QtWidgets.QTabWidget):
                 '#screenshot-format=png',
                 '#screenshot-png-compression=9',
                 '#screenshot-directory="{}"'.format(ui.tmp_download_folder),
+                '#script-opts=ytdl_hook-ytdl_path="{}"'.format(ui.ytdl_path),
+                '#ytdl-format="bestvideo[height<=?1080][fps<=?30][vcodec!=?vp9]+bestaudio/best"',
                 '##Define user agent string, sometimes necessary for streaming videos',
                 '#user-agent="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:58.0) Gecko/20100101 Firefox/58.0"'
                 ]
