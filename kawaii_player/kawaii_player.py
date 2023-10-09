@@ -9735,6 +9735,10 @@ class Ui_MainWindow(object):
                 self.tab_5.audio = aurl
             if surl:
                 self.tab_5.subtitle = surl
+        elif self.player_val == "libvlc":
+            #self.vlc_play_file(finalUrl.replace('"', ''))
+            self.vlc_build_playlist()
+            self.vlc_medialist_player.play_item_at_index(self.cur_row)
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = self.get_winid()
@@ -13844,7 +13848,7 @@ class Ui_MainWindow(object):
                 self.vlc_medialist_player.play_item_at_index(self.cur_row)
     
     def vlc_play_file(self, final_url):
-        if media.startswith("http:"):
+        if final_url.startswith("http:") or final_url.startswith("https:"):
             self.vlc_media = self.vlc_instance.media_new_location(final_url)
         else:
             self.vlc_media = self.vlc_instance.media_new_path(final_url)
@@ -13855,7 +13859,7 @@ class Ui_MainWindow(object):
         self.use_playlist_method()
         self.vlc_media_list = self.vlc_instance.media_list_new()
         for i, media in enumerate(self.tmp_pls_file_lines):
-            if media.startswith("http:"):
+            if media.startswith("http:") or media.startswith("https:"):
                 vlc_media = self.vlc_instance.media_new_location(media)
             else:
                 vlc_media = self.vlc_instance.media_new_path(media)
