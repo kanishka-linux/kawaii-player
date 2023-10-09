@@ -9377,7 +9377,7 @@ class Ui_MainWindow(object):
                     return file_path_name_mkv
         elif self.wget.processId() > 0 and play_now:
             return True
-        elif (site.lower() in ["playlists", "myserver"] or self.music_playlist) and self.player_val in ["libmpv", "libvlc"] and play_now:
+        elif (site.lower() in ["playlists", "myserver"] or self.music_playlist) and self.player_val in ["libmpv"] and play_now:
             self.use_playlist_method()
             if os.path.exists(file_path_name_mp4):
                 file_path = file_path_name_mp4
@@ -9739,9 +9739,9 @@ class Ui_MainWindow(object):
             if surl:
                 self.tab_5.subtitle = surl
         elif self.player_val == "libvlc":
-            #self.vlc_play_file(finalUrl.replace('"', ''))
-            self.vlc_build_playlist()
-            self.vlc_medialist_player.play_item_at_index(self.cur_row)
+            self.vlc_play_av_file(finalUrl.replace('"', ''), aurl, surl)
+            #self.vlc_build_playlist()
+            #self.vlc_medialist_player.play_item_at_index(self.cur_row)
         elif self.player_val == "mplayer":
             self.quit_really = "no"
             self.idw = self.get_winid()
@@ -13853,6 +13853,18 @@ class Ui_MainWindow(object):
     def vlc_play_file(self, final_url):
         if final_url.startswith("http:") or final_url.startswith("https:"):
             self.vlc_media = self.vlc_instance.media_new_location(final_url)
+        else:
+            self.vlc_media = self.vlc_instance.media_new_path(final_url)
+        self.vlc_mediaplayer.set_media(self.vlc_media)
+        self.vlc_mediaplayer.play()
+
+    def vlc_play_av_file(self, final_url, aurl, surl):
+        if final_url.startswith("http:") or final_url.startswith("https:"):
+            self.vlc_media = self.vlc_instance.media_new_location(final_url)
+            if aurl is not None:
+                self.vlc_media.slaves_add(1, 4, aurl)
+            if surl is not None:
+                self.vlc_media.slaves_add(0, 4, surl)
         else:
             self.vlc_media = self.vlc_instance.media_new_path(final_url)
         self.vlc_mediaplayer.set_media(self.vlc_media)
