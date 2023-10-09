@@ -9377,7 +9377,7 @@ class Ui_MainWindow(object):
                     return file_path_name_mkv
         elif self.wget.processId() > 0 and play_now:
             return True
-        elif (site.lower() in ["playlists", "myserver"] or self.music_playlist) and self.player_val == "libmpv" and play_now:
+        elif (site.lower() in ["playlists", "myserver"] or self.music_playlist) and self.player_val in ["libmpv", "libvlc"] and play_now:
             self.use_playlist_method()
             if os.path.exists(file_path_name_mp4):
                 file_path = file_path_name_mp4
@@ -9390,7 +9390,10 @@ class Ui_MainWindow(object):
             if self.tmp_pls_file_lines:
                 write_files(self.tmp_pls_file, self.tmp_pls_file_lines, line_by_line=True)
             self.playback_mode = 'playlist'
-            if self.tab_5.mpv.get_property("idle-active") is True or self.stale_playlist:
+            if self.player_val == "libvlc":
+                self.vlc_build_playlist()
+                self.vlc_medialist_player.play_item_at_index(self.cur_row)
+            elif self.tab_5.mpv.get_property("idle-active") is True or self.stale_playlist:
                 self.tab_5.mpv.command("loadlist", self.tmp_pls_file)
                 self.stale_playlist = False
             try:
