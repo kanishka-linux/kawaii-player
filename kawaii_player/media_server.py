@@ -2996,12 +2996,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif path.startswith('playbackengine='):
             try:
                 playbackengine = path.replace('playbackengine=', '', 1)
-                if playbackengine in ui.playback_engine:
+                if "&" in playbackengine:
+                    (pl_engine, mode) = playbackengine.split("&")
+                    mode_val = mode.split("=")[1].lower()
+                else:
+                    pl_engine = playbackengine
+                    mode_val = "master"
+                if pl_engine in ui.playback_engine and mode_val == "master":
                     if ui.remote_control and ui.remote_control_field:
-                        ui.player_val = playbackengine
+                        ui.player_val = pl_engine
                         ui.restart_application = True
                         ui.btn_quit.clicked_emit()
-                    msg = 'restarting application to set: {0} as playback engine'.format(playbackengine)
+                    msg = 'Playback Engine Changed For master to {}'.format(pl_engine)
+                elif pl_engine in ui.playback_engine and mode_val == "slave":
+
+                    new_url_1 = '{}/remote_on.htm'.format(ui.slave_address.strip())
+                    new_url_2 = '{}/playbackengine={}'.format(ui.slave_address.strip(), pl_engine)
+
+                    ui.vnt.get(new_url_1)
+                    ui.vnt.get(new_url_2)
+                    msg = 'Playback Engine Changed For slave to {}'.format(pl_engine)
                 else:
                     msg = 'wrong parameters'
                 msg = bytes(msg, 'utf-8')

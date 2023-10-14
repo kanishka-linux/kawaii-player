@@ -1201,11 +1201,11 @@ function change_playback_engine(){
     if(playback_engine == ""){
         console.log("playback engine not changed");
     }else{
-	    var new_url = "playbackengine="+playback_engine;
+	    var new_url = "playbackengine="+playback_engine+"&mode="+_toggle_master.innerHTML;
 		var client = new getRequest();
 		client.get(new_url,function(response) {
 			console.log(response);
-			_title.innerHTML = response + " Please reload the page.";
+			_title.innerHTML = response;
 		})
     }
 }
