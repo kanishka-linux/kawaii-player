@@ -79,6 +79,11 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
         <option value="btn_aspect_16_9">16:9</option>
         <option value="btn_aspect_235">2.35:1</option>
     </select>
+    <select id="playback_engine" onchange="change_playback_engine()">
+        <option value="">Engine</option>
+        <option value="libmpv">libmpv</option>
+        <option value="libvlc">libvlc</option>
+    </select>
     </div>
     <button id="apply_label" title="Click to apply selected label" onclick="apply_video_category()">Apply Label</button>
     <div id="apply_category" class="select_video_category">

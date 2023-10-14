@@ -1196,6 +1196,21 @@ function change_aspect_ratio(){
     }
 }
 
+function change_playback_engine(){
+    let playback_engine = document.getElementById("playback_engine").value;
+    if(playback_engine == ""){
+        console.log("playback engine not changed");
+    }else{
+	    var new_url = "playbackengine="+playback_engine;
+		var client = new getRequest();
+		client.get(new_url,function(response) {
+			console.log(response);
+			_title.innerHTML = response + " Please reload the page.";
+		})
+    }
+}
+
+
 function apply_video_category(){
     let video_label = document.getElementById("video_label").value;
     if(video_label == ""){
