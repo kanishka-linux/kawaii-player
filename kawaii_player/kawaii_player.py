@@ -10506,7 +10506,7 @@ class Ui_MainWindow(object):
             if s_url:
                 self.tab_5.subtitle = s_url
         elif self.player_val == "libvlc":
-            pass
+            self.vlc_play_av_file(finalUrl, a_url, s_url)
 
         self.tab_5.setFocus()
 
