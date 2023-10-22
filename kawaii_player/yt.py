@@ -110,7 +110,7 @@ class YTDL:
                 if quality == 'sd':
                     res = 360
                 elif quality == 'hd':
-                    res = 720
+                    res = 1080
                 elif quality == 'sd480p':
                     res = 480
                 else:
@@ -178,7 +178,7 @@ class YTDL:
         if resolution:
             res = int(resolution)
         else:
-            res = 720
+            res = 1080
         ytdl_list = [youtube_dl, '-j', '-s', '--all-sub', url]
         if os.name == 'posix':
             content = subprocess.check_output(ytdl_list, stderr= subprocess.STDOUT)
@@ -211,22 +211,15 @@ class YTDL:
                         else:
                             audio_dict.update({l.get('format_id'):attr_list.copy()})
         video_sort = [j for i, j in video_dict.items()]
-        video_sort = sorted(video_sort, key=lambda x: int(x[0]), reverse=True)
+        video_sort = sorted(video_sort, key=lambda x: int(x[1]), reverse=True)
         audio_sort = [j for i, j in audio_dict.items() if j[3] is not None]
         audio_sort = sorted(audio_sort, key=lambda x: int(x[3]), reverse=True)
         req_vid = None
         req_aud = None
-        if best and '+' in best:
-            vid, aud = best.split('+')
-            req_vid = video_dict.get(vid)
-            req_aud = audio_dict.get(aud)
-        elif best:
-            req_vid = video_dict.get(best)
-            vid = aud = best
         if audio_sort:
             req_aud = audio_sort[0]
         for i in video_sort:
-            if res >= int(i[0]):
+            if res >= int(i[1]):
                 req_vid = i
                 break
         ytid = js.get('id')
