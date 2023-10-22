@@ -10493,7 +10493,21 @@ class Ui_MainWindow(object):
             if self.player_val == 'mpv':
                 command = command+' --sub-file='+title_sub_path
                 logger.info(command)
-        self.infoPlay(command)
+
+        if self.player_val in ["mpv", "mplayer", "vlc", "cvlc"]:
+            self.infoPlay(command)
+        elif self.player_val == "libmpv" and self.quick_url_play:
+            self.tab_5.mpv.command("loadfile", self.quick_url_play)
+            self.quick_url_play = None
+        elif self.player_val == "libmpv":
+            self.tab_5.mpv.command("loadfile", finalUrl)
+            if a_url:
+                self.tab_5.audio = a_url
+            if s_url:
+                self.tab_5.subtitle = s_url
+        elif self.player_val == "libvlc":
+            pass
+
         self.tab_5.setFocus()
 
     def finishedM(self, nm):

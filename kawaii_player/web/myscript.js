@@ -1256,6 +1256,21 @@ function rename_video_title(){
     }
 }
 
+function cast_url(){
+    let prompt_val = prompt("Enter URL:", "")
+    if(prompt_val != null && prompt_val != ''){
+        var new_url = 'youtube_quick='+prompt_val;
+        var client = new getRequest();
+        _title.innerHTML = 'Wait!';
+        client.get(new_url, function(response) {
+            console.log(response);
+            _title.innerHTML = response;
+        })
+    } else {
+        _title.innerHTML = "nothing entered";
+    }
+}
+
 function fetch_poster(mode){
 
     console.log(mode)

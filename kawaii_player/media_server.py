@@ -2967,6 +2967,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 logger.debug(url)
                 if url.startswith('http') or url.startswith('magnet:'):
                     if ui.web_control == "slave":
+                        new_url_1 = '{}/remote_on.htm'.format(ui.slave_address.strip())
+                        ui.vnt.get(new_url_1)
                         ui.list2.start_pc_to_pc_casting("play quick", 0, None, path)
                     else:
                         ui.media_server_cache_playlist.clear()
