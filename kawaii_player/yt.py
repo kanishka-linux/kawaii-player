@@ -203,8 +203,9 @@ class YTDL:
         video_only = list(
                     filter(lambda x: x.get("acodec") == "none" and x.get("vcodec") != "none" and x.get("manifest_url") == None and x.get("height") <= res, js.get("formats"))
                 )
-        if self.ui.display_device == "rpitv":
+        if self.ui.display_device == "rpitv" or True:
             video_only = list(filter(lambda x: x.get("fps") < 60, video_only))
+            audio_only = list(filter(lambda x: x.get("acodec") == "opus", audio_only))
         video_only = sorted(video_only, key=lambda x: x.get("height"), reverse=True)
         audio_only = sorted(audio_only, key=lambda x: x.get("quality"), reverse=True)
         video_plus_audio = sorted(video_plus_audio, key=lambda x: x.get("height"), reverse=True)
@@ -233,9 +234,7 @@ class YTDL:
 
         logger.debug("selected-video: {}".format(video_only[0]))
         logger.debug("selected-audio: {}".format(audio_only[0]))
-        if self.ui.display_device == "rpitv" and len(video_plus_audio) > 0:
-            final_url = video_plus_audio[0].get("url")
-            logger.debug("selected-video for rpi: {}".format(video_plus_audio[0]))
+
         return final_url
 
     def post_subtitle_fetch(self, *args):
