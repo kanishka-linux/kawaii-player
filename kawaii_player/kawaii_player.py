@@ -9637,6 +9637,18 @@ class Ui_MainWindow(object):
                         logger.debug(cmd)
                     self.mpv_prefetch_url_started = False
                     self.tmp_pls_file_dict.update({row_val:True})
+        elif self.player_val == "libvlc":
+            urls = url_lnk.split("::")
+            aurl = None
+            surl = None
+            vurl = None
+            if len(urls) == 1:
+                vurl = urls[0]
+            elif len(urls) == 2:
+                (vurl, aurl) = urls
+            elif len(urls) == 3:
+                (vurl, aurl, surl) = urls
+            self.vlc_play_av_file(vurl, aurl, surl)
         else:
             if mode == 'thumbnail_gapless' and not url_lnk.startswith('http'):
                 from_function = None
