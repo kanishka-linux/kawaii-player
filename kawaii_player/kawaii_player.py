@@ -10498,7 +10498,7 @@ class Ui_MainWindow(object):
 
         if self.player_val in ["mpv", "mplayer", "vlc", "cvlc"]:
             self.infoPlay(command)
-        elif self.player_val == "libmpv" and self.quick_url_play:
+        elif self.player_val == "libmpv" and self.quick_url_play and self.display_device != "rpitv":
             self.tab_5.mpv.command("loadfile", self.quick_url_play)
             self.quick_url_play = None
         elif self.player_val == "libmpv":
