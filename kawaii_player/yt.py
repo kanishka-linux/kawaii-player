@@ -205,7 +205,7 @@ class YTDL:
                 )
         if self.ui.display_device == "rpitv" or True:
             video_only = list(filter(lambda x: x.get("fps") < 60, video_only))
-            audio_only = list(filter(lambda x: x.get("acodec") == "opus", audio_only))
+            #audio_only = list(filter(lambda x: x.get("acodec") == "opus", audio_only))
         video_only = sorted(video_only, key=lambda x: x.get("height"), reverse=True)
         audio_only = sorted(audio_only, key=lambda x: x.get("quality"), reverse=True)
         video_plus_audio = sorted(video_plus_audio, key=lambda x: x.get("height"), reverse=True)
