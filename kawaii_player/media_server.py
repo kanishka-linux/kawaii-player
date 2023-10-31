@@ -2976,6 +2976,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         ui.quick_url_play = url
                         logger.debug(ui.quick_url_play)
                         ui.quick_url_play_btn.clicked_emit()
+                    self.process_yt_playlist(url, "CAST_PLAYLIST", mode=None)
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
@@ -3469,6 +3470,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if not yt_playlist and pls_path:
                     new_line = title + '	'+url+ '	'+ 'NONE'
                     logger.info(new_line)
+                    if not os.path.exists(pls_path):
+                        open(pls_path, 'wb').close()
                     if os.path.exists(pls_path):
                         write_files(pls_path, new_line, line_by_line=True)
                         op_success = True
@@ -3531,6 +3534,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     title = urllib.parse.unquote(title)
                 new_line = title + '\t' + url + '\t' + 'NONE'
                 pls_path = os.path.join(home, 'Playlists', pls)
+                if not os.path.exists(pls_path):
+                    open(pls_path, 'wb').close()
                 if os.path.exists(pls_path):
                     write_files(pls_path, new_line, line_by_line=True)
                     op_success = True
