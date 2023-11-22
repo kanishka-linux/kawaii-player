@@ -21,36 +21,61 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import shutil
 import platform
-from setuptools import setup
+from setuptools import Extension, setup
+from Cython.Build import cythonize
 
+system = platform.system().lower()
 
 """
  GNU/Linux users should install dependencies manually using their native
  package manager
 """
-install_dependencies = [
-        'PyQt5', 'pycurl', 'bs4', 'Pillow', 'mutagen', 'lxml', 'youtube_dl', 'yt-dlp',
-        'certifi', 'PyQtWebEngine', 'PyOpenGL',
-        'pympv @ git+https://github.com/marcan/pympv.git'
-        ]
+
+install_requires = []
+if system in ["darwin", "nt"]:
+    install_requires = [
+        "PyQt5",
+        "pycurl",
+        "bs4",
+        "Pillow",
+        "mutagen",
+        "lxml",
+        "yt-dlp",
+        "certifi",
+        "PyQtWebEngine",
+        "PyOpenGL"
+    ]
+
+library_path = None
+if system == "darwin":
+    library_path = ["/usr/local/lib"]
+
+extension_src = "pympv/mpv.pyx"
+
+if library_path is None:
+    extensions = [Extension("mpv", [extension_src], libraries=["mpv"])]
+else:
+    extensions = [Extension("mpv", [extension_src], libraries=["mpv"], library_dirs=library_path)]
+
 setup(
-    name='kawaii-player', 
-    version='5.1.0',
-    license='GPLv3', 
-    author='kanishka-linux', 
-    author_email='kanishka.linux@gmail.com', 
-    url='https://github.com/kanishka-linux/kawaii-player', 
-    long_description="README.md", 
+    name='kawaii-player',
+    version='6.0.0',
+    license='GPLv3',
+    author='kanishka-linux',
+    author_email='kanishka.linux@gmail.com',
+    url='https://github.com/kanishka-linux/kawaii-player',
+    long_description="README.md",
     packages=[
         'kawaii_player', 'kawaii_player.Plugins', 'kawaii_player.widgets',
         'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit',
         'kawaii_player.vinanti', 'kawaii_player.tvdb_async',
-        ], 
-    include_package_data=True, 
+        ],
+    include_package_data=True,
+    install_requires = install_requires,
+    ext_modules = cythonize(extensions, force=True),
     entry_points={
         'gui_scripts':['kawaii-player = kawaii_player.kawaii_player:main'], 
         'console_scripts':['kawaii-player-console = kawaii_player.kawaii_player:main']
         }, 
-    install_requires=install_dependencies, 
-    description="A Audio/Video manager, multimedia player and portable media server", 
+    description="A Audio/Video manager, multimedia player and portable media server",
 )
