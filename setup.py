@@ -23,6 +23,7 @@ import shutil
 import platform
 from setuptools import Extension, setup
 from Cython.Build import cythonize
+import ctypes.util
 
 system = platform.system().lower()
 
@@ -52,6 +53,11 @@ if system == "darwin":
     library_path = ["/usr/local/lib"]
 
 extension_src = "pympv/mpv.pyx"
+
+if system == "linux":
+    mpv_so = ctypes.util.find_library("mpv")
+    if mpv_so == "libmpv.so.1":
+        extension_src = "pympv/pympv-0.7.1/mpv.pyx"
 
 if library_path is None:
     extensions = [Extension("mpv", [extension_src], libraries=["mpv"])]
