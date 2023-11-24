@@ -577,7 +577,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 ## Dependencies and Installation
 
-Note: From v6.0 onwards and with deprecation of older libmpv opengl-cb API- installation process has been changed, In order to use libmpv-render API one needs to install [pympv](https://github.com/marcan/pympv). The `setup.py` has been updated accordingly and also added `pyproject.toml` with build dependencies to build ext_modules with cython. Kawaii-Player can be installed using `$ pip install -e .` , but there can be issues with some versions of cython and people may need to change setup.py accordingly to install the player.
+Note: From v6.0 onwards and with deprecation of older libmpv opengl-cb API- installation process has been changed, In order to use libmpv-render API one needs to install pympv - which has alrady been added to kawaii-player repository to simplify  build and install process. The `setup.py` has been updated accordingly and also added `pyproject.toml` with build dependencies to build ext_modules with cython. Kawaii-Player can be installed using `$ pip install -e .` , but there can be issues with some versions of cython and people may need to change setup.py accordingly to install the player.
 
 ###### [Index](#index)
 
