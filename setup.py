@@ -43,7 +43,8 @@ if system in ["darwin", "nt"]:
         "yt-dlp",
         "certifi",
         "PyQtWebEngine",
-        "PyOpenGL"
+        "PyOpenGL",
+        "python-vlc"
     ]
 
 library_path = None
