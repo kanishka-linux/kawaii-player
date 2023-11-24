@@ -2,6 +2,10 @@ pympv
 =====
 A python wrapper for libmpv.
 
+[project url](https://github.com/marcan/pympv)
+
+`Adding pympv to kawaii-player repository, to simplify the build process.`
+
 #### Basic usage
 ```python
 import sys
