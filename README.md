@@ -579,6 +579,12 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 Note: From v6.0 onwards and with deprecation of older libmpv opengl-cb API- installation process has been changed, In order to use libmpv-render API one needs to install pympv - which has alrady been added to kawaii-player repository to simplify  build and install process. The `setup.py` has been updated accordingly and also added `pyproject.toml` with build dependencies to build ext_modules with cython. Kawaii-Player can be installed using `$ pip install -e .` , but there can be issues with some versions of cython and people may need to change setup.py accordingly to install the player.
 
+`ubuntu/create_deb.py` script has been updated for debian/ubuntu based system. People can directly use it to build `.deb` package and then install the package manually.
+
+For raspberry-pi based devices using debian bullseye/bookworm - people can refer [this repository](https://github.com/kanishka-linux/rpi-utilities). The `rpiscript.py` available in rpi-utilities is generic enough and can be used on any debian/ubuntu based distro directly, and can also be modified dependending on the installation requirements of other distributions.
+
+Make sure to install `mpv` or `libmpv-dev` before starting the installation process. The `libmpv-dev` package maybe called different in different linux distro - so install the relevant package so that necessary development and header files are present during build process.
+
 ###### [Index](#index)
 
 ###### [Latest Stable Release](https://github.com/kanishka-linux/kawaii-player/releases/latest)
