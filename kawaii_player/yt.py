@@ -180,7 +180,7 @@ class YTDL:
             res = int(resolution)
         else:
             res = 1080
-        ytdl_list = [youtube_dl, '-j', '-s', '--all-sub', url]
+        ytdl_list = [youtube_dl, '-q', '--no-warnings', '-j', '-s', '--all-sub', url]
         if os.name == 'posix':
             content = subprocess.check_output(ytdl_list, stderr= subprocess.STDOUT)
         else:
