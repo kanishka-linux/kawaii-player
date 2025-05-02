@@ -703,6 +703,21 @@ Make sure to install `mpv` or `libmpv-dev` before starting the installation proc
 
     Note: If libtorrent-rasterbar is not working for torrent streaming, then edit brew formula and update download url location (point it to libtorrent-rasterbar v1.1.12), and then install it from source. 
 
+    **Updated Instructions for macOs Sequoia (Apple Silicon Macs)** - 2025
+
+        $ brew install mpv ffmpeg wget openssl terminal-notifier libtorrent-rasterbar
+        $ brew install --cask vlc (if one wants to use vlc as a backend)
+        $ brew install python@3.12 (kawaii-player is compatible with both python 3.11 and 3.12, so either python version is fine)
+        $ git clone https://github.com/kanishka-linux/kawaii-player
+        $ cd kawaii-player
+        $ python3.12 -m venv venv
+        $ source venv/bin/activate
+        $ (venv) export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix)/lib
+        $ (venv) export LDFLAGS="-L$(brew --prefix)/lib"
+        $ (venv) export CPPFLAGS="-I$(brew --prefix)/include"
+        $ (venv) pip install -e .
+        $ (venv) kawaii-player
+
 # Dependencies
 
 ###### [Index](#index)
