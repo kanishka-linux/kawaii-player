@@ -1585,7 +1585,7 @@ class Ui_MainWindow(object):
         self.focus_widget = None
         self.status_dict = {'label_dock':0}
         self.status_dict_widget = {}
-        self.player_theme = 'dark'
+        self.player_theme = 'default'
         self.mpv_length_find_attempt = 0
         self.force_fs = False
         self.media_server_cache_music = {}
