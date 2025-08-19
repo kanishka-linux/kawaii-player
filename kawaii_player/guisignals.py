@@ -420,7 +420,7 @@ class GUISignals(QtCore.QObject):
                 widget = eval('ui.frame_extra_toolbar.{}'.format(widget_val))
                 widget.clicked_emit()
             elif widget_name in ['font_color_value', 'border_color_value', 'shadow_color_value']:
-                ui.frame_extra_toolbar.apply_slave_subtitile_effects(widget_name, widget_val)
+                ui.frame_extra_toolbar.apply_slave_subtitle_effects(widget_name, widget_val)
             elif widget_name in ['checkbox_bold', 'checkbox_italic', 'checkbox_gray', 'checkbox_dont']:
                 widget = eval('ui.frame_extra_toolbar.{}'.format(widget_name))
                 if widget_val.lower() == 'true':

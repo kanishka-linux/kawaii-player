@@ -837,7 +837,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if ui.mpvplayer_val.processId() > 0 or ui.player_val in ["libmpv", "libvlc"]:
                     ui.master_casting_subdict.update({ui.final_playing_url:subtitle_path})
                     self.nav_signals.control_signal(-1000, 'add_subtitle')
-            self.final_message(bytes('Subtitle Recieved', 'utf-8'))
+            self.final_message(bytes('Subtitle Received', 'utf-8'))
         elif self.path.startswith('/sending_command') and ui.pc_to_pc_casting == 'slave':
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
@@ -845,7 +845,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             param, value = content.split('&')
             if param and not param.startswith('param='):
                 param, value = value, param
-            self.final_message(bytes('Command Recieved', 'utf-8'))
+            self.final_message(bytes('Command Received', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
         elif self.path.startswith('/sending_web_command'):
             content = self.rfile.read(int(self.headers['Content-Length']))
@@ -854,7 +854,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             content = json.loads(content)
             param = "param={}".format(content.get("param"))
             value = "widget={}".format(content.get("widget"))
-            self.final_message(bytes('Command Recieved', 'utf-8'))
+            self.final_message(bytes('Command Received', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
         elif self.path.startswith('/fetch-posters'):
             content = self.rfile.read(int(self.headers['Content-Length']))
@@ -871,7 +871,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             elif mode == "fanart" and title is not None and url is not None and url.startswith("http"):
                 ui.remove_fanart(site_option, title, "remove_fanart")
                 ui.fetch_fanart(site_option, url, title, "fanart")
-            self.final_message(bytes('Command Recieved', 'utf-8'))
+            self.final_message(bytes('Command Received', 'utf-8'))
         elif self.path.startswith('/modify_category'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):

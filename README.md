@@ -1,6 +1,6 @@
 # Kawaii-Player
 
-Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mplayer) with PC-To-PC casting feature, along with functionalities of portable media server and torrent streaming server. 
+Kawaii-Player is Audio/Video manager and multimedia player (based on mpv and mplayer) with PC-To-PC casting feature, along with functionalities of portable media server and torrent streaming server. 
 
 ![kawaii-player](/Images/Video.png)
 
@@ -147,7 +147,7 @@ The media server functionality can be started by selecting **'More->Start Media 
 
 **A very simple web interface** (as shown above) has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.2.2:9001', then web interface can be opened at **192.168.2.2:9001/stream_continue.htm** or **192.168.2.2:9001/index.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.2.2:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
 
-**Use like Streaming Radio:** The media server can be used similar to internet radio station without transcoding. It won't behave like exact internet streaming radio, but it can be made to mimic like one. If server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the kawaii-player in it's playlist. If mpv or mplayer are used as clients then their commands will looked like as below:
+**Use like Streaming Radio:** The media server can be used similar to internet radio station without transcoding. It won't behave like exact internet streaming radio, but it can be made to mimic like one. If server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the kawaii-player in its playlist. If mpv or mplayer are used as clients then their commands will looked like as below:
 
 		$ mpv --loop http://192.168.2.2:9001/
 		
@@ -169,7 +169,7 @@ In local home network, if cookie and https is not enabled for media server then,
 If url ends with .htm then media server will return html page which can be viewed with the help of browser. But if you attach '.m3u' or '.pls' to url then it will directly return the playlist which can be played by any player.If no extension is attached at the end, then m3u playlist will be sent to the client.
 
 Urls which can access the media server have a very simple structure. Default url is **'/stream_continue.htm'** which will return current playlist viewable in browser, while **'/stream_continue.m3u'** will directly send playlist in m3u format. 
-The kawaii-player player, has many sections like music,video,playlist etc..which are referred as site in url. Some of them have subsections like music has subsection artist,album etc..which you can see in the player. Now if you want to search for artist say 'yuki kajiura', then required url should look like **'/site=music&opt=artist&s=yuki+kajiura'.** If user will open this url using vlc then then they will directly get all songs of artist 'yuki kajiura' directly on vlc as m3u playlist, without even going to web browser. And as players such as vlc or mpv can play every format you throw at them, transcoding is not required at all on the client side,except on mobile platform. But on mobile platform also, most of the common formats can be easily played by mobile browsers and vlc without transcoding. If cookie is not enabled for this media server, then url entries of the playlist won't change in the local private network. Therefore, user can create various playlist and can use them with vlc or mpv (if playlists has mixed audio and video content) all the time; or they can use some native music player like audacious or clementine in case playlist contains only audio.
+The kawaii-player player, has many sections like music,video,playlist etc..which are referred as site in url. Some of them have subsections like music has subsection artist,album etc..which you can see in the player. Now if you want to search for artist say 'yuki kajiura', then required url should look like **'/site=music&opt=artist&s=yuki+kajiura'.** If user will open this url using vlc then they will directly get all songs of artist 'yuki kajiura' directly on vlc as m3u playlist, without even going to web browser. And as players such as vlc or mpv can play every format you throw at them, transcoding is not required at all on the client side,except on mobile platform. But on mobile platform also, most of the common formats can be easily played by mobile browsers and vlc without transcoding. If cookie is not enabled for this media server, then url entries of the playlist won't change in the local private network. Therefore, user can create various playlist and can use them with vlc or mpv (if playlists has mixed audio and video content) all the time; or they can use some native music player like audacious or clementine in case playlist contains only audio.
 
 **Basic Authentication:** There is option for setting username and password for media server which is available in 'More' menu. Currently it supports authentication for only single user.
 
@@ -177,7 +177,7 @@ By Default, it doesn't use cookie based authentication. It can be enabled by cha
 
 **HTTPS Support:** It's possible to enable HTTPS support, with the help of self signed certificate. Users can set 'HTTPS_ON' to 'True' in the other_options.txt. Once this field is set to True, the application can generate self signed certificate automatically in 'pem' format, if 'openssl' is installed and configured properly on the system. The application will only ask user to provide atleast eight character long passphrase. And afterward it will generate 'cert.pem' file automatically, which will be placed in '~/.config/kawaii-player' directory. Alternatively if user want to generate self signed certificate on their own, then they should generate the certificate in 'pem' format and rename it as 'cert.pem' and must place in the config directory, for the application to use while starting the media server function.
 
-**Problems with self-signed certificate:** Once self-signed certificate is used, one has to access the media server using 'https' protocol instead of 'http'. And once we do that, every browser will start showing security warning to us. Therefore, users need to add the certificate in the exemption list of the browser, in order to visit the media server. From the point of view of encryption, there is no difference between self signed certicate and certificate signed by any other authority. But While surfing on the internet, one should stay away from sites using self signed certificate, unless you know what you are doing.
+**Problems with self-signed certificate:** Once self-signed certificate is used, one has to access the media server using 'https' protocol instead of 'http'. And once we do that, every browser will start showing security warning to us. Therefore, users need to add the certificate in the exemption list of the browser, in order to visit the media server. From the point of view of encryption, there is no difference between self signed certificate and certificate signed by any other authority. But While surfing on the internet, one should stay away from sites using self signed certificate, unless you know what you are doing.
  
 **Access From Outside network:** HTTPS support was mainly added to facilitate secure access of media server from outside the network. It is possible to access the media server from outside the network, by setting 'ACCESS_FROM_OUTSIDE_NETWORK' to 'True'. In order to use this feature, user needs to know how to do port forwarding. Once router is configured for port forwarding, all the incoming requests to your router will be forwarded to local media server.
 
@@ -189,7 +189,7 @@ In order to access the server from outside the network, it is necessary to **ena
 
 It is possible to access the media server with plain 'http' protocol from outside the network, but it's not advisable because of security reasons. User must set 'HTTPS_ON' field to 'True', if they want to access media server from outside.
 
-In short, Recommanded settings for external access to media server are as follows.
+In short, Recommended settings for external access to media server are as follows.
 		
 		(First set username and password from 'more' menu and then make changes in other_options.txt as below)
 		ACCESS_FROM_OUTSIDE_NETWORK=True:1
@@ -203,7 +203,7 @@ Once https enabled, users will find that many media players might not play playl
 
 Note: Users need to use separate port number for media server and torrent streaming feature. Port number along with local IP for torrent streaming feature needs to be set in 'torrent_config.txt' (TORRENT_STREAM_IP field) and that of media server in 'other_options.txt' (LOCAL_STREAM_IP field). Default Settings: 'TORRENT_STREAM_IP=127.0.0.1:8001' and 'LOCAL_STREAM_IP=127.0.0.1:9001'. In default settings one can't access local media from another computer. Users need to change default loopback address to local ip address. Users have to set local IP address and port once only. If local IP address of the media server changes dynamically next time, then the kawaii-player application will try to find out new address automatically. If the application can't find new address then users have to manually change the config files again.
 
-**From v3.1 onwards all of these settings can be set from settings/preferene box of the application. There is no need to fiddle with any of config files manually**
+**From v3.1 onwards all of these settings can be set from settings/preference box of the application. There is no need to fiddle with any of config files manually**
 
 ## Peer to Peer Mode
 
@@ -211,7 +211,7 @@ Note: Users need to use separate port number for media server and torrent stream
 
 The portable nature of media server allows the application to work in peer to peer mode. The computer running the application can behave as client as well as server at the same time. If two computers A and B are running instance of kawaii-player, then they can share their libraries in streaming mode with each other without downloading locally. This functionality is available from version 2.2+ onwards. This functionality has been implemented as a special addon 'MyServer', which users can find in the Addons section. 
 
-Steps Inovolved in P2P mode for two computers:
+Steps Involved in P2P mode for two computers:
 
 1. First add some items in the library (by clicking on the library button) and then update video and music section.
 
@@ -231,7 +231,7 @@ Steps Inovolved in P2P mode for two computers:
 
 9. If user wants better security then turn on HTTPS and cookies for every server by editing **other_options.txt** file. Username/password can be set from GUI itself from **more** menu. Look into media server section for more details.
 
-10. If client does not want to share its library and it just want to access library of the server, then there is no need for the client to switch on its media server functionality.
+10. If client does not want to share its library and it just wants to access library of the server, then there is no need for the client to switch on its media server functionality.
 
 What is the use case of p2p mode? 
 
@@ -243,7 +243,7 @@ It allows users to decentralize their collection and at the same time it allows 
 
 Universal playlist generation is the by-product of the way media server is implemented in this application. Media server of this application, allows creation of playlist in either m3u or pls format, on the fly, which can be played on any client supporting http streaming. (For more details about playlist creation, see Media Server Section.) This playlist can be anything from local audio, local video, some youtube urls, internet radio stations or addon urls or even torrent streams, or any mix of various media formats. (While creating playlist of mixed media format and content, torrent streams should not be mixed with them. Torrent streams should be in separate playlist.) As the playlist can be played on any client which supports http streaming, users do not have to attach themselves to particular client application specified by media server for accessing their files. They can use any client of their choice for playing playlist, from any platform. 
 
-Recommanded media players for playing playlist of mixed content: mpv,mplayer,vlc,kodi { or kawaii-player :) }
+Recommended media players for playing playlist of mixed content: mpv,mplayer,vlc,kodi { or kawaii-player :) }
 
 For audio only content: audacious, clementine or any client that can play m3u files. (audacious can directly read metadata from streaming audio, hence it's much better choice for streaming audio) 
 
@@ -291,7 +291,7 @@ Playlist generated using curl (or from web interface) can be opened with most of
 
 On Android devices, user should use vlc latest nightly build. vlc available in fdroid is very old, and it's current stable android version is also far behind desktop version when it comes to playing network streams of all audio/video format. But it's latest nightly build version starting with 2.1, can play most of the video formats including **mkv/mp4** streams streamed by kawaii-player media server. It can also play streaming **flac** audio files. Currently it is the best **open and free** option available for Android for playing audio/video media server files without transcoding. Sometimes if it fails to play streaming files, then user can easily download those files on their Android device using web interface. and can play the files natively.
 
-Another popular open and free Android client is Kodi, which can also play most of the popular files over network without transcoding, since it's media playback engine is based on mplayer. But playing playlist directly is somewhat cumbersome in kodi. Kodi also do not allow opening external url directly. Therefore, users first need to save playlist locally using android web browser, and then need to add it's path to kodi's music/video library. After updating kodi's library, one can see m3u files in it's music/video library which users can play without any more hassle. 
+Another popular open and free Android client is Kodi, which can also play most of the popular files over network without transcoding, since it's media playback engine is based on mplayer. But playing playlist directly is somewhat cumbersome in kodi. Kodi also do not allow opening external url directly. Therefore, users first need to save playlist locally using android web browser, and then need to add its path to kodi's music/video library. After updating kodi's library, one can see m3u files in its music/video library which users can play without any more hassle. 
 
 Performance of vlc or kodi on android devices also depends on the hardware of the device. Depending on the hardware of mobile device, sometimes they might play every kind of network stream you throw at them, while sometimes they won't play even a simple video.
 
@@ -306,7 +306,7 @@ It is possible to play audio/video torrent directly with this player similar to 
 
 In 'torrent_config.txt' you can set some other fields like upload , download rate in (KBps) and default download location.
 
-For opening torrents within this player, goto Addons->Torrent->Open and enter torrent file name or torent url or magnet link inside the input dialog box, and then select appropriate entry which will appear in either Title list or Playlist. Your list of visited torrents will be accessible from the 'History' section. 
+For opening torrents within this player, goto Addons->Torrent->Open and enter torrent file name or torrent url or magnet link inside the input dialog box, and then select appropriate entry which will appear in either Title list or Playlist. Your list of visited torrents will be accessible from the 'History' section. 
 
 This feature is based on libtorrent-rasterbar {which is being used by bittorrent clients like qBittorrent and deluge} and it's python3 bindings. If you've installed latest version of libtorrent-rasterbar then python3 bindings are included along with it. In systems where older version of libtorrent-rasterbar is installed, users need to install python3-libtorrent to use this feature.  
 
@@ -408,9 +408,9 @@ Web Interface, contains a search text box which can be used to send text command
 
 * **Get M3U:** User can click on the *'Get M3U'* button to generate universal playlist in M3U format, which can be played on any device and on most of the popular clients that support http streaming. User can save the playlist or can directly open it with their favourite media player application. If Firefox is directly playing the playlist, then it might be due to some external web plugin. For example, during installation of vlc, it can also install web plugin for firefox. Users need to disable such plugin to get the playlist, or they can simply open the url **without '.htm' extension** from within the vlc itself, if 'https' and cookie are not enabled. vlc can easily deal with basic username and password based authentication.
 
-* **About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtiles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
+* **About Subtitle Support:** It requires installation of ffmpeg on the server. ffmpeg is required for extracting and converting subtitles to WebVTT format which can be displayed in the browser. Server will first scan for subtitles in the video folder. If it does not find subtitle there then it will try to extract subtitle from the video itself if it's in mkv format. Subtitles support can be switched on by using command 'sub:on' or 'sub:reload'. Subtitles will be displayed as captions and won't be embedded into streaming video using transcoding, hence this method won't put strain on the server. In case of streaming mkv files, **Chromium** can play most of them well without subtitle; hence in such cases users can switch on subtitle support. **Firefox** does not support playing mkv files, hence switching on subtitle on it will be useful only for HTML5 compatible video formats. 
 
-* **About Youtube-Quick (ytq:) command:** (Available in version 2.8+) the ytq command will send any url or torrent link to the the application without asking anything and will start playing the video instantly using mpv/mplayer and youtube-dl. Torrent http/magnet links will be played using torrent streaming engine of the application. All the casted url's will be temporarily saved in 'TMP_PLAYLIST' - which users can save later on. Torrents will be saved in 'Torrent->History' section. Users can control quality using 'quality:' command.
+* **About Youtube-Quick (ytq:) command:** (Available in version 2.8+) the ytq command will send any url or torrent link to the application without asking anything and will start playing the video instantly using mpv/mplayer and youtube-dl. Torrent http/magnet links will be played using torrent streaming engine of the application. All the casted url's will be temporarily saved in 'TMP_PLAYLIST' - which users can save later on. Torrents will be saved in 'Torrent->History' section. Users can control quality using 'quality:' command.
 
 
 
@@ -510,7 +510,7 @@ For using remote control, see the following section.
 
 This player provides a wrapper around youtube site using qtwebengine. If your GNU/linux distro does not package qtwebengine, then it will fallback to qtwebkit, which is slower compared to qtwebengine for rendering web pages. Users need to install youtube-dl for directly playing youtube videos on this player. In this wrapper users will get complete functionality of youtube site, but with better control over video and playlist. Users can add any youtube video url into the local playlist or they can import entire youtube playlist as local playlist. It also supports offline mode, if users have fluctuating internet connection. Before using offline mode users need to add youtube url into local playlist.
 
-youtube-dl gets outdated quickly, hence there is an option provided in the player to fetch it's current version automatically if it fails to play videos. In order to use this feature user needs to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
+youtube-dl gets outdated quickly, hence there is an option provided in the player to fetch its current version automatically if it fails to play videos. In order to use this feature user needs to add *'YTDL_PATH=automatic'* in *'other_options.txt'* file.
 
 Even though, the wrapper has been written for YouTube site, the framework that has been created can be used with any youtube-dl supported site from version 2.8+ onwards. Using internal web browser, users can go to any youtube-dl supported website (using either duckduckgo or google), then right click the required link and play it with kawaii-player.
 
@@ -568,7 +568,7 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
         * fast mode will generate faster thumbnail preview by skipping some intermediate previews.
     * Available in two styles: tooltip and float widget
         * Tooltip style is available only in higher qt version (may be in v5.7+). It has somewhat fluctuating performance depending on window manager and system theme.
-        * Float widget style has consistent performance on every platform and window manager, on which it has been tested. So, float widget style is recommanded for preview.
+        * Float widget style has consistent performance on every platform and window manager, on which it has been tested. So, float widget style is recommended for preview.
     * Once seekbar is focused, users can use keyboard shortcuts ctrl+right and ctrl+left to seek preview +/- 5 seconds, without changing current seek position of video.
     
     How to enable this feature?
@@ -668,7 +668,7 @@ Make sure to install `mpv` or `libmpv-dev` before starting the installation proc
               
         Note: use pip or pip3 depending on what is available on your system.
 	
-	pip3 will essentially install most of the python-based dependencies along with the package. Users only have to install non-python based dependencies such as mplayer/mpv,ffmpegthumbnailer,libtorrent and curl/wget manually. On windows ffmpegthumbnailer is not available, hence thumbnails will be generated by either mpv or mplayer itself.
+	pip3 will essentially install most of the python-based dependencies along with the package. Users only have to install non-python based dependencies such as mplayer/mpv, ffmpegthumbnailer, libtorrent and curl/wget manually. On Windows ffmpegthumbnailer is not available, hence thumbnails will be generated by either mpv or mplayer itself.
 	**From non-python dependencies, users need to install atleast mpv (or mplayer) as playback engine; and atleast curl (or wget) for fetching web pages apart from default pycurl, in case there is some problem with pycurl.**
 	
 	If pycurl doesn't work or can't be installed, then users should edit **Preferences->Other->Get Library** to either 'curl' or 'wget'.
@@ -683,7 +683,7 @@ Make sure to install `mpv` or `libmpv-dev` before starting the installation proc
     
     **Directly using self contained binary:** 
     
-    kawaii-player from v2.5+ onwards is being released with experimental binary for 64-bit windows 10. This binary packs all the python based dependencies (except python3-libtorrent) along with mpv and curl. Just grab the binary for windows from release section, extract it, go to extracted folder and then click on **kawaii_player** file to launch the application. In **~\.config\kawaii-player\other_options.txt** file, windows users have to change 'Preferences->Other->Get Library' to 'curl' from pycurl, if it is not already curl. Users can also change 'YTDL_PATH=DEFAULT' to 'YTDL_PATH=AUTOMATIC', that will grab updated youtube-dl automatically, for playing youtube videos. On windows youtube-dl requires 'msvc 2010 redistributable package (x86)' - which they have to install from microsoft's website.
+    kawaii-player from v2.5+ onwards is being released with experimental binary for 64-bit Windows 10. This binary packs all the python based dependencies (except python3-libtorrent) along with mpv and curl. Just grab the binary for windows from release section, extract it, go to extracted folder and then click on **kawaii_player** file to launch the application. In **~\.config\kawaii-player\other_options.txt** file, Windows users have to change 'Preferences->Other->Get Library' to 'curl' from pycurl, if it is not already curl. Users can also change 'YTDL_PATH=DEFAULT' to 'YTDL_PATH=AUTOMATIC', that will grab updated youtube-dl automatically, for playing youtube videos. On Windows youtube-dl requires 'msvc 2010 redistributable package (x86)' - which they have to install from microsoft's website.
 
 6. Tips for macOs users (Installing dependencies).
 
@@ -693,13 +693,13 @@ Make sure to install `mpv` or `libmpv-dev` before starting the installation proc
         
         $ PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip3 install --no-cache-dir pycurl
     
-    Support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manually using setup.py as mentiond in the common method above. 
+    Support for macOS has been added from v3.9+ onwards. Once dependencies are installed, use git master branch and install package manually using setup.py as mentioned in the common method above. 
     
     After opening the application go to **Preferences->Config**, check **Use this config file** and add/modify vo=libmpv and ao=coreaudio. Users can modify other parameters also as per need and then need to save changes, before playing any video.
     
-    kawaii-player has beent tested only with macOS Mojave. On macOS, kawaii-player (v3.9) will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore playing video within thumbnails won't work along with varios thumbnail modes and detached video mode. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
+    kawaii-player has beent tested only with macOS Mojave. On macOS, kawaii-player (v3.9) will open separate window for the video, since OSX does not support window embedding of foreign processes. Therefore, playing video within thumbnails won't work along with varios thumbnail modes and detached video mode. However, rest of the features like video library management, torrent streaming, pc-to-pc casting, media server, remote control etc.. will work as expected. Support for macOS is in experimental stage.
 
-    **Update:** From v4.0+ onwards, it is posiible to embed video within kawaii-player application on macOS, by using **libmpv** as backend. Select **libmpv** from sidebar, and restart the application. Make sure that libmpv is located somewhere in the system path.
+    **Update:** From v4.0+ onwards, it is possible to embed video within kawaii-player application on macOS, by using **libmpv** as backend. Select **libmpv** from sidebar, and restart the application. Make sure that libmpv is located somewhere in the system path.
 
     Note: If libtorrent-rasterbar is not working for torrent streaming, then edit brew formula and update download url location (point it to libtorrent-rasterbar v1.1.12), and then install it from source. 
 
@@ -841,7 +841,7 @@ One needs to copy manually all config files and directory to new location in the
 
 7. On Windows, If fetching of web pages is very slow using pycurl, then install curl or wget and change pycurl to 'curl' or 'wget' in 'other_options.txt' file located in '~\.config\kawaii-player' folder.
 
-8. If the application is installed using setup.py script then it will install two launching scripts kawaii-player (gui script) and kawaii-player-console (console script). On windows, media server was not working properly if the application was opened with gui_script. When application was opened with console script i.e. kawaii-player-console, then media server functionality was working properly, once application was allowed access through windows firewall. There is basically no difference in kawaii-player and kawaii-player-console scripts, only difference is that in kawaii-player-console, terminal will remain open behind the gui.
+8. If the application is installed using setup.py script then it will install two launching scripts kawaii-player (gui script) and kawaii-player-console (console script). On Windows, media server was not working properly if the application was opened with gui_script. When application was opened with console script i.e. kawaii-player-console, then media server functionality was working properly, once application was allowed access through windows firewall. There is basically no difference in kawaii-player and kawaii-player-console scripts, only difference is that in kawaii-player-console, terminal will remain open behind the gui.
 
 9. The application creates configuration folder '~/.config/kawaii-player'. Make sure that the application has write permission to create folders and sub-folders within config directory. Thumbnails generated by ffmpegthumbnailer are also stored in the config directory, hence make sure that ffmpegthumbnailer also has write access to the directory. If you are using **selinux**, then configure it properly. 
 
