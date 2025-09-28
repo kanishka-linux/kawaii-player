@@ -548,7 +548,11 @@ class MySlider(QtWidgets.QSlider):
                 and (self.ui.live_preview == "fast" 
                 or final_point is None or self.final_point == final_point)):
             self.mpv.play(url)
-        self.mpv.wait_for_property("idle-active", lambda x : x, timeout=timeout)
+        try:
+            self.mpv.wait_for_property("idle-active", lambda x : x, timeout=timeout)
+        except Exception as err:
+            ui.logger.debug('error generating preview - Timeout')
+            pass
         if os.path.exists(picn) and not os.path.exists(newpicn):
             shutil.move(picn, newpicn)
         self.mpv.stop = True
