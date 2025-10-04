@@ -2151,13 +2151,13 @@ class ExtraToolBar(QtWidgets.QFrame):
                         widget.setValue(100 - int(property_value))
                 elif property_name in ['sub-border-size', 'sub-shadow-offset']:
                     new_val = float(property_value) * 10
-                    widget.setValue(new_val)
+                    widget.setValue(int(new_val))
                 elif property_name in ['sub-blur', 'sub-spacing']:
                     new_val = float(property_value) * 100
-                    widget.setValue(new_val)
+                    widget.setValue(int(new_val))
                 elif property_name == 'sub-scale':
                     new_val = float(property_value)
-                    widget.setValue(new_val)
+                    widget.setValue(int(new_val))
                 elif property_name in ['sub-ass-override', 'sub-align-x', 'sub-align-y']:
                     if property_name == 'sub-align-y' and property_value == 'center':
                         property_value = 'Middle'
