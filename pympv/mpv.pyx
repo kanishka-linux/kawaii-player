@@ -756,10 +756,10 @@ cdef class Context(object):
     def __dealloc__(self):
         self.shutdown()
 
-cdef void *_c_getprocaddress(void *ctx, const char *name) with gil:
+cdef void *_c_getprocaddress(void *ctx, const char *name) noexcept with gil:
     return <void *><intptr_t>(<object>ctx)(name)
 
-cdef void _c_updatecb(void *ctx) with gil:
+cdef void _c_updatecb(void *ctx) noexcept with gil:
     (<object>ctx)()
 
 DEF MAX_RENDER_PARAMS = 32
@@ -804,7 +804,7 @@ cdef void *get_pointer(const char *name, object obj):
     cdef void *p
     if PyCapsule_IsValid(obj, name):
         p = PyCapsule_GetPointer(obj, name)
-    elif isinstance(obj, int) or isinstance(obj, long) and obj:
+    elif isinstance(obj, int) and obj:
         p = <void *><intptr_t>obj
     else:
         raise PyMPVError("Unknown or invalid pointer object: %r" % obj)
@@ -1039,7 +1039,7 @@ class CallbackThread(Thread):
         except Exception as e:
             sys.stderr.write("pympv error during callback: %s\n" % e)
 
-cdef void _c_callback(void* d) with gil:
+cdef void _c_callback(void* d) noexcept with gil:
     cdef uint64_t name = <uint64_t>d
     callback = _callbacks.get(name)
     callback.call()
