@@ -54,11 +54,6 @@ if system == "darwin":
 
 extension_src = "pympv/mpv.pyx"
 
-if system == "linux":
-    mpv_so = ctypes.util.find_library("mpv")
-    if mpv_so == "libmpv.so.1":
-        extension_src = "pympv/pympv-0.7.1/mpv.pyx"
-
 if library_path is None:
     extensions = [Extension("mpv", [extension_src], libraries=["mpv"])]
 else:
