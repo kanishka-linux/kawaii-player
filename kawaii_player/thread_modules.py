@@ -1528,8 +1528,8 @@ class BroadcastServer(QtCore.QThread):
         else:
             https_val = 'http'
         subnet_mask = ui.local_ip_stream.rsplit('.', 1)[0] + '.255'
-        notify_msg = '{0}://{1}:{2} started broadcasting. Now Clients can Discover it'.format(
-            https_val, ui.local_ip_stream, ui.local_port_stream)
+        notify_msg = '{0}://{1}:{2}, Role={3} started broadcasting. Now Clients can Discover it'.format(
+            https_val, ui.local_ip_stream, ui.local_port_stream, ui.pc_to_pc_casting)
         send_notification(notify_msg)
         print(subnet_mask)
         while ui.broadcast_server:
@@ -1593,10 +1593,19 @@ class DiscoverServer(QtCore.QThread):
                                 https_val = 'http'
                         elif i.startswith('pc_to_pc_casting='):
                             casting_mode = i.split('=')[1]
-                    if casting_mode == 'slave' and ui.discover_slaves:
+                    if casting_mode == 'slave':
                         slave_address = '{}://{}:{}'.format(https_val, server, port_val)
+                        slave_address_without_prefix = '{}:{}'.format(server, port_val)
                         if slave_address not in ui.pc_to_pc_casting_slave_list:
                             ui.pc_to_pc_casting_slave_list.append(slave_address)
+                            if ui.auto_set_ip_address_on_start and ui.slave_address != slave_address_without_prefix:
+                                ui.slave_address = '{}:{}'.format(server, port_val)
+                                config_file = os.path.join(ui.home_folder, 'slave.txt')
+                                with open(config_file, "w") as f:
+                                    f.write(slave_address)
+
+                                print("slave address updated to: {}".format(slave_address))
+
                     msg_val = re.search('msg=[^"]*', val_string).group()
                     msg_val = msg_val.replace('msg=', '', 1)
                     server_val = '{0}://{1}:{2}/\t{3}'.format(
