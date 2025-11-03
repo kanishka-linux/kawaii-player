@@ -12831,7 +12831,7 @@ class Ui_MainWindow(object):
                 elif code == 4:
                     m.pop()
                     if site.lower() == 'myserver' and opt.lower() == 'discover':
-                        if not self.discover_thread:
+                        if not self.discover_thread and not self.list2.discover_slave_thread:
                             self.discover_thread = DiscoverServer(self, True)
                             self.discover_thread.start()
                         elif isinstance(self.discover_thread, DiscoverServer):

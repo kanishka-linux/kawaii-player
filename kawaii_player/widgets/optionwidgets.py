@@ -115,7 +115,7 @@ class SidebarWidget(QtWidgets.QListWidget):
                 and event.key() == QtCore.Qt.Key_D):
             site = ui.get_parameters_value(s='site')['site']
             if site.lower() == 'myserver':
-                if not ui.discover_thread:
+                if not ui.discover_thread and not ui.list2.discover_slave_thread:
                     ui.discover_thread = DiscoverServer(ui, True)
                     ui.discover_thread.start()
                 elif isinstance(ui.discover_thread, DiscoverServer):

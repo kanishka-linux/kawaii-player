@@ -2109,7 +2109,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
         if text.lower() == 'discover slaves':
             self.ui.discover_slaves = True
             logger.debug('starting...')
-            if not self.discover_slave_thread:
+            if not self.discover_slave_thread and not ui.discover_thread:
                 self.discover_slave_thread = DiscoverServer(ui)
                 self.discover_slave_thread.start()
             elif isinstance(self.discover_slave_thread, DiscoverServer):

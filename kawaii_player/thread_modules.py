@@ -1560,6 +1560,7 @@ class DiscoverServer(QtCore.QThread):
     def run(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind(('', 12345))
+
         s.settimeout(60)
         port_val = ''
         https_val = ''
@@ -1609,7 +1610,7 @@ class DiscoverServer(QtCore.QThread):
                     msg_val = re.search('msg=[^"]*', val_string).group()
                     msg_val = msg_val.replace('msg=', '', 1)
                     server_val = '{0}://{1}:{2}/\t{3}'.format(
-                        https_val, server, port_val, msg_val)
+                        https_val, server, port_val, casting_mode)
                     if server_val not in ui.broadcast_server_list and ui.discover_server:
                         ui.broadcast_server_list.append(server_val)
                         self.discover_signal.emit(server_val)
@@ -1631,7 +1632,7 @@ class DiscoverServer(QtCore.QThread):
 def remember_server(val):
     ui.text.setText('Found..')
     ui.original_path_name.append(val)
-    ui.list1.addItem(val.split('\t')[0])
+    ui.list1.addItem(val)
     
 @pyqtSlot(str)
 def clear_server_list(val):
