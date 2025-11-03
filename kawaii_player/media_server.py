@@ -1266,10 +1266,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_header('Content-type', 'video/mp4')
             size = os.stat(nm).st_size
-            if get_bytes:
-                nsize = size - get_bytes + 1
-            else:
-                nsize = size
 
             self.send_header('Accept-Ranges', 'bytes')
             self.send_header('Content-Length', str(size))
@@ -1286,17 +1282,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             print(get_bytes, '--get--bytes--', nm_ext)
+            upspeed = 1024
+            upload_gap = 0
             if ui.setuploadspeed:
                 upspeed = ui.setuploadspeed
-                uptime = 1
-            else:
-                upspeed = 512
-                uptime = 0.0001
+                upload_gap = 1
+
             t = 0
-            #old_time = time.time()
             end_read = False
             content = None
-            content_limit = 1024*1024*10
             content_count = 0
             with open(nm, 'rb') as f:
                 if get_bytes and t == 0:
@@ -1307,6 +1301,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             if upper_range != size - 1:
                                 content = f.read(upper_range-get_bytes+1)
                                 self.wfile.write(content)
+                                self.wfile.flush()
                                 end_read = True
                 if not end_read:
                     content = f.read(1024*upspeed)
@@ -1314,20 +1309,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 while(content) and not end_read:
                     try:
                         self.wfile.write(content)
+                        self.wfile.flush()
                     except Exception as e:
                         if 'Errno 104' in str(e):
                             logger.info(e)
                             break
                     content = f.read(1024*upspeed)
                     content_count += 1024*upspeed
-                    time.sleep(uptime)
-                    #if allow_chunks:
-                    #    if content_count > content_limit:
-                    #        logger.info('10MB sent')
-                    #        break
-            #new_time = time.time()
-            #elapsed = new_time-old_time
-            #print(datetime.timedelta(seconds=elapsed), '--elapsed-time--')
+                    if upload_gap:
+                        time.sleep(upload_gap)
             print('data sent')
             self.proc_req = True
 
