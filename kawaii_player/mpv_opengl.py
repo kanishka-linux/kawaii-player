@@ -571,7 +571,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property('duration')
         self.mpv.observe_property('eof-reached')
         self.mpv.observe_property('idle-active')
-        self.mpv.observe_property('sub')
+        self.mpv.observe_property('sid')
         self.mpv.observe_property('audio')
         self.mpv.observe_property('seeking')
         self.mpv.observe_property('ao-volume')
@@ -584,7 +584,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     'eof-reached': self.eof_observer,
                     'idle-active': self.idle_observer,
                     'duration': self.time_duration,
-                    'sub': self.sub_changed,
+                    'sid': self.sub_changed,
                     'audio': self.audio_changed,
                     'seeking': self.player_seeking,
                     'ao-volume': self.volume_observer,
