@@ -3643,15 +3643,16 @@ class ThreadServerLocal(QtCore.QThread):
             if not ui.https_media_server:
                 server_address = ('', self.port)
                 self.httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
-                #self.set_local_ip_val()
+                if ui.auto_set_ip_address_on_start:
+                    self.set_local_ip_val()
                 self.media_server_start.emit('http')
             elif ui.https_media_server and os.path.exists(cert):
                 server_address = ('', self.port)
                 self.httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
                 self.httpd.socket = ssl.wrap_socket(self.httpd.socket, certfile=cert, ssl_version=ssl.PROTOCOL_TLSv1_2)
-                #self.set_local_ip_val()
+                if ui.auto_set_ip_address_on_start:
+                    self.set_local_ip_val()
                 self.media_server_start.emit('https')
-            #httpd = MyTCPServer(server_address, HTTPServer_RequestHandler)
         except OSError as e:
             e_str = str(e)
             logger.info(e_str)
@@ -3664,8 +3665,6 @@ class ThreadServerLocal(QtCore.QThread):
                 change_config_file(self.ip, self.port)
                 server_address = (self.ip, self.port)
                 ui.local_ip_stream = self.ip
-                #httpd = MyTCPServer(server_address, HTTPServer_RequestHandler)
-                #httpd = ThreadedHTTPServerLocal(server_address, HTTPServer_RequestHandler)
             else:
                 pass
         if self.httpd:
