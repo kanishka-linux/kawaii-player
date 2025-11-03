@@ -1531,6 +1531,7 @@ class Ui_MainWindow(object):
         self.append_audio_start = False
         self.append_audio_gapless = False
         self.gapless_playback = False
+        self.auto_set_ip_address_on_start = False
         self.gapless_network_stream = False
         self.gapless_network_stream_disabled = False
         self.gapless_playback_disabled = False
@@ -14743,6 +14744,14 @@ def main():
                         if k:
                             if k == 'yes' or k == 'true' or k == '1':
                                 ui.gapless_playback = True
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('AUTO_SET_IP_ADDRESS_ON_START'):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.auto_set_ip_address_on_start = True
                     except Exception as e:
                         print(e)
                 elif i.startswith('GAPLESS_NETWORK_STREAM='):
