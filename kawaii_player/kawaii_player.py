@@ -1532,6 +1532,8 @@ class Ui_MainWindow(object):
         self.append_audio_gapless = False
         self.gapless_playback = False
         self.auto_set_ip_address_on_start = False
+        self.auto_brooadcast_server = False
+        self.auto_discover_slaves = False
         self.gapless_network_stream = False
         self.gapless_network_stream_disabled = False
         self.gapless_playback_disabled = False
@@ -14754,6 +14756,22 @@ def main():
                                 ui.auto_set_ip_address_on_start = True
                     except Exception as e:
                         print(e)
+                elif i.startswith('AUTO_BROADCAST_SERVER'):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.auto_brooadcast_server = True
+                    except Exception as e:
+                        print(e)
+                elif i.startswith('AUTO_DISCOVER_SLAVES'):
+                    try:
+                        k = j.lower()
+                        if k:
+                            if k == 'yes' or k == 'true' or k == '1':
+                                ui.auto_discover_slaves = True
+                    except Exception as e:
+                        print(e)
                 elif i.startswith('GAPLESS_NETWORK_STREAM='):
                     try:
                         k = j.lower()
@@ -15513,6 +15531,17 @@ def main():
     
     if ui.media_server_autostart:
         ui.start_stop_media_server(True)
+        time.sleep(1)
+        if ui.auto_brooadcast_server:
+            ui.broadcast_thread = BroadcastServer(ui)
+            ui.broadcast_thread.start()
+            ui.broadcast_server = True
+        time.sleep(1)
+        if ui.auto_discover_slaves and ui.pc_to_pc_casting == "master":
+            ui.discover_slaves = True
+            ui.discover_thread = DiscoverServer(ui)
+            ui.discover_thread.start()
+
     if ui.view_mode in ['thumbnail', 'thumbnail_light']:
         time.sleep(0.01)
         if ui.view_mode == 'thumbnail':
