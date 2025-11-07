@@ -1533,7 +1533,10 @@ class BroadcastServer(QtCore.QThread):
         send_notification(notify_msg)
         print(subnet_mask)
         while ui.broadcast_server:
-            s.sendto(msg, (subnet_mask,12345))
+            try:
+                s.sendto(msg, (subnet_mask,12345))
+            except Exception as err:
+                print(err)
             time.sleep(1)
         send_notification('Broadcasting Stopped')
 
