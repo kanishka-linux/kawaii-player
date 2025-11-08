@@ -668,14 +668,15 @@ def get_torrent_info_magnet(v1, v3, u, p_bar, tmp_dir):
     tmp_dir_folder = tmp_dir
     progress.setValue(0)
     progress.show()
-    sett = lt.session_settings()
-    sett.user_agent = 'qBittorrent v3.3.5'
-    sett.always_send_user_agent = True
+    sett = {
+            "always_send_user_agent": True,
+            "user_agent": 'qBittorrent v3.3.5'
+        }
     fingerprint = lt.fingerprint('qB', 3, 3, 5, 0)
     ses = lt.session(fingerprint)
 
     ses.listen_on(40000, 50000)
-    ses.set_settings(sett)
+    ses.apply_settings(sett)
 
     handle = lt.add_magnet_uri(ses, v1, {'save_path':v3})
     i = 0
@@ -733,13 +734,14 @@ def get_torrent_info(torrent_file, file_index, file_dest,
     progress.setValue(0)
     progress.show()
     if not session:
-        sett = lt.session_settings()
-        sett.user_agent = 'qBittorrent v3.3.5'
-        sett.always_send_user_agent = True
+        sett =  {
+                "user_agent": 'qBittorrent v3.3.5',
+                "always_send_user_agent": True
+            }
         fingerprint = lt.fingerprint('qB', 3, 3, 5, 0)
         ses = lt.session(fingerprint)
         ses.listen_on(40000, 50000)
-        ses.set_settings(sett)
+        ses.apply_settings(sett)
     else:
         ses = session
 
