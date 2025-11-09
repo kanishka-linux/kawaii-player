@@ -19,9 +19,14 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
+import shutil
 import sqlite3
 import datetime
-from PyQt5 import QtWidgets
+import hashlib
+from typing import Optional, List
+
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from player_functions import open_files, send_notification
 
 try:
@@ -38,12 +43,164 @@ except Exception as err:
 
 print(SONG_TAGS, '--tagging-module--')
 
+
+class DatabaseMigrationThreadOnStartUp(QtCore.QThread):
+
+    mysignal = pyqtSignal(str)
+
+    def __init__(self, db_instance, db_path):
+        QtCore.QThread.__init__(self)
+        global ui
+        self.db_instance = db_instance
+        self.db_path = db_path
+        self.mysignal.connect(update_text_widget)
+        ui = db_instance.ui
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        paths = self.db_instance.get_videos_without_checksum(self.db_path)
+        count = len(paths)
+        for i, file_path in enumerate(paths):
+            checksum = self.db_instance.calculate_file_checksum(file_path)
+            if checksum and self.db_instance.update_checksum(self.db_path, file_path, checksum):
+                print(f"successfully updated, file: {file_path}, checksum: {checksum}")
+            else:
+                print(f"failed to update sha, file: {file_path}, checksum: {checksum}")
+            self.mysignal.emit(f"finished Migrating {i}/{count}:: {file_path}::{checksum}")
+
+class DatabaseMigrationWorker(QtCore.QThread):
+
+    mysignal = pyqtSignal(str)
+
+    def __init__(self, db_instance, db_path, video_file, video_file_bak):
+        QtCore.QThread.__init__(self)
+        global ui
+        self.db_instance = db_instance
+        self.db_path = db_path
+        self.mysignal.connect(update_text_widget)
+        ui = db_instance.ui
+        self.video_file = video_file
+        self.video_file_bak = video_file_bak
+
+    def __del__(self):
+        self.wait()
+
+    def migrate_thumbnails(self, old_path, media_path):
+        thumbnail_dir = os.path.join(ui.home_folder, 'thumbnails', 'thumbnail_server')
+
+        thumb_name_bytes_old = bytes(old_path, 'utf-8')
+        h = hashlib.sha256(thumb_name_bytes_old)
+        thumb_name_old = h.hexdigest()
+
+        thumb_name_bytes_new = bytes(media_path, 'utf-8')
+        h = hashlib.sha256(thumb_name_bytes_new)
+        thumb_name_new = h.hexdigest()
+
+        thumb_path_old = os.path.join(thumbnail_dir, thumb_name_old+'.jpg')
+        if os.path.exists(thumb_path_old):
+            thumb_path_new = os.path.join(thumbnail_dir, thumb_name_new+'.jpg')
+            shutil.move(thumb_path_old, thumb_path_new)
+            print(f"thumbnail moved from {thumb_path_old} -> {thumb_path_new}")
+
+        for pixel in ['480px', '128px', 'label']:
+            thumb_path_old = os.path.join(thumbnail_dir, pixel+'.'+thumb_name_old+'.jpg')
+            if os.path.exists(thumb_path_old):
+                thumb_path_new = os.path.join(thumbnail_dir, pixel+'.'+thumb_name_new+'.jpg')
+                shutil.move(thumb_path_old, thumb_path_new)
+                print(f"thumbnail moved from {thumb_path_old} -> {thumb_path_new}")
+
+    def update(self, media_path):
+        checksum = self.db_instance.calculate_file_checksum(media_path)
+        old_path = None
+
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                    SELECT Path from Video
+                    WHERE file_checksum = ?
+                    """, (checksum,))
+            result = [row[0] for row in cursor.fetchall()]
+            print(result)
+            if result:
+                old_path = result[0]
+
+            conn.commit()
+            conn.close()
+        except Exception as err:
+            print(f"error migrating thumbnails: {err}")
+            conn.close()
+
+        # media_path is new_path
+        # old_path stored in db against the checksum
+        if old_path and old_path != media_path:
+            self.migrate_thumbnails(old_path, media_path)
+
+            directory, _  = os.path.split(media_path)
+            # Update Path pointing to new path
+            # but with same checksum
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                UPDATE Video
+                SET Path = ?, Directory = ?
+                WHERE file_checksum = ?
+                """, (media_path, directory, checksum))
+                conn.commit()
+                conn.close()
+            except Exception as err:
+                print(f"error updating path={media_path} for a given chhecksum={checksum}: {err}")
+                conn.close()
+        # If no old_path, means no entry exists for the
+        # checksum, then try to update media_path with the its
+        # checksum
+        elif old_path is None:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    UPDATE Video
+                    SET file_checksum = ?
+                    WHERE Path = ?
+                    """, (checksum, media_path))
+
+                conn.commit()
+                conn.close()
+            except Exception as err:
+                print(f"error updating checksum={checksum} for a given path={media_path}: {err}")
+                conn.close()
+        return checksum
+
+    def run(self):
+        m_files = self.db_instance.import_video(self.video_file, self.video_file_bak)
+        count = len(m_files)
+
+        try:
+            for i, media_path in enumerate(m_files):
+                try:
+                    checksum = self.update(media_path)
+                    self.mysignal.emit(f"finished Migrating {i}/{count}:: {media_path}::{checksum}")
+                except sqlite3.IntegrityError as e:
+                    print(e, f"skip: {media_path}")
+                    pass
+
+        except Exception as err:
+            print(err, "db-error")
+
+@pyqtSlot(str)
+def update_text_widget(info):
+    ui.text.setText(info)
+
 class MediaDatabase():
 
     def __init__(self, home=None, logger=None):
         self.home = home
         self.logger = logger
         self.ui = None
+        self.db_worker = None
         
     def set_ui(self, ui):
         self.ui = ui
@@ -223,9 +380,11 @@ class MediaDatabase():
                         category = self.ui.category_dict['tv shows']
                     else:
                         category = self.ui.category_dict['others']
-                    w = [ti, di, na, na, pa, epn_cnt, category]
+
+                    checksum = self.calculate_file_checksum(pa)
+                    w = [ti, di, na, na, pa, epn_cnt, category, checksum]
                     try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Inserting:", w)
                     except:
                         self.logger.info(w)
@@ -267,9 +426,11 @@ class MediaDatabase():
                         category = self.ui.category_dict['tv shows']
                     else:
                         category = self.ui.category_dict['others']
-                    w = [ti, di, na, na, pa, epn_cnt, category]
+
+                    checksum = self.calculate_file_checksum(pa)
+                    w = [ti, di, na, na, pa, epn_cnt, category, checksum]
                     try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info('inserted: {0}<-->{1}'.format(w, j))
                         j = j+1
                     except Exception as e:
@@ -288,6 +449,107 @@ class MediaDatabase():
         if rownum is not None and dir_name in self.ui.video_dict:
             self.ui.video_dict[dir_name][rownum] = plist
             
+
+    def migrate_database(self, old_version, column_name):
+        print(f"version upgrade detected  from {old_version} to {self.ui.version_number}, running migration")
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        table_name = "Video"
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = [column[1] for column in cursor.fetchall()]
+
+            if column_name not in columns:
+                if column_name == "file_checksum":
+                    alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {column_name} Text Default ''"
+                    cursor.execute(alter_sql)
+                    title_index_sql = "CREATE INDEX index_title ON Video (Title)"
+                    cursor.execute(title_index_sql)
+                    directory_index_sql = "CREATE INDEX index_dir ON Video (Directory)"
+                    cursor.execute(directory_index_sql)
+                    checksum_index_sql = "CREATE INDEX index_checksum ON Video (file_checksum)"
+                    cursor.execute(checksum_index_sql)
+                    conn.commit()
+                    print(f"Column '{column_name}' added successfully to table '{table_name}'")
+
+                    self.thread = DatabaseMigrationThreadOnStartUp(self, db_path)
+                    self.thread.start()
+                    #paths = self.get_videos_without_checksum(db_path)
+                    #for file_path in paths:
+                    #    checksum = self.calculate_file_checksum(file_path)
+                    #    if checksum and self.update_checksum(db_path, file_path, checksum):
+                    #        print(f"successfully updated, file: {file_path}, checksum: {checksum}")
+                    #    else:
+                    #        print(f"failed to update sha, file: {file_path}, checksum: {checksum}")
+
+            else:
+                print(f"Column '{column_name}' already exists in table '{table_name}'")
+
+        except sqlite3.Error as e:
+            print(f"Error: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
+
+    def calculate_file_checksum(self, file_path: str, chunk_size: int = 1024*1024) -> Optional[str]:
+        """Calculate MD5 hash of a file."""
+        if not os.path.exists(file_path):
+            print(f"File not found: {file_path}")
+            return None
+
+        h = hashlib.blake2s()
+
+        try:
+            with open(file_path, 'rb') as file:
+                buf = file.read(chunk_size)
+                h.update(buf)
+            return h.hexdigest()
+
+        except (IOError, OSError, PermissionError) as e:
+            print(f"Error reading file {file_path}: {e}")
+            return None
+
+    def get_videos_without_checksum(self, db_path: str) -> List[str]:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""
+                SELECT Path
+                FROM Video
+                WHERE file_checksum IS NULL OR file_checksum = ''
+                ORDER BY Path
+            """)
+
+            result = [row[0] for row in cursor.fetchall()]
+
+            return result
+        except sqlite3.Error as e:
+            print(f"Error fetching videos without checksum: {e}")
+            return []
+        finally:
+            conn.close()
+
+    def update_checksum(self, db_path: str, file_path: str, sha: str) -> bool:
+        """Update checksum column in database."""
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute("""
+                UPDATE Video SET file_checksum = ? WHERE Path = ?
+            """, (sha, file_path))
+
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            conn.close()
+            print(f"  ✗ Update error: {e}")
+            return False
+
     def alter_table_and_update(self, version):
         if version <= (2, 0, 0, 0) and version > (0, 0, 0, 0):
             msg = 'Video Database Updating. Please Wait!'
@@ -372,7 +634,20 @@ class MediaDatabase():
         
         if qType == 'mark' or qType == 'unmark':
             self.adjust_video_dict_mark(epName, qVal, rownum)
+
+    def migrate_based_on_checksum(self, video_db, video_file, video_file_bak,
+                                 video_opt, update_progress_show=None):
+        if (update_progress_show is None or update_progress_show) and self.ui:
+            self.ui.text.setText('Wait..Migrating Video Database')
+            QtWidgets.QApplication.processEvents()
+        if self.db_worker is None:
+            self.db_worker = DatabaseMigrationWorker(self, video_db, video_file, video_file_bak)
+            self.db_worker.start()
+        elif isinstance(self.db_worker, DatabaseMigrationWorker) and not self.db_worker.isRunning():
+            self.db_worker = DatabaseMigrationWorker(self, video_db, video_file, video_file_bak)
+            self.db_worker.start()
         
+
     def update_on_start_video_db(self, video_db, video_file, video_file_bak,
                                  video_opt, update_progress_show=None):
         if (update_progress_show is None or update_progress_show) and self.ui:
@@ -444,10 +719,11 @@ class MediaDatabase():
                     rows1 = cur.fetchall()
                     epn_cnt = len(rows1)
                     dict_epn.update({di:epn_cnt})
-                w = [ti, di, na, na, pa, epn_cnt, category]
+                checksum = self.calculate_file_checksum(pa)
+                w = [ti, di, na, na, pa, epn_cnt, category, checksum]
                 if video_opt == "UpdateAll":
                     if os.path.exists(i) and not rows:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
                         epn_cnt += 1
@@ -461,7 +737,7 @@ class MediaDatabase():
                 elif video_opt == "Update":
                     if os.path.exists(i) and not rows:
                         self.logger.info(i)
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?)', w)
+                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
                         self.logger.info("Not Inserted, Hence Inserting File = "+i)
                         self.logger.info(w)
                         epn_cnt += 1
