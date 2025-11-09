@@ -1420,7 +1420,7 @@ class Ui_MainWindow(object):
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (5, 0, 0, 1)
+        self.version_number = (6, 2, 0, 1)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
@@ -7698,7 +7698,7 @@ class Ui_MainWindow(object):
             self.show_search_thumbnail = True
             self.mirror_change.hide()
             criteria = [
-                'Directory', 'Available', 'History', 'Recent', 'Update', 'UpdateAll'
+                'Directory', 'Available', 'History', 'Recent', 'Update', 'UpdateAll', "Migrate"
                 ]
             insert_index = criteria.index('Update')
             for i in self.category_array:
@@ -8261,7 +8261,7 @@ class Ui_MainWindow(object):
                         video_opt = str(self.list3.currentItem().text())
                     else:
                         video_opt = 'History'
-                    if video_opt == "Update" or video_opt == "UpdateAll":
+                    if video_opt in ["Update", "UpdateAll", "Migrate"]:
                         video_opt = "Available"
                         self.video_dict.clear()
                     if video_opt.lower() != "update" and video_opt.lower() != "updateall":
@@ -13011,12 +13011,30 @@ class Ui_MainWindow(object):
                     logger.debug('Canceled UpdateAll')
                 self.video_dict.clear()
                 video_opt = "Directory"
+            elif video_opt == "Migrate":
+                msg = ('This Option Will Migrate your collection\
+                        \nbased on checksum when data is moved to\
+                        \nanother machine/server, so that changing library\
+                        \npath will have minimal impact on existing database.\
+                        \nDo You Want To Continue?')
+                msg = re.sub('[ ]+', ' ', msg)
+                msgreply = QtWidgets.QMessageBox.question(
+                    MainWindow, 'Total Update', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
+                    QtWidgets.QMessageBox.No
+                    )
+                if msgreply == QtWidgets.QMessageBox.Yes:
+                    self.media_data.migrate_based_on_checksum(video_db, video_file, video_file_bak, video_opt)
+                    logger.debug('Proceed With Migration based on checksum')
+                else:
+                    logger.debug('Canceled Migration')
+                self.video_dict.clear()
+                video_opt = "Directory"
             elif video_opt == "Update":
                 self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                 video_opt = "Directory"
                 self.video_dict.clear()
             logger.debug(video_opt)
-            if video_opt.lower() != 'update' and video_opt.lower() != 'updateall':
+            if video_opt.lower() not in ['update', 'updateall', 'migrate']:
                 opt = video_opt
             artist = []
             print('----video-----opt', video_opt)
@@ -14007,7 +14025,7 @@ def save_all_settings_before_quit():
             if ui.list3.currentItem():
                 opt_index = ui.list3.currentRow()
                 opt_txt = ui.list3.currentItem().text()
-                if opt_txt.lower() in ['update', 'updateall']:
+                if opt_txt.lower() in ['update', 'updateall', "migrate"]:
                     opt_val = 'Available'
                     opt_index = '1'
             else:
@@ -15528,7 +15546,11 @@ def main():
     if old_version <= (2, 0, 0, 0) and old_version > (0, 0, 0, 0):
         logger.info('old version: need to change videodb schema')
         ui.media_data.alter_table_and_update(old_version)
-    
+
+    if ui.version_number >= (6, 2, 0, 1) and ui.version_number > old_version:
+        logger.info('old version: need to change videodb schema')
+        ui.media_data.migrate_database(old_version, "file_checksum")
+
     if ui.media_server_autostart:
         ui.start_stop_media_server(True)
         time.sleep(1)
