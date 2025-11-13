@@ -571,6 +571,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     playlist_m3u_dict = {}
     playlist_shuffle_list = []
     nav_signals = DoGETSignal()
+    old_path = []
     
     def process_HEAD(self):
         global ui, logger, getdb
@@ -950,16 +951,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def do_init_function(self, type_request=None):
         global ui, logger
-        epnArrList = ui.epn_arr_list
         path = self.path.replace('/', '', 1)
         if '/' in path:
             if not path.startswith('site=') and'&s=' not in path:
                 path = path.rsplit('/', 1)[0]
         if path.startswith('relative_path=') or path.startswith('abs_path='):
-            pass
+            if ".played" in path:
+                path = path.rsplit(".played", 1)[0]
+            elif ".image" not in self.path and path not in self.old_path:
+                self.old_path.append(path)
+            if len(self.old_path) > 100:
+                self.old_path.clear()
         else:
             path = urllib.parse.unquote(path)
         #logger.info(self.requestline)
+        print(f"Total in Direct Playlist: {len(self.old_path)}")
         playlist_id = None
         try:
             get_bytes = int(self.headers['Range'].split('=')[1].replace('-', ''))
@@ -2033,7 +2039,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if not pls_cache:
                 pls_txt = bytes(pls_txt, 'utf-8')
             size = len(pls_txt)
-            #size = size - get_bytes
             self.send_header('Content-Length', str(size))
             self.send_header('Connection', 'close')
             self.end_headers()
@@ -2043,10 +2048,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 print(e)
             if ui.remote_control and ui.remote_control_field:
                 srch = st_arr[-1]
-                # if playlist is not tied down to video title
-                # e.g playlist created due to random search key
-                # then store result in shuffle list which will be displayed
-                # on the playlist widget
                 if epn_arr and srch and not srch.endswith(".hash") and not shuffle_list:
                     shuffle_list = True
                     self.playlist_shuffle_list = epn_arr.copy()
@@ -2054,16 +2055,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     ui.epn_arr_list = self.playlist_shuffle_list.copy()
                 self.nav_signals.total_navigation(st_arr[0], st_arr[1],
                                                  st_arr[2], shuffle_list)
-            
-            # commenting out caching related code
-            # if not pls_cache:
-            #    if st.startswith('video'):
-            #        ui.media_server_cache_video.update({myvar:pls_txt})
-            #    elif st.startswith('music'):
-            #        ui.media_server_cache_music.update({myvar:pls_txt})
-            #    elif st.startswith('playlist'):
-            #        ui.media_server_cache_playlist.update({myvar:pls_txt})
-        elif path.lower() == 'play' or not path:
+        elif path.lower() in ["vlc", "mpv"] or not path:
+            self.send_response(303)
+            if len(self.old_path) > 0:
+                self.send_header('Location', self.old_path.pop(0) + ".played")
+            self.send_header('Connection', 'close')
+            self.end_headers()
+        elif path.lower() == 'play':
             self.row = ui.list2.currentRow()
             if self.row < 0:
                 self.row = 0
