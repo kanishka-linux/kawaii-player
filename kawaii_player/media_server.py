@@ -1570,8 +1570,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 extra_fields = extra_fields+'{0}:History;'.format(i)
 
+        last_view_file = os.path.join(home, 'History', 'last_viewed.txt')
         if self.last_view:
             extra_fields = extra_fields+'LastView:{0};'.format(self.last_view.pop())
+        elif os.path.exists(last_view_file):
+            last_viewed = open(last_view_file).read()
+            extra_fields = extra_fields+'LastView:{0};'.format(last_viewed)
 
         extra_fields = '<div id="site_option" hidden>{0}</div>'.format(extra_fields)
         return extra_fields
@@ -2003,8 +2007,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if st.startswith('playlist'):
                     if st_o and not srch:
                         srch = st_o
+
+            if len(self.last_view) > 10:
+                self.last_view.clear()
+
             st_arr = [st, st_o, srch]
-            self.last_view.append(",".join(st_arr))
+            st_arr_str  = ",".join(st_arr)
+
+            if st_arr_str not in self.last_view:
+                self.last_view.append(st_arr_str)
+
+            last_view_file = os.path.join(home, 'History', 'last_viewed.txt')
+            with open(last_view_file, "w") as f:
+                f.write(st_arr_str)
+
             epn_arr = []
             if st and st_o and srch and not pls_cache:
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
