@@ -1432,7 +1432,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         or site.lower() == 'none'):
                     if '	' in k:
                         n_out = k.split('	')[0]
-                        if n_out.startswith('#'):
+                        if site.lower() == "video" and n_out.startswith("#"):
+                            n_out = n_out.replace('#', '✅', 1)
+                        elif n_out.startswith('#'):
                             n_out = n_out.replace('#', '', 1)
                         if n_url_file:
                             n_url = n_url_file.replace('"', '')
@@ -2427,6 +2429,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     else:
                         self.final_message(b'Wrong parameters')
                 else:
+                    if os.path.exists(nm):
+                        ui.media_data.mark_episode_as_watched(nm)
                     self.process_url(nm, get_bytes, status=num_row)
                     process_url = True
                 #print(ui.remote_control, ui.remote_control_field, path, '--1440--')

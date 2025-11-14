@@ -586,7 +586,27 @@ class MediaDatabase():
                 print(err, 'Column Already Exists')
             conn.commit()
             conn.close()
-            
+
+    def mark_episode_as_watched(self, file_path: str) -> bool:
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute("""
+                UPDATE Video SET EP_NAME = '#' || EP_NAME
+                WHERE path = ?
+                AND EP_NAME NOT LIKE '#%'
+            """, (file_path,))
+
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            conn.close()
+            print(f"  ✗ Update error: {e}")
+            return False
+
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
         qVal = str(qVal)
