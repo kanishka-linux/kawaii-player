@@ -262,7 +262,7 @@ class MediaDatabase():
             cur.execute(qr, (qVal, ))
         elif q.lower() == "history":
             print(q)
-            qr = 'SELECT distinct Title, Directory FROM Video Where FileName like ? order by Title'
+            qr = 'SELECT distinct Title, Directory FROM Video Where EP_NAME like ? order by Title'
             qv = '#'+'%'
             self.logger.info('qv={0};qr={1}'.format(qv, qr))
             cur.execute(qr, (qv, ))
