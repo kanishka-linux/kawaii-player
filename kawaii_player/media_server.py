@@ -3201,15 +3201,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         thumb_name = h.hexdigest()
         thumb_path = os.path.join(thumbnail_dir, thumb_name+'.jpg')
         new_thumb_path = os.path.join(thumbnail_dir, '480px.'+thumb_name+'.jpg')
+        new_thumb_path_128px = os.path.join(thumbnail_dir, '128px.'+thumb_name+'.jpg')
         if os.path.exists(thumb_path):
             os.remove(thumb_path)
         if os.path.exists(new_thumb_path):
             os.remove(new_thumb_path)
+        if os.path.exists(new_thumb_path_128px):
+            os.remove(new_thumb_path_128px)
         logger.debug(thumb_path)
 
         ui.generate_thumbnail_method(thumb_path, inter, path, from_client=True)
         if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
             ui.create_new_image_pixel(thumb_path, 480)
+            ui.create_new_image_pixel(thumb_path, 128)
             thumb_path = new_thumb_path
 
         if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
