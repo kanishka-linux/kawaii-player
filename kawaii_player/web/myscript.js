@@ -72,6 +72,7 @@ var _player = document.getElementById("player"),
     _final_url = "";
     _final_name = "";
     _subtitle_status = "off";
+    _interval_thumbnail = 10;
     show_image = false;
     _prev = document.getElementById("prev");
     _custom_context = document.getElementById("context-menu-bar");
@@ -195,6 +196,26 @@ function menu_clicked(e){
 	})
     pl.style.backgroundColor = _old_playlist_selected_color;
 }
+
+function menu_clicked_fetch_next_thumbnail(e){
+    var playlist = e;
+    var pl = _playlist_selected_element;
+    console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.title);
+    var new_url = pl.getAttribute('data-mp3') + `.image`;
+    console.log(new_url);
+    var img = pl.querySelector('div img');
+    let src = img.src
+    if (src.endsWith(".image")) {
+        new_url = pl.getAttribute('data-mp3') + `.image_next_${_interval_thumbnail}`;
+    } else if (src.includes(".image_next_")) {
+        let inter = Number(src.split("_").pop());
+        next_interval = (inter + _interval_thumbnail) % 100 ;
+        new_url = pl.getAttribute('data-mp3') + `.image_next_${next_interval}`;
+    }
+    img.src = new_url;
+    pl.style.backgroundColor = _old_playlist_selected_color;
+}
+
 
 //function contextmenu_mouseout(e){
 //    _custom_context.style.display = "none";

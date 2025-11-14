@@ -2408,6 +2408,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     self.process_subtitle_url(nm, status='getsub')
                 elif self.path.endswith('.image'):
                     self.process_image_url(nm)
+                elif ".image_next_" in self.path:
+                    inter  = int(self.path.rsplit("_", 1)[-1])
+                    self.generate_image_url_next(nm, inter)
                 elif self.path.endswith('.download'):
                     if 'youtube.com' in old_nm:
                         captions = self.check_yt_captions(old_nm)
@@ -3187,6 +3190,45 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if msg:
             self.final_message(b'Got it!. update video section or refresh playlist')
         logger.info('captions={0}-{1}-{2}'.format(captions, url, ok_val))
+
+    def generate_image_url_next(self, path, inter):
+        global ui, home, logger
+        thumbnail_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
+        if not os.path.exists(thumbnail_dir):
+            os.makedirs(thumbnail_dir)
+        thumb_name_bytes = bytes(path, 'utf-8')
+        h = hashlib.sha256(thumb_name_bytes)
+        thumb_name = h.hexdigest()
+        thumb_path = os.path.join(thumbnail_dir, thumb_name+'.jpg')
+        new_thumb_path = os.path.join(thumbnail_dir, '480px.'+thumb_name+'.jpg')
+        if os.path.exists(thumb_path):
+            os.remove(thumb_path)
+        if os.path.exists(new_thumb_path):
+            os.remove(new_thumb_path)
+        logger.debug(thumb_path)
+
+        ui.generate_thumbnail_method(thumb_path, inter, path, from_client=True)
+        if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
+            ui.create_new_image_pixel(thumb_path, 480)
+            thumb_path = new_thumb_path
+
+        if os.path.exists(thumb_path) and os.stat(thumb_path).st_size:
+            content = open(thumb_path, 'rb').read()
+        else:
+            new_file = os.path.join(home, '480px.default.jpg')
+            default_jpg = os.path.join(home, 'default.jpg')
+            if not os.path.exists(new_file):
+                ui.create_new_image_pixel(default_jpg, 480)
+            content = open(new_file, 'rb').read()
+        self.send_response(200)
+        self.send_header('Content-type', 'image/jpeg')
+        self.send_header('Content-Length', len(content))
+        self.send_header('Connection', 'close')
+        self.end_headers()
+        try:
+            self.wfile.write(content)
+        except Exception as e:
+            print(e)
 
     def process_image_url(self, path):
         global ui, home, logger
