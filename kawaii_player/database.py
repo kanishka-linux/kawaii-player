@@ -607,6 +607,34 @@ class MediaDatabase():
             print(f"  ✗ Update error: {e}")
             return False
 
+    def toggle_watch_status(self, file_path: str) -> str:
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        ep_name = ""
+        cursor.execute('SELECT EP_NAME from Video Where Path=?', (file_path, ))
+        result = [row[0] for row in cursor.fetchall()]
+        if result:
+            ep_name = result[0]
+            if ep_name.startswith("#"):
+                ep_name = ep_name.replace("#", "", 1)
+            else:
+                ep_name = f"#{ep_name}"
+            try:
+                cursor.execute("""
+                    UPDATE Video SET EP_NAME = ? WHERE path = ?
+                """, (ep_name, file_path))
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                conn.close()
+                print(f"  ✗ Update error: {e}")
+
+        if ep_name.startswith("#"):
+            ep_name = ep_name.replace("#", "✅", 1)
+        return ep_name
+
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
         qVal = str(qVal)

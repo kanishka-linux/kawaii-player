@@ -216,6 +216,25 @@ function menu_clicked_fetch_next_thumbnail(e){
     pl.style.backgroundColor = _old_playlist_selected_color;
 }
 
+function menu_clicked_toggle_watch_status(e){
+    var playlist = e;
+    var pl = _playlist_selected_element;
+    console.log(pl.getAttribute('data-mp3'),pl.getAttribute('data-num'),pl.title);
+    var new_url = pl.getAttribute('data-mp3') + `.toggle_watch_status`;
+    console.log(new_url);
+
+    var img_info = pl.querySelector('#img-info');
+    var client = new getRequest();
+	client.get(new_url, function(response) {
+	    console.log(response);
+        res = response.toString().trim();
+	    pl.setAttribute('title', res);
+        img_info.innerHTML  = res;
+	})
+    pl.style.backgroundColor = _old_playlist_selected_color;
+}
+
+
 
 //function contextmenu_mouseout(e){
 //    _custom_context.style.display = "none";

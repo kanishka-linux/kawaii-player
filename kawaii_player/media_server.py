@@ -2411,6 +2411,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 elif ".image_next_" in self.path:
                     inter  = int(self.path.rsplit("_", 1)[-1])
                     self.generate_image_url_next(nm, inter)
+                elif ".toggle_watch_status" in self.path:
+                    r = ui.media_data.toggle_watch_status(nm)
+                    b = bytes(r, "utf-8")
+                    self.final_message(b)
                 elif self.path.endswith('.download'):
                     if 'youtube.com' in old_nm:
                         captions = self.check_yt_captions(old_nm)
