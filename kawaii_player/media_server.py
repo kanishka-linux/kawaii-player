@@ -572,6 +572,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     playlist_shuffle_list = []
     nav_signals = DoGETSignal()
     old_path = []
+    last_view = []
     
     def process_HEAD(self):
         global ui, logger, getdb
@@ -1568,6 +1569,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             extra_fields = extra_fields+'{0}:{1};'.format(i, j)
             else:
                 extra_fields = extra_fields+'{0}:History;'.format(i)
+
+        if self.last_view:
+            extra_fields = extra_fields+'LastView:{0};'.format(self.last_view.pop())
+
         extra_fields = '<div id="site_option" hidden>{0}</div>'.format(extra_fields)
         return extra_fields
 
@@ -1999,20 +2004,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     if st_o and not srch:
                         srch = st_o
             st_arr = [st, st_o, srch]
+            self.last_view.append(",".join(st_arr))
             epn_arr = []
-            myvar = str(st)+'::'+str(st_o)+'::'+str(srch)+'::'+str(srch_exact)+'::'+str(url_format)
-            # commenting out caching related code
-            #if st.startswith('video') or st.startswith('music') or st.startswith('playlist'):
-            #    if st.startswith('video'):
-            #        pls_txt = ui.media_server_cache_video.get(myvar)
-            #    elif st.startswith('music'):
-            #        if not st_o.startswith('playlist'):
-            #            pls_txt = ui.media_server_cache_music.get(myvar)
-            #    else:
-            #        pls_txt = ui.media_server_cache_playlist.get(myvar)
-            #    if pls_txt and path != 'stream_continue.htm' and not shuffle_list:
-            #        logger.debug('Sending From Cache')
-            #        pls_cache = True
             if st and st_o and srch and not pls_cache:
                 epn_arr, st, st_o, new_str, st_nm = getdb.options_from_bookmark(
                     st, st_o, srch, search_exact=srch_exact)

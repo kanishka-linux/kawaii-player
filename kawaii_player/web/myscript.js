@@ -1294,6 +1294,97 @@ function fetch_poster(mode){
 }
 
 
+function optChangeV2(y, x,  t){
+	x = x.replace(/" "/g,"+");
+	console.log(x);
+	if(y.startsWith('playlists')){
+		var new_url = 'site='+y+'&opt='+x+'&s=&exact.m3u';
+        _current_working_m3u = new_url;
+		var client = new getRequest();
+		client.get(new_url, function(response) {
+		m = response.split('\n');
+		r = document.getElementById('playlist')
+		while(r.firstChild){r.removeChild(r.firstChild);}
+		var indx = 1;
+		for(i=1;i<m.length-1;i+=2){
+			var a = m[i].substring(10,500);
+            a = a.trim();
+            if (a.startsWith('-')){
+                a = a.slice(1, 500);
+                a = a.trim();
+            }
+			var b = m[i+1];
+			var new_opt = document.createElement('li');
+			new_opt.setAttribute('data-mp3',b);
+			new_opt.setAttribute('data-num',indx.toString());
+			new_opt.setAttribute('draggable','true');
+			new_opt.setAttribute('ondragstart','drag_start(event)');
+			new_opt.setAttribute('ondrop','on_drop(event)');
+			new_opt.setAttribute('ondragover','drag_over(event)');
+			new_opt.setAttribute('ondragend','drag_end(event)');
+			new_opt.setAttribute('ondragenter','drag_enter(event)');
+			new_opt.setAttribute('ondragleave','drag_leave(event)');
+            new_opt.setAttribute('title', a);
+            if (_show_thumbnails){
+                img_div = add_thumbnail_to_playlist(a, b, 0);
+            }else{
+                img_div = add_thumbnail_to_playlist(a, b, 1);
+            }
+            new_opt.appendChild(img_div);
+			r.appendChild(new_opt);
+			indx += 1;
+			}
+		})
+		_display_option.style.display = "none";
+
+	}else{
+		var z = 'site='+y+'&opt='+x;
+		var client = new getRequest();
+        var colon_present = false;
+        if (y == 'video' || y == 'music'){
+            colon_present = true;
+        }
+		client.get(z, function(response) {
+		//console.log(response);
+		m = response.split('\n');
+		//console.log(m);
+		r = document.getElementById('opt_val');
+		while(r.firstChild){r.removeChild(r.firstChild);}
+		for(i=0;i<m.length;i++){
+			var new_opt = document.createElement('option');
+			var txt = m[i];
+            if (colon_present){
+                txt = txt.split('::::')[0]
+            }
+            if (txt.length > 30){
+                txt = txt.slice(0,28)+ '..'
+            }
+			if (txt){
+                new_opt.text = txt;
+                if (colon_present){
+                    new_opt.value = m[i].split('::::')[1];
+                    new_opt.title = m[i].split('::::')[0];
+                }else{
+                    new_opt.value = m[i];
+                    new_opt.title = m[i];
+                }
+
+                r.appendChild(new_opt);
+                //new_opt.style.overflow = 'auto';
+            }
+		}
+		_display_option.style.display = "grid";
+		r.hidden = "";
+		_opt_val_ok.hidden = "";
+
+        r.value = t
+		})
+	}
+	var z = document.getElementById("type_search");
+	z.value = "";
+}
+
+
 function optChange(){
 	var x = document.getElementById("opt").value.toLowerCase();
 	x = x.replace(/" "/g,"+");
@@ -1955,9 +2046,8 @@ function onDocReady(){
         }
         
 	}
-    
+
 	var x = document.getElementById("site").value;
-	console.log(x);
 	
 	var cur_url = window.location.href;
 	if (cur_url.indexOf('site=') >= 0){
@@ -2043,9 +2133,66 @@ function onDocReady(){
     top_bar_change_layout();
     _top_menu_bar.style.display = 'none';
     //max_min_top_bar();
-    
+
     
 }
+
+function capitalizeWords(str) {
+    return str.split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ');
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    var y = document.getElementById("site_option");
+	var z = y.innerHTML;
+    let reverseList = z.split(';').reverse();
+    let lastElm  = reverseList[1]
+    if (lastElm.startsWith("LastView")){
+        let s  = lastElm.split(":").pop().split(",")
+        let seriesHash = s[2].split(".")[0]
+        document.getElementById("site").value = s[0];
+        document.getElementById("opt").value = capitalizeWords(s[1]);
+        optChangeV2(s[0], s[1], seriesHash)
+        document.getElementById("opt_val").value = seriesHash
+        optValChangeV2(s[0], s[1], seriesHash)
+    }
+});
+
+function capitalizeWords(str) {
+    return str.split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ');
+}
+
+function siteChangeV2(x, y){
+	console.log(x);
+	var y = document.getElementById("site_option");
+	var z = y.innerHTML;
+	var w = z.split(';');
+	console.log(w);
+	var a = x.toLowerCase();
+	var req = document.getElementById("opt");
+	req.innerHTML = "";
+	for(i=0;i<w.length;i++){
+		//console.log(w[i])
+		j = w[i].toLowerCase().split(':')[0];
+		if(j.indexOf(x) >= 0){
+			console.log(j);
+			k=w[i].split(":");
+			l=j.split(":");
+			console.log(l[0].concat(k[1]));
+			var new_opt = document.createElement("option");
+			new_opt.text = k[1].substring(0,45);
+			new_opt.value = k[1];
+			req.appendChild(new_opt);
+			}
+		}
+	var z = document.getElementById("type_search");
+	z.hidden = "";
+	z.value = "";
+}
+
 
 function siteChange(){
 	var x = document.getElementById("site").value;
@@ -2118,11 +2265,62 @@ function siteChangeTop(){
     }
 }
 
+function optValChangeV2(x, y, z){
+    if (x == 'video' || x == 'music'){
+        var new_url = 'site='+x+'&opt='+y+'&s='+z+'.hash'+'&exact.m3u';
+    }else{
+        var new_url = 'site='+x+'&opt='+y+'&s='+z+'&exact.m3u';
+    }
+    _current_working_m3u = new_url;
+	var client = new getRequest();
+	client.get(new_url, function(response) {
+	//console.log(response);
+	m = response.split('\n');
+	r = document.getElementById('playlist')
+	//console.log(m)
+	while(r.firstChild){r.removeChild(r.firstChild);}
+	var indx = 1;
+	for(i=1;i<m.length-1;i+=2){
+		var a = m[i].substring(10,500);
+        a = a.trim();
+        if (a.startsWith('-')){
+            console.log('startswith -----');
+            a = a.slice(1, 500);
+            a = a.trim();
+        }
+		var b = m[i+1];
+		var new_opt = document.createElement('li');
+		new_opt.setAttribute('data-mp3',b);
+		new_opt.setAttribute('data-num',indx.toString());
+		new_opt.setAttribute('draggable','true');
+		new_opt.setAttribute('ondragstart','drag_start(event)');
+		new_opt.setAttribute('ondrop','on_drop(event)');
+		new_opt.setAttribute('ondragover','drag_over(event)');
+		new_opt.setAttribute('ondragend','drag_end(event)');
+		new_opt.setAttribute('ondragenter','drag_enter(event)');
+		new_opt.setAttribute('ondragleave','drag_leave(event)');
+		new_opt.setAttribute('width','100%');
+        new_opt.setAttribute('title', a);
+        if (_show_thumbnails){
+            img_div = add_thumbnail_to_playlist(a, b, 0);
+            new_opt.appendChild(img_div);
+        }else{
+            img_div = add_thumbnail_to_playlist(a, b, 1);
+            new_opt.appendChild(img_div);
+        }
+		r.appendChild(new_opt);
+		indx += 1;
+		}
+	})
+	//window.location.href = new_url;
+	document.getElementById("type_search").value = "";
+}
+
+
 function optValChange(){
 	var x = document.getElementById("site").value.toLowerCase();
 	var y = document.getElementById("opt").value.toLowerCase();
 	var z = document.getElementById("opt_val").value;
-	console.log(z)
     if (x == 'video' || x == 'music'){
         var new_url = 'site='+x+'&opt='+y+'&s='+z+'.hash'+'&exact.m3u';
     }else{
