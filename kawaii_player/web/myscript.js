@@ -2151,11 +2151,14 @@ document.addEventListener("DOMContentLoaded", function() {
     if (lastElm.startsWith("LastView")){
         let s  = lastElm.split(":").pop().split(",")
         let seriesHash = s[2].split(".")[0]
-        document.getElementById("site").value = s[0];
-        document.getElementById("opt").value = capitalizeWords(s[1]);
-        optChangeV2(s[0], s[1], seriesHash)
+        let opt = capitalizeWords(s[1])
+        let site = s[0]
+        siteChangeV2(site, opt)
+        document.getElementById("site").value = site;
+        optChangeV2(site, opt, seriesHash)
+        document.getElementById("opt").value = opt;
+        optValChangeV2(site, opt, seriesHash)
         document.getElementById("opt_val").value = seriesHash
-        optValChangeV2(s[0], s[1], seriesHash)
     }
 });
 
@@ -2189,6 +2192,7 @@ function siteChangeV2(x, y){
 			}
 		}
 	var z = document.getElementById("type_search");
+    req.value = y
 	z.hidden = "";
 	z.value = "";
 }
