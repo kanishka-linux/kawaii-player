@@ -1541,7 +1541,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 category_list = ''
                 for arr_cat in ui.category_array:
                     category_list = category_list+'Video:'+arr_cat+';'
-                extra_fields = extra_fields+'Video:Available;Video:History;'+category_list
+                extra_fields = extra_fields+'Video:Available;Video:History;Video:Recent;'+category_list
             elif i.lower() == 'music':
                 extra_fields = extra_fields+'Music:Artist;Music:Album;Music:Directory;Music:Playlist;'
             elif i.lower().startswith('playlist'):
