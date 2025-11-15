@@ -151,7 +151,7 @@ Text box can also be used to input text commands to server as follows
 "  type="search" placeholder="Search Text" onkeypress="return searchFunction(event, 0)" hidden="hidden">
 
 <div id="display_option" class="option_display">
-<select id="opt_val" onchange="optValChange()" width="100%" hidden="hidden"></select>
+<select id="opt_val" onchange="optValChange()" hidden="hidden"></select>
 <button id="opt_val_ok" hidden="hidden">Go</button>
 </div>
 
@@ -278,12 +278,12 @@ Text box can also be used to input text commands to server as follows
 </div>
 <div id="top_menu_bar" class="top_menu_bar">
     <div id="top_menu_bar_sub" class="top_menu_bar_sub">
+    <button onclick="max_min_top_bar()" title="Show/Hide Top Menu Bar">☰</button>
     <select id="first_select" onchange="siteChangeTop()"></select>
     <select id="second_select" onchange="optChangeTop()"></select>
     <select id="third_select" onchange="optValChangeTop()"></select>
     <input id="search_text_top" title="Enter Text to Search" type="search" placeholder="Search Box" onkeypress="return searchFunction(event, 1)" list="mydatalist">
     </div>
-    <button onclick="max_min_top_bar()" title="Show/Hide Top Menu Bar">☰</button>
 </div>
 <button class="btn_minmax_topbar" id="btn_minmax_topbar" onclick="hide_show_topbar()">☰</button>
 

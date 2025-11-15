@@ -154,8 +154,8 @@ function hide_show_topbar(){
             _top_menu_bar.style.display = 'block';
             _top_menu_bar_sub.style.display = 'block';
         }else{
-            _top_menu_bar.style.display = 'grid';
-            _top_menu_bar_sub.style.display = 'grid';
+            _top_menu_bar.style.display = 'flex';
+            _top_menu_bar_sub.style.display = 'flex';
         }
         _hide_top_bar = false;
         _btn_minmax_topbar.style.display = 'none';
@@ -175,8 +175,8 @@ function top_bar_change_layout(){
         _top_menu_bar.style.display = 'block';
         _top_menu_bar_sub.style.display = 'block';
     }else{
-        _top_menu_bar.style.display = 'grid';
-        _top_menu_bar_sub.style.display = 'grid';
+        _top_menu_bar.style.display = 'flex';
+        _top_menu_bar_sub.style.display = 'flex';
     }
     if (_hide_top_bar){
         _top_menu_bar.style.display = 'none';
