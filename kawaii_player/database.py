@@ -23,7 +23,7 @@ import shutil
 import sqlite3
 import datetime
 import hashlib
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -606,6 +606,59 @@ class MediaDatabase():
             conn.close()
             print(f"  ✗ Update error: {e}")
             return False
+
+    def fetch_recently_added(self, count) -> List[Tuple[str, str]]:
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute("""
+                select distinct Directory, Title from Video
+            """)
+
+            rows  = [(row[1], row[0]) for row in cursor.fetchall()]
+
+            # Sort by when directory was last modified
+            # with recent first
+            sorted_rows = sorted(
+                    rows, key=lambda x: os.path.getmtime(x[1]),
+                    reverse=True)
+
+            conn.commit()
+            conn.close()
+            return sorted_rows[:count]
+        except Exception as e:
+            conn.close()
+            print(f"  ✗ Fetch error: {e}")
+            return [("", "")]
+
+    def fetch_recently_accessed(self) -> List[Tuple[str, str]]:
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute("""
+                select distinct Directory, Title from Video
+                where EP_NAME like '#%'
+            """)
+
+            rows  = [(row[1], row[0]) for row in cursor.fetchall()]
+
+            # Sort by when directory was last modified
+            # with recent first
+            sorted_rows = sorted(
+                    rows, key=lambda x: os.path.getatime(x[1]),
+                    reverse=True)
+
+            conn.commit()
+            conn.close()
+            return sorted_rows
+        except Exception as e:
+            conn.close()
+            print(f"  ✗ Fetch error: {e}")
+            return [("", "")]
 
     def toggle_watch_status(self, file_path: str) -> str:
         db_path = os.path.join(self.home, 'VideoDB', 'Video.db')

@@ -327,14 +327,6 @@ class ServerLib:
                     for i in m:
                         artist.append(i)
             else:
-                """
-                if search_exact and music_opt.lower() != 'directory':
-                    m = ui.media_data.get_music_db(music_db, music_opt, search_term)
-                    for i in m:
-                        artist.append(i[1]+'	'+i[2]+'	'+i[0])
-                    send_list_direct = True
-                else:
-                """
                 m = ui.media_data.get_music_db(music_db, music_opt, "")
                 for i in m:
                     artist.append(i[0])
@@ -378,7 +370,9 @@ class ServerLib:
                 if video_opt.lower() == "available":
                     m = ui.media_data.get_video_db(video_db, "Directory", "")
                 elif video_opt.lower() == "history":
-                    m = ui.media_data.get_video_db(video_db, "History", "")
+                    m = ui.media_data.fetch_recently_accessed()
+                elif video_opt.lower() == "recent":
+                    m = ui.media_data.fetch_recently_added(50)
                 else:
                     m = ui.media_data.get_video_db(video_db, video_opt, "")
             else:
@@ -417,7 +411,9 @@ class ServerLib:
                 print('direct match:')
             #original_path_name[:] = []
             logger.info(artist)
-            if (video_opt.lower() != "update" and video_opt.lower() != "updateall") and not send_list_direct:
+            if video_opt.lower() in ["recent", "history"]:
+                original_path_name = [f"{t}\t{d}" for (t, d) in m]
+            elif (video_opt.lower() != "update" and video_opt.lower() != "updateall") and not send_list_direct:
                 for i in artist:
                     ti = i.split('	')[0]
                     di = i.split('	')[1]
