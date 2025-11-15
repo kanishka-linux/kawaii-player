@@ -107,7 +107,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 <button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
 <button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#9660;</button>
 <!--<button id="home">Home</button>-->
-<button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">--</button>
+<button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">☰</button>
 <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
 <button id="logout">Logout</button>
 <!--
@@ -283,9 +283,9 @@ Text box can also be used to input text commands to server as follows
     <select id="third_select" onchange="optValChangeTop()"></select>
     <input id="search_text_top" title="Enter Text to Search" type="search" placeholder="Search Box" onkeypress="return searchFunction(event, 1)" list="mydatalist">
     </div>
-    <button onclick="max_min_top_bar()" title="Show/Hide Top Menu Bar">M</button>
+    <button onclick="max_min_top_bar()" title="Show/Hide Top Menu Bar">☰</button>
 </div>
-<button class="btn_minmax_topbar" id="btn_minmax_topbar" onclick="hide_show_topbar()">M</button>
+<button class="btn_minmax_topbar" id="btn_minmax_topbar" onclick="hide_show_topbar()">☰</button>
 
 <datalist id="mydatalist" class="mydatalist">
 </datalist>
