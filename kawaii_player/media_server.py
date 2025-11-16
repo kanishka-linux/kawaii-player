@@ -2003,6 +2003,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     srch_exact = True
                 elif i.startswith('shuffle'):
                     shuffle_list = True
+            record_last_playlist = False
+            if st and st_o and srch:
+                record_last_playlist = True
             if not st_o:
                 st_o = 'NONE'
             if st:
@@ -2016,7 +2019,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             st_arr = [st, st_o, srch]
             st_arr_str  = ",".join(st_arr)
 
-            if st_arr_str not in self.last_view:
+            if record_last_playlist and st_arr_str not in self.last_view:
                 self.last_view.append(st_arr_str)
 
             last_view_file = os.path.join(home, 'History', 'last_viewed.txt')
