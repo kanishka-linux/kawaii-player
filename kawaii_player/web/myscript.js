@@ -1334,7 +1334,7 @@ function fetch_poster(mode){
 }
 
 
-function optChangeV2(y, x,  t){
+function optChangeV2(y, x, t){
 	x = x.replace(/" "/g,"+");
 	console.log(x);
 	if(y.startsWith('playlists')){
@@ -2304,12 +2304,11 @@ document.addEventListener("DOMContentLoaded", function() {
         let seriesHash = s[2].split(".")[0]
         let opt = capitalizeWords(s[1])
         let site = s[0]
-        //siteChangeV2(site, opt)
-        //document.getElementById("site").value = site;
-        //optChangeV2(site, opt, seriesHash)
-        //document.getElementById("opt").value = opt;
-        //optValChangeV2(site, opt, seriesHash)
-        //document.getElementById("opt_val").value = seriesHash
+        siteChangeV2(site, opt)
+        document.getElementById("site").value = site;
+        optChangeV2(site, opt, seriesHash)
+        document.getElementById("opt").value = opt;
+        document.getElementById("opt_val").value = seriesHash
 
         siteChangeTopOnStart(site)
         _first_select.value = site
