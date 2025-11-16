@@ -1574,7 +1574,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         last_view_file = os.path.join(home, 'History', 'last_viewed.txt')
         if self.last_view:
-            extra_fields = extra_fields+'LastView:{0};'.format(self.last_view.pop())
+            extra_fields = extra_fields+'LastView:{0};'.format(self.last_view[-1])
         elif os.path.exists(last_view_file):
             last_viewed = open(last_view_file).read()
             extra_fields = extra_fields+'LastView:{0};'.format(last_viewed)
@@ -2019,12 +2019,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             st_arr = [st, st_o, srch]
             st_arr_str  = ",".join(st_arr)
 
-            if record_last_playlist and st_arr_str not in self.last_view:
-                self.last_view.append(st_arr_str)
-
             last_view_file = os.path.join(home, 'History', 'last_viewed.txt')
-            with open(last_view_file, "w") as f:
-                f.write(st_arr_str)
+            if record_last_playlist:
+                self.last_view.append(st_arr_str)
+                with open(last_view_file, "w") as f:
+                    f.write(st_arr_str)
 
             epn_arr = []
             if st and st_o and srch and not pls_cache:
@@ -2072,7 +2071,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif path.lower() in ["vlc", "mpv"] or not path:
             self.send_response(303)
             if len(self.old_path) > 0:
-                self.send_header('Location', self.old_path.pop(0) + ".played")
+                self.send_header('Location', self.old_path[-1] + ".played")
             self.send_header('Connection', 'close')
             self.end_headers()
         elif path.lower() == 'play':
