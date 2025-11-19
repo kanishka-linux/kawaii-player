@@ -102,8 +102,8 @@ var _player = document.getElementById("player"),
     _third_select = document.getElementById("third_select");
     _search_text_top = document.getElementById("search_text_top");
     _current_working_m3u = "";
-    _top_menu_bar = document.getElementById('top_menu_bar');
-    _top_menu_bar_sub = document.getElementById('top_menu_bar_sub');
+    //_top_menu_bar = document.getElementById('top_menu_bar');
+    //_top_menu_bar_sub = document.getElementById('top_menu_bar_sub');
     _hide_top_bar = true;
     _player_start_time = document.getElementById('player_start_time');
     _player_end_time = document.getElementById('player_end_time');
@@ -148,40 +148,6 @@ function goto_last_position(event){
     window.scrollTo(_top_xy[0], _top_xy[1]);
 }
 
-function hide_show_topbar(){
-        w = window.innerWidth;
-        if (w < 450){
-            _top_menu_bar.style.display = 'block';
-            _top_menu_bar_sub.style.display = 'block';
-        }else{
-            _top_menu_bar.style.display = 'flex';
-            _top_menu_bar_sub.style.display = 'flex';
-        }
-        _hide_top_bar = false;
-        _btn_minmax_topbar.style.display = 'none';
-}
-
-function max_min_top_bar(){
-    console.log(_hide_top_bar, _top_menu_bar_sub.style.display);
-    _hide_top_bar = true;
-    w = window.innerWidth;
-    _top_menu_bar.style.display = 'none';
-    _btn_minmax_topbar.style.display = 'block';
-}
-
-function top_bar_change_layout(){
-    w = window.innerWidth;
-    if (w < 450){
-        _top_menu_bar.style.display = 'block';
-        _top_menu_bar_sub.style.display = 'block';
-    }else{
-        _top_menu_bar.style.display = 'flex';
-        _top_menu_bar_sub.style.display = 'flex';
-    }
-    if (_hide_top_bar){
-        _top_menu_bar.style.display = 'none';
-    }
-}
 
 function menu_clicked(e){
     var playlist = e;
@@ -1594,6 +1560,7 @@ function optChangeTopOnStart(y, x, seriesHash){
         if (y == 'video' || y == 'music'){
             colon_present = true;
         }
+        const titleDict = {};
 		for(i=0;i<m.length;i++){
 			var new_opt = document.createElement('option');
             var new_opt_data = document.createElement('option');
@@ -1615,11 +1582,15 @@ function optChangeTopOnStart(y, x, seriesHash){
                     new_opt.value = new_opt_data.value = m[i];
                     new_opt.title = new_opt_data.title = m[i];
                 }
+                titleDict[new_opt.value] = new_opt.title
                 _third_select.appendChild(new_opt);
                 _mydatalist.append(new_opt_data);
             }
 		}
         _third_select.value = seriesHash
+        _third_select.title = titleDict[seriesHash]
+        fetchSeriesMetadata(_third_select.title)
+
         console.log(_first_select.value, _second_select.value, _third_select.value);
 		})
 
@@ -1632,7 +1603,7 @@ function optChangeTop(){
 	x = x.replace(/" "/g,"+");
 	console.log(x);
 	var y = _first_select.value.toLowerCase();
-    console.log(_first_select.value, _second_select.value, _third_select.value);
+    console.log(_first_select.value, _second_select.value, _third_select.value, _third_select.title, "********");
 	if(y.startsWith('playlists')){
         x = _second_select.value;
 		var new_url = 'site='+y+'&opt='+x+'&s=&exact.m3u';
@@ -1732,7 +1703,8 @@ function optChangeTop(){
                 _mydatalist.append(new_opt_data);
             }
 		}
-        console.log(_first_select.value, _second_select.value, _third_select.value);
+        fetchSeriesMetadata(_third_select.options[0].title)
+        console.log(_first_select.value, _second_select.value, _third_select.value, _third_select.title);
         if(_first_select.value != 'select' && _second_select.value != 'select_category' && _second_select.value.toLowerCase() != 'playlists' && _third_select.value != "nothing"){
             optValChangeTop();
         }
@@ -2259,16 +2231,9 @@ function onDocReady(){
         }
     pls_arr.sort()
 	console.log(pls_arr);
-	
-	//r = document.getElementById('menu_playlist')
-	//while(r.firstChild){r.removeChild(r.firstChild);}
-	//for(i=0;i<pls_arr.length;i+=1){
-	//	var new_opt = document.createElement('menuitem');
-	//	new_opt.setAttribute('label',pls_arr[i]);
-	//	new_opt.setAttribute('onclick','menu_clicked(label)');
-	//	r.appendChild(new_opt);
-	//	}
+
     _first_select.value = "select";
+    console.log(_first_select.innerHTML)
     first_child = _first_select.firstChild;
     if (first_child.value === 'select'){
         first_child.disabled = true;
@@ -2280,9 +2245,9 @@ function onDocReady(){
     _second_select.appendChild(new_opt);
     create_playlist_select_options(pls_arr, 1);
 	while(_player.firstChild){_player.removeChild(_player.firstChild);}
-    hide_alternate_menu_buttons();
-    top_bar_change_layout();
-    _top_menu_bar.style.display = 'none';
+    //hide_alternate_menu_buttons();
+    //top_bar_change_layout();
+    //_top_menu_bar.style.display = 'none';
     //max_min_top_bar();
 
     
@@ -2619,12 +2584,123 @@ function optValChangeTopOnstart(x, y, z){
 	})
 }
 
+let isVideoMode = false;
+// Third select
+    document.getElementById('third_select').addEventListener('change', function(event) {
+        const title = getSelectInfo(event.target);
+        console.log('Third select changed:', title);
+        fetchSeriesMetadata(title)
+    });
+
+function fetchSeriesMetadata(title) {
+	const videoElement = document.getElementById('player');
+    metadataUrl  = "/series_metadata";
+	var client = new postRequest();
+	let data = {'title': title}
+	client.post(metadataUrl, data, function(response) {
+		console.log(response);
+		resp = JSON.parse(response);
+		console.log(resp.success, "This is metadata");
+
+        if (resp.data.image_poster_large) {
+            videoElement.poster = resp.data.image_poster_large;
+	        updateMediaContent(resp.data);
+        }
+	})
+}
+
+function clearAllSeriesFields() {
+    const elementsTolear = [
+        'series-title',
+        'series-en-title',
+        'series-type',
+        'series-year',
+        'series-score',
+        'series-duration',
+        'series-episodes',
+        'series-genres',
+        'series-summary'
+    ];
+
+    elementsTolear.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = ''; // Clear text content
+        }
+    });
+}
+
+function toggleVideoMode() {
+    const container = document.getElementById('media-container');
+    const video = document.getElementById('player');
+
+    if (isVideoMode) {
+        // Switch to poster mode
+	video.hidden = "hidden";
+        container.className = 'media-container poster-mode';
+        video.pause();
+        isVideoMode = false;
+    } else {
+        // Switch to video mode
+	video.hidden = "";
+        container.className = 'media-container video-mode';
+        video.play();
+        isVideoMode = true;
+    }
+}
+
+// Update all content from API response
+function updateMediaContent(seriesData) {
+    // Update poster and info
+    clearAllSeriesFields()
+    document.getElementById('series-title').textContent = seriesData.title;
+    document.getElementById('series-summary').textContent = seriesData.summary;
+    document.getElementById('poster-img').src = seriesData.image_poster_large;
+
+    // Update video
+    const video = document.getElementById('player');
+    video.poster = seriesData.image_poster_large;
+    if (seriesData.video_url) {
+        video.src = seriesData.video_url;
+    }
+
+    // Update metadata if available
+    if (seriesData.year) {
+        document.getElementById('series-year').textContent = seriesData.year;
+    }
+    if (seriesData.score) {
+        document.getElementById('series-score').textContent = `★ ${seriesData.score}`;
+    }
+    if (seriesData.duration) {
+        document.getElementById('series-duration').textContent = seriesData.duration;
+    }
+    if (seriesData.episodes) {
+        document.getElementById('series-episodes').textContent = `${seriesData.episodes} ep`;
+    }
+    if (seriesData.type) {
+        document.getElementById('series-type').textContent = seriesData.type;
+    }
+    if (seriesData.english_title && seriesData.english_title != seriesData.title) {
+        document.getElementById('series-en-title').textContent = seriesData.english_title;
+    }
+    if (seriesData.genres) {
+        document.getElementById('series-genres').textContent = seriesData.genres;
+    }
+}
+
+function getSelectInfo(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    return selectedOption ? selectedOption.title || '' : '';
+}
 
 function optValChangeTop(){
 	var x = _first_select.value.toLowerCase();
 	var y = _second_select.value.toLowerCase();
 	var z = _third_select.value;
-	console.log(z)
+
+   	let _third_select_x = document.getElementById("third_select");
+	var title = _third_select_x.title;
+	console.log(z, title, _third_select_x.text)
     if (x == 'video' || x == 'music'){
         var new_url = 'site='+x+'&opt='+y+'&s='+z+'.hash'+'&exact.m3u';
     }else{
@@ -2668,6 +2744,8 @@ function optValChangeTop(){
 		r.appendChild(new_opt);
 		indx += 1;
 		}
+
+
 	})
 }
 
@@ -3384,14 +3462,14 @@ window.onscroll = function () {
             document.getElementById("btn_to_top").style.visibility = "hidden";
         }
         if (_hide_top_bar){
-            _top_menu_bar.style.display = 'none';
+            //_top_menu_bar.style.display = 'none';
         }
     }else{
         //document.getElementById("btn_to_top").style.visibility = "hidden";
         //document.getElementById("btn_maximize").style.visibility = "hidden";
         //document.getElementById('player_control_progress').style.visibility = "hidden";
         if (_hide_top_bar){
-            _top_menu_bar.style.display = 'none';
+            //_top_menu_bar.style.display = 'none';
             }
         }
 };
@@ -3629,7 +3707,78 @@ function resizeWindowEvent(){
             add_remove_image_node_to_playlist();
         }
     }
-    top_bar_change_layout();
+    //top_bar_change_layout();
 }
+
+// Global variables
+let _sidebar_open = false;
+const _modern_sidebar = document.getElementById('modern_sidebar');
+const _sidebar_overlay = document.getElementById('sidebar_overlay');
+const _menu_toggle = document.getElementById('menu_toggle');
+const _close_sidebar = document.getElementById('close_sidebar');
+
+// Modern sidebar toggle function
+function toggleModernSidebar() {
+    _sidebar_open = !_sidebar_open;
+
+    if (_sidebar_open) {
+        openSidebar();
+    } else {
+        closeSidebar();
+    }
+}
+
+function openSidebar() {
+    _modern_sidebar.classList.add('active');
+    _sidebar_overlay.classList.add('active');
+    _menu_toggle.classList.add('active');
+    _sidebar_open = true;
+
+    // Prevent body scroll when sidebar is open
+    document.body.style.overflow = 'hidden';
+
+    // Add escape key listener
+    document.addEventListener('keydown', handleEscapeKey);
+}
+
+function closeSidebar() {
+    _modern_sidebar.classList.remove('active');
+    _sidebar_overlay.classList.remove('active');
+    _menu_toggle.classList.remove('active');
+    _sidebar_open = false;
+
+    // Restore body scroll
+    document.body.style.overflow = '';
+
+    // Remove escape key listener
+    document.removeEventListener('keydown', handleEscapeKey);
+}
+
+// Handle escape key to close sidebar
+function handleEscapeKey(event) {
+    if (event.key === 'Escape' && _sidebar_open) {
+        closeSidebar();
+    }
+}
+
+// Event listeners
+_close_sidebar.addEventListener('click', closeSidebar);
+_sidebar_overlay.addEventListener('click', closeSidebar);
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768 && _sidebar_open) {
+        // Optional: Auto-close sidebar on larger screens
+        // closeSidebar();
+    }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure sidebar is closed on page load
+
+	_selection_site.hidden = "hidden";
+    closeSidebar();
+});
 
 onDocReady();
