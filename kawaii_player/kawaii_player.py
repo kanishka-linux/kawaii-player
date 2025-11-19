@@ -1420,7 +1420,7 @@ class Ui_MainWindow(object):
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (6, 2, 0, 1)
+        self.version_number = (7, 0, 0, 1)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
@@ -15550,6 +15550,9 @@ def main():
     if ui.version_number >= (6, 2, 0, 1) and ui.version_number > old_version:
         logger.info('old version: need to change videodb schema')
         ui.media_data.migrate_database(old_version, "file_checksum")
+
+    if ui.version_number >= (7, 0, 0, 1):
+        ui.media_data.create_series_info_table()
 
     if ui.media_server_autostart:
         ui.start_stop_media_server(True)

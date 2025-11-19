@@ -23,6 +23,7 @@ import shutil
 import sqlite3
 import datetime
 import hashlib
+import uuid
 from typing import Optional, List, Tuple
 
 from PyQt5 import QtWidgets, QtCore
@@ -687,6 +688,155 @@ class MediaDatabase():
         if ep_name.startswith("#"):
             ep_name = ep_name.replace("#", "✅", 1)
         return ep_name
+
+    def create_series_info_table(self):
+
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+
+        create_table_sql = """
+        CREATE TABLE IF NOT EXISTS series_info (
+            id TEXT PRIMARY KEY,
+            db_title TEXT NOT NULL,
+            title TEXT NOT NULL,
+            english_title TEXT,
+            genres TEXT,
+            year INTEGER,
+            episodes INTEGER,
+            image_poster_large TEXT,
+            external_id INTEGER,
+            summary TEXT,
+            score REAL,
+            rank INTEGER,
+            popularity INTEGER,
+            type TEXT,
+            duration TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+
+        # Create indexes for better search performance
+        create_indexes_sql = [
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_entered_title ON series_info(db_title);",
+            "CREATE INDEX IF NOT EXISTS idx_year ON series_info(year);",
+            "CREATE INDEX IF NOT EXISTS idx_genres ON series_info(genres);",
+            "CREATE INDEX IF NOT EXISTS idx_external_id ON series_info(external_id);"
+        ]
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+            # Create the table
+            cursor.execute(create_table_sql)
+
+            # Create indexes
+            for index_sql in create_indexes_sql:
+                cursor.execute(index_sql)
+
+            conn.commit()
+            print("Table 'series_info' and indexes created successfully!")
+
+        except sqlite3.Error as e:
+            print(f"Error creating table: {e}")
+
+        finally:
+            conn.close()
+
+    def insert_series_data(self, title, series_data):
+
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+
+        insert_sql = """
+        INSERT INTO series_info (
+            id, db_title, title, english_title,
+            genres, year, episodes, image_poster_large,
+            external_id, summary, score, rank,
+            popularity, type, duration
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            # Generate UUID for the record
+            record_id = str(uuid.uuid4())
+
+            # Prepare data tuple
+            data_tuple = (
+                record_id,
+                title,
+                series_data.get('title'),
+                series_data.get('title_english'),
+                ', '.join(series_data.get('genres', [])) if series_data.get('genres') else None,
+                series_data.get('year'),
+                series_data.get('episodes'),
+                series_data.get('image_poster_large'),
+                series_data.get('id'),
+                series_data.get('synopsis'),
+                series_data.get('score'),
+                series_data.get('rank'),
+                series_data.get('popularity'),
+                series_data.get('type'),
+                series_data.get('duration'),
+            )
+
+            cursor.execute(insert_sql, data_tuple)
+            conn.commit()
+
+            print(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
+            return record_id
+
+        except sqlite3.Error as e:
+            print(f"Error inserting data: {e}")
+            return None
+
+        finally:
+            conn.close()
+
+    def search_filtered_anime_parameterized(self, limit, excluded_categories=None, excluded_title_keywords=None):
+
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+
+        if excluded_categories is None:
+            excluded_categories = [
+                        'tv shows','documentaries', 'cartoons',
+                        'music videos', 'extras', 'movies',
+                        'extra'
+                    ]
+
+        if excluded_title_keywords is None:
+            excluded_title_keywords = ['sample', 'pv', 'extras', 'oped', 'nced', 'specials', 'op & ed']
+
+        # Build the query dynamically
+        category_placeholders = ','.join(['?' for _ in excluded_categories])
+        title_conditions = ' AND '.join(['LOWER(Title) NOT LIKE ?' for _ in excluded_title_keywords])
+
+        query = f"""
+        SELECT distinct Title FROM Video
+        WHERE LOWER(Category) NOT IN ({category_placeholders})
+        AND ({title_conditions})
+        ORDER BY Title
+        limit ?;
+        """
+
+        # Prepare parameters
+        params = excluded_categories + [f'%{keyword}%' for keyword in excluded_title_keywords] + [limit]
+
+        results = []
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute(query, params)
+            results = [row[0] for row in cursor.fetchall()]
+
+        except sqlite3.Error as e:
+            print(f"Error executing parameterized query: {e}")
+
+        finally:
+            conn.close()
+        return  results
+
 
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
