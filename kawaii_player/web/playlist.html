@@ -44,8 +44,8 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
     <br>
 </div>
 <video id="player" width="640" height="480" controls>
-	<track kind="captions" label="English" srclang="en" src="" default>
-</video>
+        <track kind="captions" label="English" srclang="en" src="" default>
+    </video>
 <br>
 <div id="title" class="title_video"></div>
 <br>
@@ -276,16 +276,74 @@ Text box can also be used to input text commands to server as follows
         </div>
     </div>
 </div>
-<div id="top_menu_bar" class="top_menu_bar">
-    <div id="top_menu_bar_sub" class="top_menu_bar_sub">
-    <button onclick="max_min_top_bar()" title="Show/Hide Top Menu Bar">☰</button>
-    <select id="first_select" onchange="siteChangeTop()"></select>
-    <select id="second_select" onchange="optChangeTop()"></select>
-    <select id="third_select" onchange="optValChangeTop()"></select>
-    <input id="search_text_top" title="Enter Text to Search" type="search" placeholder="Search Box" onkeypress="return searchFunction(event, 1)" list="mydatalist">
+
+
+<div id="sidebar_overlay" class="sidebar-overlay"></div>
+<div id="modern_sidebar" class="modern-sidebar">
+    <div class="sidebar-header">
+        <h3>Kawaii-Player</h3>
+        <button id="close_sidebar" class="close-btn" title="Close Menu">×</button>
+    </div>
+    <div class="sidebar-content">
+        <div class="menu-section">
+            <label>Media Type</label>
+            <select id="first_select" onchange="siteChangeTop()"></select>
+        </div>
+        <div class="menu-section">
+            <label>Categories</label>
+            <select id="second_select" onchange="optChangeTop()"></select>
+        </div>
+        <div class="menu-section">
+            <label>Titles</label>
+            <select id="third_select" onchange="optValChangeTop()"></select>
+        </div>
+        <div class="menu-section">
+            <label>Search</label>
+            <input id="search_text_sidebar"
+                   title="Enter Text to Search"
+                   type="search"
+                   placeholder="Search..."
+                   onkeypress="return searchFunction(event, 1)"
+                   list="mydatalist">
+        </div>
+
+<div class="media-container" id="media-container">
+    <div id="poster-summary" class="poster-summary-overlay">
+        <div class="content-wrapper">
+            <div class="poster-section">
+                <img id="poster-img" src="" alt="Series Poster">
+            </div>
+            <div class="info-section">
+                <h2 id="series-title"></h2>
+                <h3 id="series-en-title"></h3>
+                <div class="metadata">
+                    <span id="series-type"></span>
+                    <span id="series-year"></span>
+                    <span id="series-score"></span>
+                    <span id="series-duration"></span>
+                    <span id="series-episodes"></span>
+                    <span id="series-genres"></span>
+                </div>
+                <p id="series-summary"></p>
+                <div class="actions">
+                    <button class="btn-primary" onclick="toggleVideoMode()">Watch Now</button>
+                    <button class="btn-secondary" onclick="addToWatchlist()">+ Watchlist</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-<button class="btn_minmax_topbar" id="btn_minmax_topbar" onclick="hide_show_topbar()">☰</button>
+
+
+
+    </div>
+</div>
+<button class="modern-menu-toggle" id="menu_toggle" onclick="toggleModernSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
 
 <datalist id="mydatalist" class="mydatalist">
 </datalist>
