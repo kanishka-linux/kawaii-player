@@ -947,8 +947,82 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 msg = "no title"
             self.final_message(bytes(msg, 'utf-8'))
+        elif self.path.startswith('/series_metadata'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            title = content.get("title")
+            paths = []
+            if title and len(title) < 100:
+                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                qr = """
+                    select * from series_info where db_title = ?
+                    """
+                cur.execute(qr, (title, ))
+                rows = [row for row in cur.fetchall()]
+                if rows:
+                    response_data = {
+                        "success": True,
+                        "data": dict(rows[0])
+                    }
+                else:
+                    qr = """
+                    select Path from Video where Title= ? limit 1;
+                    """
+                    cur.execute(qr, (title,))
+                    rows = [row for row in cur.fetchall()]
+                    if rows:
+                        data = dict(rows[0])
+                        file_path = data['Path']
+                        response_data = {
+                                "success": True,
+                                "data": {
+                                        "title": title,
+                                        "image_poster_large":  self.build_url_from_file_path(file_path, "image"),
+                                        "summary": "NA"
+                                    }
+                                }
+
+                conn.commit()
+                conn.close()
+                self.send_json_response(response_data)
+            else:
+                error_response = {
+                    "success": False,
+                    "data": None
+                }
+                self.send_json_response(error_response, status_code=422)
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
+
+    def send_json_response(self, data, status_code=200):
+        """Send a JSON response with proper headers"""
+        try:
+            # Convert data to JSON string
+            json_string = json.dumps(data, ensure_ascii=False, indent=2)
+            json_bytes = json_string.encode('utf-8')
+
+            # Send response
+            self.send_response(status_code)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(json_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')  # CORS if needed
+            self.end_headers()
+            self.wfile.write(json_bytes)
+
+        except Exception as e:
+            # Fallback error response
+            error_msg = f'{{"success": false, "message": "JSON encoding error: {str(e)}"}}'
+            error_bytes = error_msg.encode('utf-8')
+
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(error_bytes)))
+            self.end_headers()
+            self.wfile.write(error_bytes)
 
     def do_init_function(self, type_request=None):
         global ui, logger
@@ -1581,6 +1655,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         extra_fields = '<div id="site_option" hidden>{0}</div>'.format(extra_fields)
         return extra_fields
+
+    def build_url_from_file_path(self, file_path, file_type):
+        file_name = os.path.basename(file_path)
+        file_name_saitized = urllib.parse.quote(file_name.replace("/", "-"))
+        encoded_path = str(base64.b64encode(bytes(file_path, 'utf-8')), 'utf-8')
+        url = f"/abs_path={encoded_path}/{file_name_saitized}"
+        if  file_type == "image":
+            url = f"{url}.image"
+        return url
 
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
         global ui, home, html_default_arr, logger, getdb
