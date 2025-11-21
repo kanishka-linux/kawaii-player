@@ -995,6 +995,82 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     "data": None
                 }
                 self.send_json_response(error_response, status_code=422)
+        elif self.path.startswith('/fetch_series_metadata'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            db_title = content.get("db_title")
+            suggested_title = content.get("suggested_title")
+            series_type = content.get("series_type")
+            from_cache = content.get("from_cache")
+            paths = []
+            if suggested_title and len(suggested_title) < 100 and series_type == "anime":
+                if from_cache == "yes":
+                    result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
+                else:
+                    result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
+
+                ui.media_data.insert_series_data(db_title, result)
+
+                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                qr = """
+                    select * from series_info where db_title = ?
+                    """
+                cur.execute(qr, (db_title, ))
+                rows = [row for row in cur.fetchall()]
+                if rows:
+                    response_data = {
+                        "success": True,
+                        "data": dict(rows[0])
+                    }
+
+                conn.commit()
+                conn.close()
+                self.send_json_response(response_data)
+            else:
+                error_response = {
+                    "success": False,
+                    "data": None
+                }
+                self.send_json_response(error_response, status_code=422)
+        elif self.path.startswith('/reset_series_metadata'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            db_title = content.get("db_title")
+            paths = []
+            if db_title and len(db_title) < 100:
+                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                qr = """
+                    delete from series_info where db_title = ?
+                    """
+                cur.execute(qr, (db_title, ))
+                if cur.rowcount:
+                    response_data = {
+                        "success": True
+                    }
+                    conn.commit()
+                    conn.close()
+                    self.send_json_response(response_data)
+                else:
+                    response_data = {
+                        "success": False
+                    }
+                    conn.commit()
+                    conn.close()
+                    self.send_json_response(response_data, status_code=422)
+            else:
+                error_response = {
+                    "success": False,
+                    "data": None
+                }
+                self.send_json_response(error_response, status_code=422)
         else:
             self.final_message(bytes('Nothing Available', 'utf-8'))
 

@@ -208,6 +208,7 @@ from serverlib import ServerLib
 from vinanti import Vinanti
 from tvdb_async import TVDB
 from multiprocessing import Process
+from series_info_fetcher.anime import AnimeInfoFetcher
 
 try:
     import vlc
@@ -1747,7 +1748,7 @@ class Ui_MainWindow(object):
             'dock_3':self.dockWidget_3, 'tab_2':self.tab_2,
             'tab_6':self.tab_6
             }
-        self.user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
+        self.user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/145.0'
         if OSNAME == 'posix':
             verify = True
         else:
@@ -1755,6 +1756,7 @@ class Ui_MainWindow(object):
         self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent}, verify=verify)
         self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
         self.yt = YTDL(self)
+        self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed1, int(screen_height/1.5)))
@@ -15485,6 +15487,7 @@ def main():
     show_hide_playlist = arr_setting[1]
         
     print(arr_setting)
+
     
     if show_hide_playlist == 1:
         ui.list2.show()
