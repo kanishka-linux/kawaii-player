@@ -964,9 +964,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 cur.execute(qr, (title, ))
                 rows = [row for row in cur.fetchall()]
                 if rows:
+                    data = dict(rows[0])
+
                     response_data = {
                         "success": True,
-                        "data": dict(rows[0])
+                        "data": data
                     }
                 else:
                     qr = """
@@ -1010,7 +1012,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
                 else:
                     result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
-
                 ui.media_data.insert_series_data(db_title, result)
 
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
@@ -1022,13 +1023,55 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 cur.execute(qr, (db_title, ))
                 rows = [row for row in cur.fetchall()]
                 if rows:
+                    data = dict(rows[0])
                     response_data = {
                         "success": True,
-                        "data": dict(rows[0])
+                        "data": data
                     }
 
                 conn.commit()
                 conn.close()
+                self.send_json_response(response_data)
+            else:
+                error_response = {
+                    "success": False,
+                    "data": None
+                }
+                self.send_json_response(error_response, status_code=422)
+        elif self.path.startswith('/fetch_image_poster'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            db_title = content.get("db_title")
+            img_url = content.get("img_url")
+            paths = []
+            if db_title and len(db_title) < 100:
+
+                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                qr = """
+                    select * from series_info where db_title = ?
+                    """
+                cur.execute(qr, (db_title, ))
+                rows = [row for row in cur.fetchall()]
+                img_path = ""
+                if rows:
+                    data = dict(rows[0])
+                    image_poster_large = data.get("image_poster_large", "")
+
+                    if image_poster_large:
+                        img_name = image_poster_large.rsplit("/", 1)[-1]
+                        img_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, img_name)
+                    response_data = {
+                        "success": True
+                    }
+
+                conn.commit()
+                conn.close()
+                if img_path:
+                    ui.vnt.get(img_url, out=img_path)
                 self.send_json_response(response_data)
             else:
                 error_response = {
@@ -1047,6 +1090,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
+                qr = """
+                    select * from series_info where db_title = ?
+                """
+
+                cur.execute(qr, (db_title, ))
+                select_result = [row for row in cur.fetchall()]
+                if select_result:
+                    select_result_dict = dict(select_result[0])
+                    image_poster_large = select_result_dict.get("image_poster_large", "")
+                    img_name = image_poster_large.rsplit("/", 1)[-1]
+                    img_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, img_name)
+                    if os.path.isfile(img_path) and img_path.endswith(".jpg"):
+                        os.remove(img_path)
+
                 qr = """
                     delete from series_info where db_title = ?
                     """
@@ -1744,6 +1801,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
         global ui, home, html_default_arr, logger, getdb
         global site
+
+        if self.path.startswith("/images/"):
+            local_image = self.path.rsplit("/", 1)[-1]
+            poster_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, local_image)
+            if os.path.exists(poster_path):
+                content = open(poster_path, 'rb').read()
+            else:
+                default_file = os.path.join(ui.home_folder, '480px.default.jpg')
+                content = open(default_file, 'rb').read()
+            self.send_response(200)
+            self.send_header('Content-type', 'image/jpeg')
+            self.send_header('Content-Length', len(content))
+            self.send_header('Connection', 'close')
+            self.end_headers()
+            try:
+                self.wfile.write(content)
+            except Exception as e:
+                print(e)
 
         arg_dict = ui.get_parameters_value(s='site')
         epnArrList = ui.epn_arr_list.copy()
