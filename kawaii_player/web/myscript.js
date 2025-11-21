@@ -2589,6 +2589,7 @@ let isVideoMode = false;
     document.getElementById('third_select').addEventListener('change', function(event) {
         const title = getSelectInfo(event.target);
         console.log('Third select changed:', title);
+        _third_select.title = title;
         fetchSeriesMetadata(title)
     });
 
@@ -2608,6 +2609,44 @@ function fetchSeriesMetadata(title) {
         }
 	})
 }
+
+function editSeriesMetadata(title, edited_title) {
+	const videoElement = document.getElementById('player');
+    metadataUrl  = "/fetch_series_metadata";
+	var client = new postRequest();
+	let data = {
+        'db_title': title,
+        'suggested_title': edited_title,
+        'cache': "no",
+        'series_type': "anime"
+    }
+	client.post(metadataUrl, data, function(response) {
+		console.log(response);
+		resp = JSON.parse(response);
+		console.log(resp.success, "This is metadata");
+
+        if (resp.data.image_poster_large) {
+            videoElement.poster = resp.data.image_poster_large;
+	        updateMediaContent(resp.data);
+        }
+	})
+}
+
+function resetSeriesMetadata(title) {
+	const videoElement = document.getElementById('player');
+    metadataResetUrl  = "/reset_series_metadata";
+	var client = new postRequest();
+	let data = {'db_title': title};
+	client.post(metadataResetUrl, data, function(response) {
+		console.log(response);
+		resp = JSON.parse(response);
+        if (resp.success) {
+            fetchSeriesMetadata(title);
+        }
+	})
+}
+
+
 
 function clearAllSeriesFields() {
     const elementsTolear = [
@@ -3780,5 +3819,69 @@ document.addEventListener('DOMContentLoaded', function() {
 	_selection_site.hidden = "hidden";
     closeSidebar();
 });
+
+function editMetaData() {
+    // Get the current title from the series-title element
+    const currentTitle = _third_select.title;
+
+    // Show dialogue box with current title pre-filled
+    const searchTerm = prompt('Enter search term to fetch metadata:', currentTitle);
+
+    // Check if user cancelled or entered empty string
+    if (searchTerm === null || searchTerm.trim() === '') {
+        return; // User cancelled or entered nothing
+    }
+
+    // Show loading feedback (you can customize this)
+    const originalButtonText = document.querySelector('.btn-primary').textContent;
+    document.querySelector('.btn-primary').textContent = 'Loading...';
+    document.querySelector('.btn-primary').disabled = true;
+
+    try {
+
+       editSeriesMetadata(currentTitle, searchTerm.trim())
+    } catch (error) {
+        // Handle error
+        alert('Failed to fetch metadata. Please try again.');
+        console.error('Error:', error);
+    } finally {
+        // Reset button state
+        document.querySelector('.btn-primary').textContent = originalButtonText;
+        document.querySelector('.btn-primary').disabled = false;
+    }
+}
+
+function resetMetadata() {
+    // Get the current title from the series-title element
+    const currentTitle = _third_select.title;
+
+    // Show confirmation dialog
+    const userConfirmed = confirm(`Are you sure you want to reset metadata for "${currentTitle}"?`);
+
+    // Check if user cancelled (clicked "No" or "Cancel")
+    if (!userConfirmed) {
+        return; // User cancelled, exit function
+    }
+
+    // Show loading feedback
+    const originalButtonText = document.querySelector('.btn-primary').textContent;
+    document.querySelector('.btn-primary').textContent = 'Loading...';
+    document.querySelector('.btn-primary').disabled = true;
+
+    try {
+        // Call the API with current title since user confirmed
+        resetSeriesMetadata(currentTitle.trim());
+
+    } catch (error) {
+        // Handle error
+        alert('Failed to fetch metadata. Please try again.');
+        console.error('Error:', error);
+    } finally {
+        // Reset button state
+        document.querySelector('.btn-primary').textContent = originalButtonText;
+        document.querySelector('.btn-primary').disabled = false;
+    }
+}
+
 
 onDocReady();
