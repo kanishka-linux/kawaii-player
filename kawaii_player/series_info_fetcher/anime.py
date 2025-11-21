@@ -3,6 +3,7 @@ import re
 from difflib import SequenceMatcher
 from typing import Dict, Optional
 from vinanti import Vinanti
+import hashlib
 import json
 import pickle
 import os
@@ -14,6 +15,7 @@ class AnimeInfoFetcher:
         self.cache = {}
         self.ui = ui
         self.cache_file = os.path.join(ui.home_folder, "anime_cache.pkl")
+        self.thumbnail_dir = os.path.join(ui.home_folder, 'thumbnails', 'thumbnail_server')
         if os.name == 'posix':
             verify = True
         else:
@@ -79,7 +81,6 @@ class AnimeInfoFetcher:
                 else:
                     titles_with_type.append(f"{t} {anime_type}")
 
-            print(titles_to_check, "ttc-->")
             max_similarity = max(
                 self._calculate_similarity(title_lower, t) for t in titles_to_check if t
             )
@@ -89,6 +90,13 @@ class AnimeInfoFetcher:
                 best_match = anime
         
         return best_match
+
+    def build_local_image_file_name(self, url: str) -> str:
+        url_bytes = bytes(url, 'utf-8')
+        h = hashlib.sha256(url_bytes)
+        digest = h.hexdigest()
+        local_path = os.path.join(self.thumbnail_dir, f"poster-{digest}.jpg")
+        return local_path
     
     def get_anime_info(self, title: str, cache: bool) -> Optional[Dict]:
         """
@@ -152,8 +160,14 @@ class AnimeInfoFetcher:
                     'approved': data.get('approved'),
                     'titles': data.get('titles', [])
                 }
-                
 
+            img_url = anime_details.get("image_poster_large")
+            if img_url:
+                img_path = self.build_local_image_file_name(img_url)
+                self.vnt.get(img_url, out=img_path)
+                img = os.path.split(img_path)[-1]
+                local_image_url = f"/images/{img}"
+                anime_details["image_poster_large"] = local_image_url
             self.cache[title] = anime_details
 
             return anime_details
