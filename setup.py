@@ -61,7 +61,7 @@ else:
 
 setup(
     name='kawaii-player',
-    version='6.2.0',
+    version='7.0.0',
     license='GPLv3',
     author='kanishka-linux',
     author_email='kanishka.linux@gmail.com',
@@ -71,6 +71,7 @@ setup(
         'kawaii_player', 'kawaii_player.Plugins', 'kawaii_player.widgets',
         'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit',
         'kawaii_player.vinanti', 'kawaii_player.tvdb_async',
+        'kawaii_player.series_info_fetcher'
         ],
     include_package_data=True,
     install_requires = install_requires,
