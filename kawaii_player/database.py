@@ -754,6 +754,17 @@ class MediaDatabase():
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
+        update_sql = """
+        UPDATE series_info SET
+            title = ?, english_title = ?, genres = ?, year = ?,
+            episodes = ?, image_poster_large = ?, external_id = ?,
+            summary = ?, score = ?, rank = ?, popularity = ?,
+            type = ?, duration = ?
+        WHERE db_title = ?
+        """
+
+        get_existing_id_sql = "SELECT id FROM series_info WHERE db_title = ?"
+
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         try:
@@ -785,6 +796,43 @@ class MediaDatabase():
 
             print(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
             return record_id
+        except sqlite3.IntegrityError as e:
+            # Check if it's a unique constraint error on db_title
+            if "UNIQUE constraint failed" in str(e) and "db_title" in str(e):
+                try:
+                    # Get the existing record ID
+                    cursor.execute(get_existing_id_sql, (title,))
+                    existing_record = cursor.fetchone()
+                    existing_id = existing_record[0] if existing_record else None
+
+                    # Prepare data tuple for UPDATE (without id and db_title)
+                    update_data_tuple = (
+                        series_data.get('title'),
+                        series_data.get('title_english'),
+                        ', '.join(series_data.get('genres', [])) if series_data.get('genres') else None,
+                        series_data.get('year'),
+                        series_data.get('episodes'),
+                        series_data.get('image_poster_large'),
+                        series_data.get('id'),
+                        series_data.get('synopsis'),
+                        series_data.get('score'),
+                        series_data.get('rank'),
+                        series_data.get('popularity'),
+                        series_data.get('type'),
+                        series_data.get('duration'),
+                        title  # WHERE clause parameter
+                    )
+
+                    # Execute UPDATE
+                    cursor.execute(update_sql, update_data_tuple)
+                    conn.commit()
+
+                    print(f"\nUpdated anime: {title} => {series_data.get('title')} with existing ID: {existing_id}\n")
+                    return existing_id
+
+                except sqlite3.Error as update_error:
+                    print(f"Error updating data: {update_error}")
+                    return None
 
         except sqlite3.Error as e:
             print(f"Error inserting data: {e}")
