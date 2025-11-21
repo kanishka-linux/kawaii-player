@@ -3825,7 +3825,7 @@ function editMetaData() {
     const currentTitle = _third_select.title;
 
     // Show dialogue box with current title pre-filled
-    const searchTerm = prompt('Enter search term to fetch metadata:', currentTitle);
+    const searchTerm = prompt('Enter exact title to fetch metadata correctly:', currentTitle);
 
     // Check if user cancelled or entered empty string
     if (searchTerm === null || searchTerm.trim() === '') {
@@ -3883,5 +3883,27 @@ function resetMetadata() {
     }
 }
 
+function changeImageUrl() {
+    const currentImageUrl = document.getElementById('poster-img').src;
+    const newImageUrl = prompt('Enter new image URL:', currentImageUrl);
+    const currentTitle = _third_select.title;
+
+    if (newImageUrl && newImageUrl.trim() !== '') {
+        const videoElement = document.getElementById('player');
+        url  = "/fetch_image_poster";
+        var client = new postRequest();
+        let data = {
+            'db_title': currentTitle,
+            'img_url': newImageUrl
+        }
+        client.post(url, data, function(response) {
+            console.log(response);
+            resp = JSON.parse(response);
+            console.log(resp.success, "This is metadata");
+
+            fetchSeriesMetadata(currentTitle)
+        })
+    }
+}
 
 onDocReady();

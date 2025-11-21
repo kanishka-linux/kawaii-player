@@ -30,7 +30,89 @@ video::cue {
 */
 
 /* Base container - Mobile first approach */
-/* Base container - Mobile first approach */
+
+/* Image edit button - add after your existing .poster-section img styles */
+.image-edit-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    font-size: 12px;
+}
+
+.image-edit-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.poster-section:hover .image-edit-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+.image-edit-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+@media (min-width: 769px) {
+    .image-edit-btn {
+        width: 32px;
+        height: 32px;
+        top: 30px;
+        right: 30px;
+    }
+
+    .image-edit-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 481px) {
+    .image-edit-btn {
+        top: 15px;
+        right: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .image-edit-btn {
+        width: 26px;
+        height: 26px;
+        top: 15px;
+        right: 15px;
+    }
+
+    .image-edit-btn svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+@media (max-width: 320px) {
+    .image-edit-btn {
+        width: 24px;
+        height: 24px;
+        top: 12px;
+        right: 12px;
+    }
+}
+
 .media-container {
     position: relative;
     width: 100%;
