@@ -2597,7 +2597,11 @@ function fetchSeriesMetadata(title) {
 	const videoElement = document.getElementById('player');
     metadataUrl  = "/series_metadata";
 	var client = new postRequest();
-	let data = {'title': title}
+	let data = {
+            'title': title,
+            'media_type':  _first_select.value,
+            'category': _second_select.value
+    }
 	client.post(metadataUrl, data, function(response) {
 		console.log(response);
 		resp = JSON.parse(response);
@@ -2618,7 +2622,8 @@ function editSeriesMetadata(title, edited_title) {
         'db_title': title,
         'suggested_title': edited_title,
         'cache': "no",
-        'series_type': "anime"
+        'series_type': "anime",
+        "media_type": _first_select.value
     }
 	client.post(metadataUrl, data, function(response) {
 		console.log(response);
@@ -2636,7 +2641,7 @@ function resetSeriesMetadata(title) {
 	const videoElement = document.getElementById('player');
     metadataResetUrl  = "/reset_series_metadata";
 	var client = new postRequest();
-	let data = {'db_title': title};
+	let data = {'db_title': title, 'media_type': _first_select.value};
 	client.post(metadataResetUrl, data, function(response) {
 		console.log(response);
 		resp = JSON.parse(response);
@@ -3894,7 +3899,8 @@ function changeImageUrl() {
         var client = new postRequest();
         let data = {
             'db_title': currentTitle,
-            'img_url': newImageUrl
+            'img_url': newImageUrl,
+            'media_type': _first_select.value
         }
         client.post(url, data, function(response) {
             console.log(response);

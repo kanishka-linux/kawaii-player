@@ -953,49 +953,25 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 content = str(content, 'utf-8')
             content = json.loads(content)
             title = content.get("title")
+            media_type = content.get("media_type")
+            category = content.get("category")
             paths = []
-            if title and len(title) < 100:
-                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-                conn.row_factory = sqlite3.Row
-                cur = conn.cursor()
-                qr = """
-                    select * from series_info where db_title = ?
-                    """
-                cur.execute(qr, (title, ))
-                rows = [row for row in cur.fetchall()]
-                if rows:
-                    data = dict(rows[0])
+            error_response = {
+                "success": False,
+                "data": None
+            }
+            response_data = {}
+            if title and media_type and len(title) < 100:
+                if media_type.lower() == "video":
+                    response_data = ui.media_data.fetch_series_metadata(title)
+                elif media_type.lower() == "music":
+                    response_data = ui.media_data.fetch_music_metadata(title, category)
 
-                    response_data = {
-                        "success": True,
-                        "data": data
-                    }
+                if response_data:
+                    self.send_json_response(response_data)
                 else:
-                    qr = """
-                    select Path from Video where Title= ? limit 1;
-                    """
-                    cur.execute(qr, (title,))
-                    rows = [row for row in cur.fetchall()]
-                    if rows:
-                        data = dict(rows[0])
-                        file_path = data['Path']
-                        response_data = {
-                                "success": True,
-                                "data": {
-                                        "title": title,
-                                        "image_poster_large":  self.build_url_from_file_path(file_path, "image"),
-                                        "summary": "NA"
-                                    }
-                                }
-
-                conn.commit()
-                conn.close()
-                self.send_json_response(response_data)
+                    self.send_json_response(error_response, status_code=422)
             else:
-                error_response = {
-                    "success": False,
-                    "data": None
-                }
                 self.send_json_response(error_response, status_code=422)
         elif self.path.startswith('/fetch_series_metadata'):
             content = self.rfile.read(int(self.headers['Content-Length']))
@@ -1005,9 +981,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             db_title = content.get("db_title")
             suggested_title = content.get("suggested_title")
             series_type = content.get("series_type")
+            media_type = content.get("media_type")
             from_cache = content.get("from_cache")
             paths = []
-            if suggested_title and len(suggested_title) < 100 and series_type == "anime":
+            if media_type and media_type.lower() == "video":
+                media_type == "video"
+
+            if suggested_title and len(suggested_title) < 100 and series_type == "anime" and media_type ==  "video":
                 if from_cache == "yes":
                     result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
                 else:
@@ -1045,8 +1025,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             content = json.loads(content)
             db_title = content.get("db_title")
             img_url = content.get("img_url")
+            media_type = content.get("media_type")
+            if media_type and media_type.lower() == "video":
+                media_type == "video"
             paths = []
-            if db_title and len(db_title) < 100:
+            if db_title and media_type == "video" and len(db_title) < 100:
 
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
                 conn.row_factory = sqlite3.Row
@@ -1085,8 +1068,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 content = str(content, 'utf-8')
             content = json.loads(content)
             db_title = content.get("db_title")
+            media_type = content.get("media_type")
+            if media_type and media_type.lower() == "video":
+                media_type = "video"
             paths = []
-            if db_title and len(db_title) < 100:
+            if db_title and len(db_title) < 100 and media_type == "video":
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
