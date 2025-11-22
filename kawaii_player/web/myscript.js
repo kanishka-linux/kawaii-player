@@ -100,7 +100,7 @@ var _player = document.getElementById("player"),
     _first_select = document.getElementById("first_select");
     _second_select = document.getElementById("second_select");
     _third_select = document.getElementById("third_select");
-    _search_text_top = document.getElementById("search_text_top");
+    _search_text_top = document.getElementById("search_text_sidebar");
     _current_working_m3u = "";
     //_top_menu_bar = document.getElementById('top_menu_bar');
     //_top_menu_bar_sub = document.getElementById('top_menu_bar_sub');
@@ -658,7 +658,7 @@ function searchFunction(e, mode){
             var z = document.getElementById("type_search");
             var site = document.getElementById("site");
         }else{
-            var z = _search_text_top;
+            var z = document.getElementById("search_text_sidebar");
             var site = _first_select;
         }
         var site_val = site.value.toLowerCase();
