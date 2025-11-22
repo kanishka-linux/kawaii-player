@@ -24,6 +24,8 @@ import sqlite3
 import datetime
 import hashlib
 import uuid
+import urllib
+import base64
 from typing import Optional, List, Tuple
 
 from PyQt5 import QtWidgets, QtCore
@@ -885,6 +887,83 @@ class MediaDatabase():
             conn.close()
         return  results
 
+    def fetch_series_metadata(self, title: str) -> dict:
+        response_data = {}
+        conn = sqlite3.connect(os.path.join(self.home, 'VideoDB', 'Video.db'))
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        qr = """
+            select * from series_info where db_title = ?
+            """
+        cur.execute(qr, (title, ))
+        rows = [row for row in cur.fetchall()]
+        if rows:
+            data = dict(rows[0])
+
+            response_data = {
+                "success": True,
+                "data": data
+            }
+        else:
+            qr = """
+            select Path from Video where Title= ? limit 1;
+            """
+            cur.execute(qr, (title,))
+            rows = [row for row in cur.fetchall()]
+            if rows:
+                data = dict(rows[0])
+                file_path = data['Path']
+                response_data = {
+                        "success": True,
+                        "data": {
+                                "title": title,
+                                "image_poster_large":  self.build_url_from_file_path(file_path, "image"),
+                                "summary": "NA"
+                            }
+                        }
+
+        conn.commit()
+        conn.close()
+        return response_data
+
+    def fetch_music_metadata(self, title: str, category: str) -> dict:
+        response_data = {}
+        if category in ["Artist", "Directory", "Album"]:
+            qr = f"select Path from Music where {category}= ? limit 1;"
+        else:
+            return {}
+
+        conn = sqlite3.connect(os.path.join(self.home, 'Music', 'Music.db'))
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute(qr, (title,))
+        rows = [row for row in cur.fetchall()]
+        if rows:
+            data = dict(rows[0])
+            file_path = data['Path']
+            response_data = {
+                    "success": True,
+                    "data": {
+                            "title": title,
+                            "image_poster_large":  self.build_url_from_file_path(file_path, "image"),
+                            "summary": "NA"
+                        }
+                    }
+
+        conn.commit()
+        conn.close()
+        return response_data
+
+
+    def build_url_from_file_path(self, file_path, file_type):
+        file_name = os.path.basename(file_path)
+        file_name_saitized = urllib.parse.quote(file_name.replace("/", "-"))
+        encoded_path = str(base64.b64encode(bytes(file_path, 'utf-8')), 'utf-8')
+        url = f"/abs_path={encoded_path}/{file_name_saitized}"
+        if  file_type == "image":
+            url = f"{url}.image"
+        return url
 
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
