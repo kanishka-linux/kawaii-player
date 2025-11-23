@@ -550,7 +550,7 @@ function remote_control_update(){
                     _final_url = clickedElement.getAttribute('data-mp3');
                     _player_control_info.innerHTML = document.title;
                     _player_control_image.src = _final_url + '.image'
-                    _player.src = _final_url;
+                    //_player.src = _final_url;
                     _player.poster = _final_url + '.image'
                     
                     var tmp_name = clickedElement.innerHTML;
@@ -2917,8 +2917,12 @@ function playlistItemClick(clickedElement,mode) {
 			})
 			} 
 		}
-		_player.src = new_src
-		console.log(new_src)
+        // for remote control mode
+        // don't play media in the browser
+        _player.removeAttribute('src');
+        _player.load();
+        _player.poster = new_src + '.image';
+		console.log("source reset")
         if (!_remote_control_status || _remote_control_status==null){
             _remote_control_status = setInterval(remote_control_update, 1000);
         }
@@ -3169,7 +3173,8 @@ function stop_on_click(){
     _can_play_sync = false;
 	if (_remote_val == 'off'){
         _player.pause();
-        _player.src = "";
+        _player.removeAttribute('src');
+        _player.load();
         if (_player_progress_status){
             clearInterval(_player_progress_status);
             _player_progress_status = null;
