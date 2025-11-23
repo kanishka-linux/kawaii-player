@@ -27,6 +27,10 @@ var _player = document.getElementById("player"),
     _next = document.getElementById("next"),
     _play = document.getElementById("play"),
     _title = document.getElementById("title"),
+    _currentTimeElement = document.getElementById('currentTime');
+    _totalTimeElement = document.getElementById('totalTime');
+    _progressFill = document.getElementById('progressFill');
+
     _title_music = document.getElementById("title_music"),
     _img_id = document.getElementById("img-id"),
     _img_info = document.getElementById("img-info"),
@@ -504,6 +508,18 @@ function torrent_status(val){
 	})
 }
 
+function updateVideoStatusDisplay(currentTime, duration, curValStr, durStr, title) {
+
+        _title.textContent = title;
+
+        _currentTimeElement.textContent = curValStr;
+
+        _totalTimeElement.textContent = durStr;
+
+        const progress = (currentTime / duration) * 100;
+        progressFill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+}
+
 function remote_control_update(){
     var new_url = 'get_remote_control_status';
     var client = new getRequest();
@@ -515,6 +531,7 @@ function remote_control_update(){
             var cur_time = arr_val[1];
             var index_row = arr_val[2];
             var queue_list = parseInt(arr_val[3]);
+            var title = arr_val[4];
             
             dur_int = parseInt(total);
             _player_progress.max = dur_int;
@@ -523,9 +540,9 @@ function remote_control_update(){
             cur_int = parseInt(cur_time);
             _player_progress.value = cur_int;
             cur_val = human_readable_time(cur_int);
-            
+            updateVideoStatusDisplay(cur_int, dur_int, cur_val, dur_val, title)
             _player_start_time.innerHTML = cur_val+ '/' + dur_val;
-            
+
             if (_clicked_num != index_row){
                 _clicked_num = index_row;
                 first = _playlist.firstChild;
@@ -3339,7 +3356,11 @@ function play_on_click(){
 			console.log(response);
 			r = response.split(':')[1];
 			gotoChildNode(r);
-	})
+	    })
+        if (_remote.innerHTML == 'R:On'){
+            clearInterval(_remote_control_status);
+            _remote_control_status = setInterval(remote_control_update, 1000);
+        }
 	}else{
 		if (_player.readyState == 4){
 			if (_player.paused){_player.play();}
@@ -3615,6 +3636,33 @@ _player_progress.addEventListener("click", function(e){
 	})
 	}
 });
+
+document.getElementById('customProgressBar').addEventListener("click", function(e){
+    val = e.currentTarget.getBoundingClientRect();;
+    console.log(val);
+    x = val['x'];
+    w = val['width'];
+    console.log(x, w)
+    var time_diff = 0;
+    if (_player.duration){
+        new_val = parseInt(((e.pageX - x)/w)*_player.duration);
+        _player.currentTime = new_val;
+        _player_progress.value = new_val;
+        _progressFill.value = new_val;
+        console.log(new_val);
+    }
+
+    if (_remote_val == 'on'){
+        new_val = (((e.pageX - x)/w)*100).toFixed(2);
+        var seek_val = "seek_abs_"+new_val.toString();
+        console.log(seek_val);
+		var client = new getRequest();
+		client.get(seek_val, function(response) {
+			console.log(response);
+	})
+	}
+});
+
 
 _player_progress.addEventListener("mousemove", function(e){
     val = _player_progress.getBoundingClientRect();

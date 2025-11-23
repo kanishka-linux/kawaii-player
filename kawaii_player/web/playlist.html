@@ -47,7 +47,24 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
         <track kind="captions" label="English" srclang="en" src="" default>
     </video>
 <br>
-<div id="title" class="title_video"></div>
+<!-- Enhanced video information panel -->
+<div class="video-info-panel">
+    <div class="video-header">
+        <h2 id="title" class="video-title">Loading video...</h2>
+    </div>
+
+    <div class="video-timing-info">
+        <div class="time-display">
+            <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="customProgressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+</div>
 <br>
 <div id="buttons_div" class="Buttons">
 <button id="play" onclick="play_on_click()" title="Play/Pause">&#9658;</button>

@@ -29,7 +29,131 @@ video::cue {
    }
 */
 
-/* Base container - Mobile first approach */
+/* Enhanced video information panel styles */
+/* Clean white theme video information panel */
+/* Simplified white theme video information panel */
+.video-info-panel {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+    color: #333333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Video header section */
+.video-header {
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 12px;
+}
+
+.video-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: #333333;
+}
+
+/* Timing information section */
+.video-timing-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-display {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: #555555;
+    text-align: center;
+    padding: 8px 0;
+}
+
+.time-display #currentTime {
+    color: #007bff;
+}
+
+.time-display #totalTime {
+    color: #888888;
+}
+
+/* Progress bar */
+.progress-bar-container {
+    width: 100%;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    transition: height 0.2s ease;
+    border: 1px solid #dee2e6;
+}
+
+.progress-bar:hover {
+    height: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #007bff;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.1s ease;
+    position: relative;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .video-info-panel {
+        padding: 16px;
+        margin-top: 12px;
+    }
+
+    .video-title {
+        font-size: 18px;
+    }
+
+    .time-display {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .video-title {
+        font-size: 16px;
+    }
+
+    .video-info-panel {
+        padding: 12px;
+    }
+
+    .time-display {
+        font-size: 13px;
+    }
+}
+
+/* Loading animation */
+.loading-shimmer {
+    background: linear-gradient(90deg,
+        #f8f9fa 25%,
+        #e9ecef 50%,
+        #f8f9fa 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    color: transparent;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
 
 /* Image edit button - add after your existing .poster-section img styles */
 .image-edit-btn {
@@ -113,6 +237,7 @@ video::cue {
     }
 }
 
+/* Base container - Mobile first approach */
 .media-container {
     position: relative;
     width: 100%;
