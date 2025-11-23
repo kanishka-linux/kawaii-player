@@ -2455,7 +2455,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         if ui.player_val == 'mplayer':
                             seek_val = seek_val/1000
                     else:
-                        seek_val = float(val)
+                        seek_val = round(float(val))
                 except Exception as err:
                     print(err, '--1358--seek-abs--')
                 seek_str = 'seek {0}/{1}'.format(seek_val, ui.mplayerLength)
