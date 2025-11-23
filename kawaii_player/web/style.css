@@ -30,8 +30,6 @@ video::cue {
 */
 
 /* Enhanced video information panel styles */
-/* Clean white theme video information panel */
-/* Simplified white theme video information panel */
 .video-info-panel {
     background: #ffffff;
     border: 1px solid #e0e0e0;
@@ -40,6 +38,11 @@ video::cue {
     margin-top: 16px;
     color: #333333;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    /* Sticky positioning */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 /* Video header section */
@@ -53,6 +56,7 @@ video::cue {
     font-size: 20px;
     font-weight: 600;
     margin: 0;
+    text-align: center;
     color: #333333;
 }
 

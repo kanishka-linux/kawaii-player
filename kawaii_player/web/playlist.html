@@ -36,104 +36,101 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 
 <body>
 <div class= "video_section" id="video_section">
-<div id="title_music" class="title_music">
-    <img id="img-id" src="">
-    <br>
-    <div id="img-info">
+    <div id="title_music" class="title_music">
+        <img id="img-id" src="">
+        <br>
+        <div id="img-info">
+        </div>
+        <br>
     </div>
-    <br>
-</div>
-<video id="player" width="640" height="480" controls>
+    <video id="player" width="640" height="480" controls>
         <track kind="captions" label="English" srclang="en" src="" default>
     </video>
-<br>
-<!-- Enhanced video information panel -->
-<div class="video-info-panel">
-    <div class="video-header">
-        <h2 id="title" class="video-title">Loading video...</h2>
-    </div>
-
-    <div class="video-timing-info">
-        <div class="time-display">
-            <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+    <br>
+    <!-- Enhanced video information panel -->
+    <div class="video-info-panel">
+        <div class="video-header">
+            <h2 id="title" class="video-title"> </h2>
         </div>
 
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="customProgressBar">
-                <div class="progress-fill" id="progressFill"></div>
+        <div class="video-timing-info">
+            <div class="time-display">
+                <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="customProgressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 <br>
-<div id="buttons_div" class="Buttons">
-<button id="play" onclick="play_on_click()" title="Play/Pause">&#9658;</button>
-<button id="prev" onclick="prev_on_click()" title="Prev"><b>&#60;</b></button>
-<button id="next" onclick="next_on_click()" title="Next"><b>&#62;</b></button>
-<button id="stop" onclick="stop_on_click()" title="Stop">&#9632;</button>
-<div id="remote_control_buttons">
-    <button id="seek_10">10s-</button>
-    <button id="seek10">10s+</button>
-    <button id="seek_60">60s-</button>
-    <button id="seek60">60s+</button>
-    <button id="seek_5m">5m-</button>
-    <button id="seek5m">5m+</button>
-    <button id="vol_5">vol--</button>
-    <button id="vol5">vol++</button>
-    <button id="fullscreen" title="Toggle Fullscreen">F</button>
-    <button id="toggle_audio" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
-    <button id="toggle_subtitle" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
-    <button id="prev_chapter" title="Prev Chapter" onclick="goto_previous_chapter()">Chapter-</button>
-    <button id="next_chapter" title="Next Chapter-" onclick="goto_next_chapter()">Chapter+</button>
-    <button id="toggle_fullscreen_window" title="Toggle Fullscreen Window" onclick="toggle_fullscreen_window()">FS</button>
-    <button id="show_stats" title="Video Stats" onclick="show_video_stats()">Stats</button>
-    <div id="aspect_selection" class="select_aspect_ratio">
-    <select id="aspect_ratio" onchange="change_aspect_ratio()">
-        <option value="">Aspect Ratio</option>
-        <option value="btn_aspect_original">Original</option>
-        <option value="btn_aspect_disable">Disable</option>
-        <option value="btn_aspect_4_3">4:3</option>
-        <option value="btn_aspect_16_9">16:9</option>
-        <option value="btn_aspect_235">2.35:1</option>
-    </select>
-    <select id="playback_engine" onchange="change_playback_engine()">
-        <option value="">Engine</option>
-        <option value="libmpv">libmpv</option>
-        <option value="libvlc">libvlc</option>
-    </select>
+    <div id="buttons_div" class="Buttons">
+        <button id="play" onclick="play_on_click()" title="Play/Pause">&#9658;</button>
+        <button id="prev" onclick="prev_on_click()" title="Prev"><b>&#60;</b></button>
+        <button id="next" onclick="next_on_click()" title="Next"><b>&#62;</b></button>
+        <button id="stop" onclick="stop_on_click()" title="Stop">&#9632;</button>
+        <div id="remote_control_buttons">
+            <button id="seek_10">10s-</button>
+            <button id="seek10">10s+</button>
+            <button id="seek_60">60s-</button>
+            <button id="seek60">60s+</button>
+            <button id="seek_5m">5m-</button>
+            <button id="seek5m">5m+</button>
+            <button id="vol_5">vol--</button>
+            <button id="vol5">vol++</button>
+            <button id="fullscreen" title="Toggle Fullscreen">F</button>
+            <button id="toggle_audio" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
+            <button id="toggle_subtitle" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
+            <button id="prev_chapter" title="Prev Chapter" onclick="goto_previous_chapter()">Chapter-</button>
+            <button id="next_chapter" title="Next Chapter-" onclick="goto_next_chapter()">Chapter+</button>
+            <button id="toggle_fullscreen_window" title="Toggle Fullscreen Window" onclick="toggle_fullscreen_window()">FS</button>
+            <button id="show_stats" title="Video Stats" onclick="show_video_stats()">Stats</button>
+            <div id="aspect_selection" class="select_aspect_ratio">
+            <select id="aspect_ratio" onchange="change_aspect_ratio()">
+                <option value="">Aspect Ratio</option>
+                <option value="btn_aspect_original">Original</option>
+                <option value="btn_aspect_disable">Disable</option>
+                <option value="btn_aspect_4_3">4:3</option>
+                <option value="btn_aspect_16_9">16:9</option>
+                <option value="btn_aspect_235">2.35:1</option>
+            </select>
+            <select id="playback_engine" onchange="change_playback_engine()">
+                <option value="">Engine</option>
+                <option value="libmpv">libmpv</option>
+                <option value="libvlc">libvlc</option>
+            </select>
+            </div>
+            <button id="cast_button" title="Cast" onclick="cast_url()">Cast</button>
+            <button id="apply_label" title="Click to apply selected label" onclick="apply_video_category()">Apply Label</button>
+            <div id="apply_category" class="select_video_category">
+            <select id="video_label">
+                <option value="">Select Label</option>
+            </select>
+            </div>
+            <button id="rename_button" title="Rename Video Playlist Title" onclick="rename_video_title()">Rename Title</button>
+            <button id="poster_button" title="Fetch Poster" onclick="fetch_poster('poster')">Poster</button>
+            <button id="fanart_button" title="Fetch Fanart" onclick="fetch_poster('fanart')">Fanart</button>
+            <button id="show_player" title="Show Player" onclick="show_player_window()">Show</button>
+            <button id="hide_player" title="Hide Player" onclick="hide_player_window()">Hide</button>
+            <button id="toggle_master" title="Toggle Master" onclick="toggle_master_slave()">Master</button>
+            <button id="last_item" onclick="play_last_item_from_playlist()" title="Play last played item from the playlist (only video section)">Last</button>
+        </div>
+        <button id="loop" onclick="start_loop(0)">Lock</button>
+        <button id="shuffle">Shuffle</button>
+        <button id="m3u" title="Get Playlist in m3u format" title="Get Playlist in M3U format">M3U</button>
+        <button id="remote_btn" title="Turn on/off remote control">R:Off</button>
+        <button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
+        <button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#9660;</button>
+        <!--<button id="home">Home</button>-->
+        <button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">☰</button>
+        <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
+        <button id="logout">Logout</button>
     </div>
-    <button id="cast_button" title="Cast" onclick="cast_url()">Cast</button>
-    <button id="apply_label" title="Click to apply selected label" onclick="apply_video_category()">Apply Label</button>
-    <div id="apply_category" class="select_video_category">
-    <select id="video_label">
-        <option value="">Select Label</option>
-    </select>
+    <div class ="pls">
+        <ol id="playlist"></ol>
     </div>
-    <button id="rename_button" title="Rename Video Playlist Title" onclick="rename_video_title()">Rename Title</button>
-    <button id="poster_button" title="Fetch Poster" onclick="fetch_poster('poster')">Poster</button>
-    <button id="fanart_button" title="Fetch Fanart" onclick="fetch_poster('fanart')">Fanart</button>
-    <button id="show_player" title="Show Player" onclick="show_player_window()">Show</button>
-    <button id="hide_player" title="Hide Player" onclick="hide_player_window()">Hide</button>
-    <button id="toggle_master" title="Toggle Master" onclick="toggle_master_slave()">Master</button>
-    <button id="last_item" onclick="play_last_item_from_playlist()" title="Play last played item from the playlist (only video section)">Last</button>
-</div>
-<button id="loop" onclick="start_loop(0)">Lock</button>
-<button id="shuffle">Shuffle</button>
-<button id="m3u" title="Get Playlist in m3u format" title="Get Playlist in M3U format">M3U</button>
-<button id="remote_btn" title="Turn on/off remote control">R:Off</button>
-<button id="empty_btn" title="Remote control feature is not enabled on server">--</button>
-<button id="last_position" onclick="goto_last_position(event)" title="Go To last clicked position">&#9660;</button>
-<!--<button id="home">Home</button>-->
-<button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">☰</button>
-<button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
-<button id="logout">Logout</button>
-<!--
-deprecated these four buttons
-<button id="first_playlist" onclick="get_first_playlist()" title="Navigate to first accessed playlist">First</button>
-<button id="prev_playlist" onclick="get_previous_playlist()" title="Navigate to Previous Playlist">Prev</button>
-<button id="next_playlist" onclick="get_next_playlist()" title="Navigate to Next Playlist">Next</button>
--->
-<!--&#x1f5d1;wastebasket-->
 </div>
 
 <div id="selection_site" class="site_selection">
@@ -192,9 +189,7 @@ Text box can also be used to input text commands to server as follows
 <br>
 <div id="site_option" hidden></div>
 <br>
-<div class ="pls">
-<ol id="playlist"></ol>
-</div>
+
 <!--
 <menu type="context" id ="MyMenu"> 
 	<menu label="Add To Playlist" id ="menu_playlist"> 
