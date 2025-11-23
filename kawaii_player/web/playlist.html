@@ -52,20 +52,41 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
         <div class="video-header">
             <h2 id="title" class="video-title"> </h2>
         </div>
-
         <div class="video-timing-info">
-            <div class="time-display">
-                <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
-            </div>
+             <div class="control-buttons">
+                 <button id="playPauseBtn" class="control-btn play-pause" onclick="play_on_click()" title="Play/Pause">
+                     <span id="playPauseIcon">▶</span>
+                 </button>
 
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="customProgressBar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-        </div>
+                 <button id="volumeDownBtn" class="control-btn volume-btn" title="Volume Down">🔉</button>
+
+                 <button id="enterFullscreenBtn" class="control-btn fullscreen-btn" title="Enter Fullscreen">
+                    <span id="enterFullscreenIcon">⛶</span>
+                 </button>
+
+                 <button id="volumeUpBtn" class="control-btn volume-btn" title="Volume Up">🔊</button>
+
+                 <button id="stopBtn" class="control-btn stop-btn" onclick="stop_on_click()" title="Stop">
+                     <span id="stopIcon">⏹</span>
+                 </button>
+             </div>
+         </div>
+
+
+         <!-- Progress section with time display below -->
+         <div class="progress-section">
+             <div class="progress-bar-container">
+                 <div class="progress-bar" id="customProgressBar">
+                     <div class="progress-fill" id="progressFill"></div>
+                 </div>
+             </div>
+
+             <div class="time-display glass">
+                 <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+             </div>
+         </div>
     </div>
-<br>
+    <br>
     <div id="buttons_div" class="Buttons">
         <button id="play" onclick="play_on_click()" title="Play/Pause">&#9658;</button>
         <button id="prev" onclick="prev_on_click()" title="Prev"><b>&#60;</b></button>
@@ -185,7 +206,6 @@ Text box can also be used to input text commands to server as follows
 	<ol id="playlist_custom" class="playlist_custom"></ol>
 </div>
 
-</div>
 <br>
 <div id="site_option" hidden></div>
 <br>
@@ -260,7 +280,7 @@ Text box can also be used to input text commands to server as follows
     </ul>
 </nav>
 
-<button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()"></button>
+<button class="btn_maximize" id="btn_maximize" onclick="show_control_bar()" hidden="hidden"></button>
 <button class="btn_to_top" id="btn_to_top" onclick="back_to_top()">&#9650;</button>
 
 <div id="player_control_progress" class="player_control_progress">
@@ -284,7 +304,6 @@ Text box can also be used to input text commands to server as follows
         <div class="player_control_col4">
             <button onclick="play_on_click()" title="play/pause">&#9658;</button>
             <button id="btn_minimize" onclick="hide_control_bar()" title="minimize">--</button>
-        </div>
         </div>
     </div>
 </div>

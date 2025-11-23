@@ -65,23 +65,118 @@ video::cue {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 15px;
 }
 
-.time-display {
-    font-family: 'Courier New', monospace;
+/* Control buttons layout - UPDATED for expandable buttons */
+.control-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+/* Button spacer - UPDATED to be more flexible */
+.button-spacer {
+    flex: 0 1 60px; /* Allow shrinking but maintain some space */
+    min-width: 20px; /* Reduced minimum to allow more button expansion */
+}
+
+/* Control button base styling - UPDATED for horizontal expansion */
+.control-btn {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 45px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Allow horizontal expansion */
+    flex-grow: 1; /* Buttons will expand to fill available space */
+    flex-shrink: 1; /* Allow shrinking when needed */
+    flex-basis: auto; /* Use content size as basis */
+}
+
+.control-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+    background: #dee2e6;
+}
+
+/* Play/pause button styling */
+.play-pause {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.play-pause:hover {
+    background: #0056b3;
+}
+
+/* Stop button styling */
+.stop-btn {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.stop-btn:hover {
+    background: #c82333;
+}
+
+/* Volume button styling */
+.volume-btn {
     font-size: 16px;
-    font-weight: 600;
-    color: #555555;
-    text-align: center;
-    padding: 8px 0;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
-.time-display #currentTime {
-    color: #007bff;
+/* Fullscreen button styling - NEW */
+.fullscreen-btn {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+    font-size: 16px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
 }
 
-.time-display #totalTime {
-    color: #888888;
+.fullscreen-btn:hover {
+    background: #218838;
+    border-color: #1e7e34;
+}
+
+.fullscreen-btn:active {
+    background: #1e7e34;
+}
+
+/* Alternative fullscreen icons if the default ones don't display well */
+.fullscreen-btn.alt-icons #enterFullscreenIcon::before {
+    content: "📺";
+}
+
+.fullscreen-btn.alt-icons #exitFullscreenIcon::before {
+    content: "📱";
+}
+
+/* Progress section */
+.progress-section {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Reduced gap between progress bar and time */
 }
 
 /* Progress bar */
@@ -113,7 +208,45 @@ video::cue {
     position: relative;
 }
 
-/* Responsive design */
+.time-display {
+    font-family: 'Courier New', monospace;
+    font-size: 14px; /* Slightly smaller font */
+    font-weight: 600;
+    color: #555555;
+    text-align: center;
+    padding: 4px 8px; /* Minimal padding */
+    background: rgba(248, 249, 250, 0.7); /* Semi-transparent background */
+    border: 1px solid rgba(222, 226, 230, 0.5); /* Semi-transparent border */
+    border-radius: 4px;
+    align-self: center;
+    min-width: 100px; /* Reduced minimum width */
+    backdrop-filter: blur(2px); /* Optional: subtle blur effect */
+}
+
+.time-display #currentTime {
+    color: #007bff;
+}
+
+.time-display #totalTime {
+    color: #888888;
+}
+
+/* Alternative: Fully transparent background */
+.time-display.transparent {
+    background: transparent; /* Completely transparent */
+    border: none; /* Remove border */
+    padding: 2px 4px; /* Minimal padding */
+}
+
+/* Alternative: Glass effect */
+.time-display.glass {
+    background: rgba(255, 255, 255, 0.1); /* Very transparent white */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+    backdrop-filter: blur(10px) saturate(180%); /* Glass blur effect */
+    -webkit-backdrop-filter: blur(10px) saturate(180%); /* Safari support */
+}
+
+/* Mobile responsive design - expandable buttons */
 @media (max-width: 768px) {
     .video-info-panel {
         padding: 16px;
@@ -124,8 +257,44 @@ video::cue {
         font-size: 18px;
     }
 
-    .time-display {
+    .control-buttons {
+        justify-content: space-around;
+        gap: 8px;
+    }
+
+    .button-spacer {
+        flex: 0 1 40px; /* More flexible on mobile */
+        min-width: 15px;
+    }
+
+    .control-btn {
+        padding: 12px 14px;
         font-size: 14px;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 8px;
+        /* flex-grow: 1 inherited from base style */
+    }
+
+    /* Compact mobile time display */
+    .time-display {
+        font-size: 13px; /* Smaller on mobile */
+        min-width: 90px; /* Reduced width */
+        padding: 3px 6px; /* Minimal padding */
+    }
+
+    .volume-btn {
+        font-size: 18px;
+    }
+
+    /* Mobile responsive adjustments for fullscreen buttons */
+    .fullscreen-btn {
+        font-size: 18px;
+    }
+
+    #playPauseIcon,
+    #stopIcon {
+        font-size: 16px;
     }
 }
 
@@ -138,8 +307,88 @@ video::cue {
         padding: 12px;
     }
 
-    .time-display {
+    .control-buttons {
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .button-spacer {
+        flex: 0 1 30px;
+        min-width: 10px;
+    }
+
+    .control-btn {
+        padding: 14px 12px;
         font-size: 13px;
+        min-width: 42px;
+        min-height: 48px;
+        border-radius: 10px;
+        /* flex-grow: 1 inherited from base style */
+    }
+
+    /* Very compact mobile time display */
+    .time-display {
+        font-size: 12px; /* Even smaller */
+        min-width: 80px; /* More compact */
+        padding: 2px 4px; /* Minimal padding */
+    }
+
+    .volume-btn {
+        font-size: 20px;
+    }
+
+    .fullscreen-btn {
+        font-size: 20px;
+    }
+
+    #playPauseIcon,
+    #stopIcon {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 320px) {
+    .control-buttons {
+        gap: 4px;
+    }
+
+    .button-spacer {
+        flex: 0 1 20px; /* Minimal space on very small screens */
+        min-width: 5px;
+    }
+
+    .control-btn {
+        padding: 12px 8px;
+        min-width: 38px;
+        font-size: 12px;
+        /* flex-grow: 1 inherited from base style */
+    }
+
+    /* Ultra-compact time display */
+    .time-display {
+        min-width: 70px; /* Very compact */
+        font-size: 11px; /* Smallest readable size */
+        padding: 1px 3px; /* Absolute minimal padding */
+    }
+    
+    .volume-btn {
+        font-size: 18px;
+    }
+
+    .fullscreen-btn {
+        font-size: 18px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .control-btn:hover {
+        transform: none;
+    }
+
+    .control-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
     }
 }
 
@@ -489,7 +738,7 @@ video::cue {
 /* Fixed buttons - responsive */
 .btn_maximize {
     position: fixed;
-    bottom: 1px;
+    bottom: 45px;
     right: 1px;
     height: 40px;
     width: 40px;
@@ -513,7 +762,7 @@ video::cue {
 
 .btn_to_top {
     position: fixed;
-    bottom: 45px;
+    bottom: 1px;
     right: 1px;
     height: 40px;
     width: 40px;

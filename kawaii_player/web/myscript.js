@@ -3259,6 +3259,21 @@ _seek_5m_.addEventListener("click", function () {
 	})}
 });
 
+document.getElementById("volumeDownBtn").addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('volume_5', function(response) {
+	console.log(response);
+	})}
+});
+
+document.getElementById("volumeUpBtn").addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('volume5', function(response) {
+	console.log(response);
+	})}
+});
 
 _vol_5.addEventListener("click", function () {
 	if (_remote_val == 'on'){
@@ -3275,6 +3290,18 @@ _vol_5_.addEventListener("click", function () {
 	console.log(response);
 	})}
 });
+
+
+document.getElementById("enterFullscreenBtn").addEventListener("click", function () {
+	if (_remote_val == 'on'){
+	var client = new getRequest();
+	client.get('fullscreen', function(response) {
+	console.log(response);
+	})}
+});
+
+
+
 
 _fullscreen.addEventListener("click", function () {
 	if (_remote_val == 'on'){
