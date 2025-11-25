@@ -88,10 +88,8 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
     </div>
     <br>
     <div id="buttons_div" class="Buttons">
-        <button id="play" onclick="play_on_click()" title="Play/Pause">&#9658;</button>
         <button id="prev" onclick="prev_on_click()" title="Prev"><b>&#60;</b></button>
         <button id="next" onclick="next_on_click()" title="Next"><b>&#62;</b></button>
-        <button id="stop" onclick="stop_on_click()" title="Stop">&#9632;</button>
         <div id="remote_control_buttons">
             <button id="seek_10">10s-</button>
             <button id="seek10">10s+</button>
@@ -99,9 +97,6 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
             <button id="seek60">60s+</button>
             <button id="seek_5m">5m-</button>
             <button id="seek5m">5m+</button>
-            <button id="vol_5">vol--</button>
-            <button id="vol5">vol++</button>
-            <button id="fullscreen" title="Toggle Fullscreen">F</button>
             <button id="toggle_audio" title="Toggle Audio" onclick="toggle_audio_player()">Audio</button>
             <button id="toggle_subtitle" title="Toggle Subtitle" onclick="toggle_subtitle_player()">Sub</button>
             <button id="prev_chapter" title="Prev Chapter" onclick="goto_previous_chapter()">Chapter-</button>
@@ -149,9 +144,24 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
         <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
         <button id="logout">Logout</button>
     </div>
+
+<div id="pls_custom" class ="pls_custom_" hidden="hidden">
+	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create</button>
+	<select id="only_playlist"></select>
+	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
+	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
+    <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
+    <div id="queue_info" class="queue_info">
+	Click on items to add them to queue. In order to save queued items to playlist, select some existing playlist and press save button. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
+    </div>
+	<ol id="playlist_custom" class="playlist_custom"></ol>
+</div>
+
+
     <div class ="pls">
         <ol id="playlist"></ol>
     </div>
+
 </div>
 
 <div id="selection_site" class="site_selection">
@@ -192,19 +202,6 @@ Text box can also be used to input text commands to server as follows
 
 </div>
 
-
-
-<div id="pls_custom" class ="pls_custom_" hidden="hidden">
-	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create</button>
-	<select id="only_playlist"></select>
-	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
-	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
-    <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
-    <div id="queue_info" class="queue_info">
-	Click on items to add them to queue. In order to save queued items to playlist, select some existing playlist and press save button. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
-    </div>
-	<ol id="playlist_custom" class="playlist_custom"></ol>
-</div>
 
 <br>
 <div id="site_option" hidden></div>

@@ -22,10 +22,8 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 var _player = document.getElementById("player"),
     _playlist = document.getElementById("playlist"),
     _site_value = document.getElementById("site"),
-    _stop = document.getElementById("stop"),
     _loop = document.getElementById("loop"),
     _next = document.getElementById("next"),
-    _play = document.getElementById("play"),
     _title = document.getElementById("title"),
     _currentTimeElement = document.getElementById('currentTime');
     _totalTimeElement = document.getElementById('totalTime');
@@ -48,10 +46,7 @@ var _player = document.getElementById("player"),
     _seek_60_ = document.getElementById("seek_60"),
     _seek_5m = document.getElementById("seek5m"),
     _seek_5m_ = document.getElementById("seek_5m"),
-    _vol_5 = document.getElementById("vol5"),
-    _vol_5_ = document.getElementById("vol_5"),
     _toggle_master = document.getElementById("toggle_master"),
-    _fullscreen = document.getElementById("fullscreen"),
     _selection_site = document.getElementById("selection_site"),
     _minimal = document.getElementById("minimal"),
     _display_option = document.getElementById("display_option"),
@@ -3284,35 +3279,7 @@ document.getElementById("volumeUpBtn").addEventListener("click", function () {
 	})}
 });
 
-_vol_5.addEventListener("click", function () {
-	if (_remote_val == 'on'){
-	var client = new getRequest();
-	client.get('volume5', function(response) {
-	console.log(response);
-	})}
-});
-
-_vol_5_.addEventListener("click", function () {
-	if (_remote_val == 'on'){
-	var client = new getRequest();
-	client.get('volume_5', function(response) {
-	console.log(response);
-	})}
-});
-
-
 document.getElementById("enterFullscreenBtn").addEventListener("click", function () {
-	if (_remote_val == 'on'){
-	var client = new getRequest();
-	client.get('fullscreen', function(response) {
-	console.log(response);
-	})}
-});
-
-
-
-
-_fullscreen.addEventListener("click", function () {
 	if (_remote_val == 'on'){
 	var client = new getRequest();
 	client.get('fullscreen', function(response) {
