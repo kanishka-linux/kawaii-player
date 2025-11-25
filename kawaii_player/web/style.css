@@ -2523,3 +2523,179 @@ height: 12px;
         background: #fff;
     }
 }
+
+#buttons_div button,
+#buttons_div select,
+#buttons_div input[type="button"],
+#buttons_div input[type="submit"] {
+    flex: 0 0 calc(25% - 10px); /* 4 buttons per row (25% each minus gap) */
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #495057;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 50px; /* Reduced from 60px to fit 4 per row */
+    max-width: calc(25% - 10px); /* Ensure they don't grow beyond 25% */
+    margin: 2px;
+}
+
+#buttons_div button:hover,
+#buttons_div input[type="button"]:hover,
+#buttons_div input[type="submit"]:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+}
+
+#buttons_div button:active,
+#buttons_div input[type="button"]:active,
+#buttons_div input[type="submit"]:active {
+    transform: translateY(0);
+    background: #dee2e6;
+}
+
+#buttons_div select {
+    background: #ffffff;
+    cursor: pointer;
+    padding: 8px 12px;
+}
+
+#buttons_div select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+
+#pls_custom {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 8px;
+    flex-direction: row;
+    gap: 8px;
+    display: block;
+    overflow: hidden;
+}
+
+#pls_custom select {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 8px 12px; /* Same padding as buttons */
+    margin-top: 8px;
+    display: inline-block; /* Changed from block to inline-block */
+    height: 36px; /* Same height as buttons */
+    min-height: 36px; /* Same as buttons */
+    box-sizing: border-box; /* Include padding in height calculation */
+    vertical-align: top; /* Align with buttons */
+    background: #ffffff;
+    color: #495057;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#pls_custom select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+
+/* Respect hidden attribute */
+#pls_custom[hidden] {
+    display: none !important;
+}
+
+/* Text info in separate row - LARGER TEXT */
+#queue_info {
+    width: calc(100% - 24px);
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px; /* Increased from 11px to 14px */
+    color: #1565c0;
+    line-height: 1.5; /* Increased line height for better readability */
+    text-align: left;
+    display: block;
+    clear: both;
+    word-wrap: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Modern browsers */
+}
+
+/* Horizontally scrollable list */
+#playlist_custom {
+    width: calc(100% - 24px);
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+    max-height: 150px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* LARGER TEXT for list items */
+#playlist_custom li {
+    flex: 0 0 auto;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 8px 16px; /* Increased padding */
+    font-size: 14px; /* Increased from 12px to 14px */
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-width: 120px; /* Increased min-width for larger text */
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500; /* Added font weight for better visibility */
+}
+
+#playlist_custom li:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+#playlist_custom li:active {
+    background: #dee2e6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #pls_custom button {
+        min-width: 50px;
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    /* Keep larger text on mobile too */
+    #queue_info {
+        font-size: 13px; /* Slightly smaller on mobile but still readable */
+    }
+
+    #playlist_custom li {
+        min-width: 100px;
+        font-size: 13px; /* Slightly smaller on mobile but still readable */
+        padding: 6px 12px;
+    }
+}

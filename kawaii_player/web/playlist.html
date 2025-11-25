@@ -143,20 +143,19 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
         <button id="minimal" onclick="hide_alternate_menu_buttons()" title="Show/Hide old legacy Menu. It will be deprecated soon. Users should use top menu bar instead">☰</button>
         <button id="custom_pls" title="Manage Playlist and Queues">PL / Q</button>
         <button id="logout">Logout</button>
-    </div>
 
-<div id="pls_custom" class ="pls_custom_" hidden="hidden">
-	<button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create</button>
-	<select id="only_playlist"></select>
-	<button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
-	<button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
-    <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
-    <div id="queue_info" class="queue_info">
-	Click on items to add them to queue. In order to save queued items to playlist, select some existing playlist and press save button. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist. <span id="hide_info" color="white" onclick="hide_extra_info(event)">...Hide</span>
+        <div id="pls_custom" class ="pls_custom_" hidden="hidden">
+            <select id="only_playlist"></select>
+            <button id="create_playlist" title="click to create custom playlist" onclick="_create_custom_playlist('button')">Create</button>
+            <button id="sync_button" title="Sync playlist to server" onclick="_sync_pls()">Save</button>
+            <button id="delete_playlist_button" title="Delete selected playlist" onclick="_delete_pls(event)">Delete</button>
+            <button id="clear_pls_button" title="Clear Entries" onclick="_clear_pls_button()">Clear</button>
+            <div id="queue_info" class="queue_info">
+            Click on items to add them to queue. In order to save queued items to playlist, select some existing playlist and press save button. If this list is hidden without clearing it, then the non-empty list will be treated as queue irrespective of the selected playlist.
+            </div>
+            <ol id="playlist_custom" class="playlist_custom"></ol>
+        </div>
     </div>
-	<ol id="playlist_custom" class="playlist_custom"></ol>
-</div>
-
 
     <div class ="pls">
         <ol id="playlist"></ol>
