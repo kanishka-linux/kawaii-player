@@ -914,6 +914,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 content = str(content, 'utf-8')
             content = json.loads(content)
             title = content.get("title")
+            db_title = content.get("db_title", "")
             paths = []
             if title and len(title) < 100:
                 playlist = content.get("playlist")
@@ -934,6 +935,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         qr = 'Update Video Set Title=? Where Path in ({})'.format(s)
                     cur.execute(qr, tuple(query_params))
                     rows_changed = cur.rowcount
+                    if rows_changed > 0:
+                        # update series info
+                        qr = 'update series_info set db_title = ? where db_title = ?'
+                        cur.execute(qr, (title, db_title))
+                        rows_updated = cur.rowcount
+                        if rows_updated  > 0:
+                            print(f"series_info table updated {rows_updated}: {db_title} => {title}")
                     logger.debug(qr)
                     conn.commit()
                     conn.close()

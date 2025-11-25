@@ -1261,7 +1261,12 @@ function rename_video_title(){
     if(index >= 0){
         title = select[index].text;
     }
-    let prompt_val = prompt("Enter New Title:", title)
+    promptInput = title;
+    proposedTitle = document.getElementById('series-en-title').textContent;
+    if (proposedTitle && proposedTitle.trim()) {
+        promptInput = proposedTitle;
+    }
+    let prompt_val = prompt("Enter New Title:", promptInput);
 	if(prompt_val != null && prompt_val != ''){
         let pls_nodes = document.getElementById("playlist");
         let pls_arr = []
@@ -1269,7 +1274,11 @@ function rename_video_title(){
         {pls_arr.push(pls_nodes.children[i].getAttribute("data-mp3"))
         }
 	    var client = new postRequest();
-        let data = {'title': prompt_val, 'playlist': pls_arr};
+        let data = {
+            'title': prompt_val.trim(),
+            'playlist': pls_arr,
+            'db_title': title
+        };
 	    client.post('rename_title', data, function(response) {
 	    console.log(response);
         _title.innerHTML = response;
@@ -2647,7 +2656,7 @@ function editSeriesMetadata(title, edited_title) {
 		resp = JSON.parse(response);
 		console.log(resp.success, "This is metadata");
 
-        if (resp.data.image_poster_large) {
+        if (resp.success && resp.data.image_poster_large) {
             videoElement.poster = resp.data.image_poster_large;
 	        updateMediaContent(resp.data);
         }
@@ -2667,8 +2676,6 @@ function resetSeriesMetadata(title) {
         }
 	})
 }
-
-
 
 function clearAllSeriesFields() {
     const elementsTolear = [
@@ -3909,8 +3916,14 @@ function editMetaData() {
     // Get the current title from the series-title element
     const currentTitle = _third_select.title;
 
+    let cleanedTitle =
+        currentTitle.replace(/\([^)]*\)/g, '')
+        .replace(/\[[^\]]*\]/g, '')
+        .replace(/[-_]/g, '')
+        .trim();
+
     // Show dialogue box with current title pre-filled
-    const searchTerm = prompt('Enter exact title to fetch metadata correctly:', currentTitle);
+    const searchTerm = prompt('Enter exact title to fetch metadata correctly:', cleanedTitle);
 
     // Check if user cancelled or entered empty string
     if (searchTerm === null || searchTerm.trim() === '') {
