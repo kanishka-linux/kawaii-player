@@ -510,7 +510,7 @@ function torrent_status(val){
 
 function updateVideoStatusDisplay(currentTime, duration, curValStr, durStr, title) {
 
-        _title.textContent = title;
+        //_title.textContent = title;
 
         _currentTimeElement.textContent = curValStr;
 
@@ -575,7 +575,7 @@ function remote_control_update(){
                     var win_width = window.innerWidth;
                     if (_show_thumbnails){
                         if (win_width <= 640){
-                            _title.innerHTML = document.title;
+                            _title.innerHTML = tmp_name;
                             _title.style.textAlign = 'center';
                         }else{
                             _title.innerHTML = tmp_name;
@@ -645,8 +645,8 @@ function human_readable_time(time)
 }
 
 function update_progress_bar(){
-    total = _player.duration;
-    cur_time = _player.currentTime;
+    let total = _player.duration;
+    let cur_time = _player.currentTime;
     //console.log(total, cur_time);
     if (total && cur_time){
         dur_int = parseInt(_player.duration);
@@ -658,8 +658,10 @@ function update_progress_bar(){
         cur_val = human_readable_time(cur_int);
         
         _player_start_time.innerHTML = cur_val+ '/' + dur_val;
-        //console.log(val);
-        //_player_progress.setAttribute('data-label', val);
+        _currentTimeElement.textContent = cur_val;
+        _totalTimeElement.textContent = dur_val;
+        let progress = (cur_int / dur_int) * 100;
+        progressFill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
     }else{
         _player_progress.max = 0;
         _player_progress.value = 0;
@@ -2880,7 +2882,7 @@ function playlistItemClick(clickedElement,mode) {
     //_img_info.innerHTML = "";
     if (_show_thumbnails){
         if (win_width <= 640){
-            _title.innerHTML = document.title;
+            _title.innerHTML = tmp_name;
             _title.style.textAlign = 'center';
         }else{
             _title.innerHTML = tmp_name;
