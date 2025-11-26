@@ -610,7 +610,7 @@ class MediaDatabase():
             print(f"  ✗ Update error: {e}")
             return False
 
-    def fetch_recently_added(self, count) -> List[Tuple[str, str]]:
+    def fetch_recently_added(self, count = 500) -> List[Tuple[str, str]]:
         db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()

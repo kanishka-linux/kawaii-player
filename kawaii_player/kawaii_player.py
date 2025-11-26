@@ -8288,10 +8288,6 @@ class Ui_MainWindow(object):
                     else:
                         m = self.media_data.get_video_db(video_db, "Bookmark", new_art_n)
                 
-                if video_opt.lower() == 'recent':
-                    check_path = (lambda x: os.path.getctime(x) if os.path.exists(x) else 0)
-                    m = sorted(m, key=lambda x: check_path(x[1]), reverse=True)
-                
                 self.epn_arr_list.clear()
                 self.list2.clear()
                 self.epn_arr_list = [i[0]+'\t'+i[1] for i in m]
@@ -13045,8 +13041,10 @@ class Ui_MainWindow(object):
             print('----video-----opt', video_opt)
             if video_opt == "Available":
                 m = self.media_data.get_video_db(video_db, "Directory", "")
-            elif video_opt == "History":
-                m = self.media_data.get_video_db(video_db, "History", "")
+            elif video_opt.lower() == "history":
+                m = self.media_data.fetch_recently_accessed()
+            elif video_opt.lower() == "recent":
+                m = self.media_data.fetch_recently_added()
             else:
                 m = self.media_data.get_video_db(video_db, video_opt, "")
             for i in m:

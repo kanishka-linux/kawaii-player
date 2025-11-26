@@ -372,7 +372,7 @@ class ServerLib:
                 elif video_opt.lower() == "history":
                     m = ui.media_data.fetch_recently_accessed()
                 elif video_opt.lower() == "recent":
-                    m = ui.media_data.fetch_recently_added(200)
+                    m = ui.media_data.fetch_recently_added()
                 else:
                     m = ui.media_data.get_video_db(video_db, video_opt, "")
             else:
