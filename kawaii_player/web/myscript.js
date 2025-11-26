@@ -505,7 +505,7 @@ function torrent_status(val){
 
 function updateVideoStatusDisplay(currentTime, duration, curValStr, durStr, title) {
 
-        //_title.textContent = title;
+        _title.textContent = title;
 
         _currentTimeElement.textContent = curValStr;
 

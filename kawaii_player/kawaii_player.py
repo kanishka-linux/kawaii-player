@@ -8315,7 +8315,10 @@ class Ui_MainWindow(object):
                     self.videoImage(picn, thumbnail, fanart, summary)
                     logger.info(picn)
                 else:
-                    os.makedirs(dir_path)
+                    try:
+                        os.makedirs(dir_path)
+                    except Exception as err:
+                        print(err)
                 self.current_video_metadata_path = dir_path
                 self.cur_row = self.read_from_video_playlist_status("row")
                 
