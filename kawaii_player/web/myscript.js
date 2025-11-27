@@ -3846,6 +3846,9 @@ function openSidebar() {
     _menu_toggle.classList.add('active');
     _sidebar_open = true;
 
+    // Add this line for desktop push behavior
+    document.body.classList.add('sidebar-active');
+
     // Prevent body scroll when sidebar is open
     document.body.style.overflow = 'hidden';
 
@@ -3858,6 +3861,9 @@ function closeSidebar() {
     _sidebar_overlay.classList.remove('active');
     _menu_toggle.classList.remove('active');
     _sidebar_open = false;
+
+    // Add this line for desktop push behavior
+    document.body.classList.remove('sidebar-active');
 
     // Restore body scroll
     document.body.style.overflow = '';

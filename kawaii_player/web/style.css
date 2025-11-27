@@ -892,48 +892,81 @@ video::cue {
 /* Tablets - transition zone */
 @media (max-width: 768px) and (min-width: 481px) {
     .media-container {
-        margin: 10px;
-        border-radius: 6px;
-        max-height: 95vh;
-        overflow: hidden; /* No container scroll */
+        margin: 5px;
+        border-radius: 4px;
+        max-height: 125vh;
+        overflow: hidden; /* NO container scroll */
+        background: transparent; /* Remove any blue background */
+        padding: 0; /* Remove container padding */
     }
 
     .poster-summary-overlay {
-        min-height: calc(95vh - 20px);
-        padding: 10px;
-        overflow: hidden;
+        min-height: calc(125vh - 10px);
+        height: calc(130vh - 10px); /* Fixed height */
+        padding: 0;
+        overflow: hidden; /* NO overlay scroll */
+        background: transparent; /* Remove any blue background */
+        margin: 0;
     }
 
     .content-wrapper {
-        height: calc(95vh - 40px); /* Fixed height */
-        border-radius: 8px;
+        height: calc(125vh - 20px); /* Fixed height */
+        border-radius: 4px;
         flex-direction: column;
+        margin: 0;
+        padding: 0;
+        background: transparent; /* Remove any blue background */
     }
 
     .poster-section {
-        height: 250px; /* Fixed height */
+        height: 480px; /* Fixed height - no flex grow */
+        flex: 0 0 480px;
         padding: 15px;
+        overflow: hidden;
     }
 
     .poster-section img {
-        max-height: 180px;
+        max-width: 100%;
+        max-height: 480px;
+        min-height: 150px;
+        width: 90%;
+        height: 95%;
+        object-fit: contain;
     }
 
     .info-section {
-        height: calc(95vh - 290px); /* Remaining space */
-        padding: 15px;
+        flex: 1;
+        height: calc(125vh - 480px); /* Remaining fixed space */
+        padding: 12px;
+        overflow-y: auto; /* ONLY THIS SCROLLS */
+        overflow-x: hidden;
     }
 
     .info-section h2 {
-        font-size: 22px;
+        font-size: 18px;
+        margin-bottom: 10px;
     }
 
     .metadata {
-        font-size: 12px;
+        font-size: 11px;
+        margin-bottom: 12px;
     }
 
     .info-section p {
-        font-size: 15px;
+        font-size: 15px; /* Readable size */
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    .actions {
+        flex-direction: row;
+        gap: 8px;
+        padding-top: 10px;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 50%;
+        font-size: 12px;
     }
 }
 
@@ -2697,5 +2730,83 @@ height: 12px;
         min-width: 100px;
         font-size: 13px; /* Slightly smaller on mobile but still readable */
         padding: 6px 12px;
+    }
+}
+
+
+/* Desktop: Push content instead of overlay */
+@media (min-width: 1024px) {
+    /* Main content container transition */
+    .video_section {
+        transition: margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        margin-left: 0;
+    }
+
+    /* When sidebar is active, push content right */
+    body.sidebar-active .video_section {
+        margin-left: 350px;
+    }
+
+    /* Remove overlay on desktop */
+    .sidebar-overlay {
+        display: none;
+    }
+
+    /* Sidebar positioning for desktop */
+    .modern-sidebar {
+        left: -350px;
+    }
+
+    .modern-sidebar.active {
+        left: 0;
+    }
+
+    /* Allow scrolling on desktop when sidebar is open */
+    body.sidebar-active {
+        overflow: auto !important;
+    }
+}
+
+/* Tablets: Full-width sidebar overlay */
+@media (max-width: 1024px) and (min-width: 481px) {
+    .video_section {
+        transition: none;
+        margin-left: 0;
+    }
+
+    body.sidebar-active .video_section {
+        margin-left: 0;
+    }
+
+    /* Make sidebar full-width on tablets */
+    .modern-sidebar {
+        width: 100%;
+        left: -100%;
+    }
+
+    .modern-sidebar.active {
+        left: 0;
+    }
+}
+
+/* Mobile phones: Keep existing behavior */
+@media (max-width: 480px) {
+    .video_section {
+        transition: none;
+        margin-left: 0;
+    }
+
+    body.sidebar-active .video_section {
+        margin-left: 0;
+    }
+
+    /* Full-width sidebar on mobile too */
+    .modern-sidebar {
+        width: 100%;
+        left: -100%;
+    }
+
+    .modern-sidebar.active {
+        left: 0;
     }
 }
