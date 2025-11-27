@@ -609,13 +609,14 @@ function remote_control_update(){
                     _player_control_image.src = _final_url + '.image'
                     _player.src = _final_url;
                     _player.poster = _final_url + '.image'
+                    _clicked_image = _final_url + '.image'
                     
                     var tmp_name = clickedElement.innerHTML;
     
                     var win_width = window.innerWidth;
                     if (_show_thumbnails){
                         if (win_width <= 640){
-                            _title.innerHTML = document.title;
+                            _title.innerHTML = tmp_name;
                             _title.style.textAlign = 'center';
                         }else{
                             _title.innerHTML = tmp_name;
@@ -2882,6 +2883,7 @@ function playlistItemClick(clickedElement,mode) {
     _player_control_info.innerHTML = document.title;
     _player_control_image.src = _final_url + '.image'
     _player.poster = _final_url + '.image'
+    _clicked_image = _final_url + '.image'
     //_img_id.src = "";
     //_img_info.innerHTML = "";
     if (_show_thumbnails){
@@ -2952,6 +2954,7 @@ function playlistItemClick(clickedElement,mode) {
         _player.removeAttribute('src');
         _player.load();
         _player.poster = new_src + '.image';
+        _clicked_image = new_src + '.image'
 		console.log("source reset")
         if (!_remote_control_status || _remote_control_status==null){
             _remote_control_status = setInterval(remote_control_update, 1000);
