@@ -25,6 +25,8 @@ var _player = document.getElementById("player"),
     _loop = document.getElementById("loop"),
     _next = document.getElementById("next"),
     _title = document.getElementById("title"),
+    _title_video = document.getElementById("video-title-text"),
+    _title_image = document.getElementById("video-title-image"),
     _currentTimeElement = document.getElementById('currentTime');
     _totalTimeElement = document.getElementById('totalTime');
     _progressFill = document.getElementById('progressFill');
@@ -113,6 +115,7 @@ var _player = document.getElementById("player"),
     _remote_control_status = null;
     _can_play_sync = false;
     _remote_queue_value = 0;
+    _clicked_image = "";
     _btn_minmax_topbar = document.getElementById('btn_minmax_topbar')
 // functions
 
@@ -505,7 +508,12 @@ function torrent_status(val){
 
 function updateVideoStatusDisplay(currentTime, duration, curValStr, durStr, title) {
 
-        _title.textContent = title;
+        if (_title.querySelector("img")) {
+            _title.querySelector("img").src = _clicked_image;
+            _title.querySelector("#img-info").innerText = title;
+        } else {
+            _title.textContent = title;
+        }
 
         _currentTimeElement.textContent = curValStr;
 
@@ -564,6 +572,7 @@ function remote_control_update(){
                     _player_control_image.src = _final_url + '.image'
                     //_player.src = _final_url;
                     _player.poster = _final_url + '.image'
+                    _clicked_image = _final_url + '.image'
                     
                     var tmp_name = clickedElement.innerHTML;
     
