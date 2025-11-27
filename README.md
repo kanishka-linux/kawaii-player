@@ -144,6 +144,7 @@ The media server functionality can be started by selecting **'More->Start Media 
 
 ![kawaii-player](/Images/Web_New.png)
 
+**Note:** from `v7.0.0` web interface has undergone significant change.
 
 **A very simple web interface** (as shown above) has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.2.2:9001', then web interface can be opened at **192.168.2.2:9001/stream_continue.htm** or **192.168.2.2:9001/index.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.2.2:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
 
@@ -702,6 +703,9 @@ Make sure to install `mpv` or `libmpv-dev` before starting the installation proc
     **Update:** From v4.0+ onwards, it is posiible to embed video within kawaii-player application on macOS, by using **libmpv** as backend. Select **libmpv** from sidebar, and restart the application. Make sure that libmpv is located somewhere in the system path.
 
     Note: If libtorrent-rasterbar is not working for torrent streaming, then edit brew formula and update download url location (point it to libtorrent-rasterbar v1.1.12), and then install it from source. 
+    Note: During installation via python-pip make sure libmpv is installed and its header files are located somewhere in the system path. For manually adding the libmpv path one can use command similar like below, if mpv is installed via homebrew.
+
+        $ export LIBRARY_PATH="/opt/homebrew/Cellar/mpv/0.40.0_4/lib:$LIBRARY_PATH"
 
     **Updated Instructions for macOs Sequoia (Apple Silicon Macs)** - 2025
 
@@ -893,6 +897,12 @@ Last Column to the extreme right, is the “Playlist column”, which will conta
 * The application can manage history/bookmarks and watch/unwatch status properly. It also supports playlist creation with mixed content. 
 
 * In custom playlist containg videos, do not contain artist field. However, users can add artist to any playlist entry when renaming using F2. When renaming, use '**::**' to delimit title of video from artist name. Once artist name is set, the application can grab information from last.fm profile of the artist (if *GET_MUSIC_METADATA* field is set to *True* in other_options.txt file).
+
+* Migrating The Library:
+
+    * All the data related to library management is kept inside `~/.config/kawaii-player` folder. Make sure to keep backup copy of this.
+    * In case users want too select different location for config directory, they can do so by creating `~/.config/kawaii-player/new_home.txt` and add new directory location. On restart new directory mentioned in the `new_home.txt` will be used as the config directory.
+    * If user want to migrate the video library managed by kawaii-player to another server/computer, then from v7.0.0 onwards `Migrate` opion is provided by kawaii-player mainly for video collection. Users need to attach existing hard drives to new server, mention new home directory appropriately in `new_home.txt`, and then run the application and click on the Migrate optiion. All the metdata/thumbnails/posters/history saved on the older server will be migrated to newer server for the existing collection
 
 
 ### KeyBoard Shortcuts:
