@@ -86,9 +86,6 @@ var _player = document.getElementById("player"),
     _old_queue_selected_color = 'white';
     _queue_selected_element = "";
     _video_section = document.getElementById("video_section");
-    _player_control_info = document.getElementById("player_control_info")
-    _player_control_image = document.getElementById("player_control_image")
-    _player_progress = document.getElementById("player_progress")
     _player_progress_status = null;
     _aspect_ratio = 16/9;
     _top_xy = [0,0];
@@ -106,8 +103,6 @@ var _player = document.getElementById("player"),
     //_top_menu_bar = document.getElementById('top_menu_bar');
     //_top_menu_bar_sub = document.getElementById('top_menu_bar_sub');
     _hide_top_bar = true;
-    _player_start_time = document.getElementById('player_start_time');
-    _player_end_time = document.getElementById('player_end_time');
     _btn_minimize = document.getElementById("btn_minimize");
     _mydatalist = document.getElementById("mydatalist");
     _clicked_num = '1';
@@ -116,35 +111,8 @@ var _player = document.getElementById("player"),
     _can_play_sync = false;
     _remote_queue_value = 0;
     _clicked_image = "";
-    _btn_minmax_topbar = document.getElementById('btn_minmax_topbar')
-// functions
-
-function hide_control_bar(){
-    var r = document.getElementById("player_control_progress");
-    r.style.visibility = "hidden";
-    var u = document.getElementById("btn_maximize");
-    u.style.visibility = "visible";
-    var v = document.getElementById("btn_to_top");
-    v.style.visibility = "visible";
-    _minimize_control_bar = true;
-    if (_player_progress_status){
-        clearInterval(_player_progress_status);
-        _player_progress_status = null;
-    }
-}
-
-function show_control_bar(){
-    var u = document.getElementById("btn_maximize");
-    u.style.visibility = "hidden";
-    var v = document.getElementById("btn_to_top");
-    v.style.visibility = "hidden";
-    var r = document.getElementById("player_control_progress");
-    r.style.visibility = "visible";
-    _minimize_control_bar = false;
-    if (!_player_progress_status && _remote_val == 'off'){
-        _player_progress_status = setInterval(update_progress_bar, 1000);
-    }
-}
+    _btn_minmax_topbar = document.getElementById('btn_minmax_topbar');
+    _customProgressBar = document.getElementById('customProgressBar');
 
 function goto_last_position(event){
     window.scrollTo(_top_xy[0], _top_xy[1]);
@@ -537,14 +505,11 @@ function remote_control_update(){
             var title = arr_val[4];
             
             dur_int = parseInt(total);
-            _player_progress.max = dur_int;
             dur_val = human_readable_time(dur_int);
             
             cur_int = parseInt(cur_time);
-            _player_progress.value = cur_int;
             cur_val = human_readable_time(cur_int);
             updateVideoStatusDisplay(cur_int, dur_int, cur_val, dur_val, title)
-            _player_start_time.innerHTML = cur_val+ '/' + dur_val;
 
             if (_clicked_num != index_row){
                 _clicked_num = index_row;
@@ -568,9 +533,6 @@ function remote_control_update(){
                     clickedElement.classList.add("selected");
                     document.title = _clicked_num+" "+clickedElement.title;
                     _final_url = clickedElement.getAttribute('data-mp3');
-                    _player_control_info.innerHTML = document.title;
-                    _player_control_image.src = _final_url + '.image'
-                    //_player.src = _final_url;
                     _player.poster = _final_url + '.image'
                     _clicked_image = _final_url + '.image'
                     
@@ -605,8 +567,6 @@ function remote_control_update(){
                 if (clickedElement){
                     document.title = clickedElement.getAttribute('data-num')+" "+clickedElement.title;
                     _final_url = clickedElement.getAttribute('data-mp3');
-                    _player_control_info.innerHTML = document.title;
-                    _player_control_image.src = _final_url + '.image'
                     _player.src = _final_url;
                     _player.poster = _final_url + '.image'
                     _clicked_image = _final_url + '.image'
@@ -655,22 +615,18 @@ function update_progress_bar(){
     //console.log(total, cur_time);
     if (total && cur_time){
         dur_int = parseInt(_player.duration);
-        _player_progress.max = dur_int;
         dur_val = human_readable_time(dur_int);
         
         cur_int = parseInt(_player.currentTime);
-        _player_progress.value = cur_int;
         cur_val = human_readable_time(cur_int);
         
-        _player_start_time.innerHTML = cur_val+ '/' + dur_val;
         _currentTimeElement.textContent = cur_val;
         _totalTimeElement.textContent = dur_val;
         let progress = (cur_int / dur_int) * 100;
         progressFill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
     }else{
-        _player_progress.max = 0;
-        _player_progress.value = 0;
-        _player_start_time.innerHTML = "00:00:00";
+        progressFill.value = 0;
+        progressFill.max = 0;
     }
 }
 
@@ -2880,8 +2836,6 @@ function playlistItemClick(clickedElement,mode) {
     
     var win_width = window.innerWidth;
     document.title = _clicked_num+" "+clickedElement.title;
-    _player_control_info.innerHTML = document.title;
-    _player_control_image.src = _final_url + '.image'
     _player.poster = _final_url + '.image'
     _clicked_image = _final_url + '.image'
     //_img_id.src = "";
@@ -2906,12 +2860,6 @@ function playlistItemClick(clickedElement,mode) {
 			get_subtitle(new_src+".subtitle");
 		}
 		_player.play();
-        if(!_player_progress_status || _player_progress_status == null){
-            _player_progress_status = setInterval(update_progress_bar, 1000);
-        }else{
-            clearInterval(_player_progress_status);
-            _player_progress_status = setInterval(update_progress_bar, 1000);
-        }
         if(win_width <= 640){
             new_width = (win_width-30).toString();
             _player.width = new_width.toString();
@@ -3151,10 +3099,6 @@ _remote.addEventListener("click", function () {
 	
 	var old_var= _remote.innerHTML;
     if (old_var == 'R:Off'){
-            if (_player_progress_status){
-                clearInterval(_player_progress_status);
-                _player_progress_status = null;
-            }
             if (!_remote_control_status || _remote_control_status==null){
                 _remote_control_status = setInterval(remote_control_update, 1000);
             }
@@ -3179,10 +3123,7 @@ _remote.addEventListener("click", function () {
             clearInterval(_remote_control_status);
             _remote_control_status = null;
         }
-        if(!_player_progress_status || _player_progress_status == null){
-        _player_progress_status = setInterval(update_progress_bar, 1000);
-        }
-        //_can_play_sync = false;
+        
 		var client = new getRequest();
 			client.get('remote_off.htm', function(response) {
 			console.log(response);
@@ -3194,10 +3135,6 @@ _remote.addEventListener("click", function () {
 	}
 });
 
-/*_home.addEventListener("click", function () {
-    window.location.href = 'stream_continue.htm';
-});*/
-
 _logout.addEventListener("click", function () {
     window.location.href = 'logout';
 });
@@ -3208,12 +3145,6 @@ function stop_on_click(){
         _player.pause();
         _player.removeAttribute('src');
         _player.load();
-        if (_player_progress_status){
-            clearInterval(_player_progress_status);
-            _player_progress_status = null;
-            _player_progress.value = 0;
-            _player_start_time.innerHTML = "00:00:00";
-        }
     }else{
     var client = new getRequest();
 		client.get('playerstop', function(response) {
@@ -3538,25 +3469,11 @@ function _clear_pls_button(){
 window.onscroll = function () {
     if (pageYOffset >= 200) {
         if (_minimize_control_bar){
-            document.getElementById('player_control_progress').style.visibility = "hidden";
-            document.getElementById("btn_maximize").style.visibility = "visible";
             document.getElementById("btn_to_top").style.visibility = "visible";
         }else{
-            document.getElementById('player_control_progress').style.visibility = "visible";
-            document.getElementById("btn_maximize").style.visibility = "hidden";
             document.getElementById("btn_to_top").style.visibility = "hidden";
         }
-        if (_hide_top_bar){
-            //_top_menu_bar.style.display = 'none';
-        }
-    }else{
-        //document.getElementById("btn_to_top").style.visibility = "hidden";
-        //document.getElementById("btn_maximize").style.visibility = "hidden";
-        //document.getElementById('player_control_progress').style.visibility = "hidden";
-        if (_hide_top_bar){
-            //_top_menu_bar.style.display = 'none';
-            }
-        }
+    }
 };
 
 function back_to_top(){
@@ -3616,43 +3533,7 @@ _playlist.addEventListener("click", function (e) {
     }
 });
 
-_player_progress.addEventListener("click", function(e){
-    val = _player_progress.getBoundingClientRect();
-    console.log(val);
-    x = val['x'];
-    w = val['width'];
-    console.log(x, w)
-    var time_diff = 0;
-    if (_player.duration){
-        new_val = parseInt(((e.pageX - x)/w)*_player.duration);
-        _player.currentTime = new_val;
-        _player_progress.value = new_val;
-        console.log(new_val);
-    }
-    
-    
-    if (_remote_val == 'on'){
-        new_val = (((e.pageX - x)/w)*100).toFixed(2);
-        var seek_val = "seek_abs_"+new_val.toString();
-        console.log(seek_val);
-		var client = new getRequest();
-		client.get(seek_val, function(response) {
-			console.log(response);
-            response = response.replace('seek ', '');
-            seek_val = parseInt(response.split('/')[0]);
-            seek_total = parseInt(response.split('/')[1]);
-            _player_progress.value = seek_val;
-            _player_progress.max = seek_total;
-            seek_start = human_readable_time(seek_val);
-            seek_end = human_readable_time(seek_total);
-            _player_start_time.innerHTML = seek_start + '/' + seek_end;
-            //_player_progress.title = seek_start;
-		// do something with response
-	})
-	}
-});
-
-document.getElementById('customProgressBar').addEventListener("click", function(e){
+_customProgressBar.addEventListener("click", function(e){
     val = e.currentTarget.getBoundingClientRect();;
     console.log(val);
     x = val['x'];
@@ -3662,7 +3543,6 @@ document.getElementById('customProgressBar').addEventListener("click", function(
     if (_player.duration){
         new_val = parseInt(((e.pageX - x)/w)*_player.duration);
         _player.currentTime = new_val;
-        _player_progress.value = new_val;
         _progressFill.value = new_val;
         console.log(new_val);
     }
@@ -3678,24 +3558,18 @@ document.getElementById('customProgressBar').addEventListener("click", function(
 	}
 });
 
-
-_player_progress.addEventListener("mousemove", function(e){
-    val = _player_progress.getBoundingClientRect();
-    //console.log(val);
+_customProgressBar.addEventListener("mousemove", function(e){
+    val = _customProgressBar.getBoundingClientRect();
     x = val['x'];
     w = val['width'];
-    //console.log(x, w)
     var time_diff = 0;
     if (_player.duration){
         new_val = parseInt(((e.pageX - x)/w)*_player.duration);
-        _player_progress.title = human_readable_time(new_val);
-        //console.log(new_val);
+        _customProgressBar.title = human_readable_time(new_val);
     }
-    
-    
     if (_remote_val == 'on' && !_player.duration){
-        new_val = parseInt(((e.pageX - x)/w)*parseInt(_player_progress.max));
-        _player_progress.title = human_readable_time(new_val);
+        new_val = parseInt(((e.pageX - x)/w)*parseInt(_customProgressBar.max));
+        _customProgressBar.title = human_readable_time(new_val);
 	}
 });
 
