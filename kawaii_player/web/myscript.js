@@ -100,10 +100,7 @@ var _player = document.getElementById("player"),
     _third_select = document.getElementById("third_select");
     _search_text_top = document.getElementById("search_text_sidebar");
     _current_working_m3u = "";
-    //_top_menu_bar = document.getElementById('top_menu_bar');
-    //_top_menu_bar_sub = document.getElementById('top_menu_bar_sub');
     _hide_top_bar = true;
-    _btn_minimize = document.getElementById("btn_minimize");
     _mydatalist = document.getElementById("mydatalist");
     _clicked_num = '1';
     _clicked_element = null;
@@ -3365,19 +3362,17 @@ function gotoChildNode(num){
 function start_loop(mode){
     var old_var= _loop.innerHTML;
     if (old_var == 'Lock'){
-			_loop.innerHTML = _btn_minimize.innerHTML = '\u21BA';
+			_loop.innerHTML = '\u21BA';
 			_player.loop = "loop";
 		}
 	else {
 		_loop.innerHTML = 'Lock';
 		_player.loop = "";
-        _btn_minimize.innerHTML = '--';
 	}
 	if (_remote_val == 'on'){
 		var client = new getRequest();
 		client.get('lock', function(response) {
 			console.log(response);
-		// do something with response
 	})
 	}
 }
