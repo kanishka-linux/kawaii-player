@@ -569,7 +569,7 @@ function remote_control_update(){
                     _final_url = clickedElement.getAttribute('data-mp3');
                     _player.src = _final_url;
                     _player.poster = _final_url + '.image'
-                    _clicked_image = _final_url + '.image'
+                    //_clicked_image = _final_url + '.image'
                     
                     var tmp_name = clickedElement.innerHTML;
     
