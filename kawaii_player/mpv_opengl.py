@@ -987,8 +987,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.ui.mpvplayer_val.write(b'show-text osd-sym-cc pause-string')
                     
     def eof_observer(self, _name, value):
-        logger.debug("{} {}".format("eof.. value", value, _name))
+        logger.debug("eof.. value {} {}".format(value, _name))
         if value is True or value is None:
+            self.ui.queue_changed = False
             if value is True:
                 self.rem_properties(self.ui.final_playing_url, 0, 0)
             if self.ui.queue_url_list:
@@ -1010,6 +1011,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             item = self.ui.queue_url_list[0]
             self.ui.queue_url_list = self.ui.queue_url_list[1:]
             self.ui.gui_signals.delete_queue_item(0)
+            self.ui.queue_changed = True
             if '\t' in item:
                 item_list = item.split('\t')
                 title = item_list[0]

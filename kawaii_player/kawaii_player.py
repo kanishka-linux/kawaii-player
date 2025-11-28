@@ -2029,6 +2029,7 @@ class Ui_MainWindow(object):
         self.id_audio_bitrate = 0
         self.id_video_bitrate = 0
         self.final_playing_url = ""
+        self.queue_changed = False
         self.queue_url_list = []
         self.downloadWget = []
         self.downloadWget_cnt = 0

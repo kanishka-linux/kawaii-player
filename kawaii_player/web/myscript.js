@@ -106,7 +106,6 @@ var _player = document.getElementById("player"),
     _clicked_element = null;
     _remote_control_status = null;
     _can_play_sync = false;
-    _remote_queue_value = 0;
     _clicked_image = "";
     _btn_minmax_topbar = document.getElementById('btn_minmax_topbar');
     _customProgressBar = document.getElementById('customProgressBar');
@@ -261,7 +260,6 @@ function menu_clicked_remove_queue(e){
         var client = new getRequest();
         client.get(req_val, function(response) {
         console.log(response);
-        _remote_queue_value -= 1;
 	})}
     _playlist_custom.removeChild(_queue_selected_element);
     if (e == 'hide') {
@@ -500,6 +498,8 @@ function remote_control_update(){
             var index_row = arr_val[2];
             var queue_list = parseInt(arr_val[3]);
             var title = arr_val[4];
+            var backend = arr_val[5];
+            var queueChanged = arr_val[6];
             
             dur_int = parseInt(total);
             dur_val = human_readable_time(dur_int);
@@ -559,14 +559,15 @@ function remote_control_update(){
                     
                     
                 }
-            }else if(queue_list != _remote_queue_value){
+            }else if(queueChanged == "True"){
+                console.log(queue_list, "queueChanged")
                 var clickedElement = _playlist_custom.firstChild;
                 if (clickedElement){
                     document.title = clickedElement.getAttribute('data-num')+" "+clickedElement.title;
                     _final_url = clickedElement.getAttribute('data-mp3');
                     _player.src = _final_url;
                     _player.poster = _final_url + '.image'
-                    //_clicked_image = _final_url + '.image'
+                    _clicked_image = _final_url + '.image'
                     
                     var tmp_name = clickedElement.innerHTML;
     
@@ -584,7 +585,6 @@ function remote_control_update(){
                         _title.style.textAlign = 'left';
                     }
                     _playlist_custom.removeChild(clickedElement);
-                    _remote_queue_value -= 1;
                 }
             }
             
@@ -1853,13 +1853,11 @@ function click_to_add_to_playlist(e){
     new_opt.setAttribute('data-num', data_num)
     new_opt.setAttribute('title', e.title);
 	_playlist_custom.appendChild(new_opt);
-    
     if (_remote_val == 'on'){
         var req_val = 'queueitem_'+data_num;
         var client = new getRequest();
         client.get(req_val, function(response) {
         console.log(response);
-        _remote_queue_value += 1;
 	})}
 }
 
