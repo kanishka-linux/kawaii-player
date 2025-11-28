@@ -253,6 +253,7 @@ class MediaDatabase():
         qVal = str(queryVal)
         print(music_db)
         error_occured = False
+        rows = [('none','none')]
         if q.lower() == "directory":
             if not qVal:
                 cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
@@ -263,19 +264,11 @@ class MediaDatabase():
             print(q)
             qr = 'SELECT EP_NAME, Path FROM Video Where Title=?'
             cur.execute(qr, (qVal, ))
-        elif q.lower() == "history":
-            print(q)
-            qr = 'SELECT distinct Title, Directory FROM Video Where EP_NAME like ? order by Title'
-            qv = '#'+'%'
-            self.logger.info('qv={0};qr={1}'.format(qv, qr))
-            cur.execute(qr, (qv, ))
         elif q.lower() == "search":
             qVal = '%'+qVal+'%'
             qr = 'SELECT EP_NAME, Path From Video Where EP_NAME like ? or Directory like ? order by Directory'
             self.logger.info('qr={0};qVal={1}'.format(qr, qVal))
             cur.execute(qr, (qVal, qVal, ))
-        elif q.lower() == 'recent':
-            cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
         else:
             cat_type = self.ui.category_dict.get(q.lower())
             if not cat_type:
@@ -287,47 +280,8 @@ class MediaDatabase():
                 except Exception as err:
                     self.logger.info(err)
                     error_occured = True
-                    rows = [('none','none')]
         if not error_occured:
             rows = cur.fetchall()
-            if q.lower() in ['history', 'recent']:
-                rows_access = []
-                rows_not_access = []
-                new_arr = []
-                for i in rows:
-                    if os.path.exists(i[1]):
-                        m = os.listdir(i[1])
-                        for ii in m:
-                            if '.' in ii:
-                                _, ext = ii.rsplit('.', 1)
-                                file_path = os.path.join(i[1], ii)
-                                if ext in self.ui.video_type_arr:
-                                    if q.lower() == 'history':
-                                        access_time = self.ui.history_dict_obj.get(file_path)
-                                        if access_time:
-                                            tp = [file_path, access_time[1]]
-                                        else:
-                                            tp = [file_path, os.path.getatime(file_path)]
-                                    else:
-                                        tp = [file_path, os.path.getctime(file_path)]
-                                    new_arr.append(tp)
-                        if new_arr:
-                            new_arr = sorted(new_arr, key=lambda x: x[1], reverse=True)
-                            ntp = [i, new_arr[0][1]]
-                            self.logger.debug(ntp)
-                            #self.logger.debug(new_arr)
-                        else:
-                            ntp = [i, 0]
-                            self.logger.error(ntp)
-                        rows_access.append(ntp)
-                    else:
-                        rows_not_access.append(i)
-                    new_arr[:] = []
-                if rows_access:
-                    rows_access = sorted(rows_access, key=lambda x: x[1], reverse=True)
-                    rows_access = [i[0] for i in rows_access]
-                rows[:] = []
-                rows = rows_access + rows_not_access
         conn.commit()
         conn.close()
         return rows
