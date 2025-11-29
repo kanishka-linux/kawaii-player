@@ -2675,33 +2675,13 @@ height: 12px;
     border-radius: 4px;
     padding: 8px;
     max-height: 150px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    display: flex;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: block;
     gap: 8px;
     list-style: none;
     margin: 0;
     white-space: nowrap;
-}
-
-/* LARGER TEXT for list items */
-#playlist_custom li {
-    flex: 0 0 auto;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 3px;
-    padding: 8px 16px; /* Increased padding */
-    font-size: 14px; /* Increased from 12px to 14px */
-    color: #495057;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    min-width: 120px; /* Increased min-width for larger text */
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500; /* Added font weight for better visibility */
 }
 
 #playlist_custom li:hover {
