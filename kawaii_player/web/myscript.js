@@ -565,7 +565,6 @@ function remote_control_update(){
                 if (clickedElement){
                     document.title = clickedElement.getAttribute('data-num')+" "+clickedElement.title;
                     _final_url = clickedElement.getAttribute('data-mp3');
-                    _player.src = _final_url;
                     _player.poster = _final_url + '.image'
                     _clicked_image = _final_url + '.image'
                     
