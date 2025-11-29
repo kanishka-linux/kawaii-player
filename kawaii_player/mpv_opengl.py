@@ -852,6 +852,11 @@ class MpvOpenglWidget(QOpenGLWidget):
             if txt:
                 gui.audio_track.setText(txt)
         self.audio_info_text = txt
+        self.initial_volume_set = False
+        try:
+            self.mpv.set_property("ao-volume", int(self.ui.player_volume))
+        except Exception as err:
+            logger.error(err)
 
     def display_play_pause_string(self, value):
         display_string = "None"
@@ -1160,7 +1165,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             except Exception as err:
                 self.file_size = 0
             try:
-                self.mpv.set_property("ao-volume", str(gui.player_volume))
+                self.mpv.set_property("ao-volume", int(gui.player_volume))
             except Exception as err:
                 logger.error(err)
             gui.progress_counter = 0
@@ -1226,7 +1231,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     pass
                 if gui.restore_volume and vol:
                     try:
-                        self.mpv.set_property('ao-volume', str(vol))
+                        self.mpv.set_property('ao-volume', int(vol))
                     except Exception as err:
                         logger.error(err)
                 param_dict = gui.get_parameters_value(o='opt', s="site")
