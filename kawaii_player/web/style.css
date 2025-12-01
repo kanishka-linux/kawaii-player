@@ -664,6 +664,7 @@ video::cue {
     flex-wrap: wrap;
     margin-top: auto;
     padding-top: 10px;
+    padding-bottom: 10px;
     flex-shrink: 0; /* Don't shrink buttons */
 }
 
@@ -991,7 +992,7 @@ video::cue {
     }
 
     .content-wrapper {
-        height: calc(125vh - 20px); /* Fixed height */
+        height: 100%;
         border-radius: 4px;
         flex-direction: column;
         margin: 0;
@@ -1043,6 +1044,14 @@ video::cue {
         flex-direction: row;
         gap: 8px;
         padding-top: 10px;
+        padding-bottom: 20px;
+    }
+
+    /* iOS-specific bottom padding */
+    @supports (-webkit-touch-callout: none) {
+        .actions {
+            padding-bottom: 40px;
+        }
     }
 
     .btn-primary, .btn-secondary {
