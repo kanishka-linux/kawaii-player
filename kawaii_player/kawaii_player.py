@@ -1554,6 +1554,7 @@ class Ui_MainWindow(object):
         self.cache_pause_seconds = 4
         self.player_volume = 'auto'
         self.volume_type = 'ao-volume'
+        self.system_volume = False
         self.use_custom_config_file = False
         self.browser_backend = BROWSER_BACKEND
         self.settings_tab_index = 0
@@ -2670,6 +2671,10 @@ class Ui_MainWindow(object):
                 else:
                     txt = '\n osd-msg-bar add ao-volume {0} \n'.format(val)
                 msg = '\n print-text ao-volume-print=${ao-volume} \n'
+            elif self.system_volume:
+                vol = self.adjust_system_volume(int(val))
+                txt = f'\n show-text system-volume={vol}% \n'
+                print(txt)
             else:
                 if action:
                     txt = '\n osd-msg-bar set volume {0} \n'.format(val)
@@ -2681,7 +2686,46 @@ class Ui_MainWindow(object):
             self.mpvplayer_val.write(bytes(txt1, 'utf-8'))
         if msg and (action is None or action == 'pressed'):
             self.mpvplayer_val.write(bytes(msg, 'utf-8'))
-    
+
+
+    # Experimental: Mainly for osx
+    # To use this feature set VOLUME_TYPE=system-volume
+    # in config.txt
+    def adjust_system_volume(self, change):
+        if platform.system().lower() == "darwin":
+            return self.adjust_system_volume_osx(change)
+        elif platform.system().lower() == "linux":
+            # TODO: Need to implement
+            return 0
+        elif OSNAME == "nt":
+            # TODO: Need to implement
+            return 0
+
+    # TODO: Add this in separate volume control module
+    # And if possible use threading to avoid blocking calls
+    def adjust_system_volume_osx(self, change: int) -> int:
+        try:
+            # Get current volume level (0-100)
+            result = subprocess.run(
+                ["osascript", "-e", "output volume of (get volume settings)"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            current_volume = int(float(result.stdout.strip()))
+
+            # Adjust volume by the specified change (e.g., +5 or -5)
+            new_volume = max(0, min(100, current_volume + change))
+            subprocess.run(
+                ["osascript", "-e", f"set volume output volume {new_volume}"],
+                check=True
+            )
+            print(f"Volume adjusted to {new_volume}%")
+            return new_volume
+        except subprocess.CalledProcessError as e:
+            print(f"Error adjusting volume: {e}")
+            return 0
+
     def float_activity(self):
         if not self.new_tray_widget.isHidden() and self.new_tray_widget.remove_toolbar:
             self.new_tray_widget.hide()
@@ -14070,7 +14114,10 @@ def save_all_settings_before_quit():
                 ui.force_fs = False
             f.write("\nForce_FS={0}".format(ui.force_fs))
             f.write("\nSETTINGS_TAB_INDEX={0}".format(ui.settings_tab_index))
-            f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
+            if ui.system_volume:
+                f.write("\nVOLUME_TYPE=system-volume")
+            else:
+                f.write("\nVOLUME_TYPE={0}".format(ui.volume_type))
             f.write("\nVOLUME_VALUE={0}".format(ui.player_volume))
             f.write("\nAPPLY_SUBTITLE_SETTINGS={0}".format(ui.apply_subtitle_settings))
             f.write("\nCLICKED_LABEL_NEW={0}".format(ui.clicked_label_new))
@@ -14428,6 +14475,10 @@ def main():
                         j = j.strip()
                         if j and j in ['ao-volume', 'volume']:
                             ui.volume_type = j
+                            ui.system_volume = False
+                        elif j and j == 'system-volume':
+                            ui.system_volume = True
+                            ui.volume_type = "volume"
                     except Exception as err:
                         logger.error(err)
                 elif i.startswith('VOLUME_VALUE='):
