@@ -1222,9 +1222,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                 logger.info("restoring.. -> {}".format(self.ui.history_dict_obj_libmpv.get(saved_url)))
                 if aspect_val and gui.restore_aspect:
                     try:
-                        self.mpv.set_property('video-aspect', aspect_val)
+                        self.mpv.set_property('video-aspect-override', aspect_val)
                     except Exception as err:
-                        logger.error("video-aspect -> {}".format(err))
+                        logger.error("video-aspect-override -> {}".format(err))
                 elif not gui.restore_aspect:
                     self.mpv.command("show-text", "Bad Aspect Property: {}".format(aspect_val))
                 try:
@@ -1315,7 +1315,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         else:
             self.ui.mpvplayer_aspect_cycle = int(key)
         aspect_val = self.ui.mpvplayer_aspect_float.get(str(self.ui.mpvplayer_aspect_cycle))
-        self.mpv.set_property('video-aspect', aspect_val)
+        self.mpv.set_property('video-aspect-override', aspect_val)
         aspect_prop = self.aspect_map.get(str(self.ui.mpvplayer_aspect_cycle))
         self.mpv.command("show-text", "Video-Aspect: {}".format(aspect_prop))
 
