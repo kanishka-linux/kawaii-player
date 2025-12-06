@@ -574,7 +574,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property('sid')
         self.mpv.observe_property('audio')
         self.mpv.observe_property('seeking')
-        self.mpv.observe_property('ao-volume')
+        self.mpv.observe_property('volume')
         self.mpv.observe_property('quit-watch-later')
         self.mpv.observe_property('playback-abort')
         self.mpv.observe_property('playlist-pos')
@@ -587,7 +587,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     'sid': self.sub_changed,
                     'audio': self.audio_changed,
                     'seeking': self.player_seeking,
-                    'ao-volume': self.volume_observer,
+                    'volume': self.volume_observer,
                     'quit-watch-later': self.quit_watch_later,
                     'playback-abort': self.playback_abort_observer,
                     'playlist-pos': self.playlist_position_observer,
@@ -854,9 +854,9 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.audio_info_text = txt
         self.initial_volume_set = False
         try:
-            self.mpv.set_property("ao-volume", int(self.ui.player_volume))
+            self.mpv.set_property(gui.volume_type, int(self.ui.player_volume))
         except Exception as err:
-            logger.error(err)
+            logger.error("{} -> {}".format(gui.volume_type, err))
 
     def display_play_pause_string(self, value):
         display_string = "None"

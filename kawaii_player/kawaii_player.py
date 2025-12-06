@@ -1553,7 +1553,10 @@ class Ui_MainWindow(object):
         self.video_outputs = ''
         self.cache_pause_seconds = 4
         self.player_volume = 'auto'
-        self.volume_type = 'ao-volume'
+        # three volume_types are supported
+        # and can be changed via config
+        # ao-volume, volume, system-volume
+        self.volume_type = 'volume'
         self.system_volume = False
         self.use_custom_config_file = False
         self.browser_backend = BROWSER_BACKEND
