@@ -1163,11 +1163,12 @@ class MpvOpenglWidget(QOpenGLWidget):
             try:
                 self.file_size = self.mpv.get_property('file-size')
             except Exception as err:
+                logger.error("file-size -> {}".format(err))
                 self.file_size = 0
             try:
-                self.mpv.set_property("ao-volume", int(gui.player_volume))
+                self.mpv.set_property(gui.volume_type, int(gui.player_volume))
             except Exception as err:
-                logger.error(err)
+                logger.error("{} -> {}".format(gui.volume_type, err))
             gui.progress_counter = 0
             gui.slider.setRange(0, int(gui.mplayerLength))
             gui.final_playing_url = path = self.mpv.get_property('path')
@@ -1187,7 +1188,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     filename = new_path.rsplit("/")[-1]
                     filename = urllib.parse.unquote(filename)
                 except Exception as err:
-                    logger.error(err)
+                    logger.error("parsing-error -> {}".format(err))
             elif path.startswith('http') and '/abs_path=' in path:
                 self.try_subtitle_path = path + ".original.subtitle"
                 filename = path.rsplit("/")[-1]
@@ -1203,10 +1204,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             if not self.initial_volume_set:
                 logger.debug("setting..........volume.......{}".format(gui.player_volume))
                 try:
-                    self.mpv.set_property('ao-volume', int(gui.player_volume))
+                    self.mpv.set_property(gui.volume_type, int(gui.player_volume))
                     self.initial_volume_set = True
                 except Exception as err:
-                    logger.error(err)
+                    logger.error("{} -> {}".format(gui.volume_type, err))
             if self.ui.pc_to_pc_casting == "slave":
                 saved_url = self.ui.final_playing_url.rsplit("/&master_token=")[0]
             else:
@@ -1216,24 +1217,29 @@ class MpvOpenglWidget(QOpenGLWidget):
                 if asp == -1 or asp == "-1" or asp is None:
                     asp = "0"
                 aspect_val = self.ui.mpvplayer_aspect_float.get(str(asp))
-                logger.info("restoring.. -> {}".format(self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)))
+                logger.info("restoring.. -> {}".format(self.ui.history_dict_obj_libmpv.get(saved_url)))
                 if aspect_val and gui.restore_aspect:
-                    self.mpv.set_property('video-aspect', aspect_val)
+                    try:
+                        self.mpv.set_property('video-aspect', aspect_val)
+                    except Exception as err:
+                        logger.error("video-aspect -> {}".format(err))
                 elif not gui.restore_aspect:
                     self.mpv.command("show-text", "Bad Aspect Property: {}".format(aspect_val))
                 try:
                     self.mpv.set_property('sid', sub_id)
-                except:
-                    pass
+                except Exception as err:
+                    logger.error("sid -> {}".format(err))
+
                 try:
                     self.mpv.set_property('aid', audio_id)
-                except:
-                    pass
+                except Exception as err:
+                    logger.error("aid -> {}".format(err))
+
                 if gui.restore_volume and vol:
                     try:
-                        self.mpv.set_property('ao-volume', int(vol))
+                        self.mpv.set_property(gui.volume_type, int(vol))
                     except Exception as err:
-                        logger.error(err)
+                        logger.error("{} -> {}".format(gui.volume_type, err))
                 param_dict = gui.get_parameters_value(o='opt', s="site")
                 site = param_dict["site"]
                 opt = param_dict["opt"]
