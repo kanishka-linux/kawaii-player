@@ -575,6 +575,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property('audio')
         self.mpv.observe_property('seeking')
         self.mpv.observe_property('volume')
+        self.mpv.observe_property('ao-volume')
         self.mpv.observe_property('quit-watch-later')
         self.mpv.observe_property('playback-abort')
         self.mpv.observe_property('playlist-pos')
@@ -588,6 +589,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     'audio': self.audio_changed,
                     'seeking': self.player_seeking,
                     'volume': self.volume_observer,
+                    'ao-volume': self.volume_observer,
                     'quit-watch-later': self.quit_watch_later,
                     'playback-abort': self.playback_abort_observer,
                     'playlist-pos': self.playlist_position_observer,
