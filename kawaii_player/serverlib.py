@@ -410,7 +410,7 @@ class ServerLib:
                 new_epnArrList = [i for i in m]
                 print('direct match:')
             #original_path_name[:] = []
-            logger.info(artist)
+            #logger.info(artist)
             if video_opt.lower() in ["recent", "history"]:
                 original_path_name = [f"{t}\t{d}" for (t, d) in m]
             elif (video_opt.lower() != "update" and video_opt.lower() != "updateall") and not send_list_direct:
@@ -437,7 +437,7 @@ class ServerLib:
                 for i in m:
                     j = i.replace('.txt', '')
                     original_path_name.append(j+'	'+os.path.join(pls, i))
-        logger.info(original_path_name)
+        #logger.info(original_path_name)
         print('--------14243-----------')
         if search_term:
             if not send_list_direct:
