@@ -974,7 +974,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                         ]
                 }
             )
-        logger.info("remember-- {}".format(self.ui.history_dict_obj_libmpv.get(self.ui.final_playing_url)))
+        logger.info("remember: played-url={}, settings: {}".format(final_url, self.ui.history_dict_obj_libmpv.get(final_url)))
 
     def core_observer(self, _name, value):
         logger.debug("{} {}".format("core..observer.. value", value))
