@@ -2773,19 +2773,20 @@ class Ui_MainWindow(object):
 
     def fetch_fanart(self, site_option, url, title, mode=None):
         path = self.get_metadata_directory(site_option, title)
-        print(path, url, "fetch..")
+        logger.info("fetch: path={} -> url={}".format(path, url))
         if mode == "fanart":
             fanart_path = os.path.join(path, "fanart.jpg")
-            print(fanart_path, "--")
+            logger.info(fanart_path)
             self.vnt.get(url, out=fanart_path)
         elif mode == "poster":
             poster_path = os.path.join(path, "poster.jpg")
-            print(poster_path, "--")
+            logger.info(poster_path)
             self.vnt.get(url, out=poster_path)
 
     def get_metadata_directory(self, site_option, title):
         global home
-        if site_option == "video" and title is not None:
+        logger.info(site_option)
+        if site_option.lower() == "video" and title is not None:
             path = os.path.join(home, "Local", title)
         else:
             path = None
