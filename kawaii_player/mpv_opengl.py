@@ -580,6 +580,7 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.mpv.observe_property('playback-abort')
         self.mpv.observe_property('playlist-pos')
         self.mpv.observe_property('core-idle')
+        self.mpv.observe_property('pause')
         self.observer_map = {
                     'time-pos': self.time_observer,
                     'eof-reached': self.eof_observer,
@@ -593,7 +594,8 @@ class MpvOpenglWidget(QOpenGLWidget):
                     'quit-watch-later': self.quit_watch_later,
                     'playback-abort': self.playback_abort_observer,
                     'playlist-pos': self.playlist_position_observer,
-                    'core-idle': self.core_observer
+                    'core-idle': self.core_observer,
+                    'pause': self.pause_observer
                     }
         
         self.mpv.set_wakeup_callback(self.eventHandler)
@@ -846,6 +848,13 @@ class MpvOpenglWidget(QOpenGLWidget):
             if txt:
                 gui.subtitle_track.setText(txt)
         self.subtitle_info_text = txt
+
+    def pause_observer(self, _name, value):
+        logger.debug('{} {} {}'.format(_name, value, "--pause--"))
+        if value is True:
+            gui.player_play_pause.setText(gui.player_buttons['play'])
+        elif value is False:
+            gui.player_play_pause.setText(gui.player_buttons['pause'])
                 
     def audio_changed(self, _name, value):
         self.audio_id = value
