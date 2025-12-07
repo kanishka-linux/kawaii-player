@@ -628,7 +628,7 @@ class MediaDatabase():
         if result:
             ep_name = result[0]
             if ep_name.startswith("#"):
-                ep_name = ep_name.replace("#", "", 1)
+                ep_name = ep_name.replace("#", "")
             else:
                 ep_name = f"#{ep_name}"
             try:
