@@ -623,6 +623,10 @@ class MpvOpenglWidget(QOpenGLWidget):
             except Exception as err:
                 logger.error(err)
         
+    def resizeGL(self, width, height):
+        super().resizeGL(width, height)
+        logger.info(f"OpenGL resized to {width}x{height}")
+
     def paintGL(self):
         w = int(self.width()* self.dpr)
         h = int(self.height()* self.dpr)
