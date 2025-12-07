@@ -18,14 +18,19 @@ along with aclh.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
+import os
+from logging.handlers import RotatingFileHandler
 
 class Logging:
     
-    def __init__(self, name, file_name_log, TMPDIR):
+    def __init__(self, name, file_name_log, TMPDIR, max_bytes=10*1024*1024, backup_count=5):
         logging.basicConfig(level=logging.DEBUG)
         formatter_fh = logging.Formatter('%(asctime)-15s::%(module)s:%(funcName)s:%(lineno)d: %(levelname)-7s - %(message)s')
         formatter_ch = logging.Formatter('%(levelname)s::%(module)s::%(funcName)s:%(lineno)d: %(message)s')
-        fh = logging.FileHandler(file_name_log)
+
+        self._handle_existing_large_file(file_name_log, max_bytes, backup_count)
+
+        fh = RotatingFileHandler(file_name_log, maxBytes=max_bytes, backupCount=backup_count)
         fh.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
@@ -35,6 +40,16 @@ class Logging:
         self.logger.addHandler(ch)
         self.logger.addHandler(fh)
     
+    def _handle_existing_large_file(self, file_name_log, max_bytes, backup_count):
+        """Handle existing log files that are already larger than max_bytes"""
+        if os.path.isfile(file_name_log):
+            file_size = os.path.getsize(file_name_log)
+            if file_size > max_bytes:
+                # Force rotation of existing large file
+                temp_handler = RotatingFileHandler(file_name_log, maxBytes=max_bytes, backupCount=backup_count)
+                temp_handler.doRollover()
+                temp_handler.close()
+
     def get_logger(self):
         return self.logger
     
