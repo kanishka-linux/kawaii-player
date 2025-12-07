@@ -23,8 +23,8 @@ class Logging:
     
     def __init__(self, name, file_name_log, TMPDIR):
         logging.basicConfig(level=logging.DEBUG)
-        formatter_fh = logging.Formatter('%(asctime)-15s::%(module)s:%(funcName)s: %(levelname)-7s - %(message)s')
-        formatter_ch = logging.Formatter('%(levelname)s::%(module)s::%(funcName)s: %(message)s')
+        formatter_fh = logging.Formatter('%(asctime)-15s::%(module)s:%(funcName)s:%(lineno)d: %(levelname)-7s - %(message)s')
+        formatter_ch = logging.Formatter('%(levelname)s::%(module)s::%(funcName)s:%(lineno)d: %(message)s')
         fh = logging.FileHandler(file_name_log)
         fh.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
@@ -41,22 +41,22 @@ class Logging:
     def info(self, *args):
         args_list = [str(i) for i in args]
         args_str = '; '.join(args_list)
-        self.logger.info(args_str)
+        self.logger.info(args_str, stacklevel=2)
         
     def debug(self, *args):
         args_list = [str(i) for i in args]
         args_str = '; '.join(args_list)
-        self.logger.debug(args_str)
+        self.logger.debug(args_str, stacklevel=2)
         
     def warning(self, *args):
         args_list = [str(i) for i in args]
         args_str = '; '.join(args_list)
-        self.logger.warning(args_str)
+        self.logger.warning(args_str, stacklevel=2)
         
     def error(self, *args):
         args_list = [str(i) for i in args]
         args_str = '; '.join(args_list)
-        self.logger.error(args_str)
+        self.logger.error(args_str, stacklevel=2)
         
     def set_level(self, level):
         level = level.lower()
