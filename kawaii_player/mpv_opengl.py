@@ -826,11 +826,13 @@ class MpvOpenglWidget(QOpenGLWidget):
                     self.ui.list2.itemDoubleClicked['QListWidgetItem*'].emit(item)
                     logger.debug("trying again..............")
         
-    def volume_observer(self, _name, value):
-        logger.info("{} {}".format(_name, value))
-        if value and isinstance(value, float):
+    def volume_observer(self, name, value):
+        logger.info("{} {}".format(name, value))
+        if value and isinstance(value, float) and name and self.ui.volume_type == name:
             self.player_volume = value
             self.ui.player_volume = str(int(value))
+        elif name != self.ui.volume_type:
+            logger.error("property-name: {}, volume-type: {} mismatch".format(name, self.ui.volume_type))
 
     def quit_watch_later(self, _name, value):
         logger.info("{} {}".format(_name, value))        
