@@ -7,6 +7,7 @@ import hashlib
 import json
 import pickle
 import os
+from datetime import datetime
 
 class AnimeInfoFetcher:
     def __init__(self, ui):
@@ -161,6 +162,16 @@ class AnimeInfoFetcher:
                     'titles': data.get('titles', [])
                 }
 
+            year = anime_details.get('year')
+            aired = anime_details.get("aired")
+            if aired and not year:
+                aired_from = aired.get("from")
+                try:
+                    dt = datetime.fromisoformat(aired_from)
+                    year = dt.year
+                except Exception as err:
+                    self.ui.logger("error: {}, formating iso-date: {}".format(err, aired_from))
+                anime_details['year'] = year
             img_url = anime_details.get("image_poster_large")
             if img_url:
                 img_path = self.build_local_image_file_name(img_url)
@@ -173,6 +184,6 @@ class AnimeInfoFetcher:
             return anime_details
             
         except Exception as err:
-            print(err, "error fetching info")
+            self.ui.logger("error: {}, for fetching: {}".format(err, title))
             return None
 
