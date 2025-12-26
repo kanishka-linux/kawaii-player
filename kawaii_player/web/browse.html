@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse and discover your favorite series with advanced filtering options">
+    <meta name="keywords" content="series, anime, movies, tv shows, browse, filter">
+    <meta name="author" content="Series Browser">
+    
+    <title>Browse Series - Series Browser</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="browse.css">
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="msapplication-TileColor" content="#007bff">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="main-content" id="main-content" role="main">
+        <div class="container">
+            
+            <!-- Alert Messages -->
+            <div id="alert-container" class="alert-container" role="alert" aria-live="polite"></div>
+            
+            <!-- Page Content with Sidebar Layout -->
+            <div class="page-layout">
+                
+                <!-- Sidebar Toggle Button -->
+                <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle filters sidebar">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <!-- Sidebar Overlay (for mobile) -->
+                <div class="sidebar-overlay" id="sidebar-overlay"></div>
+                
+                <!-- Filters Sidebar -->
+                <aside class="filters-sidebar" id="filters-sidebar">
+                    <div class="sidebar-header">
+                        <h2>Filter & Search</h2>
+                        <button class="sidebar-close" id="sidebar-close" aria-label="Close filters">
+                            <span class="close-icon">×</span>
+                        </button>
+                    </div>
+                    
+                    <div class="sidebar-content">
+                        <form method="GET" action="/browse" id="browse-form">
+                            <div class="filter-group">
+                                <label for="search">Search:</label>
+                                <input type="text" name="search" id="search" value="$search" 
+                                       placeholder="Search titles..." autocomplete="off">
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="category">Category:</label>
+                                <select name="category" id="category">
+                                    <option value="">All Categories</option>
+                                    $category_options
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="genres">Genres:</label>
+                                <select id="genres" name="genres" data-placeholder="Select genres" multiple class="js-multiselect">
+                                    $genre_options
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="year_from">Year Range:</label>
+                                <div class="year-range">
+                                    <select name="year_from" id="year_from" class="js-year-from">
+                                        <option value="">From</option>
+                                        $year_from_options
+                                    </select>
+                                    <span class="year-separator">to</span>
+                                    <select name="year_to" id="year_to" class="js-year-to">
+                                        <option value="">To</option>
+                                        $year_to_options
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="type">Type:</label>
+                                <select name="type" id="type">
+                                    <option value="">All Types</option>
+                                    $type_options
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="sort">Sort By:</label>
+                                <select name="sort" id="sort">
+                                    <option value="title" $title_selected>Title</option>
+                                    <option value="year" $year_selected>Year</option>
+                                    <option value="score" $score_selected>Score</option>
+                                    <option value="popularity" $popularity_selected>Popularity</option>
+                                    <option value="rank" $rank_selected>Rank</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="order">Order:</label>
+                                <select name="order" id="order">
+                                    <option value="asc" $asc_selected>Ascending</option>
+                                    <option value="desc" $desc_selected>Descending</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-actions">
+                                <button type="submit" class="btn js-apply-filters">
+                                    <span class="btn-icon">🔍</span>
+                                    Apply Filters
+                                </button>
+                                <button type="button" class="btn btn-secondary js-clear-filters">
+                                    <span class="btn-icon">✖️</span>
+                                    Clear All
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </aside>
+
+                <!-- Main Content Area -->
+                <div class="main-area">
+                    <!-- Results Header -->
+                    <div class="results-header">
+                        <div class="results-info" aria-live="polite">
+                            Showing $results_start-$results_end of $total_count series
+                        </div>
+                        <div class="view-options">
+                            <button class="view-toggle active js-view-toggle" data-view="grid" aria-label="Grid view" title="Grid view">
+                                <span class="view-icon">⊞</span>
+                            </button>
+                            <button class="view-toggle js-view-toggle" data-view="list" aria-label="List view" title="List view">
+                                <span class="view-icon">☰</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Series Grid -->
+                    <div class="grid js-series-grid" id="series-grid" role="main" aria-label="Series results">
+                        $series_cards
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination" role="navigation" aria-label="Pagination">
+                        $pagination_html
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+        <span class="back-to-top-icon">↑</span>
+    </button>
+    
+    <!-- Base JavaScript -->
+    <script>
+        // Remove loading screen when page is loaded
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                }, 300);
+            }
+        });
+        
+        // Mobile navigation toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggle = document.getElementById('navbar-toggle');
+            const navbarMenu = document.getElementById('navbar-menu');
+            
+            if (navbarToggle && navbarMenu) {
+                navbarToggle.addEventListener('click', function() {
+                    navbarMenu.classList.toggle('active');
+                    this.classList.toggle('active');
+                });
+            }
+            
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebarClose = document.getElementById('sidebar-close');
+            const sidebar = document.getElementById('filters-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
+            
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                body.classList.add('sidebar-open');
+                sidebarToggle.setAttribute('aria-expanded', 'true');
+            }
+            
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                body.classList.remove('sidebar-open');
+                sidebarToggle.setAttribute('aria-expanded', 'false');
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    if (sidebar.classList.contains('open')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Close sidebar on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+            
+            // Auto-close sidebar on mobile after form submission
+            const browseForm = document.getElementById('browse-form');
+            if (browseForm) {
+                browseForm.addEventListener('submit', function() {
+                    if (window.innerWidth <= 768) {
+                        closeSidebar();
+                    }
+                });
+            }
+            
+            // Quick search functionality
+            const quickSearch = document.getElementById('quick-search');
+            if (quickSearch) {
+                quickSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const query = this.value.trim();
+                        if (query) {
+                            window.location.href = `/browse?search=${encodeURIComponent(query)}`;
+                        }
+                    }
+                });
+            }
+            
+            // Back to top button
+            const backToTop = document.getElementById('back-to-top');
+            if (backToTop) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTop.classList.add('visible');
+                    } else {
+                        backToTop.classList.remove('visible');
+                    }
+                });
+                
+                backToTop.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+            
+            // Theme toggle
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    document.body.classList.toggle('light-theme');
+                    const icon = this.querySelector('.theme-icon');
+                    icon.textContent = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
+                });
+            }
+            
+            // Save sidebar state preference
+            function saveSidebarState() {
+                try {
+                    const isOpen = sidebar.classList.contains('open');
+                    localStorage.setItem('sidebarOpen', isOpen);
+                } catch (e) {
+                    console.warn('Could not save sidebar state:', e);
+                }
+            }
+            
+            // Load sidebar state preference
+            function loadSidebarState() {
+                try {
+                    const savedState = localStorage.getItem('sidebarOpen');
+                    if (savedState === 'true' && window.innerWidth > 768) {
+                        openSidebar();
+                    }
+                } catch (e) {
+                    console.warn('Could not load sidebar state:', e);
+                }
+            }
+            
+            // Load saved state on page load
+            loadSidebarState();
+            
+            // Save state when sidebar is toggled
+            if (sidebar) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            saveSidebarState();
+                        }
+                    });
+                });
+                observer.observe(sidebar, { attributes: true });
+            }
+        });
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('filters-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            // Auto-close sidebar on mobile when resizing to desktop
+            if (window.innerWidth > 768 && overlay.classList.contains('active')) {
+                overlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+    </script>
+    
+    <!-- Browse-specific JavaScript -->
+    <script src="browse.js"></script>
+</body>
+</html>
