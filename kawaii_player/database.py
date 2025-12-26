@@ -617,6 +617,49 @@ class MediaDatabase():
             print(f"  ✗ Fetch error: {e}")
             return [("", "")]
 
+    def fetch_all_available(self) -> List[Tuple[str, str]]:
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute("""
+                select distinct Directory, Title from Video order by Title
+            """)
+
+            rows  = [(row[1], row[0]) for row in cursor.fetchall()]
+
+            conn.commit()
+            conn.close()
+            return rows
+        except Exception as e:
+            conn.close()
+            print(f"  ✗ Fetch error: {e}")
+            return [("", "")]
+
+    def fetch_by_category(self, cat: str) -> List[Tuple[str, str]]:
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        try:
+
+            cursor.execute("""
+                select distinct Directory, Title
+                where lower(Category) = ?
+                from Video order by Title
+            """, (cat, ))
+
+            rows  = [(row[1], row[0]) for row in cursor.fetchall()]
+
+            conn.commit()
+            conn.close()
+            return rows
+        except Exception as e:
+            conn.close()
+            print(f"  ✗ Fetch error: {e}")
+            return [("", "")]
+
+
     def toggle_watch_status(self, file_path: str) -> str:
         db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
         conn = sqlite3.connect(db_path)
