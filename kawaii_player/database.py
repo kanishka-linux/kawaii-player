@@ -574,7 +574,7 @@ class MediaDatabase():
                 select distinct Directory, Title from Video
             """)
 
-            rows  = [(row[1], row[0]) for row in cursor.fetchall()]
+            rows  = [(row[1], row[0]) for row in cursor.fetchall() if os.path.exists(row[0])]
 
             # Sort by when directory was last modified
             # with recent first
@@ -601,7 +601,7 @@ class MediaDatabase():
                 where EP_NAME like '#%'
             """)
 
-            rows  = [(row[1], row[0]) for row in cursor.fetchall()]
+            rows  = [(row[1], row[0]) for row in cursor.fetchall() if os.path.exists(row[0])]
 
             # Sort by when directory was last modified
             # with recent first
