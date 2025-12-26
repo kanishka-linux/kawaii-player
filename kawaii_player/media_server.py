@@ -1404,6 +1404,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif self.path.startswith('/browse.html')  or self.path.startswith('/browse?'):
             # Handle browse requests
             self.handle_browse_request()
+        elif self.path.startswith('/admin.html') or self.path == '/admin':
+            self.handle_admin_request()
+        elif self.path == '/admin-data':
+            self.handle_admin_data_request()
         elif self.path.startswith('/series/'):
             # Handle browse requests
             self.handle_browse_series_request()
@@ -2202,6 +2206,249 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         
         return base_url
 
+    def handle_admin_request(self):
+        """Serve the admin HTML page"""
+        try:
+            # Read HTML template
+            html_path = os.path.join(BASEDIR, 'web', 'admin.html')
+            with open(html_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(content.encode('utf-8'))
+        except FileNotFoundError:
+            self.send_error(404, "Admin interface not found")
+
+    
+    def handle_admin_data_request(self):
+        global home
+        """Serve lightweight admin data as JSON - titles and counts only"""
+        
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            # Get title data with episode counts - lightweight query
+            cur.execute("""
+                SELECT 
+                    v.Title,
+                    v.Directory,
+                    COUNT(*) as episode_count
+                FROM Video v
+                WHERE v.Title IS NOT NULL AND v.Directory IS NOT NULL
+                GROUP BY v.Title, v.Directory
+                ORDER BY v.Title
+            """)
+            title_rows = cur.fetchall()
+            
+            # Get all series info in one query
+            cur.execute("""
+                SELECT db_title
+                FROM series_info
+                WHERE db_title IS NOT NULL
+            """)
+            series_rows = cur.fetchall()
+            series_titles = {row['db_title'] for row in series_rows}
+            
+            conn.close()
+            
+            # Filter valid directories and get modification times
+            valid_titles = []
+            for row in title_rows:
+                title = row['Title']
+                directory = row['Directory']
+                
+                # Skip if directory doesn't exist
+                if not os.path.exists(directory):
+                    continue
+                
+                try:
+                    mtime = os.path.getmtime(directory)
+                except (OSError, FileNotFoundError):
+                    mtime = 0
+
+                valid_titles.append({
+                    'title': title,
+                    'directory_hash': self.calc_dir_hash(directory, title),
+                    'episode_count': row['episode_count'],
+                    'has_series_info': title in series_titles,
+                    'mtime': mtime
+                })
+            
+            # Sort by modification time (recent first)
+            valid_titles.sort(key=lambda x: x['mtime'], reverse=True)
+            
+            response = json.dumps(valid_titles, indent=2)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Admin data error: {str(e)}")
+            self.send_error(500, f"Database error: {str(e)}")
+
+    def calc_dir_hash(self, directory, title):
+        directory_h = bytes(f"{directory}-{title}", 'utf-8')
+        h = hashlib.sha256(directory_h)
+        hash_val = h.hexdigest()
+        return hash_val
+        
+    def handle_title_details_request(self, title, directory_hash):
+        global home
+        """Serve detailed episode data for a specific title"""
+        
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            # Get episodes for this title
+            cur.execute("""
+                SELECT 
+                    EP_NAME,
+                    Path,
+                    EPN,
+                    Directory
+                FROM Video 
+                WHERE Title = ?
+                ORDER BY EPN
+            """, (title,))
+            episode_rows = [
+                    row for row in cur.fetchall() if self.calc_dir_hash(row['Directory'], title) == directory_hash
+                    ]
+            
+            # Get series info for this title
+            cur.execute("""
+                SELECT 
+                    db_title,
+                    title,
+                    english_title,
+                    year,
+                    episodes,
+                    score,
+                    rank,
+                    popularity,
+                    type,
+                    duration,
+                    genres,
+                    external_id,
+                    image_poster_large,
+                    summary
+                FROM series_info
+                WHERE db_title = ?
+            """, (title,))
+            series_row = cur.fetchone()
+            
+            conn.close()
+            
+            # Build episode list
+            episodes = []
+            for row in episode_rows:
+                episodes.append({
+                    'name': row['EP_NAME'] or f"Episode {row['EPN']}",
+                    'path': row['Path']
+                })
+            
+            # Build response
+            response_data = {
+                'title': title,
+                'episodes': episodes,
+                'series_info': dict(series_row) if series_row else None
+            }
+            
+            response = json.dumps(response_data, indent=2)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Title details error: {str(e)}")
+            self.send_error(500, f"Database error: {str(e)}")
+
+    def handle_admin_data_request_legacy(self):
+        global home
+        """Serve admin data as JSON"""
+        
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            # Get unique titles with episode counts
+            cur.execute("""
+                SELECT 
+                    v.Title,
+                    v.Directory,
+                    COUNT(v.Path) as episode_count
+                FROM Video v
+                GROUP BY v.Title, v.Directory
+                ORDER BY v.Title
+            """)
+
+            rows  = [(row[0], row[1], row[2]) for row in cur.fetchall() if os.path.exists(row[1])]
+
+            # Sort by when directory was last modified
+            # with recent first
+            sorted_rows = sorted(
+                    rows, key=lambda x: os.path.getmtime(x[1]),
+                    reverse=True)
+            
+            titles_data = []
+            for row in sorted_rows:
+                title = row[0]
+                episode_count = row[2]
+                
+                # Get episodes for this title
+                # Need to fix this, very in-efficient
+                # To fetch data in 1 go
+                cur.execute("""
+                    SELECT EP_NAME, Path, EPN 
+                    FROM Video 
+                    WHERE Title = ? 
+                    ORDER BY EPN
+                """, (title,))
+                
+                episodes = []
+                for ep_row in cur.fetchall():
+                    episodes.append({
+                        'name': ep_row['EP_NAME'] or f"Episode {ep_row['EPN']}",
+                        'path': ep_row['Path']
+                    })
+                
+                # Check if series info exists
+                cur.execute("SELECT * FROM series_info WHERE db_title = ?", (title,))
+                series_row = cur.fetchone()
+                
+                title_data = {
+                    'title': title,
+                    'episode_count': episode_count,
+                    'has_series_info': series_row is not None,
+                    'episodes': episodes,
+                    'series_info': dict(series_row) if series_row else None
+                }
+                
+                titles_data.append(title_data)
+            
+            conn.close()
+            
+            response = json.dumps(titles_data, indent=2)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            self.send_error(500, f"Database error: {str(e)}")
+
     def handle_browse_request(self):
         """Handle /browse GET request without category filter"""
         try:
@@ -2291,7 +2538,285 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Internal server error')
 
     def do_POST(self):
-        self.do_init_function(type_request='post')
+        if self.path == '/admin-update':
+            self.handle_admin_update()
+        elif self.path.startswith('/title-details'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            title = content.get("title")
+            directory_hash = content.get("directory_hash")
+            if title and directory_hash:
+                self.handle_title_details_request(title, directory_hash)
+            else:
+                self.send_error(400, "Title parameter required")
+        else:
+            self.do_init_function(type_request='post')
+
+    def handle_admin_update(self):
+        """Handle admin update requests - JSON only"""
+        try:
+            # Get content length and read the data
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            
+            # Parse JSON data only
+            data = json.loads(post_data.decode('utf-8'))
+            print("JSON data:", data)
+            
+            action = data.get('action', '')
+            print("Action:", action)
+            print("Data:", data)
+            
+            if action == 'update_title':
+                result = self.update_single_title(data)
+            elif action == 'update_single_path':
+                result = self.update_single_path(data)
+            elif action == 'update_multiple_paths':
+                result = self.update_multiple_paths(data)
+            elif action == 'bulk_update':
+                result = {'success': False, 'error': 'Bulk update will be implemented later with DB migration'}
+            else:
+                result = {'success': False, 'error': 'Invalid action'}
+            
+            # Send response
+            response = json.dumps(result)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Error in handle_admin_update: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            error_response = json.dumps({'success': False, 'error': str(e)})
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(error_response.encode('utf-8'))
+
+    def update_single_title(self, data):
+        """Update a single title and its episodes"""
+        global home
+
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            original_title = data.get('original_title', '').strip()
+            new_title = data.get('new_title', '').strip()
+            directory_hash = data.get('directory_hash', '').strip()
+            
+            # Handle selected_paths - now expecting array directly
+            selected_paths = data.get('selected_paths', [])
+            
+            # Ensure it's a list
+            if not isinstance(selected_paths, list):
+                print(f"Warning: selected_paths is not a list: {type(selected_paths)} - {repr(selected_paths)}")
+                selected_paths = []
+            
+            print(f"Updating title: '{original_title}' -> '{new_title}'")
+            print(f"Selected paths: {len(selected_paths)} files")
+            print(f"Selected paths: {selected_paths}")
+            
+            updates_made = []
+            update_path_count = 0
+            
+            # Update Video table if new title is provided
+            if new_title and new_title != original_title:
+                if selected_paths:
+                    # Update only selected episodes
+                    placeholders = ','.join(['?' for _ in selected_paths])
+                    cur.execute(f"UPDATE Video SET Title = ? WHERE Path IN ({placeholders})", 
+                               [new_title] + selected_paths)
+                    affected_rows = cur.rowcount
+                    if affected_rows > 0:
+                        updates_made.append(f"Updated title for {affected_rows} episodes")
+                else:
+                    # Get episodes for this title
+                    cur.execute("""
+                        SELECT 
+                            EP_NAME,
+                            Path,
+                            EPN,
+                            Directory
+                        FROM Video 
+                        WHERE Title = ?
+                        ORDER BY EPN
+                    """, (original_title,))
+                    episode_rows = [
+                            row['Path'] for row in cur.fetchall() if self.calc_dir_hash(row['Directory'], original_title) == directory_hash
+                            ]
+
+                    for path in episode_rows:
+                        query = "update video set Title = ? where Path = ?"
+                        cur.execute(query, (new_title, path))
+
+                        affected_rows = cur.rowcount
+                        if affected_rows > 0:
+                            update_path_count = update_path_count + 1
+
+            if update_path_count > 0:
+                updates_made.append(f"Updated title from '{original_title}' to '{new_title}' for {update_path_count} episodes")
+            else:
+                updates_made.append(f"No update for {original_title}")
+
+            
+            # Update series_info
+            series_fields = {
+                'db_title': data.get('db_title', '').strip(),
+                'title': data.get('display_title', '').strip(),
+                'english_title': data.get('english_title', '').strip(),
+                'year': data.get('year', '').strip(),
+                'episodes': data.get('episodes', '').strip(),
+                'score': data.get('score', '').strip(),
+                'rank': data.get('rank', '').strip(),
+                'popularity': data.get('popularity', '').strip(),
+                'type': data.get('type', '').strip(),
+                'duration': data.get('duration', '').strip(),
+                'genres': data.get('genres', '').strip(),
+                'external_id': data.get('external_id', '').strip(),
+                'image_poster_large': data.get('image_poster', '').strip(),
+                'summary': data.get('summary', '').strip()
+            }
+            
+            # Filter out empty fields
+            series_updates = {k: v for k, v in series_fields.items() if v}
+            
+            if series_updates:
+                # Use the new title if provided, otherwise use original
+                target_title = new_title if new_title else original_title
+                
+                print(f"Updating series info for: '{target_title}'")
+                print(f"Series updates: {series_updates}")
+                
+                # Check if series_info exists
+                cur.execute("SELECT COUNT(*) FROM series_info WHERE db_title = ?", (target_title,))
+                exists = cur.fetchone()[0] > 0
+                
+                if exists:
+                    # Update existing record
+                    set_clause = ', '.join([f"{k} = ?" for k in series_updates.keys()])
+                    values = list(series_updates.values()) + [target_title]
+                    cur.execute(f"UPDATE series_info SET {set_clause} WHERE db_title = ?", values)
+                    affected_rows = cur.rowcount
+                    if affected_rows > 0:
+                        updates_made.append("Updated existing series information")
+            
+            conn.commit()
+            conn.close()
+            
+            return {
+                'success': True,
+                'message': '; '.join(updates_made) if updates_made else 'No changes made'
+            }
+            
+        except Exception as e:
+            print(f"Error in update_single_title: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            if 'conn' in locals():
+                conn.rollback()
+                conn.close()
+            return {'success': False, 'error': str(e)}
+
+    def update_single_path(self, data):
+        """Update title for a single video path"""
+        global home
+
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            cur = conn.cursor()
+            
+            video_path = data.get('video_path', '').strip()
+            new_title = data.get('new_title', '').strip()
+            
+            print(f"Updating single path: '{video_path}' -> '{new_title}'")
+            
+            if not video_path or not new_title:
+                return {'success': False, 'error': 'Video path and new title are required'}
+            
+            # Update the specific video file
+            cur.execute("UPDATE Video SET Title = ? WHERE Path = ?", (new_title, video_path))
+            
+            if cur.rowcount == 0:
+                return {'success': False, 'error': 'Video file not found'}
+            
+            conn.commit()
+            conn.close()
+            
+            return {
+                'success': True,
+                'message': f"Successfully updated episode title to '{new_title}'"
+            }
+            
+        except Exception as e:
+            print(f"Error in update_single_path: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            if 'conn' in locals():
+                conn.rollback()
+                conn.close()
+            return {'success': False, 'error': f"Database error: {str(e)}"}
+
+    def update_multiple_paths(self, data):
+        """Update title for multiple video paths"""
+        global home
+
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            cur = conn.cursor()
+            
+            # Handle video_paths - now expecting array directly
+            video_paths = data.get('video_paths', [])
+            
+            # Ensure it's a list
+            if not isinstance(video_paths, list):
+                print(f"Warning: video_paths is not a list: {type(video_paths)} - {repr(video_paths)}")
+                video_paths = []
+                
+            new_title = data.get('new_title', '').strip()
+            
+            print(f"Updating multiple paths: {len(video_paths)} files -> '{new_title}'")
+            print(f"Video paths: {video_paths}")
+            
+            if not video_paths or not new_title:
+                return {'success': False, 'error': 'Video paths and new title are required'}
+            
+            # Update all selected video files
+            placeholders = ','.join(['?' for _ in video_paths])
+            cur.execute(f"UPDATE Video SET Title = ? WHERE Path IN ({placeholders})", 
+                       [new_title] + video_paths)
+            
+            updated_count = cur.rowcount
+            
+            if updated_count == 0:
+                return {'success': False, 'error': 'No video files were updated'}
+            
+            conn.commit()
+            conn.close()
+            
+            return {
+                'success': True,
+                'message': f"Successfully updated {updated_count} episodes to '{new_title}'"
+            }
+            
+        except Exception as e:
+            print(f"Error in update_multiple_paths: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            if 'conn' in locals():
+                conn.rollback()
+                conn.close()
+            return {'success': False, 'error': f"Database error: {str(e)}"}
 
     def process_url(self, nm, get_bytes, status=None):
         global ui, logger
@@ -4245,11 +4770,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
         elif path.endswith('.css') or path.endswith('.js'):
-            if path.endswith('.css') and path in ['style.css', 'browse.css']:
+            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/css')
-            elif path.endswith('.js') and path in ['myscript.js', 'browse.js']:
+            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/javascript')
