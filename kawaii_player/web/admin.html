@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Server Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-header">
+        <h1>Media Server Admin Panel</h1>
+    </div>
+    
+    <div class="admin-container">
+        <div class="main-content">
+            <div class="controls">
+                <div class="search-section">
+                    <h3>Search & Filter</h3>
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Search titles...">
+                        <button id="search-btn" class="btn btn-primary">Search</button>
+                        <button id="clear-btn" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+                
+                <div class="bulk-actions">
+                    <h4>Bulk Actions</h4>
+                    <button id="select-all-btn" class="btn btn-secondary">Select All</button>
+                    <button id="deselect-all-btn" class="btn btn-secondary">Deselect All</button>
+                    <button id="bulk-edit-btn" class="btn btn-primary" disabled>Bulk Edit</button>
+                    <button id="bulk-metadata-btn" class="btn btn-info" disabled>Fetch Metadata</button>
+                    <button id="update-collection-btn" class="btn btn-warning">Update Collection</button>
+                    <button id="filter-no-info-btn" class="btn btn-filter-no-info">No Info Only</button>
+                </div>
+            </div>
+            
+            <div class="titles-section">
+                <div id="titles-list" class="titles-list">
+                    <div class="loading">Loading titles...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="details-panel" class="details-panel">
+            <div class="details-header">
+                <h3 id="details-title">Title Details</h3>
+                <button id="close-details" class="close-btn">&times;</button>
+            </div>
+            <div id="details-content" class="details-content">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
