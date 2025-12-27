@@ -18,7 +18,7 @@ class AdminPanel {
         // Restore to saved index after page load
         setTimeout(() => {
             this.restoreToSavedIndex();
-        }, 500);
+        }, 2000);
     }
     
     handleBulkMetadata() {
@@ -118,6 +118,41 @@ class AdminPanel {
                 this.closeDetailsPanel();
             });
         }
+    }
+
+    setupTitleEventListeners() {
+        // Handle checkbox changes
+        document.querySelectorAll('.title-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (event) => {
+                const hash = event.target.dataset.hash;
+                const titleElement = event.target.closest('.title-item');
+                const title = titleElement.dataset.title;
+                this.toggleTitleSelection(hash, title);
+            });
+        });
+
+        // Handle title info clicks
+        document.querySelectorAll('.title-info').forEach(titleInfo => {
+            titleInfo.addEventListener('click', (event) => {
+                const index = parseInt(titleInfo.dataset.index);
+                const hash = titleInfo.dataset.hash;
+                const titleElement = titleInfo.closest('.title-item');
+                const title = titleElement.dataset.title;
+                this.saveTitleIndexAndShowDetails(index, hash, title);
+            });
+        });
+
+        // Handle edit button clicks
+        document.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const index = parseInt(button.dataset.index);
+                const hash = button.dataset.hash;
+                const titleElement = button.closest('.title-item');
+                const title = titleElement.dataset.title;
+                this.saveIndexAndEditTitle(index, hash, title);
+            });
+        });
     }
 
     closeDetailsPanel() {
@@ -364,6 +399,7 @@ class AdminPanel {
     }
 
     // UPDATED: Render titles with directory_hash in click handlers
+    
     renderTitles(titlesToRender = null) {
         const container = document.getElementById('titles-list');
         const titles = titlesToRender || this.titles;
@@ -374,12 +410,18 @@ class AdminPanel {
         }
 
         container.innerHTML = titles.map((title, index) => `
-            <div class="title-item" data-title="${this.escapeHtml(title.title)}" data-hash="${this.escapeHtml(title.directory_hash)}" data-index="${index}" id="title-index-${index}">
+            <div class="title-item" 
+                 data-title="${this.escapeHtml(title.title)}" 
+                 data-hash="${this.escapeHtml(title.directory_hash)}" 
+                 data-index="${index}" 
+                 id="title-index-${index}">
                 <input type="checkbox" class="title-checkbox" 
                        ${this.selectedTitles.has(title.directory_hash) ? 'checked' : ''}
-                       onchange="admin.toggleTitleSelection('${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
+                       data-hash="${this.escapeHtml(title.directory_hash)}">
                 
-                <div class="title-info" onclick="admin.saveTitleIndexAndShowDetails(${index}, '${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
+                <div class="title-info" 
+                     data-index="${index}" 
+                     data-hash="${this.escapeHtml(title.directory_hash)}">
                     <div class="title-name">${this.escapeHtml(title.title)}</div>
                     <div class="title-meta">
                         <span class="episode-count">${title.episode_count} episodes</span>
@@ -390,13 +432,16 @@ class AdminPanel {
                 </div>
                 
                 <div class="title-actions">
-                    <button class="btn btn-edit" onclick="admin.saveIndexAndEditTitle(${index}, '${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
+                    <button class="btn btn-edit" 
+                            data-index="${index}" 
+                            data-hash="${this.escapeHtml(title.directory_hash)}">
                         Edit
                     </button>
                 </div>
             </div>
         `).join('');
 
+        this.setupTitleEventListeners();
         this.updateBulkEditButton();
     }
 
@@ -1217,6 +1262,7 @@ class AdminPanel {
             selectedTitles = [];
         }
         
+        console.log(selectedTitles)
         const category = document.getElementById('metadata-category').value;
         const useCache = document.getElementById('use-cache').checked;
         
