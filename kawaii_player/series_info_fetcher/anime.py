@@ -170,7 +170,7 @@ class AnimeInfoFetcher:
                     dt = datetime.fromisoformat(aired_from)
                     year = dt.year
                 except Exception as err:
-                    self.ui.logger("error: {}, formating iso-date: {}".format(err, aired_from))
+                    self.ui.logger.error("error: {}, formating iso-date: {}".format(err, aired_from))
                 anime_details['year'] = year
             img_url = anime_details.get("image_poster_large")
             if img_url:
@@ -184,6 +184,6 @@ class AnimeInfoFetcher:
             return anime_details
             
         except Exception as err:
-            self.ui.logger("error: {}, for fetching: {}".format(err, title))
+            self.ui.logger.error("error: {}, for fetching: {}".format(err, title))
             return None
 
