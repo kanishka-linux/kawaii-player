@@ -443,6 +443,9 @@ class AdminPanel {
 
         this.setupTitleEventListeners();
         this.updateBulkEditButton();
+        setTimeout(() => {
+            this.restoreToSavedIndex();
+        }, 2000);
     }
 
     // Save title index for restoration
