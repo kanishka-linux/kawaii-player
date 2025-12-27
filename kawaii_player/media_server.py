@@ -2601,7 +2601,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def update_single_title(self, data):
         """Update a single title and its episodes"""
-        global home
+        global home, logger
 
         try:
             conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
@@ -2612,64 +2612,52 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             new_title = data.get('new_title', '').strip()
             directory_hash = data.get('directory_hash', '').strip()
             
-            # Handle selected_paths - now expecting array directly
-            selected_paths = data.get('selected_paths', [])
-            
-            # Ensure it's a list
-            if not isinstance(selected_paths, list):
-                print(f"Warning: selected_paths is not a list: {type(selected_paths)} - {repr(selected_paths)}")
-                selected_paths = []
-            
-            print(f"Updating title: '{original_title}' -> '{new_title}'")
-            print(f"Selected paths: {len(selected_paths)} files")
-            print(f"Selected paths: {selected_paths}")
-            
             updates_made = []
             update_path_count = 0
             
             # Update Video table if new title is provided
-            if new_title and new_title != original_title:
-                if selected_paths:
-                    # Update only selected episodes
-                    placeholders = ','.join(['?' for _ in selected_paths])
-                    cur.execute(f"UPDATE Video SET Title = ? WHERE Path IN ({placeholders})", 
-                               [new_title] + selected_paths)
+            if new_title and len(new_title) > 3 and new_title != original_title:
+                # Get episodes for this title
+                cur.execute("""
+                    SELECT 
+                        EP_NAME,
+                        Path,
+                        EPN,
+                        Directory
+                    FROM Video 
+                    WHERE Title = ?
+                    ORDER BY EPN
+                """, (original_title,))
+                episode_rows = [
+                        row['Path'] for row in cur.fetchall() if self.calc_dir_hash(row['Directory'], original_title) == directory_hash
+                        ]
+
+                for path in episode_rows:
+                    query = "update video set Title = ? where Path = ?"
+                    cur.execute(query, (new_title, path))
+
                     affected_rows = cur.rowcount
                     if affected_rows > 0:
-                        updates_made.append(f"Updated title for {affected_rows} episodes")
-                else:
-                    # Get episodes for this title
-                    cur.execute("""
-                        SELECT 
-                            EP_NAME,
-                            Path,
-                            EPN,
-                            Directory
-                        FROM Video 
-                        WHERE Title = ?
-                        ORDER BY EPN
-                    """, (original_title,))
-                    episode_rows = [
-                            row['Path'] for row in cur.fetchall() if self.calc_dir_hash(row['Directory'], original_title) == directory_hash
-                            ]
-
-                    for path in episode_rows:
-                        query = "update video set Title = ? where Path = ?"
-                        cur.execute(query, (new_title, path))
-
-                        affected_rows = cur.rowcount
-                        if affected_rows > 0:
-                            update_path_count = update_path_count + 1
+                        update_path_count = update_path_count + 1
 
             if update_path_count > 0:
                 updates_made.append(f"Updated title from '{original_title}' to '{new_title}' for {update_path_count} episodes")
+                try:
+                    cur.execute("""
+                        update series_info
+                        set db_title = ?
+                        where db_title = ?
+                    """, (new_title, original_title))
+                except sqlite3.IntegrityError as e:
+                    # Check if it's a unique constraint error on db_title
+                    if "UNIQUE constraint failed" in str(e) and "db_title" in str(e):
+                        logger.error(f"Error: {str(e)}, db_title = {new_title} already exists")
             else:
                 updates_made.append(f"No update for {original_title}")
 
             
             # Update series_info
             series_fields = {
-                'db_title': data.get('db_title', '').strip(),
                 'title': data.get('display_title', '').strip(),
                 'english_title': data.get('english_title', '').strip(),
                 'year': data.get('year', '').strip(),
