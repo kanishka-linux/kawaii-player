@@ -7,12 +7,18 @@ class AdminPanel {
         this.currentSearchTerm = '';
         this.currentSeriesInfoFilter = 'all';
         this.currentEditPaths = null;
+        this.currentHighlightedIndex = null;
         this.init();
     }
 
     init() {
         this.setupEventListeners();
         this.loadTitles();
+
+        // Restore to saved index after page load
+        setTimeout(() => {
+            this.restoreToSavedIndex();
+        }, 500);
     }
     
     handleBulkMetadata() {
@@ -115,6 +121,7 @@ class AdminPanel {
     }
 
     closeDetailsPanel() {
+        console.log("closing...")
         const detailsPanel = document.getElementById('details-panel');
         detailsPanel.classList.remove('active');
         
@@ -125,6 +132,18 @@ class AdminPanel {
         
         this.currentTitle = null;
         this.selectedEpisodes.clear();
+
+        // Restore to saved index
+        setTimeout(() => {
+            this.restoreToSavedIndex();
+        }, 350);
+        
+        setTimeout(() => {
+            if (!detailsPanel.classList.contains('active')) {
+                const detailsContent = document.getElementById('details-content');
+                detailsContent.innerHTML = '';
+            }
+        }, 300);
     }
 
     toggleNoInfoFilter() {
@@ -354,13 +373,13 @@ class AdminPanel {
             return;
         }
 
-        container.innerHTML = titles.map(title => `
-            <div class="title-item" data-title="${this.escapeHtml(title.title)}" data-hash="${this.escapeHtml(title.directory_hash)}">
+        container.innerHTML = titles.map((title, index) => `
+            <div class="title-item" data-title="${this.escapeHtml(title.title)}" data-hash="${this.escapeHtml(title.directory_hash)}" data-index="${index}" id="title-index-${index}">
                 <input type="checkbox" class="title-checkbox" 
                        ${this.selectedTitles.has(title.directory_hash) ? 'checked' : ''}
                        onchange="admin.toggleTitleSelection('${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
                 
-                <div class="title-info" onclick="admin.showTitleDetails('${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
+                <div class="title-info" onclick="admin.saveTitleIndexAndShowDetails(${index}, '${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
                     <div class="title-name">${this.escapeHtml(title.title)}</div>
                     <div class="title-meta">
                         <span class="episode-count">${title.episode_count} episodes</span>
@@ -371,7 +390,7 @@ class AdminPanel {
                 </div>
                 
                 <div class="title-actions">
-                    <button class="btn btn-edit" onclick="admin.editTitle('${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
+                    <button class="btn btn-edit" onclick="admin.saveIndexAndEditTitle(${index}, '${this.escapeHtml(title.directory_hash)}', '${this.escapeHtml(title.title)}')">
                         Edit
                     </button>
                 </div>
@@ -379,6 +398,151 @@ class AdminPanel {
         `).join('');
 
         this.updateBulkEditButton();
+    }
+
+    // Save title index for restoration
+    saveCurrentIndex(index) {
+        console.log('=== SAVING TITLE INDEX ===');
+        console.log('Saving index:', index);
+        
+        localStorage.setItem('adminReturnToIndex', index.toString());
+        localStorage.setItem('adminShouldScrollToIndex', 'true');
+        
+        console.log('Index saved to localStorage');
+        console.log('==========================');
+    }
+
+    // Restore and scroll to saved index
+    restoreToSavedIndex() {
+        console.log('=== RESTORING TO SAVED INDEX ===');
+        
+        const shouldScroll = localStorage.getItem('adminShouldScrollToIndex');
+        const savedIndex = localStorage.getItem('adminReturnToIndex');
+        
+        console.log('Should scroll:', shouldScroll);
+        console.log('Saved index:', savedIndex);
+        
+        if (shouldScroll === 'true' && savedIndex !== null) {
+            const index = parseInt(savedIndex);
+            console.log('Scrolling to index:', index);
+            
+            this.scrollToIndex(index);
+            //this.clearSavedIndex();
+            return true;
+        }
+        
+        console.log('No saved index to restore');
+        return false;
+    }
+
+    // Scroll to specific index within titles container with proper offset
+    
+    scrollToIndex(index) {
+        console.log('Scrolling to index:', index);
+        
+        const titleElement = document.getElementById(`title-index-${index}`);
+        const titlesContainer = document.getElementById('titles-list');
+        
+        if (titleElement && titlesContainer) {
+            const elementTop = titleElement.offsetTop;
+            const bulkEditHeight = 60;
+            const additionalOffset = 20;
+            const totalOffset = bulkEditHeight + additionalOffset;
+            
+            titlesContainer.scrollTo({
+                top: Math.max(0, elementTop - totalOffset),
+                behavior: 'smooth'
+            });
+            
+            // Highlight by index (clears previous automatically)
+            this.highlightElementByIndex(index);
+        }
+    }
+
+    // Clear saved index
+    clearSavedIndex() {
+        console.log('Clearing saved index from localStorage');
+        localStorage.removeItem('adminReturnToIndex');
+        localStorage.removeItem('adminShouldScrollToIndex');
+    }
+
+    // Add highlight effect to element
+    
+    // Highlight element by index
+    highlightElementByIndex(index) {
+        console.log('=== HIGHLIGHTING BY INDEX ===');
+        console.log('Previous highlighted index:', this.currentHighlightedIndex);
+        console.log('New index to highlight:', index);
+        
+        // Clear previous highlight
+        this.clearPreviousHighlight();
+        
+        // Find and highlight new element
+        const element = document.getElementById(`title-index-${index}`);
+        if (element) {
+            // Store the new highlighted index
+            this.currentHighlightedIndex = index;
+            
+            // Apply highlight
+            element.style.backgroundColor = '#e3f2fd';
+            element.style.transition = 'background-color 0.3s ease';
+            
+            console.log('Highlight applied to index:', index);
+        } else {
+            console.warn('Element not found for index:', index);
+        }
+        
+        console.log('=============================');
+    }
+
+    // Clear all existing highlights
+    clearAllHighlights() {
+        console.log("clear high..")
+        if (this.currentHighlightedElement) {
+            this.currentHighlightedElement.style.backgroundColor = '';
+            this.currentHighlightedElement.style.transition = '';
+            this.currentHighlightedElement = null;
+        }
+    }
+
+    // Clear highlight from previous index
+    clearPreviousHighlight() {
+        console.log('Clearing previous highlight');
+        
+        if (this.currentHighlightedIndex !== null) {
+            console.log('Clearing highlight from index:', this.currentHighlightedIndex);
+            
+            const previousElement = document.getElementById(`title-index-${this.currentHighlightedIndex}`);
+            if (previousElement) {
+                previousElement.style.backgroundColor = '';
+                previousElement.style.transition = '';
+                console.log('Previous highlight cleared');
+            } else {
+                console.warn('Previous highlighted element not found for index:', this.currentHighlightedIndex);
+            }
+        }
+        
+        this.currentHighlightedIndex = null;
+    }
+
+    // Save index and show details
+    saveTitleIndexAndShowDetails(index, directoryHash, titleName) {
+        this.saveCurrentIndex(index);
+
+        // Highlight the clicked element (stays until another click)
+        const titleElement = document.getElementById(`title-index-${index}`);
+        if (titleElement) {
+            this.highlightElementByIndex(index);
+        }
+
+        this.showTitleDetails(directoryHash, titleName);
+    }
+
+    // Save index and edit title
+    saveIndexAndEditTitle(index, directoryHash, titleName) {
+        this.saveCurrentIndex(index);
+        this.highlightElementByIndex(index);
+        this.editTitle(directoryHash, titleName);
     }
 
     // UPDATED: Toggle title selection using directory_hash
@@ -549,6 +713,13 @@ class AdminPanel {
         } catch (error) {
             console.error('Error loading title details:', error);
             detailsContent.innerHTML = this.generateErrorDetailsHTML(error.message);
+        }
+
+        const mobileBackBtn = document.getElementById('mobile-back-btn');
+        if (mobileBackBtn) {
+            mobileBackBtn.addEventListener('click', () => {
+                this.closeDetailsPanel();
+            });
         }
     }
 
