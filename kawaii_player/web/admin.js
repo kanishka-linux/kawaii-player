@@ -6,6 +6,7 @@ class AdminPanel {
         this.currentTitle = null;
         this.currentSearchTerm = '';
         this.currentSeriesInfoFilter = 'all';
+        this.currentEditPaths = null;
         this.init();
     }
 
@@ -104,6 +105,26 @@ class AdminPanel {
         document.getElementById('filter-no-info-btn').addEventListener('click', () => {
             this.toggleNoInfoFilter();
         });
+
+        const mobileBackBtn = document.getElementById('mobile-back-btn');
+        if (mobileBackBtn) {
+            mobileBackBtn.addEventListener('click', () => {
+                this.closeDetailsPanel();
+            });
+        }
+    }
+
+    closeDetailsPanel() {
+        const detailsPanel = document.getElementById('details-panel');
+        detailsPanel.classList.remove('active');
+        
+        // Restore body scroll on mobile
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = '';
+        }
+        
+        this.currentTitle = null;
+        this.selectedEpisodes.clear();
     }
 
     toggleNoInfoFilter() {
@@ -827,7 +848,7 @@ class AdminPanel {
         this.openSinglePathEditModal(path, currentTitle);
     }
 
-        openSinglePathEditModal(videoPath, currentTitle) {
+    openSinglePathEditModal(videoPath, currentTitle) {
         const modalHTML = `
             <div id="edit-modal" class="modal">
                 <div class="modal-content">
@@ -883,6 +904,8 @@ class AdminPanel {
         const pathsToSend = selectedPaths || [];
         console.log("Paths to send in modal:", pathsToSend); // Debug log
         
+        this.currentEditPaths = pathsToSend;
+
         const modalHTML = `
             <div id="edit-modal" class="modal">
                 <div class="modal-content">
@@ -891,7 +914,6 @@ class AdminPanel {
                     <p class="edit-info">Editing ${pathsToSend.length} episode(s). Only the title will be updated.</p>
                     
                     <form id="edit-form" onsubmit="admin.submitMultiplePathsEdit(event)">
-                        <input type="hidden" id="selected-video-paths" value='${JSON.stringify(pathsToSend)}'>
                         
                         <div class="form-section">
                             <h4>Episode Information</h4>
@@ -1205,19 +1227,57 @@ class AdminPanel {
         }
     }
 
-        // UPDATED: Edit title using directory_hash
-    editTitle(directoryHash, titleName = null) {
+    // UPDATED: Edit title using directory_hash
+   
+    async editTitle(directoryHash, titleName) {
+        console.log('Editing title:', titleName, 'Hash:', directoryHash);
+        
+        // Find the title to check if it has series info
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) {
-            console.error('Title not found with directory_hash:', directoryHash);
+            this.showErrorMessage('Title not found');
             return;
         }
-
-        // Get all paths for this specific title (by directory_hash)
-        const allPaths = title.episodes ? title.episodes.map(ep => ep.path) : [];
-        console.log("All paths for title:", allPaths); // Debug log
         
-        this.openEditModal(title.title, allPaths, directoryHash);
+        let seriesData = null;
+        let episodesList = null;
+        
+        // If title has series info, fetch the details
+        if (title.has_series_info) {
+            try {
+                console.log('Title has series info, fetching details...');
+                this.showUpdateProgress('Loading series information...');
+                
+                const response = await fetch('/title-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: titleName,
+                        directory_hash: directoryHash
+                    })
+                });
+                
+                if (response.ok) {
+                    const detailsData = await response.json();
+                    if (detailsData && !detailsData.error) {
+                        seriesData = detailsData.series_info || null;
+                        episodesList = detailsData.episodes || null;
+                        console.log('Fetched series data:', seriesData);
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to fetch series info for editing:', error);
+                // Continue without series data
+            }
+            
+            // Hide progress indicator
+            this.hideUpdateProgress();
+        }
+        
+        // Open the edit modal with series data
+        this.openEditModal(directoryHash, titleName, seriesData, episodesList);
     }
 
     // UPDATED: Handle bulk edit (Type 4 - Multiple titles bulk update)
@@ -1238,15 +1298,16 @@ class AdminPanel {
     }
 
     // UPDATED: Open edit modal with directory_hash
-    openEditModal(titleName, selectedPaths, directoryHash) {
+    
+    
+    // UPDATED: Open edit modal with directory_hash
+    openEditModal(directoryHash, titleName, seriesData, episodesList) {
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) return;
 
-        const series = title.series_info || {};
-        
-        // Ensure selectedPaths is properly handled
-        const pathsToSend = selectedPaths || [];
-        console.log("Paths to send:", pathsToSend); // Debug log
+        const series = seriesData || {};
+        const pathsToSend = episodesList || [];
+        console.log(series)
         
         const modalHTML = `
             <div id="edit-modal" class="modal">
@@ -1258,7 +1319,6 @@ class AdminPanel {
                     <form id="edit-form" onsubmit="admin.submitEdit(event)">
                         <input type="hidden" id="original-title" value="${this.escapeHtml(titleName)}">
                         <input type="hidden" id="directory-hash" value="${this.escapeHtml(directoryHash)}">
-                        <input type="hidden" id="selected-paths" value='${JSON.stringify(pathsToSend)}'>
                         
                         <div class="form-section">
                             <h4>Video Information</h4>
@@ -1405,6 +1465,10 @@ class AdminPanel {
         if (modal) {
             modal.remove();
         }
+        // Reset stored paths when modal is closed
+        this.currentEditPaths = null;
+        // Clear saved scroll position since user cancelled
+        localStorage.removeItem('adminScrollPosition');
     }
 
     // UPDATED: Submit edit with directory_hash
@@ -1531,17 +1595,13 @@ class AdminPanel {
     async submitMultiplePathsEdit(event) {
         event.preventDefault();
         
-        const selectedPathsElement = document.getElementById('selected-video-paths');
-        const selectedPathsValue = selectedPathsElement ? selectedPathsElement.value : '[]';
+        const videoPaths = this.currentEditPaths || [];
+        console.log("Using stored paths:", videoPaths.length, "episodes"); // Debug log
         
-        console.log("Selected video paths value:", selectedPathsValue); // Debug log
-        
-        let videoPaths;
-        try {
-            videoPaths = JSON.parse(selectedPathsValue);
-        } catch (e) {
-            console.error("Error parsing video paths:", e);
-            videoPaths = [];
+        if (videoPaths.length === 0) {
+            this.showErrorMessage("No episodes selected for editing.");
+            this.currentEditPaths = null; // Reset on error
+            return;
         }
         
         const formData = {
@@ -1550,7 +1610,7 @@ class AdminPanel {
             new_title: document.getElementById('paths-new-title').value.trim()
         };
 
-        console.log("Multiple paths form data to send:", formData); // Debug log
+        console.log("Multiple paths form data to send:", formData.video_paths.length, "paths"); // Debug log
 
         try {
             this.showUpdateProgress('Updating multiple episodes...');
@@ -1570,13 +1630,13 @@ class AdminPanel {
             const result = await response.json();
             
             if (result.success) {
+                // SUCCESS: Reset everything
+                this.currentEditPaths = null;
                 this.closeEditModal();
                 await this.loadTitles();
                 this.showSuccessMessage(result.message || 'Episodes updated successfully');
-                // Clear selection after successful update
                 this.selectedEpisodes.clear();
                 this.updateSelectionUI();
-                // Refresh details panel if it's open
                 if (this.currentTitle) {
                     await this.showTitleDetails(this.currentTitle.directory_hash, this.currentTitle.title);
                 }
@@ -1585,6 +1645,8 @@ class AdminPanel {
             }
             
         } catch (error) {
+            // ERROR: Reset and show error
+            this.currentEditPaths = null;
             this.showErrorMessage('Update failed: ' + error.message);
         }
     }
@@ -1597,21 +1659,35 @@ class AdminPanel {
         this.showErrorMessage('Bulk edit will be implemented after database migration for category/label/ignore fields.');
     }
 
-    showUpdateProgress(message) {
+    
+    showUpdateProgress(message, autoHide = true) {
         const existing = document.getElementById('update-progress');
         if (existing) existing.remove();
         
         const progressDiv = document.createElement('div');
         progressDiv.id = 'update-progress';
         progressDiv.className = 'update-progress';
-        progressDiv.textContent = message;
+        progressDiv.innerHTML = `
+            <div class="loading-spinner"></div>
+            <span>${this.escapeHtml(message)}</span>
+        `;
         document.body.appendChild(progressDiv);
         
-        setTimeout(() => {
-            if (progressDiv.parentNode) {
-                progressDiv.remove();
-            }
-        }, 3000);
+        // Only auto-hide if specified (default true for backward compatibility)
+        if (autoHide) {
+            setTimeout(() => {
+                if (progressDiv.parentNode) {
+                    progressDiv.remove();
+                }
+            }, 3000);
+        }
+    }
+    
+    hideUpdateProgress() {
+        const existing = document.getElementById('update-progress');
+        if (existing) {
+            existing.remove();
+        }
     }
 
     showSuccessMessage(message) {
