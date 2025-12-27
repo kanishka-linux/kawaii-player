@@ -943,6 +943,25 @@ body {
         font-size: 12px; /* Smaller text for mobile */
         padding: 8px 12px; /* Adjust padding */
     }
+
+    .results-summary {
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+    
+    .results-container {
+        padding: 10px;
+        margin-top: 10px;
+    }
+    
+    .result-item {
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+    
+    .result-item:first-child {
+        margin-top: 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1205,7 +1224,11 @@ body {
     display: flex;
     flex-direction: column;
     border-left: 1px solid #ddd;
-    padding-left: 20px;
+    padding-left: 15px;
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .metadata-results-section h4 {
