@@ -821,7 +821,7 @@ class MediaDatabase():
         finally:
             conn.close()
 
-    def insert_series_data(self, title, series_data):
+    def insert_series_data(self, title, series_data, category):
 
         db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
 
@@ -830,8 +830,9 @@ class MediaDatabase():
             id, db_title, title, english_title,
             genres, year, episodes, image_poster_large,
             external_id, summary, score, rank,
-            popularity, type, duration
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            popularity, type, duration,
+            directory, category, episodes_available
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         update_sql = """
@@ -839,7 +840,8 @@ class MediaDatabase():
             title = ?, english_title = ?, genres = ?, year = ?,
             episodes = ?, image_poster_large = ?, external_id = ?,
             summary = ?, score = ?, rank = ?, popularity = ?,
-            type = ?, duration = ?
+            type = ?, duration = ?,
+            directory = ?, category = ?, episodes_available = ? 
         WHERE db_title = ?
         """
 
@@ -847,6 +849,16 @@ class MediaDatabase():
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
+
+        cursor.execute("""select count(*) from Video where Title = ?""", (title, ))
+        episodes_available = cursor.fetchone()[0]
+        directory = ""
+        cursor.execute("""select Directory from Video where Title = ?""", (title, ))
+        res = cursor.fetchone()
+        if res:
+            directory = res[0]
+
+
         try:
 
             # Generate UUID for the record
@@ -869,6 +881,9 @@ class MediaDatabase():
                 series_data.get('popularity'),
                 series_data.get('type'),
                 series_data.get('duration'),
+                directory,
+                category,
+                episodes_available
             )
 
             cursor.execute(insert_sql, data_tuple)
@@ -901,6 +916,9 @@ class MediaDatabase():
                         series_data.get('popularity'),
                         series_data.get('type'),
                         series_data.get('duration'),
+                        directory,
+                        category,
+                        episodes_available,
                         title  # WHERE clause parameter
                     )
 

@@ -1002,7 +1002,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
                 else:
                     result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
-                ui.media_data.insert_series_data(db_title, result)
+                ui.media_data.insert_series_data(db_title, result, series_type)
 
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
 
@@ -2254,7 +2254,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             series_rows = cur.fetchall()
             series_titles = {row['db_title'] for row in series_rows}
             
+            cur.execute("""
+                select distinct category
+                from series_info
+                where category is not null
+                and category != ""
+            """)
+            categories = [row[0].strip() for row in cur.fetchall()]
+            cur.execute("""
+                select distinct labels
+                from series_info
+                where labels is not null
+                and labels != ""
+            """)
+            labels_nested_list = [row[0].split(",") for row in cur.fetchall()]
+            labels = [
+                    label.strip() for label_list in labels_nested_list for label in label_list
+                    ]
             conn.close()
+
+            print(labels, categories)
             
             # Filter valid directories and get modification times
             valid_titles = []
@@ -2282,7 +2301,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             # Sort by modification time (recent first)
             valid_titles.sort(key=lambda x: x['mtime'], reverse=True)
             
-            response = json.dumps(valid_titles, indent=2)
+            valid_response = {
+                        "available_categories": categories,
+                        "available_labels": labels,
+                        "titles": valid_titles
+                    }
+            response = json.dumps(valid_response, indent=2)
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Content-Length', str(len(response.encode('utf-8'))))
@@ -2339,7 +2363,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     genres,
                     external_id,
                     image_poster_large,
-                    summary
+                    summary,
+                    labels,
+                    category,
+                    multi_audio,
+                    multi_subtitle,
+                    ignore,
+                    collection_name
                 FROM series_info
                 WHERE db_title = ?
             """, (title,))
@@ -2538,8 +2568,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Internal server error')
 
     def do_POST(self):
-        if self.path == '/admin-update':
-            self.handle_admin_update()
+        if self.path == '/series-update':
+            self.handle_series_update()
         elif self.path.startswith('/title-details'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
@@ -2554,7 +2584,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         else:
             self.do_init_function(type_request='post')
 
-    def handle_admin_update(self):
+    def handle_series_update(self):
         """Handle admin update requests - JSON only"""
         try:
             # Get content length and read the data
@@ -2576,7 +2606,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             elif action == 'update_multiple_paths':
                 result = self.update_multiple_paths(data)
             elif action == 'bulk_update':
-                result = {'success': False, 'error': 'Bulk update will be implemented later with DB migration'}
+                result = self.bulk_update_titles(data.get('updates', []))
             else:
                 result = {'success': False, 'error': 'Invalid action'}
             
@@ -2598,6 +2628,141 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(error_response.encode('utf-8'))
+
+    def bulk_update_titles(self, bulk_data):
+        results = []
+        for data in bulk_data:
+            results.append(self.do_bulk_update_titles(data))
+        
+        success_count = sum(1 for r in results if r.get('success'))
+        
+        return {
+            'success': success_count == len(bulk_data),
+            'message': f'{success_count}/{len(bulk_data)} titles updated successfully',
+            'results': results
+        }
+
+    def do_bulk_update_titles(self, data):
+        """Update a single title with bulk update fields and insert series info if not exists"""
+        global home, logger
+
+        try:
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            title = data.get('title', '').strip()
+            directory_hash = data.get('directory_hash', '').strip()
+            
+            if not title or not directory_hash:
+                return {'success': False, 'error': 'Title and directory_hash are required'}
+            
+            updates_made = []
+            
+            # Verify the title exists in Video table with matching directory hash
+            cur.execute("""
+                SELECT DISTINCT Title, Directory
+                FROM Video 
+                WHERE Title = ?
+            """, (title,))
+            
+            video_rows = cur.fetchall()
+            print(video_rows)
+            title_exists = False
+            
+            directory_list = [
+                    row['Directory'] for row in video_rows if self.calc_dir_hash(row['Directory'], row['Title']) == directory_hash
+                    ]
+            
+            if not directory_list:
+                return {'success': False, 'error': f'Title "{title}" with matching directory hash not found'}
+
+            if len(directory_list) > 1:
+                print(directory_list)
+                return {'success': False, 'error': f'Title "{title}" has  inconsistent number of directories'}
+            
+
+            # Prepare series_info updates
+            series_fields = {}
+            
+            # Process bulk update fields directly
+            category = data.get('category', '').strip()
+            if category and len(category) < 50:
+                series_fields['category'] = category.lower()
+            
+            collection_name = data.get('collection_name', '').strip()
+            if collection_name:
+                series_fields['collection_name'] = collection_name
+            
+            labels = data.get('labels', '').strip()
+            if labels and len(labels) < 100:
+                series_fields['labels'] = labels.lower()
+            
+            image_poster_large = data.get('image_poster_large', '').strip()
+            if image_poster_large:
+                series_fields['image_poster_large'] = image_poster_large
+            
+            # Handle ignore field
+            ignore_value = data.get('ignore')
+            if ignore_value in ['yes', 'no']:
+                series_fields['ignore'] = ignore_value
+            
+            # Only proceed if we have fields to update
+            if not series_fields:
+                return {'success': True, 'message': 'No valid fields to update'}
+            series_fields["directory"] = directory_list[0]
+            
+            logger.info(f"Bulk updating series info for: '{title}'")
+            logger.info(f"Series updates: {series_fields}")
+            
+            # Check if series_info exists
+            cur.execute("SELECT COUNT(*) FROM series_info WHERE db_title = ?", (title,))
+            exists = cur.fetchone()[0] > 0
+            
+            if exists:
+                # Update existing record
+                set_clause = ', '.join([f"{k} = ?" for k in series_fields.keys()])
+                values = list(series_fields.values()) + [title]
+                cur.execute(f"UPDATE series_info SET {set_clause} WHERE db_title = ?", values)
+                affected_rows = cur.rowcount
+                if affected_rows > 0:
+                    updates_made.append(f"Updated series information for '{title}'")
+                else:
+                    updates_made.append(f"No changes made to '{title}' (values may be identical)")
+            else:
+                # Insert new record with db_title and provided fields
+                series_fields['db_title'] = title
+                series_fields['title'] = title
+                
+                columns = ', '.join(series_fields.keys())
+                placeholders = ', '.join(['?' for _ in series_fields])
+                values = list(series_fields.values())
+                
+                cur.execute(f"INSERT INTO series_info ({columns}) VALUES ({placeholders})", values)
+                updates_made.append(f"Created new series information for '{title}'")
+            
+            conn.commit()
+            conn.close()
+            
+            return {
+                'success': True,
+                'message': '; '.join(updates_made) if updates_made else 'No changes made',
+                'title': title
+            }
+            
+        except Exception as e:
+            print(f"Error in update_single_title_bulk: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            if 'conn' in locals():
+                conn.rollback()
+                conn.close()
+            return {
+                'success': False, 
+                'error': str(e),
+                'title': data.get('title', 'Unknown')
+            }
 
     def update_single_title(self, data):
         """Update a single title and its episodes"""
@@ -2670,8 +2835,31 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 'genres': data.get('genres', '').strip(),
                 'external_id': data.get('external_id', '').strip(),
                 'image_poster_large': data.get('image_poster', '').strip(),
-                'summary': data.get('summary', '').strip()
+                'summary': data.get('summary', '').strip(),
+                'collection_name': data.get('collection_name', '').strip(),
+                'labels': data.get('labels', '').strip(),
+                'category': data.get('category', '').strip()
             }
+
+            ignore_series = data.get('multi_audio')
+            if ignore_series in ['yes', 'no']:
+                series_fields['ignore'] = ignore_series
+
+            multi_sub = data.get("multi_subtitle")
+            if multi_sub in ['yes', 'no']:
+                series_fields["multi_subtitle"] = multi_sub
+
+            multi_aud = data.get("multi_audio")
+            if multi_aud in ['yes', 'no']:
+                series_fields["multi_audio"] = multi_aud
+
+            labels = data.get("labels")
+            if labels and len(labels) < 100:
+                series_fields["labels"] = labels.strip().lower()
+
+            category = data.get("category")
+            if category and len(category) < 10:
+                series_fields["category"] = category.strip().lower()
             
             # Filter out empty fields
             series_updates = {k: v for k, v in series_fields.items() if v}
