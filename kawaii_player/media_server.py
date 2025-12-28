@@ -2630,10 +2630,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(error_response.encode('utf-8'))
 
     def bulk_update_titles(self, bulk_data):
+        global ui, logger
         results = []
         for data in bulk_data:
             results.append(self.do_bulk_update_titles(data))
         
+        for res in results:
+            out_image = res.get('out_image')
+            if out_image and out_image.startswith('/'):
+                poster_name = res.get('out_image').rsplit('/', 1)[-1]
+                img_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, poster_name)
+                img_url = res.get('input_image_poster_large')
+                if img_url and img_url.startswith('http'):
+                    logger.info(f"fetching: {img_url} -> saving to: {img_path}")
+                    ui.vnt.get(img_url, out=img_path)
+
         success_count = sum(1 for r in results if r.get('success'))
         
         return {
@@ -2698,9 +2709,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if labels and len(labels) < 100:
                 series_fields['labels'] = labels.lower()
             
+            input_image_poster_large = ""
             image_poster_large = data.get('image_poster_large', '').strip()
             if image_poster_large:
                 series_fields['image_poster_large'] = image_poster_large
+                input_image_poster_large = image_poster_large
             
             # Handle ignore field
             ignore_value = data.get('ignore')
@@ -2716,11 +2729,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             logger.info(f"Series updates: {series_fields}")
             
             # Check if series_info exists
-            cur.execute("SELECT COUNT(*) FROM series_info WHERE db_title = ?", (title,))
-            exists = cur.fetchone()[0] > 0
-            
-            if exists:
+            cur.execute("SELECT id, image_poster_large FROM series_info WHERE db_title = ?", (title,))
+            result = cur.fetchone()
+            series_id = ""
+            out_image = ""
+            if result:
                 # Update existing record
+                series_id = result[0]
+                image_poster_large = result[1]
+                input_image_url = series_fields.get("image_poster_large")
+                if input_image_url and input_image_url.startswith('http'):
+                    img_name = f"poster-{series_id}.jpg"
+                    series_fields["image_poster_large"] = f"/images/{img_name}"
+                    out_image= series_fields["image_poster_large"]
+                    if image_poster_large and image_poster_large.startswith('/images/poster-'):
+                        img_name = image_poster_large.rsplit('/', 1)[-1]
+                        poster_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, img_name)
+                        if os.path.exists(poster_path):
+                            os.remove(poster_path)
                 set_clause = ', '.join([f"{k} = ?" for k in series_fields.keys()])
                 values = list(series_fields.values()) + [title]
                 cur.execute(f"UPDATE series_info SET {set_clause} WHERE db_title = ?", values)
@@ -2733,6 +2759,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 # Insert new record with db_title and provided fields
                 series_fields['db_title'] = title
                 series_fields['title'] = title
+                series_id = str(uuid.uuid4())
+                series_fields['id'] = series_id 
+
+                if series_fields.get("image_poster_large"):
+                    img_name = f"poster-{series_id}.jpg"
+                    series_fields["image_poster_large"] = f"/images/{img_name}"
+                    out_image= series_fields["image_poster_large"]
+
                 
                 columns = ', '.join(series_fields.keys())
                 placeholders = ', '.join(['?' for _ in series_fields])
@@ -2747,7 +2781,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             return {
                 'success': True,
                 'message': '; '.join(updates_made) if updates_made else 'No changes made',
-                'title': title
+                'title': title,
+                'out_image': out_image,
+                'input_image_poster_large': input_image_poster_large
             }
             
         except Exception as e:
