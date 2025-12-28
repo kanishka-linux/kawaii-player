@@ -21,6 +21,45 @@
                         <button id="search-btn" class="btn btn-primary">Search</button>
                         <button id="clear-btn" class="btn btn-secondary">Clear</button>
                     </div>
+                    
+                    <!-- NEW: Sort and Filter Controls -->
+                    <div class="sort-filter-controls">
+                        <div class="sort-controls">
+                            <div class="control-group">
+                                <label for="sort-by">Sort by:</label>
+                                <select id="sort-by">
+                                    <option value="title">Title</option>
+                                    <option value="recently-added">Recently Added</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="sort-order">Order:</label>
+                                <select id="sort-order">
+                                    <option value="asc">Ascending</option>
+                                    <option value="desc">Descending</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-controls">
+                            <div class="control-group">
+                                <label for="category-filter">Category:</label>
+                                <select id="category-filter">
+                                    <option value="all">All Categories</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="label-filter">Label:</label>
+                                <select id="label-filter">
+                                    <option value="all">All Labels</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="clear-controls">
+                            <button id="clear-sort-filter-btn" class="btn btn-clear">Clear Sort & Filters</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="bulk-actions">

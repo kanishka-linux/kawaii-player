@@ -10,6 +10,12 @@ class AdminPanel {
         this.currentHighlightedIndex = null;
         this.availableCategories = [];
         this.availableLabels = [];
+        // UPDATED: Add mtime sorting option
+        this.currentSortBy = 'title'; // 'title' or 'recently-added'
+        this.currentSortOrder = 'asc'; // 'asc' or 'desc'
+        this.currentCategoryFilter = 'all';
+        this.currentLabelFilter = 'all';
+
         this.init();
     }
 
@@ -114,12 +120,130 @@ class AdminPanel {
             this.toggleNoInfoFilter();
         });
 
+        // UPDATED: Sort and filter event listeners with mtime support
+        document.getElementById('sort-by').addEventListener('change', (e) => {
+            this.currentSortBy = e.target.value;
+            this.applyFilters();
+        });
+
+        document.getElementById('sort-order').addEventListener('change', (e) => {
+            this.currentSortOrder = e.target.value;
+            this.applyFilters();
+        });
+
+        document.getElementById('category-filter').addEventListener('change', (e) => {
+            this.currentCategoryFilter = e.target.value;
+            this.applyFilters();
+        });
+
+        document.getElementById('label-filter').addEventListener('change', (e) => {
+            this.currentLabelFilter = e.target.value;
+            this.applyFilters();
+        });
+
+        document.getElementById('clear-sort-filter-btn').addEventListener('click', () => {
+            this.clearSortAndFilters();
+        });
+
         const mobileBackBtn = document.getElementById('mobile-back-btn');
         if (mobileBackBtn) {
             mobileBackBtn.addEventListener('click', () => {
                 this.closeDetailsPanel();
             });
         }
+    }
+
+    // UPDATED: Clear all sort and filter settings including sort-by
+    clearSortAndFilters() {
+        this.currentSortBy = 'title';
+        this.currentSortOrder = 'asc';
+        this.currentCategoryFilter = 'all';
+        this.currentLabelFilter = 'all';
+        
+        // Update UI controls
+        document.getElementById('sort-by').value = 'title';
+        document.getElementById('sort-order').value = 'asc';
+        document.getElementById('category-filter').value = 'all';
+        document.getElementById('label-filter').value = 'all';
+        
+        this.applyFilters();
+    }
+
+    // Existing method - no changes needed
+    populateFilterDropdowns() {
+        // Populate category filter
+        const categoryFilter = document.getElementById('category-filter');
+        if (categoryFilter) {
+            categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+            this.availableCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        // Populate label filter
+        const labelFilter = document.getElementById('label-filter');
+        if (labelFilter) {
+            labelFilter.innerHTML = '<option value="all">All Labels</option>';
+            this.availableLabels.forEach(label => {
+                const option = document.createElement('option');
+                option.value = label;
+                option.textContent = label;
+                labelFilter.appendChild(option);
+            });
+        }
+    }
+
+    // UPDATED: Sort titles with mtime support
+    sortTitles(titles) {
+        const sorted = [...titles];
+        
+        sorted.sort((a, b) => {
+            let comparison = 0;
+            
+            if (this.currentSortBy === 'title') {
+                comparison = a.title.localeCompare(b.title, undefined, { 
+                    numeric: true, 
+                    sensitivity: 'base' 
+                });
+            } else if (this.currentSortBy === 'recently-added') {
+                // Sort by mtime (modification time) - raw values
+                const aTime = a.mtime || 0;
+                const bTime = b.mtime || 0;
+                comparison = bTime - aTime; // Most recent first by default
+            }
+            
+            // Apply sort order
+            return this.currentSortOrder === 'desc' ? -comparison : comparison;
+        });
+        
+        return sorted;
+    }
+
+    // Existing method - no changes needed
+    filterTitles(titles) {
+        let filtered = [...titles];
+        
+        // Filter by category
+        if (this.currentCategoryFilter !== 'all') {
+            filtered = filtered.filter(title => {
+                const category = title.category || '';
+                return category.toLowerCase() === this.currentCategoryFilter.toLowerCase();
+            });
+        }
+        
+        // Filter by label
+        if (this.currentLabelFilter !== 'all') {
+            filtered = filtered.filter(title => {
+                const labels = title.labels || '';
+                const labelArray = labels.split(',').map(l => l.trim().toLowerCase());
+                return labelArray.includes(this.currentLabelFilter.toLowerCase());
+            });
+        }
+        
+        return filtered;
     }
 
     setupTitleEventListeners() {
@@ -214,8 +338,10 @@ class AdminPanel {
         }
     }
 
-    // Update the existing applyFilters method
+    // Existing method - no changes needed
     applyFilters() {
+        this.clearLocalStorageState();
+
         let filtered = [...this.titles];
         
         // Apply search filter
@@ -232,8 +358,67 @@ class AdminPanel {
             filtered = filtered.filter(title => title.has_series_info === false);
         }
         
+        // Apply category and label filters
+        filtered = this.filterTitles(filtered);
+        
+        // Apply sorting
+        filtered = this.sortTitles(filtered);
+        
         this.renderTitles(filtered);
         this.updateLabelStyles();
+        this.updateFilterStatus(filtered.length);
+    }
+
+    // UPDATED: Update filter status display with mtime sort support
+    updateFilterStatus(filteredCount) {
+        const totalCount = this.titles.length;
+        let statusParts = [];
+        
+        // Add search status
+        if (this.currentSearchTerm) {
+            statusParts.push(`Search: "${this.currentSearchTerm}"`);
+        }
+        
+        // Add series info filter status
+        if (this.currentSeriesInfoFilter !== 'all') {
+            const hasInfoCount = this.titles.filter(t => t.has_series_info).length;
+            const noInfoCount = totalCount - hasInfoCount;
+            
+            if (this.currentSeriesInfoFilter === 'has-info') {
+                statusParts.push(`With series info (${hasInfoCount})`);
+            } else if (this.currentSeriesInfoFilter === 'no-info') {
+                statusParts.push(`Without series info (${noInfoCount})`);
+            }
+        }
+        
+        // Add category filter status
+        if (this.currentCategoryFilter !== 'all') {
+            statusParts.push(`Category: ${this.currentCategoryFilter}`);
+        }
+        
+        // Add label filter status
+        if (this.currentLabelFilter !== 'all') {
+            statusParts.push(`Label: ${this.currentLabelFilter}`);
+        }
+        
+        // UPDATED: Add sort status with mtime support
+        let sortLabel = 'Title';
+        let orderLabel = this.currentSortOrder === 'desc' ? 'Z-A' : 'A-Z';
+        
+        if (this.currentSortBy === 'recently-added') {
+            sortLabel = 'Recently Added';
+            orderLabel = this.currentSortOrder === 'desc' ? 'Oldest First' : 'Newest First';
+        }
+        
+        statusParts.push(`Sort: ${sortLabel} (${orderLabel})`);
+        
+        // Display status
+        if (statusParts.length > 1 || this.currentSortBy !== 'title' || this.currentSortOrder !== 'asc') {
+            const message = `${statusParts.join(' • ')} | Showing ${filteredCount} of ${totalCount} titles`;
+            this.showFilterMessage(message);
+        } else {
+            this.hideFilterMessage();
+        }
     }
 
     // Update the existing showFilterStatus method
@@ -256,6 +441,8 @@ class AdminPanel {
         }
     }
 
+    
+    // Existing method - no changes needed
     showFilterMessage(message) {
         let statusDiv = document.getElementById('filter-status-message');
         if (!statusDiv) {
@@ -270,8 +457,27 @@ class AdminPanel {
         statusDiv.style.display = 'flex';
         statusDiv.innerHTML = `
             <span>${this.escapeHtml(message)}</span>
-            <button class="clear-filter-btn" onclick="admin.clearSeriesInfoFilter()">Clear Filter</button>
+            <button class="clear-filter-btn" onclick="admin.clearAllFilters()">Clear All</button>
         `;
+    }
+
+    // UPDATED: Clear all filters including sort-by
+    clearAllFilters() {
+        // Clear search
+        this.clearLocalStorageState();
+        document.getElementById('search-input').value = '';
+        this.currentSearchTerm = '';
+        
+        // Clear series info filter
+        this.currentSeriesInfoFilter = 'all';
+        this.updateNoInfoButton(false);
+        
+        // Clear sort and filters
+        this.clearSortAndFilters();
+        
+        this.applyFilters();
+        this.hideFilterMessage();
+        this.updateLabelStyles();
     }
 
     hideFilterMessage() {
@@ -395,6 +601,9 @@ class AdminPanel {
             if (this.titles.error) {
                 throw new Error(this.titles.error);
             }
+
+            // Populate filter dropdowns after loading data
+            this.populateFilterDropdowns();
             
             this.renderTitles();
             this.updateNoInfoButton(this.currentSeriesInfoFilter === 'no-info');
@@ -463,6 +672,17 @@ class AdminPanel {
         
         console.log('Index saved to localStorage');
         console.log('==========================');
+    }
+
+    // FOCUSED: Clear only the specific localStorage items
+    clearLocalStorageState() {
+        try {
+            // Clear the specific items that need to be removed
+            localStorage.removeItem('adminReturnToIndex');
+            localStorage.removeItem('adminShouldScrollToIndex');
+        } catch (error) {
+            console.warn('Error clearing localStorage:', error);
+        }
     }
 
     // Restore and scroll to saved index
