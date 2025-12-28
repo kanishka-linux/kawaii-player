@@ -433,19 +433,100 @@ class MediaDatabase():
 
                     self.thread = DatabaseMigrationThreadOnStartUp(self, db_path)
                     self.thread.start()
-                    #paths = self.get_videos_without_checksum(db_path)
-                    #for file_path in paths:
-                    #    checksum = self.calculate_file_checksum(file_path)
-                    #    if checksum and self.update_checksum(db_path, file_path, checksum):
-                    #        print(f"successfully updated, file: {file_path}, checksum: {checksum}")
-                    #    else:
-                    #        print(f"failed to update sha, file: {file_path}, checksum: {checksum}")
 
             else:
                 print(f"Column '{column_name}' already exists in table '{table_name}'")
 
         except sqlite3.Error as e:
             print(f"Error: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
+
+    def migrate_database_v2(self, old_version):
+        self.ui.logger.info(f"version upgrade detected  from {old_version} to {self.ui.version_number}, running migration")
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        table_name = "series_info"
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        columns_to_add = [
+                    'labels', 'category',
+                    'multi_audio', 'multi_subtitle',
+                    'ignore', 'deleted',
+                    'directory',
+                    'image_fanart',
+                    'image_poster',
+                    'episodes_available',
+                    'last_accessed_at',
+                    'collection_name',
+                    'similar'
+                ]
+
+        new_columns_added = False
+        try:
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = [column[1] for column in cursor.fetchall()]
+
+            for column in columns_to_add:
+                if column not in columns:
+                    if column == 'last_accessed_at':
+                        alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {column} datetime"
+                    elif column == 'episodes_available':
+                        alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {column} Integer"
+                    elif column in ['ignore', 'deleted']:
+                        alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {column} Text Default 'no'"
+                    else:
+                        alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {column} Text Default ''"
+                    cursor.execute(alter_sql)
+                    if column in ['labels', 'category', 'directory', 'collection_name']:
+                        index_sql = f"CREATE INDEX {column}_index ON {table_name} ({column})"
+                        cursor.execute(index_sql)
+                    self.ui.logger.info(f"Column '{column}' added successfully to table '{table_name}'")
+                    new_columns_added = True
+                else:
+                    self.ui.logger.warning(f"Column '{column}' already exists in table '{table_name}'")
+            # Migrate existing Categories, Directory,
+            # episodes_available count to
+            # series_info table
+            # if new colums are added
+            if new_columns_added:
+                cat_arr = [
+                            'anime', 'tv shows',
+                            'movies', 'documentaries',
+                            'music videos', 'others', 'extras'
+                        ]
+                select_query = "select distinct Title, Directory, Category from Video"
+                cursor.execute(select_query)
+                for db_title, directory, category in cursor.fetchall():
+                    count_query = "select count(*) from Video where Title = ?"
+                    cursor.execute(count_query, (db_title, ))
+                    count = cursor.fetchone()[0]
+
+                    if category:
+                        cat = category.lower()
+                    else:
+                        cat = 'others'
+
+                    if cat in cat_arr:
+                        update_query = """
+                            update series_info
+                            set category = ?, directory = ?,
+                            episodes_available  = ?
+                            where db_title = ?
+                        """
+                    else:
+                        update_query = """
+                            update series_info
+                            set labels = ?, directory = ?,
+                            episodes_available = ?
+                            where db_title = ?
+                        """
+
+                    cursor.execute(update_query, (cat, directory, count, db_title))
+            conn.commit()
+
+        except sqlite3.Error as e:
+            self.ui.logger.error(f"Error while migrating v{old_version}, Error: {e}, rolling back")
             conn.rollback()
         finally:
             conn.close()
@@ -791,6 +872,7 @@ class MediaDatabase():
             )
 
             cursor.execute(insert_sql, data_tuple)
+
             conn.commit()
 
             print(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
