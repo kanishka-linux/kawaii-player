@@ -8,6 +8,8 @@ class AdminPanel {
         this.currentSeriesInfoFilter = 'all';
         this.currentEditPaths = null;
         this.currentHighlightedIndex = null;
+        this.availableCategories = [];
+        this.availableLabels = [];
         this.init();
     }
 
@@ -385,7 +387,10 @@ class AdminPanel {
                 throw new Error(`Failed to load titles: ${response.status} ${response.statusText}`);
             }
             
-            this.titles = await response.json();
+            const { titles, available_categories, available_labels } = await response.json();
+            this.titles = titles;
+            this.availableCategories = available_categories;
+            this.availableLabels = available_labels;
             
             if (this.titles.error) {
                 throw new Error(this.titles.error);
@@ -641,9 +646,9 @@ class AdminPanel {
     getCategorySeriesType(category) {
         const categoryMapping = {
             'anime': 'anime',
-            'tv': 'tv',
-            'movies': 'movie',
-            'cartoons': 'cartoon'
+            'tv shows': 'tv shows',
+            'movies': 'movies',
+            'cartoons': 'cartoons'
         };
         return categoryMapping[category] || 'anime';
     }
@@ -1188,7 +1193,7 @@ class AdminPanel {
                                         <select id="metadata-category" required>
                                             <option value="">Select Category</option>
                                             <option value="anime">Anime</option>
-                                            <option value="tv">TV Shows</option>
+                                            <option value="tv shows">TV Shows</option>
                                             <option value="movies">Movies</option>
                                             <option value="cartoons">Cartoons</option>
                                         </select>
@@ -1196,7 +1201,7 @@ class AdminPanel {
                                     
                                     <div class="form-group">
                                         <label>
-                                            <input type="checkbox" id="use-cache" checked> Use cached data if available
+                                            <input type="checkbox" id="use-cache"> Use cached data if available
                                         </label>
                                     </div>
                                 </div>
@@ -1267,7 +1272,7 @@ class AdminPanel {
         
         console.log(selectedTitles)
         const category = document.getElementById('metadata-category').value;
-        const useCache = document.getElementById('use-cache').checked;
+        const useCache = document.getElementById('use-cache').checked ? "yes" : "no";
         
         // Collect search terms for each title
         const titleMappings = [];
@@ -1304,7 +1309,7 @@ class AdminPanel {
                         suggested_title: mapping.search_title,
                         series_type: this.getCategorySeriesType(category),
                         media_type: "video",
-                        from_cache: "no"
+                        from_cache: useCache
                     };
                     
                     console.log(`Fetching metadata for: ${mapping.original_title} -> ${mapping.search_title}`);
@@ -1501,6 +1506,7 @@ class AdminPanel {
     }
 
     // UPDATED: Handle bulk edit (Type 4 - Multiple titles bulk update)
+    // Update the handleBulkEdit method to remove the placeholder message
     handleBulkEdit() {
         const selectedTitles = Array.from(this.selectedTitles);
         if (selectedTitles.length === 0) {
@@ -1517,17 +1523,21 @@ class AdminPanel {
         this.openBulkEditModal(selectedTitleNames);
     }
 
-    // UPDATED: Open edit modal with directory_hash
-    
-    
-    // UPDATED: Open edit modal with directory_hash
+    // UPDATED: Open edit modal with checkboxes for media properties
     openEditModal(directoryHash, titleName, seriesData, episodesList) {
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) return;
 
         const series = seriesData || {};
         const pathsToSend = episodesList || [];
-        console.log(series)
+        
+        // Get existing values or defaults for new fields
+        const multiAudio = series.multi_audio === 'yes' || series.multi_audio === true;
+        const multiSubtitle = series.multi_subtitle === 'yes' || series.multi_subtitle === true;
+        const ignore = series.ignore === 'yes' || series.ignore === true;
+        const labels = series.labels || '';
+        const category = series.category || '';
+        const collectionName = series.collection_name || '';
         
         const modalHTML = `
             <div id="edit-modal" class="modal">
@@ -1545,6 +1555,55 @@ class AdminPanel {
                             <div class="form-group">
                                 <label for="new-title">New Title:</label>
                                 <input type="text" id="new-title" value="${this.escapeHtml(titleName)}" placeholder="Enter new title">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="category">Category:</label>
+                                    <input type="text" id="category" value="${this.escapeHtml(category)}" placeholder="e.g., anime, tv shows, movies">
+                                </div>
+                                <div class="form-group">
+                                    <label for="collection-name">Collection Name:</label>
+                                    <input type="text" id="collection-name" value="${this.escapeHtml(collectionName)}" placeholder="Collection or series name">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="labels">Labels:</label>
+                                <input type="text" id="labels" value="${this.escapeHtml(labels)}" placeholder="Comma-separated labels">
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h4>Media Properties</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="multi-audio" ${multiAudio ? 'checked' : ''}>
+                                        <span>Multi-Audio</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-group checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="multi-subtitle" ${multiSubtitle ? 'checked' : ''}>
+                                        <span>Multi-Subtitle</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h4>Collection Settings</h4>
+                            <div class="form-group checkbox-group special-field">
+                                <label class="checkbox-option ignore-option">
+                                    <input type="checkbox" id="ignore" ${ignore ? 'checked' : ''}>
+                                    <span>Ignore (Don't include in video collection)</span>
+                                </label>
+                                <div class="field-help">
+                                    When checked, this title will be excluded from the main video collection display.
+                                </div>
                             </div>
                         </div>
 
@@ -1639,39 +1698,78 @@ class AdminPanel {
         document.getElementById('edit-modal').style.display = 'block';
     }
 
-    // Type 4: Bulk edit modal (multiple titles - future implementation)
+    // Update the openBulkEditModal method to include the new fields
     openBulkEditModal(selectedTitles) {
+        // Convert title names to objects containing both title and directory_hash
+        const selectedItems = selectedTitles.map(titleName => {
+            const title = this.titles.find(t => t.title === titleName);
+            return title ? {
+                title: title.title,
+                directory_hash: title.directory_hash
+            } : null;
+        }).filter(item => item !== null);
+
         const modalHTML = `
             <div id="edit-modal" class="modal">
                 <div class="modal-content">
                     <span class="close" onclick="admin.closeEditModal()">&times;</span>
                     <h3>Bulk Edit: ${selectedTitles.length} Titles</h3>
-                    <p class="edit-info" style="color: #e74c3c; font-weight: bold;">
-                        ⚠️ Bulk title updates will be implemented after database migration for category/label/ignore fields.
+                    <p class="edit-info">
+                        Editing ${selectedTitles.length} title(s). Only filled fields will be updated. Empty fields will be ignored.
                     </p>
                     
-                    <div class="selected-titles">
-                        <h4>Selected Titles:</h4>
-                        <ul>
-                            ${selectedTitles.map(title => `<li>${this.escapeHtml(title)}</li>`).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div style="padding: 20px; background: #f8f9fa; border-radius: 4px; margin: 20px 0;">
-                        <h4>Coming Soon:</h4>
-                        <ul>
-                            <li>Bulk category assignment</li>
-                            <li>Bulk label assignment</li>
-                            <li>Bulk ignore flag setting</li>
-                        </ul>
-                        <p style="margin-top: 15px; font-style: italic;">
-                            These features require database migration to add new columns to the Video table.
-                        </p>
-                    </div>
+                    <form id="edit-form" onsubmit="admin.submitBulkEdit(event)">
+                        <input type="hidden" id="selected-items" value='${JSON.stringify(selectedItems)}'>
+                        
+                        <div class="form-section">
+                            <h4>Bulk Update Fields</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="bulk-category">Category:</label>
+                                    <input type="text" id="bulk-category" placeholder="e.g., anime, tv shows, movies, cartoons">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bulk-collection-name">Collection Name:</label>
+                                    <input type="text" id="bulk-collection-name" placeholder="Collection or series name">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bulk-labels">Labels:</label>
+                                <input type="text" id="bulk-labels" placeholder="Comma-separated labels">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bulk-image-poster">Poster Image URL:</label>
+                                <input type="text" id="bulk-image-poster" placeholder="URL or path to poster image">
+                            </div>
+                            
+                            <div class="form-group checkbox-group special-field">
+                                <label class="checkbox-option ignore-option">
+                                    <input type="checkbox" id="bulk-ignore">
+                                    <span>Ignore (Don't include in video collection)</span>
+                                </label>
+                            </div>
+                        </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Close</button>
-                    </div>
+                        <div class="bulk-selected-display">
+                            <h4>Selected Titles (${selectedItems.length}):</h4>
+                            <div class="bulk-titles-container">
+                                ${selectedItems.map(item => `
+                                    <div class="bulk-title-row">
+                                        <span class="bulk-title-text">${this.escapeHtml(item.title)}</span>
+                                        <span class="bulk-title-id">${this.escapeHtml(item.directory_hash.substring(0, 8))}...</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Update All Selected</button>
+                            <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         `;
@@ -1691,14 +1789,12 @@ class AdminPanel {
         localStorage.removeItem('adminScrollPosition');
     }
 
-    // UPDATED: Submit edit with directory_hash
+    // UPDATED: Submit edit with checkbox handling
     async submitEdit(event) {
         event.preventDefault();
         
         const selectedPathsElement = document.getElementById('selected-paths');
         const selectedPathsValue = selectedPathsElement ? selectedPathsElement.value : '[]';
-        
-        console.log("Selected paths value:", selectedPathsValue); // Debug log
         
         let selectedPaths;
         try {
@@ -1711,19 +1807,40 @@ class AdminPanel {
         const formData = {
             action: 'update_title',
             original_title: document.getElementById('original-title').value,
-            directory_hash: document.getElementById('directory-hash').value, // Include directory_hash
+            directory_hash: document.getElementById('directory-hash').value,
             selected_paths: selectedPaths,
             new_title: document.getElementById('new-title').value.trim()
         };
         
-        // Add series fields - only if not empty
-        const fields = [
+        // Add text fields
+        const textFields = ['category', 'collection-name', 'labels'];
+        textFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            const value = element ? element.value.trim() : '';
+            if (value) {
+                const fieldName = fieldId.replace('-', '_');
+                formData[fieldName] = value;
+            }
+        });
+        
+        // Add checkbox values - always include these to ensure they can be unset
+        const checkboxFields = ['multi-audio', 'multi-subtitle', 'ignore'];
+        checkboxFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                const fieldName = fieldId.replace('-', '_');
+                formData[fieldName] = element.checked ? 'yes' : 'no';
+            }
+        });
+        
+        // Add existing series fields - only if not empty
+        const existingFields = [
             'db-title', 'display-title', 'english-title', 'year', 'episodes', 
             'score', 'rank', 'popularity', 'type', 'duration', 'genres', 
             'external-id', 'image-poster', 'summary'
         ];
         
-        fields.forEach(fieldId => {
+        existingFields.forEach(fieldId => {
             const element = document.getElementById(fieldId);
             const value = element ? element.value.trim() : '';
             if (value) {
@@ -1732,12 +1849,12 @@ class AdminPanel {
             }
         });
 
-        console.log("Form data to send:", formData); // Debug log
+        console.log("Form data to send:", formData);
 
         try {
             this.showUpdateProgress('Updating...');
             
-            const response = await fetch('/admin-update', {
+            const response = await fetch('/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1780,7 +1897,7 @@ class AdminPanel {
         try {
             this.showUpdateProgress('Updating episode...');
             
-            const response = await fetch('/admin-update', {
+            const response = await fetch('/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1835,7 +1952,7 @@ class AdminPanel {
         try {
             this.showUpdateProgress('Updating multiple episodes...');
             
-            const response = await fetch('/admin-update', {
+            const response = await fetch('/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1871,12 +1988,129 @@ class AdminPanel {
         }
     }
 
-        // Type 4: Submit bulk edit (placeholder for future)
+    // Update the submitBulkEdit method to send array of structs
     async submitBulkEdit(event) {
         event.preventDefault();
         
-        // This will be implemented after database migration
-        this.showErrorMessage('Bulk edit will be implemented after database migration for category/label/ignore fields.');
+        const selectedItemsElement = document.getElementById('selected-items');
+        const selectedItemsValue = selectedItemsElement ? selectedItemsElement.value : '[]';
+        
+        let selectedItems;
+        try {
+            selectedItems = JSON.parse(selectedItemsValue);
+        } catch (e) {
+            console.error("Error parsing selected items:", e);
+            this.showErrorMessage('Error processing selected titles');
+            return;
+        }
+        
+        if (selectedItems.length === 0) {
+            this.showErrorMessage('No titles selected for bulk update');
+            return;
+        }
+        
+        // Collect update fields from form
+        const updateFields = {};
+        
+        // Add text fields only if they have values
+        const textFields = [
+            { id: 'bulk-category', key: 'category' },
+            { id: 'bulk-collection-name', key: 'collection_name' },
+            { id: 'bulk-labels', key: 'labels' },
+            { id: 'bulk-image-poster', key: 'image_poster_large' }
+        ];
+        
+        textFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            const value = element ? element.value.trim() : '';
+            if (value) {
+                updateFields[field.key] = value;
+            }
+        });
+        
+        // Add ignore checkbox - always include to allow unsetting
+        const ignoreElement = document.getElementById('bulk-ignore');
+        if (ignoreElement) {
+            updateFields.ignore = ignoreElement.checked ? 'yes' : 'no';
+        }
+        
+        // Check if at least one field is being updated
+        const hasUpdates = Object.keys(updateFields).length > 0;
+        
+        if (!hasUpdates) {
+            this.showErrorMessage('Please fill at least one field to update');
+            return;
+        }
+        
+        // Build array of structs - each item gets its own struct with update fields
+        const bulkUpdateData = selectedItems.map(item => ({
+            // Identification fields
+            title: item.title,
+            directory_hash: item.directory_hash,
+            // Update fields (same for all items in bulk update)
+            ...updateFields
+        }));
+        
+        // Final request structure
+        const formData = {
+            action: 'bulk_update',
+            updates: bulkUpdateData  // Array of structs
+        };
+        
+        console.log("Bulk update form data:", formData);
+        console.log("Updates array structure:", bulkUpdateData);
+        
+        // Show confirmation dialog
+        const fieldCount = Object.keys(updateFields).length;
+        const confirmed = confirm(
+            `This will update ${fieldCount} field(s) for ${selectedItems.length} selected title(s).\n\n` +
+            'This action cannot be undone.\n\n' +
+            'Do you want to continue?'
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            this.showUpdateProgress('Updating selected titles...', false);
+            
+            const response = await fetch('/series-update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.hideUpdateProgress();
+                this.closeEditModal();
+                
+                // Clear selections and refresh
+                this.selectedTitles.clear();
+                this.updateBulkEditButton();
+                
+                await this.loadTitles();
+                
+                const message = result.message || `Successfully updated ${selectedItems.length} title(s)`;
+                this.showSuccessMessage(message);
+                
+            } else {
+                throw new Error(result.error || 'Bulk update failed');
+            }
+            
+        } catch (error) {
+            console.error('Bulk update error:', error);
+            this.hideUpdateProgress();
+            this.showErrorMessage('Bulk update failed: ' + error.message);
+        }
     }
 
     
