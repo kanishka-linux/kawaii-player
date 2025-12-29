@@ -19,6 +19,22 @@ class AdminPanel {
         this.init();
     }
 
+    // Enhanced attribute escaping for HTML attributes
+    escapeHtmlAttribute(text) {
+        if (text === null || text === undefined) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    // Safe JSON encoding for HTML attributes
+    safeJsonEncode(obj) {
+        return this.escapeHtmlAttribute(JSON.stringify(obj));
+    }
+
     init() {
         this.setupEventListeners();
         this.loadTitles();
@@ -1547,7 +1563,7 @@ class AdminPanel {
                             </div>
                             
                             <form id="metadata-form" onsubmit="admin.submitBulkMetadata(event)">
-                                <input type="hidden" id="selected-titles-metadata" value='${JSON.stringify(selectedTitles)}'>
+                                <input type="hidden" id="selected-titles-metadata" value='${this.safeJsonEncode(selectedTitles)}'>
                                 
                                 <div class="details-section">
                                     <h4>Metadata Settings</h4>
@@ -2093,7 +2109,7 @@ class AdminPanel {
                     </div>
                     
                     <form id="bulk-edit-form" onsubmit="admin.submitBulkEdit(event)">
-                        <input type="hidden" id="selected-items" value='${JSON.stringify(selectedTitles)}'>
+                        <input type="hidden" id="selected-items" value='${this.safeJsonEncode(selectedTitles)}'>
                         <div class="details-section">
                             <h4>Video Information</h4>
                             
