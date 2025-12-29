@@ -1072,7 +1072,7 @@ class AdminPanel {
         this.currentTitle = title;
         
         // Show the panel immediately with loading state
-        document.getElementById('details-title').textContent = `${actualTitleName} - Details`;
+        document.getElementById('details-title').textContent = `${actualTitleName}`;
         const detailsPanel = document.getElementById('details-panel');
         detailsPanel.classList.add('active');
         
@@ -1180,18 +1180,11 @@ class AdminPanel {
         }
     }
 
-    // UPDATED: Generate details HTML to match your CSS structure
     generateDetailsHTML(detailsData) {
         console.log('Generating HTML for data:', detailsData); // Debug log
         
         let html = '';
 
-        // Section 1: Title Only (matches your .details-section)
-        html += `
-            <div class="details-section">
-                <h4>${this.escapeHtml(detailsData.title || 'Unknown Title')}</h4>
-            </div>
-        `;
 
         // Section 2: Episodes (matches your .details-section structure)
         html += `
@@ -1246,7 +1239,7 @@ class AdminPanel {
             </div>
         `;
 
-        // Section 3: Series Information (FIXED to match your CSS)
+        // Section 3: Series Information (IMPROVED STYLING)
         html += `
             <div class="details-section">
                 <h4>Series Information</h4>
@@ -1261,9 +1254,9 @@ class AdminPanel {
             const series = detailsData.series_info;
             console.log('Rendering series info:', series); // Debug log
             
-            html += `<div class="series-info">`;
+            html += `<div class="series-info-grid">`;
             
-            // Generate series fields using your CSS structure
+            // Generate series fields using improved grid layout
             const seriesFields = [
                 { key: 'db_title', label: 'DB Title' },
                 { key: 'title', label: 'Display Title' },
@@ -1281,9 +1274,9 @@ class AdminPanel {
             seriesFields.forEach(field => {
                 if (series[field.key]) {
                     html += `
-                        <div class="series-field">
-                            <div class="field-label">${field.label}:</div>
-                            <div class="field-value">${this.escapeHtml(series[field.key])}</div>
+                        <div class="series-field-row">
+                            <span class="field-label-inline">${field.label}:</span>
+                            <span class="field-value-inline">${this.escapeHtml(series[field.key])}</span>
                         </div>
                     `;
                 }
@@ -1292,9 +1285,9 @@ class AdminPanel {
             // Summary field (special handling for longer text)
             if (series.summary) {
                 html += `
-                    <div class="series-field">
-                        <div class="field-label">Summary:</div>
-                        <div class="field-value">${this.escapeHtml(series.summary)}</div>
+                    <div class="series-field-full">
+                        <div class="field-label-block">Summary:</div>
+                        <div class="field-value-block">${this.escapeHtml(series.summary)}</div>
                     </div>
                 `;
             }
@@ -1302,26 +1295,26 @@ class AdminPanel {
             // Poster image
             if (series.image_poster_large) {
                 html += `
-                    <div class="series-field">
-                        <div class="field-label">Poster:</div>
-                        <div class="field-value">
+                    <div class="series-field-full">
+                        <div class="field-label-block">Poster:</div>
+                        <div class="field-value-block">
                             <img src="${this.escapeHtml(series.image_poster_large)}" 
                                  alt="Series Poster" 
-                                 style="max-width: 200px; max-height: 300px; border-radius: 4px;"
+                                 class="series-poster"
                                  onerror="this.style.display='none'">
                         </div>
                     </div>
                 `;
             }
             
-            html += `</div>`; // Close series-info
+            html += `</div>`; // Close series-info-grid
             
         } else {
             console.log('No series info available'); // Debug log
             html += `
                 <div class="no-series-info">
                     <p>No series information available for this title.</p>
-                    <div style="margin-top: 15px;">
+                    <div class="series-actions">
                         <button class="btn btn-small btn-primary" onclick="admin.fetchSeriesMetadata('${this.escapeHtml(this.currentTitle?.directory_hash)}', '${this.escapeHtml(detailsData.title)}')">
                             Fetch Metadata
                         </button>
@@ -1423,33 +1416,39 @@ class AdminPanel {
         this.openSinglePathEditModal(path, currentTitle);
     }
 
+    
     openSinglePathEditModal(videoPath, currentTitle) {
         const modalHTML = `
-            <div id="edit-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="admin.closeEditModal()">&times;</span>
+            <div id="edit-modal" class="details-panel active">
+                <div class="details-header">
                     <h3>Edit Single Episode</h3>
-                    <p class="edit-info">Editing individual episode title.</p>
+                    <button class="details-close" onclick="admin.closeEditModal()">&times;</button>
+                </div>
+                
+                <div class="details-content">
+                    <div class="edit-info">
+                        Editing individual episode title.
+                    </div>
                     
                     <form id="edit-form" onsubmit="admin.submitSinglePathEdit(event)">
                         <input type="hidden" id="video-path" value="${this.escapeHtml(videoPath)}">
                         
-                        <div class="form-section">
+                        <div class="details-section">
                             <h4>Episode Information</h4>
-                            <div class="form-group">
-                                <label for="path-new-title">Episode Title:</label>
-                                <input type="text" id="path-new-title" value="${this.escapeHtml(currentTitle)}" placeholder="Enter episode title" required>
+                            <div class="series-field">
+                                <span class="field-label">Episode Title:</span>
+                                <input type="text" id="path-new-title" value="${this.escapeHtml(currentTitle)}" placeholder="Enter episode title" required class="field-input">
                             </div>
                             
-                            <div class="form-group">
-                                <label>Episode Path:</label>
-                                <div class="path-display">${this.escapeHtml(videoPath)}</div>
+                            <div class="series-field">
+                                <span class="field-label">Episode Path:</span>
+                                <div class="field-value path-display">${this.escapeHtml(videoPath)}</div>
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Update Episode</button>
+                        <div class="form-actions-details">
                             <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Update Episode</button>
                         </div>
                     </form>
                 </div>
@@ -1457,7 +1456,7 @@ class AdminPanel {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.getElementById('edit-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 
     // FIXED: Multiple paths edit
@@ -1475,6 +1474,7 @@ class AdminPanel {
     }
 
     // FIXED: Remove escapeHtml from JSON string
+    
     openMultiplePathsEditModal(selectedPaths) {
         const pathsToSend = selectedPaths || [];
         console.log("Paths to send in modal:", pathsToSend); // Debug log
@@ -1482,36 +1482,43 @@ class AdminPanel {
         this.currentEditPaths = pathsToSend;
 
         const modalHTML = `
-            <div id="edit-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="admin.closeEditModal()">&times;</span>
+            <div id="edit-modal" class="details-panel active">
+                <div class="details-header">
                     <h3>Edit Multiple Episodes</h3>
-                    <p class="edit-info">Editing ${pathsToSend.length} episode(s). Only the title will be updated.</p>
+                    <button class="details-close" onclick="admin.closeEditModal()">&times;</button>
+                </div>
+                
+                <div class="details-content">
+                    <div class="edit-info">
+                        Editing ${pathsToSend.length} episode(s). Only the title will be updated.
+                    </div>
                     
                     <form id="edit-form" onsubmit="admin.submitMultiplePathsEdit(event)">
                         
-                        <div class="form-section">
+                        <div class="details-section">
                             <h4>Episode Information</h4>
-                            <div class="form-group">
-                                <label for="paths-new-title">New Title:</label>
-                                <input type="text" id="paths-new-title" placeholder="Enter new title for all selected episodes" required>
+                            <div class="series-field">
+                                <span class="field-label">New Title:</span>
+                                <input type="text" id="paths-new-title" placeholder="Enter new title for all selected episodes" required class="field-input">
                             </div>
                         </div>
 
-                        <div class="selected-episodes">
-                            <h4>Selected Episodes (${pathsToSend.length}):</h4>
+                        <div class="details-section">
+                            <h4>Selected Episodes (${pathsToSend.length})</h4>
                             <div class="episode-list">
                                 ${pathsToSend.map(path => `
                                     <div class="episode-item">
-                                        <span class="episode-path">${this.escapeHtml(path)}</span>
+                                        <div class="episode-details">
+                                            <div class="episode-path">${this.escapeHtml(path)}</div>
+                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Update All</button>
+                        <div class="form-actions-details">
                             <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Update All</button>
                         </div>
                     </form>
                 </div>
@@ -1519,29 +1526,34 @@ class AdminPanel {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.getElementById('edit-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 
+    
     openBulkMetadataModal(selectedTitles) {
         const modalHTML = `
-            <div id="metadata-modal" class="modal">
-                <div class="modal-content metadata-modal-content">
-                    <span class="close" onclick="admin.closeBulkMetadataModal()">&times;</span>
+            <div id="metadata-modal" class="details-panel active metadata-modal">
+                <div class="details-header">
                     <h3>Fetch Metadata for ${selectedTitles.length} Titles</h3>
-                    
+                    <button class="details-close" onclick="admin.closeBulkMetadataModal()">&times;</button>
+                </div>
+                
+                <div class="details-content metadata-content">
                     <div class="metadata-modal-body">
                         <!-- Left side: Form -->
                         <div class="metadata-form-section">
-                            <p class="edit-info">Select category and provide exact titles for metadata fetching.</p>
+                            <div class="edit-info">
+                                Select category and provide exact titles for metadata fetching.
+                            </div>
                             
                             <form id="metadata-form" onsubmit="admin.submitBulkMetadata(event)">
                                 <input type="hidden" id="selected-titles-metadata" value='${JSON.stringify(selectedTitles)}'>
                                 
-                                <div class="form-section">
+                                <div class="details-section">
                                     <h4>Metadata Settings</h4>
-                                    <div class="form-group">
-                                        <label for="metadata-category">Category:</label>
-                                        <select id="metadata-category" required>
+                                    <div class="series-field">
+                                        <span class="field-label">Category:</span>
+                                        <select id="metadata-category" required class="field-input">
                                             <option value="">Select Category</option>
                                             <option value="anime">Anime</option>
                                             <option value="tv shows">TV Shows</option>
@@ -1550,51 +1562,55 @@ class AdminPanel {
                                         </select>
                                     </div>
                                     
-                                    <div class="form-group">
-                                        <label>
-                                            <input type="checkbox" id="use-cache"> Use cached data if available
+                                    <div class="checkbox-field">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="use-cache">
+                                            <span>Use cached data if available</span>
                                         </label>
                                     </div>
                                 </div>
 
-                                <div class="selected-titles-metadata">
-                                    <h4>Selected Titles - Provide Exact Search Terms:</h4>
+                                <div class="details-section">
+                                    <h4>Selected Titles - Provide Exact Search Terms</h4>
                                     <div class="titles-metadata-list">
                                         ${selectedTitles.map((title, index) => `
                                             <div class="title-metadata-item">
-                                                <div class="original-title">
-                                                    <strong>Original:</strong> ${this.escapeHtml(title)}
+                                                <div class="series-field">
+                                                    <span class="field-label">Original:</span>
+                                                    <div class="field-value">${this.escapeHtml(title)}</div>
                                                 </div>
-                                                <div class="search-title-input">
-                                                    <label for="search-title-${index}">Search Term:</label>
+                                                <div class="series-field">
+                                                    <span class="field-label">Search Term:</span>
                                                     <input type="text" id="search-title-${index}" 
                                                            value="${this.escapeHtml(title)}" 
                                                            placeholder="Enter exact title for search"
                                                            data-original-title="${this.escapeHtml(title)}"
-                                                           required>
+                                                           required class="field-input">
                                                 </div>
                                             </div>
                                         `).join('')}
                                     </div>
                                 </div>
 
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">Fetch Metadata</button>
+                                <div class="form-actions-details">
                                     <button type="button" class="btn btn-secondary" onclick="admin.closeBulkMetadataModal()">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Fetch Metadata</button>
                                 </div>
                             </form>
                         </div>
                         
                         <!-- Right side: Results -->
                         <div class="metadata-results-section">
-                            <h4>Results</h4>
-                            <div class="results-summary" id="results-summary">
-                                <span id="success-count">0</span> successful, 
-                                <span id="fail-count">0</span> failed
-                            </div>
-                            <div class="results-container" id="results-container">
-                                <div class="results-placeholder">
-                                    Results will appear here as metadata is fetched...
+                            <div class="details-section">
+                                <h4>Results</h4>
+                                <div class="results-summary" id="results-summary">
+                                    <span id="success-count">0</span> successful, 
+                                    <span id="fail-count">0</span> failed
+                                </div>
+                                <div class="results-container" id="results-container">
+                                    <div class="results-placeholder">
+                                        Results will appear here as metadata is fetched...
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1604,7 +1620,7 @@ class AdminPanel {
         `;
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.getElementById('metadata-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 
     async submitBulkMetadata(event) {
@@ -1865,16 +1881,16 @@ class AdminPanel {
             return;
         }
 
-        // Convert directory hashes to title names for display
-        const selectedTitleNames = selectedTitles.map(hash => {
+        // Convert directory hashes to title objects for display
+        const selectedTitleObjects = selectedTitles.map(hash => {
             const title = this.titles.find(t => t.directory_hash === hash);
-            return title ? title.title : null;
+            return title ? { title: title.title, directory_hash: title.directory_hash } : null;
         }).filter(title => title !== null);
 
-        this.openBulkEditModal(selectedTitleNames);
+        this.openBulkEditModal(selectedTitleObjects);
     }
 
-    // UPDATED: Open edit modal with checkboxes for media properties
+    // UPDATED: Single title edit modal using details-panel structure with ALL fields
     openEditModal(directoryHash, titleName, seriesData, episodesList) {
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) return;
@@ -1891,53 +1907,58 @@ class AdminPanel {
         const collectionName = series.collection_name || '';
         
         const modalHTML = `
-            <div id="edit-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="admin.closeEditModal()">&times;</span>
+            <div id="edit-modal" class="details-panel active">
+                <div class="details-header">
                     <h3>Edit: ${this.escapeHtml(titleName)}</h3>
-                    <p class="edit-info">Editing ${pathsToSend.length} episode(s). Empty fields will not be updated.</p>
+                    <button class="details-close" onclick="admin.closeEditModal()">&times;</button>
+                </div>
+                
+                <div class="details-content">
+                    <div class="edit-info">
+                        Editing ${pathsToSend.length} episode(s). Empty fields will not be updated.
+                    </div>
                     
                     <form id="edit-form" onsubmit="admin.submitEdit(event)">
                         <input type="hidden" id="original-title" value="${this.escapeHtml(titleName)}">
                         <input type="hidden" id="directory-hash" value="${this.escapeHtml(directoryHash)}">
                         
-                        <div class="form-section">
+                        <div class="details-section">
                             <h4>Video Information</h4>
-                            <div class="form-group">
-                                <label for="new-title">New Title:</label>
-                                <input type="text" id="new-title" value="${this.escapeHtml(titleName)}" placeholder="Enter new title">
+                            <div class="series-field">
+                                <span class="field-label">New Title:</span>
+                                <input type="text" id="new-title" value="${this.escapeHtml(titleName)}" placeholder="Enter new title" class="field-input">
                             </div>
                             
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="category">Category:</label>
-                                    <input type="text" id="category" value="${this.escapeHtml(category)}" placeholder="e.g., anime, tv shows, movies">
+                            <div class="form-row-details">
+                                <div class="series-field">
+                                    <span class="field-label">Category:</span>
+                                    <input type="text" id="category" value="${this.escapeHtml(category)}" placeholder="e.g., anime, tv shows, movies" class="field-input">
                                 </div>
-                                <div class="form-group">
-                                    <label for="collection-name">Collection Name:</label>
-                                    <input type="text" id="collection-name" value="${this.escapeHtml(collectionName)}" placeholder="Collection or series name">
+                                <div class="series-field">
+                                    <span class="field-label">Collection Name:</span>
+                                    <input type="text" id="collection-name" value="${this.escapeHtml(collectionName)}" placeholder="Collection or series name" class="field-input">
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="labels">Labels:</label>
-                                <input type="text" id="labels" value="${this.escapeHtml(labels)}" placeholder="Comma-separated labels">
+                            <div class="series-field">
+                                <span class="field-label">Labels:</span>
+                                <input type="text" id="labels" value="${this.escapeHtml(labels)}" placeholder="Comma-separated labels" class="field-input">
                             </div>
                         </div>
 
-                        <div class="form-section">
+                        <div class="details-section">
                             <h4>Media Properties</h4>
                             
-                            <div class="form-row">
-                                <div class="form-group checkbox-group">
-                                    <label class="checkbox-option">
+                            <div class="form-row-details">
+                                <div class="checkbox-field">
+                                    <label class="checkbox-label">
                                         <input type="checkbox" id="multi-audio" ${multiAudio ? 'checked' : ''}>
                                         <span>Multi-Audio</span>
                                     </label>
                                 </div>
                                 
-                                <div class="form-group checkbox-group">
-                                    <label class="checkbox-option">
+                                <div class="checkbox-field">
+                                    <label class="checkbox-label">
                                         <input type="checkbox" id="multi-subtitle" ${multiSubtitle ? 'checked' : ''}>
                                         <span>Multi-Subtitle</span>
                                     </label>
@@ -1945,10 +1966,10 @@ class AdminPanel {
                             </div>
                         </div>
 
-                        <div class="form-section">
+                        <div class="details-section">
                             <h4>Collection Settings</h4>
-                            <div class="form-group checkbox-group special-field">
-                                <label class="checkbox-option ignore-option">
+                            <div class="checkbox-field special-ignore">
+                                <label class="checkbox-label">
                                     <input type="checkbox" id="ignore" ${ignore ? 'checked' : ''}>
                                     <span>Ignore (Don't include in video collection)</span>
                                 </label>
@@ -1958,176 +1979,199 @@ class AdminPanel {
                             </div>
                         </div>
 
-                        <div class="form-section">
+                        <div class="details-section">
                             <h4>Series Information</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="db-title">DB Title:</label>
-                                    <input type="text" id="db-title" value="${this.escapeHtml(series.db_title || '')}" placeholder="Database title">
+                            <div class="form-row-details">
+                                <div class="series-field">
+                                    <span class="field-label">DB Title:</span>
+                                    <input type="text" id="db-title" value="${this.escapeHtml(series.db_title || '')}" placeholder="Database title" class="field-input">
                                 </div>
-                                <div class="form-group">
-                                    <label for="display-title">Display Title:</label>
-                                    <input type="text" id="display-title" value="${this.escapeHtml(series.title || '')}" placeholder="Display title">
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="english-title">English Title:</label>
-                                    <input type="text" id="english-title" value="${this.escapeHtml(series.english_title || '')}" placeholder="English title">
-                                </div>
-                                <div class="form-group">
-                                    <label for="year">Year:</label>
-                                    <input type="number" id="year" value="${series.year || ''}" placeholder="Release year">
+                                <div class="series-field">
+                                    <span class="field-label">Display Title:</span>
+                                    <input type="text" id="display-title" value="${this.escapeHtml(series.title || '')}" placeholder="Display title" class="field-input">
                                 </div>
                             </div>
                             
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="episodes">Total Episodes:</label>
-                                    <input type="number" id="episodes" value="${series.episodes || ''}" placeholder="Total episodes">
+                            <div class="form-row-details">
+                                <div class="series-field">
+                                    <span class="field-label">English Title:</span>
+                                    <input type="text" id="english-title" value="${this.escapeHtml(series.english_title || '')}" placeholder="English title" class="field-input">
                                 </div>
-                                <div class="form-group">
-                                    <label for="score">Score:</label>
-                                    <input type="number" step="0.1" id="score" value="${series.score || ''}" placeholder="Rating score">
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="rank">Rank:</label>
-                                    <input type="number" id="rank" value="${series.rank || ''}" placeholder="Ranking">
-                                </div>
-                                <div class="form-group">
-                                    <label for="popularity">Popularity:</label>
-                                    <input type="number" id="popularity" value="${series.popularity || ''}" placeholder="Popularity rank">
+                                <div class="series-field">
+                                    <span class="field-label">Year:</span>
+                                    <input type="number" id="year" value="${series.year || ''}" placeholder="Release year" class="field-input">
                                 </div>
                             </div>
                             
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="type">Type:</label>
-                                    <input type="text" id="type" value="${this.escapeHtml(series.type || '')}" placeholder="e.g., TV, Movie, OVA, Special">
+                            <div class="form-row-details">
+                                <div class="series-field">
+                                    <span class="field-label">Total Episodes:</span>
+                                    <input type="number" id="episodes" value="${series.episodes || ''}" placeholder="Total episodes" class="field-input">
                                 </div>
-                                <div class="form-group">
-                                    <label for="duration">Duration:</label>
-                                    <input type="text" id="duration" value="${this.escapeHtml(series.duration || '')}" placeholder="Episode duration">
+                                <div class="series-field">
+                                    <span class="field-label">Score:</span>
+                                    <input type="number" step="0.1" id="score" value="${series.score || ''}" placeholder="Rating score" class="field-input">
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="genres">Genres:</label>
-                                <input type="text" id="genres" value="${this.escapeHtml(series.genres || '')}" placeholder="Comma-separated genres">
+                            <div class="form-row-details">
+                                <div class="series-field">
+                                    <span class="field-label">Rank:</span>
+                                    <input type="number" id="rank" value="${series.rank || ''}" placeholder="Ranking" class="field-input">
+                                </div>
+                                <div class="series-field">
+                                    <span class="field-label">Popularity:</span>
+                                    <input type="number" id="popularity" value="${series.popularity || ''}" placeholder="Popularity rank" class="field-input">
+                                </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="external-id">External ID:</label>
-                                <input type="number" id="external-id" value="${series.external_id || ''}" placeholder="External database ID">
+                            <div class="form-row-details">
+                                <div class="series-field">
+                                    <span class="field-label">Type:</span>
+                                    <input type="text" id="type" value="${this.escapeHtml(series.type || '')}" placeholder="e.g., TV, Movie, OVA, Special" class="field-input">
+                                </div>
+                                <div class="series-field">
+                                    <span class="field-label">Duration:</span>
+                                    <input type="text" id="duration" value="${this.escapeHtml(series.duration || '')}" placeholder="Episode duration" class="field-input">
+                                </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="image-poster">Poster Image:</label>
-                                <input type="text" id="image-poster" value="${this.escapeHtml(series.image_poster_large || '')}" placeholder="Poster image URL or path">
+                            <div class="series-field">
+                                <span class="field-label">Genres:</span>
+                                <input type="text" id="genres" value="${this.escapeHtml(series.genres || '')}" placeholder="Comma-separated genres" class="field-input">
                             </div>
                             
-                            <div class="form-group">
-                                <label for="summary">Summary:</label>
-                                <textarea id="summary" rows="4" placeholder="Series summary">${this.escapeHtml(series.summary || '')}</textarea>
+                            <div class="series-field">
+                                <span class="field-label">External ID:</span>
+                                <input type="number" id="external-id" value="${series.external_id || ''}" placeholder="External database ID" class="field-input">
+                            </div>
+                            
+                            <div class="series-field">
+                                <span class="field-label">Poster Image:</span>
+                                <input type="text" id="image-poster" value="${this.escapeHtml(series.image_poster_large || '')}" placeholder="Poster image URL or path" class="field-input">
+                            </div>
+                            
+                            <div class="series-field">
+                                <span class="field-label">Summary:</span>
+                                <textarea id="summary" rows="4" placeholder="Series summary" class="field-input">${this.escapeHtml(series.summary || '')}</textarea>
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Update</button>
+                        <div class="form-actions-details">
                             <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
                 </div>
             </div>
         `;
-
+        
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.getElementById('edit-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
 
     // Update the openBulkEditModal method to include the new fields
+    
+    // UPDATED: Bulk edit modal using details-panel structure
     openBulkEditModal(selectedTitles) {
-        // Convert title names to objects containing both title and directory_hash
-        const selectedItems = selectedTitles.map(titleName => {
-            const title = this.titles.find(t => t.title === titleName);
-            return title ? {
-                title: title.title,
-                directory_hash: title.directory_hash
-            } : null;
-        }).filter(item => item !== null);
+        if (selectedTitles.length === 0) {
+            alert('Please select titles to edit');
+            return;
+        }
+        console.log(selectedTitles)
 
         const modalHTML = `
-            <div id="edit-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="admin.closeEditModal()">&times;</span>
-                    <h3>Bulk Edit: ${selectedTitles.length} Titles</h3>
-                    <p class="edit-info">
-                        Editing ${selectedTitles.length} title(s). Only filled fields will be updated. Empty fields will be ignored.
-                    </p>
+            <div id="bulk-edit-modal" class="details-panel active">
+                <div class="details-header">
+                    <h3>Bulk Edit ${selectedTitles.length} Titles</h3>
+                    <button class="details-close" onclick="admin.closeBulkEditModal()">&times;</button>
+                </div>
+                
+                <div class="details-content">
+                    <div class="edit-info">
+                        Editing ${selectedTitles.length} titles. Only filled fields will be updated. Empty fields will be ignored.
+                    </div>
                     
-                    <form id="edit-form" onsubmit="admin.submitBulkEdit(event)">
-                        <input type="hidden" id="selected-items" value='${JSON.stringify(selectedItems)}'>
-                        
-                        <div class="form-section">
-                            <h4>Bulk Update Fields</h4>
+                    <form id="bulk-edit-form" onsubmit="admin.submitBulkEdit(event)">
+                        <div class="details-section">
+                            <h4>Video Information</h4>
                             
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="bulk-category">Category:</label>
-                                    <input type="text" id="bulk-category" placeholder="e.g., anime, tv shows, movies, cartoons">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bulk-collection-name">Collection Name:</label>
-                                    <input type="text" id="bulk-collection-name" placeholder="Collection or series name">
-                                </div>
+                            <div class="series-field">
+                                <span class="field-label">Category:</span>
+                                <input type="text" id="bulk-category" placeholder="e.g., anime, tv shows, movies" class="field-input">
                             </div>
                             
-                            <div class="form-group">
-                                <label for="bulk-labels">Labels:</label>
-                                <input type="text" id="bulk-labels" placeholder="Comma-separated labels">
+                            <div class="series-field">
+                                <span class="field-label">Collection Name:</span>
+                                <input type="text" id="bulk-collection-name" placeholder="Collection or series name" class="field-input">
                             </div>
                             
-                            <div class="form-group">
-                                <label for="bulk-image-poster">Poster Image URL:</label>
-                                <input type="text" id="bulk-image-poster" placeholder="URL or path to poster image">
-                            </div>
-                            
-                            <div class="form-group checkbox-group special-field">
-                                <label class="checkbox-option ignore-option">
-                                    <input type="checkbox" id="bulk-ignore">
-                                    <span>Ignore (Don't include in video collection)</span>
-                                </label>
+                            <div class="series-field">
+                                <span class="field-label">Labels:</span>
+                                <input type="text" id="bulk-labels" placeholder="Comma-separated labels" class="field-input">
                             </div>
                         </div>
 
-                        <div class="bulk-selected-display">
-                            <h4>Selected Titles (${selectedItems.length}):</h4>
-                            <div class="bulk-titles-container">
-                                ${selectedItems.map(item => `
-                                    <div class="bulk-title-row">
-                                        <span class="bulk-title-text">${this.escapeHtml(item.title)}</span>
-                                        <span class="bulk-title-id">${this.escapeHtml(item.directory_hash.substring(0, 8))}...</span>
+                        <div class="details-section">
+                            <h4>Media Properties</h4>
+                            
+                            <div class="form-row-details">
+                                <div class="checkbox-field">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="bulk-multi-audio">
+                                        <span>Multi-Audio</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="checkbox-field">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="bulk-multi-subtitle">
+                                        <span>Multi-Subtitle</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="details-section">
+                            <h4>Collection Settings</h4>
+                            <div class="checkbox-field special-ignore">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="bulk-ignore">
+                                    <span>Ignore (Don't include in video collection)</span>
+                                </label>
+                                <div class="field-help">
+                                    When checked, selected titles will be excluded from the main video collection display.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="details-section">
+                            <h4>Selected Titles</h4>
+                            <div class="episode-list">
+                                ${selectedTitles.map(title => `
+                                    <div class="episode-item">
+                                        <div class="episode-details">
+                                            <div class="episode-name">${this.escapeHtml(title.title)}</div>
+                                            <div class="episode-path">ID: ${this.escapeHtml(title.directory_hash)}</div>
+                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Update All Selected</button>
-                            <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
+                        <div class="form-actions-details">
+                            <button type="button" class="btn btn-secondary" onclick="admin.closeBulkEditModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Apply Changes</button>
                         </div>
                     </form>
                 </div>
             </div>
         `;
-
+        
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.getElementById('edit-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
     }
+
 
     closeEditModal() {
         const modal = document.getElementById('edit-modal');
@@ -2138,6 +2182,14 @@ class AdminPanel {
         this.currentEditPaths = null;
         // Clear saved scroll position since user cancelled
         localStorage.removeItem('adminScrollPosition');
+    }
+
+    closeBulkEditModal() {
+        const modal = document.getElementById('bulk-edit-modal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
     }
 
     // UPDATED: Submit edit with checkbox handling
