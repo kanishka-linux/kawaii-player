@@ -7,74 +7,100 @@
     <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-    <div class="admin-header">
-        <h1>Media Server Admin Panel</h1>
-    </div>
+    <!-- Modern sidebar toggle button -->
+    <button class="sidebar-toggle" id="mobile-sidebar-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
     
-    <div class="admin-container">
-        <div class="main-content">
-            <div class="controls">
-                <div class="search-section">
-                    <h3>Search & Filter</h3>
-                    <div class="search-bar">
-                        <input type="text" id="search-input" placeholder="Search titles...">
-                        <button id="search-btn" class="btn btn-primary">Search</button>
-                        <button id="clear-btn" class="btn btn-secondary">Clear</button>
-                    </div>
-                    
-                    <!-- NEW: Sort and Filter Controls -->
-                    <div class="sort-filter-controls">
-                        <div class="sort-controls">
-                            <div class="control-group">
-                                <label for="sort-by">Sort by:</label>
-                                <select id="sort-by">
-                                    <option value="title">Title</option>
-                                    <option value="recently-added">Recently Added</option>
-                                </select>
-                            </div>
-                            <div class="control-group">
-                                <label for="sort-order">Order:</label>
-                                <select id="sort-order">
-                                    <option value="asc">Ascending</option>
-                                    <option value="desc">Descending</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-controls">
-                            <div class="control-group">
-                                <label for="category-filter">Category:</label>
-                                <select id="category-filter">
-                                    <option value="all">All Categories</option>
-                                </select>
-                            </div>
-                            <div class="control-group">
-                                <label for="label-filter">Label:</label>
-                                <select id="label-filter">
-                                    <option value="all">All Labels</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="clear-controls">
-                            <button id="clear-sort-filter-btn" class="btn btn-clear">Clear Sort & Filters</button>
-                        </div>
+    <!-- Modern sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    <!-- UPDATED: Modern sidebar structure without search buttons -->
+    <div class="filters-sidebar admin-sidebar" id="admin-sidebar">
+        <!-- Modern sidebar header -->
+        <div class="sidebar-header">
+            <h2>Media Server Admin</h2>
+            <button class="sidebar-close" id="sidebar-close">&times;</button>
+        </div>
+        
+        <!-- Modern sidebar content -->
+        <div class="sidebar-content">
+            <!-- Search & Filter Section -->
+            <div class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="search-input">Search Titles</label>
+                        <input type="text" id="search-input" class="form-control" placeholder="Search titles...">
                     </div>
                 </div>
                 
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="sort-by">Sort By</label>
+                        <select id="sort-by" class="form-control">
+                            <option value="title">Title</option>
+                            <option value="recently-added">Recently Added</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="sort-order">Sort Order</label>
+                        <select id="sort-order" class="form-control">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="category-filter">Category</label>
+                        <select id="category-filter" class="form-control">
+                            <option value="all">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="label-filter">Label</label>
+                        <select id="label-filter" class="form-control">
+                            <option value="all">All Labels</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- UPDATED: Filter Actions without search buttons -->
+                <div class="filter-actions">
+                    <button id="clear-sort-filter-btn" class="btn btn-light">Clear All Filters</button>
+                    <button id="filter-no-info-btn" class="btn btn-outline">No Info Only</button>
+                    <button id="update-collection-btn" class="btn btn-warning">Update Collection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main content area -->
+    <div class="main-area admin-container">
+        <div class="main-content">
+            <!-- Bulk actions remain in main area -->
+            <div class="controls">
                 <div class="bulk-actions">
                     <h4>Bulk Actions</h4>
                     <button id="select-all-btn" class="btn btn-secondary">Select All</button>
                     <button id="deselect-all-btn" class="btn btn-secondary">Deselect All</button>
                     <button id="bulk-edit-btn" class="btn btn-primary" disabled>Bulk Edit</button>
                     <button id="bulk-metadata-btn" class="btn btn-info" disabled>Fetch Metadata</button>
-                    <button id="update-collection-btn" class="btn btn-warning">Update Collection</button>
-                    <button id="filter-no-info-btn" class="btn btn-filter-no-info">No Info Only</button>
                 </div>
             </div>
             
+            <!-- UPDATED: Titles section with list layout -->
             <div class="titles-section">
-                <div id="titles-list" class="titles-list">
+                <div id="titles-list" class="titles-list titles-list-view">
                     <div class="loading">Loading titles...</div>
                 </div>
             </div>
@@ -83,10 +109,9 @@
         <div id="details-panel" class="details-panel">
             <div class="details-header">
                 <h3 id="details-title">Title Details</h3>
-                <button id="close-details" class="close-btn">&times;</button>
+                <button id="close-details" class="details-close">&times;</button>
             </div>
 
-            <button id="mobile-back-btn" class="mobile-back-btn">Back to List</button>
             <div id="details-content" class="details-content">
                 <!-- Details will be loaded here -->
             </div>

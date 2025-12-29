@@ -61,6 +61,7 @@ class AdminPanel {
     }
 
     setupEventListeners() {
+        this.setupMobileSidebar();
         // Search functionality
         
         // In setupEventListeners(), update search listeners:
@@ -76,26 +77,6 @@ class AdminPanel {
             } else {
                 this.applyFilters();
             }
-        });
-
-        document.getElementById('search-btn').addEventListener('click', () => {
-            const searchTerm = document.getElementById('search-input').value;
-            this.currentSearchTerm = searchTerm;
-            
-            const needsBackendFiltering = this.currentCategoryFilter !== 'all' || 
-                                         this.currentLabelFilter !== 'all';
-            
-            if (needsBackendFiltering) {
-                this.loadFilteredTitles();
-            } else {
-                this.applyFilters();
-            }
-        });
-
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            document.getElementById('search-input').value = '';
-            this.currentSearchTerm = '';
-            this.applyFilters();
         });
 
         // Bulk actions
@@ -164,11 +145,78 @@ class AdminPanel {
             this.clearSortAndFilters();
         });
 
-        const mobileBackBtn = document.getElementById('mobile-back-btn');
-        if (mobileBackBtn) {
-            mobileBackBtn.addEventListener('click', () => {
-                this.closeDetailsPanel();
+    }
+
+    // NEW: Add this method to AdminPanel class
+    
+    // UPDATED: Enhanced mobile sidebar functionality
+    
+    setupMobileSidebar() {
+        const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+        const sidebar = document.querySelector('.filters-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const container = document.querySelector('.main-area');
+        const closeBtn = document.getElementById('sidebar-close');
+
+        if (toggleBtn && sidebar && overlay) {
+            // Initialize sidebar state based on screen size
+            const initializeSidebar = () => {
+                if (window.innerWidth >= 1024) {
+                    // Desktop: Show sidebar by default
+                    sidebar.classList.add('open');
+                    overlay.classList.remove('active');
+                    toggleBtn.classList.add('active');
+                    document.body.classList.add('sidebar-open');
+                    if (container) container.classList.add('sidebar-open');
+                } else {
+                    // Mobile/Tablet: Hide sidebar by default
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    toggleBtn.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                    if (container) container.classList.remove('sidebar-open');
+                }
+            };
+
+            // Initialize immediately
+            initializeSidebar();
+
+            // Toggle sidebar function
+            const toggleSidebar = () => {
+                const isOpen = sidebar.classList.contains('open');
+                
+                if (isOpen) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    toggleBtn.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                    if (container) container.classList.remove('sidebar-open');
+                } else {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                    toggleBtn.classList.add('active');
+                    document.body.classList.add('sidebar-open');
+                    if (container) container.classList.add('sidebar-open');
+                }
+            };
+
+            // Event listeners
+            toggleBtn.addEventListener('click', toggleSidebar);
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', toggleSidebar);
+            }
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                toggleBtn.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+                if (container) container.classList.remove('sidebar-open');
             });
+
+            // Handle window resize
+            window.addEventListener('resize', initializeSidebar);
         }
     }
 
@@ -265,9 +313,13 @@ class AdminPanel {
         return filtered;
     }
 
+    
     setupTitleEventListeners() {
-        // Handle checkbox changes
-        document.querySelectorAll('.title-checkbox').forEach(checkbox => {
+        // Clean up existing listeners first
+        this.cleanupTitleEventListeners();
+
+        // Handle checkbox changes - FIXED selector
+        document.querySelectorAll('.title-item input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', (event) => {
                 const hash = event.target.dataset.hash;
                 const titleElement = event.target.closest('.title-item');
@@ -276,7 +328,7 @@ class AdminPanel {
             });
         });
 
-        // Handle title info clicks
+        // Handle title info clicks - FIXED selector
         document.querySelectorAll('.title-info').forEach(titleInfo => {
             titleInfo.addEventListener('click', (event) => {
                 const index = parseInt(titleInfo.dataset.index);
@@ -287,7 +339,7 @@ class AdminPanel {
             });
         });
 
-        // Handle edit button clicks
+        // Handle edit button clicks - FIXED selector
         document.querySelectorAll('.btn-edit').forEach(button => {
             button.addEventListener('click', (event) => {
                 event.stopPropagation();
@@ -300,30 +352,23 @@ class AdminPanel {
         });
     }
 
-    closeDetailsPanel() {
-        console.log("closing...")
-        const detailsPanel = document.getElementById('details-panel');
-        detailsPanel.classList.remove('active');
+    cleanupTitleEventListeners() {
+        // Remove existing event listeners to prevent memory leaks
+        document.querySelectorAll('.title-item input[type="checkbox"]').forEach(checkbox => {
+            // Clone and replace to remove all event listeners
+            const newCheckbox = checkbox.cloneNode(true);
+            checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+        });
         
-        // Restore body scroll on mobile
-        if (window.innerWidth <= 768) {
-            document.body.style.overflow = '';
-        }
+        document.querySelectorAll('.title-info').forEach(titleInfo => {
+            const newTitleInfo = titleInfo.cloneNode(true);
+            titleInfo.parentNode.replaceChild(newTitleInfo, titleInfo);
+        });
         
-        this.currentTitle = null;
-        this.selectedEpisodes.clear();
-
-        // Restore to saved index
-        setTimeout(() => {
-            this.restoreToSavedIndex();
-        }, 350);
-        
-        setTimeout(() => {
-            if (!detailsPanel.classList.contains('active')) {
-                const detailsContent = document.getElementById('details-content');
-                detailsContent.innerHTML = '';
-            }
-        }, 300);
+        document.querySelectorAll('.btn-edit').forEach(button => {
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+        });
     }
 
     toggleNoInfoFilter() {
@@ -714,6 +759,8 @@ class AdminPanel {
 
     // UPDATED: Render titles with directory_hash in click handlers
     
+    
+    
     renderTitles(titlesToRender = null) {
         const container = document.getElementById('titles-list');
         const titles = titlesToRender || this.titles;
@@ -940,13 +987,16 @@ class AdminPanel {
         }
     }
 
+    
     selectAllTitles() {
         const visibleTitles = document.querySelectorAll('.title-item');
         visibleTitles.forEach(item => {
             const directoryHash = item.dataset.hash;
             this.selectedTitles.add(directoryHash);
-            const checkbox = item.querySelector('.title-checkbox');
-            checkbox.checked = true;
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = true;
+            }
             item.classList.add('selected');
         });
         this.updateBulkEditButton();
@@ -954,7 +1004,7 @@ class AdminPanel {
 
     deselectAllTitles() {
         this.selectedTitles.clear();
-        document.querySelectorAll('.title-checkbox').forEach(checkbox => {
+        document.querySelectorAll('.title-item input[type="checkbox"]').forEach(checkbox => {
             checkbox.checked = false;
         });
         document.querySelectorAll('.title-item').forEach(item => {
@@ -1009,6 +1059,7 @@ class AdminPanel {
     }
 
     // UPDATED: Show title details using directory_hash as unique identifier
+    
     async showTitleDetails(directoryHash, titleName = null) {
         // Find title by directory_hash (unique identifier)
         const title = this.titles.find(t => t.directory_hash === directoryHash);
@@ -1017,28 +1068,28 @@ class AdminPanel {
             return;
         }
 
-        // Use the actual title from the found object
         const actualTitleName = title.title;
-        console.log('Showing details for title:', actualTitleName, 'hash:', directoryHash); // Debug log
-
         this.currentTitle = title;
         
         // Show the panel immediately with loading state
         document.getElementById('details-title').textContent = `${actualTitleName} - Details`;
-        document.getElementById('details-panel').classList.add('active');
+        const detailsPanel = document.getElementById('details-panel');
+        detailsPanel.classList.add('active');
+        
+        // Prevent body scroll on mobile
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        }
         
         // Show loading state in details content
         const detailsContent = document.getElementById('details-content');
         detailsContent.innerHTML = this.generateLoadingDetailsHTML();
         
         try {
-            // UPDATED: Use POST request with title and directory_hash in body
             const requestBody = {
                 title: actualTitleName,
                 directory_hash: directoryHash
             };
-            
-            console.log('POST request body:', requestBody); // Debug log
             
             const response = await fetch('/title-details', {
                 method: 'POST',
@@ -1048,23 +1099,15 @@ class AdminPanel {
                 body: JSON.stringify(requestBody)
             });
             
-            console.log('Response status:', response.status); // Debug log
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            // Get and log the raw response
             const responseText = await response.text();
-            console.log('Raw response:', responseText); // Debug log
-            
-            // Parse JSON
             let detailsData;
             try {
                 detailsData = JSON.parse(responseText);
-                console.log('Parsed details data:', detailsData); // Debug log
             } catch (parseError) {
-                console.error('JSON parse error:', parseError);
                 throw new Error(`Invalid JSON response: ${parseError.message}`);
             }
             
@@ -1072,27 +1115,15 @@ class AdminPanel {
                 throw new Error(detailsData.error);
             }
             
-            // Generate and display the details HTML with fetched data
             const generatedHTML = this.generateDetailsHTML(detailsData);
-            console.log('Generated HTML length:', generatedHTML.length); // Debug log
-            
             detailsContent.innerHTML = generatedHTML;
             
             // Setup episode selection listeners
             this.setupEpisodeSelectionListeners();
             
-            console.log('Details panel updated successfully'); // Debug log
-            
         } catch (error) {
             console.error('Error loading title details:', error);
             detailsContent.innerHTML = this.generateErrorDetailsHTML(error.message);
-        }
-
-        const mobileBackBtn = document.getElementById('mobile-back-btn');
-        if (mobileBackBtn) {
-            mobileBackBtn.addEventListener('click', () => {
-                this.closeDetailsPanel();
-            });
         }
     }
 
