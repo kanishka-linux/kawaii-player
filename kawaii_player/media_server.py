@@ -1413,8 +1413,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.handle_browse_request()
         elif self.path.startswith('/admin.html') or self.path == '/admin':
             self.handle_admin_request()
-        elif self.path == '/admin-data':
-            self.handle_admin_data_request()
+        elif self.path == '/series-data':
+            self.handle_series_data_request()
+        elif self.path.startswith('/series-data?'):
+            self.handle_series_data_filtered_request()
         elif self.path.startswith('/series/'):
             # Handle browse requests
             self.handle_browse_series_request()
@@ -2229,8 +2231,110 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         except FileNotFoundError:
             self.send_error(404, "Admin interface not found")
 
+    def handle_series_data_filtered_request(self):
+        global home
+        """Serve filtered admin data based on category and label filters only"""
+        
+        try:
+            # Parse query parameters
+            parsed_url = urlparse(self.path)
+            query_params = urllib.parse.parse_qs(parsed_url.query)
+            
+            # Extract only category and label filters
+            category_filter = query_params.get('category', ['all'])[0]
+            label_filter = query_params.get('label', ['all'])[0]
+            
+            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            # Build the query - only series_info table
+            base_query = """
+                SELECT 
+                    db_title as title,
+                    directory,
+                    episodes_available
+                FROM series_info
+            """
+            
+            query_conditions = []
+            query_params_list = []
+            
+            # Add category filter
+            if category_filter != 'all':
+                query_conditions.append("LOWER(category) = LOWER(?)")
+                query_params_list.append(category_filter)
+            
+            
+            # Add label filter
+            if label_filter != 'all':
+                query_conditions.append("labels LIKE ?")
+                query_params_list.append(f"%{label_filter}%")
+            
+            # Combine conditions
+            if query_conditions:
+                base_query += " WHERE " + " AND ".join(query_conditions)
+            
+            base_query += " ORDER BY db_title"
+            
+            cur.execute(base_query, query_params_list)
+            series_rows = cur.fetchall()
+            
+            # Get available categories and labels for dropdowns
+            cur.execute("""
+                SELECT DISTINCT category
+                FROM series_info
+                WHERE category IS NOT NULL 
+                AND category != ""
+            """)
+            categories = [row[0].strip() for row in cur.fetchall()]
+            
+            cur.execute("""
+                SELECT DISTINCT labels
+                FROM series_info
+                WHERE labels IS NOT NULL 
+                AND labels != ""
+            """)
+            labels_nested_list = [row[0].split(",") for row in cur.fetchall()]
+            labels = list(set([
+                label.strip() for label_list in labels_nested_list for label in label_list
+            ]))
+            
+            conn.close()
+            
+            # Process results
+            valid_titles = []
+            for row in series_rows:
+                title = row['title']
+                directory = row['directory']
+                episode_count = row['episodes_available'] or 0
+                
+                valid_titles.append({
+                    'title': title,
+                    'directory_hash': self.calc_dir_hash(directory or '', title),
+                    'episode_count': episode_count,
+                    'has_series_info': True,
+                    'mtime': 0
+                })
+            
+            valid_response = {
+                "available_categories": sorted(categories),
+                "available_labels": sorted(labels),
+                "titles": valid_titles
+            }
+            
+            response = json.dumps(valid_response, indent=2)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            print(f"Filtered admin data error: {str(e)}")
+            self.send_error(500, f"Database error: {str(e)}")
     
-    def handle_admin_data_request(self):
+    def handle_series_data_request(self):
         global home
         """Serve lightweight admin data as JSON - titles and counts only"""
         
@@ -2306,7 +2410,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 })
             
             # Sort by modification time (recent first)
-            valid_titles.sort(key=lambda x: x['mtime'], reverse=True)
+            # valid_titles.sort(key=lambda x: x['mtime'], reverse=True)
             
             valid_response = {
                         "available_categories": categories,

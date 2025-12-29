@@ -62,15 +62,34 @@ class AdminPanel {
 
     setupEventListeners() {
         // Search functionality
+        
+        // In setupEventListeners(), update search listeners:
         document.getElementById('search-input').addEventListener('input', (e) => {
             this.currentSearchTerm = e.target.value;
-            this.applyFilters();
+            
+            // Use backend filtering if category/label filters are active
+            const needsBackendFiltering = this.currentCategoryFilter !== 'all' || 
+                                         this.currentLabelFilter !== 'all';
+            
+            if (needsBackendFiltering) {
+                this.loadFilteredTitles();
+            } else {
+                this.applyFilters();
+            }
         });
 
         document.getElementById('search-btn').addEventListener('click', () => {
             const searchTerm = document.getElementById('search-input').value;
             this.currentSearchTerm = searchTerm;
-            this.applyFilters();
+            
+            const needsBackendFiltering = this.currentCategoryFilter !== 'all' || 
+                                         this.currentLabelFilter !== 'all';
+            
+            if (needsBackendFiltering) {
+                this.loadFilteredTitles();
+            } else {
+                this.applyFilters();
+            }
         });
 
         document.getElementById('clear-btn').addEventListener('click', () => {
@@ -133,12 +152,12 @@ class AdminPanel {
 
         document.getElementById('category-filter').addEventListener('change', (e) => {
             this.currentCategoryFilter = e.target.value;
-            this.applyFilters();
+            this.loadFilteredTitles();
         });
 
         document.getElementById('label-filter').addEventListener('change', (e) => {
             this.currentLabelFilter = e.target.value;
-            this.applyFilters();
+            this.loadFilteredTitles();
         });
 
         document.getElementById('clear-sort-filter-btn').addEventListener('click', () => {
@@ -338,10 +357,94 @@ class AdminPanel {
         }
     }
 
-    // Existing method - no changes needed
-    applyFilters() {
-        this.clearLocalStorageState();
+    async loadFilteredTitles() {
+        try {
+            this.showLoading();
+            
+            // Check if both category and label filters are 'all' or not present
+            const categoryIsAll = !this.currentCategoryFilter || this.currentCategoryFilter === 'all';
+            const labelIsAll = !this.currentLabelFilter || this.currentLabelFilter === 'all';
+            
+            if (categoryIsAll && labelIsAll) {
+                // Use original endpoint with no query params
+                const response = await fetch('/series-data');
+                if (!response.ok) {
+                    throw new Error(`Failed to load titles: ${response.status} ${response.statusText}`);
+                }
+                
+                const { titles, available_categories, available_labels } = await response.json();
+                
+                if (titles.error) {
+                    throw new Error(titles.error);
+                }
+                
+                // Update local data
+                this.titles = titles;
+                this.availableCategories = available_categories;
+                this.availableLabels = available_labels;
+                
+                // Apply any remaining client-side filters (search, series info)
+                this.applyFilters();
+                
+            } else {
+                // Build query parameters for backend filtering
+                const params = new URLSearchParams();
+                
+                // Add category filter
+                if (!categoryIsAll) {
+                    params.append('category', this.currentCategoryFilter);
+                }
+                
+                // Add label filter
+                if (!labelIsAll) {
+                    params.append('label', this.currentLabelFilter);
+                }
+                
+                // Make backend call with filters
+                const response = await fetch(`/series-data?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load filtered titles: ${response.status} ${response.statusText}`);
+                }
+                
+                const { titles, available_categories, available_labels } = await response.json();
+                
+                if (titles.error) {
+                    throw new Error(titles.error);
+                }
+                
+                // Update local data
+                this.titles = titles;
+                this.availableCategories = available_categories;
+                this.availableLabels = available_labels;
+                
+                // Render the filtered results (no client-side filtering needed for category/label)
+                this.renderTitles(titles);
+                this.updateFilterStatus(titles.length);
+                this.updateLabelStyles();
+            }
+            
+        } catch (error) {
+            this.showError('Failed to load titles: ' + error.message);
+        }
+    }
 
+    // Existing method - no changes needed
+    
+    applyFilters() {
+        // Clear localStorage state
+        this.clearLocalStorageState();
+        
+        // Check if we need backend filtering (category or label filters)
+        const needsBackendFiltering = this.currentCategoryFilter !== 'all' || 
+                                     this.currentLabelFilter !== 'all';
+        
+        if (needsBackendFiltering) {
+            // Use backend filtering
+            this.loadFilteredTitles();
+            return;
+        }
+        
+        // Continue with client-side filtering for search and series info
         let filtered = [...this.titles];
         
         // Apply search filter
@@ -357,9 +460,6 @@ class AdminPanel {
         } else if (this.currentSeriesInfoFilter === 'no-info') {
             filtered = filtered.filter(title => title.has_series_info === false);
         }
-        
-        // Apply category and label filters
-        filtered = this.filterTitles(filtered);
         
         // Apply sorting
         filtered = this.sortTitles(filtered);
@@ -588,7 +688,7 @@ class AdminPanel {
         try {
             this.showLoading();
             
-            const response = await fetch('/admin-data');
+            const response = await fetch('/series-data');
             if (!response.ok) {
                 throw new Error(`Failed to load titles: ${response.status} ${response.statusText}`);
             }
