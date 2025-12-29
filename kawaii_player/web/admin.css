@@ -893,8 +893,9 @@ body {
 .titles-metadata-list,
 .results-container {
     flex: 1;
+    max-height: 600px;
+    min-height: 300px;
     overflow-y: auto;
-    max-height: 300px;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
 }

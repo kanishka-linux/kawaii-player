@@ -1565,100 +1565,97 @@ class AdminPanel {
     }
 
     
+
     openBulkMetadataModal(selectedTitles) {
-        const savedCategory = this.getCategoryPreference();
+    const savedCategory = this.getCategoryPreference();
 
-        const modalHTML = `
-            <div id="metadata-modal" class="details-panel active metadata-modal">
-                <div class="details-header">
-                    <h3>Fetch Metadata for ${selectedTitles.length} Titles</h3>
-                    <button class="details-close" onclick="admin.closeBulkMetadataModal()">&times;</button>
-                </div>
-                
-                <div class="details-content metadata-content">
-                    <div class="metadata-modal-body">
-                        <!-- Left side: Form -->
-                        <div class="metadata-form-section">
-                            <div class="edit-info">
-                                Select category and provide exact titles for metadata fetching.
-                            </div>
+    const modalHTML = `
+        <div id="metadata-modal" class="details-panel active metadata-modal">
+            <div class="details-header">
+                <h3>Fetch Metadata for ${selectedTitles.length} Titles</h3>
+                <button class="details-close" onclick="admin.closeBulkMetadataModal()">&times;</button>
+            </div>
+
+            <div class="details-content metadata-content">
+                <div class="metadata-modal-body">
+                    <!-- Left side: Form -->
+                    <div class="metadata-form-section">
+                        <form id="metadata-form" onsubmit="admin.submitBulkMetadata(event)">
+                            <input type="hidden" id="selected-titles-metadata" value='${this.safeJsonEncode(selectedTitles)}'>
                             
-                            <form id="metadata-form" onsubmit="admin.submitBulkMetadata(event)">
-                                <input type="hidden" id="selected-titles-metadata" value='${this.safeJsonEncode(selectedTitles)}'>
-                                
-                                <div class="details-section">
-                                    <h4>Metadata Settings</h4>
-                                    <div class="series-field">
-                                        <span class="field-label">Category:</span>
-                                        <select id="metadata-category" required class="field-input">
-                                            <option value="">Select Category</option>
-                                            <option value="anime" ${savedCategory === 'anime' ? 'selected' : ''}>Anime</option>
-                                            <option value="tv shows" ${savedCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
-                                            <option value="movies" ${savedCategory === 'movies' ? 'selected' : ''}>Movies</option>
-                                            <option value="cartoons" ${savedCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="checkbox-field">
-                                        <label class="checkbox-label">
-                                            <input type="checkbox" id="use-cache">
-                                            <span>Use cached data if available</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="details-section">
-                                    <h4>Selected Titles - Provide Exact Search Terms</h4>
-                                    <div class="titles-metadata-list">
-                                        ${selectedTitles.map((title, index) => `
-                                            <div class="title-metadata-item">
-                                                <div class="series-field">
-                                                    <span class="field-label">Original:</span>
-                                                    <div class="field-value">${this.escapeHtml(title)}</div>
-                                                </div>
-                                                <div class="series-field">
-                                                    <span class="field-label">Search Term:</span>
-                                                    <input type="text" id="search-title-${index}" 
-                                                           value="${this.escapeHtml(title)}" 
-                                                           placeholder="Enter exact title for search"
-                                                           data-original-title="${this.escapeHtml(title)}"
-                                                           required class="field-input">
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-
-                                <div class="form-actions-details">
-                                    <button type="button" class="btn btn-secondary" onclick="admin.closeBulkMetadataModal()">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Fetch Metadata</button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <!-- Right side: Results -->
-                        <div class="metadata-results-section">
                             <div class="details-section">
-                                <h4>Results</h4>
-                                <div class="results-summary" id="results-summary">
-                                    <span id="success-count">0</span> successful, 
-                                    <span id="fail-count">0</span> failed
+                                <h4>Metadata Settings</h4>
+                                <div class="series-field">
+                                    <span class="field-label">Category:</span>
+                                    <select id="metadata-category" required class="field-input">
+                                        <option value="">Select Category</option>
+                                        <option value="anime" ${savedCategory === 'anime' ? 'selected' : ''}>Anime</option>
+                                        <option value="tv shows" ${savedCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
+                                        <option value="movies" ${savedCategory === 'movies' ? 'selected' : ''}>Movies</option>
+                                        <option value="cartoons" ${savedCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
+                                    </select>
                                 </div>
-                                <div class="results-container" id="results-container">
-                                    <div class="results-placeholder">
-                                        Results will appear here as metadata is fetched...
-                                    </div>
+                                
+                                <div class="checkbox-field">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="use-cache">
+                                        <span>Use cached data if available</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="details-section">
+                                <h4>Provide Exact Search Terms</h4>
+                                <div class="titles-metadata-list">
+                                    ${selectedTitles.map((title, index) => `
+                                        <div class="title-metadata-item">
+                                            <div class="series-field">
+                                                <span class="field-label">Original:</span>
+                                                <div class="field-value">${this.escapeHtml(title)}</div>
+                                            </div>
+                                            <div class="series-field">
+                                                <span class="field-label">Search Term:</span>
+                                                <input type="text" id="search-title-${index}"
+                                                       value="${this.escapeHtml(title)}"
+                                                       placeholder="Enter exact title for search"
+                                                       data-original-title="${this.escapeHtml(title)}"
+                                                       required class="field-input">
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="form-actions-details">
+                                <button type="button" class="btn btn-secondary" onclick="admin.closeBulkMetadataModal()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Fetch Metadata</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Right side: Results -->
+                    <div class="metadata-results-section">
+                        <div class="details-section">
+                            <h4>Results</h4>
+                            <div class="results-summary" id="results-summary">
+                                <span id="success-count">0</span> successful,
+                                <span id="fail-count">0</span> failed
+                            </div>
+                            <div class="results-container" id="results-container">
+                                <div class="results-placeholder">
+                                    Results will appear here as metadata is fetched...
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        document.body.style.overflow = 'hidden';
-    }
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.style.overflow = 'hidden';
+}
 
     async submitBulkMetadata(event) {
         event.preventDefault();
@@ -1681,7 +1678,7 @@ class AdminPanel {
         // Save the category preference when form is submitted
         if (category) {
             this.saveCategoryPreference(category);
-        }
+    }
         
         // Collect search terms for each title
         const titleMappings = [];
