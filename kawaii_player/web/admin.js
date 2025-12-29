@@ -2093,6 +2093,7 @@ class AdminPanel {
                     </div>
                     
                     <form id="bulk-edit-form" onsubmit="admin.submitBulkEdit(event)">
+                        <input type="hidden" id="selected-items" value='${JSON.stringify(selectedTitles)}'>
                         <div class="details-section">
                             <h4>Video Information</h4>
                             
@@ -2562,6 +2563,7 @@ class AdminPanel {
         const messageDiv = document.createElement('div');
         messageDiv.id = 'admin-message';
         messageDiv.className = `admin-message ${type}`;
+        messageDiv.style.zIndex = '10000';
         messageDiv.innerHTML = `
             <span>${this.escapeHtml(message)}</span>
             <button onclick="this.parentElement.remove()">&times;</button>

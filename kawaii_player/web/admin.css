@@ -2463,3 +2463,85 @@ textarea:focus {
     /* Force minimum height */
     min-height: calc(100vh - 200px) !important;
 }
+
+/* ========================================
+   MESSAGE AND PROGRESS Z-INDEX FIX
+   ======================================== */
+
+.admin-message {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 10000 !important;
+    background: white !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    padding: 15px 20px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    max-width: 400px !important;
+    font-size: 14px !important;
+}
+
+.admin-message.success {
+    border-left: 4px solid #4caf50 !important;
+    background: #f8fff8 !important;
+    color: #2e7d32 !important;
+}
+
+.admin-message.error {
+    border-left: 4px solid #f44336 !important;
+    background: #fff8f8 !important;
+    color: #c62828 !important;
+}
+
+.admin-message button {
+    background: none !important;
+    border: none !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    color: inherit !important;
+    padding: 0 !important;
+    margin-left: auto !important;
+}
+
+.update-progress {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10001 !important;
+    background: rgba(0,0,0,0.8) !important;
+    color: white !important;
+    padding: 20px 30px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    font-size: 16px !important;
+}
+
+.loading-spinner {
+    width: 20px !important;
+    height: 20px !important;
+    border: 2px solid #ffffff40 !important;
+    border-top: 2px solid white !important;
+    border-radius: 50% !important;
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Ensure modals don't block messages */
+.details-panel {
+    z-index: 1000 !important;
+}
+
+.metadata-modal {
+    z-index: 1001 !important;
+}
