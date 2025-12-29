@@ -2789,7 +2789,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             """, (title,))
             
             video_rows = cur.fetchall()
-            print(video_rows)
             title_exists = False
             
             directory_list = [
@@ -2800,9 +2799,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 return {'success': False, 'error': f'Title "{title}" with matching directory hash not found'}
 
             if len(directory_list) > 1:
-                print(directory_list)
+                logger.error(f"directory = {directory_list}")
                 return {'success': False, 'error': f'Title "{title}" has  inconsistent number of directories'}
             
+            cur.execute("""
+                SELECT count(*)
+                FROM Video
+                WHERE Title = ? and Directory = ?
+            """, (title, directory_list[0]))
+
+            episodes_available = cur.fetchone()[0]
 
             # Prepare series_info updates
             series_fields = {}
@@ -2835,6 +2841,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if not series_fields:
                 return {'success': True, 'message': 'No valid fields to update'}
             series_fields["directory"] = directory_list[0]
+            series_fields["episodes_available"] = episodes_available
             
             logger.info(f"Bulk updating series info for: '{title}'")
             logger.info(f"Series updates: {series_fields}")
