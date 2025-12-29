@@ -997,11 +997,18 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if media_type and media_type.lower() == "video":
                 media_type == "video"
 
-            if suggested_title and len(suggested_title) < 100 and series_type == "anime" and media_type ==  "video":
-                if from_cache == "yes":
-                    result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
+            if suggested_title and len(suggested_title) < 100 and media_type ==  "video":
+                if series_type == "anime":
+                    if from_cache == "yes":
+                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
+                    else:
+                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
                 else:
-                    result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
+                    if from_cache == "yes":
+                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, True)
+                    else:
+                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, False)
+
                 ui.media_data.insert_series_data(db_title, result, series_type)
 
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))

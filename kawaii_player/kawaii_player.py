@@ -209,6 +209,7 @@ from vinanti import Vinanti
 from tvdb_async import TVDB
 from multiprocessing import Process
 from series_info_fetcher.anime import AnimeInfoFetcher
+from series_info_fetcher.tv_shows import TvShowInfoFetcher
 
 try:
     import vlc
@@ -1761,6 +1762,7 @@ class Ui_MainWindow(object):
         self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
         self.yt = YTDL(self)
         self.anime_info_fetcher = AnimeInfoFetcher(self)
+        self.tvshow_info_fetcher = TvShowInfoFetcher(self)
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)
         self.verticalLayout_50.insertWidget(5, self.frame_extra_toolbar, 0)
         self.frame_extra_toolbar.setMaximumSize(QtCore.QSize(self.width_allowed1, int(screen_height/1.5)))
