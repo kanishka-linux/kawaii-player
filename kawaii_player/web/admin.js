@@ -35,6 +35,25 @@ class AdminPanel {
         return this.escapeHtmlAttribute(JSON.stringify(obj));
     }
 
+    // Add this method to the AdminPanel class to save category preference
+    saveCategoryPreference(category) {
+        try {
+            localStorage.setItem('bulkMetadataCategoryPreference', category);
+        } catch (error) {
+            console.warn('Failed to save category preference:', error);
+        }
+    }
+
+    // Add this method to get saved category preference
+    getCategoryPreference() {
+        try {
+            return localStorage.getItem('bulkMetadataCategoryPreference') || 'anime';
+        } catch (error) {
+            console.warn('Failed to get category preference:', error);
+            return 'anime'; // Default fallback
+        }
+    }
+
     init() {
         this.setupEventListeners();
         this.loadTitles();
@@ -1547,6 +1566,8 @@ class AdminPanel {
 
     
     openBulkMetadataModal(selectedTitles) {
+        const savedCategory = this.getCategoryPreference();
+
         const modalHTML = `
             <div id="metadata-modal" class="details-panel active metadata-modal">
                 <div class="details-header">
@@ -1571,10 +1592,10 @@ class AdminPanel {
                                         <span class="field-label">Category:</span>
                                         <select id="metadata-category" required class="field-input">
                                             <option value="">Select Category</option>
-                                            <option value="anime">Anime</option>
-                                            <option value="tv shows">TV Shows</option>
-                                            <option value="movies">Movies</option>
-                                            <option value="cartoons">Cartoons</option>
+                                            <option value="anime" ${savedCategory === 'anime' ? 'selected' : ''}>Anime</option>
+                                            <option value="tv shows" ${savedCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
+                                            <option value="movies" ${savedCategory === 'movies' ? 'selected' : ''}>Movies</option>
+                                            <option value="cartoons" ${savedCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
                                         </select>
                                     </div>
                                     
@@ -1656,6 +1677,11 @@ class AdminPanel {
         console.log(selectedTitles)
         const category = document.getElementById('metadata-category').value;
         const useCache = document.getElementById('use-cache').checked ? "yes" : "no";
+
+        // Save the category preference when form is submitted
+        if (category) {
+            this.saveCategoryPreference(category);
+        }
         
         // Collect search terms for each title
         const titleMappings = [];
