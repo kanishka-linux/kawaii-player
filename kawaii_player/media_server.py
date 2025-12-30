@@ -2804,11 +2804,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
                 series_id = ""
                 for sid, image_poster_large in series_info:
-                    img_name = image_poster_large.rsplit('/')[-1]
-                    img_path = os.path.join(thumbnail_dir, img_name)
-                    if os.path.isfile(img_path):
-                        logger.info(f"cleaning up image_poster_large: {img_path}")
-                        os.remove(img_path)
+                    if image_poster_large:
+                        img_name = image_poster_large.rsplit('/')[-1]
+                        img_path = os.path.join(thumbnail_dir, img_name)
+                        if os.path.isfile(img_path):
+                            logger.info(f"cleaning up image_poster_large: {img_path}")
+                            os.remove(img_path)
                     series_id = sid
 
                 metadata_directory = os.path.join(home, "Local", title)
