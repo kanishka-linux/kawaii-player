@@ -722,7 +722,7 @@ class AdminPanel {
             
             const result = await response.text(); // /update_video likely returns text
             
-            this.showUpdateProgress('Collection update completed! Reloading data...');
+            this.showUpdateProgress('Request successfully submitted, it may take some time to reflect the data');
             
             // Small delay to show completion message
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -730,7 +730,7 @@ class AdminPanel {
             // Reload the titles after update
             await this.loadTitles();
             
-            this.showSuccessMessage('Video collection updated successfully!');
+            this.showSuccessMessage('Video collection updated request submitted successfully!');
             
         } catch (error) {
             console.error('Update collection error:', error);
@@ -1930,6 +1930,8 @@ class AdminPanel {
     }
 
     // UPDATED: Single title edit modal using details-panel structure with ALL fields
+    
+    // UPDATED: Single title edit modal with soft delete button
     openEditModal(directoryHash, titleName, seriesData, episodesList) {
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) return;
@@ -2099,6 +2101,9 @@ class AdminPanel {
                         <div class="form-actions-details">
                             <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-soft-delete soft-delete-btn" onclick="admin.handleSoftDeleteSingle('${this.escapeHtml(directoryHash)}', '${this.escapeHtml(titleName)}')">
+                                Soft Delete
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -2107,6 +2112,99 @@ class AdminPanel {
         
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         document.body.style.overflow = 'hidden';
+    }
+
+
+    // NEW: Handle soft delete for single title
+    async handleSoftDeleteSingle(directoryHash, titleName) {
+        // Show confirmation dialog with detailed warning
+        const confirmed = confirm(
+            `⚠️ SOFT DELETE WARNING ⚠️\n\n` +
+            `This will soft delete: "${titleName}"\n\n` +
+            `This action will:\n` +
+            `• Remove all episodes from the database\n` +
+            `• Delete series information\n` +
+            `• Clean up thumbnails and metadata\n` +
+            `• Files will remain on disk (manual deletion required)\n\n` +
+            `This action cannot be undone!\n\n` +
+            `Are you absolutely sure you want to continue?`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+        
+        // Third confirmation with text input
+        const userInput = prompt(
+            `Please type "DELETE" (in capital letters) to confirm the soft deletion of:\n\n"${titleName}"`
+        );
+        
+        if (userInput !== "DELETE") {
+            alert("Soft delete cancelled. You must type 'DELETE' exactly to confirm.");
+            return;
+        }
+        
+        try {
+            this.showUpdateProgress('Performing soft delete... This may take a moment.', false);
+            
+            // Prepare request data according to your contract
+            const requestData = {
+                action: "soft-delete",
+                title: titleName,
+                directory_hash: directoryHash
+            };
+            
+            console.log('Sending soft delete request:', requestData);
+            
+            const response = await fetch('/admin/series-soft-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Soft delete response:', result);
+            
+            if (result.success) {
+                this.hideUpdateProgress();
+                this.closeEditModal();
+                
+                // Close details panel if open
+                const detailsPanel = document.getElementById('details-panel');
+                if (detailsPanel && detailsPanel.classList.contains('active')) {
+                    this.closeDetailsPanel();
+                }
+                
+                // Clear any selections
+                this.selectedTitles.clear();
+                this.selectedEpisodes.clear();
+                this.updateBulkEditButton();
+                
+                // Refresh the titles list
+                await this.loadTitles();
+                
+                // Show success message
+                const message = result.message || `Successfully soft deleted "${titleName}"`;
+                this.showSuccessMessage(message);
+                
+                // Clear saved index since the item is deleted
+                this.clearSavedIndex();
+                
+            } else {
+                throw new Error(result.error || 'Soft delete failed');
+            }
+            
+        } catch (error) {
+            console.error('Soft delete error:', error);
+            this.hideUpdateProgress();
+            this.showErrorMessage('Soft delete failed: ' + error.message);
+        }
     }
 
     // Update the openBulkEditModal method to include the new fields

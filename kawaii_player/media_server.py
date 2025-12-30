@@ -2681,6 +2681,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/series-update':
             self.handle_series_update()
+        elif self.path == '/admin/series-soft-delete':
+            self.handle_series_soft_delete()
         elif self.path.startswith('/title-details'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
@@ -2694,6 +2696,185 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_error(400, "Title parameter required")
         else:
             self.do_init_function(type_request='post')
+
+    def handle_series_soft_delete(self):
+        global logger
+        """Handle admin update requests - JSON only"""
+        try:
+            # Get content length and read the data
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+
+            # Parse JSON data only
+            data = json.loads(post_data.decode('utf-8'))
+            logger.info(f"JSON data for delete: {data}")
+
+            action = data.get('action', '')
+
+            if action == 'soft-delete':
+                result = self.perform_soft_delete(data)
+
+            # Send response
+            response = json.dumps(result)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(response.encode('utf-8'))
+
+        except Exception as e:
+            print(f"Error in handle_admin_update: {e}")
+            import traceback
+            traceback.print_exc()
+
+            error_response = json.dumps({'success': False, 'error': str(e)})
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(error_response.encode('utf-8'))
+
+    def perform_soft_delete(self, data):
+        global ui, home, logger
+        conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        title = data.get('title', '').strip()
+        directory_hash = data.get('directory_hash', '').strip()
+ 
+        thumbnail_dir = os.path.join(ui.anime_info_fetcher.thumbnail_dir)
+  
+        success = True
+        try:
+            # Update Video table if new title is provided
+            if title and len(title) > 3:
+                    # Get episodes for this title
+                cur.execute("""
+                        SELECT Path, Directory
+                        FROM Video 
+                        WHERE Title = ?
+                    """, (title,))
+                episode_rows = [
+                                row['Path'] for row in cur.fetchall()
+                                if self.calc_dir_hash(row['Directory'], title) == directory_hash
+                            ]
+                for path in episode_rows:
+                    thumb_name_bytes = bytes(path, 'utf-8')
+                    h = hashlib.sha256(thumb_name_bytes)
+                    thumb_name = h.hexdigest()
+                    for size in ["default", "128px", "480px", "256px"]:
+                        if size == "default":
+                            thumb_name_with_size = f"{thumb_name}.jpg"
+                        else:
+                            thumb_name_with_size = f"{size}.{thumb_name}.jpg"
+                        thumb_path = os.path.join(thumbnail_dir, thumb_name_with_size)
+                        if os.path.isfile(thumb_path):
+                            logger.info(f"cleaning up: {thumb_path} => for {path}")
+                            os.remove(thumb_path)
+ 
+                cur.execute("""
+                        select distinct Title, Directory
+                        from Video where
+                        Title = ?
+                        """, (title, ))
+
+                directory_list = [
+                    row['Directory'] for row in cur.fetchall() if self.calc_dir_hash(row['Directory'], title) == directory_hash
+                ]
+
+                if not directory_list:
+                    return {'success': False, 'error': f'Title "{title}" with matching directory hash not found'}
+
+                if len(directory_list) > 1:
+                    logger.error(f"directory = {directory_list}")
+                    return {'success': False, 'error': f'Title "{title}" has  inconsistent number of directories'}
+    
+                valid_dir = directory_list[0]
+
+                logger.info(f"Proceeding to delete: {title}, {valid_dir}")
+                cur.execute("""
+                    select id, image_poster_large
+                    from series_info
+                    where db_title = ? and directory = ?
+                    """, (title, valid_dir))
+
+                series_info  = [
+                        (row['id'], row['image_poster_large']) for row in cur.fetchall()
+                        ]
+
+                series_id = ""
+                for sid, image_poster_large in series_info:
+                    img_name = image_poster_large.rsplit('/')[-1]
+                    img_path = os.path.join(thumbnail_dir, img_name)
+                    if os.path.isfile(img_path):
+                        logger.info(f"cleaning up image_poster_large: {img_path}")
+                        os.remove(img_path)
+                    series_id = sid
+
+                metadata_directory = os.path.join(home, "Local", title)
+                if os.path.exists(metadata_directory) and os.path.isdir(metadata_directory):
+                    logger.info(f"cleaning up metadata directory: {metadata_directory}")
+                    shutil.rmtree(metadata_directory)
+
+                # Cleanup series_info table
+                if series_id and self.is_valid_uuid(series_id):
+                    cur.execute("""
+                        delete from series_info
+                        where id = ?
+                    """, (series_id,))
+
+                    rows_affected = cur.rowcount
+
+                    if rows_affected == 1:
+                        logger.info(f"successfully soft deleted title: {title}, with id: {series_id}")
+                    else:
+                        logger.error(f"something wrong with DB, rolling back title: {title}, with id: {series_id}")
+                        conn.rollback()
+                        conn.close()
+                        return {'success': False, 'error': f'Title "{title}" has  invalid series data'}
+
+
+                # Cleanup Video table
+                for path in episode_rows:
+                    cur.execute("""
+                        delete from Video
+                        where path = ?
+                    """, (path,))
+
+                    rows_affected = cur.rowcount
+
+                    if rows_affected == 1:
+                        logger.info(f"successfully soft deleted from Video DB path: {path}")
+                    else:
+                        logger.error(f"something wrong with DB, rolling back path: {path} deletion")
+                        conn.rollback()
+                        conn.close()
+                        return {'success': False, 'error': f'Title "{title}" has  invalid series data'}
+        except Exception as err:
+            success = False
+            logger.error(f"error deleting: {title} - {directory_hash}: {str(err)}, rolling back")
+            conn.rollback()
+        finally:
+            conn.commit()
+            conn.close()
+        if success:
+            resp = {
+                    'success': True,
+                    'message': f'Title "{title}" successfully soft deleted, you will still need to manually delete the data'
+                    }
+        else:
+            resp = {
+                    'success': False,
+                    'message': f'Error in deleting Title "{title}"'
+                    }
+        return  resp
+
+    def is_valid_uuid(self, value):
+        try:
+            uuid.UUID(str(value))
+            return True
+        except ValueError:
+            return False
 
     def handle_series_update(self):
         """Handle admin update requests - JSON only"""
