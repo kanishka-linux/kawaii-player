@@ -2248,6 +2248,11 @@ class AdminPanel {
                                 <span class="field-label">Labels:</span>
                                 <input type="text" id="bulk-labels" placeholder="Comma-separated labels" class="field-input">
                             </div>
+ 
+                            <div class="series-field">
+                                <span class="field-label">Poster Image:</span>
+                                <input type="text" id="bulk-image-poster" placeholder="Link to image" class="field-input">
+                            </div>
                         </div>
 
                         <div class="details-section">

@@ -2930,7 +2930,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         
         for res in results:
             out_image = res.get('out_image')
-            if out_image and out_image.startswith('/'):
+            if out_image and out_image.startswith('/images/poster-'):
                 poster_name = res.get('out_image').rsplit('/', 1)[-1]
                 img_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, poster_name)
                 img_url = res.get('input_image_poster_large')
@@ -3036,14 +3036,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if result:
                 # Update existing record
                 series_id = result[0]
-                image_poster_large = result[1]
+                image_poster_large_db = result[1]
                 input_image_url = series_fields.get("image_poster_large")
                 if input_image_url and input_image_url.startswith('http'):
                     img_name = f"poster-{series_id}.jpg"
                     series_fields["image_poster_large"] = f"/images/{img_name}"
-                    out_image= series_fields["image_poster_large"]
-                    if image_poster_large and image_poster_large.startswith('/images/poster-'):
-                        img_name = image_poster_large.rsplit('/', 1)[-1]
+                    out_image= f"/images/{img_name}"
+                    if image_poster_large_db and image_poster_large_db.startswith('/images/poster-'):
+                        img_name = image_poster_large_db.rsplit('/', 1)[-1]
                         poster_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, img_name)
                         if os.path.exists(poster_path):
                             os.remove(poster_path)
@@ -3066,6 +3066,13 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     img_name = f"poster-{series_id}.jpg"
                     series_fields["image_poster_large"] = f"/images/{img_name}"
                     out_image= series_fields["image_poster_large"]
+                else:
+                    cur.execute("""
+                        select Path from Video
+                        where Title = ? limit 1""", (title, ))
+                    path = cur.fetchone()[0]
+                    default_poster = ui.media_data.build_url_from_file_path(path, 'image')
+                    series_fields["image_poster_large"] = default_poster
 
                 
                 columns = ', '.join(series_fields.keys())
