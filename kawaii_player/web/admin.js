@@ -1243,8 +1243,6 @@ class AdminPanel {
             episodes = detailsData.episode_list;
         }
 
-        console.log('Episodes to display:', episodes); // Debug log
-
         if (episodes && episodes.length > 0) {
             episodes.forEach((episode, index) => {
                 const episodePath = episode.path || episode.file_path || episode.video_path || `unknown_path_${index}`;
@@ -1258,7 +1256,7 @@ class AdminPanel {
                             <div class="episode-path">${this.escapeHtml(episodePath)}</div>
                         </div>
                         <div class="episode-actions">
-                            <button class="btn btn-small btn-edit" onclick="admin.editSinglePath('${this.escapeHtml(episodePath)}', '${this.escapeHtml(episodeTitle)}')">
+                            <button class="btn btn-small btn-edit" onclick="admin.editSinglePath('${this.escapeHtml(episodePath)}', '${this.escapeHtml(episodeTitle)}', '${this.escapeHtml(detailsData.title)}')">
                                 Edit
                             </button>
                         </div>
@@ -1447,12 +1445,12 @@ class AdminPanel {
     }
 
     // FIXED: Single path edit
-    editSinglePath(path, currentTitle) {
-        this.openSinglePathEditModal(path, currentTitle);
+    editSinglePath(path, currentEpTitle, seriesTitle) {
+        this.openSinglePathEditModal(path, currentEpTitle, seriesTitle);
     }
 
     
-    openSinglePathEditModal(videoPath, currentTitle) {
+    openSinglePathEditModal(videoPath, currentTitle, seriesTitle) {
         const modalHTML = `
             <div id="edit-modal" class="details-panel active">
                 <div class="details-header">
@@ -1469,10 +1467,15 @@ class AdminPanel {
                         <input type="hidden" id="video-path" value="${this.escapeHtml(videoPath)}">
                         
                         <div class="details-section">
+                            <h4>Series Information</h4>
+                            <div class="series-field">
+                                <span class="field-label">Series Title:</span>
+                                <input type="text" id="path-series-title" value="${this.escapeHtml(seriesTitle)}" placeholder="Enter series title" required class="field-input">
+                            </div>
                             <h4>Episode Information</h4>
                             <div class="series-field">
                                 <span class="field-label">Episode Title:</span>
-                                <input type="text" id="path-new-title" value="${this.escapeHtml(currentTitle)}" placeholder="Enter episode title" required class="field-input">
+                                <input type="text" id="path-new-ep-title" value="${this.escapeHtml(currentTitle)}" placeholder="Enter episode title" required class="field-input">
                             </div>
                             
                             <div class="series-field">
@@ -2435,7 +2438,8 @@ class AdminPanel {
         const formData = {
             action: 'update_single_path',
             video_path: document.getElementById('video-path').value,
-            new_title: document.getElementById('path-new-title').value.trim()
+            new_ep_title: document.getElementById('path-new-ep-title').value.trim(),
+            new_series_title: document.getElementById('path-series-title').value.trim()
         };
 
         console.log("Single path form data to send:", formData); // Debug log

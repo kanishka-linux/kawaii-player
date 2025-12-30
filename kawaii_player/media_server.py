@@ -3247,22 +3247,28 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def update_single_path(self, data):
         """Update title for a single video path"""
-        global home
+        global home, logger
 
         try:
             conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
             cur = conn.cursor()
             
             video_path = data.get('video_path', '').strip()
-            new_title = data.get('new_title', '').strip()
+            new_ep_title = data.get('new_ep_title', '').strip()
+            new_series_title = data.get('new_series_title', '').strip()
             
-            print(f"Updating single path: '{video_path}' -> '{new_title}'")
+            logger.info(f"Updating single path: '{video_path}' -> '{new_series_title}' -> '{new_ep_title}'")
             
-            if not video_path or not new_title:
-                return {'success': False, 'error': 'Video path and new title are required'}
+            if not video_path or not new_series_title or not new_ep_title:
+                return {'success': False, 'error': 'Video path and new titles are required'}
             
             # Update the specific video file
-            cur.execute("UPDATE Video SET Title = ? WHERE Path = ?", (new_title, video_path))
+            cur.execute("""
+                        UPDATE Video
+                        SET Title = ?, EP_NAME =?
+                        WHERE Path = ?
+                    """, (new_series_title, new_ep_title, video_path)
+                    )
             
             if cur.rowcount == 0:
                 return {'success': False, 'error': 'Video file not found'}
@@ -3272,7 +3278,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             return {
                 'success': True,
-                'message': f"Successfully updated episode title to '{new_title}'"
+                'message': "Successfully updated episode details"
             }
             
         except Exception as e:
