@@ -1018,8 +1018,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         result = ui.tvshow_info_fetcher.get_series_info(suggested_title, False)
 
                 if single_episode_title:
-                    ui.media_data.insert_series_data(suggested_title, result, series_type)
                     ui.media_data.insert_video_data(suggested_title, single_episode_path)
+                    ui.media_data.insert_series_data(suggested_title, result, series_type)
                 else:
                     ui.media_data.insert_series_data(db_title, result, series_type)
 
@@ -2320,6 +2320,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             for row in series_rows:
                 title = row['title']
                 directory = row['directory']
+                print(title, directory)
                 episode_count = row['episodes_available'] or 0
                 
                 valid_titles.append({
@@ -2493,7 +2494,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     multi_audio,
                     multi_subtitle,
                     ignore,
-                    collection_name
+                    collection_name,
+                    episodes_available
                 FROM series_info
                 WHERE db_title = ?
             """, (title,))
@@ -3274,6 +3276,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             if not video_path or not new_series_title or not new_ep_title:
                 return {'success': False, 'error': 'Video path and new titles are required'}
+ 
+            
+            cur.execute("select Title from Video where Path = ?", (video_path, ))
+            result = cur.fetchone()
+            if result:
+                db_title = result[0]
+                cur.execute("""
+                        update series_info
+                        set db_title = ?
+                        where db_title = ?
+                """, (new_series_title, db_title))
             
             # Update the specific video file
             cur.execute("""
@@ -3285,7 +3298,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             if cur.rowcount == 0:
                 return {'success': False, 'error': 'Video file not found'}
-            
+           
             conn.commit()
             conn.close()
             
@@ -3307,6 +3320,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def update_multiple_paths(self, data):
         """Update title for multiple video paths"""
         global home
+
+        return {'success': False, 'error': 'Not Allowed'}
+        
 
         try:
             conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))

@@ -1053,7 +1053,8 @@ class AdminPanel {
             'anime': 'anime',
             'tv shows': 'tv shows',
             'movies': 'movies',
-            'cartoons': 'cartoons'
+            'cartoons': 'cartoons',
+            'anime movies': 'anime movies'
         };
         return categoryMapping[category] || 'anime';
     }
@@ -1934,6 +1935,7 @@ class AdminPanel {
                                     <select id="metadata-category" required class="field-input">
                                         <option value="">Select Category</option>
                                         <option value="anime" ${savedCategory === 'anime' ? 'selected' : ''}>Anime</option>
+                                        <option value="anime movies" ${savedCategory === 'anime movies' ? 'selected' : ''}>Anime Movies</option>
                                         <option value="tv shows" ${savedCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
                                         <option value="movies" ${savedCategory === 'movies' ? 'selected' : ''}>Movies</option>
                                         <option value="cartoons" ${savedCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
