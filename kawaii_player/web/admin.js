@@ -1329,8 +1329,8 @@ class AdminPanel {
                         <div class="field-value-block">${this.escapeHtml(series.summary)}</div>
                     </div>
                     <div class="custom-fetch-actions">
-                        <button class="btn btn-warning" onclick="admin.openCustomFetchModal('${this.escapeHtml(detailsData.title)}')">
-                            🔄 Try Custom Fetch
+                        <button class="btn btn-warning" onclick="admin.openCustomFetchModal('${this.escapeHtml(detailsData.title)}', ${episodes.length})">
+                🔄 Try Custom Fetch
                         </button>
                     </div>
                 `;
@@ -1392,6 +1392,228 @@ class AdminPanel {
         `; // Close details-section
 
         return html;
+    }
+
+
+    openCustomFetchModal(titleName, episodeCount) {
+            // Create modal HTML using your existing design pattern
+            const modalHTML = `
+                <div id="custom-fetch-modal" class="details-panel active metadata-modal">
+                    <div class="details-header">
+                        <h3>Custom Metadata Fetch - ${this.escapeHtml(titleName)}</h3>
+                        <button class="details-close" onclick="admin.closeCustomFetchModal()">&times;</button>
+                    </div>
+ 
+                    <div class="details-content metadata-content">
+                        <div class="metadata-modal-body">
+                            <!-- Left Column - Form -->
+                            <div class="metadata-form-section">
+                                <div class="edit-info">
+                                    <strong>Custom Series Fetch:</strong> Enter a custom search term to find better series metadata.
+                                    This will fetch series-level information that applies to all ${episodeCount} episodes.
+                                </div>
+                                
+                                <form id="custom-fetch-form" onsubmit="admin.submitCustomFetch(event)">
+                                    <!-- Hidden input for original title -->
+                                    <input type="hidden" id="original-title" value="${this.escapeHtml(titleName)}">
+          
+                                    <div class="details-section">
+                                        <h4>Search Settings</h4>
+                 
+                                        <div class="series-field">
+                                            <span class="field-label">Custom Search Title:</span>
+                                            <input type="text" id="custom-search-title" value="${this.escapeHtml(titleName)}" required class="field-input">
+                                            <div class="field-help">Enter the exact series title you want to search for</div>
+                                        </div>
+                     
+                                        <div class="form-row-details">
+                                            <div class="series-field">
+                                                <span class="field-label">Category:</span>
+                                                <select id="custom-category" required class="field-input">
+                                                    <option value="anime">Anime</option>
+                                                    <option value="anime movies">Anime Movies</option>
+                                                    <option value="tv shows">TV Shows</option>
+                                                    <option value="movies">Movies</option>
+                                                    <option value="cartoons">Cartoons</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="series-field">
+                                                <span class="field-label">Use Cache:</span>
+                                                <select id="custom-use-cache" class="field-input">
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No (Fresh fetch)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+          
+                                    <div class="details-section">
+                                        <h4>Target Series</h4>
+                                        <div class="selected-episodes-info" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                                <strong>Series: ${this.escapeHtml(titleName)}</strong>
+                                                <span class="episode-count-badge" style="background: #007bff; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                                                    ${episodeCount} episodes
+                                                </span>
+                                            </div>
+                                            <p style="margin: 0; font-size: 14px; color: #666;">
+                                                Series-level metadata will be fetched and applied to all episodes in this series.
+                                            </p>
+                                        </div>
+                                    </div>
+                      
+                                    <div class="form-actions-details">
+                                        <button type="button" class="btn btn-secondary" onclick="admin.closeCustomFetchModal()">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Start Custom Fetch</button>
+                                    </div>
+                                </form>
+                            </div>
+            
+                            <!-- Right Column - Results -->
+                            <div class="metadata-results-section">
+                                <div class="details-section">
+                                    <h4>Results</h4>
+                                    <div class="results-summary">
+                                        <span>Processed: <span id="custom-total-count">0</span></span> |
+                                        <span>Success: <span id="custom-success-count">0</span></span> |
+                                        <span>Failed: <span id="custom-fail-count">0</span></span>
+                                    </div>
+                                    <div id="results-container" class="results-container">
+                                        <div class="results-placeholder">Results will appear here...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Prevent body scroll (consistent with your other modals)
+            document.body.style.overflow = 'hidden';
+            
+            // Set focus to search input
+            document.getElementById('custom-search-title').focus();
+        }
+
+    // Add the close method to match your pattern
+    closeCustomFetchModal() {
+        const modal = document.getElementById('custom-fetch-modal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+    }
+
+    disableCustomFetchForm(disabled) {
+        const form = document.getElementById('custom-fetch-form');
+        if (!form) return;
+        
+        const inputs = form.querySelectorAll('input, select, button');
+        inputs.forEach(input => {
+            input.disabled = disabled;
+        });
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.textContent = disabled ? 'Processing...' : 'Start Custom Fetch';
+        }
+    }
+
+    updateCustomFetchCounters(successCount, failCount) {
+        const successEl = document.getElementById('custom-success-count');
+        const failEl = document.getElementById('custom-fail-count');
+        const totalEl = document.getElementById('custom-total-count');
+        
+        if (successEl) successEl.textContent = successCount;
+        if (failEl) failEl.textContent = failCount;
+        if (totalEl) totalEl.textContent = successCount + failCount;
+    }
+
+    async submitCustomFetch(event) {
+        event.preventDefault();
+        
+        const customTitle = document.getElementById('custom-search-title').value.trim();
+        const originalTitle = document.getElementById('original-title').value.trim();  // Get from hidden input
+        const category = document.getElementById('custom-category').value;
+        const useCache = document.getElementById('custom-use-cache').value;
+        
+        if (!customTitle) {
+            alert('Please enter a custom search title');
+            return;
+        }
+        
+        // Clear results using existing method
+        const container = document.getElementById('results-container');
+        if (container) {
+            container.innerHTML = '<div class="processing-status">Processing custom fetch...</div>';
+        }
+        
+        // Disable form
+        this.disableCustomFetchForm(true);
+        
+        try {
+            let successCount = 0;
+            let failCount = 0;
+            
+            // Process the series (not individual episodes)
+            try {
+                const requestData = {
+                    suggested_title: customTitle,        // User's custom search term
+                    series_type: category,
+                    use_cache: useCache,
+                    media_type: "video",
+                    db_title: originalTitle,             // Original title from hidden input
+                    series_title: originalTitle          // Original title from hidden input
+                };
+                
+                const response = await fetch('/fetch_series_metadata', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    successCount++;
+                    this.addResultItem(originalTitle, result.data, true);  // Use original title for display
+                } else {
+                    failCount++;
+                    this.addResultItem(originalTitle, null, false, result.error || 'Unknown error');
+                }
+                
+                this.updateCustomFetchCounters(successCount, failCount);
+                
+            } catch (error) {
+                failCount++;
+                this.addResultItem(originalTitle, null, false, error.message);
+                this.updateCustomFetchCounters(successCount, failCount);
+            }
+            
+            // Re-enable form
+            this.disableCustomFetchForm(false);
+            
+            // Show completion message
+            if (successCount > 0) {
+                this.showMessage(`Custom fetch completed successfully!`, 'success');
+                setTimeout(() => {
+                    this.refreshCurrentTitle();
+                }, 2000);
+            } else {
+                this.showMessage(`Custom fetch failed: ${failCount} errors`, 'error');
+            }
+            
+        } catch (error) {
+            console.error('Custom fetch error:', error);
+            this.disableCustomFetchForm(false);
+            alert(`Error during custom fetch: ${error.message}`);
+        }
     }
 
     // NEW: Update movie metadata buttons based on selection
