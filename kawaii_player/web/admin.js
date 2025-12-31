@@ -1187,7 +1187,7 @@ class AdminPanel {
     }
 
     setupEpisodeSelectionListeners() {
-        // Add event listeners for episode checkboxes
+        // Existing episode checkbox listeners...
         document.querySelectorAll('.episode-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 const path = e.target.dataset.path;
@@ -1197,6 +1197,7 @@ class AdminPanel {
                     this.selectedEpisodes.delete(path);
                 }
                 this.updateSelectionUI();
+                this.updateMovieMetadataButtons(); // NEW: Add this line
             });
         });
     }
@@ -1283,7 +1284,12 @@ class AdminPanel {
             series_info: detailsData.series_info
         }); // Debug log
 
-        if (detailsData.series_info) {
+        let detailsPartiallyAvailable = false;
+        if (detailsData.series_info && !detailsData.series_info.summary) {
+            detailsPartiallyAvailable = true;
+        }
+
+        if (detailsData.series_info)  {
             const series = detailsData.series_info;
             console.log('Rendering series info:', series); // Debug log
             
@@ -1322,6 +1328,11 @@ class AdminPanel {
                         <div class="field-label-block">Summary:</div>
                         <div class="field-value-block">${this.escapeHtml(series.summary)}</div>
                     </div>
+                    <div class="custom-fetch-actions">
+                        <button class="btn btn-warning" onclick="admin.openCustomFetchModal('${this.escapeHtml(detailsData.title)}')">
+                            🔄 Try Custom Fetch
+                        </button>
+                    </div>
                 `;
             }
             
@@ -1342,7 +1353,9 @@ class AdminPanel {
             
             html += `</div>`; // Close series-info-grid
             
-        } else {
+        } 
+
+        if (!detailsData.series_info || detailsPartiallyAvailable) {
             console.log('No series info available'); // Debug log
             html += `
                 <div class="no-series-info">
@@ -1356,6 +1369,21 @@ class AdminPanel {
                         </button>
                     </div>
                 </div>
+
+                <div class="no-series-info">
+                    <p>No series information available for this title.</p>
+                    <p>Fetch metadata separately for each episode/file in case each file is a separate movie.</p>
+                    <p>Use this option when your folder contains individual movie files rather than episodes of a series. Each selected file will be treated as a standalone movie and searched for its own metadata.</p>
+                    <div class="series-actions">
+                        <button class="btn btn-small btn-info" onclick="admin.fetchMovieMetadataQuick()" disabled id="fetch-movie-metadata-quick-btn">
+                            Quick Fetch (Anime Movies)
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="admin.fetchMovieMetadata()" disabled id="fetch-movie-metadata-btn">
+                            Custom Fetch
+                        </button>
+                        <span class="movie-metadata-note">Select files above to enable these options</span>
+                    </div>
+                </div>
             `;
         }
 
@@ -1364,6 +1392,31 @@ class AdminPanel {
         `; // Close details-section
 
         return html;
+    }
+
+    // NEW: Update movie metadata buttons based on selection
+    updateMovieMetadataButtons() {
+        const selectedCount = this.selectedEpisodes.size;
+        const quickBtn = document.getElementById('fetch-movie-metadata-quick-btn');
+        const customBtn = document.getElementById('fetch-movie-metadata-btn');
+        
+        if (quickBtn) {
+            quickBtn.disabled = selectedCount === 0;
+            if (selectedCount > 0) {
+                quickBtn.textContent = `Quick Fetch (${selectedCount} files)`;
+            } else {
+                quickBtn.textContent = 'Quick Fetch (Anime Movies)';
+            }
+        }
+        
+        if (customBtn) {
+            customBtn.disabled = selectedCount === 0;
+            if (selectedCount > 0) {
+                customBtn.textContent = `Custom Fetch (${selectedCount} files)`;
+            } else {
+                customBtn.textContent = 'Custom Fetch';
+            }
+        }
     }
 
     // UPDATED: Fetch series metadata using directory_hash
@@ -2535,6 +2588,541 @@ class AdminPanel {
             // ERROR: Reset and show error
             this.currentEditPaths = null;
             this.showErrorMessage('Update failed: ' + error.message);
+        }
+    }
+
+    // NEW: Movie metadata methods
+    fetchMovieMetadata() {
+        if (this.selectedEpisodes.size === 0) {
+            alert('Please select at least one movie file for metadata fetching.');
+            return;
+        }
+
+        // Get movie details for selected files
+        const selectedMovieData = [];
+        const episodeElements = document.querySelectorAll('.episode-checkbox:checked');
+        
+        episodeElements.forEach(checkbox => {
+            const episodeItem = checkbox.closest('.episode-item');
+            const movieName = episodeItem.querySelector('.episode-name').textContent;
+            const moviePath = checkbox.dataset.path;
+            
+            selectedMovieData.push({
+                path: moviePath,
+                title: movieName
+            });
+        });
+
+        this.openMovieMetadataModal(selectedMovieData);
+    }
+
+    // NEW: Quick fetch for anime movies
+    
+    async fetchMovieMetadataQuick() {
+        if (this.selectedEpisodes.size === 0) {
+            alert('Please select at least one movie file for metadata fetching.');
+            return;
+        }
+
+        // Get movie details for selected files
+        const selectedMovieData = [];
+        const episodeElements = document.querySelectorAll('.episode-checkbox:checked');
+        
+        episodeElements.forEach(checkbox => {
+            const episodeItem = checkbox.closest('.episode-item');
+            const movieName = episodeItem.querySelector('.episode-name').textContent;
+            const moviePath = checkbox.dataset.path;
+            
+            selectedMovieData.push({
+                path: moviePath,
+                title: movieName
+            });
+        });
+
+        console.log("Quick fetching movie metadata for:", selectedMovieData);
+
+        // Show progress indicator with results container
+        this.showQuickFetchProgressWithResultsContainer(selectedMovieData.length);
+
+        let successCount = 0;
+        let failCount = 0;
+
+        try {
+            // Process each movie file
+            for (let i = 0; i < selectedMovieData.length; i++) {
+                const movie = selectedMovieData[i];
+                
+                try {
+                    console.log(`Processing movie ${i + 1}/${selectedMovieData.length}: ${movie.title}`);
+                    
+                    // Update progress before processing
+                    this.updateQuickFetchProgress(i, selectedMovieData.length, successCount, failCount, `Processing: ${movie.title}`);
+                    
+                    // Prepare the request data
+                    const requestData = {
+                        suggested_title: "",
+                        series_type: "anime movies",
+                        single_episode_title: movie.title,
+                        single_episode_path: movie.path,
+                        use_cache: "yes",
+                        media_type: "video"
+                    };
+
+                    // Make the API call
+                    const response = await fetch('/fetch_series_metadata', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const result = await response.json();
+                    console.log(`Result for ${movie.title}:`, result);
+
+                    if (result.success) {
+                        successCount++;
+                        // USE EXISTING addResultItem METHOD
+                        this.addResultItem(movie.title, result.data, true);
+                    } else {
+                        failCount++;
+                        // USE EXISTING addResultItem METHOD
+                        this.addResultItem(movie.title, null, false, result.error || 'Unknown error');
+                    }
+
+                    // Update progress after processing
+                    this.updateQuickFetchProgress(i + 1, selectedMovieData.length, successCount, failCount, 
+                        i + 1 === selectedMovieData.length ? 'Completed!' : `Processed: ${movie.title}`);
+
+                    // Small delay between requests
+                    if (i < selectedMovieData.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                } catch (error) {
+                    console.error(`Error processing ${movie.title}:`, error);
+                    failCount++;
+                    // USE EXISTING addResultItem METHOD
+                    this.addResultItem(movie.title, null, false, error.message);
+                    
+                    this.updateQuickFetchProgress(i + 1, selectedMovieData.length, successCount, failCount, 
+                        `Error: ${movie.title}`);
+                }
+            }
+
+            // Refresh the current view if there were successes
+            if (successCount > 0) {
+                setTimeout(() => {
+                    this.refreshCurrentTitle();
+                }, 3000);
+            }
+
+        } catch (error) {
+            console.error("Error in quick fetch:", error);
+            this.hideQuickFetchProgress();
+            this.showErrorMessage(`Error during quick fetch: ${error.message}`);
+        }
+    }
+
+    // NEW: Open movie metadata modal
+    openMovieMetadataModal(selectedMovies) {
+        const savedCategory = this.getCategoryPreference();
+
+        const modalHTML = `
+            <div id="movie-metadata-modal" class="details-panel active metadata-modal">
+                <div class="details-header">
+                    <h3>Fetch Movie Metadata for ${selectedMovies.length} Movies</h3>
+                    <button class="details-close" onclick="admin.closeMovieMetadataModal()">&times;</button>
+                </div>
+
+                <div class="details-content metadata-content">
+                    <div class="metadata-modal-body">
+                        <!-- Left side: Form -->
+                        <div class="metadata-form-section">
+                            <form id="movie-metadata-form" onsubmit="admin.submitMovieMetadata(event)">
+                                <input type="hidden" id="selected-movies-metadata" value='${this.safeJsonEncode(selectedMovies)}'>
+                                
+                                <div class="details-section">
+                                    <h4>Metadata Settings</h4>
+                                    <div class="series-field">
+                                        <span class="field-label">Category:</span>
+                                        <select id="movie-metadata-category" required class="field-input">
+                                            <option value="">Select Category</option>
+                                            <option value="anime movies" ${savedCategory === 'anime movies' ? 'selected' : 'selected'}>Anime Movies</option>
+                                            <option value="movies" ${savedCategory === 'movies' ? 'selected' : ''}>Movies</option>
+                                            <option value="anime" ${savedCategory === 'anime' ? 'selected' : ''}>Anime</option>
+                                            <option value="cartoons" ${savedCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
+                                            <option value="tv shows" ${savedCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="checkbox-field">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="movie-use-cache" checked>
+                                            <span>Use cached data if available</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="details-section">
+                                    <h4>Movie Search Terms</h4>
+                                    <div class="movie-info-note">
+                                        <p><strong>Note:</strong> Each file will be treated as an individual movie. Provide the exact movie title for best results.</p>
+                                    </div>
+                                    <div class="titles-metadata-list">
+                                        ${selectedMovies.map((movie, index) => `
+                                            <div class="title-metadata-item">
+                                                <div class="series-field">
+                                                    <span class="field-label">File:</span>
+                                                    <div class="field-value">${this.escapeHtml(movie.title)}</div>
+                                                </div>
+                                                <div class="series-field">
+                                                    <span class="field-label">Movie Title:</span>
+                                                    <input type="text" id="movie-title-${index}"
+                                                           value="${this.escapeHtml(movie.title)}"
+                                                           placeholder="Enter exact movie title for search"
+                                                           data-movie-path="${this.escapeHtml(movie.path)}"
+                                                           required class="field-input">
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <div class="form-actions-details">
+                                    <button type="button" class="btn btn-secondary" onclick="admin.closeMovieMetadataModal()">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Fetch Movie Metadata</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Right side: Results -->
+                        <div class="metadata-results-section">
+                            <div class="details-section">
+                                <h4>Results</h4>
+                                <div class="results-summary" id="movie-results-summary">
+                                    <span id="movie-success-count">0</span> successful,
+                                    <span id="movie-fail-count">0</span> failed
+                                </div>
+                                <div class="results-container" id="results-container">
+                                    <div class="results-placeholder">
+                                        Results will appear here as movie metadata is fetched...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        document.body.style.overflow = 'hidden';
+    }
+
+    // NEW: Close movie metadata modal
+    closeMovieMetadataModal() {
+        const modal = document.getElementById('movie-metadata-modal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+    }
+
+    // NEW: Submit movie metadata
+    async submitMovieMetadata(event) {
+        event.preventDefault();
+        
+        const selectedMoviesElement = document.getElementById('selected-movies-metadata');
+        const selectedMoviesValue = selectedMoviesElement ? selectedMoviesElement.value : '[]';
+        
+        let selectedMovies;
+        try {
+            selectedMovies = JSON.parse(selectedMoviesValue);
+        } catch (e) {
+            console.error("Error parsing selected movies:", e);
+            selectedMovies = [];
+        }
+        
+        const category = document.getElementById('movie-metadata-category').value;
+        const useCache = document.getElementById('movie-use-cache').checked ? "yes" : "no";
+
+        // Save the category preference
+        if (category) {
+            this.saveCategoryPreference(category);
+        }
+        
+        // Collect movie titles for each file
+        const movieMappings = [];
+        selectedMovies.forEach((movie, index) => {
+            const titleInput = document.getElementById(`movie-title-${index}`);
+            if (titleInput) {
+                movieMappings.push({
+                    movie_path: movie.path,
+                    original_title: movie.title,
+                    single_episode_title: titleInput.value.trim()
+                });
+            }
+        });
+
+        console.log("Processing movie metadata for:", movieMappings);
+
+        // Clear results and show processing
+        this.clearMovieResults();
+        this.disableMovieForm(true);
+
+        try {
+            let successCount = 0;
+            let failCount = 0;
+
+            // Process each movie
+            for (const mapping of movieMappings) {
+                try {
+                    console.log(`Processing movie: ${mapping.single_episode_title}`);
+                    
+                    // Prepare the request data
+                    const requestData = {
+                        suggested_title: "",
+                        series_type: category,
+                        single_episode_title: mapping.single_episode_title,
+                        single_episode_path: mapping.movie_path,
+                        use_cache: useCache,
+                        media_type: "video"
+                    };
+
+                    console.log("Sending request:", requestData);
+
+                    // Make the API call
+                    const response = await fetch('/fetch_series_metadata', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const result = await response.json();
+                    console.log(`Result for ${mapping.single_episode_title}:`, result);
+
+                    if (result.success) {
+                        successCount++;
+                        // USE EXISTING addResultItem METHOD
+                        this.addResultItem(mapping.single_episode_title, result.data, true);
+                    } else {
+                        failCount++;
+                        // USE EXISTING addResultItem METHOD
+                        this.addResultItem(mapping.single_episode_title, null, false, result.error || 'Unknown error');
+                    }
+
+                    // Update counters (if this method exists, otherwise remove)
+                    if (typeof this.updateMovieResultCounters === 'function') {
+                        this.updateMovieResultCounters(successCount, failCount);
+                    }
+
+                } catch (error) {
+                    console.error(`Error processing ${mapping.single_episode_title}:`, error);
+                    failCount++;
+                    // USE EXISTING addResultItem METHOD
+                    this.addResultItem(mapping.single_episode_title, null, false, error.message);
+                    
+                    // Update counters (if this method exists, otherwise remove)
+                    if (typeof this.updateMovieResultCounters === 'function') {
+                        this.updateMovieResultCounters(successCount, failCount);
+                    }
+                }
+            }
+
+            console.log(`Movie metadata fetch completed. Success: ${successCount}, Failed: ${failCount}`);
+
+            // Re-enable form
+            this.disableMovieForm(false);
+
+            // Refresh the current view if there were successes
+            if (successCount > 0) {
+                setTimeout(() => {
+                    this.refreshCurrentTitle();
+                }, 2000);
+            }
+
+        } catch (error) {
+            console.error("Error in movie metadata submission:", error);
+            this.disableMovieForm(false);
+            alert(`Error during movie metadata fetch: ${error.message}`);
+        }
+    }
+
+    // NEW: Movie result management methods
+    clearMovieResults() {
+        const container = document.getElementById('movie-results-container');
+        if (container) {
+            container.innerHTML = '<div class="results-placeholder">Processing...</div>';
+        }
+        this.updateMovieResultCounters(0, 0);
+    }
+
+    addMovieResult(movieTitle, status, data) {
+        const container = document.getElementById('movie-results-container');
+        if (!container) return;
+
+        // Remove placeholder if it exists
+        const placeholder = container.querySelector('.results-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+
+        const resultHTML = `
+            <div class="result-item ${status}">
+                <div class="result-header">
+                    <span class="result-status ${status}">${status === 'success' ? '✓' : '✗'}</span>
+                    <span class="result-title">${this.escapeHtml(movieTitle)}</span>
+                </div>
+                <div class="result-details">
+                    ${status === 'success' ? 
+                        `<div class="success-details">Metadata fetched successfully</div>` :
+                        `<div class="error-details">Error: ${this.escapeHtml(data)}</div>`
+                    }
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', resultHTML);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    updateMovieResultCounters(successCount, failCount) {
+        const successElement = document.getElementById('movie-success-count');
+        const failElement = document.getElementById('movie-fail-count');
+        
+        if (successElement) successElement.textContent = successCount;
+        if (failElement) failElement.textContent = failCount;
+    }
+
+    disableMovieForm(disabled) {
+        const form = document.getElementById('movie-metadata-form');
+        if (!form) return;
+
+        const inputs = form.querySelectorAll('input, select, button[type="submit"]');
+        inputs.forEach(input => {
+            input.disabled = disabled;
+        });
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.textContent = disabled ? 'Processing...' : 'Fetch Movie Metadata';
+        }
+    }
+
+    // NEW: Quick fetch progress methods (continued)
+    
+    // MODIFIED: Show progress with results-container (to match your existing method)
+    showQuickFetchProgressWithResultsContainer(totalCount) {
+        const existing = document.getElementById('quick-fetch-progress');
+        if (existing) existing.remove();
+        
+        const progressDiv = document.createElement('div');
+        progressDiv.id = 'quick-fetch-progress';
+        progressDiv.className = 'quick-fetch-progress';
+        progressDiv.innerHTML = `
+            <div class="progress-overlay"></div>
+            <div class="progress-content">
+                <div class="progress-header">
+                    <h4>Quick Fetch Progress</h4>
+                    <button onclick="admin.hideQuickFetchProgress()" class="close-btn">&times;</button>
+                </div>
+                <div class="progress-status" id="quick-progress-status">
+                    Initializing...
+                </div>
+                <div class="progress-stats">
+                    <span id="quick-progress-current">0</span> of <span id="quick-progress-total">${totalCount}</span> processed
+                    | <span id="quick-progress-success">0</span> successful
+                    | <span id="quick-progress-failed">0</span> failed
+                </div>
+                <div class="progress-bar">
+                    <div id="quick-progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="results-section">
+                    <h5>Results:</h5>
+                    <div id="results-container" class="results-container">
+                        <!-- Results will use existing addResultItem method -->
+                    </div>
+                </div>
+                <div class="progress-actions">
+                    <button onclick="admin.hideQuickFetchProgress()" class="btn btn-primary">Close</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(progressDiv);
+    }
+
+    updateQuickFetchProgress(current, total, success, failed) {
+        const currentEl = document.getElementById('quick-progress-current');
+        const successEl = document.getElementById('quick-progress-success');
+        const failedEl = document.getElementById('quick-progress-failed');
+        const fillEl = document.getElementById('quick-progress-fill');
+        
+        if (currentEl) currentEl.textContent = current;
+        if (successEl) successEl.textContent = success;
+        if (failedEl) failedEl.textContent = failed;
+        if (fillEl) {
+            const percentage = (current / total) * 100;
+            fillEl.style.width = `${percentage}%`;
+        }
+    }
+
+    showQuickFetchResults(results, successCount, failCount) {
+        const progressDiv = document.getElementById('quick-fetch-progress');
+        if (!progressDiv) return;
+        
+        const resultsHTML = `
+            <div class="progress-content">
+                <div class="progress-header">
+                    <h4>Quick Fetch Results</h4>
+                    <button onclick="admin.hideQuickFetchProgress()" class="close-btn">&times;</button>
+                </div>
+                <div class="progress-stats final">
+                    Completed: ${successCount} successful, ${failCount} failed
+                </div>
+                
+                <div class="results-list">
+                    ${results.map(result => `
+                        <div class="result-item ${result.status}">
+                            ${result.status === 'success' && result.data && result.data.image_poster_large ? 
+                                `<img class="result-poster" src="${result.data.image_poster_large}" alt="${this.escapeHtml(result.movie)} Poster" onerror="this.style.display='none';">` : 
+                                ''
+                            }
+                            <div class="result-content">
+                                <span class="result-icon">${result.status === 'success' ? '✓' : '✗'}</span>
+                                <span class="result-movie">${this.escapeHtml(result.movie)}</span>
+                                ${result.status === 'failed' ? 
+                                    `<span class="result-error">${this.escapeHtml(result.error)}</span>` : 
+                                    '<span class="result-success">Success</span>'
+                                }
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="progress-actions">
+                    <button onclick="admin.hideQuickFetchProgress()" class="btn btn-primary">Close</button>
+                </div>
+            </div>
+        `;
+        
+        progressDiv.innerHTML = resultsHTML;
+    }
+
+    hideQuickFetchProgress() {
+        const progressDiv = document.getElementById('quick-fetch-progress');
+        if (progressDiv) {
+            progressDiv.remove();
+        }
+    }
+
+    // NEW: Refresh current title method
+    refreshCurrentTitle() {
+        if (this.currentTitle) {
+            this.showTitleDetails(this.currentTitle.directory_hash, this.currentTitle.title);
         }
     }
 
