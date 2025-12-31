@@ -1179,11 +1179,24 @@ class AdminPanel {
             <div class="details-error">
                 <h3>Error Loading Details</h3>
                 <p>Failed to load episode details: ${this.escapeHtml(errorMessage)}</p>
-                <button class="btn btn-primary" onclick="admin.showTitleDetails('${this.escapeHtml(this.currentTitle?.directory_hash || '')}', '${this.escapeHtml(this.currentTitle?.title || '')}')">
+                <button class="btn btn-primary" 
+                        data-directory-hash="${this.escapeHtml(this.currentTitle?.directory_hash || '')}"
+                        data-title="${this.escapeHtml(this.currentTitle?.title || '')}"
+                        onclick="admin.showTitleDetailsHandler(event)">
                     Retry
                 </button>
             </div>
         `;
+    }
+
+    showTitleDetailsHandler(event) {
+        // Extract data from button's data attributes
+        const button = event.target;
+        const directoryHash = button.dataset.directoryHash;
+        const title = button.dataset.title;
+        
+        // Call the original method with extracted parameters
+        this.showTitleDetails(directoryHash, title);
     }
 
     setupEpisodeSelectionListeners() {
@@ -1227,9 +1240,21 @@ class AdminPanel {
             <div class="details-section">
                 <h4>Episodes</h4>
                 <div class="episode-controls">
-                    <button class="btn btn-small btn-secondary" onclick="admin.selectAllEpisodes('${this.escapeHtml(detailsData.title)}')">Select All</button>
-                    <button class="btn btn-small btn-secondary" onclick="admin.deselectAllEpisodes('${this.escapeHtml(detailsData.title)}')">Deselect All</button>
-                    <button class="btn btn-small btn-primary" onclick="admin.editMultiplePaths()" disabled>Edit Selected</button>
+                    <button class="btn btn-small btn-secondary" 
+                            data-series-title="${this.escapeHtml(detailsData.title)}"
+                            onclick="admin.selectAllEpisodes(event)">
+                        Select All
+                    </button>
+                    <button class="btn btn-small btn-secondary" 
+                            data-series-title="${this.escapeHtml(detailsData.title)}"
+                            onclick="admin.deselectAllEpisodes(event)">
+                        Deselect All
+                    </button>
+                    <button class="btn btn-small btn-primary" 
+                            onclick="admin.editMultiplePaths()" 
+                            disabled>
+                        Edit Selected
+                    </button>
                 </div>
                 <div class="episode-list">
         `;
@@ -1256,8 +1281,13 @@ class AdminPanel {
                             <div class="episode-name">${this.escapeHtml(episodeTitle)}</div>
                             <div class="episode-path">${this.escapeHtml(episodePath)}</div>
                         </div>
+                        
                         <div class="episode-actions">
-                            <button class="btn btn-small btn-edit" onclick="admin.editSinglePath('${this.escapeHtml(episodePath)}', '${this.escapeHtml(episodeTitle)}', '${this.escapeHtml(detailsData.title)}')">
+                            <button class="btn btn-small btn-edit" 
+                                    data-episode-path="${this.escapeHtml(episodePath)}"
+                                    data-episode-title="${this.escapeHtml(episodeTitle)}"
+                                    data-series-title="${this.escapeHtml(detailsData.title)}"
+                                    onclick="admin.openSinglePathEditModal(event)">
                                 Edit
                             </button>
                         </div>
@@ -1329,8 +1359,12 @@ class AdminPanel {
                         <div class="field-value-block">${this.escapeHtml(series.summary)}</div>
                     </div>
                     <div class="custom-fetch-actions">
-                        <button class="btn btn-warning" onclick="admin.openCustomFetchModal('${this.escapeHtml(detailsData.title)}', ${episodes.length})">
-                🔄 Try Custom Fetch
+                        <button class="btn btn-warning"
+                            data-original-title="${this.escapeHtml(detailsData.title)}"
+                            data-episode-count="${episodes.length}"
+                            onclick="admin.openCustomFetchModal(event, ${episodes.length})">
+
+                            🔄 Try Custom Fetch
                         </button>
                     </div>
                 `;
@@ -1358,13 +1392,20 @@ class AdminPanel {
         if (!detailsData.series_info || detailsPartiallyAvailable) {
             console.log('No series info available'); // Debug log
             html += `
+            
                 <div class="no-series-info">
                     <p>No series information available for this title.</p>
                     <div class="series-actions">
-                        <button class="btn btn-small btn-primary" onclick="admin.fetchSeriesMetadata('${this.escapeHtml(this.currentTitle?.directory_hash)}', '${this.escapeHtml(detailsData.title)}')">
+                        <button class="btn btn-small btn-primary" 
+                                data-directory-hash="${this.escapeHtml(this.currentTitle?.directory_hash)}"
+                                data-title="${this.escapeHtml(detailsData.title)}"
+                                onclick="admin.fetchSeriesMetadata(event)">
                             Fetch Metadata
                         </button>
-                        <button class="btn btn-small btn-secondary" onclick="admin.editTitle('${this.escapeHtml(this.currentTitle?.directory_hash)}', '${this.escapeHtml(detailsData.title)}')">
+                        <button class="btn btn-small btn-secondary" 
+                                data-directory-hash="${this.escapeHtml(this.currentTitle?.directory_hash)}"
+                                data-title="${this.escapeHtml(detailsData.title)}"
+                                onclick="admin.editTitleHandler(event)">
                             Add Manually
                         </button>
                     </div>
@@ -1395,8 +1436,11 @@ class AdminPanel {
     }
 
 
-    openCustomFetchModal(titleName, episodeCount) {
-            // Create modal HTML using your existing design pattern
+    openCustomFetchModal(event) {
+            const titleName = event.target.dataset.originalTitle;
+            const episodeCount = event.target.dataset.episodeCount;
+    
+            console.log(`Title: ${titleName}, Episodes: ${episodeCount}`);
             const modalHTML = `
                 <div id="custom-fetch-modal" class="details-panel active metadata-modal">
                     <div class="details-header">
@@ -1642,7 +1686,12 @@ class AdminPanel {
     }
 
     // UPDATED: Fetch series metadata using directory_hash
-    async fetchSeriesMetadata(directoryHash, titleName) {
+    async fetchSeriesMetadata(event) {
+        const button = event.target;
+        const directoryHash = button.dataset.directoryHash;
+        const titleName = button.dataset.title;
+        console.log('Fetching metadata for:', { directoryHash, titleName });
+
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) {
             console.error('Title not found with directory_hash:', directoryHash);
@@ -1701,7 +1750,13 @@ class AdminPanel {
     }
 
     // Episode selection methods
-    selectAllEpisodes(titleName) {
+    selectAllEpisodes(event) {
+        const button = event.target;
+        const seriesTitle = button.dataset.seriesTitle;
+    
+        // Your existing select all logic here
+        console.log('Selecting all episodes for:', seriesTitle);
+
         const checkboxes = document.querySelectorAll('.episode-checkbox');
         checkboxes.forEach(checkbox => {
             checkbox.checked = true;
@@ -1710,7 +1765,13 @@ class AdminPanel {
         this.updateSelectionUI();
     }
 
-    deselectAllEpisodes(titleName) {
+    deselectAllEpisodes(event) {
+        const button = event.target;
+        const seriesTitle = button.dataset.seriesTitle;
+    
+        // Your existing deselect all logic here
+        console.log('Deselecting all episodes for:', seriesTitle);
+
         const checkboxes = document.querySelectorAll('.episode-checkbox');
         checkboxes.forEach(checkbox => {
             checkbox.checked = false;
@@ -1719,13 +1780,18 @@ class AdminPanel {
         this.updateSelectionUI();
     }
 
-    // FIXED: Single path edit
-    editSinglePath(path, currentEpTitle, seriesTitle) {
-        this.openSinglePathEditModal(path, currentEpTitle, seriesTitle);
-    }
-
-    
-    openSinglePathEditModal(videoPath, currentTitle, seriesTitle) {
+    openSinglePathEditModal(event) {
+        const button = event.target;
+        const videoPath = button.dataset.episodePath;
+        const episodeTitle = button.dataset.episodeTitle;
+        const seriesTitle = button.dataset.seriesTitle;
+        
+        // Your existing edit logic here
+        console.log('Editing episode:', {
+            path: videoPath,
+            episode: episodeTitle,
+            series: seriesTitle
+        });
         const modalHTML = `
             <div id="edit-modal" class="details-panel active">
                 <div class="details-header">
@@ -1750,7 +1816,7 @@ class AdminPanel {
                             <h4>Episode Information</h4>
                             <div class="series-field">
                                 <span class="field-label">Episode Title:</span>
-                                <input type="text" id="path-new-ep-title" value="${this.escapeHtml(currentTitle)}" placeholder="Enter episode title" required class="field-input">
+                                <input type="text" id="path-new-ep-title" value="${this.escapeHtml(episodeTitle)}" placeholder="Enter episode title" required class="field-input">
                             </div>
                             
                             <div class="series-field">
@@ -2137,10 +2203,17 @@ class AdminPanel {
     }
 
     // UPDATED: Edit title using directory_hash
+
+    editTitleHandler(event) {
+        // Get data from the button's data attributes
+        const button = event.target;
+        const directoryHash = button.dataset.directoryHash;
+        const titleName = button.dataset.title;
+        console.log('Editing title:', titleName, 'Hash:', directoryHash);
+        this.editTitle(directoryHash, titleName)
+    }
    
     async editTitle(directoryHash, titleName) {
-        console.log('Editing title:', titleName, 'Hash:', directoryHash);
-        
         // Find the title to check if it has series info
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) {
@@ -2377,9 +2450,16 @@ class AdminPanel {
                         </div>
 
                         <div class="form-actions-details">
-                            <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                            <button type="button" class="btn btn-soft-delete soft-delete-btn" onclick="admin.handleSoftDeleteSingle('${this.escapeHtml(directoryHash)}', '${this.escapeHtml(titleName)}')">
+                            <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-soft-delete soft-delete-btn" 
+                                    data-directory-hash="${this.escapeHtml(directoryHash)}"
+                                    data-title-name="${this.escapeHtml(titleName)}"
+                                    onclick="admin.handleSoftDeleteSingle(event)">
                                 Soft Delete
                             </button>
                         </div>
@@ -2394,7 +2474,14 @@ class AdminPanel {
 
 
     // NEW: Handle soft delete for single title
-    async handleSoftDeleteSingle(directoryHash, titleName) {
+    async handleSoftDeleteSingle(event) {
+        const button = event.target;
+        const directoryHash = button.dataset.directoryHash;
+        const titleName = button.dataset.titleName;
+    
+        // Your existing soft delete logic here
+        console.log('Soft deleting:', { directoryHash, titleName });
+
         // Show confirmation dialog with detailed warning
         const confirmed = confirm(
             `⚠️ SOFT DELETE WARNING ⚠️\n\n` +
@@ -2850,6 +2937,7 @@ class AdminPanel {
         const selectedMovieData = [];
         const episodeElements = document.querySelectorAll('.episode-checkbox:checked');
         
+        const selectedMovieTitles = [];
         episodeElements.forEach(checkbox => {
             const episodeItem = checkbox.closest('.episode-item');
             const movieName = episodeItem.querySelector('.episode-name').textContent;
@@ -2859,7 +2947,12 @@ class AdminPanel {
                 path: moviePath,
                 title: movieName
             });
+
+            selectedMovieTitles.push(movieName);
         });
+
+        const confirmed = confirm(`Fetch metadata for "${selectedMovieTitles}"?\n\nThis will search for series information online.`);
+        if (!confirmed) return;
 
         console.log("Quick fetching movie metadata for:", selectedMovieData);
 
