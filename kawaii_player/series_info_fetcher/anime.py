@@ -15,6 +15,7 @@ class AnimeInfoFetcher:
         self.last_request = 0
         self.cache = {}
         self.ui = ui
+        self.pattern = r'[\[\(\{].*?[\]\)\}]'
         self.cache_file = os.path.join(ui.home_folder, "anime_cache.pkl")
         self.thumbnail_dir = os.path.join(ui.home_folder, 'thumbnails', 'thumbnail_server')
         if os.name == 'posix':
@@ -110,9 +111,14 @@ class AnimeInfoFetcher:
             'large_poster': str
         }
         """
+
         try:
+            title = re.sub(self.pattern, '', title)
+            title = title.strip()
+            self.ui.logger.info(f"searching: {title}")
+
             if cache and self.cache and self.cache.get(title):
-                print(f"returning from cache {title}")
+                self.ui.logger.info(f"returning from cache {title}")
                 return self.cache.get(title)
             # Search for anime
             self._rate_limit()

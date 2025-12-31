@@ -993,12 +993,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             series_type = content.get("series_type")
             media_type = content.get("media_type")
             from_cache = content.get("from_cache")
+            single_episode_path = content.get("single_episode_path")
+            single_episode_title = content.get("single_episode_title")
             paths = []
             if media_type and media_type.lower() == "video":
                 media_type == "video"
 
+            if single_episode_title and single_episode_path and not suggested_title:
+                title = re.sub(ui.anime_info_fetcher.pattern, '', single_episode_title)
+                if title.endswith('.mkv') or title.endswith('.mp4') or title.endswith('.avi'):
+                    title = title.rsplit('.', 1)[0]
+                suggested_title = title.strip()
+
             if suggested_title and len(suggested_title) < 100 and media_type ==  "video":
-                if series_type == "anime":
+                if series_type in ["anime", "anime movies"]:
                     if from_cache == "yes":
                         result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
                     else:
@@ -1009,16 +1017,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     else:
                         result = ui.tvshow_info_fetcher.get_series_info(suggested_title, False)
 
-                ui.media_data.insert_series_data(db_title, result, series_type)
+                if single_episode_title:
+                    ui.media_data.insert_series_data(suggested_title, result, series_type)
+                    ui.media_data.insert_video_data(suggested_title, single_episode_path)
+                else:
+                    ui.media_data.insert_series_data(db_title, result, series_type)
 
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
 
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                qr = """
-                    select * from series_info where db_title = ?
-                    """
-                cur.execute(qr, (db_title, ))
+                qr = "select * from series_info where db_title = ?"
+                if single_episode_title:
+                    cur.execute(qr, (suggested_title, ))
+                else:
+                    cur.execute(qr, (db_title, ))
                 rows = [row for row in cur.fetchall()]
                 if rows:
                     data = dict(rows[0])

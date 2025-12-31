@@ -821,6 +821,29 @@ class MediaDatabase():
         finally:
             conn.close()
 
+    def insert_video_data(self, suggested_title, path):
+        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                    update Video set Title = ? where Path = ?
+                    """, (suggested_title, path))
+
+            rows_affected = cur.rowcount
+            if rows_affected == 1:
+                self.logger.info(f"{path} Title updated to {suggested_title}")
+            else:
+                self.logger.error("something unusual happend, rolling back")
+                raise f"{path} failed to update with title {suggested_title}, rows: {rows_affected}"
+
+            conn.commit()
+        except Exception as err:
+            self.logger.error(f"update error: {str(err)}")
+            conn.rollback()
+        finally:
+            conn.close()
+
     def insert_series_data(self, title, series_data, category):
 
         db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
