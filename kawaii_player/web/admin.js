@@ -1811,7 +1811,11 @@ class AdminPanel {
         }
 
         const actualTitleName = title.title;
-        const confirmed = confirm(`Fetch metadata for "${actualTitleName}"?\n\nThis will search for series information online.`);
+        const confirmed = confirm(
+            `Fetch metadata for "${category} - ${actualTitleName}" ? \n\n` +
+            `This will search for information online.\n\n` +
+            `If category is not correct, first manually change the category`
+        );
         if (!confirmed) return;
 
         try {
