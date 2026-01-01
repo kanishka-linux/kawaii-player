@@ -202,6 +202,7 @@ class MediaDatabase():
     def __init__(self, home=None, logger=None):
         self.home = home
         self.db_path = os.path.join(home, 'VideoDB', 'Video.db')
+        self.thumbnail_dir = os.path.join(home, 'thumbnails', 'thumbnail_server')
         self.logger = logger
         self.ui = None
         self.db_worker = None
@@ -848,18 +849,38 @@ class MediaDatabase():
     def delete_series_info(self, db_title):
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        cur.execute("delete from series_info where db_title = ?", (db_title, ))
-        if cur.rowcount == 1:
-            self.logger.info(f"deletion success: {db_title}")
+        success = False
+        try:
+            cur.execute("""
+                select image_poster_large
+                from series_info
+                where db_title = ?""", (db_title, ))
+            img = cur.fetchone()[0]
+            if img and img.startswith('/images/poster-'):
+                img_name = img.rsplit('/', 1)[-1]
+                img_path = os.path.join(self.thumbnail_dir, img_name)
+                if  os.path.isfile(img_path):
+                    self.logger.info(f"removing {img_path}, for {db_title}")
+                    os.remove(img_path)
+                
+            cur.execute("delete from series_info where db_title = ?", (db_title, ))
+            if cur.rowcount == 1:
+                self.logger.info(f"deletion success: {db_title}")
+                success = True
+            elif cur.rowcount > 1:
+                # This should never happen
+                self.logger.error(f"more than 1 deletion record found for: {db_title}, {cur.rowcount}")
+                raise f"more than 1 record found for {db_title}"
+            else:
+                self.logger.error(f"not found: {db_title}")
             conn.commit()
             conn.close()
-            return True
+        except Exception as err:
+            self.logger.error(f"error in deleting: {db_title}, err: {str(err)}")
+            conn.rollback()
+            conn.close()
 
-        self.logger.error(f"{db_title}:  not found")
-        conn.rollback()
-        conn.close()
-
-        return False
+        return success
 
     def insert_series_data(self, title, series_data, category):
 
