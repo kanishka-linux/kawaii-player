@@ -12,7 +12,6 @@ from vinanti import Vinanti
 class TvShowInfoFetcher:
     def __init__(self, ui):
         self.base_url = "https://api.tvmaze.com"
-        self.pattern = r'[\[\(\{].*?[\]\)\}]'
         self.last_request = 0
         self.cache = {}
         self.ui = ui
@@ -36,6 +35,35 @@ class TvShowInfoFetcher:
             except Exception as err:
                 self.ui.logger.error(f"Error loading cache: {err}")
                 self.cache = {}
+
+    def sanitize_title(self, title):
+        # Step 1: Remove bracketed content
+        cleaned = re.sub(r'[\[\(\{].*?[\]\)\}]', '', title)
+
+        # Step 2: Remove season indicators
+        cleaned = re.sub(r'\b(?:season|series|s|part|pt)\s*\d{0,2}\b', '', cleaned, flags=re.IGNORECASE)
+
+        # Step 3: Handle special characters
+        cleaned = re.sub(r'[-_]+', ' ', cleaned)
+
+        # Step 4: Clean up spacing
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        return cleaned
+
+    def extract_season_number(self, title):
+
+        # Combined pattern for all numeric season indicators
+        pattern = r'(?:\b(?:season|series|part|pt)\s*|[\[\(\{]?s)(\d{1,2})(?:[\]\)\}]|\b)'
+        match = re.search(pattern, title, re.IGNORECASE)
+        if match:
+            try:
+                season_num = int(match.group(1))
+                return season_num if 1 <= season_num <= 99 else None
+            except ValueError:
+                pass
+
+        return None
     
     def _rate_limit(self):
         """Rate limiting - 20 requests per 10 seconds (0.5 seconds between requests)"""
@@ -149,11 +177,11 @@ class TvShowInfoFetcher:
         }
         """
         try:
-            # Check cache first
-            title = re.sub(self.pattern, '', title)
-            title = title.strip()
-            self.ui.logger.info(f"searching: {title}")
+            season_number = self.extract_season_number(title)
+            title = self.sanitize_title(title)
+            self.ui.logger.info(f"searching: {title}, S-{season_number}")
 
+            # Check cache first
             if cache and self.cache and self.cache.get(title):
                 self.ui.logger.info(f"Returning from cache: {title}")
                 return self.cache.get(title)
