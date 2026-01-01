@@ -7,6 +7,7 @@ import hashlib
 import json
 import pickle
 import os
+import traceback
 from datetime import datetime
 
 class AnimeInfoFetcher:
@@ -100,6 +101,19 @@ class AnimeInfoFetcher:
         local_path = os.path.join(self.thumbnail_dir, f"poster-{digest}.jpg")
         return local_path
     
+    def _safe_extract_names(self, items):
+        """Safely extract names from list of dictionaries."""
+        if not items:
+            return []
+
+        names = []
+        for item in items:
+            if item and isinstance(item, dict):
+                name = item.get('name')
+                if name:  # Only add non-empty names
+                    names.append(name)
+        return names
+
     def get_anime_info(self, title: str, cache: bool) -> Optional[Dict]:
         """
         Get anime info by title
@@ -124,6 +138,7 @@ class AnimeInfoFetcher:
             self._rate_limit()
             
             best_match = self.fetch_best_candidates(title)
+            self.ui.logger(f"best-matched for {title} => {best_match}")
             
             # Get detailed info
             self._rate_limit()
@@ -155,12 +170,14 @@ class AnimeInfoFetcher:
                     'season': data.get('season'),
                     'year': data.get('year'),
                     'broadcast': data.get('broadcast', {}),
-                    'producers': [p['name'] for p in data.get('producers', [])],
-                    'licensors': [l['name'] for l in data.get('licensors', [])],
-                    'studios': [s['name'] for s in data.get('studios', [])],
-                    'genres': [g['name'] for g in data.get('genres', [])],
-                    'themes': [t['name'] for t in data.get('themes', [])],
-                    'demographics': [d['name'] for d in data.get('demographics', [])],
+
+                    'producers': self._safe_extract_names(data.get('producers', [])),
+                    'licensors': self._safe_extract_names(data.get('licensors', [])),
+                    'studios': self._safe_extract_names(data.get('studios', [])),
+                    'genres': self._safe_extract_names(data.get('genres', [])),
+                    'themes': self._safe_extract_names(data.get('themes', [])),
+                    'demographics': self._safe_extract_names(data.get('demographics', [])),
+
                     'url': data.get('url'),
                     'image_poster_large': self._get_large_poster(data.get('images', {})),
                     'trailer': data.get('trailer', {}),
@@ -191,5 +208,6 @@ class AnimeInfoFetcher:
             
         except Exception as err:
             self.ui.logger.error("error: {}, for fetching: {}".format(err, title))
+            self.ui.logger.exception(f"Traceback:\n {traceback.format_exc()}")
             return None
 
