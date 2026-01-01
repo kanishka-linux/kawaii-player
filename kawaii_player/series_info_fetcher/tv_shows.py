@@ -396,6 +396,7 @@ class TvShowInfoFetcher:
                         'episodes': season_info.get('episode_count') or series_details.get('episodes'),
                         'summary': season_info.get('summary') or series_details.get('summary'),
                         'synopsis': season_info.get('summary') or series_details.get('synopsis'),
+                        'title': f"{data.get('name')} (Season {season_number})",
                         'season_info': season_info
                     })
                     
