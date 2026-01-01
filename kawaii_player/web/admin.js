@@ -1343,6 +1343,8 @@ class AdminPanel {
             detailsPartiallyAvailable = true;
         }
 
+        let category = detailsData.series_info?.category || "anime";
+
         if (detailsData.series_info)  {
             const series = detailsData.series_info;
             console.log('Rendering series info:', series); // Debug log
@@ -1423,6 +1425,7 @@ class AdminPanel {
                         <button class="btn btn-small btn-primary" 
                                 data-directory-hash="${this.escapeHtml(this.currentTitle?.directory_hash)}"
                                 data-title="${this.escapeHtml(detailsData.title)}"
+                                data-category="${this.escapeHtml(category)}"
                                 onclick="admin.fetchSeriesMetadata(event)">
                             Fetch Metadata
                         </button>
@@ -1798,7 +1801,8 @@ class AdminPanel {
         const button = event.target;
         const directoryHash = button.dataset.directoryHash;
         const titleName = button.dataset.title;
-        console.log('Fetching metadata for:', { directoryHash, titleName });
+        const category = button.dataset.category;
+        console.log('Fetching metadata for:', { directoryHash, titleName, category });
 
         const title = this.titles.find(t => t.directory_hash === directoryHash);
         if (!title) {
@@ -1816,7 +1820,7 @@ class AdminPanel {
             const requestData = {
                 db_title: actualTitleName,
                 suggested_title: actualTitleName,
-                series_type: 'anime', // Default to anime, could be made configurable
+                series_type: category, // Default to anime, could be made configurable
                 media_type: "video",
                 from_cache: "no"
             };
