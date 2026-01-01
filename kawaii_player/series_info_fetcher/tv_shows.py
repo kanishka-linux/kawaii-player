@@ -12,6 +12,7 @@ from vinanti import Vinanti
 class TvShowInfoFetcher:
     def __init__(self, ui):
         self.base_url = "https://api.tvmaze.com"
+        self.pattern = r'[\[\(\{].*?[\]\)\}]'
         self.last_request = 0
         self.cache = {}
         self.ui = ui
@@ -149,6 +150,10 @@ class TvShowInfoFetcher:
         """
         try:
             # Check cache first
+            title = re.sub(self.pattern, '', title)
+            title = title.strip()
+            self.ui.logger.info(f"searching: {title}")
+
             if cache and self.cache and self.cache.get(title):
                 self.ui.logger.info(f"Returning from cache: {title}")
                 return self.cache.get(title)
