@@ -1613,7 +1613,7 @@ class AdminPanel {
             
             console.log('Sending delete stale entry request:', requestData);
             
-            const response = await fetch('/series-update', {
+            const response = await fetch('/admin/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2874,7 +2874,7 @@ class AdminPanel {
         try {
             this.showUpdateProgress('Updating...');
             
-            const response = await fetch('/series-update', {
+            const response = await fetch('/admin/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2918,7 +2918,7 @@ class AdminPanel {
         try {
             this.showUpdateProgress('Updating episode...');
             
-            const response = await fetch('/series-update', {
+            const response = await fetch('/admin/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2973,7 +2973,7 @@ class AdminPanel {
         try {
             this.showUpdateProgress('Updating multiple episodes...');
             
-            const response = await fetch('/series-update', {
+            const response = await fetch('/admin/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -3637,7 +3637,7 @@ class AdminPanel {
         try {
             this.showUpdateProgress('Updating selected titles...', false);
             
-            const response = await fetch('/series-update', {
+            const response = await fetch('/admin/series-update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

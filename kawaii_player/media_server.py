@@ -1422,10 +1422,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     self.final_message(b'Access Denied: invalid access token')
             else:
                 self.final_message(b'Not Allowed')
-        elif self.path.startswith('/browse.html')  or self.path.startswith('/browse?'):
+        elif self.path == "/browse"  or self.path.startswith('/browse?'):
             # Handle browse requests
             self.handle_browse_request()
-        elif self.path.startswith('/admin.html') or self.path == '/admin':
+        elif self.path == '/admin':
             self.handle_admin_request()
         elif self.path == '/series-data':
             self.handle_series_data_request()
@@ -2267,7 +2267,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 SELECT 
                     db_title as title,
                     directory,
-                    episodes_available
+                    episodes_available,
+                    episodes
                 FROM series_info
             """
             
@@ -2321,14 +2322,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             for row in series_rows:
                 title = row['title']
                 directory = row['directory']
-                print(title, directory)
                 episode_count = row['episodes_available'] or 0
                 
+                has_series_info = True if row['episodes'] else False
+
                 valid_titles.append({
                     'title': title,
                     'directory_hash': self.calc_dir_hash(directory or '', title),
                     'episode_count': episode_count,
-                    'has_series_info': True,
+                    'has_series_info': has_series_info,
                     'mtime': 0
                 })
             
@@ -2350,7 +2352,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_error(500, f"Database error: {str(e)}")
     
     def handle_series_data_request(self):
-        global home
+        global home, logger
         """Serve lightweight admin data as JSON - titles and counts only"""
         
         try:
@@ -2373,12 +2375,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             # Get all series info in one query
             cur.execute("""
-                SELECT db_title
+                SELECT db_title, episodes
                 FROM series_info
                 WHERE db_title IS NOT NULL
             """)
             series_rows = cur.fetchall()
-            series_titles = {row['db_title'] for row in series_rows}
+            series_titles = dict([(row['db_title'], row['episodes']) for row in series_rows])
             
             cur.execute("""
                 select distinct category
@@ -2399,7 +2401,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     ]
             conn.close()
 
-            print(labels, categories)
+            logger.info(f"{labels}, {categories}")
             
             # Filter valid directories and get modification times
             valid_titles = []
@@ -2415,12 +2417,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     mtime = os.path.getmtime(directory)
                 except (OSError, FileNotFoundError):
                     mtime = 0
-
+                has_series_info = True if series_titles.get(title) else False
                 valid_titles.append({
                     'title': title,
                     'directory_hash': self.calc_dir_hash(directory, title),
                     'episode_count': row['episode_count'],
-                    'has_series_info': title in series_titles,
+                    'has_series_info': has_series_info,
                     'mtime': mtime
                 })
             
@@ -2469,6 +2471,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 WHERE Title = ?
                 ORDER BY EPN
             """, (title,))
+
             episode_rows = [
                     row for row in cur.fetchall() if self.calc_dir_hash(row['Directory'], title) == directory_hash
                     ]
@@ -2695,7 +2698,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Internal server error')
 
     def do_POST(self):
-        if self.path == '/series-update':
+        if self.path == '/admin/series-update':
             self.handle_series_update()
         elif self.path == '/admin/series-soft-delete':
             self.handle_series_soft_delete()
