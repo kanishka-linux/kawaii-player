@@ -201,6 +201,7 @@ class MediaDatabase():
 
     def __init__(self, home=None, logger=None):
         self.home = home
+        self.db_path = os.path.join(home, 'VideoDB', 'Video.db')
         self.logger = logger
         self.ui = None
         self.db_worker = None
@@ -844,6 +845,22 @@ class MediaDatabase():
         finally:
             conn.close()
 
+    def delete_series_info(self, db_title):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute("delete from series_info where db_title = ?", (db_title, ))
+        if cur.rowcount == 1:
+            self.logger.info(f"deletion success: {db_title}")
+            conn.commit()
+            conn.close()
+            return True
+
+        self.logger.error(f"{db_title}:  not found")
+        conn.rollback()
+        conn.close()
+
+        return False
+
     def insert_series_data(self, title, series_data, category):
 
         db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
@@ -880,7 +897,9 @@ class MediaDatabase():
         res = cursor.fetchone()
         if res:
             directory = res[0]
-
+        else:
+            self.logger.error(f"directory not found for title:{title}, not inserting series_info")
+            return None
 
         try:
 
@@ -913,7 +932,7 @@ class MediaDatabase():
 
             conn.commit()
 
-            print(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
+            self.logge.info(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
             return record_id
         except sqlite3.IntegrityError as e:
             # Check if it's a unique constraint error on db_title
@@ -949,15 +968,15 @@ class MediaDatabase():
                     cursor.execute(update_sql, update_data_tuple)
                     conn.commit()
 
-                    print(f"\nUpdated anime: {title} => {series_data.get('title')} with existing ID: {existing_id}\n")
+                    self.logger.info(f"\nUpdated anime: {title} => {series_data.get('title')} with existing ID: {existing_id}\n")
                     return existing_id
 
                 except sqlite3.Error as update_error:
-                    print(f"Error updating data: {update_error}")
+                    self.logger.error(f"Error updating data: {update_error}")
                     return None
 
         except sqlite3.Error as e:
-            print(f"Error inserting data: {e}")
+            self.logger.error(f"Error inserting data: {e}")
             return None
 
         finally:

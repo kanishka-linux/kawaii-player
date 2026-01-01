@@ -1296,7 +1296,30 @@ class AdminPanel {
                 `;
             });
         } else {
-            html += '<div class="no-episodes">No episodes found</div>';
+            html += `
+                <div class="no-episodes">
+                    <div class="no-episodes-message">
+                        <h5>⚠️ No Episodes Found</h5>
+                        <p>This title exists in the database but no video files were found.</p>
+                        <p>This could mean:</p>
+                        <ul>
+                            <li>Video files have been moved or deleted</li>
+                            <li>The directory path has changed</li>
+                            <li>Storage is not accessible</li>
+                        </ul>
+                    </div>
+                    <div class="stale-entry-actions">
+                        <button class="btn btn-warning btn-delete-stale" 
+                                data-db-title="${this.escapeHtml(detailsData.title)}"
+                                onclick="admin.handleDeleteStaleEntry(event)">
+                            🗑️ Delete Stale Entry
+                        </button>
+                        <div class="delete-help">
+                            <small>This will remove the database entry for this title since no video files exist.</small>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         html += `
@@ -1550,6 +1573,90 @@ class AdminPanel {
         if (modal) {
             modal.remove();
             document.body.style.overflow = '';
+        }
+    }
+
+    // NEW: Add the delete stale entry handler method
+    async handleDeleteStaleEntry(event) {
+        const button = event.target;
+        const titleName = button.dataset.dbTitle;
+
+        console.log('Deleting stale entry:', { titleName });
+
+        // Show detailed confirmation dialog
+        const confirmed = confirm(
+            `⚠️ DELETE STALE ENTRY WARNING ⚠️\n\n` +
+            `This will permanently delete the database entry for:\n"${titleName}"\n\n` +
+            `This action will:\n` +
+            `• Remove the title from the database\n` +
+            `• Delete all associated episode records\n` +
+            `• Remove series information and metadata\n` +
+            `• Clean up thumbnails and cached data\n\n` +
+            `This is recommended when video files no longer exist.\n\n` +
+            `This action cannot be undone!\n\n` +
+            `Are you sure you want to continue?`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+        
+        try {
+            this.showUpdateProgress('Deleting stale entry... This may take a moment.', false);
+            
+            // Prepare request data for stale entry deletion
+            const requestData = {
+                action: "delete_series_info",
+                db_title: titleName,
+                reason: "stale_entry" // Optional: helps backend understand the context
+            };
+            
+            console.log('Sending delete stale entry request:', requestData);
+            
+            const response = await fetch('/series-update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Delete stale entry response:', result);
+            
+            if (result.success) {
+                this.hideUpdateProgress();
+                
+                // Close details panel
+                this.closeDetailsPanel();
+                
+                // Clear any selections
+                this.selectedTitles.clear();
+                this.selectedEpisodes.clear();
+                this.updateBulkEditButton();
+                
+                // Refresh the titles list
+                await this.loadTitles();
+                
+                // Show success message
+                const message = result.message || `Successfully deleted stale entry for "${titleName}"`;
+                this.showSuccessMessage(message);
+                
+                // Clear saved index since the item is deleted
+                this.clearSavedIndex();
+                
+            } else {
+                throw new Error(result.error || 'Delete operation failed');
+            }
+            
+        } catch (error) {
+            console.error('Delete stale entry error:', error);
+            this.hideUpdateProgress();
+            this.showErrorMessage('Failed to delete stale entry: ' + error.message);
         }
     }
 

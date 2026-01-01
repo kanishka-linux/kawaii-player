@@ -1023,6 +1023,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 else:
                     ui.media_data.insert_series_data(db_title, result, series_type)
 
+
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
 
                 conn.row_factory = sqlite3.Row
@@ -2893,6 +2894,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             return False
 
     def handle_series_update(self):
+        global logger, ui
         """Handle admin update requests - JSON only"""
         try:
             # Get content length and read the data
@@ -2901,11 +2903,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             # Parse JSON data only
             data = json.loads(post_data.decode('utf-8'))
-            print("JSON data:", data)
+            logger.info(f"Handle Series Update: JSON {data}")
             
             action = data.get('action', '')
-            print("Action:", action)
-            print("Data:", data)
             
             if action == 'update_title':
                 result = self.update_single_title(data)
@@ -2915,12 +2915,25 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 result = self.update_multiple_paths(data)
             elif action == 'bulk_update':
                 result = self.bulk_update_titles(data.get('updates', []))
+            elif action == 'delete_series_info':
+                db_title = data.get("db_title", "")
+                if db_title:
+                    res = ui.media_data.delete_series_info(db_title)
+                    if res:
+                        result = {'success': True, 'message': f"{db_title} deleted successfully"}
+                    else:
+                        result = {'success': False, 'error': 'Not Found'}
+                else:
+                        result = {'success': False, 'error': 'db_title needed'}
             else:
                 result = {'success': False, 'error': 'Invalid action'}
             
             # Send response
             response = json.dumps(result)
-            self.send_response(200)
+            if result['success']:
+                self.send_response(200)
+            else:
+                self.send_response(400)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Content-Length', str(len(response.encode('utf-8'))))
             self.end_headers()
@@ -3264,8 +3277,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         """Update title for a single video path"""
         global home, logger
 
+        conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
         try:
-            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
             cur = conn.cursor()
             
             video_path = data.get('video_path', '').strip()
@@ -3275,12 +3288,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             logger.info(f"Updating single path: '{video_path}' -> '{new_series_title}' -> '{new_ep_title}'")
             
             if not video_path or not new_series_title or not new_ep_title:
+                conn.close()
                 return {'success': False, 'error': 'Video path and new titles are required'}
- 
-            
+
             cur.execute("select Title from Video where Path = ?", (video_path, ))
             result = cur.fetchone()
             if result:
+                # update series_info table if
+                # title from Video exists in series_info
                 db_title = result[0]
                 cur.execute("""
                         update series_info
@@ -3297,7 +3312,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     )
             
             if cur.rowcount == 0:
-                return {'success': False, 'error': 'Video file not found'}
+                raise "path: {video_path} not found, rolling back"
            
             conn.commit()
             conn.close()
@@ -3308,24 +3323,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             }
             
         except Exception as e:
-            print(f"Error in update_single_path: {e}")
+            logger.error(f"Error in update_single_path: {e}")
             import traceback
             traceback.print_exc()
-            
-            if 'conn' in locals():
-                conn.rollback()
-                conn.close()
-            return {'success': False, 'error': f"Database error: {str(e)}"}
+            conn.rollback()
+            conn.close()
+
+            return {'success': False, 'error': f"Database update error: {str(e)}"}
 
     def update_multiple_paths(self, data):
         """Update title for multiple video paths"""
-        global home
+        global home, logger
 
-        return {'success': False, 'error': 'Not Allowed'}
-        
-
+        conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
         try:
-            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
             cur = conn.cursor()
             
             # Handle video_paths - now expecting array directly
@@ -3333,26 +3344,29 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             # Ensure it's a list
             if not isinstance(video_paths, list):
-                print(f"Warning: video_paths is not a list: {type(video_paths)} - {repr(video_paths)}")
+                logger.error(f"Warning: video_paths is not a list: {type(video_paths)} - {repr(video_paths)}")
                 video_paths = []
                 
             new_title = data.get('new_title', '').strip()
             
-            print(f"Updating multiple paths: {len(video_paths)} files -> '{new_title}'")
-            print(f"Video paths: {video_paths}")
+            logger.info(f"Updating multiple paths: {len(video_paths)} files -> '{new_title}'")
+            logger.info(f"Video paths: {video_paths}")
             
             if not video_paths or not new_title:
+                conn.close()
                 return {'success': False, 'error': 'Video paths and new title are required'}
-            
-            # Update all selected video files
-            placeholders = ','.join(['?' for _ in video_paths])
-            cur.execute(f"UPDATE Video SET Title = ? WHERE Path IN ({placeholders})", 
-                       [new_title] + video_paths)
-            
-            updated_count = cur.rowcount
-            
-            if updated_count == 0:
-                return {'success': False, 'error': 'No video files were updated'}
+
+            updated_count = 0
+            for path in video_paths:
+                cur.execute("update Video set Title = ? where Path = ?", (new_title, path))
+                if cur.rowcount == 1:
+                    logger.info(f"title successfully updated {path} => {new_title}")
+                    updated_count += 1
+                else:
+                    ui.logger.info(f"title successfully updated {path} => {new_title}")
+                    
+            if updated_count != len(video_paths):
+                raise "mismatch in updated count: video_path_count = {len(video_path)}, updated_count = {updated_count}"
             
             conn.commit()
             conn.close()
@@ -3363,13 +3377,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             }
             
         except Exception as e:
-            print(f"Error in update_multiple_paths: {e}")
+            logger.error(f"Error in update_multiple_paths: {e}")
             import traceback
             traceback.print_exc()
-            
-            if 'conn' in locals():
-                conn.rollback()
-                conn.close()
+            conn.rollback()
+            conn.close()
             return {'success': False, 'error': f"Database error: {str(e)}"}
 
     def process_url(self, nm, get_bytes, status=None):
