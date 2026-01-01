@@ -2375,12 +2375,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
             # Get all series info in one query
             cur.execute("""
-                SELECT db_title, episodes
+                SELECT db_title
                 FROM series_info
-                WHERE db_title IS NOT NULL
+                WHERE db_title IS NOT NULL and summary is not null
             """)
             series_rows = cur.fetchall()
-            series_titles = dict([(row['db_title'], row['episodes']) for row in series_rows])
+            series_titles = { row[0] for row in series_rows }
             
             cur.execute("""
                 select distinct category
@@ -2417,12 +2417,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     mtime = os.path.getmtime(directory)
                 except (OSError, FileNotFoundError):
                     mtime = 0
-                has_series_info = True if series_titles.get(title) else False
                 valid_titles.append({
                     'title': title,
                     'directory_hash': self.calc_dir_hash(directory, title),
                     'episode_count': row['episode_count'],
-                    'has_series_info': has_series_info,
+                    'has_series_info': title in series_titles,
                     'mtime': mtime
                 })
             
