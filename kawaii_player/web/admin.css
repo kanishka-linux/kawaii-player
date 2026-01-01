@@ -2479,7 +2479,7 @@ textarea:focus {
     margin: 0 !important;
     
     /* Force minimum height */
-    min-height: calc(100vh - 200px) !important;
+    min-height: calc(100vh - 220px) !important;
 }
 
 /* ========================================

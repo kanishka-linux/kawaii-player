@@ -855,14 +855,16 @@ class MediaDatabase():
                 select image_poster_large
                 from series_info
                 where db_title = ?""", (db_title, ))
-            img = cur.fetchone()[0]
-            if img and img.startswith('/images/poster-'):
-                img_name = img.rsplit('/', 1)[-1]
-                img_path = os.path.join(self.thumbnail_dir, img_name)
-                if  os.path.isfile(img_path):
-                    self.logger.info(f"removing {img_path}, for {db_title}")
-                    os.remove(img_path)
-                
+            res = cur.fetchone()
+            if res:
+                img = res[0]
+                if img.startswith('/images/poster-'):
+                    img_name = img.rsplit('/', 1)[-1]
+                    img_path = os.path.join(self.thumbnail_dir, img_name)
+                    if  os.path.isfile(img_path):
+                        self.logger.info(f"removing {img_path}, for {db_title}")
+                        os.remove(img_path)
+
             cur.execute("delete from series_info where db_title = ?", (db_title, ))
             if cur.rowcount == 1:
                 self.logger.info(f"deletion success: {db_title}")
