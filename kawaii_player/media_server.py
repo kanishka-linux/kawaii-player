@@ -1013,9 +1013,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
                 else:
                     if from_cache == "yes":
-                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, True)
+                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, True, series_type)
                     else:
-                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, False)
+                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, False, series_type)
 
                 if single_episode_title:
                     ui.media_data.insert_video_data(suggested_title, single_episode_path)
