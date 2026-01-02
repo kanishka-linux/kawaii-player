@@ -1824,7 +1824,7 @@ class AdminPanel {
             const requestData = {
                 db_title: actualTitleName,
                 suggested_title: actualTitleName,
-                series_type: category, // Default to anime, could be made configurable
+                series_type: category,
                 media_type: "video",
                 from_cache: "no"
             };
@@ -1848,7 +1848,7 @@ class AdminPanel {
                 // Refresh the details panel
                 await this.showTitleDetails(directoryHash, actualTitleName);
                 // Refresh the main titles list
-                await this.loadTitles();
+                // await this.loadTitles();
             } else {
                 throw new Error('No metadata found for this title');
             }
@@ -2226,7 +2226,7 @@ class AdminPanel {
             this.disableForm(false);
             
             // Refresh the main titles list
-            await this.loadTitles();
+            // await this.loadTitles();
             this.selectedTitles.clear();
             this.updateBulkEditButton();
             
@@ -2899,7 +2899,7 @@ class AdminPanel {
             if (result.success) {
                 this.showUpdateProgress('Update successful! Reloading data...');
                 this.closeEditModal();
-                await this.loadTitles();
+                //await this.loadTitles();
                 this.showSuccessMessage(result.message || 'Update completed successfully');
             } else {
                 throw new Error(result.error || 'Update failed');

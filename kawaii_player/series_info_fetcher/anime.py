@@ -52,9 +52,13 @@ class AnimeInfoFetcher:
             return jpg.get('large_image_url') or jpg.get('image_url')
         return None
 
-    def fetch_best_candidates(self, title: str) -> Dict:
+    def fetch_best_candidates(self, title: str, series_type: str) -> Dict:
         search_url = f"{self.base_url}/anime"
         search_params = {"q": title, "limit": 10}
+        #if series_type == 'anime movies':
+        #    search_params['type'] = 'movie'
+        
+        self.ui.logger.info(f"search-params: {search_params}")
         
         response = self.vnt.get(search_url, params=search_params)
         if response.status != 200:
@@ -114,7 +118,14 @@ class AnimeInfoFetcher:
                     names.append(name)
         return names
 
-    def get_anime_info(self, title: str, cache: bool) -> Optional[Dict]:
+    def sanitize_title(self, title):
+        cleaned = re.sub(r'[\[\(\{].*?[\]\)\}]', '', title)
+        cleaned = re.sub(r'[-_]+', ' ', cleaned)
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        return cleaned
+
+    def get_anime_info(self, title: str, cache: bool, series_type: str) -> Optional[Dict]:
         """
         Get anime info by title
         Returns: {
@@ -127,8 +138,7 @@ class AnimeInfoFetcher:
         """
 
         try:
-            title = re.sub(self.pattern, '', title)
-            title = title.strip()
+            title = self.sanitize_title(title)
             self.ui.logger.info(f"searching: {title}")
 
             if cache and self.cache and self.cache.get(title):
@@ -137,8 +147,8 @@ class AnimeInfoFetcher:
             # Search for anime
             self._rate_limit()
             
-            best_match = self.fetch_best_candidates(title)
-            self.ui.logger(f"best-matched for {title} => {best_match}")
+            best_match = self.fetch_best_candidates(title, series_type)
+            self.ui.logger.info(f"best-matched for {title} => {best_match}")
             
             # Get detailed info
             self._rate_limit()

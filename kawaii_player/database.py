@@ -955,7 +955,7 @@ class MediaDatabase():
 
             conn.commit()
 
-            self.logge.info(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
+            self.logger.info(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
             return record_id
         except sqlite3.IntegrityError as e:
             # Check if it's a unique constraint error on db_title

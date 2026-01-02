@@ -1008,9 +1008,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             if suggested_title and len(suggested_title) < 100 and media_type ==  "video":
                 if series_type in ["anime", "anime movies"]:
                     if from_cache == "yes":
-                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, True)
+                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, True, series_type)
                     else:
-                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, False)
+                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, False, series_type)
                 else:
                     if from_cache == "yes":
                         result = ui.tvshow_info_fetcher.get_series_info(suggested_title, True, series_type)
