@@ -120,7 +120,7 @@ class AnimeInfoFetcher:
 
     def sanitize_title(self, title):
         cleaned = re.sub(r'[\[\(\{].*?[\]\)\}]', '', title)
-        cleaned = re.sub(r'[-_]+', ' ', cleaned)
+        cleaned = re.sub(r'[-_.]+', ' ', cleaned)
         cleaned = re.sub(r'\s+', ' ', cleaned).strip()
 
         return cleaned

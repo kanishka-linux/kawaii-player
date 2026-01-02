@@ -1000,10 +1000,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 media_type == "video"
 
             if single_episode_title and single_episode_path and not suggested_title:
-                title = re.sub(ui.anime_info_fetcher.pattern, '', single_episode_title)
                 if title.endswith('.mkv') or title.endswith('.mp4') or title.endswith('.avi'):
                     title = title.rsplit('.', 1)[0]
-                suggested_title = title.strip()
+
+                title = ui.anime_info_fetcher.sanitize_title(single_episode_title)
+                suggested_title = title
 
             if suggested_title and len(suggested_title) < 100 and media_type ==  "video":
                 if series_type in ["anime", "anime movies"]:
