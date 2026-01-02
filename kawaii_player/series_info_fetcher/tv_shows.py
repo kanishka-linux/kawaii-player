@@ -46,7 +46,7 @@ class TvShowInfoFetcher:
         cleaned = re.sub(r'\b(?:season|series|s|part|pt)\s*\d{0,2}\b', '', cleaned, flags=re.IGNORECASE)
 
         # Step 3: Handle special characters
-        cleaned = re.sub(r'[-_]+', ' ', cleaned)
+        cleaned = re.sub(r'[-_.]+', ' ', cleaned)
 
         # Step 4: Clean up spacing
         cleaned = re.sub(r'\s+', ' ', cleaned).strip()
