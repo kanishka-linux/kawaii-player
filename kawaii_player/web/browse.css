@@ -1604,3 +1604,60 @@ html {
     position: fixed;
     z-index: 999999;
 }
+
+/* Ultra-minimal approach with spacing and rounded corners */
+.view-options {
+    display: flex;
+    gap: 8px; /* Increased gap for better spacing */
+}
+
+.view-toggle {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    border-radius: 6px; /* Rounded corners */
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.2s ease; /* Smooth transitions */
+}
+
+.view-toggle:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.view-toggle.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.view-toggle.active:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Grid icon using Unicode */
+.view-icon-grid::before {
+    content: '⊞';
+}
+
+/* List icon using Unicode */
+.view-icon-list::before {
+    content: '☰';
+}
+
+/* Focus styles for accessibility */
+.view-toggle:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.view-toggle:focus:not(:focus-visible) {
+    outline: none;
+}
