@@ -1552,7 +1552,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         # Type
         if filters.get('type'):
             validated['type'] = filters['type'].strip()
-        
+
+        # Type
+        if filters.get('labels'):
+            validated['labels'] = filters['labels'].strip()
+
         # Sort
         valid_sorts = ['title', 'year', 'score', 'popularity', 'rank']
         sort_field = filters.get('sort', 'title')
@@ -1568,88 +1572,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         
         return validated
 
-    def get_available_genres(self) -> List[str]:
-        global logger, home
-        """Get all available genres from series_info table"""
-        try:
-            query = """
-            SELECT DISTINCT genres 
-            FROM series_info 
-            WHERE genres IS NOT NULL AND genres != ''
-            """
-            
-            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-            cursor = conn.execute(query)
-            rows = cursor.fetchall()
-            
-            # Parse and flatten genres
-            all_genres = set()
-            for row in rows:
-                if row[0]:
-                    # Split comma-separated genres and clean them
-                    genres = [g.strip() for g in row[0].split(',') if g.strip()]
-                    all_genres.update(genres)
-            
-            # Return sorted list
-            return sorted(list(all_genres))
-            
-        except Exception as e:
-            logger.error(f"Error getting available genres: {e}")
-            return []
-
-    def get_available_types(self) -> List[str]:
-        global home, logger
-        """Get all available types from series_info table"""
-        try:
-            query = """
-            SELECT DISTINCT type 
-            FROM series_info 
-            WHERE type IS NOT NULL AND type != ''
-            """
-            
-            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-            cursor = conn.execute(query)
-            rows = cursor.fetchall()
-            
-            return sorted([row[0] for row in rows if row[0]])
-            
-        except Exception as e:
-            logger.error(f"Error getting available types: {e}")
-            return []
-
-    def get_year_range(self) -> Tuple[int, int]:
-        global logger, home
-        """Get min and max years from series_info table"""
-        try:
-            query = """
-            SELECT MIN(year), MAX(year) 
-            FROM series_info 
-            WHERE year IS NOT NULL AND year > 0
-            """
-            
-            conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-            cursor = conn.execute(query)
-            row = cursor.fetchone()
-            
-            if row and row[0] and row[1]:
-                return int(row[0]), int(row[1])
-            else:
-                return 1900, 2025  # Default range
-                
-        except Exception as e:
-            logger.error(f"Error getting year range: {e}")
-            return 1900, 2025
-
     def generate_filter_options(self, selected_filters: Dict[str, Any]) -> Dict[str, str]:
         global logger, ui
         """Generate HTML options for filter dropdowns with preselected values"""
         options = {}
         
         try:
-            # Get available data from database
-            genres = self.get_available_genres()
-            types = self.get_available_types()
-            min_year, max_year = self.get_year_range()
+            result = ui.media_data.get_distinct_metadata_filters()
+            logger.info(f"metadata filters: {result}")
+            genres  = result['genres']
+            types = result['types']
+            cat = result['categories']
+            labels = result['labels']
+            min_year, max_year = ui.media_data.get_year_range()
             
             # Get selected genres list
             selected_genres = []
@@ -1666,14 +1601,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             # Generate empty category options (not used but template expects it)
 
             category_type = selected_filters.get('category', '')
-            categories = ["Available", "History", "Recent"] + ui.category_array.copy()
+            categories = ["Available", "History", "Recent"] + cat.copy()
 
             category_options = []
 
             for category in categories:
                 selected = 'selected' if category.lower() in category_type else ''
-                category_options.append(f'<option value="{category.lower()}" {selected}>{category}</option>')
+                category_options.append(f'<option value="{category.lower()}" {selected}>{category.title()}</option>')
             options['category_options'] = '\n                                    '.join(category_options)
+
+            selected_label = selected_filters.get('labels', '')
+            labels_options = []
+            for label in labels:
+                selected = 'selected' if label.lower() == selected_label.lower() else ''
+                labels_options.append(f'<option value="{label.lower()}" {selected}>{label.title()}</option>')
+            options['labels_options'] = '\n                                    '.join(labels_options)
 
             # Type options
             selected_type = selected_filters.get('type', '')
@@ -1732,357 +1674,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         
         return attrs
 
-    
-    def get_series_count(self, filters: Dict[str, Any]) -> int:
-        global logger, home, ui
-        """Get total count of series matching filters"""
-        try:
-            media_data = {}
-            
-            if filters.get('category'):
-                cat = filters.get('category')
-                if cat == 'recent':
-                    data = ui.media_data.fetch_recently_added()
-                    media_data = dict(data)
-                elif cat == 'history':
-                    data = ui.media_data.fetch_recently_accessed()
-                    media_data = dict(data)
-                elif cat == 'available':
-                    data = ui.media_data.fetch_all_available()
-                    media_data = dict(data)
-                else:
-                    # For database categories, we'll count using EXISTS subquery
-                    pass
-
-            # Handle recent, history, and available categories
-            if media_data:
-                # For these categories, we need to count items that match both media_data and filters
-                if not filters.get('search') and not filters.get('type') and not filters.get('genres') and not filters.get('year_from') and not filters.get('year_to'):
-                    # No additional filters, just return media_data count
-                    return len(media_data)
-                else:
-                    # Need to apply filters to media_data items
-                    db_titles = list(media_data.keys())
-                    if not db_titles:
-                        return 0
-                    
-                    placeholders = ','.join(['?' for _ in db_titles])
-                    query = f"SELECT COUNT(*) FROM series_info WHERE db_title IN ({placeholders})"
-                    params = db_titles[:]
-                    
-                    # Add other filter conditions
-                    if filters.get('search'):
-                        query += " AND (title LIKE ? OR english_title LIKE ?)"
-                        search_term = f"%{filters['search']}%"
-                        params.extend([search_term, search_term])
-                    
-                    if filters.get('type'):
-                        query += " AND type = ?"
-                        params.append(filters['type'])
-                    
-                    if filters.get('genres'):
-                        genres = filters['genres'].split(',')
-                        genre_conditions = []
-                        for genre in genres:
-                            genre_conditions.append("genres LIKE ?")
-                            params.append(f"%{genre.strip()}%")
-                        if genre_conditions:
-                            query += " AND (" + " OR ".join(genre_conditions) + ")"
-                    
-                    if filters.get('year_from'):
-                        query += " AND year >= ?"
-                        params.append(filters['year_from'])
-                    
-                    if filters.get('year_to'):
-                        query += " AND year <= ?"
-                        params.append(filters['year_to'])
-                    
-                    conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-                    cursor = conn.execute(query, params)
-                    count = cursor.fetchone()[0]
-                    conn.close()
-                    return count
-            else:
-                # Handle database categories (not recent, history, available)
-                need_category_filter = (filters.get('category') and 
-                                       filters['category'] not in ['recent', 'history', 'available'])
-                
-                query = "SELECT COUNT(*) FROM series_info WHERE 1=1"
-                params = []
-                
-                # Add category filter using EXISTS subquery
-                if need_category_filter:
-                    query += " AND EXISTS (SELECT 1 FROM Video v WHERE v.Title = series_info.db_title AND lower(v.Category) = ?)"
-                    params.append(filters['category'])
-                
-                # Add other filter conditions
-                if filters.get('search'):
-                    query += " AND (title LIKE ? OR english_title LIKE ?)"
-                    search_term = f"%{filters['search']}%"
-                    params.extend([search_term, search_term])
-                
-                if filters.get('type'):
-                    query += " AND type = ?"
-                    params.append(filters['type'])
-                
-                if filters.get('genres'):
-                    genres = filters['genres'].split(',')
-                    genre_conditions = []
-                    for genre in genres:
-                        genre_conditions.append("genres LIKE ?")
-                        params.append(f"%{genre.strip()}%")
-                    if genre_conditions:
-                        query += " AND (" + " OR ".join(genre_conditions) + ")"
-                
-                if filters.get('year_from'):
-                    query += " AND year >= ?"
-                    params.append(filters['year_from'])
-                
-                if filters.get('year_to'):
-                    query += " AND year <= ?"
-                    params.append(filters['year_to'])
-                
-                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-                cursor = conn.execute(query, params)
-                count = cursor.fetchone()[0]
-                conn.close()
-                return count
-                
-        except Exception as e:
-            logger.error(f"Error getting series count: {e}")
-            return 0
-
-    def get_series_list(self, filters: Dict[str, Any], page: int, limit: int) -> List[Dict[str, Any]]:
-        """Get paginated list of series matching filters"""
-        global home, logger, ui
-        try:
-            media_data = {}
-            skip_sorting = False  # Flag to determine if we should skip sorting
-            preserve_media_order = False  # Flag to preserve media_data order
-            
-            if filters.get('category'):
-                cat = filters.get('category')
-                if cat == 'recent':
-                    data = ui.media_data.fetch_recently_added()
-                    media_data = dict(data)
-                    skip_sorting = True  # Don't sort recent items
-                    preserve_media_order = True  # Preserve media_data order
-                elif cat == 'history':
-                    data = ui.media_data.fetch_recently_accessed()
-                    media_data = dict(data)
-                    skip_sorting = True  # Don't sort history items
-                    preserve_media_order = True  # Preserve media_data order
-                elif cat == 'available':
-                    data = ui.media_data.fetch_all_available()
-                    media_data = dict(data)
-                else:
-                    # For other categories, we'll filter using the Video table
-                    # Don't fetch media_data for database categories
-                    pass
-
-            # Handle recent and history with preserved order
-            if preserve_media_order and media_data:
-                # Get the ordered list of db_titles from media_data
-                ordered_db_titles = list(media_data.keys())
-                
-                # Apply pagination to the ordered list
-                offset = (page - 1) * limit
-                paginated_db_titles = ordered_db_titles[offset:offset + limit]
-                
-                if not paginated_db_titles:
-                    return []
-                
-                # Build query to fetch only the paginated items in the correct order
-                placeholders = ','.join(['?' for _ in paginated_db_titles])
-                query = f"""
-                SELECT id, title, english_title, year, episodes, score, summary, 
-                       image_poster_large, genres, type, popularity, rank, db_title
-                FROM series_info 
-                WHERE db_title IN ({placeholders})
-                """
-                
-                params = paginated_db_titles[:]
-                
-                # Add other filter conditions (except category since we're already filtering by media_data)
-                if filters.get('search'):
-                    query += " AND (title LIKE ? OR english_title LIKE ?)"
-                    search_term = f"%{filters['search']}%"
-                    params.extend([search_term, search_term])
-                
-                if filters.get('type'):
-                    query += " AND type = ?"
-                    params.append(filters['type'])
-                
-                if filters.get('genres'):
-                    genres = filters['genres'].split(',')
-                    genre_conditions = []
-                    for genre in genres:
-                        genre_conditions.append("genres LIKE ?")
-                        params.append(f"%{genre.strip()}%")
-                    if genre_conditions:
-                        query += " AND (" + " OR ".join(genre_conditions) + ")"
-                
-                if filters.get('year_from'):
-                    query += " AND year >= ?"
-                    params.append(filters['year_from'])
-                
-                if filters.get('year_to'):
-                    query += " AND year <= ?"
-                    params.append(filters['year_to'])
-                
-                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-                cursor = conn.execute(query, params)
-                rows = cursor.fetchall()
-                
-                # Create a dictionary for quick lookup
-                series_dict = {}
-                for row in rows:
-                    db_title = row[12] or ''
-                    series_dict[db_title] = {
-                        'id': row[0],
-                        'title': row[1] or '',
-                        'english_title': row[2] or '',
-                        'year': row[3] or '',
-                        'episodes': row[4] or '',
-                        'score': float(row[5]) if row[5] else 0,
-                        'summary': row[6] or '',
-                        'image_poster_large': row[7] or '',
-                        'genres': row[8] or '',
-                        'type': row[9] or '',
-                        'popularity': row[10] or '',
-                        'rank': row[11] or ''
-                    }
-                    
-                    # Parse genres into list
-                    if series_dict[db_title]['genres']:
-                        series_dict[db_title]['genres_list'] = [g.strip() for g in series_dict[db_title]['genres'].split(',')]
-                    else:
-                        series_dict[db_title]['genres_list'] = []
-                
-                # Build the final list in the correct order
-                series_list = []
-                for db_title in paginated_db_titles:
-                    if db_title in series_dict:
-                        series_list.append(series_dict[db_title])
-                
-                conn.close()
-                return series_list
-                
-            else:
-                # Original logic for other categories
-                offset = (page - 1) * limit
-                
-                # Determine if we need to filter by Video table category
-                need_category_filter = (filters.get('category') and 
-                                       filters['category'] not in ['recent', 'history', 'available'])
-                
-                # Base query - always from series_info only
-                query = """
-                SELECT id, title, english_title, year, episodes, score, summary, 
-                       image_poster_large, genres, type, popularity, rank, db_title
-                FROM series_info WHERE 1=1
-                """
-                
-                params = []
-                
-                # Add category filter using EXISTS subquery - note the capital 'Category'
-                if need_category_filter:
-                    query += " AND EXISTS (SELECT 1 FROM Video v WHERE v.Title = series_info.db_title AND lower(v.Category) = ?)"
-                    params.append(filters['category'])
-                
-                # Add other filter conditions
-                if filters.get('search'):
-                    query += " AND (title LIKE ? OR english_title LIKE ?)"
-                    search_term = f"%{filters['search']}%"
-                    params.extend([search_term, search_term])
-                
-                if filters.get('type'):
-                    query += " AND type = ?"
-                    params.append(filters['type'])
-                
-                if filters.get('genres'):
-                    genres = filters['genres'].split(',')
-                    genre_conditions = []
-                    for genre in genres:
-                        genre_conditions.append("genres LIKE ?")
-                        params.append(f"%{genre.strip()}%")
-                    if genre_conditions:
-                        query += " AND (" + " OR ".join(genre_conditions) + ")"
-                
-                if filters.get('year_from'):
-                    query += " AND year >= ?"
-                    params.append(filters['year_from'])
-                
-                if filters.get('year_to'):
-                    query += " AND year <= ?"
-                    params.append(filters['year_to'])
-                
-                # Add sorting only if not skipping (i.e., not recent or history)
-                if not skip_sorting:
-                    sort_field = filters.get('sort', 'title')
-                    order = filters.get('order', 'asc').upper()
-                    
-                    # Map sort fields to database columns
-                    sort_mapping = {
-                        'title': 'title',
-                        'year': 'year',
-                        'score': 'score',
-                        'popularity': 'popularity',
-                        'rank': 'rank'
-                    }
-                    
-                    db_sort_field = sort_mapping.get(sort_field, 'title')
-                    query += f" ORDER BY {db_sort_field} {order}"
-                
-                # Add pagination
-                query += " LIMIT ? OFFSET ?"
-                params.extend([str(limit), str(offset)])
-                
-                conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
-                cursor = conn.execute(query, params)
-                rows = cursor.fetchall()
-                
-                # Convert to list of dictionaries
-                series_list = []
-                for row in rows:
-                    series = {
-                        'id': row[0],
-                        'title': row[1] or '',
-                        'english_title': row[2] or '',
-                        'year': row[3] or '',
-                        'episodes': row[4] or '',
-                        'score': float(row[5]) if row[5] else 0,
-                        'summary': row[6] or '',
-                        'image_poster_large': row[7] or '',
-                        'genres': row[8] or '',
-                        'type': row[9] or '',
-                        'popularity': row[10] or '',
-                        'rank': row[11] or ''
-                    }
-                    
-                    db_title = row[12] or ''
-                    # Parse genres into list
-                    if series['genres']:
-                        series['genres_list'] = [g.strip() for g in series['genres'].split(',')]
-                    else:
-                        series['genres_list'] = []
-                    
-                    # Apply media_data filtering for special categories
-                    if media_data and media_data.get(db_title):
-                        series_list.append(series)
-                    elif media_data:
-                        pass  # Skip if not in media_data
-                    else:
-                        # For database category filtering, add all results
-                        series_list.append(series)
-                
-                conn.close()
-                return series_list
-                
-        except Exception as e:
-            logger.error(f"Error getting series list: {e}")
-            return []
-
     def generate_series_cards_html(self, series_list: List[Dict[str, Any]]) -> str:
         """Generate HTML for series cards matching your template structure"""
         if not series_list:
@@ -2090,7 +1681,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         <div class="empty-state">
                             <h3>No series found</h3>
                             <p>Try adjusting your filters or search terms to find more results.</p>
-                            <button type="button" class="btn btn-secondary js-clear-filters">
+                            <button type="button" class="btn btn-secondary js-clear-filters-not-found">
                                 <span class="btn-icon">✖️</span>
                                 Clear All Filters
                             </button>
@@ -2610,6 +2201,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
     def handle_browse_request(self):
         """Handle /browse GET request without category filter"""
+        global ui
         try:
             # Parse query parameters
             query_string = self.path.split('?', 1)[1] if '?' in self.path else ''
@@ -2628,8 +2220,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             limit = 20  # Items per page
             
             # Get series data from database
-            total_count = self.get_series_count(filters)
-            series_list = self.get_series_list(filters, page, limit)
+            total_count = ui.media_data.get_series_count(filters)
+            series_list = ui.media_data.get_series_list(filters, page, limit)
             
             # Calculate pagination
             total_pages = (total_count + limit - 1) // limit
@@ -2652,6 +2244,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             replacements = {
                 '$search': filters.get('search', ''),
                 '$category_options': filter_options['category_options'],  # Empty string
+                '$labels_options': filter_options['labels_options'],  # Empty string
                 '$genre_options': filter_options['genre_options'],
                 '$type_options': filter_options['type_options'],
                 '$year_from_options': filter_options['year_from_options'],
@@ -2690,6 +2283,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Template not found')
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             logger.error(f"Error handling browse request: {e}")
             self.send_response(500)
             self.send_header('Content-Type', 'text/plain')

@@ -562,6 +562,15 @@ const BrowseApp = {
                 card.style.transform = 'translateY(0)';
             });
         });
+ 
+        // Clear filters functionality when empty series data 
+        const clearBtn1 = document.querySelector('.js-clear-filters-not-found');
+        if (clearBtn1) {
+            clearBtn1.addEventListener('click', (e) => {
+                e.preventDefault();
+                                this.clearAllFilters();
+            });
+        }
     },
     
     initPagination() {
@@ -647,23 +656,23 @@ const BrowseApp = {
             clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
         });
     },
-    
+
     clearAllFilters() {
         const form = document.getElementById('browse-form');
         if (!form) return;
         
-        // Clear form fields
-        form.reset();
+        // Clear all validation errors first
+        FormValidator.clearAllErrors();
         
-        // Clear multiselect
+        // Clear multiselect BEFORE form reset to prevent conflicts
         if (this.genresSelect) {
             this.genresSelect.setSelectedValues([]);
         }
         
-        // Clear all validation errors
-        FormValidator.clearAllErrors();
+        // Reset form fields
+        form.reset();
         
-        // Clear search input specifically
+        // Clear search input and its clear button
         const searchInput = document.getElementById('search');
         if (searchInput) {
             searchInput.value = '';
@@ -671,11 +680,43 @@ const BrowseApp = {
             if (clearBtn) {
                 clearBtn.style.display = 'none';
             }
+            FormValidator.clearFieldError(searchInput);
         }
         
-        // Submit form to apply cleared filters
+        // Clear all select elements explicitly
+        const selects = form.querySelectorAll('select');
+        selects.forEach(select => {
+            if (!select.multiple) {
+                select.selectedIndex = 0; // Reset to first option
+            } else {
+                // Clear multiple select options
+                Array.from(select.options).forEach(option => {
+                    option.selected = false;
+                });
+            }
+            FormValidator.clearFieldError(select);
+        });
+        
+        // Clear all input fields explicitly
+        const inputs = form.querySelectorAll('input[type="text"], input[type="search"]');
+        inputs.forEach(input => {
+            input.value = '';
+            FormValidator.clearFieldError(input);
+        });
+        
+        // Update multiselect display after clearing
+        if (this.genresSelect) {
+            this.genresSelect.updateDisplay();
+            this.genresSelect.updateOriginalSelect();
+        }
+        
+        // Show loading state and submit
         this.showLoadingState();
-        form.submit();
+        
+        // Small delay to ensure all clearing is complete
+        setTimeout(() => {
+            form.submit();
+        }, 100);
     },
     
     showLoadingState() {
