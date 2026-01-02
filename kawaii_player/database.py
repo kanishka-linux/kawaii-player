@@ -26,7 +26,7 @@ import hashlib
 import uuid
 import urllib
 import base64
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, Any
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -884,9 +884,438 @@ class MediaDatabase():
 
         return success
 
+    def get_series_count(self, filters: Dict[str, Any]) -> int:
+        """Get total count of series matching filters"""
+        try:
+            media_data = {}
+
+            if filters.get('category'):
+                cat = filters.get('category')
+                if cat == 'recent':
+                    data = self.fetch_recently_added()
+                    media_data = dict(data)
+                elif cat == 'history':
+                    data = self.fetch_recently_accessed()
+                    media_data = dict(data)
+                elif cat == 'available':
+                    data = self.fetch_all_available()
+                    media_data = dict(data)
+                else:
+                    # For database categories, we'll count using EXISTS subquery
+                    pass
+
+            # Handle recent, history, and available categories
+            if media_data:
+                # For these categories, we need to count items that match both media_data and filters
+                if not filters.get('search') and not filters.get('type') and not filters.get('genres') and not filters.get('year_from') and not filters.get('year_to'):
+                    # No additional filters, just return media_data count
+                    return len(media_data)
+                else:
+                    # Need to apply filters to media_data items
+                    db_titles = list(media_data.keys())
+                    if not db_titles:
+                        return 0
+
+                    placeholders = ','.join(['?' for _ in db_titles])
+                    query = f"SELECT COUNT(*) FROM series_info WHERE db_title IN ({placeholders})"
+                    params = db_titles[:]
+
+                    # Add other filter conditions
+                    if filters.get('search'):
+                        query += " AND (title LIKE ? OR english_title LIKE ?)"
+                        search_term = f"%{filters['search']}%"
+                        params.extend([search_term, search_term])
+
+                    if filters.get('type'):
+                        query += " AND type = ?"
+                        params.append(filters['type'])
+
+                    if filters.get('labels'):
+                        query += " AND (lower(labels) like ?)"
+                        params.append(f"%{filters['labels']}%")
+
+                    if filters.get('genres'):
+                        genres = filters['genres'].split(',')
+                        genre_conditions = []
+                        for genre in genres:
+                            genre_conditions.append("genres LIKE ?")
+                            params.append(f"%{genre.strip()}%")
+                        if genre_conditions:
+                            query += " AND (" + " OR ".join(genre_conditions) + ")"
+
+                    if filters.get('year_from'):
+                        query += " AND year >= ?"
+                        params.append(filters['year_from'])
+
+                    if filters.get('year_to'):
+                        query += " AND year <= ?"
+                        params.append(filters['year_to'])
+
+                    conn = sqlite3.connect(self.db_path)
+                    cursor = conn.execute(query, params)
+                    count = cursor.fetchone()[0]
+                    conn.close()
+                    return count
+            else:
+                # Handle database categories (not recent, history, available)
+                need_category_filter = (filters.get('category') and 
+                                       filters['category'] not in ['recent', 'history', 'available'])
+                
+                query = "SELECT COUNT(*) FROM series_info WHERE 1=1"
+                params = []
+
+                if need_category_filter:
+                    query += " AND (lower(category) = ?)"
+                    params.append(filters['category'])
+
+                if filters.get('labels'):
+                    query += " AND (lower(labels) like ?)"
+                    params.append(f"%{filters['labels']}%")
+
+                if filters.get('search'):
+                    query += " AND (title LIKE ? OR english_title LIKE ?)"
+                    search_term = f"%{filters['search']}%"
+                    params.extend([search_term, search_term])
+
+                if filters.get('type'):
+                    query += " AND type = ?"
+                    params.append(filters['type'])
+
+                if filters.get('genres'):
+                    genres = filters['genres'].split(',')
+                    genre_conditions = []
+                    for genre in genres:
+                        genre_conditions.append("genres LIKE ?")
+                        params.append(f"%{genre.strip()}%")
+                    if genre_conditions:
+                        query += " AND (" + " OR ".join(genre_conditions) + ")"
+
+                if filters.get('year_from'):
+                    query += " AND year >= ?"
+                    params.append(filters['year_from'])
+
+                if filters.get('year_to'):
+                    query += " AND year <= ?"
+                    params.append(filters['year_to'])
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.execute(query, params)
+                count = cursor.fetchone()[0]
+                conn.close()
+                return count
+
+        except Exception as e:
+            self.logger.error(f"Error getting series count: {e}")
+            return 0
+
+    def get_series_list(self, filters: Dict[str, Any], page: int, limit: int) -> List[Dict[str, Any]]:
+        """Get paginated list of series matching filters"""
+        try:
+            media_data = {}
+            skip_sorting = False  # Flag to determine if we should skip sorting
+            preserve_media_order = False  # Flag to preserve media_data order
+
+            if filters.get('category'):
+                cat = filters.get('category')
+                if cat == 'recent':
+                    data = self.fetch_recently_added()
+                    media_data = dict(data)
+                    skip_sorting = True  # Don't sort recent items
+                    preserve_media_order = True  # Preserve media_data order
+                elif cat == 'history':
+                    data = self.fetch_recently_accessed()
+                    media_data = dict(data)
+                    skip_sorting = True  # Don't sort history items
+                    preserve_media_order = True  # Preserve media_data order
+                elif cat == 'available':
+                    data = self.fetch_all_available()
+                    media_data = dict(data)
+                else:
+                    # For other categories, we'll filter using the Video table
+                    # Don't fetch media_data for database categories
+                    pass
+
+            # Handle recent and history with preserved order
+            if preserve_media_order and media_data:
+                # Get the ordered list of db_titles from media_data
+                ordered_db_titles = list(media_data.keys())
+
+                # Apply pagination to the ordered list
+                offset = (page - 1) * limit
+                paginated_db_titles = ordered_db_titles[offset:offset + limit]
+
+                if not paginated_db_titles:
+                    return []
+
+                # Build query to fetch only the paginated items in the correct order
+                placeholders = ','.join(['?' for _ in paginated_db_titles])
+                query = f"""
+                SELECT id, title, english_title, year, episodes, score, summary, 
+                       image_poster_large, genres, type, popularity, rank, db_title
+                FROM series_info 
+                WHERE db_title IN ({placeholders})
+                """
+
+                params = paginated_db_titles[:]
+
+                # Add other filter conditions (except category since we're already filtering by media_data)
+                if filters.get('search'):
+                    query += " AND (title LIKE ? OR english_title LIKE ?)"
+                    search_term = f"%{filters['search']}%"
+                    params.extend([search_term, search_term])
+
+                if filters.get('type'):
+                    query += " AND type = ?"
+                    params.append(filters['type'])
+
+                if filters.get('labels'):
+                    query += " AND (lower(labels) like ?)"
+                    params.append(f"%{filters['labels']}%")
+
+                if filters.get('genres'):
+                    genres = filters['genres'].split(',')
+                    genre_conditions = []
+                    for genre in genres:
+                        genre_conditions.append("genres LIKE ?")
+                        params.append(f"%{genre.strip()}%")
+                    if genre_conditions:
+                        query += " AND (" + " OR ".join(genre_conditions) + ")"
+
+                if filters.get('year_from'):
+                    query += " AND year >= ?"
+                    params.append(filters['year_from'])
+
+                if filters.get('year_to'):
+                    query += " AND year <= ?"
+                    params.append(filters['year_to'])
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.execute(query, params)
+                rows = cursor.fetchall()
+
+                # Create a dictionary for quick lookup
+                series_dict = {}
+                for row in rows:
+                    db_title = row[12] or ''
+                    series_dict[db_title] = {
+                        'id': row[0],
+                        'title': row[1] or '',
+                        'english_title': row[2] or '',
+                        'year': row[3] or '',
+                        'episodes': row[4] or '',
+                        'score': float(row[5]) if row[5] else 0,
+                        'summary': row[6] or '',
+                        'image_poster_large': row[7] or '',
+                        'genres': row[8] or '',
+                        'type': row[9] or '',
+                        'popularity': row[10] or '',
+                        'rank': row[11] or ''
+                    }
+
+                    # Parse genres into list
+                    if series_dict[db_title]['genres']:
+                        series_dict[db_title]['genres_list'] = [g.strip() for g in series_dict[db_title]['genres'].split(',')]
+                    else:
+                        series_dict[db_title]['genres_list'] = []
+
+                # Build the final list in the correct order
+                series_list = []
+                for db_title in paginated_db_titles:
+                    if db_title in series_dict:
+                        series_list.append(series_dict[db_title])
+
+                conn.close()
+                return series_list
+
+            else:
+                # Original logic for other categories
+                offset = (page - 1) * limit
+
+                # Determine if we need to filter by Video table category
+                need_category_filter = (filters.get('category') and 
+                                       filters['category'] not in ['recent', 'history', 'available'])
+
+                # Base query - always from series_info only
+                query = """
+                SELECT id, title, english_title, year, episodes, score, summary, 
+                       image_poster_large, genres, type, popularity, rank, db_title
+                FROM series_info WHERE 1=1
+                """
+
+                params = []
+
+                if need_category_filter:
+                    query += " AND (lower(category) = ?)"
+                    params.append(filters['category'])
+
+                if filters.get('labels'):
+                    query += " AND (lower(labels) like ?)"
+                    params.append(f"%{filters['labels']}%")
+
+                # Add other filter conditions
+                if filters.get('search'):
+                    query += " AND (title LIKE ? OR english_title LIKE ?)"
+                    search_term = f"%{filters['search']}%"
+                    params.extend([search_term, search_term])
+
+                if filters.get('type'):
+                    query += " AND type = ?"
+                    params.append(filters['type'])
+
+                if filters.get('genres'):
+                    genres = filters['genres'].split(',')
+                    genre_conditions = []
+                    for genre in genres:
+                        genre_conditions.append("genres LIKE ?")
+                        params.append(f"%{genre.strip()}%")
+                    if genre_conditions:
+                        query += " AND (" + " OR ".join(genre_conditions) + ")"
+
+                if filters.get('year_from'):
+                    query += " AND year >= ?"
+                    params.append(filters['year_from'])
+
+                if filters.get('year_to'):
+                    query += " AND year <= ?"
+                    params.append(filters['year_to'])
+
+                # Add sorting only if not skipping (i.e., not recent or history)
+                if not skip_sorting:
+                    sort_field = filters.get('sort', 'title')
+                    order = filters.get('order', 'asc').upper()
+
+                    # Map sort fields to database columns
+                    sort_mapping = {
+                        'title': 'title',
+                        'year': 'year',
+                        'score': 'score',
+                        'popularity': 'popularity',
+                        'rank': 'rank'
+                    }
+
+                    db_sort_field = sort_mapping.get(sort_field, 'title')
+                    query += f" ORDER BY {db_sort_field} {order}"
+
+                # Add pagination
+                query += " LIMIT ? OFFSET ?"
+                params.extend([str(limit), str(offset)])
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.execute(query, params)
+
+                rows = cursor.fetchall()
+
+                # Convert to list of dictionaries
+                series_list = []
+                for row in rows:
+                    series = {
+                        'id': row[0],
+                        'title': row[1] or '',
+                        'english_title': row[2] or '',
+                        'year': row[3] or '',
+                        'episodes': row[4] or '',
+                        'score': float(row[5]) if row[5] else 0,
+                        'summary': row[6] or '',
+                        'image_poster_large': row[7] or '',
+                        'genres': row[8] or '',
+                        'type': row[9] or '',
+                        'popularity': row[10] or '',
+                        'rank': row[11] or ''
+                    }
+
+                    db_title = row[12] or ''
+                    # Parse genres into list
+                    if series['genres']:
+                        series['genres_list'] = [g.strip() for g in series['genres'].split(',')]
+                    else:
+                        series['genres_list'] = []
+
+                    # Apply media_data filtering for special categories
+                    if media_data and media_data.get(db_title):
+                        series_list.append(series)
+                    elif media_data:
+                        pass  # Skip if not in media_data
+                    else:
+                        # For database category filtering, add all results
+                        series_list.append(series)
+
+                conn.close()
+                return series_list
+
+        except Exception as e:
+            self.logger.error(f"Error getting series list: {e}")
+            return []
+
+    def get_distinct_metadata_filters(self):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT DISTINCT category, genres, labels, type 
+            FROM series_info 
+        """)
+
+        rows = cur.fetchall()
+
+        # Use sets to automatically handle duplicates
+        categories = set()
+        genres = set()
+        labels = set()
+        types = set()
+
+        for row in rows:
+            category, genres_str, label, type_val = row
+
+            # Process category
+            if category and category != "":
+                categories.add(category.strip())
+
+            # Process comma-separated genres
+            if genres_str and genres_str != "":
+                [genres.add(genre.strip()) for genre in genres_str.split(',')]
+
+            # Process labels
+            if label and label != "":
+                labels.add(label.strip())
+
+            # Process type
+            if type_val and type_val != "":
+                types.add(type_val.strip())
+
+        conn.close()
+
+        return {
+            'categories': sorted(list(categories)),
+            'genres': sorted(list(genres)),
+            'labels': sorted(list(labels)),
+            'types': sorted(list(types))
+        }
+
+    def get_year_range(self) -> Tuple[int, int]:
+        """Get min and max years from series_info table"""
+        try:
+            query = """
+            SELECT MIN(year), MAX(year) 
+            FROM series_info 
+            WHERE year IS NOT NULL AND year > 0
+            """
+
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.execute(query)
+            row = cursor.fetchone()
+
+            if row and row[0] and row[1]:
+                return int(row[0]), int(row[1])
+            else:
+                return 1900, datetime.datetime.now().year  # Default range
+
+        except Exception as e:
+            self.ui.logger.error(f"Error getting year range: {e}")
+            return 1900, datetime.datetime.now().year
+
     def insert_series_data(self, title, series_data, category):
 
-        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        db_path = os.path.join(self.db_path)
 
         insert_sql = """
         INSERT INTO series_info (
