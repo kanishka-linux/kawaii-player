@@ -8,5 +8,11 @@ include kawaii_player/resources/tray.png
 include kawaii_player/web/playlist.html
 include kawaii_player/web/style.css
 include kawaii_player/web/myscript.js
+include kawaii_player/web/admin.js
+include kawaii_player/web/admin.css
+include kawaii_player/web/admin.html
+include kawaii_player/web/browse.html
+include kawaii_player/web/browse.css
+include kawaii_player/web/browse.js
 include kawaii_player/kawaii-player-start
 include kawaii_player/kawaii-player
