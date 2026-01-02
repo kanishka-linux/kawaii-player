@@ -884,6 +884,59 @@ class MediaDatabase():
 
         return success
 
+    def reset_series_info(self, db_title):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        success = False
+        try:
+            cur.execute("""
+                    select Directory from Video
+                    where Title = ?   
+                """, (db_title, ))
+            directory_path = cur.fetchone()[0]
+            directory_name = os.path.split(directory_path)[-1]
+            cur.execute("""
+                    update Video
+                    set Title = ?
+                    where directory  = ?
+                """, (directory_name, directory_path))
+
+            self.logger.info(f"{cur.rowcount} -> updated for {directory_path}")
+
+            cur.execute("""
+                select image_poster_large
+                from series_info
+                where db_title = ?""", (db_title, ))
+            res = cur.fetchone()
+            if res:
+                img = res[0]
+                if img.startswith('/images/poster-'):
+                    img_name = img.rsplit('/', 1)[-1]
+                    img_path = os.path.join(self.thumbnail_dir, img_name)
+                    if  os.path.isfile(img_path):
+                        self.logger.info(f"removing {img_path}, for {db_title}")
+                        os.remove(img_path)
+
+            cur.execute("delete from series_info where db_title = ?", (db_title, ))
+            if cur.rowcount == 1:
+                self.logger.info(f"deletion success: {db_title}")
+                success = True
+            elif cur.rowcount > 1:
+                # This should never happen
+                self.logger.error(f"more than 1 deletion record found for: {db_title}, {cur.rowcount}")
+                raise f"more than 1 record found for {db_title}"
+            else:
+                self.logger.error(f"not found: {db_title}")
+            conn.commit()
+            conn.close()
+        except Exception as err:
+            self.logger.error(f"error in deleting: {db_title}, err: {str(err)}")
+            conn.rollback()
+            conn.close()
+
+        return success
+
+
     def get_series_count(self, filters: Dict[str, Any]) -> int:
         """Get total count of series matching filters"""
         try:

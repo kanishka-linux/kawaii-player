@@ -2524,6 +2524,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         result = {'success': False, 'error': 'Not Found'}
                 else:
                         result = {'success': False, 'error': 'db_title needed'}
+            elif action == 'reset_series_info':
+                db_title = data.get("db_title", "")
+                if db_title:
+                    res = ui.media_data.reset_series_info(db_title)
+                    if res:
+                        result = {'success': True, 'message': f"{db_title} reset successfully"}
+                    else:
+                        result = {'success': False, 'error': 'Not Found'}
+                else:
+                        result = {'success': False, 'error': 'db_title needed'}
             else:
                 result = {'success': False, 'error': 'Invalid action'}
             
