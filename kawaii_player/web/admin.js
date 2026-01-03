@@ -150,6 +150,10 @@ class AdminPanel {
             this.handleUpdateCollection();
         });
 
+        document.getElementById('browse-collection-btn').addEventListener('click', () => {
+
+            window.location.href = `/browse`;
+        });
         // Add this new event listener for no info filter
         document.getElementById('filter-no-info-btn').addEventListener('click', () => {
             this.toggleNoInfoFilter();
