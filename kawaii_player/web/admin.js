@@ -181,7 +181,7 @@ class AdminPanel {
         });
 
         document.getElementById('clear-sort-filter-btn').addEventListener('click', () => {
-            this.clearSortAndFilters();
+            this.clearAllFilters();
         });
 
     }
@@ -659,9 +659,9 @@ class AdminPanel {
         // Clear sort and filters
         this.clearSortAndFilters();
         
-        this.applyFilters();
         this.hideFilterMessage();
         this.updateLabelStyles();
+        this.loadTitles();
     }
 
     hideFilterMessage() {
