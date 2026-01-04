@@ -604,6 +604,8 @@ Make sure to install `mpv` or `libmpv-dev` before starting the installation proc
 			sudo apt install ./kawaii-player-<version>.deb
 
 	- If a user wants to install the application directly from source:
+
+            $ sudo apt install git python3-pip unzip libmpv-dev
 		
 			$ git clone https://github.com/kanishka-linux/kawaii-player
              
