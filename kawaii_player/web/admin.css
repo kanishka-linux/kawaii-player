@@ -2762,3 +2762,46 @@ textarea:focus {
     gap: 10px;
     flex: 1;
 }
+
+
+/* Push logout to bottom */
+.logout-action {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Minimal logout button */
+.logout-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
+.logout-btn:focus {
+    outline: 2px solid #dc3545;
+    outline-offset: 2px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .logout-btn {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+}
