@@ -70,6 +70,7 @@ from collections import OrderedDict, deque, namedtuple
 from threading import Thread, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
+from simple_auth import SimpleAuthManager
 try:
     import pycurl
 except Exception as err:
@@ -1662,6 +1663,7 @@ class Ui_MainWindow(object):
         self.new_tray_widget = None
         self.mpv_input_ipc_server = False
         self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
+        self.basedir = BASEDIR
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         if OSNAME == "nt":
@@ -1680,6 +1682,12 @@ class Ui_MainWindow(object):
         self.logger = logger
         self.home_folder = home
         self.last_dir = os.path.expanduser("~")
+
+        self.password_file = os.path.join(self.home_folder, 'admin_password.json')
+        self.session_file = os.path.join(self.home_folder, 'admin_sessions.json')
+        self.session_expiry = 24 * 30 # 30 days
+        self.auth_manager = SimpleAuthManager(self)
+
         self.epn_name_in_list = ''
         self.getdb = None
         self.review_site_code = 'g'

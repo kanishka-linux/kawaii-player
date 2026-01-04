@@ -1,3 +1,41 @@
+class AuthManager {
+    static async checkAuthentication() {
+        try {
+            const response = await fetch('/api/auth/verify');
+
+            if (!response.ok) {
+                const data = await response.json();
+                if (data.requiresSetup) {
+                    window.location.href = '/login/admin';
+                } else {
+                    this.redirectToLogin();
+                }
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Auth check error:', error);
+            this.redirectToLogin();
+            return false;
+        }
+    }
+
+    static redirectToLogin() {
+        window.location.href = '/login/admin';
+    }
+
+    static async logout() {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            this.redirectToLogin();
+        }
+    }
+}
+
 class AdminPanel {
     constructor() {
         this.titles = [];
@@ -182,6 +220,12 @@ class AdminPanel {
 
         document.getElementById('clear-sort-filter-btn').addEventListener('click', () => {
             this.clearAllFilters();
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                AuthManager.logout();
+            }
         });
 
     }
@@ -3830,8 +3874,11 @@ class AdminPanel {
     }
 }
 
-// Initialize admin panel when page loads
 let admin;
-document.addEventListener('DOMContentLoaded', () => {
-    admin = new AdminPanel();
+document.addEventListener('DOMContentLoaded', async () => {
+    const isAuthenticated = await AuthManager.checkAuthentication();
+    if (isAuthenticated) {
+        // Initialize your existing AdminPanel - no changes needed!
+        admin = new AdminPanel();
+    }
 });

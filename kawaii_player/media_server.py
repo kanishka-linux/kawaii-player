@@ -47,6 +47,7 @@ from player_functions import send_notification, write_files, open_files
 from player_functions import get_lan_ip, ccurl, naturallysorted, change_opt_file
 from settings_widget import LoginAuth
 from serverlib import ServerLib
+from simple_auth import require_admin_auth, handle_auth_routes
 from typing import Dict, Any, List, Tuple
 
 try:
@@ -1391,6 +1392,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.do_init_function(type_request='head')
 
     def do_GET(self):
+        # Handle auth routes first
+        parsed_path = urlparse(self.path)
+        if handle_auth_routes(self, 'GET', parsed_path.path, ui):
+            return
+
+        if (self.path.startswith('/series-data') or
+                self.path.startswith('/series/')):
+            if require_admin_auth(self, ui):
+                return
+
         if (ui.remote_control and ui.remote_control_field
                 and self.path.startswith('/youtube_quick=')):
             logger.debug('using quick mode')
@@ -1842,6 +1853,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         global home
         """Serve filtered admin data based on category and label filters only"""
         
+        if require_admin_auth(self, ui):
+            return
+
         try:
             # Parse query parameters
             parsed_url = urlparse(self.path)
@@ -1945,7 +1959,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_error(500, f"Database error: {str(e)}")
     
     def handle_series_data_request(self):
-        global home, logger
+        global home, logger, ui
+
+        if require_admin_auth(self, ui):
+            return
+
         """Serve lightweight admin data as JSON - titles and counts only"""
         
         try:
@@ -2294,11 +2312,26 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Internal server error')
 
     def do_POST(self):
+        # Handle auth routes first
+        parsed_path = urlparse(self.path)
+        auth_required_routes = [
+                "/admin/series-update",
+                "/admin/series-soft-delete",
+                "/title-details"
+        ]
+
+        if handle_auth_routes(self, 'POST', parsed_path.path, ui):
+            return
+
+        if (self.path in auth_required_routes and
+                require_admin_auth(self, ui)):
+            return
+
         if self.path == '/admin/series-update':
             self.handle_series_update()
         elif self.path == '/admin/series-soft-delete':
             self.handle_series_soft_delete()
-        elif self.path.startswith('/title-details'):
+        elif self.path == '/title-details':
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
                 content = str(content, 'utf-8')
@@ -4945,11 +4978,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
         elif path.endswith('.css') or path.endswith('.js'):
-            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css']:
+            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css', 'login.css']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/css')
-            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js']:
+            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js', 'login.js']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/javascript')

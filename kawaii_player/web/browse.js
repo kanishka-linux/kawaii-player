@@ -4,6 +4,36 @@
  * Compatible with plain HTTP servers (no templating engine required)
  */
 
+class AuthManager {
+    static async checkAuthentication() {
+        try {
+            const response = await fetch('/api/auth/verify', {
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                if (data.requiresSetup) {
+                    window.location.href = '/login/browse';
+                } else {
+                    this.redirectToLogin();
+                }
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Auth check error:', error);
+            this.redirectToLogin();
+            return false;
+        }
+    }
+
+    static redirectToLogin() {
+        window.location.href = '/login/browse';
+    }
+}
+
 // MultiSelect Class for genre selection
 class MultiSelect {
     constructor(selector, options = {}) {
@@ -801,9 +831,15 @@ const BrowseApp = {
     }
 };
 
-// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    BrowseApp.init();
+    AuthManager.checkAuthentication().then(isAuthenticated => {
+        if (isAuthenticated) {
+            BrowseApp.init();
+        }
+    }).catch(error => {
+        console.error('Authentication check failed:', error);
+        AuthManager.redirectToLogin();
+    });
 });
 
 // Handle page visibility changes
