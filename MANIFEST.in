@@ -14,5 +14,8 @@ include kawaii_player/web/admin.html
 include kawaii_player/web/browse.html
 include kawaii_player/web/browse.css
 include kawaii_player/web/browse.js
+include kawaii_player/web/login.html
+include kawaii_player/web/login.js
+include kawaii_player/web/login.css
 include kawaii_player/kawaii-player-start
 include kawaii_player/kawaii-player
