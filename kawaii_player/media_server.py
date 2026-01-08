@@ -1875,7 +1875,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     db_title as title,
                     directory,
                     episodes_available,
-                    episodes
+                    episodes,
+                    year
                 FROM series_info
             """
             
@@ -1931,7 +1932,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 directory = row['directory']
                 episode_count = row['episodes_available'] or 0
                 
-                has_series_info = True if row['episodes'] else False
+                has_series_info = True if (row['episodes'] or row['year']) else False
 
                 valid_titles.append({
                     'title': title,
