@@ -146,6 +146,16 @@ The media server functionality can be started by selecting **'More->Start Media 
 
 **Note:** from `v7.0.0` web interface has undergone significant change.
 
+**Note:** from `v7.1.0` - 2 new end-points have been added.
+
+    * `/admin` - This will be used for managing video collection from the web UI itself.
+
+    * `/browse` - This will be used for browsing your collection with filtering capability
+
+    * Both these end-points will be behind simple useraname/password auth. Username is `admin` and password needs to be created from the web UI itself.
+
+    * To reset the password, delete config files `admin_password.json` and `admin_sessions.json` from the config directory `~/.config/kawaii-player/`
+
 **A very simple web interface** (as shown above) has been provided for media server, from which users can access their audio/video collection managed by kawaii-player player. If your media server is '192.168.2.2:9001', then web interface can be opened at **192.168.2.2:9001/stream_continue.htm** or **192.168.2.2:9001/index.htm**. From this interface, users can generate universal playlist in m3u format which can be played by any media player on the local network, which supports http streaming such as mpv,vlc etc..and that too on any platform. If users don't want to open web interface then they can get the media server playlist directly on any player by opening url 'http://192.168.2.2:9001/stream_continue.m3u' from within the player itself, and the current media server playlist will be directly available in the player. Alternatively users can use curl or wget to get the playlist, and save it with extension '.m3u', which then can be opened with any player which recognizes the m3u format.
 
 **Use like Streaming Radio:** The media server can be used similar to internet radio station without transcoding. It won't behave like exact internet streaming radio, but it can be made to mimic like one. If server address is set to '192.168.2.2:9001', then you should be able to access the current running file in the playlist at the address 'http://192.168.2.2:9001/'. If user will use this media server IP address in repeat (loop) mode on the client side, then the client will automatically play everything, which is being played by the kawaii-player in it's playlist. If mpv or mplayer are used as clients then their commands will looked like as below:
