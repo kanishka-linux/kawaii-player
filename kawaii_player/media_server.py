@@ -2121,8 +2121,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             # Build episode list
             episodes = []
             for row in episode_rows:
+                ep_name = row['EP_NAME'] or f"Episode {row['EPN']}"
+                if ep_name:
+                    ep_name = ep_name.replace('#', "")
                 episodes.append({
-                    'name': row['EP_NAME'] or f"Episode {row['EPN']}",
+                    'name': ep_name,
                     'path': row['Path']
                 })
             
