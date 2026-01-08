@@ -3762,7 +3762,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ensure sidebar is closed on page load
 
 	_selection_site.hidden = "hidden";
-    closeSidebar();
+
+    if (window.innerWidth > 768) {
+        openSidebar();
+    }
 });
 
 function editMetaData() {
