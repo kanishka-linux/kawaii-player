@@ -1599,7 +1599,6 @@ class MediaDatabase():
         conn.close()
         return response_data
 
-
     def build_url_from_file_path(self, file_path, file_type):
         file_name = os.path.basename(file_path)
         file_name_saitized = urllib.parse.quote(file_name.replace("/", "-"))
@@ -1608,6 +1607,83 @@ class MediaDatabase():
         if  file_type == "image":
             url = f"{url}.image"
         return url
+
+    def fetch_series_details_by_id(self, series_id):
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+
+            # Get series info for this title
+            cur.execute("""
+                SELECT
+                    db_title,
+                    title,
+                    english_title,
+                    year,
+                    episodes,
+                    score,
+                    rank,
+                    popularity,
+                    type,
+                    duration,
+                    genres,
+                    external_id,
+                    image_poster_large,
+                    summary,
+                    labels,
+                    category,
+                    multi_audio,
+                    multi_subtitle,
+                    ignore,
+                    collection_name,
+                    episodes_available,
+                    directory
+                FROM series_info
+                WHERE id = ?
+            """, (series_id,))
+            series_row = cur.fetchone()
+
+            # Get episodes for this title
+            cur.execute("""
+                SELECT
+                    EP_NAME,
+                    Path,
+                    EPN,
+                    Directory
+                FROM Video 
+                WHERE Title = ? and
+                Directory = ?
+                ORDER BY EPN
+            """, (series_row['db_title'], series_row['directory']))
+
+            episode_rows = [row for row in cur.fetchall()]
+            conn.close()
+
+            # Build episode list
+            episodes = []
+            for row in episode_rows:
+                ep_name = row['EP_NAME'] or f"Episode {row['EPN']}"
+                if ep_name:
+                    ep_name = ep_name.replace('#', "")
+                episodes.append({
+                    'name': ep_name,
+                    'path': row['Path'],
+                    'url': self.build_url_from_file_path(row['Path'], 'url'),
+                    'image-url': self.build_url_from_file_path(row['Path'], 'image')
+                })
+
+            # Build response
+            response_data = {
+                'title': series_row['db_title'],
+                'episodes': episodes,
+                'series_info': dict(series_row) if series_row else None
+            }
+
+            return response_data
+        except Exception as e:
+            self.logger.error(f"Title details error: {str(e)}")
+            return None
 
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
