@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View series details, episodes, and information">
+    <meta name="keywords" content="series, anime, movies, tv shows, episodes">
+    <meta name="author" content="Series Browser">
+    
+    <title>$series_title - Series Details</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/browse.css">
+    <link rel="stylesheet" href="/series_details.css">
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="msapplication-TileColor" content="#007bff">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="main-content" id="main-content" role="main">
+        <div class="container">
+            
+            <!-- Alert Messages -->
+            <div id="alert-container" class="alert-container" role="alert" aria-live="polite"></div>
+            
+            <!-- Header with Back Button -->
+            <div class="series-header">
+                <button class="back-btn" id="back-btn" aria-label="Back to browse">
+                    <span class="back-icon">←</span>
+                    <span>Back to Browse</span>
+                </button>
+                <h1 class="header-title" id="header-title">Loading...</h1>
+            </div>
+            
+            <!-- Series Content -->
+            <div class="series-content" id="series-content">
+                <!-- Loading state -->
+                <div class="content-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading series details...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+        <span class="back-to-top-icon">↑</span>
+    </button>
+    
+    <!-- Base JavaScript -->
+    <script>
+        // Remove loading screen when page is loaded
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                }, 300);
+            }
+        });
+        
+        // Back to top button
+        document.addEventListener('DOMContentLoaded', function() {
+            const backToTop = document.getElementById('back-to-top');
+            if (backToTop) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTop.classList.add('visible');
+                    } else {
+                        backToTop.classList.remove('visible');
+                    }
+                });
+                
+                backToTop.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        });
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+    </script>
+    
+    <!-- Series Details JavaScript -->
+    <script src="/series_details.js"></script>
+</body>
+</html>
