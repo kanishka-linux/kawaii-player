@@ -578,7 +578,7 @@ const BrowseApp = {
                     card.style.opacity = '0.7';
                     card.style.pointerEvents = 'none';
                     
-                    window.location.href = `/series/${seriesId}`;
+                    window.location.href = `/series-details/${seriesId}`;
                 }
             });
             

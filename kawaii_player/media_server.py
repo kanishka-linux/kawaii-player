@@ -1438,6 +1438,25 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         elif self.path == "/browse"  or self.path.startswith('/browse?'):
             # Handle browse requests
             self.handle_browse_request()
+        elif self.path.startswith('/series-details/'):
+            # Handle browse requests
+            self.handle_series_details()
+        elif self.path.startswith('/title-details/'):
+            # Handle browse requests
+            series_id = self.path.rsplit('/')[-1]
+            valid_response = ui.media_data.fetch_series_details_by_id(series_id)
+            if valid_response:
+                response = json.dumps(valid_response, indent=2)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+                self.end_headers()
+                self.wfile.write(response.encode('utf-8'))
+            else:
+                self.send_response(500)
+                self.send_header('Content-Type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b'Internal server error')
         elif self.path == '/admin':
             self.handle_admin_request()
         elif self.path == '/series-data':
@@ -1458,6 +1477,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def handle_browse_series_request(self):
         global logger, home
         series_id = self.path.split("/")[-1]
+        if '?' in series_id:
+            series_id = series_id.rsplit('?')[0]
         """Get all available genres from series_info table"""
         try:
             query = """
@@ -2227,6 +2248,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             
         except Exception as e:
             self.send_error(500, f"Database error: {str(e)}")
+
+    def handle_series_details(self):
+        #series_id = self.path.rsplit('/')[-1]
+        html_path = os.path.join(BASEDIR, 'web', 'series_details.html')
+        with open(html_path, 'r', encoding='utf-8') as f:
+            html_template = f.read()
+            html_bytes = html_template.encode('utf-8')
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(html_bytes)))
+        self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
+        self.end_headers()
+        self.wfile.write(html_bytes)
 
     def handle_browse_request(self):
         """Handle /browse GET request without category filter"""
@@ -4987,11 +5023,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
         elif path.endswith('.css') or path.endswith('.js'):
-            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css', 'login.css']:
+            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css', 'login.css', 'series_details.css']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/css')
-            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js', 'login.js']:
+            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js', 'login.js', 'series_details.js']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/javascript')
