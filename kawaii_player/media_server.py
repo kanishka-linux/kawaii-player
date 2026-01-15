@@ -1880,7 +1880,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 FROM series_info
             """
             
-            query_conditions = []
+            query_conditions = ["ignore != 'yes'"]
             query_params_list = []
             
             # Add category filter
@@ -1909,6 +1909,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 FROM series_info
                 WHERE category IS NOT NULL 
                 AND category != ""
+                and ignore != "yes"
             """)
             categories = [row[0].strip() for row in cur.fetchall()]
             
@@ -1917,6 +1918,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 FROM series_info
                 WHERE labels IS NOT NULL 
                 AND labels != ""
+                and ignore != "yes"
             """)
             labels_nested_list = [row[0].split(",") for row in cur.fetchall()]
             labels = list(set([
@@ -1990,6 +1992,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 SELECT db_title
                 FROM series_info
                 WHERE db_title IS NOT NULL and summary is not null
+                and ignore != 'yes'
             """)
             series_rows = cur.fetchall()
             series_titles = { row[0] for row in series_rows }
@@ -1999,6 +2002,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 from series_info
                 where category is not null
                 and category != ""
+                and ignore != "yes"
             """)
             categories = [row[0].strip() for row in cur.fetchall()]
             cur.execute("""
@@ -2006,6 +2010,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 from series_info
                 where labels is not null
                 and labels != ""
+                and ignore != "yes"
             """)
             labels_nested_list = [row[0].split(",") for row in cur.fetchall()]
             labels = [

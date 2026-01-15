@@ -970,7 +970,7 @@ class MediaDatabase():
                         return 0
 
                     placeholders = ','.join(['?' for _ in db_titles])
-                    query = f"SELECT COUNT(*) FROM series_info WHERE db_title IN ({placeholders})"
+                    query = f"SELECT COUNT(*) FROM series_info WHERE ignore != 'yes' and db_title IN ({placeholders})"
                     params = db_titles[:]
 
                     # Add other filter conditions
@@ -1014,7 +1014,7 @@ class MediaDatabase():
                 need_category_filter = (filters.get('category') and 
                                        filters['category'] not in ['recent', 'history', 'available'])
                 
-                query = "SELECT COUNT(*) FROM series_info WHERE 1=1"
+                query = "SELECT COUNT(*) FROM series_info WHERE ignore != 'yes'"
                 params = []
 
                 if need_category_filter:
@@ -1106,7 +1106,7 @@ class MediaDatabase():
                 SELECT id, title, english_title, year, episodes, score, summary, 
                        image_poster_large, genres, type, popularity, rank, db_title
                 FROM series_info 
-                WHERE db_title IN ({placeholders})
+                WHERE ignore != 'yes' and db_title IN ({placeholders})
                 """
 
                 params = paginated_db_titles[:]
@@ -1192,7 +1192,7 @@ class MediaDatabase():
                 query = """
                 SELECT id, title, english_title, year, episodes, score, summary, 
                        image_poster_large, genres, type, popularity, rank, db_title
-                FROM series_info WHERE 1=1
+                FROM series_info WHERE ignore != 'yes'
                 """
 
                 params = []
@@ -1305,7 +1305,7 @@ class MediaDatabase():
 
         cur.execute("""
             SELECT DISTINCT category, genres, labels, type 
-            FROM series_info 
+            FROM series_info where ignore != 'yes' 
         """)
 
         rows = cur.fetchall()
