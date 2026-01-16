@@ -216,7 +216,7 @@ class SeriesDetailsApp {
                 <div class="episode-item" data-episode-number="${episodeNumber}" data-series-id="${this.seriesId}" tabindex="0" role="button" aria-label="Play ${episodeName}">
                     <div class="episode-thumbnail">
                         ${imageUrl ? 
-                            `<img src="${this.escapeHtml(imageUrl)}" alt="${this.escapeHtml(episodeName)}" onerror="this.parentElement.innerHTML='<div class=\\'episode-thumbnail-placeholder\\'>📺</div>'">` :
+                            `<img src="${this.escapeHtml(imageUrl)}" alt="${this.escapeHtml(episodeName)}" class="episode-thumb-img" data-base-url="${this.escapeHtml(imageUrl)}" onerror="this.parentElement.innerHTML='<div class=\\'episode-thumbnail-placeholder\\'>📺</div>'">` :
                             `<div class="episode-thumbnail-placeholder">📺</div>`
                         }
                     </div>
@@ -224,6 +224,7 @@ class SeriesDetailsApp {
                         <div class="episode-number">Episode ${episodeNumber}</div>
                         <div class="episode-title">${this.escapeHtml(episodeName)}</div>
                     </div>
+                    ${imageUrl ? `<button class="thumbnail-preview-btn" data-episode="${episodeNumber}">Preview 🔄</button>` : ''}
                 </div>
             `;
         }).join('');
@@ -243,7 +244,11 @@ class SeriesDetailsApp {
         
         episodeItems.forEach(item => {
             // Click handler
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                // Don't play if clicking the preview button
+                if (e.target.classList.contains('thumbnail-preview-btn')) {
+                    return;
+                }
                 this.playEpisode(item);
             });
             
@@ -253,6 +258,47 @@ class SeriesDetailsApp {
                     e.preventDefault();
                     this.playEpisode(item);
                 }
+            });
+        });
+        
+        // Setup thumbnail preview buttons
+        this.setupThumbnailPreviews();
+    }
+
+    setupThumbnailPreviews() {
+        const previewBtns = document.querySelectorAll('.thumbnail-preview-btn');
+
+        previewBtns.forEach(btn => {
+            let currentInterval = 0; // Start at 0, will increment to 5 on first click
+
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent episode click
+
+                const img = btn.parentElement.querySelector('.episode-thumb-img');
+                if (!img) return;
+
+                const baseUrl = img.dataset.baseUrl;
+                if (!baseUrl) return;
+
+                // Increment interval: 5, 10, 15, ..., 95, 100, then back to 5
+                currentInterval += 5;
+                if (currentInterval > 100) {
+                    currentInterval = 5;
+                }
+
+                // Update image URL
+                const newUrl = `${baseUrl}.image_next_${currentInterval}`;
+                img.src = newUrl;
+
+                // Update button text to show current position
+                btn.textContent = `${currentInterval}% 🔄`;
+
+                // Handle image load error - reset to base
+                img.onerror = () => {
+                    img.src = baseUrl;
+                    btn.textContent = 'Preview 🔄';
+                    currentInterval = 0;
+                };
             });
         });
     }

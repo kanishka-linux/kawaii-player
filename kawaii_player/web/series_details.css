@@ -398,7 +398,9 @@
     transition: all 0.3s ease;
     cursor: pointer;
     display: flex;
-    align-items: stretch;
+    align-items: center; /* Changed from stretch to center */
+    gap: 15px; /* Add gap */
+    padding-right: 15px; /* Add right padding */
 }
 
 .episode-item:hover {
@@ -582,6 +584,10 @@
     .section-title {
         font-size: 20px;
     }
+
+    .thumbnail-preview-btn {
+        transform: translateY(-10px);
+    }
 }
 
 @media (max-width: 480px) {
@@ -697,4 +703,27 @@
     .left-column {
         position: static;
     }
+}
+
+/* Episode thumbnail preview button */
+.episode-thumbnail {
+    position: relative;
+}
+
+.thumbnail-preview-btn {
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    margin-left: auto; /* Push to right */
+}
+
+.thumbnail-preview-btn:hover {
+    background: rgba(0, 86, 179, 0.9);
 }
