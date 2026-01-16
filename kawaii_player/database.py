@@ -1664,8 +1664,9 @@ class MediaDatabase():
             episodes = []
             for row in episode_rows:
                 ep_name = row['EP_NAME'] or f"Episode {row['EPN']}"
-                if ep_name:
+                if ep_name and ep_name.startswith("#"):
                     ep_name = ep_name.replace('#', "")
+                    ep_name = '✅ ' + ep_name
                 episodes.append({
                     'name': ep_name,
                     'path': row['Path'],
