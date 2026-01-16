@@ -26,6 +26,7 @@ import hashlib
 import uuid
 import urllib
 import base64
+import re
 from typing import Optional, List, Tuple, Dict, Any
 
 from PyQt5 import QtWidgets, QtCore
@@ -1664,6 +1665,9 @@ class MediaDatabase():
             episodes = []
             for row in episode_rows:
                 ep_name = row['EP_NAME'] or f"Episode {row['EPN']}"
+                if ep_name:
+                    ep_name = re.sub(r'[-_.]+', ' ', ep_name)
+                    ep_name = re.sub(r'\s+', ' ', ep_name).strip()
                 if ep_name and ep_name.startswith("#"):
                     ep_name = ep_name.replace('#', "")
                     ep_name = '✅ ' + ep_name
