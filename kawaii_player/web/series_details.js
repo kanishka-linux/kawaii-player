@@ -314,7 +314,7 @@ class SeriesDetailsApp {
         }
         
         // Navigate to series player page
-        window.location.href = `/series/${seriesId}?ep=${episodeNumber}`;
+        window.location.href = `/series/${seriesId}/playercontrol`;
     }
     
     setupBackButton() {

@@ -1465,12 +1465,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.handle_series_data_filtered_request()
         elif self.path.startswith('/series/'):
             # Handle browse requests
-            self.handle_browse_series_request()
-            nm = '/stream_continue.htm'
-            self.send_response(303)
-            self.send_header('Location', nm)
-            self.send_header('Connection', 'close')
-            self.end_headers()
+            if self.path.endswith('/playercontrol'):
+                self.handle_player_control()
+            else:
+                self.handle_browse_series_request()
+                nm = '/stream_continue.htm'
+                self.send_response(303)
+                self.send_header('Location', nm)
+                self.send_header('Connection', 'close')
+                self.end_headers()
         else:
             self.do_init_function(type_request='get')
 
@@ -1869,6 +1872,23 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(content.encode('utf-8'))
         except FileNotFoundError:
             self.send_error(404, "Admin interface not found")
+
+    def handle_player_control(self):
+        """Serve the admin HTML page"""
+        try:
+            # Read HTML template
+            html_path = os.path.join(BASEDIR, 'web', 'player_control.html')
+            with open(html_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(content.encode('utf-8'))
+        except FileNotFoundError:
+            self.send_error(404, "Admin interface not found")
+
 
     def handle_series_data_filtered_request(self):
         global home
@@ -4081,6 +4101,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
         elif path.lower() == 'toggle_master_slave':
+            print(ui.remote_control, ui.remote_control_field)
             if ui.remote_control and ui.remote_control_field:
                 if ui.web_control == 'master':
                     ui.web_control = 'slave'
@@ -5023,11 +5044,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
         elif path.endswith('.css') or path.endswith('.js'):
-            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css', 'login.css', 'series_details.css']:
+            if path.endswith('.css') and path in ['style.css', 'browse.css', 'admin.css', 'login.css', 'series_details.css', 'player_control.css']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/css')
-            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js', 'login.js', 'series_details.js']:
+            elif path.endswith('.js') and path in ['myscript.js', 'browse.js', 'admin.js', 'login.js', 'series_details.js', 'player_control.js']:
                 default_file = os.path.join(BASEDIR, 'web', path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/javascript')
