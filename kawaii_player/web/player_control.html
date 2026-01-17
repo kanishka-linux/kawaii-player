@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Control</title>
+    <link rel="stylesheet" href="/player_control.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p>Loading player control...</p>
+    </div>
+
+    <!-- Alert Container -->
+    <div class="alert-container" id="alertContainer"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <button class="back-btn" id="backBtn">
+                    <span>←</span>
+                    <span>Back to Series</span>
+                </button>
+                <div class="series-info">
+                    <div class="series-title" id="seriesTitle">Loading...</div>
+                    <div class="episode-title" id="episodeTitle">Loading episode...</div>
+                </div>
+            </div>
+            <div class="mode-selector-row">
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="in-browser">
+                        <span>🌐</span>
+                        <span>In Browser</span>
+                    </button>
+                    <button class="mode-btn" data-mode="master">
+                        <span>🎮</span>
+                        <span>Master</span>
+                    </button>
+                    <button class="mode-btn" data-mode="slave">
+                        <span>📺</span>
+                        <span>Slave</span>
+                    </button>
+                </div>
+                <button class="theme-toggle" id="themeToggle">
+                    <span id="themeIcon">🌙</span>
+                    <span id="themeText">Dark</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Column: Video/Thumbnail + Controls -->
+            <div class="video-section">
+                <!-- In-Browser Mode: Video Player -->
+                <div class="video-player-container" id="videoPlayerContainer">
+                    <video class="video-player" id="videoPlayer" controls>
+                        <source id="videoSource" src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+
+                <!-- Master/Slave Mode: Thumbnail -->
+                <div class="thumbnail-area hidden" id="thumbnailArea">
+                    <img class="thumbnail-image" id="thumbnailImage" src="" alt="Episode thumbnail">
+                    <div class="now-playing-badge">NOW PLAYING</div>
+                </div>
+
+                <!-- Connection Status (Master/Slave only) -->
+                <div class="connection-status hidden" id="connectionStatus">
+                    <div class="status-indicator"></div>
+                    <div>
+                        <div class="status-text" id="statusText">Desktop Player Connected</div>
+                        <div class="status-detail" id="statusDetail">Engine: libmpv • Volume: 75% • Last sync: 2s ago</div>
+                    </div>
+                </div>
+
+                <!-- Video Info -->
+                <div class="video-info">
+                    <h3 id="currentEpisodeTitle">Loading...</h3>
+                    <p id="currentEpisodeDescription">Loading description...</p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-section">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">00:00</span>
+                        <span id="totalTime">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <!-- Playback Controls -->
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>▶️</span>
+                            <span>Playback Controls</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="btnPrev">
+                                <span>⏮</span>
+                                <span>Prev</span>
+                            </button>
+                            <button class="btn btn-primary" id="btnPlayPause">
+                                <span id="playPauseIcon">▶</span>
+                                <span id="playPauseText">Play</span>
+                            </button>
+                            <button class="btn" id="btnStop">
+                                <span>⏹</span>
+                                <span>Stop</span>
+                            </button>
+                            <button class="btn" id="btnNext">
+                                <span>⏭</span>
+                                <span>Next</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Seek Controls -->
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>⏱️</span>
+                            <span>Seek Controls</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="btnSeek10Minus">10s−</button>
+                            <button class="btn" id="btnSeek10Plus">10s+</button>
+                            <button class="btn" id="btnSeek60Minus">60s−</button>
+                            <button class="btn" id="btnSeek60Plus">60s+</button>
+                            <button class="btn" id="btnSeek5mMinus">5m−</button>
+                            <button class="btn" id="btnSeek5mPlus">5m+</button>
+                        </div>
+                    </div>
+
+                    <!-- Volume & Display (In-Browser) -->
+                    <div class="control-group in-browser-only">
+                        <div class="control-label">
+                            <span>🔊</span>
+                            <span>Volume & Display</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="btnVolDown">
+                                <span>🔉</span>
+                                <span>Vol−</span>
+                            </button>
+                            <button class="btn" id="btnVolUp">
+                                <span>🔊</span>
+                                <span>Vol+</span>
+                            </button>
+                            <button class="btn" id="btnMute">
+                                <span>🔇</span>
+                                <span>Mute</span>
+                            </button>
+                            <button class="btn" id="btnFullscreen">
+                                <span>⛶</span>
+                                <span>Fullscreen</span>
+                            </button>
+                            <button class="btn" id="btnSubtitle">
+                                <span>📝</span>
+                                <span>Subtitle</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Media Controls (Master/Slave) -->
+                    <div class="control-group master-slave-only hidden">
+                        <div class="control-label">
+                            <span>🎬</span>
+                            <span>Media Controls</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="btnToggleAudio">
+                                <span>🔊</span>
+                                <span>Audio</span>
+                            </button>
+                            <button class="btn" id="btnToggleSubtitle">
+                                <span>📝</span>
+                                <span>Subtitle</span>
+                            </button>
+                            <button class="btn" id="btnChapterPrev">
+                                <span>◀</span>
+                                <span>Chapter−</span>
+                            </button>
+                            <button class="btn" id="btnChapterNext">
+                                <span>▶</span>
+                                <span>Chapter+</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Display Controls (Master/Slave) -->
+                    <div class="control-group master-slave-only hidden">
+                        <div class="control-label">
+                            <span>🖥️</span>
+                            <span>Display Controls</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="btnDesktopFullscreen">
+                                <span>⛶</span>
+                                <span>Fullscreen</span>
+                            </button>
+                            <button class="btn" id="btnShowStats">
+                                <span>📊</span>
+                                <span>Stats</span>
+                            </button>
+                            <button class="btn" id="btnShowPlayer">
+                                <span>👁️</span>
+                                <span>Show Player</span>
+                            </button>
+                            <button class="btn" id="btnHidePlayer">
+                                <span>🙈</span>
+                                <span>Hide Player</span>
+                            </button>
+                        </div>
+                        <div class="control-buttons" style="margin-top: 10px;">
+                            <select class="form-select" id="aspectRatioSelect">
+                                <option value="original">Original Aspect</option>
+                                <option value="disable">Disable</option>
+                                <option value="4_3">4:3</option>
+                                <option value="16_9">16:9</option>
+                                <option value="235">2.35:1</option>
+                            </select>
+                            <select class="form-select" id="playbackEngineSelect">
+                                <option value="libmpv">libmpv</option>
+                                <option value="libvlc">libvlc</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Controls (Master/Slave) -->
+                    <div class="control-group master-slave-only hidden">
+                        <div class="control-label">
+                            <span>🔧</span>
+                            <span>Advanced Controls</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="btnCastUrl">
+                                <span>🌐</span>
+                                <span>Cast URL</span>
+                            </button>
+                            <button class="btn" id="btnRename">
+                                <span>✏️</span>
+                                <span>Rename</span>
+                            </button>
+                            <button class="btn" id="btnFetchPoster">
+                                <span>🖼️</span>
+                                <span>Poster</span>
+                            </button>
+                            <button class="btn" id="btnFetchFanart">
+                                <span>🎨</span>
+                                <span>Fanart</span>
+                            </button>
+                        </div>
+                        <div class="control-buttons" style="margin-top: 10px;">
+                            <select class="form-select" id="categorySelect" style="flex: 1;">
+                                <option value="">Select Category...</option>
+                                <option value="Watching">Watching</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Plan to Watch">Plan to Watch</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Dropped">Dropped</option>
+                            </select>
+                            <button class="btn btn-primary" id="btnApplyCategory">
+                                <span>✓</span>
+                                <span>Apply</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Episode List -->
+            <div class="episode-list">
+                <h2>
+                    <span>Episodes</span>
+                    <span class="episode-count" id="episodeCount">0 episodes</span>
+                </h2>
+                
+                <div id="episodeListContainer">
+                    <!-- Episodes will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <script src="/player_control.js"></script>
+</body>
+</html>
