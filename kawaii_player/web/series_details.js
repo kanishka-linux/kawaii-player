@@ -324,7 +324,8 @@ class SeriesDetailsApp {
             backBtn.addEventListener('click', () => {
                 // Check if there's a referrer and it's from the same origin
                 if (document.referrer && document.referrer.includes(window.location.origin)) {
-                    window.history.back();
+                    //window.history.back();
+                    window.location.href = '/browse';
                 } else {
                     // Default to browse page
                     window.location.href = '/browse';
