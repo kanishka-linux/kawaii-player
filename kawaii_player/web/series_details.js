@@ -319,16 +319,29 @@ class SeriesDetailsApp {
     
     setupBackButton() {
         const backBtn = document.getElementById('back-btn');
-        
+
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                // Check if there's a referrer and it's from the same origin
-                if (document.referrer && document.referrer.includes(window.location.origin)) {
-                    //window.history.back();
-                    window.location.href = '/browse';
+
+                const returnUrl = localStorage.getItem('browseReturnUrl');
+
+                if (returnUrl) {
+                    // Remove the stored values
+                    localStorage.removeItem('browseReturnUrl');
+                    const scrollPos = localStorage.getItem('browseScrollPosition');
+                    localStorage.removeItem('browseScrollPosition');
+
+                    // Navigate back
+                    window.location.href = returnUrl;
+
+                    // Restore scroll position after page loads
+                    if (scrollPos) {
+                        window.addEventListener('load', () => {
+                            window.scrollTo(0, parseInt(scrollPos));
+                        });
+                    }
                 } else {
-                    // Default to browse page
-                    window.location.href = '/browse';
+                    window.location.href = `/browse`;
                 }
             });
         }

@@ -435,7 +435,7 @@ function updateRemoteStatus(status) {
             
             // Update episode title
             document.getElementById('currentEpisodeTitle').textContent = `Episode ${newEpisode.number}: ${newEpisode.name || ''}`;
-            document.getElementById('currentEpisodeDescription').textContent = newEpisode.description || state.seriesInfo?.summary || '';
+            document.getElementById('currentEpisodeDescription').textContent = newEpisode.description || '';
             
             // Update thumbnail
             const thumbnailImage = document.getElementById('thumbnailImage');

@@ -577,6 +577,9 @@ const BrowseApp = {
                     // Add loading state to clicked card
                     card.style.opacity = '0.7';
                     card.style.pointerEvents = 'none';
+                    // Save current scroll position and URL
+                    localStorage.setItem('browseReturnUrl', window.location.href);
+                    localStorage.setItem('browseScrollPosition', window.scrollY);
                     
                     window.location.href = `/series-details/${seriesId}`;
                 }
