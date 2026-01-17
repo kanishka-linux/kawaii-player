@@ -1661,6 +1661,9 @@ class MediaDatabase():
             episode_rows = [row for row in cur.fetchall()]
             conn.close()
 
+            directory_bytes = bytes(series_row['directory'], 'utf-8')
+            h = hashlib.sha256(directory_bytes)
+            dir_hash = h.hexdigest()
             # Build episode list
             episodes = []
             for row in episode_rows:
@@ -1671,16 +1674,19 @@ class MediaDatabase():
                 if ep_name and ep_name.startswith("#"):
                     ep_name = ep_name.replace('#', "")
                     ep_name = '✅ ' + ep_name
+
                 episodes.append({
                     'name': ep_name,
                     'path': row['Path'],
                     'url': self.build_url_from_file_path(row['Path'], 'url'),
-                    'image-url': self.build_url_from_file_path(row['Path'], 'image')
+                    'image-url': self.build_url_from_file_path(row['Path'], 'image'),
+                    'epn-number': row['EPN']
                 })
 
             # Build response
             response_data = {
                 'title': series_row['db_title'],
+                'dir_hash': dir_hash,
                 'episodes': episodes,
                 'series_info': dict(series_row) if series_row else None
             }
