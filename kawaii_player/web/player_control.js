@@ -5,8 +5,8 @@
 // ===========================
 const CONFIG = {
     BASE_URL: window.location.origin,
-    SYNC_INTERVAL: 2000, // 2 seconds for master/slave mode
-    AUTO_HIDE_ALERT: 5000 // 5 seconds
+    SYNC_INTERVAL: 1000, // 1 second for master/slave mode
+    AUTO_HIDE_ALERT: 2000 // 2 seconds
 };
 
 // ===========================
@@ -22,7 +22,9 @@ const state = {
     currentTime: 0,
     duration: 0,
     volume: 75,
-    syncInterval: null
+    syncInterval: null,
+    previousIndex: -1,
+    loop: false
 };
 
 // ===========================
@@ -124,10 +126,12 @@ async function fetchSeriesDetails(seriesId) {
         // Transform API response to match our expected format
         const transformedData = {
             title: data.title || data.series_info?.title || 'Unknown Series',
+            dir_hash: data.dir_hash,
             english_title: data.series_info?.english_title,
             poster: data.series_info?.image_poster_large,
             score: data.series_info?.score,
             year: data.series_info?.year,
+            directory: data.series_info?.directory,
             genres: data.series_info?.genres ? data.series_info.genres.split(',').map(g => g.trim()) : [],
             summary: data.series_info?.summary || '',
             category: data.series_info?.category,
@@ -138,7 +142,8 @@ async function fetchSeriesDetails(seriesId) {
                 thumbnail: ep['image-url'],
                 description: '',
                 duration: '',
-                watched: false
+                watched: false,
+                epn_number: ep['epn-number']
             }))
         };
         
@@ -249,6 +254,10 @@ function toggleTheme() {
     }
 }
 
+function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // ===========================
 // MODE MANAGEMENT
 // ===========================
@@ -293,6 +302,12 @@ async function switchMode(newMode) {
         
         stopBrowserPlayer();
         startRemoteSync();
+
+        console.log(state.seriesInfo, state.seriesInfo.directory)
+
+        const playlistUrl = `/site=video&opt=available&s=${state.seriesInfo.dir_hash}&exact.m3u`;
+        await fetch(`${CONFIG.BASE_URL}${playlistUrl}`);
+        console.log('Playlist loaded:', playlistUrl);
         
         const response1 = await fetch(`${CONFIG.BASE_URL}/toggle_master_slave`);
         const text = await response1.text();
@@ -304,7 +319,11 @@ async function switchMode(newMode) {
         } else if (newMode === 'slave' && actualMode == "slave"){
             statusText.textContent = '📺 Desktop Player Connected (Slave Mode)';
         } else {
-            statusText.textContent = '📺 Mismatch';
+            console.log('📺 Mismatch', newMode, actualMode, "toggling again");
+            const response2 = await fetch(`${CONFIG.BASE_URL}/toggle_master_slave`);
+            const text2 = await response2.text();
+            const actualMode2 = text2.toLowerCase().trim();
+            statusText.textContent = `🖥️ Desktop Player Connected (${capitalizeFirstLetter(actualMode2)} Mode)`;
         }
     }
     
@@ -314,7 +333,7 @@ async function switchMode(newMode) {
     
     const modeText = newMode === 'in-browser' ? 'In Browser' : 
                      newMode === 'master' ? 'Master' : 'Slave';
-    showAlert(`Switched to ${modeText} mode`, 'success');
+    //showAlert(`Switched to ${modeText} mode`, 'success');
 }
 
 
@@ -397,12 +416,41 @@ function stopRemoteSync() {
     if (state.syncInterval) {
         clearInterval(state.syncInterval);
         state.syncInterval = null;
+        statusDetail.textContent = `• Sync stopped`;
     }
 }
 
 function updateRemoteStatus(status) {
     state.currentTime = status.currentTime;
     state.duration = status.total;
+    
+    // Check if episode changed (index is 1-based from remote)
+    if (status.index !== state.previousIndex) {
+        state.previousIndex = status.index;
+        
+        // Find episode by number (status.index is already 1-based)
+        const newEpisode = state.episodes.find(ep => ep.number === status.index);
+        if (newEpisode) {
+            state.currentEpisode = newEpisode;
+            
+            // Update episode title
+            document.getElementById('currentEpisodeTitle').textContent = `Episode ${newEpisode.number}: ${newEpisode.name || ''}`;
+            document.getElementById('currentEpisodeDescription').textContent = newEpisode.description || state.seriesInfo?.summary || '';
+            
+            // Update thumbnail
+            const thumbnailImage = document.getElementById('thumbnailImage');
+            if (newEpisode.thumbnail) {
+                thumbnailImage.src = newEpisode.thumbnail;
+            } else if (state.seriesInfo?.poster) {
+                thumbnailImage.src = state.seriesInfo.poster;
+            }
+            
+            // Re-render episode list to update active state
+            renderEpisodes();
+            
+            console.log('Episode changed to:', newEpisode.number);
+        }
+    }
     
     // Update progress bar
     const progressFill = document.getElementById('progressFill');
@@ -416,8 +464,7 @@ function updateRemoteStatus(status) {
     
     // Update status text
     const statusDetail = document.getElementById('statusDetail');
-    const now = new Date();
-    statusDetail.textContent = `Engine: ${status.backend} • Volume: ${state.volume}% • Last sync: just now`;
+    statusDetail.textContent = `Engine: ${status.backend} • Last sync: just now`;
 }
 
 // ===========================
@@ -479,7 +526,7 @@ function playEpisode(episodeNumber) {
     
     // Update UI
     document.getElementById('currentEpisodeTitle').textContent = `Episode ${episode.number}: ${episode.name || ''}`;
-    document.getElementById('currentEpisodeDescription').textContent = episode.description || state.seriesInfo?.summary || '';
+    document.getElementById('currentEpisodeDescription').textContent = episode.description || '';
     
     // Update thumbnail if in master/slave mode
     if (state.mode !== 'in-browser') {
@@ -503,13 +550,14 @@ function playEpisode(episodeNumber) {
             showAlert('Failed to play video', 'error');
         });
     } else {
-        // Queue item in desktop player (0-indexed)
-        sendRemoteCommand(`/playlist_${episodeNumber - 1}`);
+        // Play item in desktop player (0-indexed)
+        // sendRemoteCommand(`/playlist_${episodeNumber - 1}`);
+        sendRemoteCommand(`/playlist_${episode.epn_number}`);
     }
     
     // Update URL
     if (state.seriesId) {
-        updateURL(state.seriesId, episodeNumber, state.mode);
+        //updateURL(state.seriesId, episodeNumber, state.mode);
     }
     
     // Re-render episodes
@@ -551,7 +599,10 @@ function togglePlayPause() {
             videoPlayer.pause();
         }
     } else {
-        sendRemoteCommand('/playpause_pause');
+        sendRemoteCommand('/playpause');
+        if (!state.syncInterval) {
+            startRemoteSync();
+        }
     }
 }
 
@@ -561,7 +612,20 @@ function stopPlayback() {
         videoPlayer.pause();
         videoPlayer.currentTime = 0;
     } else {
-        sendRemoteCommand('/playpause_pause');
+        sendRemoteCommand('/playerstop');
+        stopRemoteSync();
+    }
+}
+
+function toggleLoop() {
+    if (state.mode === 'in-browser') {
+        const videoPlayer = document.getElementById('videoPlayer');
+        state.loop = !state.loop;
+        videoPlayer.loop = state.loop;
+        showAlert(state.loop ? 'Loop enabled' : 'Loop disabled', 'success');
+    } else {
+        sendRemoteCommand('/lock');
+        showAlert('Loop toggled', 'success');
     }
 }
 
@@ -593,12 +657,19 @@ function updatePlayPauseButton() {
 // ===========================
 
 function adjustVolume(delta) {
-    const videoPlayer = document.getElementById('videoPlayer');
-    if (!videoPlayer) return;
-    
-    state.volume = Math.max(0, Math.min(100, state.volume + delta));
-    videoPlayer.volume = state.volume / 100;
-    showAlert(`Volume: ${state.volume}%`, 'info');
+    if (state.mode === 'in-browser') {
+        const videoPlayer = document.getElementById('videoPlayer');
+        if (!videoPlayer) return;
+        
+        state.volume = Math.max(0, Math.min(100, state.volume + delta));
+        videoPlayer.volume = state.volume / 100;
+    } else {
+        // Master/Slave mode
+        const absValue = Math.abs(delta);
+        const command = delta > 0 ? `/volume${absValue}` : `/volume_${absValue}`;
+        sendRemoteCommand(command);
+        state.volume = Math.max(0, Math.min(100, state.volume + delta));
+    }
 }
 
 function toggleMute() {
@@ -606,7 +677,6 @@ function toggleMute() {
     if (!videoPlayer) return;
     
     videoPlayer.muted = !videoPlayer.muted;
-    showAlert(videoPlayer.muted ? 'Muted' : 'Unmuted', 'info');
 }
 
 function toggleFullscreen() {
@@ -628,12 +698,10 @@ function toggleFullscreen() {
 
 async function toggleAudio() {
     await sendRemoteCommand('/toggle_audio');
-    showAlert('Audio track toggled', 'success');
 }
 
 async function toggleSubtitle() {
     await sendRemoteCommand('/toggle_subtitle');
-    showAlert('Subtitle toggled', 'success');
 }
 
 async function changeChapter(direction) {
@@ -651,12 +719,10 @@ async function showVideoStats() {
 
 async function showPlayerWindow() {
     await sendRemoteCommand('/show_player_window');
-    showAlert('Player window shown', 'success');
 }
 
 async function hidePlayerWindow() {
     await sendRemoteCommand('/hide_player_window');
-    showAlert('Player window hidden', 'success');
 }
 
 async function changeAspectRatio() {
@@ -672,7 +738,6 @@ async function changeAspectRatio() {
     
     if (widgetMap[value]) {
         await sendPostCommand('/sending_web_command', { param: 'click', widget: widgetMap[value] });
-        showAlert(`Aspect ratio changed to ${value}`, 'success');
     }
 }
 
@@ -746,22 +811,30 @@ async function applyCategory() {
 // ===========================
 // PROGRESS BAR INTERACTION
 // ===========================
-
 function initProgressBar() {
     const progressBar = document.getElementById('progressBar');
     
     progressBar.addEventListener('click', (e) => {
         const rect = progressBar.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        const newTime = percent * state.duration;
+        const x = rect.x;
+        const w = rect.width;
+        const clickX = e.pageX;
         
         if (state.mode === 'in-browser') {
             const videoPlayer = document.getElementById('videoPlayer');
-            videoPlayer.currentTime = newTime;
+            if (videoPlayer.duration) {
+                const newTime = parseInt(((clickX - x) / w) * videoPlayer.duration);
+                videoPlayer.currentTime = newTime;
+                console.log('Seek to:', newTime);
+            }
         } else {
-            // For master/slave, seek to position
-            const seekDiff = newTime - state.currentTime;
-            seek(seekDiff);
+            // Master/Slave mode - seek to absolute percentage
+            if (state.duration) {
+                const percentage = (((clickX - x) / w) * 100).toFixed(2);
+                const seekCommand = `/seek_abs_${percentage}`;
+                sendRemoteCommand(seekCommand);
+                console.log('Seek command:', seekCommand);
+            }
         }
     });
 }
@@ -796,7 +869,7 @@ function initEventListeners() {
     
     // Back button
     document.getElementById('backBtn').addEventListener('click', () => {
-        window.location.href = `/series/${state.seriesId}`;
+        window.location.href = `/series-details/${state.seriesId}`;
     });
     
     // Mode switcher
@@ -812,6 +885,7 @@ function initEventListeners() {
     document.getElementById('btnStop').addEventListener('click', stopPlayback);
     document.getElementById('btnPrev').addEventListener('click', playPreviousEpisode);
     document.getElementById('btnNext').addEventListener('click', playNextEpisode);
+    document.getElementById('btnLoop').addEventListener('click', toggleLoop);
     
     // Seek controls
     document.getElementById('btnSeek10Minus').addEventListener('click', () => seek(-10));
@@ -825,7 +899,14 @@ function initEventListeners() {
     document.getElementById('btnVolDown')?.addEventListener('click', () => adjustVolume(-5));
     document.getElementById('btnVolUp')?.addEventListener('click', () => adjustVolume(5));
     document.getElementById('btnMute')?.addEventListener('click', toggleMute);
-    document.getElementById('btnFullscreen')?.addEventListener('click', toggleFullscreen);
+    document.getElementById('btnFullscreen')?.addEventListener('click', () => {
+        if (state.mode === 'in-browser') {
+            toggleFullscreen();
+        } else {
+            // Master/Slave mode - fullscreen video
+            sendRemoteCommand('/fullscreen');
+        }
+    });
     document.getElementById('btnSubtitle')?.addEventListener('click', () => {
         if (state.mode === 'in-browser') {
             // Toggle subtitle in browser
@@ -881,7 +962,6 @@ async function initialize() {
         
         // Update UI to show error
         document.getElementById('seriesTitle').textContent = 'Error: No Series ID';
-        document.getElementById('episodeTitle').textContent = 'Please navigate from series details page';
         return;
     }
     
@@ -897,7 +977,6 @@ async function initialize() {
     if (!seriesData) {
         document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('seriesTitle').textContent = 'Error Loading Series';
-        document.getElementById('episodeTitle').textContent = 'Failed to load series data';
         return;
     }
     
@@ -926,9 +1005,8 @@ async function initialize() {
     
     // Update UI
     document.getElementById('seriesTitle').textContent = seriesData.title || 'Unknown Series';
-    document.getElementById('episodeTitle').textContent = `Episode ${state.currentEpisode.number}: ${state.currentEpisode.name || ''}`;
     document.getElementById('currentEpisodeTitle').textContent = `Episode ${state.currentEpisode.number}: ${state.currentEpisode.name || ''}`;
-    document.getElementById('currentEpisodeDescription').textContent = state.currentEpisode.description || seriesData.summary || '';
+    document.getElementById('currentEpisodeDescription').textContent = state.currentEpisode.description || '';
     
     // Set thumbnail for master/slave mode
     const thumbnailImage = document.getElementById('thumbnailImage');

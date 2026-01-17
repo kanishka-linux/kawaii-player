@@ -17,7 +17,7 @@
     <div class="alert-container" id="alertContainer"></div>
 
     <div class="container">
-        <!-- Header -->
+        <!-- Header - Compact Version -->
         <div class="header">
             <div class="header-top">
                 <button class="back-btn" id="backBtn">
@@ -26,7 +26,6 @@
                 </button>
                 <div class="series-info">
                     <div class="series-title" id="seriesTitle">Loading...</div>
-                    <div class="episode-title" id="episodeTitle">Loading episode...</div>
                 </div>
             </div>
             <div class="mode-selector-row">
@@ -119,6 +118,10 @@
                                 <span>⏭</span>
                                 <span>Next</span>
                             </button>
+                            <button class="btn" id="btnLoop">
+                                <span>🔁</span>
+                                <span>Loop</span>
+                            </button>
                         </div>
                     </div>
 
@@ -138,8 +141,9 @@
                         </div>
                     </div>
 
-                    <!-- Volume & Display (In-Browser) -->
-                    <div class="control-group in-browser-only">
+                    
+                    <!-- Volume & Display (All Modes) -->
+                    <div class="control-group">
                         <div class="control-label">
                             <span>🔊</span>
                             <span>Volume & Display</span>
@@ -159,7 +163,7 @@
                             </button>
                             <button class="btn" id="btnFullscreen">
                                 <span>⛶</span>
-                                <span>Fullscreen</span>
+                                <span>Fullscreen Video</span>
                             </button>
                             <button class="btn" id="btnSubtitle">
                                 <span>📝</span>
@@ -203,7 +207,7 @@
                         <div class="control-buttons">
                             <button class="btn" id="btnDesktopFullscreen">
                                 <span>⛶</span>
-                                <span>Fullscreen</span>
+                                <span>Fullscreen Desktop</span>
                             </button>
                             <button class="btn" id="btnShowStats">
                                 <span>📊</span>
@@ -218,7 +222,7 @@
                                 <span>Hide Player</span>
                             </button>
                         </div>
-                        <div class="control-buttons" style="margin-top: 10px;">
+                        <div class="control-buttons" style="margin-top: 8px;">
                             <select class="form-select" id="aspectRatioSelect">
                                 <option value="original">Original Aspect</option>
                                 <option value="disable">Disable</option>
@@ -257,7 +261,7 @@
                                 <span>Fanart</span>
                             </button>
                         </div>
-                        <div class="control-buttons" style="margin-top: 10px;">
+                        <div class="control-buttons" style="margin-top: 8px;">
                             <select class="form-select" id="categorySelect" style="flex: 1;">
                                 <option value="">Select Category...</option>
                                 <option value="Watching">Watching</option>
