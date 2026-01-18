@@ -312,6 +312,8 @@ class SeriesDetailsApp {
             this.showMessage('Error', 'Unable to play episode', 'error');
             return;
         }
+
+        localStorage.setItem('selectedEpisodeNumber', episodeNumber);
         
         // Navigate to series player page
         window.location.href = `/series/${seriesId}/playercontrol`;

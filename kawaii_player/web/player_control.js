@@ -24,7 +24,8 @@ const state = {
     volume: 75,
     syncInterval: null,
     previousIndex: -1,
-    loop: false
+    loop: false,
+    firstPlay: true
 };
 
 // ===========================
@@ -599,7 +600,14 @@ function togglePlayPause() {
             videoPlayer.pause();
         }
     } else {
-        sendRemoteCommand('/playpause');
+        if (state.firstPlay && state.currentEpisode) {
+            // First play: use playlist command to start the episode
+            state.firstPlay = false;
+            sendRemoteCommand(`/playlist_${state.currentEpisode.epn_number}`);
+            console.log('First play: loading episode', state.currentEpisode.epn_number);
+        } else {
+            sendRemoteCommand('/playpause');
+        }
         if (!state.syncInterval) {
             startRemoteSync();
         }
@@ -753,8 +761,7 @@ async function changePlaybackEngine() {
 async function castURL() {
     const url = prompt('Enter URL to cast:');
     if (url) {
-        const encodedUrl = btoa(url);
-        await sendRemoteCommand(`/youtube_quick=${encodedUrl}`);
+        await sendRemoteCommand(`/youtube_quick=${url}`);
         showAlert('URL casted', 'success');
     }
 }
@@ -990,19 +997,28 @@ async function initialize() {
         console.warn('No episodes found');
         showAlert('No episodes available for this series', 'warning');
     }
-    
+
+    const savedEpisodeNumber = localStorage.getItem('selectedEpisodeNumber');
+    let targetEpisodeNumber = params.episodeNumber;
+
+    if (savedEpisodeNumber) {
+        targetEpisodeNumber = parseInt(savedEpisodeNumber);
+        localStorage.removeItem('selectedEpisodeNumber'); // Clean up
+        console.log('Using saved episode number:', targetEpisodeNumber);
+    }
+
     // Find current episode by number or use first episode
-    state.currentEpisode = state.episodes.find(ep => ep.number === params.episodeNumber) || state.episodes[0];
-    
+    state.currentEpisode = state.episodes.find(ep => ep.number === targetEpisodeNumber) || state.episodes[0];
+
     if (!state.currentEpisode) {
         console.error('No episodes available');
         showAlert('No episodes available', 'error');
         document.getElementById('loadingScreen').classList.add('hidden');
         return;
     }
-    
+
     console.log('Current episode:', state.currentEpisode);
-    
+
     // Update UI
     document.getElementById('seriesTitle').textContent = seriesData.title || 'Unknown Series';
     document.getElementById('currentEpisodeTitle').textContent = `Episode ${state.currentEpisode.number}: ${state.currentEpisode.name || ''}`;
