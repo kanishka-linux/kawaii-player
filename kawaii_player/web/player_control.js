@@ -25,7 +25,12 @@ const state = {
     syncInterval: null,
     previousIndex: -1,
     loop: false,
-    firstPlay: true
+    firstPlay: true,
+    subtitleBlobUrls: [],
+    loadedAudioTracks: [],
+    currentAudioElement: null,
+    transcodeJob: null,
+    transcodeStatusInterval: null
 };
 
 // ===========================
@@ -140,6 +145,7 @@ async function fetchSeriesDetails(seriesId) {
                 number: index + 1,
                 name: ep.name || `Episode ${index + 1}`,
                 path: ep.url,
+                actual_path: ep['path'],
                 thumbnail: ep['image-url'],
                 description: '',
                 duration: '',
@@ -524,7 +530,12 @@ function playEpisode(episodeNumber) {
     }
     
     state.currentEpisode = episode;
-    
+
+    // Clear audio and subtitle tracks when switching episodes
+    if (state.mode === 'in-browser') {
+        clearAllTracks();
+    }
+
     // Update UI
     document.getElementById('currentEpisodeTitle').textContent = `Episode ${episode.number}: ${episode.name || ''}`;
     document.getElementById('currentEpisodeDescription').textContent = episode.description || '';
@@ -616,6 +627,7 @@ function togglePlayPause() {
 
 function stopPlayback() {
     if (state.mode === 'in-browser') {
+        clearAllTracks()
         const videoPlayer = document.getElementById('videoPlayer');
         videoPlayer.pause();
         videoPlayer.currentTime = 0;
@@ -868,6 +880,453 @@ function initBackToTop() {
 }
 
 // ===========================
+// TRACK LOADING (IN-BROWSER)
+// ===========================
+
+async function loadSubtitles() {
+    if (!state.currentEpisode?.actual_path) {
+        showAlert('No video path available', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/subtitle`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: state.currentEpisode.actual_path })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.tracks.length > 0) {
+            cleanupSubtitles();
+            
+            const select = document.getElementById('subtitleSelect');
+            select.innerHTML = '<option value="">Subtitles: Off</option>';
+            
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            data.tracks.forEach((track, index) => {
+                const blob = new Blob([track.content], { type: 'text/vtt' });
+                const blobUrl = URL.createObjectURL(blob);
+                state.subtitleBlobUrls.push(blobUrl);
+                
+                const trackElement = document.createElement('track');
+                trackElement.kind = 'subtitles';
+                trackElement.label = track.title || track.language.toUpperCase();
+                trackElement.srclang = track.language;
+                trackElement.src = blobUrl;
+                trackElement.id = `subtitle-${index}`;
+                if (index === 0) trackElement.default = true;
+                
+                videoPlayer.appendChild(trackElement);
+                
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = track.title || track.language.toUpperCase();
+                select.appendChild(option);
+            });
+            
+            showAlert(`Loaded ${data.tracks.length} subtitle tracks`, 'success');
+        } else {
+            showAlert('No subtitles available', 'info');
+        }
+    } catch (error) {
+        console.error('Error loading subtitles:', error);
+        showAlert('Failed to load subtitles', 'error');
+    }
+}
+
+async function loadAudioTracks() {
+    if (!state.currentEpisode?.actual_path) {
+        showAlert('No video path available', 'error');
+        return;
+    }
+
+    const button = document.getElementById('loadAudioBtn');
+    const originalText = button.innerHTML;
+
+    try {
+        // Show loading state
+        button.disabled = true;
+        button.innerHTML = '<span>⏳</span><span>Loading...</span>';
+ 
+        const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/audio`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: state.currentEpisode.actual_path })
+        });
+
+        const data = await response.json();
+
+        if (data && data.success && data.tracks && data.tracks.length > 0) {
+            state.loadedAudioTracks = data.tracks;
+  
+            const select = document.getElementById('audioSelect');
+            select.innerHTML = '<option value="">Audio: Default</option>';
+
+            data.tracks.forEach((track, index) => {
+                const option = document.createElement('option');
+                const label = track.transcoded ? ' (Transcoded)' : '';
+                option.value = index;
+                option.textContent = `${track.language.toUpperCase()} - ${track.channels}ch${label} - ${track.title}`;
+                select.appendChild(option);
+            });
+            
+            showAlert(`Loaded ${data.tracks.length} audio tracks`, 'success');
+        } else {
+            showAlert('No audio tracks available', 'info');
+        }
+    } catch (error) {
+        console.error('Error loading audio tracks:', error);
+        showAlert('Failed to load audio tracks', 'error');
+    } finally {
+        // Restore button state
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+}
+
+function clearAllTracks() {
+    // Clear subtitles
+    cleanupSubtitles();
+    
+    // Clear audio
+    if (state.currentAudioElement) {
+        state.currentAudioElement.pause();
+        state.currentAudioElement.remove();
+        state.currentAudioElement = null;
+    }
+    state.loadedAudioTracks = [];
+    
+    // Clear transcode job
+    stopTranscodeStatusPolling();
+    state.transcodeJob = null;
+    
+    // Clear video player
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    
+    if (videoPlayer) {
+        videoPlayer.pause();
+        videoPlayer.removeAttribute('src');
+        videoPlayer.load(); // Force unload
+    }
+    
+    if (videoSource) {
+        videoSource.removeAttribute('src');
+    }
+    
+    // Remove all subtitle tracks from video element
+    const existingTracks = videoPlayer.querySelectorAll('track');
+    existingTracks.forEach(track => track.remove());
+    
+    // Reset selectors
+    const subtitleSelect = document.getElementById('subtitleSelect');
+    const audioSelect = document.getElementById('audioSelect');
+    
+    if (subtitleSelect) {
+        subtitleSelect.innerHTML = '<option value="">Subtitles: Off</option>';
+    }
+    
+    if (audioSelect) {
+        audioSelect.innerHTML = '<option value="">Audio: Default</option>';
+    }
+    
+    // Reset transcode UI
+    const transcodeBtn = document.getElementById('transcodeBtn');
+    const cancelBtn = document.getElementById('cancelTranscodeBtn');
+    const progressDiv = document.getElementById('transcodeProgress');
+    
+    if (transcodeBtn) {
+        transcodeBtn.disabled = false;
+        transcodeBtn.innerHTML = '<span>🔄</span><span>Transcode Video</span>';
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.style.display = 'none';
+    }
+    
+    if (progressDiv) {
+        progressDiv.style.display = 'none';
+    }
+    
+    console.log('Cleared all tracks and video for new episode');
+}
+
+function switchSubtitle(index) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const tracks = videoPlayer.textTracks;
+
+    for (let i = 0; i < tracks.length; i++) {
+        tracks[i].mode = 'disabled';
+    }
+
+    if (index !== '') {
+        tracks[parseInt(index)].mode = 'showing';
+    }
+}
+
+function switchAudio(index) {
+    if (index === '') {
+        if (state.currentAudioElement) {
+            state.currentAudioElement.pause();
+            state.currentAudioElement = null;
+        }
+        return;
+    }
+
+    const track = state.loadedAudioTracks[parseInt(index)];
+    const videoPlayer = document.getElementById('videoPlayer');
+
+    if (state.currentAudioElement) {
+        state.currentAudioElement.pause();
+        state.currentAudioElement.remove();
+    }
+
+    const audio = new Audio(CONFIG.BASE_URL + track.url);
+    audio.volume = videoPlayer.volume;
+    audio.muted = videoPlayer.muted;
+
+    const syncPlay = () => {
+        audio.currentTime = videoPlayer.currentTime;
+        audio.play();
+    };
+    const syncPause = () => audio.pause();
+    const syncSeek = () => audio.currentTime = videoPlayer.currentTime;
+    const syncVolume = () => {
+        audio.volume = videoPlayer.volume;
+        audio.muted = videoPlayer.muted;
+    };
+
+    videoPlayer.addEventListener('play', syncPlay);
+    videoPlayer.addEventListener('pause', syncPause);
+    videoPlayer.addEventListener('seeked', syncSeek);
+    videoPlayer.addEventListener('volumechange', syncVolume);
+
+    state.currentAudioElement = audio;
+
+    if (!videoPlayer.paused) {
+        audio.currentTime = videoPlayer.currentTime;
+        audio.play();
+    }
+}
+
+function cleanupSubtitles() {
+    state.subtitleBlobUrls.forEach(url => URL.revokeObjectURL(url));
+    state.subtitleBlobUrls = [];
+
+    const videoPlayer = document.getElementById('videoPlayer');
+    const tracks = videoPlayer.querySelectorAll('track');
+    tracks.forEach(track => track.remove());
+}
+
+// ===========================
+// VIDEO TRANSCODING
+// ===========================
+
+async function startTranscode() {
+    clearAllTracks()
+    if (!state.currentEpisode?.actual_path) {
+        showAlert('No video path available', 'error');
+        return;
+    }
+    
+    const transcodeBtn = document.getElementById('transcodeBtn');
+    const cancelBtn = document.getElementById('cancelTranscodeBtn');
+    const progressDiv = document.getElementById('transcodeProgress');
+    
+    try {
+        transcodeBtn.disabled = true;
+        
+        const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/transcode`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                path: state.currentEpisode.actual_path,
+                video_index: 0,
+                audio_index: null
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data && data.success) {
+            state.transcodeJob = {
+                url: data.url,
+                status: data.status
+            };
+            
+            if (data.status === 'completed') {
+                // Already transcoded, load immediately
+                loadTranscodedVideo(data.url);
+                showAlert('Video loaded (already transcoded)', 'success');
+            } else {
+                // Show progress UI
+                progressDiv.style.display = 'block';
+                cancelBtn.style.display = 'inline-flex';
+                
+                // Start polling for progress
+                startTranscodeStatusPolling();
+                
+                showAlert('Transcoding started...', 'info');
+            }
+        } else {
+            showAlert('Failed to start transcode', 'error');
+            transcodeBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error starting transcode:', error);
+        showAlert('Failed to start transcode', 'error');
+        transcodeBtn.disabled = false;
+    }
+}
+
+function startTranscodeStatusPolling() {
+    if (state.transcodeStatusInterval) {
+        clearInterval(state.transcodeStatusInterval);
+    }
+    
+    state.transcodeStatusInterval = setInterval(async () => {
+        await checkTranscodeStatus();
+    }, 2000); // Poll every 2 seconds
+    
+    // Check immediately
+    checkTranscodeStatus();
+}
+
+async function checkTranscodeStatus() {
+    if (!state.currentEpisode?.actual_path || !state.transcodeJob) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/transcode/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                path: state.currentEpisode.actual_path,
+                video_index: 0
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data && data.success) {
+            updateTranscodeProgress(data);
+            
+            if (data.status === 'completed') {
+                // Transcode finished
+                stopTranscodeStatusPolling();
+                loadTranscodedVideo(data.url);
+                showAlert('Video transcoded successfully!', 'success');
+            } else if (data.status === 'failed') {
+                stopTranscodeStatusPolling();
+                showAlert('Transcode failed', 'error');
+            } else if (data.status === 'cancelled') {
+                stopTranscodeStatusPolling();
+                showAlert('Transcode cancelled', 'info');
+            }
+        }
+    } catch (error) {
+        console.error('Error checking transcode status:', error);
+    }
+}
+
+function updateTranscodeProgress(data) {
+    const statusEl = document.getElementById('transcodeStatus');
+    const percentEl = document.getElementById('transcodePercent');
+    const barEl = document.getElementById('transcodeBar');
+    const etaEl = document.getElementById('transcodeEta');
+    
+    const progress = data.progress || 0;
+    
+    statusEl.textContent = 'Transcoding...';
+    percentEl.textContent = `${progress}%`;
+    barEl.style.width = `${progress}%`;
+    
+    if (data.eta) {
+        etaEl.textContent = `ETA: ${data.eta}`;
+    }
+}
+
+function loadTranscodedVideo(url) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    
+    const currentTime = videoPlayer.currentTime;
+    const wasPlaying = !videoPlayer.paused;
+    
+    // Switch to transcoded URL
+    videoSource.src = `${CONFIG.BASE_URL}${url}`;
+    videoPlayer.load();
+    
+    // Restore playback position
+    videoPlayer.addEventListener('loadedmetadata', function onLoaded() {
+        videoPlayer.currentTime = currentTime;
+        if (wasPlaying) {
+            videoPlayer.play();
+        }
+        videoPlayer.removeEventListener('loadedmetadata', onLoaded);
+    });
+    
+    // Reset UI
+    const transcodeBtn = document.getElementById('transcodeBtn');
+    const cancelBtn = document.getElementById('cancelTranscodeBtn');
+    const progressDiv = document.getElementById('transcodeProgress');
+    
+    transcodeBtn.disabled = false;
+    cancelBtn.style.display = 'none';
+    progressDiv.style.display = 'none';
+    
+    state.transcodeJob = null;
+}
+
+async function cancelTranscode() {
+    if (!state.currentEpisode?.actual_path) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/transcode/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                path: state.currentEpisode.actual_path,
+                video_index: 0
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data && data.success) {
+            stopTranscodeStatusPolling();
+            showAlert('Transcode cancelled', 'info');
+        }
+    } catch (error) {
+        console.error('Error cancelling transcode:', error);
+        showAlert('Failed to cancel transcode', 'error');
+    }
+}
+
+function stopTranscodeStatusPolling() {
+    if (state.transcodeStatusInterval) {
+        clearInterval(state.transcodeStatusInterval);
+        state.transcodeStatusInterval = null;
+    }
+    
+    const transcodeBtn = document.getElementById('transcodeBtn');
+    const cancelBtn = document.getElementById('cancelTranscodeBtn');
+    const progressDiv = document.getElementById('transcodeProgress');
+    
+    transcodeBtn.disabled = false;
+    cancelBtn.style.display = 'none';
+    progressDiv.style.display = 'none';
+    
+    state.transcodeJob = null;
+}
+
+// ===========================
 // EVENT LISTENERS
 // ===========================
 
@@ -894,6 +1353,10 @@ function initEventListeners() {
     document.getElementById('btnPrev').addEventListener('click', playPreviousEpisode);
     document.getElementById('btnNext').addEventListener('click', playNextEpisode);
     document.getElementById('btnLoop').addEventListener('click', toggleLoop);
+
+    // Transcode controls (in-browser only)
+    document.getElementById('transcodeBtn')?.addEventListener('click', startTranscode);
+    document.getElementById('cancelTranscodeBtn')?.addEventListener('click', cancelTranscode);
     
     // Seek controls
     document.getElementById('btnSeek10Minus').addEventListener('click', () => seek(-10));
@@ -902,7 +1365,13 @@ function initEventListeners() {
     document.getElementById('btnSeek60Plus').addEventListener('click', () => seek(60));
     document.getElementById('btnSeek5mMinus').addEventListener('click', () => seek(-300));
     document.getElementById('btnSeek5mPlus').addEventListener('click', () => seek(300));
-    
+
+    // Track controls (in-browser only)
+    document.getElementById('loadSubtitlesBtn')?.addEventListener('click', loadSubtitles);
+    document.getElementById('loadAudioBtn')?.addEventListener('click', loadAudioTracks);
+    document.getElementById('subtitleSelect')?.addEventListener('change', (e) => switchSubtitle(e.target.value));
+    document.getElementById('audioSelect')?.addEventListener('change', (e) => switchAudio(e.target.value));
+
     // Volume controls (in-browser)
     document.getElementById('btnVolDown')?.addEventListener('click', () => adjustVolume(-5));
     document.getElementById('btnVolUp')?.addEventListener('click', () => adjustVolume(5));

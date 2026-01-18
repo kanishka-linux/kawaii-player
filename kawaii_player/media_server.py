@@ -1178,6 +1178,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(error_bytes)
 
+    def send_raw_response(self, data, content_type='application/octet-stream', status_code=200):
+        """Send a raw binary response with proper headers"""
+        try:
+            self.send_response(status_code)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', len(data))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(data)
+        except Exception as e:
+            print(f"Error sending raw response: {e}")
+            self.send_error(500, f"Error sending response: {str(e)}")
+
     def do_init_function(self, type_request=None):
         global ui, logger
         path = self.path.replace('/', '', 1)
@@ -1474,6 +1487,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Location', nm)
                 self.send_header('Connection', 'close')
                 self.end_headers()
+        elif self.path.startswith('/cache/'):
+            cache_filename = self.path.replace('/cache/', '')
+            result = ui.track_extractor.handle_cache_request(cache_filename)
+            if result is None:
+                self.send_error(404, "File not found")
+            self.serve_file_with_range(
+                result['file_path'], 
+                result['content_type'],
+                result['file_size']
+            )
+            #self.send_raw_response(result['data'], result['content_type'], 200)
         else:
             self.do_init_function(type_request='get')
 
@@ -2407,6 +2431,41 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.handle_title_details_request(title, directory_hash)
             else:
                 self.send_error(400, "Title parameter required")
+        elif self.path.startswith('/series/') and self.path.endswith('/subtitle'):
+            series_id = self.path.split('/')[2]
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            data, status_code =  ui.track_extractor.handle_subtitle_request(series_id, request_body)
+            self.send_json_response(data, status_code)
+        elif self.path.startswith('/series/') and self.path.endswith('/audio'):
+            series_id = self.path.split('/')[2]
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            data, status_code = ui.track_extractor.handle_audio_request(series_id, request_body)
+            self.send_json_response(data, status_code)
+        elif self.path.startswith('/series/') and self.path.endswith('/transcode'):
+            series_id = self.path.split('/')[2]
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            
+            data, status_code = ui.track_extractor.handle_transcode_request(series_id, request_body)
+            self.send_json_response(data, status_code)
+        elif self.path.startswith('/series/') and self.path.endswith('/transcode/status'):
+            series_id = self.path.split('/')[2]
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            
+            data, status_code = ui.track_extractor.handle_transcode_status_request(series_id, request_body)
+            self.send_json_response(data, status_code)
+        
+        # Transcode cancel endpoint
+        elif self.path.startswith('/series/') and self.path.endswith('/transcode/cancel'):
+            series_id = self.path.split('/')[2]
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            
+            data, status_code = ui.track_extractor.handle_transcode_cancel_request(series_id, request_body)
+            self.send_json_response(data, status_code)
         else:
             self.do_init_function(type_request='post')
 
@@ -3090,6 +3149,114 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             conn.rollback()
             conn.close()
             return {'success': False, 'error': f"Database error: {str(e)}"}
+
+    
+    def serve_file_with_range(self, file_path, content_type, file_size):
+        """Serve file with HTTP Range request support for streaming (supports growing files)"""
+        try:
+            # Parse Range header
+            range_header = self.headers.get('Range')
+            
+            if range_header:
+                # Parse range: bytes=start-end
+                range_match = range_header.replace('bytes=', '').split('-')
+                start = int(range_match[0]) if range_match[0] else 0
+                end = int(range_match[1]) if range_match[1] else file_size - 1
+                
+                # Get current actual file size (might be growing during transcode)
+                current_file_size = os.path.getsize(file_path)
+                
+                # Adjust end to current file size if file is still growing
+                if end >= current_file_size:
+                    end = current_file_size - 1
+                
+                # If start is beyond current file size, wait a bit or return what we have
+                if start >= current_file_size:
+                    # File hasn't grown enough yet, return 206 with empty content
+                    # or wait briefly for file to grow
+                    time.sleep(0.1)
+                    current_file_size = os.path.getsize(file_path)
+                    
+                    if start >= current_file_size:
+                        # Still not enough data, return what we have
+                        self.send_response(206)
+                        self.send_header('Content-Type', content_type)
+                        self.send_header('Content-Range', f'bytes */{current_file_size}')
+                        self.send_header('Content-Length', '0')
+                        self.send_header('Accept-Ranges', 'bytes')
+                        self.send_header('Access-Control-Allow-Origin', '*')
+                        self.end_headers()
+                        return
+                    
+                    # Adjust end
+                    end = min(end, current_file_size - 1)
+                
+                # Validate range with current file size
+                if start > end or start < 0:
+                    self.send_error(416, "Requested Range Not Satisfiable")
+                    self.send_header('Content-Range', f'bytes */{current_file_size}')
+                    self.end_headers()
+                    return
+                
+                length = end - start + 1
+                
+                # Send partial content response (206)
+                self.send_response(206)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Range', f'bytes {start}-{end}/{current_file_size}')
+                self.send_header('Content-Length', length)
+                self.send_header('Accept-Ranges', 'bytes')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache')  # Don't cache growing files
+                self.end_headers()
+                
+                # Stream the requested chunk
+                with open(file_path, 'rb') as f:
+                    f.seek(start)
+                    remaining = length
+                    chunk_size = 64 * 1024  # 64KB chunks
+                    
+                    while remaining > 0:
+                        read_size = min(chunk_size, remaining)
+                        data = f.read(read_size)
+                        if not data:
+                            break
+                        try:
+                            self.wfile.write(data)
+                        except (BrokenPipeError, ConnectionResetError):
+                            print(f"Client disconnected during streaming")
+                            break
+                        remaining -= len(data)
+            else:
+                # No range request, serve entire file
+                current_file_size = os.path.getsize(file_path)
+                
+                self.send_response(200)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Length', current_file_size)
+                self.send_header('Accept-Ranges', 'bytes')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-cache')
+                self.end_headers()
+                
+                # Stream entire file in chunks
+                with open(file_path, 'rb') as f:
+                    chunk_size = 64 * 1024  # 64KB chunks
+                    while True:
+                        data = f.read(chunk_size)
+                        if not data:
+                            break
+                        try:
+                            self.wfile.write(data)
+                        except (BrokenPipeError, ConnectionResetError):
+                            print(f"Client disconnected during streaming")
+                            break
+                        
+        except Exception as e:
+            print(f"Error serving file: {e}")
+            import traceback
+            traceback.print_exc()
+            self.send_error(500, f"Error serving file: {str(e)}")
 
     def process_url(self, nm, get_bytes, status=None):
         global ui, logger

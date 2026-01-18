@@ -996,3 +996,80 @@ body[data-mode="slave"] .in-browser-only {
 body[data-mode="slave"] .master-slave-only {
     display: block !important;
 }
+
+/* Track controls */
+.track-controls {
+    margin: 10px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.control-btn:hover {
+    background: #0056b3;
+}
+
+.control-btn:active {
+    background: #004085;
+}
+
+/* Track selectors */
+.track-selector {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.track-selector label {
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.track-selector select {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 200px;
+}
+
+.track-selector select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Dark theme support (if needed) */
+@media (prefers-color-scheme: dark) {
+    .control-btn {
+        background: #0d6efd;
+    }
+    
+    .control-btn:hover {
+        background: #0b5ed7;
+    }
+    
+    .track-selector select {
+        background: #2b2b2b;
+        color: white;
+        border-color: #555;
+    }
+    
+    .track-selector label {
+        color: #e0e0e0;
+    }
+}
