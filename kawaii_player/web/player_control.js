@@ -762,6 +762,7 @@ async function castURL() {
     const url = prompt('Enter URL to cast:');
     if (url) {
         await sendRemoteCommand(`/youtube_quick=${url}`);
+        state.firstPlay = false;
         showAlert('URL casted', 'success');
     }
 }
