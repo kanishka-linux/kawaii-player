@@ -20,7 +20,7 @@ class TrackExtractor:
         """Check if video codec is browser-compatible for MP4 container"""
         # H.264 (avc1/h264) and H.265 (hevc) are widely supported in MP4
         # VP9 and AV1 have good support in modern browsers
-        compatible_codecs = ['h264', 'avc1', 'hevc', 'h265', 'vp9', 'av1']
+        compatible_codecs = ['h264', 'avc1', 'h265', 'vp9', 'av1']
         return codec.lower() in compatible_codecs
 
     def _is_audio_browser_playable(self, codec):
