@@ -29,6 +29,88 @@ class TrackExtractor:
         browser_playable = ['aac', 'mp3', 'opus', 'vorbis', 'flac']
         return codec.lower() in browser_playable
 
+    def _is_raspberry_pi(self):
+        """Check if running on Raspberry Pi"""
+        try:
+            result = subprocess.run(['uname', '-r'], capture_output=True, text=True)
+            kernel = result.stdout.strip()
+            
+            if 'rpt-rpi' not in kernel and 'raspi' not in kernel:
+                return False
+            
+            self.ui.logger.info(f"Detected Raspberry Pi (kernel: {kernel})")
+            return True
+            
+        except Exception as e:
+            self.ui.logger.error(f"Error detecting RPi: {e}")
+            return False
+
+    def _check_hw_encoder_available(self):
+        """Check if hardware encoder is available (cached result)"""
+        if hasattr(self, '_hw_encoder_checked') and self._hw_encoder_checked:
+            return self._hw_encoder_available
+        
+        try:
+            result = subprocess.run(
+                ['ffmpeg', '-hide_banner', '-encoders'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            self._hw_encoder_available = 'h264_v4l2m2m' in result.stdout
+            self._hw_encoder_checked = True
+            
+            if self._hw_encoder_available:
+                self.ui.logger.info("Hardware encoder (h264_v4l2m2m) detected!")
+            else:
+                self.ui.logger.info("No hardware encoder found")
+                
+            return self._hw_encoder_available
+            
+        except Exception as e:
+            self.ui.logger.error(f"Error checking hardware encoder: {e}")
+            self._hw_encoder_checked = True
+            self._hw_encoder_available = False
+            return False
+
+    def _get_optimal_transcode_settings(self, source_codec = None):
+        """Get optimal transcoding settings for RPi 4B"""
+        if not self._is_raspberry_pi():
+            return {
+                'preset': 'veryfast',
+                'crf': '23',
+                'threads': '0',
+                'maxrate': '5M',
+                'bufsize': '10M'
+            }
+        is_hevc = source_codec and source_codec.lower() in ['hevc', 'h265']
+        use_hw = self._check_hw_encoder_available()
+
+        if is_hevc or not use_hw:
+            self.ui.logger.info("RPi 4B software encoding for HEVC - ultrafast 480p")
+            return {
+                'encoder': 'libx264',
+                'preset': 'ultrafast',
+                'crf': '28',
+                'threads': '4',
+                'profile': 'baseline',
+                'level': '3.1',
+                'pix_fmt': 'yuv420p',
+                'scale': '-2:480',
+                'use_hw': False
+            }
+        
+        self.ui.logger.info("Using HW encoder for RPi 4B - 480p")
+        return {
+            'encoder': 'h264_v4l2m2m',
+            'bitrate': '1500k',
+            'maxrate': '2M',
+            'bufsize': '4M',
+            'hw_accel': True,
+            'scale': '-2:480'
+        }
+
     # ===========================
     # VIDEO TRANSCODING
     # ===========================
@@ -302,12 +384,70 @@ class TrackExtractor:
             'status': 'cancelled'
         }
 
+    def _get_source_video_codec(self, mkv_path, video_index):
+        """Get the codec of the source video stream"""
+        try:
+            info = self.get_mkv_info(mkv_path)
+            if info and info.get('video'):
+                for vid in info['video']:
+                    if vid['index'] == video_index:
+                        codec = vid.get('codec', '')
+                        self.ui.logger.info(f"Source video codec: {codec}")
+                        return codec
+            
+            self.ui.logger.warning(f"Could not detect video codec for index {video_index}")
+            return None
+            
+        except Exception as e:
+            self.ui.logger.error(f"Error getting source codec: {e}")
+            return None
+
+    def _build_video_encoding_args(self, needs_transcode, source_codec=None):
+        """Build FFmpeg arguments for video encoding"""
+        if not needs_transcode:
+            self.ui.logger.info("Copying video stream (compatible codec)...")
+            return ['-c:v', 'copy']
+        
+        self.ui.logger.info("Transcoding video stream...")
+        
+        settings = self._get_optimal_transcode_settings(source_codec)
+        args = []
+        
+        # Add scaling filter
+        if 'scale' in settings:
+            args.extend(['-vf', f'scale={settings["scale"]}'])
+        
+        if settings.get('use_hw'):
+            # Hardware encoding (h264_v4l2m2m)
+            args.extend([
+                '-c:v', 'h264_v4l2m2m',
+                '-b:v', settings['bitrate'],
+                '-num_output_buffers', '16',
+                '-num_capture_buffers', '8',
+            ])
+            self.ui.logger.info(f"HW encoding 480p: {settings['bitrate']} bitrate")
+        else:
+            # Software encoding (libx264 - for HEVC sources)
+            args.extend([
+                '-c:v', 'libx264',
+                '-preset', settings['preset'],
+                '-crf', settings['crf'],
+                '-threads', settings['threads'],
+                '-profile:v', settings['profile'],
+                '-level', settings['level'],
+                '-pix_fmt', settings['pix_fmt']
+            ])
+            self.ui.logger.info(f"SW encoding 480p: preset={settings['preset']}, crf={settings['crf']}")
+        
+        return args
+
     def _transcode_video_worker(self, mkv_path, video_index, audio_index, output_path, job_key, needs_transcode=True):
         """Background worker for video transcoding/copying with progress tracking"""
         process = None
         try:
             # Get video duration for progress calculation
             duration = self._get_video_duration(mkv_path)
+            source_codec = self._get_source_video_codec(mkv_path, video_index)
 
             # If audio_index not provided, auto-detect first audio track
             if audio_index is None:
@@ -328,22 +468,9 @@ class TrackExtractor:
             else:
                 cmd.extend(['-map', f'0:{video_index}'])
             
-            # Video encoding settings - CONDITIONAL
-            if needs_transcode:
-                self.ui.logger.info(f"Transcoding video stream {video_index}...")
-                cmd.extend([
-                    '-c:v', 'libx264',
-                    '-preset', 'veryfast',  # Fast encoding for real-time
-                    '-crf', '23',           # Quality level (18-28 good range)
-                    '-maxrate', '5M',       # Max bitrate
-                    '-bufsize', '10M',      # Buffer size
-                ])
-            else:
-                self.ui.logger.info(f"Copying video stream {video_index} (compatible codec)...")
-                cmd.extend([
-                    '-c:v', 'copy',  # Just copy, no re-encoding
-                ])
-            
+            video_args = self._build_video_encoding_args(needs_transcode, source_codec)
+            cmd.extend(video_args)
+
             # Audio encoding settings - CONDITIONAL
             audio_args = self._build_audio_encoding_args(mkv_path, audio_index)
             cmd.extend(audio_args)
@@ -364,7 +491,7 @@ class TrackExtractor:
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
                 universal_newlines=True,
                 bufsize=1
             )
