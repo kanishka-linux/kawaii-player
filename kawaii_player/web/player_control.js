@@ -382,6 +382,66 @@ function stopBrowserPlayer() {
     }
 }
 
+function loadTranscodedVideo(url, keepProgressUI = false) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    
+    const currentTime = videoPlayer.currentTime;
+    const wasPlaying = !videoPlayer.paused;
+    
+    // Switch to transcoded URL
+    videoSource.src = `${CONFIG.BASE_URL}${url}`;
+    videoPlayer.load();
+    
+    // Restore playback position
+    videoPlayer.addEventListener('loadedmetadata', function onLoaded() {
+        videoPlayer.currentTime = currentTime;
+        if (wasPlaying) {
+            videoPlayer.play();
+        }
+        videoPlayer.removeEventListener('loadedmetadata', onLoaded);
+    });
+    
+    // Only reset UI if transcode is complete
+    if (!keepProgressUI) {
+        const transcodeBtn = document.getElementById('transcodeBtn');
+        const cancelBtn = document.getElementById('cancelTranscodeBtn');
+        const progressDiv = document.getElementById('transcodeProgress');
+        
+        transcodeBtn.disabled = false;
+        cancelBtn.style.display = 'none';
+        progressDiv.style.display = 'none';
+        
+        state.transcodeJob = null;
+        clearTranscodeJob();
+    }
+}
+
+function saveTranscodeJob() {
+    if (state.transcodeJob) {
+        localStorage.setItem('transcodeJob', JSON.stringify({
+            ...state.transcodeJob,
+            seriesId: state.seriesId,
+            episodeNumber: state.currentEpisode.number
+        }));
+    }
+}
+
+function clearTranscodeJob() {
+    localStorage.removeItem('transcodeJob');
+}
+
+function loadTranscodeJob() {
+    const saved = localStorage.getItem('transcodeJob');
+    if (!saved) return null;
+    
+    try {
+        return JSON.parse(saved);
+    } catch {
+        return null;
+    }
+}
+
 function updateProgress() {
     const videoPlayer = document.getElementById('videoPlayer');
     if (!videoPlayer) return;
@@ -605,6 +665,20 @@ function playPreviousEpisode() {
 function togglePlayPause() {
     if (state.mode === 'in-browser') {
         const videoPlayer = document.getElementById('videoPlayer');
+        // Check if video is not loaded but transcode is ongoing
+        if (state.transcodeJob && !videoPlayer.src) {
+            // Load the transcoding video
+            loadTranscodedVideo(state.transcodeJob.url, true);
+            return;
+        }
+        
+        // Check if paused and no source - might need to reload transcode
+        if (videoPlayer.paused && (!videoPlayer.src || videoPlayer.src === '')) {
+            if (state.transcodeJob && state.transcodeJob.url) {
+                loadTranscodedVideo(state.transcodeJob.url, true);
+            }
+            return;
+        }
         if (videoPlayer.paused) {
             videoPlayer.play();
         } else {
@@ -1156,6 +1230,12 @@ async function startTranscode() {
                 url: data.url,
                 status: data.status
             };
+
+            // Save to localStorage for persistence across refreshes
+            saveTranscodeJob();
+            
+            // Load video IMMEDIATELY, even if still transcoding
+            loadTranscodedVideo(data.url, true); // true = keep progress UI
             
             if (data.status === 'completed') {
                 // Already transcoded, load immediately
@@ -1250,38 +1330,6 @@ function updateTranscodeProgress(data) {
     }
 }
 
-function loadTranscodedVideo(url) {
-    const videoPlayer = document.getElementById('videoPlayer');
-    const videoSource = document.getElementById('videoSource');
-    
-    const currentTime = videoPlayer.currentTime;
-    const wasPlaying = !videoPlayer.paused;
-    
-    // Switch to transcoded URL
-    videoSource.src = `${CONFIG.BASE_URL}${url}`;
-    videoPlayer.load();
-    
-    // Restore playback position
-    videoPlayer.addEventListener('loadedmetadata', function onLoaded() {
-        videoPlayer.currentTime = currentTime;
-        if (wasPlaying) {
-            videoPlayer.play();
-        }
-        videoPlayer.removeEventListener('loadedmetadata', onLoaded);
-    });
-    
-    // Reset UI
-    const transcodeBtn = document.getElementById('transcodeBtn');
-    const cancelBtn = document.getElementById('cancelTranscodeBtn');
-    const progressDiv = document.getElementById('transcodeProgress');
-    
-    transcodeBtn.disabled = false;
-    cancelBtn.style.display = 'none';
-    progressDiv.style.display = 'none';
-    
-    state.transcodeJob = null;
-}
-
 async function cancelTranscode() {
     if (!state.currentEpisode?.actual_path) {
         return;
@@ -1301,12 +1349,51 @@ async function cancelTranscode() {
         
         if (data && data.success) {
             stopTranscodeStatusPolling();
+            clearTranscodeJob();
             showAlert('Transcode cancelled', 'info');
         }
     } catch (error) {
         console.error('Error cancelling transcode:', error);
         showAlert('Failed to cancel transcode', 'error');
     }
+}
+
+async function checkOngoingTranscode() {
+    const savedTranscode = loadTranscodeJob();
+    
+    if (!savedTranscode) {
+        return;
+    }
+    
+    // Check if saved transcode matches current episode
+    if (savedTranscode.seriesId !== state.seriesId || 
+        savedTranscode.episodeNumber !== state.currentEpisode.number ||
+        savedTranscode.episodePath !== state.currentEpisode.actual_path) {
+        
+        console.log('Saved transcode is for different episode, clearing...');
+        clearTranscodeJob();
+        return;
+    }
+    
+    console.log('Found ongoing transcode job, restoring...');
+    state.transcodeJob = savedTranscode;
+    
+    // Load the video
+    loadTranscodedVideo(savedTranscode.url, true);
+    
+    // Show progress UI
+    const progressDiv = document.getElementById('transcodeProgress');
+    const cancelBtn = document.getElementById('cancelTranscodeBtn');
+    const transcodeBtn = document.getElementById('transcodeBtn');
+    
+    progressDiv.style.display = 'block';
+    cancelBtn.style.display = 'inline-flex';
+    transcodeBtn.disabled = true;
+    
+    // Start polling to check status
+    startTranscodeStatusPolling();
+    
+    showAlert('Resuming transcode playback...', 'info');
 }
 
 function stopTranscodeStatusPolling() {
@@ -1473,7 +1560,7 @@ async function initialize() {
 
     if (savedEpisodeNumber) {
         targetEpisodeNumber = parseInt(savedEpisodeNumber);
-        localStorage.removeItem('selectedEpisodeNumber'); // Clean up
+        //localStorage.removeItem('selectedEpisodeNumber'); // Clean up
         console.log('Using saved episode number:', targetEpisodeNumber);
     }
 
@@ -1503,6 +1590,8 @@ async function initialize() {
         thumbnailImage.src = seriesData.poster;
         thumbnailImage.alt = seriesData.title;
     }
+
+    await checkOngoingTranscode();
     
     // Render episodes
     renderEpisodes();
