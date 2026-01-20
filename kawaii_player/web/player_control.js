@@ -585,6 +585,13 @@ function renderEpisodes() {
 }
 
 function playEpisode(episodeNumber) {
+
+    // Prevent switching episodes during active transcode
+    if (state.transcodeJob && state.transcodeJob.status !== 'completed') {
+        showAlert('Please wait for current transcode to complete or stop playback first', 'warning');
+        return;
+    }
+
     const episode = state.episodes.find(ep => ep.number === episodeNumber);
     if (!episode) {
         showAlert('Episode not found', 'error');
@@ -667,18 +674,12 @@ function playPreviousEpisode() {
 function togglePlayPause() {
     if (state.mode === 'in-browser') {
         const videoPlayer = document.getElementById('videoPlayer');
+        
         // Check if video is not loaded but transcode is ongoing
         if (state.transcodeJob && !videoPlayer.src) {
             // Load the transcoding video
             loadTranscodedVideo(state.transcodeJob.url, true);
-            return;
-        }
-        
-        // Check if paused and no source - might need to reload transcode
-        if (videoPlayer.paused && (!videoPlayer.src || videoPlayer.src === '')) {
-            if (state.transcodeJob && state.transcodeJob.url) {
-                loadTranscodedVideo(state.transcodeJob.url, true);
-            }
+            videoPlayer.play();
             return;
         }
         if (videoPlayer.paused) {
@@ -686,6 +687,14 @@ function togglePlayPause() {
         } else {
             videoPlayer.pause();
         }
+        // Check if paused and no source - might need to reload transcode
+        if (videoPlayer.paused && (!videoPlayer.src || videoPlayer.src === '')) {
+            if (state.transcodeJob && state.transcodeJob.url) {
+                loadTranscodedVideo(state.transcodeJob.url, true);
+            }
+            return;
+        }
+        
     } else {
         if (state.firstPlay && state.currentEpisode) {
             // First play: use playlist command to start the episode
@@ -703,10 +712,17 @@ function togglePlayPause() {
 
 function stopPlayback() {
     if (state.mode === 'in-browser') {
+        // If transcode is running, cancel it
+        if (state.transcodeJob && state.transcodeJob.status !== 'completed') {
+            cancelTranscode();
+        }
         clearAllTracks()
         const videoPlayer = document.getElementById('videoPlayer');
         videoPlayer.pause();
         videoPlayer.currentTime = 0;
+        // Reset play/pause button to "Play" state
+        state.playing = false;
+        updatePlayPauseButton();
     } else {
         sendRemoteCommand('/playerstop');
         stopRemoteSync();
@@ -1257,8 +1273,18 @@ async function startTranscode() {
                 status: data.status
             };
 
+            // Set duration immediately if available
+            if (data.duration) {
+                state.duration = data.duration;
+                document.getElementById('totalTime').textContent = formatTime(data.duration);
+            }
+
             // Save to localStorage for persistence across refreshes
             saveTranscodeJob();
+
+            // Reset play/pause button to "Play" state
+            state.playing = false;
+            updatePlayPauseButton();
             
             // Load video IMMEDIATELY, even if still transcoding
             loadTranscodedVideo(data.url, true); // true = keep progress UI
