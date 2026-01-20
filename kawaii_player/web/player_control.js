@@ -30,7 +30,9 @@ const state = {
     loadedAudioTracks: [],
     currentAudioElement: null,
     transcodeJob: null,
-    transcodeStatusInterval: null
+    transcodeStatusInterval: null,
+    subtitlesLoaded: false,
+    audioTracksLoaded: false
 };
 
 // ===========================
@@ -962,6 +964,12 @@ async function loadSubtitles() {
         showAlert('No video path available', 'error');
         return;
     }
+
+    // Check if already loaded
+    if (state.subtitlesLoaded) {
+        showAlert('Subtitles already loaded', 'info');
+        return;
+    }
     
     try {
         const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/subtitle`, {
@@ -1001,6 +1009,7 @@ async function loadSubtitles() {
                 select.appendChild(option);
             });
             
+            state.subtitlesLoaded = true;
             showAlert(`Loaded ${data.tracks.length} subtitle tracks`, 'success');
         } else {
             showAlert('No subtitles available', 'info');
@@ -1014,6 +1023,12 @@ async function loadSubtitles() {
 async function loadAudioTracks() {
     if (!state.currentEpisode?.actual_path) {
         showAlert('No video path available', 'error');
+        return;
+    }
+
+    // Check if already loaded
+    if (state.audioTracksLoaded) {
+        showAlert('Audio tracks already loaded', 'info');
         return;
     }
 
@@ -1046,7 +1061,7 @@ async function loadAudioTracks() {
                 option.textContent = `${track.language.toUpperCase()} - ${track.channels}ch${label} - ${track.title}`;
                 select.appendChild(option);
             });
-            
+            state.audioTracksLoaded = true;
             showAlert(`Loaded ${data.tracks.length} audio tracks`, 'success');
         } else {
             showAlert('No audio tracks available', 'info');
@@ -1064,6 +1079,7 @@ async function loadAudioTracks() {
 function clearAllTracks() {
     // Clear subtitles
     cleanupSubtitles();
+    state.subtitlesLoaded = false;
     
     // Clear audio
     if (state.currentAudioElement) {
@@ -1072,6 +1088,7 @@ function clearAllTracks() {
         state.currentAudioElement = null;
     }
     state.loadedAudioTracks = [];
+    state.audioTracksLoaded = false;
     
     // Clear transcode job
     stopTranscodeStatusPolling();
@@ -1260,6 +1277,13 @@ async function startTranscode() {
                 
                 showAlert('Transcoding started...', 'info');
             }
+
+            // AUTO-LOAD SUBTITLES AND AUDIO IN BACKGROUND
+            setTimeout(() => {
+                loadSubtitles();
+                loadAudioTracks();
+            }, 1000); // Small delay to let video start first
+
         } else {
             showAlert('Failed to start transcode', 'error');
             transcodeBtn.disabled = false;
