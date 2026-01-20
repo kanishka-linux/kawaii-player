@@ -1073,3 +1073,38 @@ body[data-mode="slave"] .master-slave-only {
         color: #e0e0e0;
     }
 }
+
+/* WebVTT Subtitle Styling - Responsive */
+video::cue {
+    background-color: rgba(128, 128, 128, 0.4);
+    color: #ffffff;
+    font-size: clamp(0.9em, 2vw, 1.5em);
+    font-family: Arial, Helvetica, sans-serif;
+    
+    /* Multiple shadows to create soft edges (fake rounded effect) */
+    text-shadow: 
+        /* Outline shadows */
+        -2px -2px 3px #000,
+        2px -2px 3px #000,
+        -2px 2px 3px #000,
+        2px 2px 3px #000,
+        /* Softer glow */
+        0 0 8px rgba(0, 0, 0, 0.8),
+        0 0 12px rgba(0, 0, 0, 0.6);
+    
+    line-height: 1.5;
+}
+
+/* Fullscreen mode - larger text */
+video:fullscreen::cue,
+video:-webkit-full-screen::cue,
+video:-moz-full-screen::cue {
+    font-size: clamp(1.5em, 3vh, 2.5em);
+    text-shadow: 
+        -3px -3px 4px #000,
+        3px -3px 4px #000,
+        -3px 3px 4px #000,
+        3px 3px 4px #000,
+        0 0 10px rgba(0, 0, 0, 0.9),
+        0 0 15px rgba(0, 0, 0, 0.7);
+}
