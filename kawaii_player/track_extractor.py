@@ -78,11 +78,15 @@ class TrackExtractor:
         """Get optimal transcoding settings for RPi 4B"""
         if not self._is_raspberry_pi():
             return {
+                'encoder': 'libx264',
                 'preset': 'veryfast',
                 'crf': '23',
                 'threads': '0',
                 'maxrate': '5M',
-                'bufsize': '10M'
+                'bufsize': '10M',
+                'profile': 'main',
+                'level': '4.0',
+                'pix_fmt': 'yuv420p',
             }
         is_hevc = source_codec and source_codec.lower() in ['hevc', 'h265']
         use_hw = self._check_hw_encoder_available()
@@ -121,6 +125,203 @@ class TrackExtractor:
             self.ui.logger.info(f"aid:{audio_index} selected")
         return str(video_index)
     
+    def start_audio_extraction(self, mkv_path, audio_index):
+        """Start audio extraction job and return immediate response"""
+        if not os.path.exists(mkv_path):
+            return {'success': False, 'error': 'File not found'}
+        
+        # Check if audio needs transcoding
+        info = self.get_mkv_info(mkv_path)
+        needs_transcode = True
+        
+        if info and info.get('audio'):
+            for aud in info['audio']:
+                if aud['index'] == audio_index:
+                    audio_codec = aud.get('codec', '')
+                    needs_transcode = not self._is_audio_browser_playable(audio_codec)
+                    break
+        
+        # Generate cache filename
+        operation = 'transcode' if needs_transcode else 'extract'
+        cache_filename = self._get_cache_filename(mkv_path, 'audio', audio_index, operation)
+        cache_path = os.path.join(self.cache_dir, cache_filename)
+        
+        # Check if already processed
+        if os.path.exists(cache_path):
+            file_size = os.path.getsize(cache_path)
+            if file_size > 1024:
+                return {
+                    'success': True,
+                    'url': f'/cache/{cache_filename}',
+                    'status': 'completed',
+                    'progress': 100,
+                    'size': file_size
+                }
+        
+        # Job key
+        job_key = f"{mkv_path}_audio_{audio_index}"
+        
+        # Check if processing is in progress
+        if job_key in self.transcode_jobs:
+            job = self.transcode_jobs[job_key]
+            return {
+                'success': True,
+                'url': f'/cache/{cache_filename}',
+                'status': job.get('status', 'processing'),
+                'progress': job.get('progress', 0)
+            }
+        
+        # Start new job in background
+        self.transcode_jobs[job_key] = {
+            'status': 'starting',
+            'progress': 0,
+            'output_path': cache_path,
+            'started_at': time.time()
+        }
+
+        thread = threading.Thread(
+                target=self._extract_audio_worker,
+            args=(mkv_path, audio_index, cache_path, job_key, needs_transcode)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return {
+            'success': True,
+            'url': f'/cache/{cache_filename}',
+            'status': 'processing',
+            'progress': 0,
+            'message': 'Audio extraction started'
+        }
+
+    def _extract_audio_worker(self, mkv_path, track_index, output_path, job_key, transcode=False):
+        """Background worker for audio extraction with progress"""
+        process = None
+        try:
+            # Get duration
+            duration = self._get_video_duration(mkv_path)
+            
+            # Build command
+            if transcode:
+                # Check if RPi for optimized settings
+                if self._is_raspberry_pi():
+                    cmd = [
+                        'ffmpeg',
+                        '-i', mkv_path,
+                        '-map', f'0:{track_index}',
+                        '-c:a', 'aac',
+                        '-b:a', '128k',
+                        '-ar', '44100',
+                        '-ac', '2',
+                        '-movflags', '+frag_keyframe+empty_moov+default_base_moof',
+                        '-f', 'mp4',
+                        '-progress', 'pipe:1',
+                        '-y',
+                        output_path
+                    ]
+                else:
+                    cmd = [
+                        'ffmpeg',
+                        '-i', mkv_path,
+                        '-map', f'0:{track_index}',
+                        '-c:a', 'aac',
+                        '-b:a', '192k',
+                        '-ar', '48000',
+                        '-movflags', '+frag_keyframe+empty_moov+default_base_moof',
+                        '-f', 'mp4',
+                        '-progress', 'pipe:1',
+                        '-y',
+                        output_path
+                    ]
+            else:
+                cmd = [
+                    'ffmpeg',
+                    '-i', mkv_path,
+                    '-map', f'0:{track_index}',
+                    '-c:a', 'copy',
+                    '-progress', 'pipe:1',
+                    '-y',
+                    output_path
+                ]
+            
+            self.ui.logger.info(f"Starting audio extraction: {' '.join(cmd)}")
+            
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                universal_newlines=True,
+                bufsize=1
+            )
+            
+            # Store process in job
+            self.transcode_jobs[job_key]['process'] = process
+            self.transcode_jobs[job_key]['status'] = 'processing'
+            
+            # Parse progress
+            self._parse_ffmpeg_progress(process, job_key, duration)
+            
+            # Wait for completion
+            process.wait()
+            
+            # Check result
+            if process.returncode == 0 and os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                self.transcode_jobs[job_key].update({
+                    'status': 'completed',
+                    'progress': 100,
+                    'size': file_size
+                })
+                self.ui.logger.info(f"Audio extraction completed: {output_path}")
+            else:
+                self.transcode_jobs[job_key].update({
+                    'status': 'failed',
+                    'error': f'FFmpeg failed with code {process.returncode}'
+                })
+                
+        except Exception as e:
+            self.ui.logger.error(f"Error in audio extraction worker: {e}")
+            self.transcode_jobs[job_key].update({
+                'status': 'failed',
+                'error': str(e)
+            })
+        finally:
+            if job_key in self.transcode_jobs and 'process' in self.transcode_jobs[job_key]:
+                del self.transcode_jobs[job_key]['process']
+
+    def get_audio_extraction_status(self, mkv_path, audio_index):
+        """Get status of ongoing audio extraction"""
+        operation = 'transcode'  # Assume transcode for status check
+        cache_filename = self._get_cache_filename(mkv_path, 'audio', audio_index, operation)
+        cache_path = os.path.join(self.cache_dir, cache_filename)
+        
+        job_key = f"{mkv_path}_audio_{audio_index}"
+        
+        # Check if actively processing
+        if job_key in self.transcode_jobs:
+            job = self.transcode_jobs[job_key]
+            return {
+                'success': True,
+                'url': f'/cache/{cache_filename}',
+                'status': job.get('status', 'processing'),
+                'progress': job.get('progress', 0)
+            }
+        
+        # Check if completed
+        if os.path.exists(cache_path):
+            file_size = os.path.getsize(cache_path)
+            return {
+                'success': True,
+                'url': f'/cache/{cache_filename}',
+                'status': 'completed',
+                'progress': 100,
+                'size': file_size
+            }
+        
+        return {
+            'success': False,
+            'status': 'not_found'
+        }
     
     def start_video_transcode(self, mkv_path, video_index=0, audio_index=None):
         """Start video transcode/copy job and return immediate response"""
@@ -402,42 +603,42 @@ class TrackExtractor:
             self.ui.logger.error(f"Error getting source codec: {e}")
             return None
 
-    def _build_video_encoding_args(self, needs_transcode, source_codec=None):
+    def _build_video_encoding_args(self, needs_transcode, source_codec=None, mkv_path=None, video_index=0):
         """Build FFmpeg arguments for video encoding"""
+        
         if not needs_transcode:
-            self.ui.logger.info("Copying video stream (compatible codec)...")
+            self.ui.logger.info("Copying video stream (compatible codec)")
             return ['-c:v', 'copy']
         
         self.ui.logger.info("Transcoding video stream...")
         
         settings = self._get_optimal_transcode_settings(source_codec)
         args = []
-        
-        # Add scaling filter
-        if 'scale' in settings:
+
+        # Build filter arguments
+        if 'scale' in settings and settings['scale']:
             args.extend(['-vf', f'scale={settings["scale"]}'])
         
+        # Encoding settings
         if settings.get('use_hw'):
-            # Hardware encoding (h264_v4l2m2m)
             args.extend([
-                '-c:v', 'h264_v4l2m2m',
-                '-b:v', settings['bitrate'],
+                '-c:v', settings.get('encoder', 'h264_v4l2m2m'),
+                '-b:v', settings.get('bitrate', '1500k'),
                 '-num_output_buffers', '16',
                 '-num_capture_buffers', '8',
             ])
-            self.ui.logger.info(f"HW encoding 480p: {settings['bitrate']} bitrate")
+            self.ui.logger.info("HW encoding 480p")
         else:
-            # Software encoding (libx264 - for HEVC sources)
             args.extend([
-                '-c:v', 'libx264',
-                '-preset', settings['preset'],
-                '-crf', settings['crf'],
-                '-threads', settings['threads'],
-                '-profile:v', settings['profile'],
-                '-level', settings['level'],
-                '-pix_fmt', settings['pix_fmt']
+                '-c:v', settings.get('encoder', 'libx264'),
+                '-preset', settings.get('preset', 'ultrafast'),
+                '-crf', settings.get('crf', '28'),
+                '-threads', settings.get('threads', '4'),
+                '-profile:v', settings.get('profile', 'baseline'),
+                '-level', settings.get('level', '3.1'),
+                '-pix_fmt', settings.get('pix_fmt', 'yuv420p')
             ])
-            self.ui.logger.info(f"SW encoding 480p: preset={settings['preset']}, crf={settings['crf']}")
+            self.ui.logger.info("SW encoding 480p")
         
         return args
 
@@ -468,7 +669,7 @@ class TrackExtractor:
             else:
                 cmd.extend(['-map', f'0:{video_index}'])
             
-            video_args = self._build_video_encoding_args(needs_transcode, source_codec)
+            video_args = self._build_video_encoding_args(needs_transcode, source_codec, mkv_path, video_index)
             cmd.extend(video_args)
 
             # Audio encoding settings - CONDITIONAL
@@ -648,43 +849,117 @@ class TrackExtractor:
     # ===========================
     # SUBTITLE OPERATIONS
     # ===========================
+
+    def _get_external_subtitles(self, mkv_path):
+        """Find external subtitle files in the same directory"""
+        try:
+            video_dir = os.path.dirname(mkv_path)
+            video_name = os.path.splitext(os.path.basename(mkv_path))[0]
+            
+            # Supported subtitle extensions
+            sub_extensions = ['.srt', '.vtt', '.ass', '.ssa']
+            
+            external_subs = []
+            
+            # Look for files matching video name
+            for file in os.listdir(video_dir):
+                file_lower = file.lower()
+                
+                # Check if file starts with video name and has subtitle extension
+                for ext in sub_extensions:
+                    if file_lower.startswith(video_name.lower()) and file_lower.endswith(ext):
+                        sub_path = os.path.join(video_dir, file)
+                        
+                        # Try to detect language from filename (e.g., video.en.srt, video.eng.srt)
+                        language = 'und'
+                        name_parts = os.path.splitext(file)[0].split('.')
+                        if len(name_parts) > 1:
+                            lang_code = name_parts[-1].lower()
+                            if len(lang_code) in [2, 3]:  # ISO language codes
+                                language = lang_code
+                        
+                        external_subs.append({
+                            'path': sub_path,
+                            'language': language,
+                            'title': file,
+                            'codec': ext[1:]  # Remove dot from extension
+                        })
+            
+            if external_subs:
+                self.ui.logger.info(f"Found {len(external_subs)} external subtitle file(s)")
+            
+            return external_subs
+            
+        except Exception as e:
+            self.ui.logger.error(f"Error finding external subtitles: {e}")
+            return []
+    
     
     def get_all_subtitles(self, mkv_path):
-        """Extract all subtitle tracks and return content"""
+        """Extract all subtitle tracks and return content (including external files)"""
         if not os.path.exists(mkv_path):
             return {'success': False, 'error': 'File not found'}
         
-        info = self.get_mkv_info(mkv_path)
-        self.ui.logger.info(info)
-        if not info or not info.get('subtitle'):
-            return {'success': True, 'tracks': []}
-        
         results = []
-        for subtitle in info['subtitle']:
-            self.ui.logger.info(subtitle)
-            track_index = subtitle['index']
-            
-            cache_filename = self._get_cache_filename(mkv_path, 'subtitle', track_index, 'extract')
-            cache_path = os.path.join(self.cache_dir, cache_filename)
-            
-            if not os.path.exists(cache_path):
-                self.ui.logger.info(f"Extracting subtitle track {track_index}...")
-                if not self._extract_subtitle(mkv_path, track_index, cache_path):
-                    continue
-            
+        
+        # Get external subtitle files from same directory
+        external_subs = self._get_external_subtitles(mkv_path)
+        for ext_sub in external_subs:
             try:
-                with open(cache_path, 'r', encoding='utf-8') as f:
-                    vtt_content = f.read()
+                with open(ext_sub['path'], 'r', encoding='utf-8') as f:
+                    content = f.read()
                 
                 results.append({
-                    'index': track_index,
-                    'language': subtitle['language'],
-                    'title': subtitle['title'],
-                    'codec': subtitle['codec'],
-                    'content': vtt_content
+                    'index': f"ext_{len(results)}",
+                    'language': ext_sub['language'],
+                    'title': ext_sub['title'],
+                    'codec': ext_sub['codec'],
+                    'content': content,
+                    'external': True
                 })
             except Exception as e:
-                self.ui.logger.error(f"Failed to read subtitle: {e}")
+                self.ui.logger.error(f"Failed to read external subtitle {ext_sub['path']}: {e}")
+        
+        # Get embedded subtitles
+        info = self.get_mkv_info(mkv_path)
+        self.ui.logger.info(info)
+        
+        if info and info.get('subtitle'):
+            unsupported_count = 0
+            
+            for subtitle in info['subtitle']:
+                self.ui.logger.info(subtitle)
+                track_index = subtitle['index']
+                codec = subtitle.get('codec', '').lower()
+                
+                # Skip bitmap subtitles
+                if codec in ['dvd_subtitle', 'dvdsub', 'hdmv_pgs_subtitle', 'pgssub', 'vobsub']:
+                    unsupported_count += 1
+                    self.ui.logger.info(f"Skipping bitmap subtitle track {track_index} ({codec})")
+                    continue
+                
+                cache_filename = self._get_cache_filename(mkv_path, 'subtitle', track_index, 'extract')
+                cache_path = os.path.join(self.cache_dir, cache_filename)
+                
+                if not os.path.exists(cache_path):
+                    self.ui.logger.info(f"Extracting subtitle track {track_index}...")
+                    if not self._extract_subtitle(mkv_path, track_index, cache_path):
+                        continue
+                
+                try:
+                    with open(cache_path, 'r', encoding='utf-8') as f:
+                        vtt_content = f.read()
+                    
+                    results.append({
+                        'index': track_index,
+                        'language': subtitle['language'],
+                        'title': subtitle['title'],
+                        'codec': subtitle['codec'],
+                        'content': vtt_content,
+                        'external': False
+                    })
+                except Exception as e:
+                    self.ui.logger.error(f"Failed to read subtitle: {e}")
         
         return {'success': True, 'tracks': results}
     
@@ -723,32 +998,21 @@ class TrackExtractor:
     # ===========================
     # AUDIO OPERATIONS
     # ===========================
-    
     def get_all_audio_tracks(self, mkv_path):
-        """Extract all audio tracks with auto-transcoding"""
+        """Get all audio tracks - start async extraction"""
         if not os.path.exists(mkv_path):
             return {'success': False, 'error': 'File not found'}
         
         info = self.get_mkv_info(mkv_path)
-        self.ui.logger.info(info)
         if not info or not info.get('audio'):
             return {'success': True, 'tracks': []}
         
         results = []
         for audio in info['audio']:
-            self.ui.logger.info(audio)
             track_index = audio['index']
-            codec = audio['codec']
             
-            needs_transcode = not self._is_browser_compatible_audio(codec)
-            operation = 'transcode' if needs_transcode else 'extract'
-            
-            cache_filename = self._get_cache_filename(mkv_path, 'audio', track_index, operation)
-            cache_path = os.path.join(self.cache_dir, cache_filename)
-            
-            if not os.path.exists(cache_path):
-                self.ui.logger.info(f"Extracting audio track {track_index} (transcode={needs_transcode})...")
-                self._extract_audio(mkv_path, track_index, cache_path, needs_transcode)
+            # Start async extraction
+            extraction_result = self.start_audio_extraction(mkv_path, track_index)
             
             results.append({
                 'index': track_index,
@@ -757,8 +1021,9 @@ class TrackExtractor:
                 'codec': audio['codec'],
                 'channels': audio['channels'],
                 'sample_rate': audio['sample_rate'],
-                'url': f'/cache/{cache_filename}',
-                'transcoded': needs_transcode
+                'url': extraction_result.get('url', ''),
+                'status': extraction_result.get('status', 'pending'),
+                'progress': extraction_result.get('progress', 0)
             })
 
         return {'success': True, 'tracks': results}
@@ -910,27 +1175,34 @@ class TrackExtractor:
             import traceback
             traceback.print_exc()
             return {'success': False, 'error': str(e)}, 500
-    
+  
     def handle_transcode_status_request(self, series_id, request_body):
-        """Handle POST /series/:id/transcode/status - Get transcode progress"""
+        """Handle POST /series/:id/transcode/status - Get transcode/extraction progress"""
         try:
             data = json.loads(request_body)
             mkv_path = data.get('path')
-            video_index = data.get('video_index', 0)
-            audio_index = data.get('audio_index')  # Optional
+            video_index = data.get('video_index')
+            audio_index = data.get('audio_index')
+            track_type = data.get('track_type', 'video')  # 'video' or 'audio'
 
             if not mkv_path:
                 return {'success': False, 'error': 'Missing path parameter'}, 400
             
-            result = self.get_transcode_status(mkv_path, video_index, audio_index)
+            if track_type == 'audio' and audio_index is not None:
+                # Audio extraction status
+                result = self.get_audio_extraction_status(mkv_path, audio_index)
+            else:
+                # Video transcode status
+                result = self.get_transcode_status(mkv_path, video_index or 0, audio_index)
+            
             return result, 200
- 
+     
         except json.JSONDecodeError:
             return {'success': False, 'error': 'Invalid JSON'}, 400
         except Exception as e:
             self.ui.logger.error(f"Error handling transcode status request: {e}")
             return {'success': False, 'error': str(e)}, 500
-    
+
     def handle_transcode_cancel_request(self, series_id, request_body):
         """Handle POST /series/:id/transcode/cancel - Cancel transcode job"""
         try:
