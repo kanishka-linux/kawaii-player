@@ -1142,25 +1142,33 @@ function switchSubtitle(index) {
 }
 
 function switchAudio(index) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    
     if (index === '') {
+        // Switch back to video's built-in audio
+        videoPlayer.muted = false;
+        
         if (state.currentAudioElement) {
             state.currentAudioElement.pause();
+            state.currentAudioElement.remove();
             state.currentAudioElement = null;
         }
         return;
     }
 
     const track = state.loadedAudioTracks[parseInt(index)];
-    const videoPlayer = document.getElementById('videoPlayer');
 
     if (state.currentAudioElement) {
         state.currentAudioElement.pause();
         state.currentAudioElement.remove();
     }
 
+    // Mute the video's built-in audio track
+    videoPlayer.muted = true;
+
     const audio = new Audio(CONFIG.BASE_URL + track.url);
-    audio.volume = videoPlayer.volume;
-    audio.muted = videoPlayer.muted;
+    audio.volume = videoPlayer.volume || 0.75;  // Use video volume or default
+    audio.muted = false;  // External audio should NOT be muted
 
     const syncPlay = () => {
         audio.currentTime = videoPlayer.currentTime;
@@ -1169,8 +1177,9 @@ function switchAudio(index) {
     const syncPause = () => audio.pause();
     const syncSeek = () => audio.currentTime = videoPlayer.currentTime;
     const syncVolume = () => {
+        // Only sync volume level, NOT muted state
         audio.volume = videoPlayer.volume;
-        audio.muted = videoPlayer.muted;
+        // video stays muted, audio stays unmuted
     };
 
     videoPlayer.addEventListener('play', syncPlay);
