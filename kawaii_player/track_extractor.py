@@ -327,6 +327,8 @@ class TrackExtractor:
         """Start video transcode/copy job and return immediate response"""
         if not os.path.exists(mkv_path):
             return {'success': False, 'error': 'File not found'}
+
+        duration = self._get_video_duration(mkv_path)
         
         # Check if video needs transcoding
         info = self.get_mkv_info(mkv_path)
@@ -358,7 +360,8 @@ class TrackExtractor:
                     'url': f'/cache/{cache_filename}',
                     'status': 'completed',
                     'progress': 100,
-                    'size': file_size
+                    'size': file_size,
+                    'duration': duration
                 }
         
         # Simple job_key - just path and cache_key
@@ -372,7 +375,8 @@ class TrackExtractor:
                 'url': f'/cache/{cache_filename}',
                 'status': job.get('status', 'processing'),
                 'progress': job.get('progress', 0),
-                'eta': job.get('eta', 'calculating...')
+                'eta': job.get('eta', 'calculating...'),
+                'duration': duration
             }
         
         # Start new job in background
@@ -397,7 +401,8 @@ class TrackExtractor:
             'url': f'/cache/{cache_filename}',
             'status': 'processing',
             'progress': 0,
-            'message': f'{action} started in background'
+            'message': f'{action} started in background',
+            'duration': duration
         }
 
     def _parse_ffmpeg_progress(self, process, job_key, duration):
