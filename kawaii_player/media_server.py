@@ -3150,19 +3150,24 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             conn.close()
             return {'success': False, 'error': f"Database error: {str(e)}"}
 
-    
     def serve_file_with_range(self, file_path, content_type, file_size):
         """Serve file with HTTP Range request support for streaming (supports growing files)"""
         global ui
         trigger_file = file_path + '.finished'
-        timeout_limit = 30
+        timeout_limit = 300
         timeout_counter = 0
+        broken_pipe_limit = 30
+        broken_pipe_counter = 0
         ui.logger.info(f"{trigger_file}, {file_path}, {file_size}")
+        # Detect Chrome browser
+        user_agent = self.headers.get('User-Agent', '').lower()
+        is_chrome = 'chrome' in user_agent or 'chromium' in user_agent
+
         if not os.path.isfile(trigger_file):
             filename = os.path.split(file_path)[-1]
             est_file_size = ui.track_extractor.estimated_file_size.get(filename)
             if est_file_size:
-                file_size = 10 * est_file_size
+                file_size = 20 * est_file_size
             ui.logger.info(f"fsize = {file_size} : est = {est_file_size}, {file_path}")
         try:
             # Parse Range header
@@ -3183,7 +3188,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-Length', length)
                 self.send_header('Accept-Ranges', 'bytes')
                 self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Cache-Control', 'no-cache')  # Don't cache growing files
+                self.send_header('Cache-Control', 'no-cache, no-store')  # Don't cache growing files
+                # Chrome-specific headers
+
                 self.end_headers()
                 
                 # Stream the requested chunk
@@ -3199,7 +3206,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             break
                         elif not data and not os.path.isfile(trigger_file):
                             timeout_counter += 1
-                            time.sleep(1)
+                            time.sleep(0.5)
                             if timeout_counter > timeout_limit:
                                 ui.logger.error("timeout")
                                 break
@@ -3207,8 +3214,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             timeout_counter = 0
                             try:
                                 self.wfile.write(data)
-                            except (BrokenPipeError, ConnectionResetError):
-                                ui.logger.error("Client disconnected during streaming")
+                            except (BrokenPipeError, ConnectionResetError):  
+                                if is_chrome:
+                                    # Chrome disconnects frequently - this is normal
+                                    ui.logger.info(f"Chrome disconnected (normal behavior) - sent {length - remaining} bytes")
+                                    break
+                                else:
+                                    # Firefox - log and continue
+                                    ui.logger.error(f"Client disconnected during streaming: {e}")
                             remaining -= len(data)
             else:
                 # No range request, serve entire file
@@ -3234,18 +3247,21 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         if not data and os.path.isfile(trigger_file):
                             break
                         elif not data and not os.path.isfile(trigger_file):
-                            time.sleep(1)
+                            time.sleep(0.5)
                             timeout_counter += 1
-                            time.sleep(1)
                             if timeout_counter > timeout_limit:
                                 ui.logger.error("timeout")
                                 break
                         else:
-                            timeout_counter = 0
                             try:
                                 self.wfile.write(data)
-                            except (BrokenPipeError, ConnectionResetError):
-                                ui.logger.error("Client disconnected during streaming")
+                                timeout_counter = 0
+                            except (BrokenPipeError, ConnectionResetError) as e:
+                                if is_chrome:
+                                    ui.logger.info(f"Chrome disconnected - {e}")
+                                    break
+                                else:
+                                    ui.logger.error(f"Client disconnected: {e}") 
                         
         except Exception as e:
             print(f"Error serving file: {e}")

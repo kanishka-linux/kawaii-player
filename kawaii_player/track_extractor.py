@@ -685,8 +685,10 @@ class TrackExtractor:
             
             # Output settings for streaming
             cmd.extend([
-                '-movflags', '+faststart+empty_moov',  # Enable progressive streaming
+                '-movflags', '+frag_keyframe+empty_moov+default_base_moof',  # Enable progressive streaming
                 '-flush_packets', '1',
+                '-frag_duration', '1000000',
+                '-min_frag_duration', '1000000',
                 '-f', 'mp4',                # Force MP4 format
                 '-progress', 'pipe:1',       # Output progress to stdout
                 '-y',                        # Overwrite output
@@ -1109,19 +1111,13 @@ class TrackExtractor:
         if not content_type:
             content_type = 'application/octet-stream'
 
-        abs_file_path = self.cache_path_mapping.get(cache_filename)
-        if abs_file_path and os.path.exists(abs_file_path):
-            file_size_abs = os.path.getsize(abs_file_path)
-        else:
-            file_size_abs = os.path.getsize(cache_path)
+        file_size = os.path.getsize(cache_path) if os.path.isfile(cache_path) else 1024*1024
 
-        
         # Always return file path for streaming (not data)
         return {
             'file_path': cache_path,
             'content_type': content_type,
-            'file_size': os.path.getsize(cache_path),
-            'file_size_abs': file_size_abs
+            'file_size': file_size
         }
 
     def handle_subtitle_request(self, series_id, request_body):
