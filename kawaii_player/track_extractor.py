@@ -89,33 +89,20 @@ class TrackExtractor:
                 'level': '4.0',
                 'pix_fmt': 'yuv420p',
             }
-        is_hevc = source_codec and source_codec.lower() in ['hevc', 'h265']
-        use_hw = self._check_hw_encoder_available()
 
-        if is_hevc or not use_hw:
-            self.ui.logger.info("RPi 4B software encoding for HEVC - ultrafast 480p")
-            return {
-                'encoder': 'libx264',
-                'preset': 'ultrafast',
-                'crf': '28',
-                'threads': '4',
-                'profile': 'baseline',
-                'level': '3.1',
-                'pix_fmt': 'yuv420p',
-                'scale': '-2:480',
-                'use_hw': False
-            }
-        
-        self.ui.logger.info("Using HW encoder for RPi 4B - 480p")
+        self.ui.logger.info("RPi 4B software encoding - ultrafast 480p")
         return {
-            'encoder': 'h264_v4l2m2m',
-            'bitrate': '1500k',
-            'maxrate': '2M',
-            'bufsize': '4M',
-            'hw_accel': True,
-            'scale': '-2:480'
+            'encoder': 'libx264',
+            'preset': 'ultrafast',
+            'crf': '28',
+            'threads': '4',
+            'profile': 'baseline',
+            'level': '3.1',
+            'pix_fmt': 'yuv420p',
+            'scale': '-2:480',
+            'use_hw': False
         }
-
+        
     # ===========================
     # VIDEO TRANSCODING
     # ===========================
@@ -366,22 +353,7 @@ class TrackExtractor:
 
         duration = self._get_video_duration(mkv_path)
         
-        # Check if video needs transcoding
-        info = self.get_mkv_info(mkv_path)
         needs_transcode = True
-        
-        if info and info.get('video'):
-            video_track = None
-            for vid in info['video']:
-                if vid['index'] == video_index:
-                    video_track = vid
-                    break
-            
-            if video_track:
-                video_codec = video_track.get('codec', '')
-                needs_transcode = not self._is_browser_compatible_video(video_codec)
-                self.ui.logger.info(f"Video codec: {video_codec}, needs_transcode: {needs_transcode}")
-        
         # Generate cache filename - NO operation parameter
         cache_key = self._generate_cache_key(video_index, audio_index)
         cache_filename = self._get_cache_filename(mkv_path, 'video', cache_key, 'transcode')
@@ -504,30 +476,7 @@ class TrackExtractor:
         """Build FFmpeg arguments for audio encoding - copy if supported, transcode if not"""
         if audio_index is None:
             return []
-        
-        # Check if audio codec is browser-playable
-        info = self.get_mkv_info(mkv_path)
-        
-        if info and info.get('audio'):
-            for aud in info['audio']:
-                if aud['index'] == audio_index:
-                    audio_codec = aud.get('codec', '')
-                    
-                    if self._is_audio_browser_playable(audio_codec):
-                        # Browser can play it - just copy
-                        self.ui.logger.info(f"Copying audio stream {audio_index} ({audio_codec}) - browser playable")
-                        return ['-c:a', 'copy']
-                    else:
-                        # Not browser-playable - transcode to AAC
-                        self.ui.logger.info(f"Transcoding audio stream {audio_index} ({audio_codec}) to AAC - not browser playable")
-                        return [
-                            '-c:a', 'aac',
-                            '-b:a', '192k',
-                            '-ar', '48000'
-                        ]
-        
-        # Fallback - transcode to AAC
-        self.ui.logger.info(f"Transcoding audio stream {audio_index} to AAC (codec detection failed)")
+
         return [
             '-c:a', 'aac',
             '-b:a', '192k',
