@@ -1108,3 +1108,60 @@ video:-moz-full-screen::cue {
         0 0 10px rgba(0, 0, 0, 0.9),
         0 0 15px rgba(0, 0, 0, 0.7);
 }
+
+/* || TRANSCODE LOADING OVERLAY */
+#transcodeLoadingOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 1000;
+    pointer-events: none;
+    border-radius: 8px;
+}
+
+#transcodeLoadingOverlay .loading-content {
+    text-align: center;
+    padding: 20px;
+}
+
+#transcodeLoadingOverlay .loading-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+#transcodeLoadingOverlay .loading-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#transcodeLoadingOverlay .loading-message {
+    font-size: 18px;
+    opacity: 0.8;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1); 
+    }
+    50% { 
+        opacity: 0.6; 
+        transform: scale(1.1); 
+    }
+}
+
+/* Make sure video player container is positioned relative */
+.video-player-container {
+    position: relative;
+    margin-bottom: 20px;
+}

@@ -32,7 +32,8 @@ const state = {
     transcodeJob: null,
     transcodeStatusInterval: null,
     subtitlesLoaded: false,
-    audioTracksLoaded: false
+    audioTracksLoaded: false,
+    transcodeInitialLoadDone: false
 };
 
 // ===========================
@@ -675,8 +676,9 @@ function togglePlayPause() {
     if (state.mode === 'in-browser') {
         const videoPlayer = document.getElementById('videoPlayer');
         
+        const hasSource = videoSource.src && videoSource.src.length > 0;
         // Check if video is not loaded but transcode is ongoing
-        if (state.transcodeJob && !videoPlayer.src) {
+        if (state.transcodeJob) {
             // Load the transcoding video
             loadTranscodedVideo(state.transcodeJob.url, true);
             videoPlayer.play();
@@ -687,13 +689,7 @@ function togglePlayPause() {
         } else {
             videoPlayer.pause();
         }
-        // Check if paused and no source - might need to reload transcode
-        if (videoPlayer.paused && (!videoPlayer.src || videoPlayer.src === '')) {
-            if (state.transcodeJob && state.transcodeJob.url) {
-                loadTranscodedVideo(state.transcodeJob.url, true);
-            }
-            return;
-        }
+        
         
     } else {
         if (state.firstPlay && state.currentEpisode) {
@@ -1096,6 +1092,7 @@ function clearAllTracks() {
     // Clear subtitles
     cleanupSubtitles();
     state.subtitlesLoaded = false;
+    state.transcodeInitialLoadDone = false;
     
     // Clear audio
     if (state.currentAudioElement) {
@@ -1159,6 +1156,36 @@ function clearAllTracks() {
     }
     
     console.log('Cleared all tracks and video for new episode');
+}
+
+// Add this new function to show loading message inside video player
+function showTranscodeLoadingMessage() {
+    const videoPlayerContainer = document.getElementById('videoPlayerContainer');
+    
+    // Create loading overlay if it doesn't exist
+    let overlay = document.getElementById('transcodeLoadingOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'transcodeLoadingOverlay';
+        videoPlayerContainer.appendChild(overlay);
+    }
+    
+    overlay.innerHTML = `
+        <div class="loading-content">
+            <div class="loading-icon">⏳</div>
+            <div class="loading-title">Preparing Video...</div>
+            <div class="loading-message">Video will start in a few seconds</div>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+}
+
+// Add this function to hide the loading message
+function hideTranscodeLoadingMessage() {
+    const overlay = document.getElementById('transcodeLoadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
 }
 
 function switchSubtitle(index) {
@@ -1254,6 +1281,7 @@ async function startTranscode() {
     
     try {
         transcodeBtn.disabled = true;
+        state.transcodeInitialLoadDone = false;
         
         const response = await fetch(`${CONFIG.BASE_URL}/series/${state.seriesId}/transcode`, {
             method: 'POST',
@@ -1288,7 +1316,6 @@ async function startTranscode() {
             
             // Load video IMMEDIATELY, even if still transcoding
             loadTranscodedVideo(data.url, true); // true = keep progress UI
-            
             if (data.status === 'completed') {
                 // Already transcoded, load immediately
                 loadTranscodedVideo(data.url);
@@ -1297,7 +1324,7 @@ async function startTranscode() {
                 // Show progress UI
                 progressDiv.style.display = 'block';
                 cancelBtn.style.display = 'inline-flex';
-                
+                showTranscodeLoadingMessage();
                 // Start polling for progress
                 startTranscodeStatusPolling();
                 
@@ -1353,17 +1380,38 @@ async function checkTranscodeStatus() {
         
         if (data && data.success) {
             updateTranscodeProgress(data);
+            // Load and play video once at 1% progress
+            const progress = data.progress || 0;
+            if (progress >= 1 && !state.transcodeInitialLoadDone) {
+                console.log('Transcode reached 1%, loading and playing video...');
+                loadTranscodedVideo(data.url, true); // true = keep progress UI
+                hideTranscodeLoadingMessage();
+                
+                // Auto-play the video
+                const videoPlayer = document.getElementById('videoPlayer');
+                videoPlayer.play().catch(err => {
+                    console.error('Auto-play failed:', err);
+                    showAlert('Click play to start video', 'info');
+                });
+                
+                state.transcodeInitialLoadDone = true;
+                state.playing = true;
+                updatePlayPauseButton();
+            }
             
             if (data.status === 'completed') {
                 // Transcode finished
                 stopTranscodeStatusPolling();
                 loadTranscodedVideo(data.url);
+                hideTranscodeLoadingMessage();
                 showAlert('Video transcoded successfully!', 'success');
             } else if (data.status === 'failed') {
                 stopTranscodeStatusPolling();
+                hideTranscodeLoadingMessage();
                 showAlert('Transcode failed', 'error');
             } else if (data.status === 'cancelled') {
                 stopTranscodeStatusPolling();
+                hideTranscodeLoadingMessage();
                 showAlert('Transcode cancelled', 'info');
             }
         }
