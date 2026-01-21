@@ -3153,6 +3153,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     
     def serve_file_with_range(self, file_path, content_type, file_size):
         """Serve file with HTTP Range request support for streaming (supports growing files)"""
+        global ui
+        trigger_file = file_path + '.finished'
+        timeout_limit = 300
+        timeout_counter = 0
+        ui.logger.info(f"{trigger_file}, {file_path}, {file_size}")
+        if not os.path.isfile(trigger_file):
+            filename = os.path.split(file_path)[-1]
+            est_file_size = ui.track_extractor.estimated_file_size.get(filename)
+            if est_file_size:
+                file_size = 10 * est_file_size
+            ui.logger.info(f"fsize = {file_size} : est = {est_file_size}, {file_path}")
         try:
             # Parse Range header
             range_header = self.headers.get('Range')
@@ -3163,47 +3174,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 start = int(range_match[0]) if range_match[0] else 0
                 end = int(range_match[1]) if range_match[1] else file_size - 1
                 
-                # Get current actual file size (might be growing during transcode)
-                current_file_size = os.path.getsize(file_path)
-                
-                # Adjust end to current file size if file is still growing
-                if end >= current_file_size:
-                    end = current_file_size - 1
-                
-                # If start is beyond current file size, wait a bit or return what we have
-                if start >= current_file_size:
-                    # File hasn't grown enough yet, return 206 with empty content
-                    # or wait briefly for file to grow
-                    time.sleep(0.1)
-                    current_file_size = os.path.getsize(file_path)
-                    
-                    if start >= current_file_size:
-                        # Still not enough data, return what we have
-                        self.send_response(206)
-                        self.send_header('Content-Type', content_type)
-                        self.send_header('Content-Range', f'bytes */{current_file_size}')
-                        self.send_header('Content-Length', '0')
-                        self.send_header('Accept-Ranges', 'bytes')
-                        self.send_header('Access-Control-Allow-Origin', '*')
-                        self.end_headers()
-                        return
-                    
-                    # Adjust end
-                    end = min(end, current_file_size - 1)
-                
-                # Validate range with current file size
-                if start > end or start < 0:
-                    self.send_error(416, "Requested Range Not Satisfiable")
-                    self.send_header('Content-Range', f'bytes */{current_file_size}')
-                    self.end_headers()
-                    return
-                
                 length = end - start + 1
                 
                 # Send partial content response (206)
                 self.send_response(206)
                 self.send_header('Content-Type', content_type)
-                self.send_header('Content-Range', f'bytes {start}-{end}/{current_file_size}')
+                self.send_header('Content-Range', f'bytes {start}-{end}/{file_size}')
                 self.send_header('Content-Length', length)
                 self.send_header('Accept-Ranges', 'bytes')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -3219,24 +3195,33 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     while remaining > 0:
                         read_size = min(chunk_size, remaining)
                         data = f.read(read_size)
-                        if not data:
+                        if not data and os.path.isfile(trigger_file):
                             break
-                        try:
-                            self.wfile.write(data)
-                        except (BrokenPipeError, ConnectionResetError):
-                            print(f"Client disconnected during streaming")
-                            break
-                        remaining -= len(data)
+                        elif not data and not os.path.isfile(trigger_file):
+                            timeout_counter += 1
+                            time.sleep(1)
+                            if timeout_counter > timeout_limit:
+                                break
+                        else:
+                            try:
+                                self.wfile.write(data)
+                            except (BrokenPipeError, ConnectionResetError):
+                                ui.logger.error("Client disconnected during streaming")
+                            remaining -= len(data)
             else:
                 # No range request, serve entire file
-                current_file_size = os.path.getsize(file_path)
+                if os.path.isfile(trigger_file):
+                    current_file_size = os.path.getsize(file_path)
+                else:
+                    current_file_size = file_size
                 
                 self.send_response(200)
                 self.send_header('Content-Type', content_type)
                 self.send_header('Content-Length', current_file_size)
                 self.send_header('Accept-Ranges', 'bytes')
                 self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range, Content-Length')
+                self.send_header('Cache-Control', 'no-cache, no-store')
                 self.end_headers()
                 
                 # Stream entire file in chunks
@@ -3244,13 +3229,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     chunk_size = 64 * 1024  # 64KB chunks
                     while True:
                         data = f.read(chunk_size)
-                        if not data:
+                        if not data and os.path.isfile(trigger_file):
                             break
-                        try:
-                            self.wfile.write(data)
-                        except (BrokenPipeError, ConnectionResetError):
-                            print(f"Client disconnected during streaming")
-                            break
+                        elif not data and not os.path.isfile(trigger_file):
+                            time.sleep(1)
+                            timeout_counter += 1
+                            time.sleep(1)
+                            if timeout_counter > timeout_limit:
+                                break
+                        else:
+                            try:
+                                self.wfile.write(data)
+                            except (BrokenPipeError, ConnectionResetError):
+                                ui.logger.error("Client disconnected during streaming")
                         
         except Exception as e:
             print(f"Error serving file: {e}")

@@ -15,6 +15,7 @@ class TrackExtractor:
         self.transcode_jobs = {}  # Track ongoing transcodes
         self.transcode_status = {}
         self.cache_path_mapping = {}
+        self.estimated_file_size = {}
 
     def _is_browser_compatible_video(self, codec):
         """Check if video codec is browser-compatible for MP4 container"""
@@ -176,7 +177,8 @@ class TrackExtractor:
             'status': 'starting',
             'progress': 0,
             'output_path': cache_path,
-            'started_at': time.time()
+            'started_at': time.time(),
+            'cached_path': self.get_cached_filename(f'{cache_filename}')
         }
 
         thread = threading.Thread(
@@ -322,7 +324,41 @@ class TrackExtractor:
             'success': False,
             'status': 'not_found'
         }
-    
+
+    def _estimate_transcoded_file_size(self, duration, video_bitrate='1500k', audio_bitrate='128k'):
+        """Estimate final transcoded file size based on duration and bitrates"""
+        try:
+            # Parse bitrates (handle 'k' and 'M' suffixes)
+            def parse_bitrate(bitrate_str):
+                if isinstance(bitrate_str, (int, float)):
+                    return bitrate_str
+                bitrate_str = str(bitrate_str).lower()
+                if 'm' in bitrate_str:
+                    return float(bitrate_str.replace('m', '')) * 1000
+                elif 'k' in bitrate_str:
+                    return float(bitrate_str.replace('k', ''))
+                return float(bitrate_str)
+            
+            video_kbps = parse_bitrate(video_bitrate)
+            audio_kbps = parse_bitrate(audio_bitrate)
+            
+            # Total bitrate in kbps
+            total_kbps = video_kbps + audio_kbps
+            
+            # File size = (bitrate in kbps * duration in seconds) / 8 (to convert to KB)
+            # Then * 1024 to convert to bytes
+            estimated_bytes = (total_kbps * duration * 1024) / 8
+            
+            # Add 10% overhead for container/metadata
+            estimated_bytes = estimated_bytes * 1.1
+            
+            return int(estimated_bytes)
+            
+        except Exception as e:
+            self.ui.logger.error(f"Error estimating file size: {e}")
+            # Fallback: assume 500MB
+            return 500 * 1024 * 1024
+
     def start_video_transcode(self, mkv_path, video_index=0, audio_index=None):
         """Start video transcode/copy job and return immediate response"""
         if not os.path.exists(mkv_path):
@@ -363,6 +399,13 @@ class TrackExtractor:
                     'size': file_size,
                     'duration': duration
                 }
+
+        # Estimate final file size based on encoding settings
+        is_rpi = self._is_raspberry_pi()
+        video_bitrate = '1500k' if is_rpi else '5000k'
+        audio_bitrate = '128k' if is_rpi else '192k'
+        estimated_size = self._estimate_transcoded_file_size(duration, video_bitrate, audio_bitrate)
+        self.estimated_file_size[cache_filename] = estimated_size
         
         # Simple job_key - just path and cache_key
         job_key = f"{mkv_path}_{cache_key}"
@@ -376,7 +419,8 @@ class TrackExtractor:
                 'status': job.get('status', 'processing'),
                 'progress': job.get('progress', 0),
                 'eta': job.get('eta', 'calculating...'),
-                'duration': duration
+                'duration': duration,
+                'estimated_size': estimated_size
             }
         
         # Start new job in background
@@ -385,7 +429,8 @@ class TrackExtractor:
             'progress': 0,
             'output_path': cache_path,
             'started_at': time.time(),
-            'needs_transcode': needs_transcode
+            'needs_transcode': needs_transcode,
+            'cached_path': self.get_cached_filename(f'{cache_filename}')
         }
 
         thread = threading.Thread(
@@ -402,7 +447,8 @@ class TrackExtractor:
             'status': 'processing',
             'progress': 0,
             'message': f'{action} started in background',
-            'duration': duration
+            'duration': duration,
+            'estimated_size': estimated_size
         }
 
     def _parse_ffmpeg_progress(self, process, job_key, duration):
@@ -442,6 +488,13 @@ class TrackExtractor:
                     except (ValueError, IndexError):
                         pass  # Skip malformed lines
             
+            completed_cached_file = self.transcode_jobs[job_key]['cached_path']
+
+            self.ui.logger.info(f"cachhed_file: {completed_cached_file}")
+            if os.path.isfile(completed_cached_file):
+                trigger_file = completed_cached_file  + '.finished'
+                open(trigger_file, 'w').close()
+                self.ui.logger.info(f"trigger_file: {trigger_file}")
             return True  # Completed normally
         except Exception as e:
             self.ui.logger.error(f"Error parsing FFmpeg progress: {e}")
@@ -1095,6 +1148,9 @@ class TrackExtractor:
     # ===========================
     # CACHE OPERATIONS
     # ===========================
+
+    def get_cached_filename(self, cache_filename):
+        return os.path.join(self.cache_dir, cache_filename)
 
     def get_cached_file(self, cache_filename):
         """Retrieve cached file info for streaming"""
