@@ -3155,7 +3155,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         """Serve file with HTTP Range request support for streaming (supports growing files)"""
         global ui
         trigger_file = file_path + '.finished'
-        timeout_limit = 300
+        timeout_limit = 30
         timeout_counter = 0
         ui.logger.info(f"{trigger_file}, {file_path}, {file_size}")
         if not os.path.isfile(trigger_file):
@@ -3201,8 +3201,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             timeout_counter += 1
                             time.sleep(1)
                             if timeout_counter > timeout_limit:
+                                ui.logger.error("timeout")
                                 break
                         else:
+                            timeout_counter = 0
                             try:
                                 self.wfile.write(data)
                             except (BrokenPipeError, ConnectionResetError):
@@ -3236,8 +3238,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                             timeout_counter += 1
                             time.sleep(1)
                             if timeout_counter > timeout_limit:
+                                ui.logger.error("timeout")
                                 break
                         else:
+                            timeout_counter = 0
                             try:
                                 self.wfile.write(data)
                             except (BrokenPipeError, ConnectionResetError):
