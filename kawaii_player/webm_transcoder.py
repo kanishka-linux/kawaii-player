@@ -5,7 +5,7 @@ import threading
 import time
 
 class WebMTranscoder:
-    """Separate transcoder for WebM/VP8 - optimized for Chrome"""
+    """Separate transcoder for WebM/VP8 - optimized for Chrome and Raspberry Pi"""
     
     def __init__(self, ui):
         self.ui = ui
@@ -23,22 +23,28 @@ class WebMTranscoder:
             return False
     
     def _get_vp8_settings(self):
-        """Get optimized VP8 settings"""
+        """Get optimized VP8 settings - similar to ultrafast for H.264"""
         if self._is_raspberry_pi():
             return {
-                'speed': '8',
-                'cpu_used': '8',
-                'bitrate': '1M',
+                'speed': '8',  # Fastest speed (0-8, higher is faster)
+                'cpu_used': '8',  # Maximum speed preset
+                'bitrate': '1500k',  # Lower bitrate for faster encoding
                 'audio_bitrate': '96k',
-                'threads': '4'
+                'threads': '4',
+                'deadline': 'realtime',  # Realtime mode (like ultrafast)
+                'crf': '28',  # Higher CRF = lower quality but faster (similar to crf 28)
+                'scale': '-2:480'  # Scale to 480p like H.264 version
             }
         else:
             return {
-                'speed': '6',
-                'cpu_used': '6',
-                'bitrate': '2M',
+                'speed': '4',
+                'cpu_used': '4',
+                'bitrate': '2500k',
                 'audio_bitrate': '128k',
-                'threads': '8'
+                'threads': '0',
+                'deadline': 'good',
+                'crf': '23',
+                'scale': '-2:720'  # Higher resolution for non-RPi
             }
     
     def _generate_cache_key(self, video_path, video_index, audio_index):
@@ -62,7 +68,7 @@ class WebMTranscoder:
         except:
             return 0
     
-    def _estimate_file_size(self, duration, bitrate='2M'):
+    def _estimate_file_size(self, duration, bitrate='1500k'):
         """Estimate WebM file size"""
         try:
             if 'M' in bitrate:
@@ -72,8 +78,8 @@ class WebMTranscoder:
             else:
                 bitrate_kbps = float(bitrate)
             
-            # Add audio bitrate (128k)
-            total_kbps = bitrate_kbps + 128
+            # Add audio bitrate (96k for RPi, 128k for desktop)
+            total_kbps = bitrate_kbps + 96
             
             # File size in bytes
             estimated_bytes = (total_kbps * duration * 1024) / 8
@@ -117,7 +123,6 @@ class WebMTranscoder:
             }
         
         duration = self._get_video_duration(video_path)
-        #self._create_webm_header_with_duration(cache_path, duration)
         settings = self._get_vp8_settings()
         estimated_size = self._estimate_file_size(duration, settings['bitrate'])
         self.estimated_file_size[cache_filename] = estimated_size
@@ -149,12 +154,18 @@ class WebMTranscoder:
         }
     
     def _transcode_worker(self, video_path, video_index, audio_index, output_path, job_key, duration):
-        """Background worker for WebM transcoding"""
+        """Background worker for WebM transcoding - optimized like H.264 ultrafast"""
         process = None
         try:
             settings = self._get_vp8_settings()
+            # If audio_index not provided, auto-detect first audio track
+            if audio_index is None:
+                info = self.ui.track_extractor.get_mkv_info(video_path)
+                if info and info.get('audio') and len(info['audio']) > 0:
+                    audio_index = info['audio'][0]['index']
+                    self.ui.logger.info(f"Auto-detected audio track: {audio_index}")
             
-            # Build FFmpeg command
+            # Build FFmpeg command - similar structure to H.264 version
             cmd = [
                 'ffmpeg',
                 '-i', video_path
@@ -166,33 +177,40 @@ class WebMTranscoder:
             else:
                 cmd.extend(['-map', f'0:{video_index}'])
             
-            # VP8 video encoding
+            # Add scaling filter (like -vf scale=-2:480)
+            cmd.extend(['-vf', f"scale={settings['scale']}"])
+            
+            # VP8 video encoding - optimized for speed
             cmd.extend([
                 '-c:v', 'libvpx',
-                '-speed', settings['speed'],
-                '-quality', 'realtime',
-                '-cpu-used', settings['cpu_used'],
-                '-deadline', 'realtime',
+                '-speed', settings['speed'],  # Maximum speed
+                '-quality', settings['deadline'],  # realtime for RPi, good for desktop
+                '-cpu-used', settings['cpu_used'],  # Maximum cpu-used
+                '-deadline', settings['deadline'],
                 '-threads', settings['threads'],
                 '-b:v', settings['bitrate'],
-                '-auto-alt-ref', '0',
-                '-lag-in-frames', '0',
-                '-crf', '10'
+                '-crf', settings['crf'],
+                # Simplified settings for speed (removed complex features)
+                '-auto-alt-ref', '0',  # Disable for speed
+                '-lag-in-frames', '0',  # Disable for speed (like ultrafast)
+                '-error-resilient', '1'  # Better for streaming
             ])
             
-            # Opus audio encoding
+            # Opus audio encoding with sample rate
             if audio_index is not None:
                 cmd.extend([
                     '-c:a', 'libopus',
-                    '-b:a', settings['audio_bitrate']
+                    '-b:a', settings['audio_bitrate'],
+                    '-ar', '48000'  # Like H.264 version
                 ])
             
-            # WebM output
+            # WebM output with fragmentation (like movflags in H.264)
             cmd.extend([
                 '-f', 'webm',
-                '-live', '1',
+                '-live', '1',  # Enable live streaming mode
                 '-chunk_start_index', '0',
-                '-chunk_duration', '2000',
+                '-chunk_duration', '1000',  # 1 second chunks (like frag_duration)
+                '-flush_packets', '1',  # Like H.264 version
                 '-progress', 'pipe:1',
                 '-y',
                 output_path
@@ -272,32 +290,6 @@ class WebMTranscoder:
             return True
         except:
             return False
-
-    def _create_webm_header_with_duration(self, output_path, duration):
-        """Create initial WebM file with duration metadata"""
-        try:
-            # Create a minimal WebM file with just EBML header and duration
-            import struct
-            
-            # This creates a valid WebM header that Chrome can parse
-            cmd = [
-                'ffmpeg',
-                '-f', 'lavfi',
-                '-i', 'color=c=black:s=32x32:d=0.1',  # Tiny black frame
-                '-c:v', 'libvpx',
-                '-an',
-                '-f', 'webm',
-                '-metadata', f'duration={duration}',
-                '-t', '0.1',
-                '-y',
-                output_path
-            ]
-            
-            subprocess.run(cmd, capture_output=True, timeout=5)
-            self.ui.logger.info(f"Created WebM header with duration: {duration}s")
-            
-        except Exception as e:
-            self.ui.logger.error(f"Error creating WebM header: {e}")
     
     def get_status(self, video_path, video_index=0, audio_index=None):
         """Get transcode status"""
