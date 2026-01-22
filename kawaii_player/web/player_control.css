@@ -1165,3 +1165,13 @@ video:-moz-full-screen::cue {
     position: relative;
     margin-bottom: 20px;
 }
+
+
+/* Fix for Chrome not displaying transcode percentage */
+#transcodePercent {
+    display: inline-block !important;
+    min-width: 40px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--primary);
+}
