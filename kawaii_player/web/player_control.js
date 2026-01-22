@@ -1391,7 +1391,7 @@ async function checkTranscodeStatus() {
             updateTranscodeProgress(data);
             // Load and play video once at 1% progress
             const progress = data.progress || 0;
-            if (progress >= 2 && !state.transcodeInitialLoadDone) {
+            if (progress >= 1 && !state.transcodeInitialLoadDone) {
                 console.log('Transcode reached 1%, loading and playing video...');
                 loadTranscodedVideo(data.url, true); // true = keep progress UI
                 hideTranscodeLoadingMessage();
