@@ -16,6 +16,14 @@ class TrackExtractor:
         self.transcode_status = {}
         self.cache_path_mapping = {}
         self.estimated_file_size = {}
+        self.webm_transcoder = self.ui.webm_transcoder
+
+    def _is_chrome_browser(self, user_agent):
+        """Detect Chrome from user agent"""
+        if not user_agent:
+            return False
+        user_agent = user_agent.lower()
+        return 'chrome' in user_agent or 'chromium' in user_agent
 
     def _is_browser_compatible_video(self, codec):
         """Check if video codec is browser-compatible for MP4 container"""
@@ -150,7 +158,7 @@ class TrackExtractor:
         job_key = f"{mkv_path}_audio_{audio_index}"
         
         # Check if processing is in progress
-        if job_key in self.transcode_jobs:
+        if job_key in self.transcode_jobs and self.transcode_jobs[job_key]['status'] in ['processing', 'completed', 'starting']:
             job = self.transcode_jobs[job_key]
             return {
                 'success': True,
@@ -165,7 +173,7 @@ class TrackExtractor:
             'progress': 0,
             'output_path': cache_path,
             'started_at': time.time(),
-            'cached_path': self.get_cached_filename(f'{cache_filename}')
+            'cached_path': self.get_cached_filename(cache_filename)
         }
 
         thread = threading.Thread(
@@ -346,8 +354,16 @@ class TrackExtractor:
             # Fallback: assume 500MB
             return 500 * 1024 * 1024
 
-    def start_video_transcode(self, mkv_path, video_index=0, audio_index=None):
+    def start_video_transcode(self, mkv_path, video_index=0, audio_index=None, user_agent=None):
         """Start video transcode/copy job and return immediate response"""
+        # Route Chrome to WebM transcoder
+        if self._is_chrome_browser(user_agent):
+            self.ui.logger.info("Chrome detected, using WebM transcoder")
+            return self.webm_transcoder.start_transcode(mkv_path, video_index, audio_index)
+
+        # Firefox and others - use existing MP4 code
+        self.ui.logger.info("Non-Chrome browser, using MP4 transcoder")
+
         if not os.path.exists(mkv_path):
             return {'success': False, 'error': 'File not found'}
 
@@ -383,7 +399,7 @@ class TrackExtractor:
         job_key = f"{mkv_path}_{cache_key}"
         
         # Check if processing is in progress
-        if job_key in self.transcode_jobs:
+        if job_key in self.transcode_jobs and self.transcode_jobs[job_key]['status'] in ['processing', 'completed', 'starting']:
             job = self.transcode_jobs[job_key]
             return {
                 'success': True,
@@ -483,8 +499,12 @@ class TrackExtractor:
             '-ar', '48000'
         ]
 
-    def get_transcode_status(self, mkv_path, video_index=0, audio_index=None):
+    def get_transcode_status(self, mkv_path, video_index=0, audio_index=None, user_agent=None):
         """Get status of ongoing transcode"""
+        # Route Chrome to WebM status
+        if self._is_chrome_browser(user_agent):
+            return self.webm_transcoder.get_status(mkv_path, video_index, audio_index)
+
         cache_key = self._generate_cache_key(video_index, audio_index)
         cache_filename = self._get_cache_filename(mkv_path, 'video', cache_key, 'transcode')
         cache_path = os.path.join(self.cache_dir, cache_filename)
@@ -531,8 +551,12 @@ class TrackExtractor:
             'message': 'No job found'
         }
 
-    def cancel_video_transcode(self, mkv_path, video_index=0, audio_index=None):
+    def cancel_video_transcode(self, mkv_path, video_index=0, audio_index=None, user_agent=None):
         """Cancel ongoing transcode job"""
+        # Route Chrome to WebM status
+        if self._is_chrome_browser(user_agent):
+            return self.webm_transcoder.cancel_transcode(mkv_path, video_index, audio_index)
+
         cache_key = self._generate_cache_key(video_index, audio_index)
         job_key = f"{mkv_path}_{cache_key}"
         
@@ -1160,7 +1184,7 @@ class TrackExtractor:
     # VIDEO TRANSCODE HANDLERS
     # ===========================
 
-    def handle_transcode_request(self, series_id, request_body):
+    def handle_transcode_request(self, series_id, request_body, user_agent):
         """Handle POST /series/:id/transcode - Start transcode job"""
         try:
             data = json.loads(request_body)
@@ -1171,7 +1195,7 @@ class TrackExtractor:
             if not mkv_path:
                 return {'success': False, 'error': 'Missing path parameter'}, 400
 
-            result = self.start_video_transcode(mkv_path, video_index, audio_index)
+            result = self.start_video_transcode(mkv_path, video_index, audio_index, user_agent)
             return result, 200
 
         except json.JSONDecodeError:
@@ -1182,7 +1206,7 @@ class TrackExtractor:
             traceback.print_exc()
             return {'success': False, 'error': str(e)}, 500
   
-    def handle_transcode_status_request(self, series_id, request_body):
+    def handle_transcode_status_request(self, series_id, request_body, user_agent):
         """Handle POST /series/:id/transcode/status - Get transcode/extraction progress"""
         try:
             data = json.loads(request_body)
@@ -1199,7 +1223,7 @@ class TrackExtractor:
                 result = self.get_audio_extraction_status(mkv_path, audio_index)
             else:
                 # Video transcode status
-                result = self.get_transcode_status(mkv_path, video_index or 0, audio_index)
+                result = self.get_transcode_status(mkv_path, video_index or 0, audio_index, user_agent)
             
             return result, 200
      
@@ -1209,7 +1233,7 @@ class TrackExtractor:
             self.ui.logger.error(f"Error handling transcode status request: {e}")
             return {'success': False, 'error': str(e)}, 500
 
-    def handle_transcode_cancel_request(self, series_id, request_body):
+    def handle_transcode_cancel_request(self, series_id, request_body, user_agent):
         """Handle POST /series/:id/transcode/cancel - Cancel transcode job"""
         try:
             data = json.loads(request_body)
@@ -1220,7 +1244,7 @@ class TrackExtractor:
             if not mkv_path:
                 return {'success': False, 'error': 'Missing path parameter'}, 400
             
-            result = self.cancel_video_transcode(mkv_path, video_index, audio_index)
+            result = self.cancel_video_transcode(mkv_path, video_index, audio_index, user_agent)
             return result, 200
 
         except json.JSONDecodeError:
@@ -1231,4 +1255,6 @@ class TrackExtractor:
     
     def handle_cache_request(self, cache_filename):
         """Handle GET /cache/{filename} - Returns file data or path"""
+        if cache_filename.endswith('.webm'):
+            return self.webm_transcoder.get_cached_file(cache_filename)
         return self.get_cached_file(cache_filename)

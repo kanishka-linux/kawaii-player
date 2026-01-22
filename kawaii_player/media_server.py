@@ -2447,15 +2447,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             series_id = self.path.split('/')[2]
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
+            user_agent = self.headers.get('User-Agent', '')
             
-            data, status_code = ui.track_extractor.handle_transcode_request(series_id, request_body)
+            data, status_code = ui.track_extractor.handle_transcode_request(series_id, request_body, user_agent)
             self.send_json_response(data, status_code)
         elif self.path.startswith('/series/') and self.path.endswith('/transcode/status'):
             series_id = self.path.split('/')[2]
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
+            user_agent = self.headers.get('User-Agent', '')
             
-            data, status_code = ui.track_extractor.handle_transcode_status_request(series_id, request_body)
+            data, status_code = ui.track_extractor.handle_transcode_status_request(series_id, request_body, user_agent)
             self.send_json_response(data, status_code)
         
         # Transcode cancel endpoint
@@ -2463,8 +2465,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             series_id = self.path.split('/')[2]
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
-            
-            data, status_code = ui.track_extractor.handle_transcode_cancel_request(series_id, request_body)
+            user_agent = self.headers.get('User-Agent', '')
+            data, status_code = ui.track_extractor.handle_transcode_cancel_request(series_id, request_body, user_agent)
             self.send_json_response(data, status_code)
         else:
             self.do_init_function(type_request='post')
@@ -3153,6 +3155,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     def serve_file_with_range(self, file_path, content_type, file_size):
         """Serve file with HTTP Range request support for streaming (supports growing files)"""
         global ui
+
+        user_agent = self.headers.get('User-Agent', '').lower()
+        is_chrome = 'chrome' in user_agent or 'chromium' in user_agent
+        
+        ui.logger.info("=== SERVE REQUEST ===")
+        ui.logger.info(f"Browser: {'Chrome' if is_chrome else 'Other'}")
+        ui.logger.info(f"File: {file_path}")
+        ui.logger.info(f"Range header: {self.headers.get('Range')}")
+        ui.logger.info(f"File exists: {os.path.exists(file_path)}")
+        ui.logger.info(f"File size: {os.path.getsize(file_path) if os.path.exists(file_path) else 'N/A'}")
+
         trigger_file = file_path + '.finished'
         timeout_limit = 300
         timeout_counter = 0
@@ -3168,6 +3181,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             est_file_size = ui.track_extractor.estimated_file_size.get(filename)
             if est_file_size:
                 file_size = 20 * est_file_size
+            else:
+                file_size = 20 * file_size
+
             ui.logger.info(f"fsize = {file_size} : est = {est_file_size}, {file_path}")
         try:
             # Parse Range header
@@ -3189,7 +3205,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Accept-Ranges', 'bytes')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.send_header('Cache-Control', 'no-cache, no-store')  # Don't cache growing files
-                # Chrome-specific headers
 
                 self.end_headers()
                 
@@ -3218,7 +3233,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                                 if is_chrome:
                                     # Chrome disconnects frequently - this is normal
                                     ui.logger.info(f"Chrome disconnected (normal behavior) - sent {length - remaining} bytes")
-                                    break
                                 else:
                                     # Firefox - log and continue
                                     ui.logger.error(f"Client disconnected during streaming: {e}")
