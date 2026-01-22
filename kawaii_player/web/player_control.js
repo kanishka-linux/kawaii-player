@@ -423,10 +423,15 @@ function loadTranscodedVideo(url, keepProgressUI = false) {
 function saveTranscodeJob() {
     if (state.transcodeJob) {
         localStorage.setItem('transcodeJob', JSON.stringify({
-            ...state.transcodeJob,
+            url: state.transcodeJob.url,
+            status: state.transcodeJob.status,
+            progress: state.transcodeJob.progress || 0,
             seriesId: state.seriesId,
-            episodeNumber: state.currentEpisode.number
+            episodeNumber: state.currentEpisode.number,
+            episodePath: state.currentEpisode.actual_path,
+            timestamp: Date.now()
         }));
+        console.log('Saved transcode job to localStorage');
     }
 }
 
@@ -604,6 +609,7 @@ function playEpisode(episodeNumber) {
     // Clear audio and subtitle tracks when switching episodes
     if (state.mode === 'in-browser') {
         clearAllTracks();
+        clearTrackStates();
     }
 
     // Update UI
@@ -1022,6 +1028,7 @@ async function loadSubtitles() {
             });
             
             state.subtitlesLoaded = true;
+            saveTrackStates();
             showAlert(`Loaded ${data.tracks.length} subtitle tracks`, 'success');
         } else {
             showAlert('No subtitles available', 'info');
@@ -1074,6 +1081,7 @@ async function loadAudioTracks() {
                 select.appendChild(option);
             });
             state.audioTracksLoaded = true;
+            saveTrackStates();
             showAlert(`Loaded ${data.tracks.length} audio tracks`, 'success');
         } else {
             showAlert('No audio tracks available', 'info');
@@ -1294,6 +1302,7 @@ async function startTranscode() {
         });
         
         const data = await response.json();
+        console.log(data)
         
         if (data && data.success) {
             state.transcodeJob = {
@@ -1315,10 +1324,10 @@ async function startTranscode() {
             updatePlayPauseButton();
             
             // Load video IMMEDIATELY, even if still transcoding
-            loadTranscodedVideo(data.url, true); // true = keep progress UI
+            // loadTranscodedVideo(data.url, true); // true = keep progress UI
             if (data.status === 'completed') {
                 // Already transcoded, load immediately
-                loadTranscodedVideo(data.url);
+                // loadTranscodedVideo(data.url);
                 showAlert('Video loaded (already transcoded)', 'success');
             } else {
                 // Show progress UI
@@ -1382,7 +1391,7 @@ async function checkTranscodeStatus() {
             updateTranscodeProgress(data);
             // Load and play video once at 1% progress
             const progress = data.progress || 0;
-            if (progress >= 1 && !state.transcodeInitialLoadDone) {
+            if (progress >= 2 && !state.transcodeInitialLoadDone) {
                 console.log('Transcode reached 1%, loading and playing video...');
                 loadTranscodedVideo(data.url, true); // true = keep progress UI
                 hideTranscodeLoadingMessage();
@@ -1435,9 +1444,103 @@ function updateTranscodeProgress(data) {
     if (data.eta) {
         etaEl.textContent = `ETA: ${data.eta}`;
     }
+    
+    // Update state and save to localStorage
+    if (state.transcodeJob) {
+        state.transcodeJob.progress = progress;
+        state.transcodeJob.status = data.status;
+    }
+}
+
+// Restore track states on page load
+// Save track metadata (not blob URLs)
+function saveTrackStates() {
+    if (state.currentEpisode) {
+        const trackData = {
+            seriesId: state.seriesId,
+            episodeNumber: state.currentEpisode.number,
+            episodePath: state.currentEpisode.actual_path,
+            subtitlesLoaded: state.subtitlesLoaded,
+            audioTracksLoaded: state.audioTracksLoaded,
+            // Save audio track data (has server URLs, not blobs)
+            audioTracks: state.audioTracksLoaded ? state.loadedAudioTracks : []
+        };
+        localStorage.setItem('trackStates', JSON.stringify(trackData));
+        console.log('Saved track states');
+    }
+}
+
+// Restore track states
+async function restoreTrackStates() {
+    const savedTrackStates = loadTrackStates();
+    
+    if (!savedTrackStates) {
+        console.log('No saved track states found');
+        return;
+    }
+    
+    // Verify it matches current episode
+    if (savedTrackStates.seriesId !== state.seriesId ||
+        savedTrackStates.episodeNumber !== state.currentEpisode.number ||
+        savedTrackStates.episodePath !== state.currentEpisode.actual_path) {
+        
+        console.log('Saved track states are for different episode, ignoring');
+        return;
+    }
+    
+    console.log('Restoring track states from localStorage');
+    
+    // Mark as loaded to prevent duplicate API calls
+    state.subtitlesLoaded = savedTrackStates.subtitlesLoaded || false;
+    state.audioTracksLoaded = savedTrackStates.audioTracksLoaded || false;
+    
+    // Restore audio tracks directly (they use server URLs)
+    if (savedTrackStates.audioTracksLoaded && savedTrackStates.audioTracks) {
+        state.loadedAudioTracks = savedTrackStates.audioTracks;
+        
+        const select = document.getElementById('audioSelect');
+        select.innerHTML = '<option value="">Audio: Default</option>';
+        
+        savedTrackStates.audioTracks.forEach((track, index) => {
+            const option = document.createElement('option');
+            const label = track.transcoded ? ' (Transcoded)' : '';
+            option.value = index;
+            option.textContent = `${track.language.toUpperCase()} - ${track.channels}ch${label} - ${track.title}`;
+            select.appendChild(option);
+        });
+        
+        console.log('Restored audio tracks without API call');
+    }
+    
+    // Subtitles need to be re-fetched (blob URLs can't persist)
+    // But loadSubtitles() will see subtitlesLoaded=true and skip if already loaded
+    // So we need to reset it temporarily
+    if (savedTrackStates.subtitlesLoaded) {
+        state.subtitlesLoaded = false; // Allow re-fetch
+        setTimeout(() => loadSubtitles(), 1000);
+    }
+}
+
+// Load track states from localStorage
+function loadTrackStates() {
+    const saved = localStorage.getItem('trackStates');
+    if (!saved) return null;
+    
+    try {
+        return JSON.parse(saved);
+    } catch {
+        return null;
+    }
+}
+
+// Clear track states from localStorage
+function clearTrackStates() {
+    localStorage.removeItem('trackStates');
+    console.log('Cleared track states');
 }
 
 async function cancelTranscode() {
+    const progressDiv = document.getElementById('transcodeProgress');
     if (!state.currentEpisode?.actual_path) {
         return;
     }
@@ -1453,22 +1556,32 @@ async function cancelTranscode() {
         });
         
         const data = await response.json();
+        console.log(data)
         
-        if (data && data.success) {
+        if (data) {
+            // CLEAR ALL STATES
             stopTranscodeStatusPolling();
+            state.transcodeJob = null;
+            state.transcodeInitialLoadDone = false;
             clearTranscodeJob();
+            progressDiv.style.display = 'none';
             showAlert('Transcode cancelled', 'info');
         }
     } catch (error) {
+        stopTranscodeStatusPolling();
+        state.transcodeJob = null;
+        state.transcodeInitialLoadDone = false;
+        clearTranscodeJob();
+        progressDiv.style.display = 'none';
         console.error('Error cancelling transcode:', error);
         showAlert('Failed to cancel transcode', 'error');
     }
 }
-
 async function checkOngoingTranscode() {
     const savedTranscode = loadTranscodeJob();
     
     if (!savedTranscode) {
+        console.log('No ongoing transcode found');
         return;
     }
     
@@ -1482,25 +1595,46 @@ async function checkOngoingTranscode() {
         return;
     }
     
-    console.log('Found ongoing transcode job, restoring...');
-    state.transcodeJob = savedTranscode;
+    console.log('Found ongoing transcode job, restoring...', savedTranscode);
     
-    // Load the video
-    loadTranscodedVideo(savedTranscode.url, true);
+    // Restore transcode state
+    state.transcodeJob = {
+        url: savedTranscode.url,
+        status: savedTranscode.status,
+        progress: savedTranscode.progress || 0
+    };
     
-    // Show progress UI
+    // Restore UI elements
     const progressDiv = document.getElementById('transcodeProgress');
     const cancelBtn = document.getElementById('cancelTranscodeBtn');
     const transcodeBtn = document.getElementById('transcodeBtn');
+    const statusEl = document.getElementById('transcodeStatus');
+    const percentEl = document.getElementById('transcodePercent');
+    const barEl = document.getElementById('transcodeBar');
     
+    // Show progress UI
     progressDiv.style.display = 'block';
     cancelBtn.style.display = 'inline-flex';
     transcodeBtn.disabled = true;
     
-    // Start polling to check status
-    startTranscodeStatusPolling();
+    // Restore progress values
+    const progress = savedTranscode.progress || 0;
+    statusEl.textContent = 'Transcoding...';
+    percentEl.textContent = `${progress}%`;
+    barEl.style.width = `${progress}%`;
     
-    showAlert('Resuming transcode playback...', 'info');
+    // Load the transcoded video
+    loadTranscodedVideo(savedTranscode.url, true); // true = keep progress UI
+    
+    // If transcode was not completed, start polling
+    if (savedTranscode.status !== 'completed') {
+        console.log('Resuming transcode status polling...');
+        startTranscodeStatusPolling();
+        showAlert('Resuming transcode...', 'info');
+    } else {
+        console.log('Transcode already completed');
+        showAlert('Video loaded (transcode complete)', 'success');
+    }
 }
 
 function stopTranscodeStatusPolling() {
@@ -1510,14 +1644,7 @@ function stopTranscodeStatusPolling() {
     }
     
     const transcodeBtn = document.getElementById('transcodeBtn');
-    const cancelBtn = document.getElementById('cancelTranscodeBtn');
-    const progressDiv = document.getElementById('transcodeProgress');
-    
     transcodeBtn.disabled = false;
-    cancelBtn.style.display = 'none';
-    progressDiv.style.display = 'none';
-    
-    state.transcodeJob = null;
 }
 
 // ===========================
@@ -1699,6 +1826,7 @@ async function initialize() {
     }
 
     await checkOngoingTranscode();
+    await restoreTrackStates();
     
     // Render episodes
     renderEpisodes();
