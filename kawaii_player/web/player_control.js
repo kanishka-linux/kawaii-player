@@ -873,55 +873,6 @@ async function castURL() {
     }
 }
 
-async function renameTitle() {
-    const newTitle = prompt('Enter new title:');
-    if (newTitle && state.seriesInfo) {
-        await sendPostCommand('/rename_title', {
-            title: newTitle,
-            playlist: state.episodes.map(ep => ep.path),
-            db_title: state.seriesInfo.title
-        });
-        showAlert('Title renamed', 'success');
-    }
-}
-
-async function fetchPoster() {
-    if (state.seriesInfo) {
-        await sendPostCommand('/fetch-posters', {
-            url: '',
-            title: state.seriesInfo.title,
-            mode: 'poster',
-            site_option: ''
-        });
-        showAlert('Fetching poster...', 'info');
-    }
-}
-
-async function fetchFanart() {
-    if (state.seriesInfo) {
-        await sendPostCommand('/fetch-posters', {
-            url: '',
-            title: state.seriesInfo.title,
-            mode: 'fanart',
-            site_option: ''
-        });
-        showAlert('Fetching fanart...', 'info');
-    }
-}
-
-async function applyCategory() {
-    const select = document.getElementById('categorySelect');
-    const category = select.value;
-    
-    if (category && state.episodes.length > 0) {
-        await sendPostCommand('/modify_category', {
-            category,
-            playlist: state.episodes.map(ep => ep.path)
-        });
-        showAlert(`Category set to ${category}`, 'success');
-    }
-}
-
 // ===========================
 // PROGRESS BAR INTERACTION
 // ===========================
@@ -1734,10 +1685,6 @@ function initEventListeners() {
     
     // Advanced controls (master/slave)
     document.getElementById('btnCastUrl')?.addEventListener('click', castURL);
-    document.getElementById('btnRename')?.addEventListener('click', renameTitle);
-    document.getElementById('btnFetchPoster')?.addEventListener('click', fetchPoster);
-    document.getElementById('btnFetchFanart')?.addEventListener('click', fetchFanart);
-    document.getElementById('btnApplyCategory')?.addEventListener('click', applyCategory);
 }
 
 // ===========================
