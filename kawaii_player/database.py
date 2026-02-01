@@ -745,8 +745,7 @@ class MediaDatabase():
 
 
     def toggle_watch_status(self, file_path: str) -> str:
-        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         ep_name = ""
@@ -768,8 +767,13 @@ class MediaDatabase():
                 conn.close()
                 print(f"  ✗ Update error: {e}")
 
-        if ep_name.startswith("#"):
-            ep_name = ep_name.replace("#", "✅", 1)
+        if ep_name:
+             ep_name = re.sub(r'[-_.]+', ' ', ep_name)
+             ep_name = re.sub(r'\s+', ' ', ep_name).strip()
+        if ep_name and ep_name.startswith("#"):
+             ep_name = ep_name.replace('#', "")
+             ep_name = '✅ ' + ep_name
+
         return ep_name
 
     def create_series_info_table(self):
@@ -1692,6 +1696,7 @@ class MediaDatabase():
             # Build episode list
             episodes = []
             for row in episode_rows:
+                watched = False
                 ep_name = row['EP_NAME'] or f"Episode {row['EPN']}"
                 if ep_name:
                     ep_name = re.sub(r'[-_.]+', ' ', ep_name)
@@ -1699,8 +1704,10 @@ class MediaDatabase():
                 if ep_name and ep_name.startswith("#"):
                     ep_name = ep_name.replace('#', "")
                     ep_name = '✅ ' + ep_name
+                    watched = True
 
                 episodes.append({
+                    'watched': watched,
                     'name': ep_name,
                     'path': row['Path'],
                     'url': self.build_url_from_file_path(row['Path'], 'url'),

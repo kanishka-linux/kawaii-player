@@ -2407,7 +2407,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 "/admin/series-update",
                 "/admin/series-soft-delete",
                 "/title-details",
-                "/api/update-series-label"
+                "/api/update-series-label",
+                "/api/toggle-episode-watch-status"
         ]
 
         if handle_auth_routes(self, 'POST', parsed_path.path, ui):
@@ -2421,6 +2422,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.handle_series_update()
         elif self.path == '/api/update-series-label':
             self.handle_series_update_label()
+        elif self.path == '/api/toggle-episode-watch-status':
+            self.handle_episode_watch_status_toggle()
         elif self.path == '/admin/series-soft-delete':
             self.handle_series_soft_delete()
         elif self.path == '/title-details':
@@ -2653,6 +2656,34 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             return True
         except ValueError:
             return False
+
+    def handle_episode_watch_status_toggle(self):
+        global logger, ui
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+            
+        # Parse JSON data only
+        data = json.loads(post_data.decode('utf-8'))
+        logger.info(f"Handle Series Update: JSON {data}")
+            
+        path = data.get('path', '')
+        #watched = data.get("watched",'')
+        result = {"success": False}
+        if path :
+            res = ui.media_data.toggle_watch_status(path)
+            if res:
+                result = {"success": True, "ep_name": res}
+
+        response = json.dumps(result)
+        if result['success']:
+            self.send_response(200)
+        else:
+            self.send_response(400)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+        self.end_headers()
+        self.wfile.write(response.encode('utf-8'))
+
 
     def handle_series_update_label(self):
         global logger, ui
