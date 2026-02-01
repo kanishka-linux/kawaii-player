@@ -885,6 +885,31 @@ class MediaDatabase():
 
         return success
 
+    def update_series_info_label(self, series_id, label):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        success = False
+        try:
+            cur.execute("update series_info set labels = ? where id = ?", (label, series_id))
+            if cur.rowcount == 1:
+                self.logger.info(f"label updated successfully for: {series_id} -> {label}")
+                success = True
+            elif cur.rowcount > 1:
+                # This should never happen
+                self.logger.error(f"more than 1 record updated for {series_id}")
+                raise f"more than 1 record found for {series_id}"
+            else:
+                self.logger.error(f"not found: {series_id}")
+            conn.commit()
+            conn.close()
+        except Exception as err:
+            self.logger.error(f"error in updating: {series_id}, err: {str(err)}")
+            conn.rollback()
+            conn.close()
+
+        return success
+
+
     def reset_series_info(self, db_title):
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()

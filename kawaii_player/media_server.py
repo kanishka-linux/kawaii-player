@@ -2406,7 +2406,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         auth_required_routes = [
                 "/admin/series-update",
                 "/admin/series-soft-delete",
-                "/title-details"
+                "/title-details",
+                "/api/update-series-label"
         ]
 
         if handle_auth_routes(self, 'POST', parsed_path.path, ui):
@@ -2418,6 +2419,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         if self.path == '/admin/series-update':
             self.handle_series_update()
+        elif self.path == '/api/update-series-label':
+            self.handle_series_update_label()
         elif self.path == '/admin/series-soft-delete':
             self.handle_series_soft_delete()
         elif self.path == '/title-details':
@@ -2650,6 +2653,34 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             return True
         except ValueError:
             return False
+
+    def handle_series_update_label(self):
+        global logger, ui
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+            
+        # Parse JSON data only
+        data = json.loads(post_data.decode('utf-8'))
+        logger.info(f"Handle Series Update: JSON {data}")
+            
+        series_id = data.get('series_id', '')
+        label = data.get("label",'')
+        result = {"success": False}
+        if self.is_valid_uuid(series_id) and len(label) < 20:
+            res = ui.media_data.update_series_info_label(series_id, label)
+            if res:
+                result = {"success": True}
+
+        response = json.dumps(result)
+        if result['success']:
+            self.send_response(200)
+        else:
+            self.send_response(400)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(response.encode('utf-8'))))
+        self.end_headers()
+        self.wfile.write(response.encode('utf-8'))
+
 
     def handle_series_update(self):
         global logger, ui
