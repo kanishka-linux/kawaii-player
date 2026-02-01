@@ -4346,11 +4346,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)
-        elif path.lower() == 'seek5m':
+        elif path.lower() in ['seek5m', 'seek300']:
             if ui.remote_control and ui.remote_control_field:
                 b = b'seek 300s'
                 self.final_message(b)
                 self.nav_signals.control_signal(300, 'seek')
+            else:
+                b = b'Remote Control Not Allowed'
+                self.final_message(b)
+        elif path.lower() in ['seek_5m', 'seek_300']:
+            if ui.remote_control and ui.remote_control_field:
+                b = b'seek -300s'
+                self.final_message(b)
+                self.nav_signals.control_signal(-300, 'seek')
             else:
                 b = b'Remote Control Not Allowed'
                 self.final_message(b)

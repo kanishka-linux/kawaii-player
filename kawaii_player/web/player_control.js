@@ -748,7 +748,7 @@ function seek(seconds) {
         const videoPlayer = document.getElementById('videoPlayer');
         videoPlayer.currentTime += seconds;
     } else {
-        const command = seconds > 0 ? `seek_${Math.abs(seconds)}` : `seek_${Math.abs(seconds)}`;
+        const command = seconds > 0 ? `seek${Math.abs(seconds)}` : `seek_${Math.abs(seconds)}`;
         sendRemoteCommand(`/${command}`);
     }
 }
