@@ -1117,3 +1117,89 @@
     transform: none;
   }
 }
+
+/* ============================================================================
+   CSS - Episode watch/unwatch button
+   ============================================================================ */
+
+/* ============================================================================
+   CSS - Episode watch/unwatch button (CHECKMARK - Light when not watched)
+   Add to series_details.css
+   ============================================================================ */
+
+/* Episode Actions Container */
+.episode-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Watch Button - Checkmark (light when not watched, bold when watched) */
+.episode-watch-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: white;
+  border: 2px solid #d0d0d0;
+  border-radius: 6px;
+  color: #e0e0e0;  /* Light gray checkmark when not watched */
+  font-size: 20px;
+  font-weight: 300;  /* Light weight */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.episode-watch-btn:hover {
+  border-color: #007bff;
+  background: #f0f7ff;
+}
+
+.episode-watch-btn:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Watched State - Bold checkmark, green color */
+.episode-watch-btn.watched {
+  background: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;  /* Dark green checkmark */
+  font-weight: 600;  /* Bold weight */
+}
+
+.episode-watch-btn.watched:hover {
+  background: #c8e6c9;
+  border-color: #2e7d32;
+}
+
+/* Loading State */
+.episode-watch-btn.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .episode-actions {
+    gap: 6px;
+  }
+
+  .episode-watch-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+    transform: translateY(-10px);
+  }
+}
