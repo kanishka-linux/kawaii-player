@@ -203,6 +203,7 @@ class SeriesDetailsApp {
             
             <div class="right-column">
                 ${this.renderTitles(info)}
+                ${this.renderFetchMediaButtons()}
                 ${this.renderGenres(info)}
                 ${this.renderSummary(info)}
                 ${this.renderEpisodes(episodes)}
@@ -214,7 +215,180 @@ class SeriesDetailsApp {
         // Setup episode click handlers
         this.setupEpisodeHandlers();
         this.initLabelSelector();
+        this.setupFetchMediaHandlers();
     }
+
+    renderFetchMediaButtons() {
+      return `
+        <div class="fetch-media-buttons">
+          <button class="fetch-btn fetch-poster-btn" id="fetch-poster-btn" title="Fetch poster image">
+            <span class="fetch-icon">🖼️</span>
+            <span class="fetch-text">Fetch Poster</span>
+          </button>
+          <button class="fetch-btn fetch-fanart-btn" id="fetch-fanart-btn" title="Fetch fanart image">
+            <span class="fetch-icon">🎨</span>
+            <span class="fetch-text">Fetch Fanart</span>
+          </button>
+        </div>
+      `;
+    }
+
+    setupFetchMediaHandlers() {
+      const posterBtn = document.getElementById('fetch-poster-btn');
+      const fanartBtn = document.getElementById('fetch-fanart-btn');
+      
+      if (posterBtn) {
+        posterBtn.addEventListener('click', () => {
+          this.showFetchMediaDialog('poster');
+        });
+      }
+      
+      if (fanartBtn) {
+        fanartBtn.addEventListener('click', () => {
+          this.showFetchMediaDialog('fanart');
+        });
+      }
+    }
+
+    showFetchMediaDialog(mode) {
+      const title = this.seriesData?.series_info?.db_title;
+      
+      // Create modal HTML
+      const modalHtml = `
+        <div class="fetch-modal-overlay active" id="fetch-modal-overlay">
+          <div class="fetch-modal-dialog">
+            <div class="fetch-modal-title">${mode === 'poster' ? '🖼️ Fetch Poster' : '🎨 Fetch Fanart'}</div>
+            <div class="fetch-modal-subtitle">Enter image URL for ${this.escapeHtml(title)}</div>
+            
+            <div class="fetch-modal-form">
+              <div class="fetch-modal-form-group">
+                <label class="fetch-modal-label">Image URL</label>
+                <input 
+                  type="text" 
+                  class="fetch-modal-input" 
+                  id="fetch-url-input" 
+                  placeholder="https://example.com/image.jpg"
+                  value=""
+                />
+              </div>
+            </div>
+            
+            <div class="fetch-modal-buttons">
+              <button class="fetch-modal-btn fetch-modal-btn-cancel" id="fetch-cancel-btn">Cancel</button>
+              <button class="fetch-modal-btn fetch-modal-btn-confirm" id="fetch-confirm-btn">Yes, Fetch</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add modal to page
+      const body = document.body;
+      const modalContainer = document.createElement('div');
+      modalContainer.id = 'fetch-modal-container';
+      modalContainer.innerHTML = modalHtml;
+      body.appendChild(modalContainer);
+      
+      // Get modal elements
+      const overlay = document.getElementById('fetch-modal-overlay');
+      const urlInput = document.getElementById('fetch-url-input');
+      const confirmBtn = document.getElementById('fetch-confirm-btn');
+      const cancelBtn = document.getElementById('fetch-cancel-btn');
+      
+      // Auto-focus input
+      setTimeout(() => urlInput.focus(), 100);
+      
+      // Cancel handler
+      const closeModal = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+          const container = document.getElementById('fetch-modal-container');
+          if (container && container.parentNode) {
+            container.parentNode.removeChild(container);
+          }
+        }, 200);
+      };
+      
+      cancelBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+      
+      // Escape key to close
+      const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          document.removeEventListener('keydown', escapeHandler);
+        }
+      };
+      document.addEventListener('keydown', escapeHandler);
+      
+      // Confirm handler
+      confirmBtn.addEventListener('click', async () => {
+        const url = urlInput.value.trim();
+        
+        // Validate URL
+        if (!url) {
+          this.showMessage('Error', 'Please enter a URL', 'error');
+          return;
+        }
+        
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          this.showMessage('Error', 'URL must start with http:// or https://', 'error');
+          return;
+        }
+        
+        // Disable buttons and show loading
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        urlInput.disabled = true;
+        confirmBtn.innerHTML = '<span class="fetch-loading-spinner"></span>Fetching...';
+        
+        try {
+          await this.fetchMediaContent(mode, url, title);
+          closeModal();
+          this.showMessage('Success', `${mode === 'poster' ? 'Poster' : 'Fanart'} fetched successfully!`, 'success');
+        } catch (error) {
+          console.error('Fetch error:', error);
+          this.showMessage('Error', error.message || 'Failed to fetch media', 'error');
+          confirmBtn.disabled = false;
+          cancelBtn.disabled = false;
+          urlInput.disabled = false;
+          confirmBtn.innerHTML = 'Yes, Fetch';
+        }
+      });
+      
+      // Enter key to confirm
+      urlInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          confirmBtn.click();
+        }
+      });
+    }
+
+    async fetchMediaContent(mode, url, title) {
+      const response = await fetch('/fetch-posters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          title: title,
+          url: url,
+          mode: mode,  // 'poster' or 'fanart'
+          site_option: 'video'
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || 
+          (response.status === 400 ? 'Invalid URL or request' : `HTTP error! status: ${response.status}`)
+        );
+      }
+
+      return { success: true };
+    }
+
     
     renderPoster(info) {
         const posterImage = info.image_poster_large || '';
