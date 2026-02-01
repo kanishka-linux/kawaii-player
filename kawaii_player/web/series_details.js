@@ -7,6 +7,8 @@ class SeriesDetailsApp {
     constructor() {
         this.seriesId = null;
         this.seriesData = null;
+        this.currentLabel = null;
+        this.isUpdatingLabel = false;
     }
     
     init() {
@@ -23,6 +25,111 @@ class SeriesDetailsApp {
         
         // Setup back button
         this.setupBackButton();
+    }
+
+    initLabelSelector() {
+      const currentLabel = this.seriesData?.series_info?.current_label || null;
+      this.currentLabel = currentLabel;
+      
+      // Setup dropdown
+      const select = document.getElementById('series-label-select');
+      if (select) {
+        select.value = currentLabel || '';
+        select.addEventListener('change', (e) => {
+          this.onLabelChange(e.target.value, this.seriesId);
+        });
+      }
+      
+      // Setup buttons
+      const buttons = document.querySelectorAll('.label-btn-compact');
+      buttons.forEach(btn => {
+        const label = btn.dataset.label;
+        if (label === currentLabel) btn.classList.add('active');
+        
+        btn.addEventListener('click', () => {
+          this.onLabelChange(label, this.seriesId);
+        });
+        
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.onLabelChange(label, this.seriesId);
+          }
+        });
+      });
+    }
+
+    async onLabelChange(newLabel, seriesId) {
+      if (this.isUpdatingLabel || newLabel === this.currentLabel) return;
+      
+      const previousLabel = this.currentLabel;
+      this.setLabelLoading(true, newLabel);
+      
+      try {
+        const response = await fetch('/api/update-series-label', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            series_id: seriesId,
+            label: newLabel || null
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          
+          if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+          
+          throw new Error(
+            errorData.error || 
+            (response.status === 404 ? 'Series not found' : 'Failed to update label')
+          );
+        }
+        
+        this.currentLabel = newLabel;
+        this.updateLabelUI(newLabel, previousLabel);
+        this.showMessage('Success', 'Status updated!', 'success');
+        
+      } catch (error) {
+        console.error('Label update error:', error);
+        this.updateLabelUI(previousLabel, newLabel);
+        this.currentLabel = previousLabel;
+        this.showMessage('Error', error.message || 'Failed to update status', 'error');
+        
+      } finally {
+        this.setLabelLoading(false, newLabel);
+      }
+    }
+
+    updateLabelUI(newLabel, oldLabel) {
+      const select = document.getElementById('series-label-select');
+      if (select) select.value = newLabel || '';
+      
+      const buttons = document.querySelectorAll('.label-btn-compact');
+      buttons.forEach(btn => {
+        if (btn.dataset.label === newLabel) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    setLabelLoading(isLoading, targetLabel) {
+      this.isUpdatingLabel = isLoading;
+      
+      const btn = document.querySelector(`.label-btn-compact[data-label="${targetLabel}"]`);
+      if (btn) {
+        btn.classList.toggle('loading', isLoading);
+        btn.disabled = isLoading;
+      }
+      
+      const select = document.getElementById('series-label-select');
+      if (select) select.disabled = isLoading;
     }
     
     getSeriesIdFromURL() {
@@ -106,6 +213,7 @@ class SeriesDetailsApp {
         
         // Setup episode click handlers
         this.setupEpisodeHandlers();
+        this.initLabelSelector();
     }
     
     renderPoster(info) {
@@ -122,6 +230,12 @@ class SeriesDetailsApp {
             </div>
         `;
     }
+
+    capitalizeWords(str) {
+        return str.split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ');
+    }
     
     renderInfoBox(info) {
         const fields = [
@@ -132,7 +246,7 @@ class SeriesDetailsApp {
             { label: 'Score', value: info.score },
             { label: 'Rank', value: info.rank ? `#${info.rank}` : null },
             { label: 'Popularity', value: info.popularity ? `#${info.popularity}` : null },
-            { label: 'Status', value: info.labels || 'Unknown' },
+            { label: 'Status', value: this.capitalizeWords(info.labels || 'unknown') },
             { label: 'Available', value: info.episodes_available && info.episodes ? 
                 `${info.episodes_available} / ${info.episodes}` : info.episodes_available }
         ];
@@ -147,10 +261,38 @@ class SeriesDetailsApp {
             `).join('');
         
         return `
-            <div class="series-info-box">
-                ${rows}
+          <div class="series-info-box">
+            ${rows}
+            
+            <!-- Label Selector Row -->
+            <div class="info-row label-selector-row">
+              <span class="info-label"></span>
             </div>
-        `;
+            
+            <div class="label-selector-wrapper">
+              <!-- Mobile: Dropdown -->
+              <select id="series-label-select" class="label-select-mobile" data-series-id="${this.seriesId}">
+                <option value="">Select Status</option>
+                <option value="watching">📺 Watching</option>
+                <option value="plan to watch">📋 Plan to Watch</option>
+                <option value="completed">✅ Completed</option>
+                <option value="incomplete">⏸️  Incomplete</option>
+                <option value="dropped">❌ Dropped</option>
+                <option value="interesting">⭐ Interesting</option>
+              </select>
+              
+              <!-- Desktop: Buttons -->
+              <div class="label-buttons-desktop">
+                <button class="label-btn-compact" data-label="watching" data-series-id="${this.seriesId}" title="Currently watching">📺</button>
+                <button class="label-btn-compact" data-label="plan to watch" data-series-id="${this.seriesId}" title="Plan to watch">📋</button>
+                <button class="label-btn-compact" data-label="completed" data-series-id="${this.seriesId}" title="Completed">✅</button>
+                <button class="label-btn-compact" data-label="incomplete" data-series-id="${this.seriesId}" title="Incomplete">⏸️</button>
+                <button class="label-btn-compact" data-label="dropped" data-series-id="${this.seriesId}" title="Dropped">❌</button>
+                <button class="label-btn-compact" data-label="interesting" data-series-id="${this.seriesId}" title="Interesting">⭐</button>
+              </div>
+            </div>
+          </div>
+        `; 
     }
     
     renderTitles(info) {
