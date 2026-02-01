@@ -527,6 +527,8 @@ class SeriesDetailsApp {
             const episodeNumber = index + 1;
             const episodeName = episode.name || `Episode ${episodeNumber}`;
             const imageUrl = episode['image-url'] || '';
+            const watched = episode.watched || false;
+            const episodePath = episode.path || ''; 
             
             return `
                 <div class="episode-item" data-episode-number="${episodeNumber}" data-series-id="${this.seriesId}" tabindex="0" role="button" aria-label="Play ${episodeName}">
@@ -540,7 +542,13 @@ class SeriesDetailsApp {
                         <div class="episode-number">Episode ${episodeNumber}</div>
                         <div class="episode-title">${this.escapeHtml(episodeName)}</div>
                     </div>
-                    ${imageUrl ? `<button class="thumbnail-preview-btn" data-episode="${episodeNumber}">Preview 🔄</button>` : ''}
+                    
+                    <div class="episode-actions">
+                      ${imageUrl ? `<button class="thumbnail-preview-btn" data-episode="${episodeNumber}">Preview 🔄</button>` : ''}
+                      <button class="episode-watch-btn ${watched ? 'watched' : ''}" data-episode="${episodeNumber}" data-episode-path="${this.escapeHtml(episodePath)}" title="${watched ? 'Mark as unwatched' : 'Mark as watched'}" aria-label="${watched ? 'Mark as unwatched' : 'Mark as watched'}">
+                        ✓
+                      </button>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -579,6 +587,7 @@ class SeriesDetailsApp {
         
         // Setup thumbnail preview buttons
         this.setupThumbnailPreviews();
+        this.setupEpisodeWatchButtons();
     }
 
     setupThumbnailPreviews() {
@@ -618,7 +627,110 @@ class SeriesDetailsApp {
             });
         });
     }
+
+    setupEpisodeWatchButtons() {
+      const watchBtns = document.querySelectorAll('.episode-watch-btn');
+      
+      watchBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();  // Don't trigger episode play
+          
+          const episodeNumber = btn.dataset.episode;
+          const episodePath = btn.dataset.episodePath;
+          const isWatched = btn.dataset.watched === 'true' || btn.classList.contains('watched');
+          
+          this.toggleEpisodeWatch(episodeNumber, episodePath, isWatched);
+        });
+      });
+    }
+
+    // Toggle watch status
+    async toggleEpisodeWatch(episodeNumber, episodePath, currentlyWatched) {
+      const btn = document.querySelector(`.episode-watch-btn[data-episode="${episodeNumber}"]`);
+      const newStatus = !currentlyWatched;  // Toggle: watched -> unwatched, unwatched -> watched
+      
+      // Show loading state
+      btn.classList.add('loading');
+      btn.disabled = true;
+      
+      try {
+        const result = await this.toggleEpisodeWatchStatus(episodePath, newStatus);
+        
+        // Update UI
+        this.updateEpisodeWatchUI(episodeNumber, newStatus, result.epName);
+        
+        // Show success message
+        const message = newStatus ? 'Marked as watched!' : 'Marked as unwatched!';
+        this.showMessage('Success', message, 'success');
+        
+      } catch (error) {
+        console.error('Error updating episode watch status:', error);
+        this.showMessage('Error', error.message || 'Failed to update watch status', 'error');
+        
+      } finally {
+        // Remove loading state
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    // API call to toggle episode watch status
+    async toggleEpisodeWatchStatus(episodePath, watched) {
+      const response = await fetch('/api/toggle-episode-watch-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          path: episodePath,
+          watched: watched
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(
+          response.status === 400 ? 'Invalid request' : `HTTP error! status: ${response.status}`
+        );
+      }
+      
+      // 200 status = success
+      const data = await response.json();
+      return { success: true, epName: data.ep_name || null};
+    }
+
+    // Update UI after successful toggle
     
+    updateEpisodeWatchUI(episodeNumber, watched, epName) {
+      const btn = document.querySelector(`.episode-watch-btn[data-episode="${episodeNumber}"]`);
+      const episodeItem = document.querySelector(`.episode-item[data-episode-number="${episodeNumber}"]`);
+      const episodeTitle = episodeItem?.querySelector('.episode-title');
+
+      if (epName && episodeTitle) {
+        episodeTitle.textContent = this.escapeHtml(epName);
+      }
+      
+      if (btn) {
+        // Checkmark always visible, just change color/styling
+        btn.textContent = '✓';
+        btn.title = watched ? 'Mark as unwatched' : 'Mark as watched';
+        btn.setAttribute('aria-label', watched ? 'Mark as unwatched' : 'Mark as watched');
+        
+        // Update button styling
+        if (watched) {
+          btn.classList.add('watched');
+        } else {
+          btn.classList.remove('watched');
+        }
+        
+        // Update data attribute
+        btn.dataset.watched = watched ? 'true' : 'false';
+      }
+      
+      if (episodeItem) {
+        // Update episode item data attribute
+        episodeItem.dataset.watched = watched ? 'true' : 'false';
+      }
+    }
+
     playEpisode(episodeElement) {
         const episodeNumber = episodeElement.dataset.episodeNumber;
         const seriesId = episodeElement.dataset.seriesId;
