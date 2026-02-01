@@ -597,10 +597,17 @@ class SeriesDetailsApp {
             let currentInterval = 0; // Start at 0, will increment to 5 on first click
 
             btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation(); // Prevent episode click
 
-                const img = btn.parentElement.querySelector('.episode-thumb-img');
-                if (!img) return;
+                const episodeActions = btn.parentElement;
+                const episodeItem = episodeActions.closest('.episode-item');
+                const img = episodeItem.querySelector('.episode-thumb-img');
+
+                if (!img) {
+                    console.warn('Image not found');
+                    return;
+                } 
 
                 const baseUrl = img.dataset.baseUrl;
                 if (!baseUrl) return;
@@ -633,6 +640,7 @@ class SeriesDetailsApp {
       
       watchBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
+          e.preventDefault();
           e.stopPropagation();  // Don't trigger episode play
           
           const episodeNumber = btn.dataset.episode;
