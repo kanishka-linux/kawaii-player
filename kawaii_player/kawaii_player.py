@@ -213,6 +213,7 @@ from series_info_fetcher.anime import AnimeInfoFetcher
 from series_info_fetcher.tv_shows import TvShowInfoFetcher
 from track_extractor import TrackExtractor
 from webm_transcoder import WebMTranscoder
+from hls_transcoder import HLSTranscoder
 
 try:
     import vlc
@@ -1773,6 +1774,7 @@ class Ui_MainWindow(object):
         self.yt = YTDL(self)
         self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.tvshow_info_fetcher = TvShowInfoFetcher(self)
+        self.hls_transcoder = HLSTranscoder(self)
         self.webm_transcoder = WebMTranscoder(self)
         self.track_extractor = TrackExtractor(self)
         self.frame_extra_toolbar = ExtraToolBar(MainWindow, self)

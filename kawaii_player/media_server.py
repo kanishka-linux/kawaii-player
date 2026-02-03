@@ -1487,6 +1487,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Location', nm)
                 self.send_header('Connection', 'close')
                 self.end_headers()
+        elif self.path.startswith('/cache/') and self.path.endswith('/playlist.m3u8'):
+            cache_dirname = self.path.split('/')[2]
+            self.serve_hls_playlist(cache_dirname)
+        elif self.path.startswith('/cache/') and self.path.endswith('.ts'):
+            parts = self.path.split('/')
+            cache_dirname = parts[2]
+            segment_name = parts[3]
+            self.serve_hls_segment(cache_dirname, segment_name)
         elif self.path.startswith('/cache/'):
             cache_filename = self.path.replace('/cache/', '')
             result = ui.track_extractor.handle_cache_request(cache_filename)
@@ -3214,6 +3222,136 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             conn.close()
             return {'success': False, 'error': f"Database error: {str(e)}"}
 
+    def serve_hls_playlist(self, cache_dirname):
+        """Serve HLS m3u8 playlist"""
+        global ui
+        
+        try:
+            result = ui.track_extractor.hls_transcoder.get_cached_playlist(cache_dirname)
+            
+            if 'error' in result:
+                self.send_error(404, result['error'])
+                return
+            
+            playlist_path = result['file_path']
+            cache_dir = result['cache_dir']
+            
+            if not os.path.exists(playlist_path):
+                self.send_error(404, 'Playlist not found')
+                return
+            
+            # Read and update playlist with correct segment paths
+            with open(playlist_path, 'r') as f:
+                playlist_content = f.read()
+            
+            # Replace relative segment paths with absolute URLs
+            # Convert segment_001.ts to /cache/dirname/segment_001.ts
+            updated_content = playlist_content
+            for segment_file in os.listdir(cache_dir):
+                if segment_file.endswith('.ts'):
+                    # Replace local paths with full cache URLs
+                    updated_content = updated_content.replace(
+                        segment_file,
+                        f'/cache/{cache_dirname}/{segment_file}'
+                    )
+            
+            # Send playlist
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/vnd.apple.mpegurl')
+            self.send_header('Cache-Control', 'no-cache, no-store')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+            self.send_header('Content-Length', len(updated_content.encode()))
+            self.end_headers()
+            
+            self.wfile.write(updated_content.encode())
+            ui.logger.info(f"Served HLS playlist: {cache_dirname}/playlist.m3u8")
+            
+        except Exception as e:
+            ui.logger.error(f"Error serving HLS playlist: {e}")
+            self.send_error(500, str(e))
+
+
+    def serve_hls_segment(self, cache_dirname, segment_name):
+        """Serve HLS .ts segment with range request support"""
+        global ui
+        
+        try:
+            result = ui.track_extractor.hls_transcoder.get_cached_segment(cache_dirname, segment_name)
+            
+            if 'error' in result:
+                self.send_error(404, result['error'])
+                return
+            
+            segment_path = result['file_path']
+            file_size = result['file_size']
+            content_type = result['content_type']
+            
+            # Handle range requests
+            range_header = self.headers.get('Range')
+            
+            if range_header:
+                # Parse range
+                range_match = range_header.replace('bytes=', '').split('-')
+                start = int(range_match[0]) if range_match[0] else 0
+                end = int(range_match[1]) if range_match[1] else file_size - 1
+                
+                length = end - start + 1
+                
+                self.send_response(206)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Range', f'bytes {start}-{end}/{file_size}')
+                self.send_header('Content-Length', length)
+                self.send_header('Accept-Ranges', 'bytes')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'max-age=3600')  # Cache segments
+                self.end_headers()
+                
+                # Stream range
+                with open(segment_path, 'rb') as f:
+                    f.seek(start)
+                    remaining = length
+                    chunk_size = 64 * 1024
+                    
+                    while remaining > 0:
+                        read_size = min(chunk_size, remaining)
+                        data = f.read(read_size)
+                        if not data:
+                            break
+                        try:
+                            self.wfile.write(data)
+                            remaining -= len(data)
+                        except (BrokenPipeError, ConnectionResetError):
+                            break
+            
+            else:
+                # Full segment request
+                self.send_response(200)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Length', file_size)
+                self.send_header('Accept-Ranges', 'bytes')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'max-age=3600')
+                self.end_headers()
+                
+                # Stream entire segment
+                with open(segment_path, 'rb') as f:
+                    chunk_size = 64 * 1024
+                    while True:
+                        data = f.read(chunk_size)
+                        if not data:
+                            break
+                        try:
+                            self.wfile.write(data)
+                        except (BrokenPipeError, ConnectionResetError):
+                            break
+            
+            ui.logger.info(f"Served HLS segment: {segment_name}")
+            
+        except Exception as e:
+            ui.logger.error(f"Error serving HLS segment: {e}")
+            self.send_error(500, str(e))
+
     def serve_file_with_range(self, file_path, content_type, file_size):
         """Serve file with HTTP Range request support for streaming (supports growing files)"""
         global ui
@@ -3231,17 +3369,17 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         trigger_file = file_path + '.finished'
         timeout_limit = 300
         timeout_counter = 0
-        broken_pipe_limit = 30
-        broken_pipe_counter = 0
         ui.logger.info(f"{trigger_file}, {file_path}, {file_size}")
         # Detect Chrome browser
         user_agent = self.headers.get('User-Agent', '').lower()
         is_chrome = 'chrome' in user_agent or 'chromium' in user_agent
+        #is_ios = 'iphone' in user_agent or 'ipad' in user_agent
 
         if not os.path.isfile(trigger_file):
             #  keep file size large to avoid
             # connection getting closed during
-            # transcoding
+            # transcoding, need to check how to
+            # do it propery
             file_size = 10 * 1024 * 1024 * 1024
 
         try:

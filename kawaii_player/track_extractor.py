@@ -17,13 +17,44 @@ class TrackExtractor:
         self.cache_path_mapping = {}
         self.estimated_file_size = {}
         self.webm_transcoder = self.ui.webm_transcoder
+        self.hls_transcoder = self.ui.hls_transcoder
 
-    def _is_chrome_browser(self, user_agent):
-        """Detect Chrome from user agent"""
+    def _is_ios_or_safari(self, user_agent):
+        """Detect iOS or Safari browsers"""
+        if not user_agent:
+            return False
+        
+        user_agent = user_agent.lower()
+        
+        is_ios = 'iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent
+        is_safari = 'safari' in user_agent and 'chrome' not in user_agent
+        
+        return is_ios or is_safari
+
+    def _is_ios(self, user_agent):
+        """Detect iOS devices"""
         if not user_agent:
             return False
         user_agent = user_agent.lower()
-        return 'chrome' in user_agent or 'chromium' in user_agent
+        return 'iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent
+
+    def _is_webm(self, user_agent):
+        """Detect Chrome-based and serve WebM"""
+        if not user_agent:
+            return False
+
+        user_agent = user_agent.lower()
+
+        # Chrome-based browsers
+        chrome_based = any(ua in user_agent for ua in [
+            'chrome', 'chromium', 'edge', 'edg', 'brave', 
+            'opera', 'opr', 'vivaldi', 'whale'
+        ])
+
+        if chrome_based:
+            return True
+
+        return False
 
     def _is_browser_compatible_video(self, codec):
         """Check if video codec is browser-compatible for MP4 container"""
@@ -356,8 +387,11 @@ class TrackExtractor:
 
     def start_video_transcode(self, mkv_path, video_index=0, audio_index=None, user_agent=None):
         """Start video transcode/copy job and return immediate response"""
+        if self._is_ios_or_safari(user_agent):
+            self.ui.logger.info("iOS/Safari detected, using HLS transcoder")
+            return self.hls_transcoder.start_transcode(mkv_path, video_index, audio_index)
         # Route Chrome to WebM transcoder
-        if self._is_chrome_browser(user_agent):
+        if self._is_webm(user_agent):
             self.ui.logger.info("Chrome detected, using WebM transcoder")
             return self.webm_transcoder.start_transcode(mkv_path, video_index, audio_index)
 
@@ -501,8 +535,12 @@ class TrackExtractor:
 
     def get_transcode_status(self, mkv_path, video_index=0, audio_index=None, user_agent=None):
         """Get status of ongoing transcode"""
+        if self._is_ios_or_safari(user_agent):
+            self.ui.logger.info("iOS/Safari detected, using HLS transcoder")
+            return self.hls_transcoder.get_status(mkv_path, video_index, audio_index)
+
         # Route Chrome to WebM status
-        if self._is_chrome_browser(user_agent):
+        if self._is_webm(user_agent):
             return self.webm_transcoder.get_status(mkv_path, video_index, audio_index)
 
         cache_key = self._generate_cache_key(video_index, audio_index)
@@ -553,8 +591,11 @@ class TrackExtractor:
 
     def cancel_video_transcode(self, mkv_path, video_index=0, audio_index=None, user_agent=None):
         """Cancel ongoing transcode job"""
+        if self._is_ios_or_safari(user_agent):
+            self.ui.logger.info("iOS/Safari detected, using HLS transcoder")
+            return self.hls_transcoder.cancel_transcode(mkv_path, video_index, audio_index)
         # Route Chrome to WebM status
-        if self._is_chrome_browser(user_agent):
+        if self._is_webm(user_agent):
             return self.webm_transcoder.cancel_transcode(mkv_path, video_index, audio_index)
 
         cache_key = self._generate_cache_key(video_index, audio_index)
@@ -1134,8 +1175,9 @@ class TrackExtractor:
         content_type, _ = mimetypes.guess_type(cache_path)
         if not content_type:
             content_type = 'application/octet-stream'
+        self.ui.logger.info(f"type:{content_type}")
 
-        file_size = os.path.getsize(cache_path) if os.path.isfile(cache_path) else 1024*1024
+        file_size = os.path.getsize(cache_path) if os.path.isfile(cache_path) else 10*1024*1024*1024
 
         # Always return file path for streaming (not data)
         return {
