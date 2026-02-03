@@ -1048,30 +1048,60 @@ async function loadAudioTracks() {
 }
 
 function clearAllTracks() {
-    // Clear subtitles
+    console.log('Clearing all tracks...');
+    
+    // ===== STOP EXTERNAL AUDIO =====
+    if (state.currentAudioElement) {
+        state.currentAudioElement.pause();
+        state.currentAudioElement.currentTime = 0;
+        
+        // Remove all event listeners
+        if (state.currentAudioSyncPlay) {
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.removeEventListener('play', state.currentAudioSyncPlay);
+        }
+        if (state.currentAudioSyncPause) {
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.removeEventListener('pause', state.currentAudioSyncPause);
+        }
+        if (state.currentAudioSyncSeek) {
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.removeEventListener('seeked', state.currentAudioSyncSeek);
+        }
+        if (state.currentAudioSyncVolume) {
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.removeEventListener('volumechange', state.currentAudioSyncVolume);
+        }
+        
+        state.currentAudioElement.remove();
+        state.currentAudioElement = null;
+        state.currentAudioSyncPlay = null;
+        state.currentAudioSyncPause = null;
+        state.currentAudioSyncSeek = null;
+        state.currentAudioSyncVolume = null;
+    }
+    
+    // ===== CLEAR SUBTITLES =====
     cleanupSubtitles();
     state.subtitlesLoaded = false;
     state.transcodeInitialLoadDone = false;
     
-    // Clear audio
-    if (state.currentAudioElement) {
-        state.currentAudioElement.pause();
-        state.currentAudioElement.remove();
-        state.currentAudioElement = null;
-    }
+    // ===== CLEAR AUDIO TRACKS =====
     state.loadedAudioTracks = [];
     state.audioTracksLoaded = false;
     
-    // Clear transcode job
+    // ===== CLEAR TRANSCODE =====
     stopTranscodeStatusPolling();
     state.transcodeJob = null;
     
-    // Clear video player
+    // ===== CLEAR VIDEO PLAYER =====
     const videoPlayer = document.getElementById('videoPlayer');
     const videoSource = document.getElementById('videoSource');
     
     if (videoPlayer) {
         videoPlayer.pause();
+        videoPlayer.currentTime = 0;
+        videoPlayer.muted = false;  // Unmute video again
         videoPlayer.removeAttribute('src');
         videoPlayer.load(); // Force unload
     }
@@ -1084,7 +1114,7 @@ function clearAllTracks() {
     const existingTracks = videoPlayer.querySelectorAll('track');
     existingTracks.forEach(track => track.remove());
     
-    // Reset selectors
+    // ===== RESET SELECTORS =====
     const subtitleSelect = document.getElementById('subtitleSelect');
     const audioSelect = document.getElementById('audioSelect');
     
@@ -1096,7 +1126,7 @@ function clearAllTracks() {
         audioSelect.innerHTML = '<option value="">Audio: Default</option>';
     }
     
-    // Reset transcode UI
+    // ===== RESET TRANSCODE UI =====
     const transcodeBtn = document.getElementById('transcodeBtn');
     const cancelBtn = document.getElementById('cancelTranscodeBtn');
     const progressDiv = document.getElementById('transcodeProgress');
@@ -1114,7 +1144,7 @@ function clearAllTracks() {
         progressDiv.style.display = 'none';
     }
     
-    console.log('Cleared all tracks and video for new episode');
+    console.log('All tracks cleared');
 }
 
 // Add this new function to show loading message inside video player
