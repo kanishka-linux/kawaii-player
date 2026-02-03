@@ -3239,14 +3239,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         is_chrome = 'chrome' in user_agent or 'chromium' in user_agent
 
         if not os.path.isfile(trigger_file):
-            filename = os.path.split(file_path)[-1]
-            est_file_size = ui.track_extractor.estimated_file_size.get(filename)
-            if est_file_size:
-                file_size = 20 * est_file_size
-            else:
-                file_size = 20 * file_size
+            #  keep file size large to avoid
+            # connection getting closed during
+            # transcoding
+            file_size = 10 * 1024 * 1024 * 1024
 
-            ui.logger.info(f"fsize = {file_size} : est = {est_file_size}, {file_path}")
         try:
             # Parse Range header
             range_header = self.headers.get('Range')
