@@ -1163,44 +1163,64 @@ function switchSubtitle(index) {
 function switchAudio(index) {
     const videoPlayer = document.getElementById('videoPlayer');
     
+    // ALWAYS stop and remove previous audio FIRST
+    if (state.currentAudioElement) {
+        state.currentAudioElement.pause();
+        state.currentAudioElement.currentTime = 0;
+        
+        // Remove all event listeners
+        if (state.currentAudioSyncPlay) {
+            videoPlayer.removeEventListener('play', state.currentAudioSyncPlay);
+        }
+        if (state.currentAudioSyncPause) {
+            videoPlayer.removeEventListener('pause', state.currentAudioSyncPause);
+        }
+        if (state.currentAudioSyncSeek) {
+            videoPlayer.removeEventListener('seeked', state.currentAudioSyncSeek);
+        }
+        if (state.currentAudioSyncVolume) {
+            videoPlayer.removeEventListener('volumechange', state.currentAudioSyncVolume);
+        }
+        
+        state.currentAudioElement.remove();
+        state.currentAudioElement = null;
+        state.currentAudioSyncPlay = null;
+        state.currentAudioSyncPause = null;
+        state.currentAudioSyncSeek = null;
+        state.currentAudioSyncVolume = null;
+    }
+    
     if (index === '') {
         // Switch back to video's built-in audio
         videoPlayer.muted = false;
-        
-        if (state.currentAudioElement) {
-            state.currentAudioElement.pause();
-            state.currentAudioElement.remove();
-            state.currentAudioElement = null;
-        }
         return;
     }
 
     const track = state.loadedAudioTracks[parseInt(index)];
 
-    if (state.currentAudioElement) {
-        state.currentAudioElement.pause();
-        state.currentAudioElement.remove();
-    }
-
     // Mute the video's built-in audio track
     videoPlayer.muted = true;
 
     const audio = new Audio(CONFIG.BASE_URL + track.url);
-    audio.volume = videoPlayer.volume || 0.75;  // Use video volume or default
-    audio.muted = false;  // External audio should NOT be muted
+    audio.volume = videoPlayer.volume || 0.75;
+    audio.muted = false;
 
+    // Define sync functions
     const syncPlay = () => {
         audio.currentTime = videoPlayer.currentTime;
-        audio.play();
+        audio.play().catch(err => console.warn('Audio play failed:', err));
     };
     const syncPause = () => audio.pause();
     const syncSeek = () => audio.currentTime = videoPlayer.currentTime;
-    const syncVolume = () => {
-        // Only sync volume level, NOT muted state
-        audio.volume = videoPlayer.volume;
-        // video stays muted, audio stays unmuted
-    };
+    const syncVolume = () => audio.volume = videoPlayer.volume;
 
+    // Store references for cleanup
+    state.currentAudioSyncPlay = syncPlay;
+    state.currentAudioSyncPause = syncPause;
+    state.currentAudioSyncSeek = syncSeek;
+    state.currentAudioSyncVolume = syncVolume;
+
+    // Add event listeners
     videoPlayer.addEventListener('play', syncPlay);
     videoPlayer.addEventListener('pause', syncPause);
     videoPlayer.addEventListener('seeked', syncSeek);
@@ -1210,7 +1230,7 @@ function switchAudio(index) {
 
     if (!videoPlayer.paused) {
         audio.currentTime = videoPlayer.currentTime;
-        audio.play();
+        audio.play().catch(err => console.warn('Audio play failed:', err));
     }
 }
 
