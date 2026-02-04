@@ -275,6 +275,7 @@ async function switchMode(newMode) {
     console.log('Switching to mode:', newMode);
     
     state.mode = newMode;
+    localStorage.setItem('playerMode', newMode);
     document.body.setAttribute('data-mode', newMode);
     
     // Update active mode button
@@ -605,6 +606,7 @@ function playEpisode(episodeNumber) {
     }
     
     state.currentEpisode = episode;
+    localStorage.setItem('selectedEpisodeNumber', episodeNumber);
 
     // Clear audio and subtitle tracks when switching episodes
     if (state.mode === 'in-browser') {
@@ -1741,7 +1743,8 @@ async function initialize() {
     console.log('URL params:', params);
     
     state.seriesId = params.seriesId;
-    state.mode = params.mode;
+    const savedMode = localStorage.getItem('playerMode');
+    state.mode = savedMode || 'in-browser';
     
     if (!state.seriesId) {
         console.error('No series ID found in URL');
