@@ -682,14 +682,6 @@ function togglePlayPause() {
     if (state.mode === 'in-browser') {
         const videoPlayer = document.getElementById('videoPlayer');
         
-        const hasSource = videoSource.src && videoSource.src.length > 0;
-        // Check if video is not loaded but transcode is ongoing
-        if (state.transcodeJob) {
-            // Load the transcoding video
-            loadTranscodedVideo(state.transcodeJob.url, true);
-            videoPlayer.play();
-            return;
-        }
         if (videoPlayer.paused) {
             videoPlayer.play();
         } else {
@@ -1328,7 +1320,8 @@ async function startTranscode() {
             // loadTranscodedVideo(data.url, true); // true = keep progress UI
             if (data.status === 'completed') {
                 // Already transcoded, load immediately
-                // loadTranscodedVideo(data.url);
+        
+                loadTranscodedVideo(data.url);
                 showAlert('Video loaded (already transcoded)', 'success');
             } else {
                 // Show progress UI
@@ -1412,7 +1405,7 @@ async function checkTranscodeStatus() {
             if (data.status === 'completed') {
                 // Transcode finished
                 stopTranscodeStatusPolling();
-                loadTranscodedVideo(data.url);
+                //loadTranscodedVideo(data.url);
                 hideTranscodeLoadingMessage();
                 showAlert('Video transcoded successfully!', 'success');
             } else if (data.status === 'failed') {
