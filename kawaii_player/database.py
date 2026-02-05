@@ -1706,13 +1706,21 @@ class MediaDatabase():
                     ep_name = '✅ ' + ep_name
                     watched = True
 
+                path = row['Path']
+                browser_playable = False
+                if '.' in path:
+                    ext = path.rsplit('.')[-1]
+                    if ext and ext.lower() in ['mp4', 'webm', 'flac', 'mp3']:
+                        browser_playable = True
+
                 episodes.append({
                     'watched': watched,
                     'name': ep_name,
                     'path': row['Path'],
                     'url': self.build_url_from_file_path(row['Path'], 'url'),
                     'image-url': self.build_url_from_file_path(row['Path'], 'image'),
-                    'epn-number': row['EPN']
+                    'epn-number': row['EPN'],
+                    'browser_playable': browser_playable
                 })
 
             # Build response
