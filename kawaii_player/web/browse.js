@@ -578,6 +578,7 @@ const BrowseApp = {
     initViewToggle() {
         const viewToggles = document.querySelectorAll('.js-view-toggle');
         const seriesGrid = document.querySelector('.js-series-grid');
+        const textListView = document.querySelector('.js-text-list');
         
         viewToggles.forEach(toggle => {
             toggle.addEventListener('click', () => {
@@ -589,13 +590,45 @@ const BrowseApp = {
                 });
                 toggle.classList.add('active');
                 
-                // Update grid view with smooth transition
-                if (seriesGrid) {
-                    seriesGrid.style.opacity = '0.7';
-                    setTimeout(() => {
-                        seriesGrid.className = view === 'list' ? 'list-view js-series-grid' : 'grid js-series-grid';
-                        seriesGrid.style.opacity = '1';
-                    }, 150);
+                // Handle different views
+                if (view === 'text') {
+                    // Switch to text view
+                    if (seriesGrid) {
+                        seriesGrid.classList.add('hidden');
+                        seriesGrid.style.display = 'none'; // Force hide
+                    }
+                    if (textListView) {
+                        textListView.classList.add('active');
+                        textListView.style.display = 'block';
+                        
+                        // Generate text list if not already done
+                        if (!textListView.dataset.generated) {
+                            this.generateTextList();
+                            textListView.dataset.generated = 'true';
+                        }
+                    }
+                } else {
+                    // Switch to grid/list view
+                    if (textListView) {
+                        textListView.classList.remove('active');
+                        textListView.style.display = 'none';
+                    }
+                    if (seriesGrid) {
+                        seriesGrid.classList.remove('hidden');
+                        seriesGrid.style.display = ''; // Reset display
+                        seriesGrid.style.opacity = '0.7';
+                        setTimeout(() => {
+                            // Remove any existing view classes first
+                            seriesGrid.classList.remove('grid', 'list-view', 'js-series-grid');
+                            // Add new classes
+                            if (view === 'list') {
+                                seriesGrid.className = 'list-view js-series-grid';
+                            } else {
+                                seriesGrid.className = 'grid js-series-grid';
+                            }
+                            seriesGrid.style.opacity = '1';
+                        }, 150);
+                    }
                 }
                 
                 // Save preference
@@ -619,6 +652,151 @@ const BrowseApp = {
         } catch (e) {
             console.warn('Could not load view preference:', e);
         }
+    },
+
+    generateTextList() {
+        const gridCards = document.querySelectorAll('.series-card');
+        const textListContent = document.getElementById('text-list-content');
+        
+        if (!gridCards.length || !textListContent) return;
+        
+        // Group series by first letter
+        const groupedSeries = {};
+        let globalIndex = 1;
+        
+        gridCards.forEach(card => {
+            const titleElement = card.querySelector('.series-title');
+            if (!titleElement) return;
+            
+            const title = titleElement.textContent.trim();
+            const firstChar = title.charAt(0).toUpperCase();
+            const letter = /[A-Z]/.test(firstChar) ? firstChar : 'other';
+            
+            if (!groupedSeries[letter]) {
+                groupedSeries[letter] = [];
+            }
+            
+            // Extract data from card
+            const metaElement = card.querySelector('.series-meta');
+            const metaText = metaElement ? metaElement.textContent : '';
+            
+            const seriesData = {
+                title: title,
+                meta: metaText,
+                genres: Array.from(card.querySelectorAll('.genre-tag')).map(g => g.textContent.trim()).join(', '),
+                score: card.querySelector('.series-score')?.textContent.trim() || '',
+                seriesId: card.dataset.seriesId || '',
+                index: globalIndex++
+            };
+            
+            groupedSeries[letter].push(seriesData);
+        });
+        
+        // Sort letters
+        const sortedLetters = Object.keys(groupedSeries).sort((a, b) => {
+            if (a === 'other') return 1;
+            if (b === 'other') return -1;
+            return a.localeCompare(b);
+        });
+        
+        // Generate HTML
+        let html = '';
+        sortedLetters.forEach(letter => {
+            const series = groupedSeries[letter];
+            const letterDisplay = letter === 'other' ? '#' : letter;
+            
+            html += `
+                <div class="letter-section" id="letter-${letter}" data-letter="${letter}">
+                    <div class="letter-header">
+                        <h2 class="letter-title">${letterDisplay}</h2>
+                        <span class="letter-count">(${series.length} series)</span>
+                    </div>
+                    <div class="series-text-list">
+            `;
+            
+            series.forEach((s, idx) => {
+                const link = s.seriesId ? `/series-details/${s.seriesId}` : '#';
+                
+                // Build metadata parts conditionally
+                const metaParts = [];
+                if (s.meta) metaParts.push(s.meta);
+                if (s.genres) metaParts.push(s.genres);
+                
+                // Build metadata string
+                let metaString = '';
+                if (metaParts.length > 0) {
+                    metaString = ` (${metaParts.join(' - ')})`;
+                    if (s.score) metaString += ` - <span class="meta-score">${s.score}</span>`;
+                } else if (s.score) {
+                    metaString = ` - <span class="meta-score">${s.score}</span>`;
+                }
+                
+                // Use global index for continuous numbering across all letters
+                html += `
+                    <a href="${link}" class="series-text-item">
+                        <span class="series-number">${idx + 1}.</span>
+                        <span class="series-text-title">${this.escapeHtml(s.title)}</span>
+                        <span class="series-text-meta">${metaString}</span>
+                    </a>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+        
+        textListContent.innerHTML = html;
+        
+        // Setup alphabet navigation
+        this.setupAlphabetNav();
+    },
+
+    setupAlphabetNav() {
+        const alphabetLinks = document.querySelectorAll('.alphabet-link');
+        const sections = document.querySelectorAll('.letter-section');
+        
+        // Smooth scroll on click
+        alphabetLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const letter = link.dataset.letter;
+                const section = document.getElementById(`letter-${letter}`);
+                
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight active letter on scroll
+        const handleScroll = () => {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.pageYOffset >= sectionTop - 150) {
+                    current = section.dataset.letter;
+                }
+            });
+            
+            alphabetLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.letter === current) {
+                    link.classList.add('active');
+                }
+            });
+        };
+        
+        window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Initial call
+    },
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     },
     
     initSeriesCards() {

@@ -167,6 +167,9 @@
                                 <button class="view-toggle js-view-toggle" data-view="list" aria-label="List view" title="List view">
                                     <span class="view-icon view-icon-list"></span>
                                 </button>
+                                <button class="view-toggle js-view-toggle" data-view="text" aria-label="Text view" title="Text view">
+                                    <span class="view-icon view-icon-text"></span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -174,6 +177,43 @@
                     <!-- Series Grid -->
                     <div class="grid js-series-grid" id="series-grid" role="main" aria-label="Series results">
                         $series_cards
+                    </div>
+
+                    <!-- Text List View -->
+                    <div class="text-list-view js-text-list" id="text-list" style="display: none;">
+                        <!-- A-Z Navigation -->
+                        <nav class="alphabet-nav" id="alphabet-nav">
+                            <a href="#letter-a" class="alphabet-link" data-letter="a">A</a>
+                            <a href="#letter-b" class="alphabet-link" data-letter="b">B</a>
+                            <a href="#letter-c" class="alphabet-link" data-letter="c">C</a>
+                            <a href="#letter-d" class="alphabet-link" data-letter="d">D</a>
+                            <a href="#letter-e" class="alphabet-link" data-letter="e">E</a>
+                            <a href="#letter-f" class="alphabet-link" data-letter="f">F</a>
+                            <a href="#letter-g" class="alphabet-link" data-letter="g">G</a>
+                            <a href="#letter-h" class="alphabet-link" data-letter="h">H</a>
+                            <a href="#letter-i" class="alphabet-link" data-letter="i">I</a>
+                            <a href="#letter-j" class="alphabet-link" data-letter="j">J</a>
+                            <a href="#letter-k" class="alphabet-link" data-letter="k">K</a>
+                            <a href="#letter-l" class="alphabet-link" data-letter="l">L</a>
+                            <a href="#letter-m" class="alphabet-link" data-letter="m">M</a>
+                            <a href="#letter-n" class="alphabet-link" data-letter="n">N</a>
+                            <a href="#letter-o" class="alphabet-link" data-letter="o">O</a>
+                            <a href="#letter-p" class="alphabet-link" data-letter="p">P</a>
+                            <a href="#letter-q" class="alphabet-link" data-letter="q">Q</a>
+                            <a href="#letter-r" class="alphabet-link" data-letter="r">R</a>
+                            <a href="#letter-s" class="alphabet-link" data-letter="s">S</a>
+                            <a href="#letter-t" class="alphabet-link" data-letter="t">T</a>
+                            <a href="#letter-u" class="alphabet-link" data-letter="u">U</a>
+                            <a href="#letter-v" class="alphabet-link" data-letter="v">V</a>
+                            <a href="#letter-w" class="alphabet-link" data-letter="w">W</a>
+                            <a href="#letter-x" class="alphabet-link" data-letter="x">X</a>
+                            <a href="#letter-y" class="alphabet-link" data-letter="y">Y</a>
+                            <a href="#letter-z" class="alphabet-link" data-letter="z">Z</a>
+                            <a href="#letter-other" class="alphabet-link" data-letter="other">#</a>
+                        </nav>
+                        
+                        <!-- Text list content will be populated by JavaScript -->
+                        <div class="text-list-content" id="text-list-content"></div>
                     </div>
 
                     <!-- Pagination -->

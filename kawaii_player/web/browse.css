@@ -1809,3 +1809,207 @@ html {
         transform: none;
     }
 }
+
+/* || TEXT LIST VIEW STYLES */
+
+/* Text list container */
+.text-list-view {
+    display: none;
+}
+
+.text-list-view.active {
+    display: block;
+}
+
+/* Hide grid when text view is active */
+.grid.hidden {
+    display: none;
+}
+
+/* Alphabet Navigation */
+.alphabet-nav {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.alphabet-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    background: #f8f9fa;
+    color: #495057;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.alphabet-link:hover {
+    background: #e9ecef;
+    color: #007bff;
+    transform: translateY(-2px);
+}
+
+.alphabet-link.active {
+    background: #007bff;
+    color: white;
+}
+
+/* Letter Section */
+.letter-section {
+    margin-bottom: 30px;
+}
+
+.letter-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.letter-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+}
+
+.letter-count {
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+}
+
+/* Compact Series Text List */
+.series-text-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.series-text-item {
+    display: block;
+    padding: 8px 12px;
+    background: transparent;
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    line-height: 1.6;
+}
+
+.series-text-item:hover {
+    background: #f8f9fa;
+    transform: translateX(3px);
+}
+
+.series-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-right: 8px;
+}
+
+.series-text-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.series-text-meta {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.meta-score {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+/* Text view icon */
+.view-icon-text::before { 
+    content: 'Az';
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* Dark theme for text list */
+body.dark-theme .alphabet-nav {
+    background: #2d2d2d;
+    border: 1px solid #404040;
+}
+
+body.dark-theme .alphabet-link {
+    background: #3d3d3d;
+    color: #b0b0b0;
+}
+
+body.dark-theme .alphabet-link:hover {
+    background: #454545;
+    color: #4da3ff;
+}
+
+body.dark-theme .alphabet-link.active {
+    background: #4da3ff;
+    color: white;
+}
+
+body.dark-theme .letter-header {
+    background: linear-gradient(135deg, #4da3ff, #0078d4);
+}
+
+body.dark-theme .series-text-list {
+    background: #2d2d2d;
+}
+
+body.dark-theme .series-text-item:hover {
+    background: #3d3d3d;
+}
+
+body.dark-theme .series-text-title {
+    color: #e0e0e0;
+}
+
+body.dark-theme .series-text-meta {
+    color: #b0b0b0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .alphabet-nav {
+        gap: 4px;
+        padding: 10px;
+    }
+
+    .alphabet-link {
+        min-width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .letter-title {
+        font-size: 18px;
+    }
+
+    .series-text-item {
+        font-size: 13px;
+    }
+}
