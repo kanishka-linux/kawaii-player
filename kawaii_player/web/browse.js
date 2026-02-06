@@ -400,6 +400,7 @@ const BrowseApp = {
         this.initSeriesCards();
         this.initPagination();
         this.initSearchInput();
+        this.initLimitControl();
     },
     
     initMultiSelect() {
@@ -416,6 +417,65 @@ const BrowseApp = {
                 }
             }
         });
+    },
+
+    initLimitControl() {
+        const limitSelect = document.querySelector('.js-limit-select');
+        if (!limitSelect) return;
+        
+        // Load saved limit preference
+        this.loadLimitPreference(limitSelect);
+        
+        // Handle limit change
+        limitSelect.addEventListener('change', (e) => {
+            const newLimit = e.target.value;
+            
+            // Save preference
+            this.saveLimitPreference(newLimit);
+            
+            // Show loading state
+            this.showLoadingState();
+            
+            // Update URL and reload
+            this.applyLimitChange(newLimit);
+        });
+    },
+
+    loadLimitPreference(limitSelect) {
+        try {
+            const savedLimit = localStorage.getItem('preferredLimit');
+            if (savedLimit && limitSelect) {
+                // Check if the saved limit exists in options
+                const option = limitSelect.querySelector(`option[value="${savedLimit}"]`);
+                if (option) {
+                    limitSelect.value = savedLimit;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load limit preference:', e);
+        }
+    },
+
+    saveLimitPreference(limit) {
+        try {
+            localStorage.setItem('preferredLimit', limit);
+        } catch (e) {
+            console.warn('Could not save limit preference:', e);
+        }
+    },
+
+    applyLimitChange(newLimit) {
+        // Get current URL
+        const url = new URL(window.location.href);
+        
+        // Update limit parameter
+        url.searchParams.set('limit', newLimit);
+        
+        // Reset to page 1 when changing limit
+        url.searchParams.set('page', '1');
+        
+        // Reload page with new limit
+        window.location.href = url.toString();
     },
     
     initFormValidation() {

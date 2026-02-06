@@ -146,13 +146,27 @@
                             Showing $results_start-$results_end of $total_count series
                         </div>
 
-                        <div class="view-options">
-                            <button class="view-toggle active js-view-toggle" data-view="grid" aria-label="Grid view" title="Grid view">
-                                <span class="view-icon view-icon-grid"></span>
-                            </button>
-                            <button class="view-toggle js-view-toggle" data-view="list" aria-label="List view" title="List view">
-                                <span class="view-icon view-icon-list"></span>
-                            </button>
+                        <div class="header-controls">
+                            <!-- NEW: Pagination Limit Control -->
+                            <div class="limit-control">
+                                <label for="limit">Show:</label>
+                                <select name="limit" id="limit" class="js-limit-select">
+                                    <option value="25" $limit_25_selected>25</option>
+                                    <option value="100" $limit_100_selected>100</option>
+                                    <option value="500" $limit_500_selected>500</option>
+                                    <option value="1000" $limit_1000_selected>1000</option>
+                                    <option value="2000" $limit_2000_selected>2000</option>
+                                </select>
+                            </div>
+
+                            <div class="view-options">
+                                <button class="view-toggle active js-view-toggle" data-view="grid" aria-label="Grid view" title="Grid view">
+                                    <span class="view-icon view-icon-grid"></span>
+                                </button>
+                                <button class="view-toggle js-view-toggle" data-view="list" aria-label="List view" title="List view">
+                                    <span class="view-icon view-icon-list"></span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -190,6 +204,28 @@
         
         // Mobile navigation toggle
         document.addEventListener('DOMContentLoaded', function() {
+            const backToTop = document.getElementById('back-to-top');
+            console.log('Back to top button found:', backToTop);
+            
+            if (backToTop) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTop.classList.add('visible');
+                    } else {
+                        backToTop.classList.remove('visible');
+                    }
+                });
+                
+                backToTop.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            } else {
+                console.error('Back to top button NOT found!');
+            }
+
             const navbarToggle = document.getElementById('navbar-toggle');
             const navbarMenu = document.getElementById('navbar-menu');
             
@@ -266,25 +302,6 @@
                             window.location.href = `/browse?search=${encodeURIComponent(query)}`;
                         }
                     }
-                });
-            }
-            
-            // Back to top button
-            const backToTop = document.getElementById('back-to-top');
-            if (backToTop) {
-                window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 300) {
-                        backToTop.classList.add('visible');
-                    } else {
-                        backToTop.classList.remove('visible');
-                    }
-                });
-                
-                backToTop.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
                 });
             }
             

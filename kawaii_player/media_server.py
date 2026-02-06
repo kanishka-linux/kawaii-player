@@ -2331,10 +2331,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             try:
                 page = int(raw_filters.get('page', 1))
                 page = max(1, page)
+                
+                limit = int(raw_filters.get('limit', 20))
             except (ValueError, TypeError):
                 page = 1
-            
-            limit = 20  # Items per page
+                limit= 20
             
             # Get series data from database
             total_count = ui.media_data.get_series_count(filters)
