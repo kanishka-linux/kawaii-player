@@ -53,6 +53,7 @@
                     
                     <div class="sidebar-content">
                         <form method="GET" action="/browse" id="browse-form">
+                            <input type="hidden" name="limit" id="limit-hidden" value="$current_limit">
                             <div class="filter-group">
                                 <label for="search">Search:</label>
                                 <input type="text" name="search" id="search" value="$search" 
@@ -282,16 +283,6 @@
                 }
             });
             
-            // Auto-close sidebar on mobile after form submission
-            const browseForm = document.getElementById('browse-form');
-            if (browseForm) {
-                browseForm.addEventListener('submit', function() {
-                    if (window.innerWidth <= 768) {
-                        closeSidebar();
-                    }
-                });
-            }
-            
             // Quick search functionality
             const quickSearch = document.getElementById('quick-search');
             if (quickSearch) {
@@ -350,6 +341,28 @@
                     });
                 });
                 observer.observe(sidebar, { attributes: true });
+            }
+
+            const limitSelect = document.querySelector('.js-limit-select');
+            const limitHidden = document.getElementById('limit-hidden');
+            const browseForm = document.getElementById('browse-form');
+            if (limitSelect) {
+                limitSelect.addEventListener('change', function() {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('limit', this.value);
+                    currentUrl.searchParams.set('page', '1'); // Reset to page 1
+                    window.location.href = currentUrl.toString();
+                });
+            }
+
+            // When form submits, sync the hidden input with visible select
+            if (browseForm) {
+                browseForm.addEventListener('submit', function(e) {
+                    limitHidden.value = limitSelect.value;
+                    if (window.innerWidth <= 768) {
+                        closeSidebar();
+                    }
+                });
             }
         });
         
