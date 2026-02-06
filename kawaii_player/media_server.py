@@ -1638,6 +1638,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if filters.get('category'):
             validated['category'] = filters['category'].strip()
 
+        if filters.get('limit'):
+            try:
+                validated['limit'] = int(filters['limit'])
+            except(ValueError, TypeError):
+                pass
         
         return validated
 
