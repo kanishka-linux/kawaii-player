@@ -1837,6 +1837,9 @@ html {
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    position: sticky;
+    top: 0px;
+    z-index: 100;
 }
 
 .alphabet-link {

@@ -706,7 +706,7 @@ const BrowseApp = {
             const letterDisplay = letter === 'other' ? '#' : letter;
             
             html += `
-                <div class="letter-section" id="letter-${letter}" data-letter="${letter}">
+                <div class="letter-section" id="letter-${letter.toLowerCase()}" data-letter="${letter}">
                     <div class="letter-header">
                         <h2 class="letter-title">${letterDisplay}</h2>
                         <span class="letter-count">(${series.length} series)</span>
