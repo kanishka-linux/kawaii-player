@@ -160,14 +160,16 @@
                                 </select>
                             </div>
 
+                            
+                            <!-- View toggle buttons -->
                             <div class="view-options">
-                                <button class="view-toggle active js-view-toggle" data-view="grid" aria-label="Grid view" title="Grid view">
+                                <button class="view-toggle $grid_view_active js-view-toggle" data-view="grid" aria-label="Grid view" title="Grid view">
                                     <span class="view-icon view-icon-grid"></span>
                                 </button>
-                                <button class="view-toggle js-view-toggle" data-view="list" aria-label="List view" title="List view">
+                                <button class="view-toggle $list_view_active js-view-toggle" data-view="list" aria-label="List view" title="List view">
                                     <span class="view-icon view-icon-list"></span>
                                 </button>
-                                <button class="view-toggle js-view-toggle" data-view="text" aria-label="Text view" title="Text view">
+                                <button class="view-toggle $text_view_active js-view-toggle" data-view="text" aria-label="Text view" title="Text view">
                                     <span class="view-icon view-icon-text"></span>
                                 </button>
                             </div>
@@ -175,12 +177,12 @@
                     </div>
 
                     <!-- Series Grid -->
-                    <div class="grid js-series-grid" id="series-grid" role="main" aria-label="Series results">
+                    <div class="$series_grid_class" id="series-grid" $series_grid_display role="main" aria-label="Series results">
                         $series_cards
                     </div>
 
                     <!-- Text List View -->
-                    <div class="text-list-view js-text-list" id="text-list" style="display: none;">
+                    <div class="text-list-view js-text-list" id="text-list" $text_list_display data-generated="$text_list_generated">
                         <!-- A-Z Navigation -->
                         <nav class="alphabet-nav" id="alphabet-nav">
                             <a href="#letter-a" class="alphabet-link" data-letter="a">A</a>
@@ -212,8 +214,10 @@
                             <a href="#letter-other" class="alphabet-link" data-letter="other">#</a>
                         </nav>
                         
-                        <!-- Text list content will be populated by JavaScript -->
-                        <div class="text-list-content" id="text-list-content"></div>
+                        <!-- Text list content -->
+                        <div class="text-list-content" id="text-list-content">
+                            $text_list_html
+                        </div>
                     </div>
 
                     <!-- Pagination -->

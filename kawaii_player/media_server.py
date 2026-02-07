@@ -28,7 +28,6 @@ from datetime import datetime
 import uuid
 import hashlib
 import json
-import ssl
 import random
 import socket
 import importlib as imp
@@ -36,6 +35,7 @@ import subprocess
 import urllib.parse
 import urllib.request
 import sqlite3
+import html
 from urllib.parse import urlparse
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -48,7 +48,8 @@ from player_functions import get_lan_ip, ccurl, naturallysorted, change_opt_file
 from settings_widget import LoginAuth
 from serverlib import ServerLib
 from simple_auth import require_admin_auth, handle_auth_routes
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List
+from collections import defaultdict
 
 try:
     from stream import get_torrent_download_location, torrent_session_status
@@ -1643,6 +1644,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 validated['limit'] = int(filters['limit'])
             except(ValueError, TypeError):
                 pass
+
+        valid_views = ['grid', 'list', 'text']
+        req_view = filters.get('view', 'grid')
+        validated['view'] = req_view if req_view in valid_views else 'grid'
         
         return validated
 
@@ -1828,6 +1833,141 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             cards_html.append(card_html)
         
         return '\n'.join(cards_html)
+
+    def generate_view_classes(self, view):
+        """Generate active classes for view toggles"""
+        return {
+            'grid': 'active' if view == 'grid' else '',
+            'list': 'active' if view == 'list' else '',
+            'text': 'active' if view == 'text' else ''
+        }
+
+    def generate_view_display(self, view):
+        """Generate display styles and classes based on view"""
+        if view == 'text':
+            return {
+                'grid_class': 'grid js-series-grid hidden',
+                'grid_display': 'style="display: none;"',
+                'text_display': 'style="display: block;"'
+            }
+        elif view == 'list':
+            return {
+                'grid_class': 'list-view js-series-grid',
+                'grid_display': '',
+                'text_display': 'style="display: none;"'
+            }
+        else:  # grid
+            return {
+                'grid_class': 'grid js-series-grid',
+                'grid_display': '',
+                'text_display': 'style="display: none;"'
+            }
+
+    def generate_text_list_html(self, series_list: List[Dict[str, Any]]) -> str:
+        """Generate pre-rendered text list HTML grouped by first letter"""
+        
+        if not series_list:
+            return '''
+                <div class="empty-state">
+                    <h3>No series found</h3>
+                    <p>Try adjusting your filters or search terms to find more results.</p>
+                    <button type="button" class="btn btn-secondary js-clear-filters-not-found">
+                        <span class="btn-icon">✖️</span>
+                        Clear All Filters
+                    </button>
+                </div>'''
+        
+        # Group series by first letter
+        grouped = defaultdict(list)
+        
+        for series in series_list:
+            title = series.get('title', 'Unknown Title')
+            first_char = title[0].upper() if title else '#'
+            letter = first_char if first_char.isalpha() else 'other'
+            grouped[letter].append(series)
+        
+        # Sort letters (alphabetically, with 'other' at the end)
+        sorted_letters = sorted(grouped.keys(), key=lambda x: (x == 'other', x))
+        
+        # Build HTML
+        html_parts = []
+        
+        for letter in sorted_letters:
+            series_in_letter = grouped[letter]
+            letter_display = '#' if letter == 'other' else letter
+            
+            html_parts.append(f'''
+                <div class="letter-section" id="letter-{letter.lower()}" data-letter="{letter}">
+                    <div class="letter-header">
+                        <h2 class="letter-title">{letter_display}</h2>
+                        <span class="letter-count">({len(series_in_letter)} series)</span>
+                    </div>
+                    <div class="series-text-list">
+            ''')
+            
+            for idx, series in enumerate(series_in_letter, 1):
+                series_id = series.get('id', '')
+                title = html.escape(series.get('title', 'Unknown Title'))
+                english_title = series.get('english_title', '')
+                year = series.get('year', '')
+                episodes = series.get('episodes', '')
+                score = series.get('score', 0)
+                genres_list = series.get('genres_list', [])
+                series_type = series.get('type', '')
+                
+                link = f'/series-details/{series_id}' if series_id else '#'
+                
+                # Build metadata parts
+                meta_parts = []
+                
+                # Add year
+                if year:
+                    meta_parts.append(str(year))
+                
+                # Add type
+                if series_type:
+                    meta_parts.append(series_type.title())
+                
+                # Add episodes
+                if episodes:
+                    meta_parts.append(f"{episodes} eps")
+                
+                # Add genres (limit to 3)
+                if genres_list:
+                    genres_display = ', '.join(genres_list[:3])
+                    if len(genres_list) > 3:
+                        genres_display += f' +{len(genres_list) - 3}'
+                    meta_parts.append(genres_display)
+                
+                # Build metadata string
+                meta_string = ''
+                if meta_parts:
+                    meta_string = f' ({" - ".join(meta_parts)})'
+                
+                # Add score
+                if score and score > 0:
+                    score_display = f"{score:.1f}"
+                    meta_string += f' - <span class="meta-score">⭐ {score_display}</span>'
+                
+                # Add English title if available
+                title_display = title
+                if english_title:
+                    title_display += f' <span class="text-english-title">({html.escape(english_title)})</span>'
+                
+                html_parts.append(f'''
+                    <a href="{link}" class="series-text-item">
+                        <span class="series-number">{idx}.</span>
+                        <span class="series-text-title">{title_display}</span>
+                        <span class="series-text-meta">{meta_string}</span>
+                    </a>
+                ''')
+            
+            html_parts.append('''
+                    </div>
+                </div>
+            ''')
+        
+        return ''.join(html_parts)
 
     def generate_pagination_html(self, current_page: int, total_pages: int, base_url: str) -> str:
         """Generate pagination HTML matching your template structure"""
@@ -2337,10 +2477,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 page = int(raw_filters.get('page', 1))
                 page = max(1, page)
                 
-                limit = int(raw_filters.get('limit', 20))
+                limit = int(filters.get('limit', 20))
             except (ValueError, TypeError):
                 page = 1
                 limit= 20
+
+            view = filters.get('view')
             
             # Get series data from database
             total_count = ui.media_data.get_series_count(filters)
@@ -2352,11 +2494,22 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             results_end = min(page * limit, total_count)
             
             # Generate HTML components
-            series_cards_html = self.generate_series_cards_html(series_list)
+            if view == 'text':
+                series_cards_html = ''
+                text_list_html = self.generate_text_list_html(series_list)
+            else:
+                series_cards_html = self.generate_series_cards_html(series_list)
+                text_list_html = ''
+
+            print(text_list_html)
+
             filter_options = self.generate_filter_options(filters)
             selected_attrs = self.generate_selected_attributes(filters)
             base_url = self.build_base_url(filters)
             pagination_html = self.generate_pagination_html(page, total_pages, base_url)
+            # Generate view-specific classes and display states
+            view_classes = self.generate_view_classes(view)
+            view_display = self.generate_view_display(view)
             
             # Read HTML template
             html_path = os.path.join(BASEDIR, 'web', 'browse.html')
@@ -2376,7 +2529,16 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 '$results_end': str(results_end),
                 '$total_count': str(total_count),
                 '$series_cards': series_cards_html,
-                '$pagination_html': pagination_html
+                '$pagination_html': pagination_html,
+                # View-related replacements
+                '$grid_view_active': view_classes['grid'],
+                '$list_view_active': view_classes['list'],
+                '$text_view_active': view_classes['text'],
+                '$series_grid_class': view_display['grid_class'],
+                '$series_grid_display': view_display['grid_display'],
+                '$text_list_display': view_display['text_display'],
+                '$text_list_html': text_list_html,
+                '$text_list_generated': 'true' if view == 'text' else 'false'
             }
             
             # Add sort/order selected attributes

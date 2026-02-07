@@ -2016,3 +2016,14 @@ body.dark-theme .series-text-meta {
         font-size: 13px;
     }
 }
+
+.text-english-title {
+    color: #888;
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+.meta-score {
+    color: #ffc107;
+    font-weight: 600;
+}
