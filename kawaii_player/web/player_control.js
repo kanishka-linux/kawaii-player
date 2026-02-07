@@ -1478,7 +1478,8 @@ async function checkTranscodeStatus() {
         return;
     }
 
-    if (state.transcodeJob.episodePath !== state.currentEpisode.actual_path) {
+    if (state.transcodeJob.episodePath && state.transcodeJob.episodePath !== state.currentEpisode.actual_path) {
+        console.log(state.transcodeJob.episodePath, state.currentEpisode.actual_path, "transcode episode mismatch");
         return;
     }
     
@@ -1708,7 +1709,9 @@ async function checkOngoingTranscode() {
     state.transcodeJob = {
         url: savedTranscode.url,
         status: savedTranscode.status,
-        progress: savedTranscode.progress || 0
+        progress: savedTranscode.progress || 0,
+        episodePath: savedTranscode.episodePath,
+        episodeNumber: savedTranscode.episodeNumber
     };
     
     // Restore UI elements
