@@ -2501,8 +2501,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 series_cards_html = self.generate_series_cards_html(series_list)
                 text_list_html = ''
 
-            print(text_list_html)
-
             filter_options = self.generate_filter_options(filters)
             selected_attrs = self.generate_selected_attributes(filters)
             base_url = self.build_base_url(filters)
@@ -2519,6 +2517,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             # Replace all template placeholders
             replacements = {
                 '$search': filters.get('search', ''),
+                '$current_limit': str(limit),
+                '$current_view': view, 
                 '$category_options': filter_options['category_options'],  # Empty string
                 '$labels_options': filter_options['labels_options'],  # Empty string
                 '$genre_options': filter_options['genre_options'],

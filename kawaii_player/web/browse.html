@@ -54,6 +54,7 @@
                     <div class="sidebar-content">
                         <form method="GET" action="/browse" id="browse-form">
                             <input type="hidden" name="limit" id="limit-hidden" value="$current_limit">
+                            <input type="hidden" name="view" id="view-hidden" value="$current_view">
                             <div class="filter-group">
                                 <label for="search">Search:</label>
                                 <input type="text" name="search" id="search" value="$search" 
@@ -157,6 +158,7 @@
                                     <option value="500" $limit_500_selected>500</option>
                                     <option value="1000" $limit_1000_selected>1000</option>
                                     <option value="2000" $limit_2000_selected>2000</option>
+                                    <option value="10000" $limit_10000_selected>10000</option>
                                 </select>
                             </div>
 
@@ -389,6 +391,8 @@
 
             const limitSelect = document.querySelector('.js-limit-select');
             const limitHidden = document.getElementById('limit-hidden');
+            const viewHidden = document.getElementById('view-hidden');
+            const currentView = new URL(window.location.href).searchParams.get('view')
             const browseForm = document.getElementById('browse-form');
             if (limitSelect) {
                 limitSelect.addEventListener('change', function() {
@@ -403,6 +407,7 @@
             if (browseForm) {
                 browseForm.addEventListener('submit', function(e) {
                     limitHidden.value = limitSelect.value;
+                    viewHidden.value = currentView;
                     if (window.innerWidth <= 768) {
                         closeSidebar();
                     }
