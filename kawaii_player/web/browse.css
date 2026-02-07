@@ -635,11 +635,6 @@ body {
     border-bottom: 2px solid #e9ecef;
 }
 
-.results-info {
-    color: #6c757d;
-    font-size: 16px;
-}
-
 .sort-controls {
     display: flex;
     gap: 15px;
@@ -1669,12 +1664,25 @@ html {
     align-items: center;
 }
 
-/* Pagination Limit Control Styles */
-.limit-control {
+.results-left {
     display: flex;
     align-items: center;
+    gap: 1rem;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.results-info {
+    font-size: 0.95rem;
+    color: #555;
+    font-weight: 500;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Pagination Limit Control Styles */
+.limit-control {
+    align-items: center;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 0px 0px;
     background: #ffffff;
     border-radius: 6px;
     border: 1px solid #dee2e6;
@@ -1719,13 +1727,7 @@ html {
 @media (max-width: 768px) {
     .header-controls {
         flex-direction: row;
-        width: 100%;
         gap: 12px;
-    }
-    
-    .limit-control {
-        width: 100%;
-        justify-content: center;
     }
     
     .view-options {
@@ -1736,7 +1738,7 @@ html {
 
 @media (max-width: 480px) {
     .limit-control {
-        padding: 6px 10px;
+        padding: 0px 0px;
     }
     
     .limit-control label {
@@ -2026,4 +2028,111 @@ body.dark-theme .series-text-meta {
 .meta-score {
     color: #ffc107;
     font-weight: 600;
+}
+
+/* Quick Sort Controls */
+.quick-sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sort-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sort-group label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.js-quick-sort {
+    padding: 0.5rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+}
+
+.js-quick-sort:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.js-quick-sort:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Order Toggle Button - Match View Buttons Style */
+.order-toggle {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.order-toggle:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+    transform: translateY(-1px);
+}
+
+.order-toggle:active {
+    transform: translateY(0);
+}
+
+.order-icon {
+    font-weight: bold;
+    line-height: 1;
+    color: #555;
+}
+
+.order-toggle:hover .order-icon {
+    color: #007bff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .sort-group label {
+        display: none;
+    }
+    
+    .js-quick-sort {
+        min-width: 100px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-controls {
+        gap: 0.75rem;
+    }
+    
+    .quick-sort-controls {
+        order: -1;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .order-toggle {
+        width: 32px;
+        height: 32px;
+        font-size: 1.1rem;
+    }
 }

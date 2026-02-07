@@ -402,6 +402,7 @@ const BrowseApp = {
         this.initSearchInput();
         this.initLimitControl();
         this.initAlphabetNav();
+        this.initQuickSort();
     },
     
     initMultiSelect() {
@@ -654,6 +655,68 @@ const BrowseApp = {
         
         window.addEventListener('scroll', handleScroll);
         handleScroll(); // Initial call
+    },
+
+    
+    // ADD THIS METHOD after initAlphabetNav()
+    initQuickSort() {
+        const sortSelect = document.querySelector('.js-quick-sort');
+        const orderToggle = document.querySelector('.js-order-toggle');
+        
+        // Handle sort change
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.applyQuickSort(e.target.value, null);
+            });
+        }
+        
+        // Handle order toggle - single button that switches between asc/desc
+        if (orderToggle) {
+            orderToggle.addEventListener('click', () => {
+                const currentOrder = orderToggle.dataset.order;
+                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+                const currentSort = sortSelect ? sortSelect.value : 'title';
+                this.applyQuickSort(currentSort, newOrder);
+            });
+        }
+    },
+
+    applyQuickSort(sort, order) {
+        // Get current URL
+        const url = new URL(window.location.href);
+        
+        // Update sort parameter
+        if (sort) {
+            url.searchParams.set('sort', sort);
+        }
+        
+        // Update order parameter
+        if (order) {
+            url.searchParams.set('order', order);
+        } else {
+            // If order not specified, keep current or use smart defaults
+            const currentOrder = url.searchParams.get('order');
+            if (!currentOrder) {
+                // Smart defaults based on sort type
+                const defaultOrders = {
+                    'title': 'asc',
+                    'year': 'desc',
+                    'score': 'desc',
+                    'popularity': 'desc',
+                    'rank': 'asc'
+                };
+                url.searchParams.set('order', defaultOrders[sort] || 'asc');
+            }
+        }
+        
+        // Reset to page 1 when changing sort
+        url.searchParams.set('page', '1');
+        
+        // Show loading state
+        this.showLoadingState();
+        
+        // Reload page with new sort/order
+        window.location.href = url.toString();
     },
    
     initSeriesCards() {

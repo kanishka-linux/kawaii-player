@@ -2483,6 +2483,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 limit= 20
 
             view = filters.get('view')
+            sort = filters.get('sort', 'score')
+            order = filters.get('order')
+            if sort == "score" and not order:
+                order = "desc"
+            if not order:
+                order = "asc"
+
+            order_icon = '↑' if order == 'asc' else '↓'
             
             # Get series data from database
             total_count = ui.media_data.get_series_count(filters)
@@ -2519,6 +2527,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 '$search': filters.get('search', ''),
                 '$current_limit': str(limit),
                 '$current_view': view, 
+                '$asc_active': 'active' if order == 'asc' else '',
+                '$desc_active': 'active' if order == 'desc' else '',
                 '$category_options': filter_options['category_options'],  # Empty string
                 '$labels_options': filter_options['labels_options'],  # Empty string
                 '$genre_options': filter_options['genre_options'],
@@ -2538,7 +2548,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 '$series_grid_display': view_display['grid_display'],
                 '$text_list_display': view_display['text_display'],
                 '$text_list_html': text_list_html,
-                '$text_list_generated': 'true' if view == 'text' else 'false'
+                '$text_list_generated': 'true' if view == 'text' else 'false',
+                '$current_order': order,
+                '$order_icon': order_icon,
             }
             
             # Add sort/order selected attributes

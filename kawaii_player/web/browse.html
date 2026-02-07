@@ -144,24 +144,25 @@
                 <div class="main-area">
                     <!-- Results Header -->
                     <div class="results-header">
-                        <div class="results-info" aria-live="polite">
-                            Showing $results_start-$results_end of $total_count series
-                        </div>
-
+                        
                         <div class="header-controls">
-                            <!-- NEW: Pagination Limit Control -->
-                            <div class="limit-control">
-                                <label for="limit">Show:</label>
-                                <select name="limit" id="limit" class="js-limit-select">
-                                    <option value="25" $limit_25_selected>25</option>
-                                    <option value="100" $limit_100_selected>100</option>
-                                    <option value="500" $limit_500_selected>500</option>
-                                    <option value="1000" $limit_1000_selected>1000</option>
-                                    <option value="2000" $limit_2000_selected>2000</option>
-                                    <option value="10000" $limit_10000_selected>10000</option>
-                                </select>
-                            </div>
 
+                            <!-- NEW: Quick Sort Controls -->
+                            <div class="quick-sort-controls">
+                                
+                                <select name="sort" id="quick-sort" class="js-quick-sort">
+                                    <option value="title" $title_selected>📝 Title</option>
+                                    <option value="year" $year_selected>🗓️ Year</option>
+                                    <option value="score" $score_selected>⭐ Score</option>
+                                    <option value="popularity" $popularity_selected>🔥 Popular</option>
+                                    <option value="rank" $rank_selected>🏆 Rank</option>
+                                </select>
+                                
+                                <!-- Single Order Toggle Button -->
+                                <button class="order-toggle js-order-toggle" data-order="$current_order" title="Toggle sort order">
+                                    <span class="order-icon">$order_icon</span>
+                                </button>
+                            </div>
                             
                             <!-- View toggle buttons -->
                             <div class="view-options">
@@ -174,6 +175,22 @@
                                 <button class="view-toggle $text_view_active js-view-toggle" data-view="text" aria-label="Text view" title="Text view">
                                     <span class="view-icon view-icon-text"></span>
                                 </button>
+                            </div>
+                        </div>
+<div class="results-left">
+                            <div class="results-info" aria-live="polite">
+                                Showing $results_start-$results_end of $total_count series
+                            </div>
+                            <!-- NEW: Pagination Limit Control -->
+                            <div class="limit-control">
+                                <select name="limit" id="limit" class="js-limit-select">
+                                    <option value="25" $limit_25_selected>25</option>
+                                    <option value="100" $limit_100_selected>100</option>
+                                    <option value="500" $limit_500_selected>500</option>
+                                    <option value="1000" $limit_1000_selected>1000</option>
+                                    <option value="2000" $limit_2000_selected>2000</option>
+                                    <option value="5000" $limit_5000_selected>5000</option>
+                                </select>
                             </div>
                         </div>
                     </div>
