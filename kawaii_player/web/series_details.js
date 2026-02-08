@@ -221,9 +221,9 @@ class SeriesDetailsApp {
     renderFetchMediaButtons() {
       return `
         <div class="fetch-media-buttons">
-          <button class="fetch-btn fetch-poster-btn" id="fetch-poster-btn" title="Fetch poster image">
-            <span class="fetch-icon">🖼️</span>
-            <span class="fetch-text">Fetch Poster</span>
+          <button class="fetch-btn fetch-metadata-btn" id="fetch-metadata-btn" title="Fetch series metadata">
+            <span class="fetch-icon">🔄</span>
+            <span class="fetch-text">Fetch Metadata</span>
           </button>
           <button class="fetch-btn fetch-fanart-btn" id="fetch-fanart-btn" title="Fetch fanart image">
             <span class="fetch-icon">🎨</span>
@@ -234,12 +234,12 @@ class SeriesDetailsApp {
     }
 
     setupFetchMediaHandlers() {
-      const posterBtn = document.getElementById('fetch-poster-btn');
+      const metadataBtn = document.getElementById('fetch-metadata-btn');
       const fanartBtn = document.getElementById('fetch-fanart-btn');
       
-      if (posterBtn) {
-        posterBtn.addEventListener('click', () => {
-          this.showFetchMediaDialog('poster');
+      if (metadataBtn) {
+        metadataBtn.addEventListener('click', () => {
+          this.showFetchMetadataDialog();
         });
       }
       
@@ -250,32 +250,66 @@ class SeriesDetailsApp {
       }
     }
 
-    showFetchMediaDialog(mode) {
-      const title = this.seriesData?.series_info?.db_title;
+    showFetchMetadataDialog() {
+      const title = this.seriesData?.series_info?.db_title || this.seriesData?.series_info?.title;
+      const currentCategory = this.seriesData?.series_info?.category || 'anime';
       
       // Create modal HTML
       const modalHtml = `
-        <div class="fetch-modal-overlay active" id="fetch-modal-overlay">
-          <div class="fetch-modal-dialog">
-            <div class="fetch-modal-title">${mode === 'poster' ? '🖼️ Fetch Poster' : '🎨 Fetch Fanart'}</div>
-            <div class="fetch-modal-subtitle">Enter image URL for ${this.escapeHtml(title)}</div>
+        <div class="fetch-modal-overlay active" id="fetch-metadata-overlay">
+          <div class="fetch-modal-dialog fetch-metadata-dialog">
+            <div class="fetch-modal-title">🔄 Fetch Series Metadata</div>
+            <div class="fetch-modal-subtitle">Update metadata for ${this.escapeHtml(title)}</div>
             
             <div class="fetch-modal-form">
               <div class="fetch-modal-form-group">
-                <label class="fetch-modal-label">Image URL</label>
+                <label class="fetch-modal-label">Search Title</label>
                 <input 
                   type="text" 
                   class="fetch-modal-input" 
-                  id="fetch-url-input" 
-                  placeholder="https://example.com/image.jpg"
-                  value=""
+                  id="metadata-search-title" 
+                  placeholder="Enter custom search title"
+                  value="${this.escapeHtml(title)}"
                 />
+                <div class="fetch-modal-help">Enter the exact title to search for</div>
+              </div>
+              
+              <div class="fetch-modal-form-group">
+                <label class="fetch-modal-label">External ID (Optional)</label>
+                <input 
+                  type="number" 
+                  class="fetch-modal-input" 
+                  id="metadata-external-id" 
+                  placeholder="e.g., 5114 (MyAnimeList ID)"
+                />
+                <div class="fetch-modal-help">Leave empty to search by title</div>
+              </div>
+              
+              <div class="fetch-modal-form-row">
+                <div class="fetch-modal-form-group">
+                  <label class="fetch-modal-label">Category</label>
+                  <select class="fetch-modal-input" id="metadata-category">
+                    <option value="anime" ${currentCategory === 'anime' ? 'selected' : ''}>Anime</option>
+                    <option value="anime movies" ${currentCategory === 'anime movies' ? 'selected' : ''}>Anime Movies</option>
+                    <option value="tv shows" ${currentCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
+                    <option value="movies" ${currentCategory === 'movies' ? 'selected' : ''}>Movies</option>
+                    <option value="cartoons" ${currentCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
+                  </select>
+                </div>
+                
+                <div class="fetch-modal-form-group">
+                  <label class="fetch-modal-label">Use Cache</label>
+                  <select class="fetch-modal-input" id="metadata-use-cache">
+                    <option value="yes">Yes</option>
+                    <option value="no">No (Fresh fetch)</option>
+                  </select>
+                </div>
               </div>
             </div>
             
             <div class="fetch-modal-buttons">
-              <button class="fetch-modal-btn fetch-modal-btn-cancel" id="fetch-cancel-btn">Cancel</button>
-              <button class="fetch-modal-btn fetch-modal-btn-confirm" id="fetch-confirm-btn">Yes, Fetch</button>
+              <button class="fetch-modal-btn fetch-modal-btn-cancel" id="metadata-cancel-btn">Cancel</button>
+              <button class="fetch-modal-btn fetch-modal-btn-confirm" id="metadata-confirm-btn">Fetch Metadata</button>
             </div>
           </div>
         </div>
@@ -284,24 +318,27 @@ class SeriesDetailsApp {
       // Add modal to page
       const body = document.body;
       const modalContainer = document.createElement('div');
-      modalContainer.id = 'fetch-modal-container';
+      modalContainer.id = 'fetch-metadata-container';
       modalContainer.innerHTML = modalHtml;
       body.appendChild(modalContainer);
       
       // Get modal elements
-      const overlay = document.getElementById('fetch-modal-overlay');
-      const urlInput = document.getElementById('fetch-url-input');
-      const confirmBtn = document.getElementById('fetch-confirm-btn');
-      const cancelBtn = document.getElementById('fetch-cancel-btn');
+      const overlay = document.getElementById('fetch-metadata-overlay');
+      const searchTitleInput = document.getElementById('metadata-search-title');
+      const externalIdInput = document.getElementById('metadata-external-id');
+      const categorySelect = document.getElementById('metadata-category');
+      const useCacheSelect = document.getElementById('metadata-use-cache');
+      const confirmBtn = document.getElementById('metadata-confirm-btn');
+      const cancelBtn = document.getElementById('metadata-cancel-btn');
       
       // Auto-focus input
-      setTimeout(() => urlInput.focus(), 100);
+      setTimeout(() => searchTitleInput.focus(), 100);
       
       // Cancel handler
       const closeModal = () => {
         overlay.classList.remove('active');
         setTimeout(() => {
-          const container = document.getElementById('fetch-modal-container');
+          const container = document.getElementById('fetch-metadata-container');
           if (container && container.parentNode) {
             container.parentNode.removeChild(container);
           }
@@ -324,69 +361,342 @@ class SeriesDetailsApp {
       
       // Confirm handler
       confirmBtn.addEventListener('click', async () => {
-        const url = urlInput.value.trim();
+        const searchTitle = searchTitleInput.value.trim();
+        const externalId = externalIdInput.value.trim();
+        const category = categorySelect.value;
+        const useCache = useCacheSelect.value;
         
-        // Validate URL
-        if (!url) {
-          this.showMessage('Error', 'Please enter a URL', 'error');
-          return;
-        }
-        
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          this.showMessage('Error', 'URL must start with http:// or https://', 'error');
+        // Validate - need either search title or external ID
+        if (!searchTitle && !externalId) {
+          this.showMessage('Error', 'Please enter a search title or external ID', 'error');
           return;
         }
         
         // Disable buttons and show loading
         confirmBtn.disabled = true;
         cancelBtn.disabled = true;
-        urlInput.disabled = true;
+        searchTitleInput.disabled = true;
+        externalIdInput.disabled = true;
+        categorySelect.disabled = true;
+        useCacheSelect.disabled = true;
         confirmBtn.innerHTML = '<span class="fetch-loading-spinner"></span>Fetching...';
         
         try {
-          await this.fetchMediaContent(mode, url, title);
+          await this.fetchSeriesMetadata({
+            searchTitle,
+            externalId,
+            category,
+            useCache,
+            dbTitle: title
+          });
+          
           closeModal();
-          this.showMessage('Success', `${mode === 'poster' ? 'Poster' : 'Fanart'} fetched successfully!`, 'success');
+          this.showMessage('Success', 'Metadata fetched successfully!', 'success');
+          
+          // Reload the page to show updated metadata
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+          
         } catch (error) {
-          console.error('Fetch error:', error);
-          this.showMessage('Error', error.message || 'Failed to fetch media', 'error');
+          console.error('Fetch metadata error:', error);
+          this.showMessage('Error', error.message || 'Failed to fetch metadata', 'error');
+          
+          // Re-enable form
           confirmBtn.disabled = false;
           cancelBtn.disabled = false;
-          urlInput.disabled = false;
-          confirmBtn.innerHTML = 'Yes, Fetch';
+          searchTitleInput.disabled = false;
+          externalIdInput.disabled = false;
+          categorySelect.disabled = false;
+          useCacheSelect.disabled = false;
+          confirmBtn.innerHTML = 'Fetch Metadata';
         }
       });
       
       // Enter key to confirm
-      urlInput.addEventListener('keypress', (e) => {
+      searchTitleInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           confirmBtn.click();
         }
       });
     }
 
-    async fetchMediaContent(mode, url, title) {
-      const response = await fetch('/fetch-posters', {
+    async fetchSeriesMetadata(options) {
+      const { searchTitle, externalId, category, useCache, dbTitle } = options;
+      
+      const requestData = {
+        db_title: dbTitle,
+        suggested_title: searchTitle || "",
+        series_type: category,
+        use_cache: useCache,
+        media_type: "video"
+      };
+      
+      // Add external_id if provided
+      if (externalId) {
+        requestData.external_id = parseInt(externalId);
+      }
+      
+      const response = await fetch('/fetch_series_metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({
-          title: title,
-          url: url,
-          mode: mode,  // 'poster' or 'fanart'
-          site_option: 'video'
-        })
+        body: JSON.stringify(requestData)
       });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.error || 
-          (response.status === 400 ? 'Invalid URL or request' : `HTTP error! status: ${response.status}`)
+          `HTTP error! status: ${response.status}`
         );
       }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Metadata fetch failed');
+      }
+      
+      return result;
+    }
 
-      return { success: true };
+    showFetchMetadataDialog() {
+      const title = this.seriesData?.series_info?.db_title || this.seriesData?.series_info?.title;
+      const currentCategory = this.seriesData?.series_info?.category || 'anime';
+      const currentSubType = this.seriesData?.series_info?.type || '';
+      
+      // Create modal HTML
+      const modalHtml = `
+        <div class="fetch-modal-overlay active" id="fetch-metadata-overlay">
+          <div class="fetch-modal-dialog fetch-metadata-dialog">
+            <div class="fetch-modal-title">🔄 Fetch Series Metadata</div>
+            <div class="fetch-modal-subtitle">Update metadata for ${this.escapeHtml(title)}</div>
+            
+            <div class="fetch-modal-form">
+              <div class="fetch-modal-form-group">
+                <label class="fetch-modal-label">Search Title</label>
+                <input 
+                  type="text" 
+                  class="fetch-modal-input" 
+                  id="metadata-search-title" 
+                  placeholder="Enter custom search title"
+                  value="${this.escapeHtml(title)}"
+                />
+                <div class="fetch-modal-help">Enter the exact title to search for</div>
+              </div>
+              
+              <div class="fetch-modal-form-group">
+                <label class="fetch-modal-label">External ID (Optional)</label>
+                <input 
+                  type="number" 
+                  class="fetch-modal-input" 
+                  id="metadata-external-id" 
+                  placeholder="e.g., 5114 (MyAnimeList ID)"
+                />
+                <div class="fetch-modal-help">Leave empty to search by title</div>
+              </div>
+              
+              <div class="fetch-modal-form-row">
+                <div class="fetch-modal-form-group">
+                  <label class="fetch-modal-label">Category</label>
+                  <select class="fetch-modal-input" id="metadata-category">
+                    <option value="anime" ${currentCategory === 'anime' ? 'selected' : ''}>Anime</option>
+                    <option value="tv shows" ${currentCategory === 'tv shows' ? 'selected' : ''}>TV Shows</option>
+                    <option value="movies" ${currentCategory === 'movies' ? 'selected' : ''}>Movies</option>
+                    <option value="cartoons" ${currentCategory === 'cartoons' ? 'selected' : ''}>Cartoons</option>
+                  </select>
+                </div>
+                
+                <div class="fetch-modal-form-group">
+                  <label class="fetch-modal-label">Series Sub-Type</label>
+                  <select class="fetch-modal-input" id="metadata-sub-type">
+                    <option value="">Any</option>
+                    <option value="tv" ${currentSubType.toLowerCase() === 'tv' ? 'selected' : ''}>TV</option>
+                    <option value="ova" ${currentSubType.toLowerCase() === 'ova' ? 'selected' : ''}>OVA</option>
+                    <option value="ona" ${currentSubType.toLowerCase() === 'ona' ? 'selected' : ''}>ONA</option>
+                    <option value="pv" ${currentSubType.toLowerCase() === 'pv' ? 'selected' : ''}>PV</option>
+                    <option value="special" ${currentSubType.toLowerCase() === 'special' ? 'selected' : ''}>Special</option>
+                    <option value="tv special" ${currentSubType.toLowerCase() === 'tv special' ? 'selected' : ''}>TV Special</option>
+                    <option value="movie" ${currentSubType.toLowerCase() === 'movie' ? 'selected' : ''}>Movie</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="fetch-modal-form-row">
+                <div class="fetch-modal-form-group">
+                  <label class="fetch-modal-label">Use Cache</label>
+                  <select class="fetch-modal-input" id="metadata-use-cache">
+                    <option value="yes">Yes</option>
+                    <option value="no">No (Fresh fetch)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div class="fetch-modal-buttons">
+              <button class="fetch-modal-btn fetch-modal-btn-cancel" id="metadata-cancel-btn">Cancel</button>
+              <button class="fetch-modal-btn fetch-modal-btn-confirm" id="metadata-confirm-btn">Fetch Metadata</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add modal to page
+      const body = document.body;
+      const modalContainer = document.createElement('div');
+      modalContainer.id = 'fetch-metadata-container';
+      modalContainer.innerHTML = modalHtml;
+      body.appendChild(modalContainer);
+      
+      // Get modal elements
+      const overlay = document.getElementById('fetch-metadata-overlay');
+      const searchTitleInput = document.getElementById('metadata-search-title');
+      const externalIdInput = document.getElementById('metadata-external-id');
+      const categorySelect = document.getElementById('metadata-category');
+      const subTypeSelect = document.getElementById('metadata-sub-type');
+      const useCacheSelect = document.getElementById('metadata-use-cache');
+      const confirmBtn = document.getElementById('metadata-confirm-btn');
+      const cancelBtn = document.getElementById('metadata-cancel-btn');
+      
+      // Auto-focus input
+      setTimeout(() => searchTitleInput.focus(), 100);
+      
+      // Cancel handler
+      const closeModal = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+          const container = document.getElementById('fetch-metadata-container');
+          if (container && container.parentNode) {
+            container.parentNode.removeChild(container);
+          }
+        }, 200);
+      };
+      
+      cancelBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+      
+      // Escape key to close
+      const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          document.removeEventListener('keydown', escapeHandler);
+        }
+      };
+      document.addEventListener('keydown', escapeHandler);
+      
+      // Confirm handler
+      confirmBtn.addEventListener('click', async () => {
+        const searchTitle = searchTitleInput.value.trim();
+        const externalId = externalIdInput.value.trim();
+        const category = categorySelect.value;
+        const subType = subTypeSelect.value;
+        const useCache = useCacheSelect.value;
+        
+        // Validate - need either search title or external ID
+        if (!searchTitle && !externalId) {
+          this.showMessage('Error', 'Please enter a search title or external ID', 'error');
+          return;
+        }
+        
+        // Disable buttons and show loading
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        searchTitleInput.disabled = true;
+        externalIdInput.disabled = true;
+        categorySelect.disabled = true;
+        subTypeSelect.disabled = true;
+        useCacheSelect.disabled = true;
+        confirmBtn.innerHTML = '<span class="fetch-loading-spinner"></span>Fetching...';
+        
+        try {
+          await this.fetchSeriesMetadata({
+            searchTitle,
+            externalId,
+            category,
+            subType,
+            useCache,
+            dbTitle: title
+          });
+          
+          closeModal();
+          this.showMessage('Success', 'Metadata fetched successfully!', 'success');
+          
+          // Reload the page to show updated metadata
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+          
+        } catch (error) {
+          console.error('Fetch metadata error:', error);
+          this.showMessage('Error', error.message || 'Failed to fetch metadata', 'error');
+          
+          // Re-enable form
+          confirmBtn.disabled = false;
+          cancelBtn.disabled = false;
+          searchTitleInput.disabled = false;
+          externalIdInput.disabled = false;
+          categorySelect.disabled = false;
+          subTypeSelect.disabled = false;
+          useCacheSelect.disabled = false;
+          confirmBtn.innerHTML = 'Fetch Metadata';
+        }
+      });
+      
+      // Enter key to confirm
+      searchTitleInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          confirmBtn.click();
+        }
+      });
+    }
+
+    // UPDATED: fetchSeriesMetadata method with series_sub_type:
+    async fetchSeriesMetadata(options) {
+      const { searchTitle, externalId, category, subType, useCache, dbTitle } = options;
+      
+      const requestData = {
+        db_title: dbTitle,
+        suggested_title: searchTitle || "",
+        series_type: category,
+        use_cache: useCache,
+        media_type: "video"
+      };
+      
+      // Add external_id if provided
+      if (externalId) {
+        requestData.external_id = parseInt(externalId);
+      }
+      
+      // Add series_sub_type if provided
+      if (subType) {
+        requestData.series_sub_type = subType;
+      }
+      
+      const response = await fetch('/fetch_series_metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(requestData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || 
+          `HTTP error! status: ${response.status}`
+        );
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Metadata fetch failed');
+      }
+      
+      return result;
     }
 
     
