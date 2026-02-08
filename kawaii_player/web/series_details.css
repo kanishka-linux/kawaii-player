@@ -1203,3 +1203,26 @@
     transform: translateY(-10px);
   }
 }
+
+.fetch-metadata-dialog {
+  max-width: 600px !important;
+  width: 90%;
+}
+
+.fetch-modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.fetch-modal-help {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .fetch-modal-form-row {
+    grid-template-columns: 1fr;
+  }
+}
