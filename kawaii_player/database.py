@@ -28,6 +28,7 @@ import urllib
 import base64
 import re
 from typing import Optional, List, Tuple, Dict, Any
+import traceback
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -1797,7 +1798,7 @@ class MediaDatabase():
             self.db_worker.start()
         
 
-    def update_on_start_video_db(self, video_db, video_file, video_file_bak,
+    def update_on_start_video_db_old(self, video_db, video_file, video_file_bak,
                                  video_opt, update_progress_show=None):
         if (update_progress_show is None or update_progress_show) and self.ui:
             self.ui.text.setText('Wait..Updating Video Database')
@@ -1898,6 +1899,136 @@ class MediaDatabase():
             QtWidgets.QApplication.processEvents()
             self.ui.text.setText('Updating Complete')
             QtWidgets.QApplication.processEvents()
+
+    def update_on_start_video_db(self, video_db, video_file, video_file_bak,
+                                 video_opt, update_progress_show=None):
+        if (update_progress_show is None or update_progress_show) and self.ui:
+            self.ui.text.setText('Wait..Updating Video Database')
+            QtWidgets.QApplication.processEvents()
+        
+        m_files = self.import_video(video_file, video_file_bak)
+        dict_epn = {}
+        failed = False
+        series_dict = {}
+        
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cur = conn.cursor()
+
+                cur.execute("SELECT Path FROM Video")
+                existing_paths = {row[0] for row in cur.fetchall()}
+                
+                for file_path in m_files:
+                    file_path = file_path.strip()
+                    if not file_path:
+                        continue
+                    
+                    norm_path = os.path.normpath(file_path)
+                    if norm_path in existing_paths:
+                        continue
+
+                    di, na = os.path.split(norm_path)
+                    ti = os.path.basename(di)
+                    
+                    if 'movie' in di.lower():
+                        category = self.ui.category_dict['movies']
+                    elif 'anime' in di.lower():
+                        category = self.ui.category_dict['anime']
+                    elif 'cartoon' in di.lower():
+                        category = self.ui.category_dict['cartoons']
+                    elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
+                        category = self.ui.category_dict['tv shows']
+                    else:
+                        category = self.ui.category_dict['others']
+                    
+                    if di in dict_epn:
+                        ep_number = dict_epn[di]
+                    else:
+                        cur.execute('SELECT count(*) FROM Video Where Directory=?', (di,))
+                        ep_number = cur.fetchone()[0]
+                        dict_epn[di] = ep_number
+                    
+                    checksum = self.calculate_file_checksum(norm_path)
+                    w = [ti, di, na, na, norm_path, ep_number, category, checksum]
+                    
+                    if video_opt.lower() == "updateall":
+                        if os.path.exists(norm_path):
+                            cur.execute('INSERT OR IGNORE INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
+                            if cur.rowcount > 0:
+                                self.logger.info(f"[UpdateAll] Inserted: {norm_path}")
+                                dict_epn[di] = ep_number + 1
+                                series_dict[di] = (ti, category, ep_number + 1)
+                            else:
+                                self.logger.info(f"[UpdateAll] Skipped duplicate: {norm_path}")
+                        else:
+                            cur.execute('DELETE FROM Video WHERE Path=?', (norm_path,))
+                            if cur.rowcount > 0:
+                                self.logger.info(f"[UpdateAll] Deleted: {norm_path}")
+                                dict_epn[di] = ep_number - 1
+                            else:
+                                self.logger.info(f"[UpdateAll] Not in DB: {norm_path}")
+                    
+                    elif video_opt.lower() == "update":
+                        if os.path.exists(norm_path):
+                            cur.execute('INSERT OR IGNORE INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
+                            if cur.rowcount > 0:
+                                self.logger.info(f"[Update] Inserted: {norm_path}")
+                                dict_epn[di] = ep_number + 1
+                                series_dict[di] = (ti, category, ep_number + 1)
+                            else:
+                                self.logger.info(f"[Update] Skipped duplicate: {norm_path}")
+                
+        except Exception as e:
+            self.logger.error(f"Database update failed: {e}")
+            failed = True
+
+        if series_dict:
+            series_count = self.update_series_info_with_defaults(series_dict)
+            if series_count > 0:
+                self.logger.info(f"[SeriesUpdate] Inserted: {series_count}")
+            else:
+                self.logger.error(f"[SeriesUpdate] Error: {series_dict}")
+        else:
+            self.logger.info("No series to update")
+    
+        if (update_progress_show is None or update_progress_show) and self.ui:
+            QtWidgets.QApplication.processEvents()
+            self.ui.text.setText('Updating Complete' if not failed else 'Update Failed')
+            QtWidgets.QApplication.processEvents()
+
+    def update_series_info_with_defaults(self, series_dict):
+        inserted_count = 0
+        
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cur = conn.cursor()
+                
+                for directory, (title, category, episodes_available) in series_dict.items():
+                    series_id = str(uuid.uuid4())
+                    
+                    # Get default poster from first video file
+                    cur.execute("SELECT Path FROM Video WHERE Title = ? LIMIT 1", (title,))
+                    path_result = cur.fetchone()
+                    
+                    default_poster = self.build_url_from_file_path(path_result[0], 'image')
+                    
+                    cur.execute("""
+                        INSERT OR IGNORE INTO series_info 
+                        (id, db_title, title, labels, directory, episodes_available, image_poster_large)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (series_id, title, title, category.lower(), directory, episodes_available, default_poster))
+                    
+                    if cur.rowcount > 0:
+                        inserted_count += 1
+                        self.logger.info(f"Inserted new series_info for: {title}")
+                    else:
+                        self.logger.info(f"Series_info already exists for: {title}")
+        except Exception as e:
+            self.logger.error(f"Failed to update series_info: {e}")
+
+            self.ui.logger.exception(f"Traceback:\n {traceback.format_exc()}")
+        
+        return inserted_count
 
     def import_video(self, video_file, video_file_bak):
         m = []
