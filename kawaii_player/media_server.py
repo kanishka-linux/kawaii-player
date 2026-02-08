@@ -995,6 +995,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             series_type = content.get("series_type")
             media_type = content.get("media_type")
             from_cache = content.get("from_cache")
+            external_id = content.get("external_id", "")
+            series_sub_type = content.get("series_sub_type", "")
             single_episode_path = content.get("single_episode_path")
             single_episode_title = content.get("single_episode_title")
             paths = []
@@ -1003,7 +1005,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
             if single_episode_title and single_episode_path and not suggested_title:
                 title = single_episode_title
-                if title.endswith('.mkv') or title.endswith('.mp4') or title.endswith('.avi'):
+                if title.endswith(('.mkv', '.avi', '.mp4', '.webm')):
                     title = title.rsplit('.', 1)[0]
 
                 title = ui.anime_info_fetcher.sanitize_title(title)
@@ -1011,15 +1013,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
             if suggested_title and len(suggested_title) < 100 and media_type ==  "video":
                 if series_type in ["anime", "anime movies"]:
+                    use_cache = False
                     if from_cache == "yes":
-                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, True, series_type)
-                    else:
-                        result = ui.anime_info_fetcher.get_anime_info(suggested_title, False, series_type)
+                        use_cache = True
+                    result = ui.anime_info_fetcher.get_anime_info(suggested_title, use_cache, series_type, external_id, series_sub_type)
                 else:
+                    use_cache = False
                     if from_cache == "yes":
-                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, True, series_type)
-                    else:
-                        result = ui.tvshow_info_fetcher.get_series_info(suggested_title, False, series_type)
+                        use_cache = True
+                    result = ui.tvshow_info_fetcher.get_series_info(suggested_title, use_cache, series_type, external_id)
 
                 if single_episode_title:
                     ui.media_data.insert_video_data(suggested_title, single_episode_path)
