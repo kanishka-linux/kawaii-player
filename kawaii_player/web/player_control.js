@@ -157,7 +157,8 @@ async function fetchSeriesDetails(seriesId) {
                 description: '',
                 duration: '',
                 watched: false,
-                epn_number: ep['epn-number']
+                epn_number: ep['epn-number'],
+                browser_playable: ep['browser_playable']
             }))
         };
         
