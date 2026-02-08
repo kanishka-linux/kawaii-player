@@ -274,7 +274,7 @@ class TvShowInfoFetcher:
         clean_text = re.sub(r'\s+', ' ', clean_text).strip()
         return clean_text
 
-    def get_series_info(self, title: str, cache: bool, series_type: str) -> Optional[Dict]:
+    def get_series_info(self, title: str, cache: bool, series_type: str, external_id: str) -> Optional[Dict]:
         """
         Get TV series info by title with season-specific information
         Returns: {
@@ -316,19 +316,28 @@ class TvShowInfoFetcher:
                 self.ui.logger.info(f"Returning from cache: {cache_key}")
                 return self.cache.get(cache_key)
             
-            # Search for the show
-            self._rate_limit()
-            best_match = self.fetch_best_candidates(sanitized_title, series_type)
+            if cache and self.cache and external_id:
+                detail_cache_url = f"{self.base_url}/shows/{external_id}"
+                if self.cache.get(detail_cache_url):
+                    self.ui.logger.info(f"Returning from cache: {cache_key}")
+                    return self.cache.get(detail_cache_url)
+
+            if external_id:
+                show_id = int(external_id)
+            else:
+                # Search for the show
+                self._rate_limit()
+                best_match = self.fetch_best_candidates(sanitized_title, series_type)
+
+                if not best_match:
+                    self.ui.logger.warning(f"No match found for: {sanitized_title}")
+                    return None
             
-            if not best_match:
-                self.ui.logger.warning(f"No match found for: {sanitized_title}")
-                return None
-            
-            self.ui.logger.info(f"Best-matched: {best_match}")
-            # Get detailed info
-            show_id = best_match.get('id')
-            if not show_id:
-                return None
+                self.ui.logger.info(f"Best-matched: {best_match}")
+                # Get detailed info
+                show_id = best_match.get('id', "")
+                if not show_id:
+                    return None
             
             self._rate_limit()
             detail_url = f"{self.base_url}/shows/{show_id}"
@@ -421,6 +430,7 @@ class TvShowInfoFetcher:
             # Cache the result
             if cache:
                 self.cache[cache_key] = series_details
+                self.cache[detail_url] = series_details
                 self._save_cache()
             
             return series_details

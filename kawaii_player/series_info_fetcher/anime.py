@@ -52,21 +52,29 @@ class AnimeInfoFetcher:
             return jpg.get('large_image_url') or jpg.get('image_url')
         return None
 
-    def fetch_best_candidates(self, title: str, series_type: str) -> Dict:
+    def _build_recommendation_cache_key(self, title, series_type, series_sub_type):
+        cache_key = f"recommendation::{title}::{series_type}::{series_sub_type}"
+        return cache_key
+
+    def fetch_best_candidates(self, title: str, series_type: str, series_sub_type: str, use_cache: bool) -> Dict:
+        cache_key = self._build_recommendation_cache_key(title, series_type, series_sub_type)
         search_url = f"{self.base_url}/anime"
         search_params = {"q": title, "limit": 10}
-        #if series_type == 'anime movies':
-        #    search_params['type'] = 'movie'
+        if series_sub_type and series_sub_type.lower() != "any":
+            search_params['type'] = series_sub_type
         
         self.ui.logger.info(f"search-params: {search_params}")
         
-        response = self.vnt.get(search_url, params=search_params)
-        if response.status != 200:
-            return {}
-        
-        candidates = json.loads(response.html).get('data', [])
-        if not candidates:
-            return {}
+        if use_cache and self.cache.get(cache_key):
+            candidates = self.cache.get(cache_key)
+        else:
+            response = self.vnt.get(search_url, params=search_params)
+            if response.status != 200:
+                return {}
+            candidates = json.loads(response.html).get('data', [])
+            if not candidates:
+                return {}
+            self.cache[cache_key] = candidates
         
         # Find best match
         best_match = {}
@@ -105,6 +113,14 @@ class AnimeInfoFetcher:
         local_path = os.path.join(self.thumbnail_dir, f"poster-{digest}.jpg")
         return local_path
     
+    def _save_cache(self):
+        """Save cache to file"""
+        try:
+            with open(self.cache_file, 'wb') as f:
+                pickle.dump(self.cache, f)
+        except Exception as err:
+            self.ui.logger.error(f"Error saving cache: {err}")
+    
     def _safe_extract_names(self, items):
         """Safely extract names from list of dictionaries."""
         if not items:
@@ -125,7 +141,7 @@ class AnimeInfoFetcher:
 
         return cleaned
 
-    def get_anime_info(self, title: str, cache: bool, series_type: str) -> Optional[Dict]:
+    def get_anime_info(self, title: str, cache: bool, series_type: str, external_id: str, series_sub_type: str) -> Optional[Dict]:
         """
         Get anime info by title
         Returns: {
@@ -141,18 +157,28 @@ class AnimeInfoFetcher:
             title = self.sanitize_title(title)
             self.ui.logger.info(f"searching: {title}")
 
+            if cache and self.cache and external_id:
+                detail_cache_url = f"{self.base_url}/anime/{external_id}"
+                if self.cache.get(detail_cache_url):
+                    self.ui.logger.info(f"returning from cache {detail_cache_url}")
+                    return self.cache.get(detail_cache_url)
+
             if cache and self.cache and self.cache.get(title):
                 self.ui.logger.info(f"returning from cache {title}")
                 return self.cache.get(title)
             # Search for anime
             self._rate_limit()
             
-            best_match = self.fetch_best_candidates(title, series_type)
-            self.ui.logger.info(f"best-matched for {title} => {best_match}")
+            if external_id:
+                mal_id = external_id
+            else:
+                best_match = self.fetch_best_candidates(title, series_type, series_sub_type, cache)
+                self.ui.logger.info(f"best-matched for {title} => {best_match}")
+                mal_id = best_match['mal_id']
             
             # Get detailed info
             self._rate_limit()
-            detail_url = f"{self.base_url}/anime/{best_match['mal_id']}"
+            detail_url = f"{self.base_url}/anime/{mal_id}"
             
             response = self.vnt.get(detail_url)
             if response.status != 200:
@@ -213,6 +239,8 @@ class AnimeInfoFetcher:
                 local_image_url = f"/images/{img}"
                 anime_details["image_poster_large"] = local_image_url
             self.cache[title] = anime_details
+            self.cache[detail_url] = anime_details
+            self._save_cache()
 
             return anime_details
             
