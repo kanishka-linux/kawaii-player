@@ -351,53 +351,12 @@ class MediaDatabase():
                         self.logger.info(w)
                         self.logger.info("Duplicate")
                     j = j+1
+            conn.commit()
+            conn.close()
         else:
-            j = 0
-            w = []
-            dir_cmp = []
-            epn_cnt = 0
-            conn = sqlite3.connect(video_db)
-            cur = conn.cursor()
-            cur.execute('''CREATE TABLE Video(Title text, Directory text, FileName text, EP_NAME text, Path text primary key, EPN integer, Category integer)''')
-            for i in lines:
-                i = i.strip()
-                if i:
-                    w[:] = []
-                    i = os.path.normpath(i)
-                    di, na = os.path.split(i)
-                    ti = os.path.basename(di)
-                    pa = i
-
-                    if j == 0:
-                        dir_cmp.append(di)
-                    else:
-                        tmp = dir_cmp.pop()
-                        if tmp == di:
-                            epn_cnt = epn_cnt + 1
-                        else:
-                            epn_cnt = 0
-                        dir_cmp.append(di)
-                    if 'movie' in di.lower():
-                        category = self.ui.category_dict['movies']
-                    elif 'anime' in di.lower():
-                        category = self.ui.category_dict['anime']
-                    elif 'cartoon' in di.lower():
-                        category = self.ui.category_dict['cartoons']
-                    elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
-                        category = self.ui.category_dict['tv shows']
-                    else:
-                        category = self.ui.category_dict['others']
-
-                    checksum = self.calculate_file_checksum(pa)
-                    w = [ti, di, na, na, pa, epn_cnt, category, checksum]
-                    try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
-                        self.logger.info('inserted: {0}<-->{1}'.format(w, j))
-                        j = j+1
-                    except Exception as e:
-                        self.logger.error('Escaping: {0} <---> {1}'.format(e, w))
-        conn.commit()
-        conn.close()
+            self.init_video_db()
+            self.migrate_database("1.0", "file_checksum")
+            self.migrate_database_v2("1.0")
         if (update_progress_show is None or update_progress_show) and self.ui:
             self.ui.text.setText('Update Complete!')
             print('--191---update-complete--')
@@ -409,13 +368,29 @@ class MediaDatabase():
         self.logger.info('214----{0}-----database.py--'.format(plist))
         if rownum is not None and dir_name in self.ui.video_dict:
             self.ui.video_dict[dir_name][rownum] = plist
-            
+
+    def init_video_db(self):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute('''
+                CREATE TABLE Video(
+                    Title text,
+                    Directory text,
+                    FileName text,
+                    EP_NAME text,
+                    Path text primary key,
+                    EPN integer,
+                    Category text
+                )''')
+        conn.commit()
+        conn.close()
 
     def migrate_database(self, old_version, column_name):
         print(f"version upgrade detected  from {old_version} to {self.ui.version_number}, running migration")
-        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
         table_name = "Video"
-        conn = sqlite3.connect(db_path)
+        if not os.path.exists(self.db_path):
+            self.init_video_db()
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         try:
@@ -435,7 +410,7 @@ class MediaDatabase():
                     conn.commit()
                     print(f"Column '{column_name}' added successfully to table '{table_name}'")
 
-                    self.thread = DatabaseMigrationThreadOnStartUp(self, db_path)
+                    self.thread = DatabaseMigrationThreadOnStartUp(self, self.db_path)
                     self.thread.start()
 
             else:
@@ -449,9 +424,11 @@ class MediaDatabase():
 
     def migrate_database_v2(self, old_version):
         self.ui.logger.info(f"version upgrade detected  from {old_version} to {self.ui.version_number}, running migration")
-        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
+        if not os.path.exists(self.db_path):
+            self.init_video_db()
+            self.migrate_database("1.0", "file_checksum")
         table_name = "series_info"
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         columns_to_add = [
                     'labels', 'category',
@@ -1907,6 +1884,7 @@ class MediaDatabase():
             QtWidgets.QApplication.processEvents()
         
         m_files = self.import_video(video_file, video_file_bak)
+        m_files.sort()
         dict_epn = {}
         failed = False
         series_dict = {}
