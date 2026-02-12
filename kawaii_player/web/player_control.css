@@ -230,9 +230,10 @@ body {
 .episode-title {
     font-size: 16px;
     opacity: 0.9;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.4;
 }
 
 /* || MODE SELECTOR - COMPACT */
@@ -323,6 +324,7 @@ body {
 
 /* Video Player (In-Browser) */
 .video-player-container {
+    position: relative;
     margin-bottom: 20px;
 }
 
@@ -413,12 +415,16 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 5px;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow: visible;
 }
 
 .video-info p {
     color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.5;
+    word-wrap: break-word;
 }
 
 /* || PROGRESS BAR */
@@ -601,7 +607,8 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 15px;
 }
 
@@ -624,27 +631,30 @@ body {
 }
 
 .episode-thumbnail {
-    width: 100px;
-    height: 56px;
+    width: 140px;
+    height: 79px;
     background: var(--bg-tertiary);
-    border-radius: 6px;
+    border-radius: 8px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 28px;
     overflow: hidden;
+    padding: 0;
+    margin: 0;
 }
 
 .episode-thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .episode-details {
     flex: 1;
-    min-width: 0;
+    min-width: 250px;
 }
 
 .episode-number {
@@ -659,10 +669,11 @@ body {
 .episode-name {
     font-size: 14px;
     font-weight: 600;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin-bottom: 6px;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.4;
 }
 
 .episode-duration {
@@ -671,16 +682,57 @@ body {
 }
 
 .episode-status {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--success);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: 13px;
     color: white;
+    align-self: flex-start;
+}
+
+/* When episode wraps to new line (vertical layout) */
+@media (max-width: 600px) {
+    .episode-item {
+        flex-direction: column;
+        padding: 0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .episode-thumbnail {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        flex-basis: 100%;
+    }
+    
+    .episode-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .episode-details {
+        width: 100%;
+        padding: 15px;
+        flex-basis: 100%;
+    }
+    
+    .episode-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        margin: 0;
+    }
 }
 
 /* || BACK TO TOP BUTTON */
@@ -764,6 +816,7 @@ body {
     .header-top {
         margin-bottom: 10px;
         gap: 12px;
+        flex-wrap: wrap;
     }
     
     .back-btn {
@@ -778,11 +831,15 @@ body {
     
     .episode-title {
         font-size: 12px;
+        word-wrap: break-word;
+        white-space: normal;
+        overflow: visible;
     }
     
     .mode-selector-row {
         flex-wrap: wrap;
         gap: 8px;
+        width: 100%;
     }
     
     .mode-selector {
@@ -825,10 +882,13 @@ body {
     
     .video-info h3 {
         font-size: 16px;
+        word-wrap: break-word;
+        overflow: visible;
     }
     
     .video-info p {
         font-size: 13px;
+        word-wrap: break-word;
     }
     
     .control-group {
@@ -846,14 +906,29 @@ body {
     }
     
     .episode-item {
-        padding: 10px;
-        gap: 10px;
+        padding: 12px;
+        gap: 12px;
     }
     
     .episode-thumbnail {
-        width: 80px;
-        height: 45px;
-        font-size: 20px;
+        width: 120px;
+        height: 68px;
+        font-size: 22px;
+        padding: 0;
+        margin: 0;
+        border-radius: 8px;
+    }
+    
+    .episode-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .episode-details {
+        flex: 1;
+        min-width: 200px;
     }
     
     .episode-number {
@@ -862,10 +937,17 @@ body {
     
     .episode-name {
         font-size: 13px;
+        line-height: 1.3;
     }
     
     .episode-duration {
         font-size: 11px;
+    }
+    
+    .episode-status {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
     }
     
     .back-to-top {
@@ -888,11 +970,18 @@ body {
     
     .header-top {
         flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .series-info {
+        width: 100%;
+        flex: 1;
     }
     
     .back-btn {
         padding: 5px 10px;
         font-size: 12px;
+        min-width: auto;
     }
     
     .back-btn span:last-child {
@@ -901,10 +990,16 @@ body {
     
     .series-title {
         font-size: 14px;
+        word-wrap: break-word;
+        white-space: normal;
+        overflow: visible;
     }
     
     .episode-title {
         font-size: 11px;
+        word-wrap: break-word;
+        white-space: normal;
+        overflow: visible;
     }
     
     .video-section,
@@ -913,12 +1008,29 @@ body {
     }
     
     .episode-item {
-        padding: 8px;
+        padding: 10px;
+        gap: 8px;
     }
     
     .episode-thumbnail {
-        width: 60px;
-        height: 34px;
+        width: 100px;
+        height: 56px;
+        font-size: 18px;
+        padding: 0;
+        margin: 0;
+        border-radius: 6px;
+    }
+    
+    .episode-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .episode-details {
+        flex: 1;
+        min-width: 150px;
     }
     
     .episode-number {
@@ -927,10 +1039,17 @@ body {
     
     .episode-name {
         font-size: 12px;
+        line-height: 1.3;
     }
     
     .episode-duration {
         font-size: 10px;
+    }
+    
+    .episode-status {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
     }
     
     .back-to-top {
@@ -1165,7 +1284,6 @@ video:-moz-full-screen::cue {
     position: relative;
     margin-bottom: 20px;
 }
-
 
 /* Fix for Chrome not displaying transcode percentage */
 #transcodePercent {
