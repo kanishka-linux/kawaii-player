@@ -1758,6 +1758,40 @@ function stopTranscodeStatusPolling() {
     transcodeBtn.disabled = false;
 }
 
+function downloadM3uPlaylist() {
+    if (!state.episodes || state.episodes.length === 0) {
+        showAlert('No episodes to export', 'error');
+        return;
+    }
+
+    const baseUrl = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+    
+    // Build M3U content
+    let m3uContent = '#EXTM3U\n';
+    
+    state.episodes.forEach((episode, index) => {
+        const episodeUrl = `${baseUrl}${episode.path}`;
+        const duration = episode.duration || '-1';
+        const title = `${state.seriesInfo.title} - Episode ${episode.number}: ${episode.name || ''}`;
+        
+        m3uContent += `#EXTINF:${duration},${title}\n`;
+        m3uContent += `${episodeUrl}\n`;
+    });
+
+    // Create blob and download
+    const blob = new Blob([m3uContent], { type: 'application/vnd.apple.mpegurl' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${state.seriesInfo.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.m3u`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showAlert('M3U playlist downloaded', 'success');
+}
+
 // ===========================
 // EVENT LISTENERS
 // ===========================
@@ -1845,6 +1879,8 @@ function initEventListeners() {
     
     // Advanced controls (master/slave)
     document.getElementById('btnCastUrl')?.addEventListener('click', castURL);
+
+    document.getElementById('downloadM3uBtn')?.addEventListener('click', downloadM3uPlaylist);
 }
 
 // ===========================

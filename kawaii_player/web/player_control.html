@@ -196,35 +196,49 @@
                                 <option value="">Audio: Default</option>
                             </select>
                         </div>
+                        
+                    </div>
                         <!-- ADD THIS NEW SECTION -->
                         <!-- Transcode Controls (In-Browser Only) -->
-                        <div class="control-group in-browser-only">
-                            <div class="control-label">
-                                <span>🎬</span>
-                                <span>Video Transcode</span>
-                            </div>
-                            <div class="control-buttons">
-                                <button class="btn" id="transcodeBtn">
-                                    <span>🔄</span>
-                                    <span>Transcode Video</span>
-                                </button>
-                                <button class="btn" id="cancelTranscodeBtn">
-                                    <span>❌</span>
-                                    <span>Cancel</span>
-                                </button>
-                            </div>
-                            <div id="transcodeProgress" style="display: none; margin-top: 8px;">
-                                <div style="background: #2a2a2a; border-radius: 4px; padding: 8px; font-size: 12px;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                        <span id="transcodeStatus">Transcoding...</span>
-                                        <span id="transcodePercent">0%</span>
-                                    </div>
-                                    <div style="background: #1a1a1a; height: 4px; border-radius: 2px; overflow: hidden;">
-                                        <div id="transcodeBar" style="background: #0066ff; height: 100%; width: 0%; transition: width 0.3s;"></div>
-                                    </div>
-                                    <div id="transcodeEta" style="margin-top: 4px; color: #999;"></div>
+                    <div class="control-group in-browser-only">
+                        <div class="control-label">
+                            <span>🎬</span>
+                            <span>Video Transcode</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="transcodeBtn">
+                                <span>🔄</span>
+                                <span>Transcode Video</span>
+                            </button>
+                            <button class="btn" id="cancelTranscodeBtn">
+                                <span>❌</span>
+                                <span>Cancel</span>
+                            </button>
+                        </div>
+                        <div id="transcodeProgress" style="display: none; margin-top: 8px;">
+                            <div style="background: #2a2a2a; border-radius: 4px; padding: 8px; font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span id="transcodeStatus">Transcoding...</span>
+                                    <span id="transcodePercent">0%</span>
                                 </div>
+                                <div style="background: #1a1a1a; height: 4px; border-radius: 2px; overflow: hidden;">
+                                    <div id="transcodeBar" style="background: #0066ff; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                                <div id="transcodeEta" style="margin-top: 4px; color: #999;"></div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group in-browser-only">
+                        <div class="control-label">
+                            <span>📋</span>
+                            <span>Playlist</span>
+                        </div>
+                        <div class="control-buttons">
+                            <button class="btn" id="downloadM3uBtn">
+                                <span>📥</span>
+                                <span>Download M3U</span>
+                            </button>
                         </div>
                     </div>
 
