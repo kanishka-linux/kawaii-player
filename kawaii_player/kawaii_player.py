@@ -1506,7 +1506,7 @@ class Ui_MainWindow(object):
         self.stale_playlist = True
         self.epn_clicked = False
         self.osx_native_fullscreen = False
-        self.device_pixel_ratio = 1.0
+        self.device_pixel_ratio = 0.0
         self.libmpv_api = "opengl-render"
         self.quit_now = False
         self.system_bgcolor = ''
@@ -1669,10 +1669,7 @@ class Ui_MainWindow(object):
         self.basedir = BASEDIR
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
         self.metaengine = MetaEngine(self, logger, TMPDIR, home)
-        if OSNAME == "nt":
-            self.player_val = "libmpv"
-        else:
-            self.player_val = "mpv"
+        self.player_val = "libmpv"
         self.chk.setText(self.player_val)
         self.addons_option_arr = []
         self.mpvplayer_started = False
@@ -15254,7 +15251,7 @@ def main():
             f.write("\nBROADCAST_MESSAGE=False")
             f.write("\nMEDIA_SERVER_AUTOSTART=False")
             f.write("\n#THEME=default,system,dark")
-            f.write("\nTHEME=DARK")
+            f.write("\nTHEME=DEFAULT")
             f.write("\n#EXTRA_PLAYERS=vlc,kodi etc..")
             f.write("\nEXTRA_PLAYERS=NONE")
             f.write("\n#GLOBAL_FONT=Name of Font")
@@ -15276,7 +15273,7 @@ def main():
             f.write("\nVARIABLE_WIDTH_LIST=False")
             f.write("\nOSX_NATIVE_FULLSCREEN=False")
             f.write("\nLIBMPV_API=OPENGL-RENDER")
-            f.write("\nDEVICE_PIXEL_RATIO=1.0")
+            f.write("\nDEVICE_PIXEL_RATIO=0.0")
             f.write("\nPLAYLIST_CONTINUE=True")
             f.write("\nDISPLAY_DEVICE=Auto")
             f.write("\nMPV_INPUT_IPC_SERVER=False")
