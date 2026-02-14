@@ -1732,7 +1732,7 @@ class Ui_MainWindow(object):
             'MyAnimeList': 'http://myanimelist.net/anime.php?q=',
             'Anime-Planet': 'http://www.anime-planet.com/anime/all?name=',
             'Anime-Source': 'http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info=',
-            'TVDB': 'https://www.thetvdb.com/search?q=',
+            'TVDB': 'https://thetvdb.com/search?query=',
             'TMDB': 'https://www.themoviedb.org/search?query=',
             'Google': 'https://www.google.com/search?q=',
             'YouTube': 'https://m.youtube.com/results?search_query=',
@@ -8316,8 +8316,6 @@ class Ui_MainWindow(object):
                 name = art_n
                 video_dir = os.path.join(home, 'VideoDB')
                 video_db = os.path.join(video_dir, 'Video.db')
-                video_file = os.path.join(video_dir, 'Video.txt')
-                video_file_bak = os.path.join(video_dir, 'Video_bak.txt')
                 
                 artist =[]
                 if not bookmark:
@@ -8355,12 +8353,20 @@ class Ui_MainWindow(object):
                 self.epn_arr_list = [i[0]+'\t'+i[1] for i in m]
                 art_n = self.list1.item(row_select).text()
                 dir_path = os.path.join(home, 'Local', art_n)
+                poster_image, summary_series  = self.media_data.fetch_series_metadata_for_desktop(art_n)
                 if os.path.exists(dir_path):
+                    if poster_image:
+                        legacy_picn = os.path.join(home, 'Local', art_n, 'poster.jpg')
+                        if not os.path.exists(legacy_picn):
+                            shutil.copy(poster_image, legacy_picn)
+
                     picn = os.path.join(home, 'Local', art_n, 'poster.jpg')
                     thumbnail = os.path.join(home, 'Local', art_n, 'thumbnail.jpg')
                     fanart = os.path.join(home, 'Local', art_n, 'fanart.jpg')
                     summary1 = os.path.join(home, 'Local', art_n, 'summary.txt')
-                    if os.path.exists(summary1):
+                    if summary_series:
+                        summary = summary_series
+                    elif os.path.exists(summary1):
                         summary = open_files(summary1, False)
                     else:
                         summary = "Not Available"

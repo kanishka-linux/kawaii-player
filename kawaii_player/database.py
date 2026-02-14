@@ -1578,6 +1578,32 @@ class MediaDatabase():
         conn.close()
         return response_data
 
+    def fetch_series_metadata_for_desktop(self, title: str) -> Tuple[str, str]:
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        qr = """
+            select * from series_info where db_title = ?
+            """
+        cur.execute(qr, (title, ))
+        rows = [row for row in cur.fetchall()]
+        image_path = ""
+        summary = ""
+        if rows:
+            data = dict(rows[0])
+            image = data.get('image_poster_large',  '')
+            if image:
+                img_name = image.rsplit("/", 1)[-1]
+                img_path = os.path.join(self.ui.anime_info_fetcher.thumbnail_dir, img_name)
+                if os.path.exists(img_path):
+                    image_path = img_path
+            summary = data.get('summary', '')
+
+        conn.commit()
+        conn.close()
+        return image_path, summary
+
+
     def fetch_music_metadata(self, title: str, category: str) -> dict:
         response_data = {}
         if category in ["Artist", "Directory", "Album"]:
