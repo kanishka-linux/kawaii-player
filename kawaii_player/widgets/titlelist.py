@@ -40,6 +40,8 @@ class TitleListWidget(QtWidgets.QListWidget):
         TMPDIR = tmp
         home = home_var
         logger = logr
+        self.fanart_dict = {}
+        self.fanart_dict_rotation_index = {}
 
     def mouseMoveEvent(self, event): 
         if ui.auto_hide_dock and not ui.dockWidget_3.isHidden() and platform.system().lower() != "darwin":
@@ -1130,6 +1132,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             rem_poster = menu_clear.addAction("Remove poster")
             refresh_poster = menu_clear.addAction("Refresh posters")
             rename = menu.addAction("Rename (F2)")
+            fanart = menu.addAction("Fetch Fanart")
             action = menu.exec_(self.mapToGlobal(event.pos()))
             
             if action in item_m:
@@ -1266,6 +1269,26 @@ class TitleListWidget(QtWidgets.QListWidget):
                     print('Renaming')
                     if self.currentItem():
                         self.edit_name_list1(self.currentRow())
+            elif action == fanart:
+                title = self.currentItem().text()
+                imgs =  []
+                
+                if self.fanart_dict.get(title):
+                    imgs = self.fanart_dict.get(title)
+                    rotation_index = (self.fanart_dict_rotation_index.get(title) + 1) % len(imgs)
+                    url = imgs[rotation_index]
+                    self.fanart_dict_rotation_index[title] = rotation_index
+                else:
+                    imgs = ui.fetch_fanart_tvdb(title)
+                    if imgs:
+                        self.fanart_dict[title] = imgs
+                        self.fanart_dict_rotation_index[title] = 0
+                        url = imgs[0]
+                if imgs:
+                    ui.posterfound_new(
+                        name=self.currentItem().text(), site="Video", url=url, direct_url=True, 
+                        copy_summary=False, copy_poster=False, copy_fanart=True)
+                print(imgs,  "found fanart")
             elif action == history:
                 ui.setPreOpt('fromtitlelist')
             elif action == rem_fanart:

@@ -211,6 +211,7 @@ from tvdb_async import TVDB
 from multiprocessing import Process
 from series_info_fetcher.anime import AnimeInfoFetcher
 from series_info_fetcher.tv_shows import TvShowInfoFetcher
+from series_info_fetcher.tvdb_fanart import TVDBFanart
 from track_extractor import TrackExtractor
 from webm_transcoder import WebMTranscoder
 from hls_transcoder import HLSTranscoder
@@ -1771,6 +1772,7 @@ class Ui_MainWindow(object):
         self.yt = YTDL(self)
         self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.tvshow_info_fetcher = TvShowInfoFetcher(self)
+        self.tvdb_fanart = TVDBFanart(self) 
         self.hls_transcoder = HLSTranscoder(self)
         self.webm_transcoder = WebMTranscoder(self)
         self.track_extractor = TrackExtractor(self)
@@ -7449,7 +7451,11 @@ class Ui_MainWindow(object):
                 os.makedirs(os.path.join(home, "History", site))
             self.search()
         
-            
+    def fetch_fanart_tvdb(self, title):
+        _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
+        images = self.tvdb_fanart.fetch_fanart(title, series_type.lower())
+        return images
+        
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
         global name, nam, old_manager, new_manager, home, screen_width
         global site
@@ -8353,7 +8359,7 @@ class Ui_MainWindow(object):
                 self.epn_arr_list = [i[0]+'\t'+i[1] for i in m]
                 art_n = self.list1.item(row_select).text()
                 dir_path = os.path.join(home, 'Local', art_n)
-                poster_image, summary_series  = self.media_data.fetch_series_metadata_for_desktop(art_n)
+                poster_image, summary_series, _  = self.media_data.fetch_series_metadata_for_desktop(art_n)
                 if os.path.exists(dir_path):
                     if poster_image:
                         legacy_picn = os.path.join(home, 'Local', art_n, 'poster.jpg')
