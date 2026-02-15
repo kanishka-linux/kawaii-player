@@ -1,5 +1,6 @@
 import sys
-from PyQt5 import QtWidgets, QtCore
+import re
+from PyQt5 import QtWidgets
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtCore import QUrl, pyqtSlot, pyqtSignal, QTimer
 
@@ -36,6 +37,21 @@ class TVDBFanart(QtWidgets.QWidget):
         self.page = None
         self.callback = None
         self.app = None
+
+    def _sanitize_title(self, title):
+        # Step 1: Remove bracketed content
+        cleaned = re.sub(r'[\[\(\{].*?[\]\)\}]', '', title)
+
+        # Step 2: Remove season indicators
+        cleaned = re.sub(r'\b(?:season|series|s|part|pt)\s*\d{0,2}\b', '', cleaned, flags=re.IGNORECASE)
+
+        # Step 3: Handle special characters
+        cleaned = re.sub(r'[-_.]+', ' ', cleaned)
+
+        # Step 4: Clean up spacing
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        return cleaned
         
     def fetch_fanart(self, search_term, series_type = 'series', callback=None):
         self.callback = callback
@@ -58,7 +74,10 @@ class TVDBFanart(QtWidgets.QWidget):
             
             self.browser.hide()
         
+        search_term = self._sanitize_title(search_term)
+
         formatted_search = search_term.lower().replace(" ", "+")
+
         if 'movie' in formatted_search or series_type.lower() == 'movie':
             base_url = f"https://thetvdb.com/search?query={formatted_search}&menu[type]=movie"
         else:
