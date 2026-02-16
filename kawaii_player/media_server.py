@@ -276,6 +276,8 @@ def start_player_remotely(nm, mode):
                 ui.settings_box.toggle_aud.clicked_emit()
         elif mode == 'add_subtitle':
             ui.add_external_subtitle.clicked_emit()
+        elif mode == 'fetch_fanart':
+            ui.fanart_fetch_button.clicked_emit()
 
 def find_and_set_index(st, st_o, srch):
     index = None
@@ -871,12 +873,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             url = content.get("url")
             mode = content.get("mode")
             site_option = content.get("site_option")
+            print(content)
             if mode == "poster" and title is not None and url is not None and url.startswith("http"):
                 ui.remove_fanart(site_option, title, "remove_poster")
                 ui.fetch_fanart(site_option, url, title, "poster")
             elif mode == "fanart" and title is not None and url is not None and url.startswith("http"):
                 ui.remove_fanart(site_option, title, "remove_fanart")
                 ui.fetch_fanart(site_option, url, title, "fanart")
+            elif mode == "fanart" and title:
+                srch_word = ""
+                if url and not url.startswith('http'):
+                    srch_word = url
+                ui.fetch_fanart_for = f"{title}::{srch_word}"
+                self.nav_signals.control_signal(-1000, 'fetch_fanart')
             self.final_message(bytes('Command Recieved', 'utf-8'))
         elif self.path.startswith('/modify_category'):
             content = self.rfile.read(int(self.headers['Content-Length']))

@@ -945,7 +945,14 @@ class Ui_MainWindow(object):
         self.text_change_button.setText('Text')
         self.text_change_button.clicked_connect(self.apply_text_change)
         self.text_change_button.hide()
-        self.text_change_content = ''
+        
+        self.fanart_fetch_button = QPushButtonExtra(self.player_opt)
+        self.fanart_fetch_button.setObjectName(_fromUtf8("fanart_fetch_button"))
+        self.horizontalLayout_player_opt.insertWidget(38, self.fanart_fetch_button, 0)
+        self.fanart_fetch_button.setText('Text')
+        self.fanart_fetch_button.clicked_connect(self.fetch_fanart_tvdb_web_client)
+        self.fanart_fetch_button.hide()
+        self.fetch_fanart_for = ''
         
         self.player_playlist.setMenu(self.player_menu)
         self.player_playlist.setCheckable(True)
@@ -1683,6 +1690,8 @@ class Ui_MainWindow(object):
         self.logger = logger
         self.home_folder = home
         self.last_dir = os.path.expanduser("~")
+        self.fanart_dict = {}
+        self.fanart_dict_rotation_index = {}
 
         self.password_file = os.path.join(self.home_folder, 'admin_password.json')
         self.session_file = os.path.join(self.home_folder, 'admin_sessions.json')
@@ -7455,6 +7464,31 @@ class Ui_MainWindow(object):
         _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
         images = self.tvdb_fanart.fetch_fanart(title, series_type.lower())
         return images
+         
+    def fetch_fanart_tvdb_web_client(self):
+        imgs = []
+        url = ""
+        title, srch = self.fetch_fanart_for.split('::')
+        if not srch:
+            srch = title
+        if title:
+            if self.fanart_dict.get(srch):
+                imgs = self.fanart_dict.get(srch)
+                rotation_index = (self.fanart_dict_rotation_index.get(srch) + 1) % len(imgs)
+                url = imgs[rotation_index]
+                self.fanart_dict_rotation_index[srch] = rotation_index
+            else:
+                _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
+                imgs = self.tvdb_fanart.fetch_fanart(srch, series_type.lower())
+                if imgs:
+                    self.fanart_dict[srch] = imgs
+                    self.fanart_dict_rotation_index[srch] = 0
+                    url = imgs[0]
+            if imgs and url:
+                self.posterfound_new(
+                    name=title, site="Video", url=url, direct_url=True, 
+                    copy_summary=False, copy_poster=False, copy_fanart=True
+            )
         
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
         global name, nam, old_manager, new_manager, home, screen_width

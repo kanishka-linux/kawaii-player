@@ -1286,7 +1286,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         url = imgs[0]
                 if imgs:
                     ui.posterfound_new(
-                        name=self.currentItem().text(), site="Video", url=url, direct_url=True, 
+                        name=title, site="Video", url=url, direct_url=True, 
                         copy_summary=False, copy_poster=False, copy_fanart=True)
                 print(imgs,  "found fanart")
             elif action == history:

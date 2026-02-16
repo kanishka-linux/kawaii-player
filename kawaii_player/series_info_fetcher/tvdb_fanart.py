@@ -54,6 +54,8 @@ class TVDBFanart(QtWidgets.QWidget):
         return cleaned
         
     def fetch_fanart(self, search_term, series_type = 'series', callback=None):
+        if self.is_processing:
+            return []
         self.callback = callback
         self.images = []
         self.series_url = ""
@@ -91,6 +93,7 @@ class TVDBFanart(QtWidgets.QWidget):
             count += 1
             if count > 3000000:
                 print('not-found')
+                self.is_processing = False
                 break
 
         print(count, "cc")
