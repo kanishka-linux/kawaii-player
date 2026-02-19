@@ -252,6 +252,7 @@ class SeriesDetailsApp {
 
     showFetchMetadataDialog() {
       const title = this.seriesData?.series_info?.db_title || this.seriesData?.series_info?.title;
+      const externalID = this.seriesData?.series_info?.external_id;
       const currentCategory = this.seriesData?.series_info?.category || 'anime';
       
       // Create modal HTML
@@ -281,6 +282,7 @@ class SeriesDetailsApp {
                   class="fetch-modal-input" 
                   id="metadata-external-id" 
                   placeholder="e.g., 5114 (MyAnimeList ID)"
+                  value="${this.escapeHtml(externalID)}"
                 />
                 <div class="fetch-modal-help">Leave empty to search by title</div>
               </div>
