@@ -1035,8 +1035,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 if single_episode_title:
                     ui.media_data.insert_video_data(suggested_title, single_episode_path)
                     ui.media_data.insert_series_data(suggested_title, result, series_type)
+                    ui.media_data.insert_episode_details(suggested_title, result.get('episode_details', ''))
                 else:
                     ui.media_data.insert_series_data(db_title, result, series_type)
+                    ui.media_data.insert_episode_details(db_title, result.get('episode_details', ''))
 
 
                 conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))

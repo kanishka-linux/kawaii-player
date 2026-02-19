@@ -829,6 +829,90 @@ class MediaDatabase():
         finally:
             conn.close()
 
+    def _extract_episode_number(self, ep_name: str) -> Optional[int]:
+        if not ep_name:
+            return None
+        # strip extension
+        name = re.sub(r'\.\w{2,4}$', '', ep_name).lower().strip()
+        # remove anything inside brackets before pattern matching
+        name = re.sub(r'\[.*?\]', '', name)  # remove [...]
+        name = re.sub(r'\(.*?\)', '', name)  # remove (...)
+        name = re.sub(r'\{.*?\}', '', name)  # remove {...}
+        name = name.strip()
+
+        for pattern in [
+            r's\d+e(?P<num>\d+)',
+            r's\d+ep(?P<num>\d+)',
+            r'ep(?P<num>\d+)',
+            r'e(?P<num>\d+)',
+            r'episode\s*(?P<num>\d+)',
+            r'#(?P<num>\d+)',
+            r'(?<!\d)(?P<num>\d+)(?!\d)',
+        ]:
+            m = re.search(pattern, name)
+            if m:
+                return int(m.group('num'))
+        return None
+
+    def insert_episode_details(self, suggested_title: str, episode_details: list):
+        if not episode_details:
+            self.logger.info(f"No episode details to insert for: {suggested_title}")
+            return
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT FileName, EPN, Path FROM Video WHERE Title = ?", (suggested_title,))
+                video_rows = cur.fetchall()
+                if not video_rows:
+                    self.logger.warning(f"No video rows found for title: {suggested_title}")
+                    return
+
+                ep_lookup = {
+                    ep['mal_id']: ep
+                    for ep in episode_details
+                    if ep.get('mal_id') is not None
+                }
+
+                matched, unmatched_rows = 0, []
+
+                for row in video_rows:
+                    ep_name = row[0]
+                    _epn    = row[1]
+                    path    = row[2]
+                    ep_num  = self._extract_episode_number(ep_name)
+
+                    episode = ep_lookup.get(int(ep_num)) if ep_num is not None else None
+
+                    if not episode:
+                        unmatched_rows.append(path)
+                        continue
+
+                    new_ep_name = episode.get('title')
+                    mal_ep_id   = episode.get('mal_id')
+                    cur.execute(
+                        "UPDATE Video SET EP_NAME = ?, EPN = ? WHERE Path = ?",
+                        (new_ep_name, mal_ep_id, path)
+                    )
+                    matched += 1
+
+                # Assign unmatched rows EPN continuing from last matched EPN
+                if unmatched_rows:
+                    next_epn = matched + 1
+                    for path in unmatched_rows:
+                        cur.execute(
+                            "UPDATE Video SET EPN = ? WHERE Path = ?",
+                            (next_epn, path)
+                        )
+                        self.logger.info(f"Unmatched file assigned EPN={next_epn}: {path}")
+                        next_epn += 1
+
+                conn.commit()
+                self.logger.info(f"[{suggested_title}] matched={matched}, unmatched={len(unmatched_rows)}")
+                if unmatched_rows:
+                    self.logger.warning(f"Unmatched files: {unmatched_rows}")
+        except Exception as err:
+            self.logger.error(f"insert_episode_details error: {str(err)}")
+
     def delete_series_info(self, db_title):
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
