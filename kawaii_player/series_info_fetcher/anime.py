@@ -1,7 +1,7 @@
 import time
 import re
 from difflib import SequenceMatcher
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from vinanti import Vinanti
 import hashlib
 import json
@@ -241,6 +241,13 @@ class AnimeInfoFetcher:
             self.cache[title] = anime_details
             self.cache[detail_url] = anime_details
             self._save_cache()
+            
+            if mal_id:
+                episode_details = self.get_all_episodes(int(mal_id), cache, False)
+                anime_details["episode_details"] = episode_details
+                self.cache[title] = anime_details
+                self.cache[detail_url] = anime_details
+                self._save_cache()
 
             return anime_details
             
@@ -249,3 +256,148 @@ class AnimeInfoFetcher:
             self.ui.logger.exception(f"Traceback:\n {traceback.format_exc()}")
             return None
 
+    def _build_episodes_cache_key(self, mal_id: int) -> str:
+        return f"episodes::{mal_id}"
+
+    def get_episode_details(self, mal_id: int, episode_number: int, use_cache: bool = True) -> Optional[Dict]:
+        """
+        Fetch detailed info for a single episode (includes synopsis/summary).
+        Jikan exposes this at /anime/{mal_id}/episodes/{episode_id}.
+
+        Returns a dict with keys:
+            mal_id, url, title, title_japanese, title_romanji,
+            aired, score, filler, recap, synopsis
+        """
+        cache_key = f"episode_detail::{mal_id}::{episode_number}"
+
+        if use_cache and self.cache.get(cache_key):
+            self.ui.logger.info(f"returning episode detail from cache: {cache_key}")
+            return self.cache[cache_key]
+
+        self._rate_limit()
+        url = f"{self.base_url}/anime/{mal_id}/episodes/{episode_number}"
+        response = self.vnt.get(url)
+
+        if response.status != 200:
+            self.ui.logger.warning(
+                f"Failed to fetch episode {episode_number} detail for mal_id={mal_id}: HTTP {response.status}"
+            )
+            return None
+
+        data = json.loads(response.html).get('data', {})
+        if not data:
+            return None
+
+        episode_detail = {
+            'mal_id':          data.get('mal_id'),
+            'url':             data.get('url'),
+            'title':           data.get('title'),
+            'title_japanese':  data.get('title_japanese'),
+            'title_romanji':   data.get('title_romanji'),
+            'aired':           data.get('aired'),
+            'score':           data.get('score'),
+            'filler':          data.get('filler', False),
+            'recap':           data.get('recap', False),
+            'synopsis':        data.get('synopsis'),        # full episode summary
+            'forum_url':       data.get('forum_url'),
+        }
+
+        self.cache[cache_key] = episode_detail
+        self._save_cache()
+        return episode_detail
+
+    def get_all_episodes(
+        self,
+        mal_id: int,
+        use_cache: bool = True,
+        fetch_details: bool = False,
+    ) -> List[Dict]:
+        """
+        Fetch the full episode list for an anime by its MAL ID.
+
+        Jikan returns episodes in pages of 100.  This method handles
+        pagination automatically and collects every page.
+
+        Args:
+            mal_id:        MyAnimeList ID of the anime.
+            use_cache:     Return cached result when available.
+            fetch_details: If True, make an additional per-episode request
+                           to retrieve the synopsis/summary for each episode.
+                           This is much slower (one extra API call per episode)
+                           but gives the richest data.
+
+        Returns:
+            List of episode dicts.  Without fetch_details each dict contains:
+                mal_id, url, title, title_japanese, title_romanji,
+                aired, score, filler, recap
+            With fetch_details the 'synopsis' key is also populated.
+        """
+        episodes_cache_key = self._build_episodes_cache_key(mal_id)
+
+        # Return from cache only when details are NOT needed or cache already
+        # has the synopsis field (i.e. was built with fetch_details=True before).
+        if use_cache and self.cache.get(episodes_cache_key):
+            cached = self.cache[episodes_cache_key]
+            if not fetch_details or (cached and cached[0].get('synopsis') is not None):
+                self.ui.logger.info(f"returning all episodes from cache for mal_id={mal_id}")
+                return cached
+
+        episodes: List[Dict] = []
+        page = 1
+
+        while True:
+            self._rate_limit()
+            url = f"{self.base_url}/anime/{mal_id}/episodes"
+            response = self.vnt.get(url, params={"page": page})
+
+            if response.status != 200:
+                self.ui.logger.warning(
+                    f"Failed to fetch episodes page {page} for mal_id={mal_id}: HTTP {response.status}"
+                )
+                break
+
+            body = json.loads(response.html)
+            page_data = body.get('data', [])
+
+            if not page_data:
+                break  # No more episodes
+
+            for ep in page_data:
+                episode_entry = {
+                    'mal_id':         ep.get('mal_id'),          # episode number
+                    'url':            ep.get('url'),
+                    'title':          ep.get('title'),
+                    'title_japanese': ep.get('title_japanese'),
+                    'title_romanji':  ep.get('title_romanji'),
+                    'aired':          ep.get('aired'),
+                    'score':          ep.get('score'),
+                    'filler':         ep.get('filler', False),
+                    'recap':          ep.get('recap', False),
+                    'synopsis':       None,  # populated below if fetch_details=True
+                }
+                episodes.append(episode_entry)
+
+            # Check if there are more pages
+            pagination = body.get('pagination', {})
+            has_next = pagination.get('has_next_page', False)
+            if not has_next:
+                break
+
+            page += 1
+
+        # Optionally enrich each episode with its full synopsis
+        if fetch_details:
+            for ep in episodes:
+                ep_number = ep.get('mal_id')
+                if ep_number is None:
+                    continue
+                detail = self.get_episode_details(mal_id, ep_number, use_cache=use_cache)
+                if detail:
+                    ep['synopsis']       = detail.get('synopsis')
+                    ep['forum_url']      = detail.get('forum_url')
+
+        # Persist to cache
+        self.cache[episodes_cache_key] = episodes
+        self._save_cache()
+
+        return episodes
