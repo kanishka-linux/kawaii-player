@@ -359,13 +359,6 @@ body {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #e9ecef;
-    position: sticky;
-    bottom: 0;
-    background: #ffffff;
-    margin-left: -30px;
-    margin-right: -30px;
-    padding-left: 30px;
-    padding-right: 30px;
 }
 
 .filter-actions .btn {
@@ -2135,4 +2128,12 @@ body.dark-theme .series-text-meta {
         height: 32px;
         font-size: 1.1rem;
     }
+}
+
+/* iOS/Safari select fix */
+.filter-group select {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 48px;
+    line-height: 1.5;
 }
