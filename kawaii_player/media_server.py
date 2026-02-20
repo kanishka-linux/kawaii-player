@@ -292,10 +292,16 @@ def find_and_set_index(st, st_o, srch):
         else:
             mode = 1
         
+    dir_exact = None
+    title_exact = None
+    if "&db_title=" in srch:
+        dir_exact, title_exact = srch.split("&db_title=")
+
     for i, val in enumerate(ui.original_path_name):
         val = val.strip()
+        t_val = None
         if mode == 0 and '\t' in val:
-            new_val = val.split('\t')[1]
+            t_val, new_val = val.split('\t')
         elif mode == 2:
             new_val = val
         else:
@@ -303,7 +309,7 @@ def find_and_set_index(st, st_o, srch):
         hash_val = bytes(new_val, 'utf-8')
         h = hashlib.sha256(hash_val)
         hash_dir = h.hexdigest()
-        if hash_dir == srch:
+        if (dir_exact and title_exact and hash_dir == dir_exact and title_exact == t_val) or (hash_dir == srch):
             index = i
             break
     if index is not None:

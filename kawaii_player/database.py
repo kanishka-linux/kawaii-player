@@ -250,7 +250,7 @@ class MediaDatabase():
                             j = j+1
         return vid
     
-    def get_video_db(self, music_db, queryType, queryVal):
+    def get_video_db(self, music_db, queryType, queryVal, title=None):
         conn = sqlite3.connect(music_db)
         cur = conn.cursor()    
         q = queryType
@@ -258,7 +258,9 @@ class MediaDatabase():
         print(music_db)
         error_occured = False
         rows = [('none','none')]
-        if q.lower() == "directory":
+        if q.lower() == 'directory' and title:
+            cur.execute('SELECT EP_NAME, Path FROM Video Where Directory=? and Title=? order by EPN', (qVal, title))
+        elif q.lower() == "directory":
             if not qVal:
                 cur.execute('SELECT distinct Title, Directory FROM Video order by Title')
             else:

@@ -140,6 +140,7 @@ async function fetchSeriesDetails(seriesId) {
         const transformedData = {
             title: data.title || data.series_info?.title || 'Unknown Series',
             dir_hash: data.dir_hash,
+            db_title: data.series_info?.db_title,
             english_title: data.series_info?.english_title,
             poster: data.series_info?.image_poster_large,
             score: data.series_info?.score,
@@ -319,9 +320,7 @@ async function switchMode(newMode) {
         stopBrowserPlayer();
         startRemoteSync();
 
-        console.log(state.seriesInfo, state.seriesInfo.directory)
-
-        const playlistUrl = `/site=video&opt=available&s=${state.seriesInfo.dir_hash}&exact.m3u`;
+        const playlistUrl = `/site=video&opt=available&s=${state.seriesInfo.dir_hash}&db_title=${state.seriesInfo.db_title}&exact.m3u`;
         await fetch(`${CONFIG.BASE_URL}${playlistUrl}`);
         console.log('Playlist loaded:', playlistUrl);
         

@@ -8367,16 +8367,11 @@ class Ui_MainWindow(object):
                         video_opt = "Available"
                         self.video_dict.clear()
                     if video_opt.lower() != "update" and video_opt.lower() != "updateall":
-                        art_n = self.original_path_name[row_select].split('	')[-1]
-                        if art_n in self.video_dict:
-                            m = self.video_dict[art_n]
-                            logger.info('Getting from Cache')
-                        else:
-                            m = self.media_data.get_video_db(video_db, "Directory", art_n)
-                            mlist = [list(i) for i in m]
-                            self.video_dict.update({art_n:mlist})
-                            logger.info('Getting from DB')
-                            logger.info(type(m))
+                        title_n, art_n = self.original_path_name[row_select].split('	')
+                        m = self.media_data.get_video_db(video_db, "Directory", art_n, title_n)
+                        mlist = [list(i) for i in m]
+                        logger.info('Getting from DB')
+                        logger.info(type(m))
                 else:
                     new_art_n = art_n
                     if new_dir_path is not None:
