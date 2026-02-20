@@ -7001,7 +7001,7 @@ class Ui_MainWindow(object):
                 self.text.setText(summary)
             else:
                 title_episode = self.list2.currentItem().text()
-                self.text.setText('{}\n\n{}. {}'.format(name, num+1, title_episode))
+                self.text.setText(f'{name}\n\n{title_episode}')
                 
     def thumbnail_generated(self, row=None, picn=None):
         try:
