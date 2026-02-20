@@ -832,12 +832,10 @@ class MediaDatabase():
     def _extract_episode_number(self, ep_name: str) -> Optional[int]:
         if not ep_name:
             return None
-        # strip extension
         name = re.sub(r'\.\w{2,4}$', '', ep_name).lower().strip()
-        # remove anything inside brackets before pattern matching
-        name = re.sub(r'\[.*?\]', '', name)  # remove [...]
-        name = re.sub(r'\(.*?\)', '', name)  # remove (...)
-        name = re.sub(r'\{.*?\}', '', name)  # remove {...}
+        name = re.sub(r'\[.*?\]', '', name)
+        name = re.sub(r'\(.*?\)', '', name)
+        name = re.sub(r'\{.*?\}', '', name)
         name = name.strip()
 
         for pattern in [
@@ -847,7 +845,7 @@ class MediaDatabase():
             r'e(?P<num>\d+)',
             r'episode\s*(?P<num>\d+)',
             r'#(?P<num>\d+)',
-            r'(?<!\d)(?P<num>\d+)(?!\d)',
+            r'(?<![a-z])(?<!\d)(?P<num>\d+)(?!\d)',
         ]:
             m = re.search(pattern, name)
             if m:
@@ -889,9 +887,10 @@ class MediaDatabase():
 
                     new_ep_name = episode.get('title')
                     mal_ep_id   = episode.get('mal_id')
+                    # keep EPN - 0 indexed for backward compatibiliy
                     cur.execute(
                         "UPDATE Video SET EP_NAME = ?, EPN = ? WHERE Path = ?",
-                        (new_ep_name, mal_ep_id, path)
+                        (new_ep_name, mal_ep_id - 1, path)
                     )
                     matched += 1
 
@@ -901,7 +900,7 @@ class MediaDatabase():
                     for path in unmatched_rows:
                         cur.execute(
                             "UPDATE Video SET EPN = ? WHERE Path = ?",
-                            (next_epn, path)
+                            (next_epn -  1, path)
                         )
                         self.logger.info(f"Unmatched file assigned EPN={next_epn}: {path}")
                         next_epn += 1
