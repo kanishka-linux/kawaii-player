@@ -553,7 +553,7 @@ class SeriesDetailsApp {
         try {
           await this.fetchMediaContent(mode, url, title);
           closeModal();
-          this.showMessage('Success', `${mode === 'poster' ? 'Poster' : 'Fanart'} successfully submitted the request!`, 'success');
+          this.showMessage('Success', `${mode === 'poster' ? 'Poster' : 'Fanart'} fetch request submitted successfully!`, 'success');
         } catch (error) {
           console.error('Fetch error:', error);
           this.showMessage('Error', error.message || 'Failed to fetch media', 'error');
