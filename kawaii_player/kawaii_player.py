@@ -8385,7 +8385,7 @@ class Ui_MainWindow(object):
                 
                 self.epn_arr_list.clear()
                 self.list2.clear()
-                self.epn_arr_list = [i[0]+'\t'+i[1] for i in m]
+                self.epn_arr_list = [f"{i+1}. {j[0]}\t{j[1]}" for i, j in enumerate(m)]
                 art_n = self.list1.item(row_select).text()
                 dir_path = os.path.join(home, 'Local', art_n)
                 poster_image, summary_series, _  = self.media_data.fetch_series_metadata_for_desktop(art_n)
