@@ -102,8 +102,8 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
             print("ht="+wd)
             print("wd="+wd)
         
-        ui.scrollArea.verticalScrollBar().setValue(yy-ht1)
-        ui.scrollArea.horizontalScrollBar().setValue(xy-wd1)
+        ui.scrollArea.verticalScrollBar().setValue(int(yy-ht1))
+        ui.scrollArea.horizontalScrollBar().setValue(int(xy-wd1))
         item = ui.list1.item(self.cur_row)
         if item:
             ui.labelFrame2.setText('{0}. {1}'.format(self.cur_row+1, item.text()))
@@ -298,8 +298,8 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 ht1 = eval(p1)
                 ht = str(0.6*ht1)
                 wd = str(0.6*wd1)
-            ui.scrollArea1.verticalScrollBar().setValue(yy-ht1)
-            ui.scrollArea1.horizontalScrollBar().setValue(xy-wd1)
+            ui.scrollArea1.verticalScrollBar().setValue(int(yy-ht1))
+            ui.scrollArea1.horizontalScrollBar().setValue(int(xy-wd1))
             site = ui.get_parameters_value(s='site')['site']
             if site != "PlayLists":
                 ui.labelFrame2.setText(ui.list2.currentItem().text())
