@@ -560,7 +560,8 @@ function renderEpisodes() {
     }
     
     state.episodes.forEach((episode, index) => {
-        const episodeNumber = episode.number || (index + 1);
+        const episodeNumber = episode.number;
+        const actualEpNumber = episode.epn_number + 1;
         const isActive = state.currentEpisode && 
                         (state.currentEpisode.number === episodeNumber || 
                          state.currentEpisode.path === episode.path);
@@ -581,8 +582,8 @@ function renderEpisodes() {
                 ${thumbnailContent}
             </div>
             <div class="episode-details">
-                <div class="episode-number">EPISODE ${episodeNumber}</div>
-                <div class="episode-name">${episode.name || `Episode ${episodeNumber}`}</div>
+                <div class="episode-number">EPISODE ${actualEpNumber}</div>
+                <div class="episode-name">${episode.name}</div>
                 <div class="episode-duration">${isActive ? `${formatTime(state.currentTime)} / ${formatTime(state.duration)}` : (episode.duration || '')}</div>
             </div>
             <div class="episode-status">${isActive ? '▶' : (isWatched ? '✓' : '')}</div>
@@ -641,8 +642,8 @@ function playEpisode(episodeNumber) {
         }
     } else {
         // Play item in desktop player (0-indexed)
-        // sendRemoteCommand(`/playlist_${episodeNumber - 1}`);
-        sendRemoteCommand(`/playlist_${episode.epn_number}`);
+        sendRemoteCommand(`/playlist_${episodeNumber - 1}`);
+        //sendRemoteCommand(`/playlist_${episode.epn_number}`);
     }
     
     // Update URL
