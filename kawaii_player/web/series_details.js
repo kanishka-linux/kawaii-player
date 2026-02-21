@@ -673,7 +673,7 @@ class SeriesDetailsApp {
             { label: 'Score', value: info.score },
             { label: 'Rank', value: info.rank ? `#${info.rank}` : null },
             { label: 'Popularity', value: info.popularity ? `#${info.popularity}` : null },
-            { label: 'Status', value: this.capitalizeWords(info.labels || 'unknown') },
+            { label: 'Label', value: this.capitalizeWords(info.labels || 'unknown') },
             { label: 'Available', value: info.episodes_available && info.episodes ? 
                 `${info.episodes_available} / ${info.episodes}` : info.episodes_available }
         ];
@@ -777,7 +777,7 @@ class SeriesDetailsApp {
         }
         
         const episodeItems = episodes.map((episode, index) => {
-            const episodeNumber = index + 1;
+            const episodeNumber = (episode['epn-number'] || index) + 1;
             const episodeName = episode.name || `Episode ${episodeNumber}`;
             const imageUrl = episode['image-url'] || '';
             const watched = episode.watched || false;
