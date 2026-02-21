@@ -298,67 +298,10 @@ class MediaDatabase():
             self.ui.text.setText('Wait..Updating Video Database')
             QtWidgets.QApplication.processEvents()
 
-        lines = self.import_video(video_file, video_file_bak)
-        print(len(lines))
-        lines.sort()
-        if os.path.exists(video_db):
-            j = 0
-            w = []
-            epn_cnt = 0
-            dir_cmp = []
-            conn = sqlite3.connect(video_db)
-            cur = conn.cursor()
-            for i in lines:
-                i = i.strip()
-                if i:
-                    w[:] = []
-                    i = os.path.normpath(i)
-                    di, na = os.path.split(i)
-                    metadata_file = os.path.join(di, "metadata.txt")
-                    if os.path.exists(metadata_file):
-                        content = open(metadata_file, "r").read()
-                        content_lines = content.split("\n")
-                        metadata = [(i.split(":")[0].lower(), i.split(":", 1)[-1].strip()) for i in content_lines if ":" in i]
-                        metadata_dict = dict(metadata)
-                        ti = metadata_dict.get("title")
-                    else:
-                        ti = os.path.basename(di)
-                    pa = i
-                    if j == 0:
-                        dir_cmp.append(di)
-                    else:
-                        tmp = dir_cmp.pop()
-                        if tmp == di:
-                            epn_cnt = epn_cnt + 1
-                        else:
-                            epn_cnt = 0
-                        dir_cmp.append(di)
-                    if 'movie' in di.lower():
-                        category = self.ui.category_dict['movies']
-                    elif 'anime' in di.lower():
-                        category = self.ui.category_dict['anime']
-                    elif 'cartoon' in di.lower():
-                        category = self.ui.category_dict['cartoons']
-                    elif 'tv shows' in di.lower() or 'tv-shows' in di.lower():
-                        category = self.ui.category_dict['tv shows']
-                    else:
-                        category = self.ui.category_dict['others']
+        self.init_video_db()
+        self.migrate_database("1.0", "file_checksum")
+        self.migrate_database_v2("1.0")
 
-                    checksum = self.calculate_file_checksum(pa)
-                    w = [ti, di, na, na, pa, epn_cnt, category, checksum]
-                    try:
-                        cur.execute('INSERT INTO Video VALUES(?, ?, ?, ?, ?, ?, ?, ?)', w)
-                        self.logger.info("Inserting:", w)
-                    except:
-                        self.logger.info(w)
-                        self.logger.info("Duplicate")
-                    j = j+1
-            conn.commit()
-            conn.close()
-        else:
-            self.init_video_db()
-            self.migrate_database("1.0", "file_checksum")
-            self.migrate_database_v2("1.0")
         if (update_progress_show is None or update_progress_show) and self.ui:
             self.ui.text.setText('Update Complete!')
             print('--191---update-complete--')
