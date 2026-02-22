@@ -8390,7 +8390,7 @@ class Ui_MainWindow(object):
                 dir_path = os.path.join(home, 'Local', art_n)
                 poster_image, summary_series, _  = self.media_data.fetch_series_metadata_for_desktop(art_n)
                 if os.path.exists(dir_path):
-                    if poster_image:
+                    if poster_image and os.path.isfile(poster_image):
                         legacy_picn = os.path.join(home, 'Local', art_n, 'poster.jpg')
                         if not os.path.exists(legacy_picn):
                             shutil.copy(poster_image, legacy_picn)

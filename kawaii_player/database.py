@@ -1402,6 +1402,16 @@ class MediaDatabase():
             self.ui.logger.error(f"Error getting year range: {e}")
             return 1900, datetime.datetime.now().year
 
+    def _remove_legacy_poster(self, title):
+        legacy_poster = os.path.join(self.home, 'Local', title, 'poster.jpg')
+        legacy_poster_128px = os.path.join(self.home, 'Local', title, '128px.poster.jpg')
+        legacy_poster_480px = os.path.join(self.home, 'Local', title, '480px.poster.jpg')
+        legacy_poster_thumbnail = os.path.join(self.home, 'Local', title, 'thumbnail.jpg')
+        for poster in [legacy_poster, legacy_poster_128px, legacy_poster_480px, legacy_poster_thumbnail]:
+            if os.path.isfile(poster):
+                os.remove(poster)
+                self.ui.logger.info(f"removed legacy poster: {poster}")
+
     def insert_series_data(self, title, series_data, category):
 
         db_path = os.path.join(self.db_path)
@@ -1473,6 +1483,8 @@ class MediaDatabase():
 
             conn.commit()
 
+            self._remove_legacy_poster(title)
+
             self.logger.info(f"\nInserted anime: {title} => {series_data.get('title')} with ID: {record_id}\n")
             return record_id
         except sqlite3.IntegrityError as e:
@@ -1509,6 +1521,8 @@ class MediaDatabase():
                     cursor.execute(update_sql, update_data_tuple)
                     conn.commit()
 
+                    self._remove_legacy_poster(title)
+
                     self.logger.info(f"\nUpdated anime: {title} => {series_data.get('title')} with existing ID: {existing_id}\n")
                     return existing_id
 
@@ -1522,6 +1536,8 @@ class MediaDatabase():
 
         finally:
             conn.close()
+
+
 
     def search_filtered_anime_parameterized(self, limit, excluded_categories=None, excluded_title_keywords=None):
 
