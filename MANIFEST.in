@@ -20,5 +20,8 @@ include kawaii_player/web/login.css
 include kawaii_player/web/series_details.html
 include kawaii_player/web/series_details.js
 include kawaii_player/web/series_details.css
+include kawaii_player/web/player_control.html
+include kawaii_player/web/player_control.js
+include kawaii_player/web/player_control.css
 include kawaii_player/kawaii-player-start
 include kawaii_player/kawaii-player
