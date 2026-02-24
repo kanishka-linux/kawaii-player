@@ -6,7 +6,8 @@
 const CONFIG = {
     BASE_URL: window.location.origin,
     SYNC_INTERVAL: 1000, // 1 second for master/slave mode
-    AUTO_HIDE_ALERT: 2000 // 2 seconds
+    AUTO_HIDE_ALERT: 2000, // 2 seconds
+    BASE_URL_PLAYER: `${window.location.origin}/api/player`
 };
 
 // ===========================
@@ -176,7 +177,7 @@ async function fetchSeriesDetails(seriesId) {
  */
 async function getRemoteControlStatus() {
     try {
-        const response = await fetch(`${CONFIG.BASE_URL}/get_remote_control_status`);
+        const response = await fetch(`${CONFIG.BASE_URL_PLAYER}/get_remote_control_status`);
         if (!response.ok) throw new Error('Failed to get remote status');
         const text = await response.text();
         
@@ -202,7 +203,7 @@ async function getRemoteControlStatus() {
  */
 async function sendRemoteCommand(endpoint) {
     try {
-        const response = await fetch(`${CONFIG.BASE_URL}${endpoint}`);
+        const response = await fetch(`${CONFIG.BASE_URL_PLAYER}${endpoint}`);
         return response.ok;
     } catch (error) {
         console.error('Error sending remote command:', error);
@@ -216,7 +217,7 @@ async function sendRemoteCommand(endpoint) {
  */
 async function sendPostCommand(endpoint, data) {
     try {
-        const response = await fetch(`${CONFIG.BASE_URL}${endpoint}`, {
+        const response = await fetch(`${CONFIG.BASE_URL_PLAYER}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -300,7 +301,7 @@ async function switchMode(newMode) {
     const masterSlaveControls = document.querySelectorAll('.master-slave-only');
     
     if (newMode === 'in-browser') {
-        const response = await fetch(`${CONFIG.BASE_URL}/remote_off.htm`);
+        const response = await fetch(`${CONFIG.BASE_URL_PLAYER}/remote_off.htm`);
         videoPlayerContainer.classList.remove('hidden');
         thumbnailArea.classList.add('hidden');
         connectionStatus.classList.add('hidden');
@@ -310,7 +311,7 @@ async function switchMode(newMode) {
         stopRemoteSync();
         initBrowserPlayer();
     } else {
-        const response = await fetch(`${CONFIG.BASE_URL}/remote_on.htm`);
+        const response = await fetch(`${CONFIG.BASE_URL_PLAYER}/remote_on.htm`);
         videoPlayerContainer.classList.add('hidden');
         thumbnailArea.classList.remove('hidden');
         connectionStatus.classList.remove('hidden');
@@ -321,10 +322,10 @@ async function switchMode(newMode) {
         startRemoteSync();
 
         const playlistUrl = `/site=video&opt=available&s=${state.seriesInfo.dir_hash}&db_title=${state.seriesInfo.db_title}&exact.m3u`;
-        await fetch(`${CONFIG.BASE_URL}${playlistUrl}`);
+        await fetch(`${CONFIG.BASE_URL_PLAYER}${playlistUrl}`);
         console.log('Playlist loaded:', playlistUrl);
         
-        const response1 = await fetch(`${CONFIG.BASE_URL}/toggle_master_slave`);
+        const response1 = await fetch(`${CONFIG.BASE_URL_PLAYER}/toggle_master_slave`);
         const text = await response1.text();
         const actualMode = text.toLowerCase().trim();
         // Update status text based on mode
@@ -335,7 +336,7 @@ async function switchMode(newMode) {
             statusText.textContent = '📺 Desktop Player Connected (Slave Mode)';
         } else {
             console.log('📺 Mismatch', newMode, actualMode, "toggling again");
-            const response2 = await fetch(`${CONFIG.BASE_URL}/toggle_master_slave`);
+            const response2 = await fetch(`${CONFIG.BASE_URL_PLAYER}/toggle_master_slave`);
             const text2 = await response2.text();
             const actualMode2 = text2.toLowerCase().trim();
             statusText.textContent = `🖥️ Desktop Player Connected (${capitalizeFirstLetter(actualMode2)} Mode)`;

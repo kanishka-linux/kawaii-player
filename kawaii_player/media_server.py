@@ -1430,8 +1430,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if handle_auth_routes(self, 'GET', parsed_path.path, ui):
             return
 
-        if (self.path.startswith('/series-data') or
-                self.path.startswith('/series/')):
+        if self.path.startswith((
+                    '/series-data', '/series/',
+                    '/cache/', '/api/player/'
+                    )):
             if require_admin_auth(self, ui):
                 return
 
@@ -1526,6 +1528,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 result['file_size']
             )
             #self.send_raw_response(result['data'], result['content_type'], 200)
+        elif self.path.startswith("/api/player/"):
+            path = self.path.split('/api/player/', 1)[-1]
+            self.get_the_content(path, 0)
         else:
             self.do_init_function(type_request='get')
 
@@ -2621,9 +2626,11 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if handle_auth_routes(self, 'POST', parsed_path.path, ui):
             return
 
-        if (self.path in auth_required_routes and
-                require_admin_auth(self, ui)):
-            return
+        if (self.path in auth_required_routes or
+                self.path.startswith(('/series/', '/api/player/'))
+            ):
+            if require_admin_auth(self, ui):
+                return
 
         if self.path == '/admin/series-update':
             self.handle_series_update()
@@ -2681,6 +2688,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             user_agent = self.headers.get('User-Agent', '')
             data, status_code = ui.track_extractor.handle_transcode_cancel_request(series_id, request_body, user_agent)
             self.send_json_response(data, status_code)
+        elif self.path.startswith('/api/player/sending_web_command'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            param = "param={}".format(content.get("param"))
+            value = "widget={}".format(content.get("widget"))
+            self.final_message(bytes('Command Recieved', 'utf-8'))
+            ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
         else:
             self.do_init_function(type_request='post')
 
