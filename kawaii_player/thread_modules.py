@@ -29,8 +29,8 @@ import urllib.request
 import hashlib
 from functools import partial
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import ccurl, write_files, open_files, send_notification
 from player import PlayerWidget
 from multiprocessing import Process
@@ -1338,11 +1338,16 @@ def apply_thumbnail_to_playlist(k, i, title):
                 size = 256
             else:
                 size = 128
+            pixmap = QtGui.QPixmap(icon_name)
+            scaled_pixmap = pixmap.scaled(size, size, 
+                                          QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                          QtCore.Qt.TransformationMode.SmoothTransformation)
+
             icon_new_pixel = ui.create_new_image_pixel(icon_name, size)
             if os.path.exists(icon_new_pixel):
-                ui.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+                ui.list2.item(k).setIcon(QtGui.QIcon(scaled_pixmap))
                 if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:
-                    ui.list_poster.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+                    ui.list_poster.item(k).setIcon(QtGui.QIcon(scaled_pixmap))
     except Exception as e:
         print(e)
 

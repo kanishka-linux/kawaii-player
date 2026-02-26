@@ -18,11 +18,9 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import re
 import time
 import json
 import subprocess
-from PyQt5 import QtCore
 from player_functions import send_notification, ccurl
 from vinanti import Vinanti
 

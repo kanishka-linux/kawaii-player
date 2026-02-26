@@ -22,7 +22,7 @@ import re
 import sqlite3
 import shutil
 import platform
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from player_functions import write_files, open_files, send_notification
 
 class TitleListWidget(QtWidgets.QListWidget):
@@ -30,11 +30,11 @@ class TitleListWidget(QtWidgets.QListWidget):
     def __init__(self, parent, uiwidget=None, home_var=None, tmp=None, logr=None):
         super(TitleListWidget, self).__init__(parent)
         global MainWindow, home, TMPDIR, logger, ui
-        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.setDefaultDropAction(QtCore.Qt.DropAction.MoveAction)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
         MainWindow = parent
         ui = uiwidget
         TMPDIR = tmp
@@ -50,8 +50,8 @@ class TitleListWidget(QtWidgets.QListWidget):
     """
     def dropEvent(self, event):
         if (event.source() == self 
-                and (event.dropAction() == QtCore.Qt.MoveAction 
-                or self.dragDropMode() == QtWidgets.QAbstractItemView.InternalMove)):
+                and (event.dropAction() == QtCore.Qt.DropAction.MoveAction 
+                or self.dragDropMode() == QtWidgets.QAbstractItemView.DragDropMode.InternalMove)):
             i = self.currentItem()
             item = i.text()
             itemR = self.currentRow()
@@ -120,38 +120,38 @@ class TitleListWidget(QtWidgets.QListWidget):
     """
     
     def keyPressEvent(self, event):
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Left):
+        if (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Left):
             self.set_search_backend(use_search='tmdb+ddg', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Right):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Right):
             self.set_search_backend(use_search='tvdb+ddg', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_Right):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_Right):
             self.set_search_backend(use_search='tvdb+ddg', get_thumb=True)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Down):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Down):
             self.set_search_backend(use_search='tmdb+g', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Up):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Up):
             self.set_search_backend(use_search='tvdb+g', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_Up):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_Up):
             self.set_search_backend(use_search='tvdb+g', get_thumb=True)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_1):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_1):
             self.set_search_backend(use_search=False, get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_2):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_2):
             self.set_search_backend(use_search='tmdb', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_A):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_A):
             #self.get_all_information()
             super(TitleListWidget, self).keyPressEvent(event)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_C):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_C):
             ui.copyFanart()
-        elif (event.key() == QtCore.Qt.Key_F6):
+        elif (event.key() == QtCore.Qt.Key.Key_F6):
             if self.currentItem():
                 row = self.currentRow()
             else:
@@ -159,7 +159,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
                 ui.metaengine.find_info_thread(0, row, mycopy)
-        elif (event.key() == QtCore.Qt.Key_F7):
+        elif (event.key() == QtCore.Qt.Key.Key_F7):
             if self.currentItem():
                 row = self.currentRow()
             else:
@@ -167,7 +167,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
                 ui.metaengine.find_info_thread(1, row, mycopy)
-        elif (event.key() == QtCore.Qt.Key_F8):
+        elif (event.key() == QtCore.Qt.Key.Key_F8):
             if self.currentItem():
                 row = self.currentRow()
             else:
@@ -175,8 +175,8 @@ class TitleListWidget(QtWidgets.QListWidget):
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
                 ui.metaengine.find_info_thread(2, row, mycopy)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Delete):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Delete):
             row = self.currentRow()
             file_path = ""
             param_dict = ui.get_parameters_value(s='site', sn='siteName')
@@ -197,11 +197,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                     del ui.original_path_name[row]
                     length = self.count()-1
                     write_files(file_path, ui.original_path_name, line_by_line=True)
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_C):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier 
+                and event.key() == QtCore.Qt.Key.Key_C):
             ui.copySummary()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_B):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_B):
             param_dict = ui.get_parameters_value(b='bookmark', o='opt')
             bookmark = param_dict['bookmark']
             opt = param_dict['opt']
@@ -223,7 +223,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 write_files(file_path, tmp, line_by_line=True)
                 note = name + " is Bookmarked"
                 send_notification(note, code=0)
-        elif event.key() == QtCore.Qt.Key_PageUp:
+        elif event.key() == QtCore.Qt.Key.Key_PageUp:
             param_dict = ui.get_parameters_value(
                 b='bookmark', s='site', o='opt', st='status', sn='siteName')
             bookmark = param_dict['bookmark']
@@ -286,7 +286,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         i = i.split('	')[0]
                     self.addItem(i)
                 self.setCurrentRow(prev_row)
-        elif event.key() == QtCore.Qt.Key_PageDown:
+        elif event.key() == QtCore.Qt.Key.Key_PageDown:
             param_dict = ui.get_parameters_value(
                 b='bookmark', s='site', o='opt', st='status', sn='siteName')
             bookmark = param_dict['bookmark']
@@ -348,7 +348,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         i = i.split('	')[0]
                     self.addItem(i)
                 self.setCurrentRow(next_row)
-        elif event.key() == QtCore.Qt.Key_Delete:
+        elif event.key() == QtCore.Qt.Key.Key_Delete:
             param_dict = ui.get_parameters_value(b='bookmark', s='site')
             bookmark = param_dict['bookmark']
             site= param_dict['site']
@@ -420,50 +420,50 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.deleteHistory()
             if r < self.count():
                 self.setCurrentRow(r)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_H):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_H):
             ui.setPreOpt('fromtitlelist')
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_R):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_R):
             ui.shuffleList()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_T):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_T):
             ui.sortList()
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             ui.list1_double_clicked()
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             if ui.list2.count() > 0:
                 ui.list2.setCurrentRow(0)
                 ui.list2.setFocus()
-        elif event.key() == QtCore.Qt.Key_F2:
+        elif event.key() == QtCore.Qt.Key.Key_F2:
             if ui.original_path_name:
                 if self.currentItem():
                     self.edit_name_list1(self.currentRow())
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             if ui.tab_5.isHidden() and ui.mpvplayer_val.processId() == 0:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
             else:
                 ui.tab_5.setFocus()
-        elif event.key() == QtCore.Qt.Key_Period:
+        elif event.key() == QtCore.Qt.Key.Key_Period:
             site = ui.get_parameters_value(s='site')['site']
             if site == "Music":
                 ui.mpvNextEpnList()
             else:
                 ui.nextp(ui.list3.currentRow())
-        elif event.key() == QtCore.Qt.Key_Comma:
+        elif event.key() == QtCore.Qt.Key.Key_Comma:
             site = ui.get_parameters_value(s='site')['site']
             if site == "Music":
                 ui.mpvPrevEpnList()
             else:
                 ui.backp(ui.list3.currentRow())
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 self.setCurrentRow(0)
             else:
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 self.setCurrentRow(self.count()-1)
@@ -921,7 +921,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             thumbnail = menu.addAction("Show Thumbnail Grid View (Ctrl+Z)")
             thumbnail_light = menu.addAction("Show Thumbnail Light View(F1)")
             cache = menu.addAction("Clear Cache")
-            action = menu.exec_(self.mapToGlobal(event.pos()))
+            action = menu.exec(self.mapToGlobal(event.pos()))
 
             for i in range(len(item_m)):
                 if action == item_m[i]:
@@ -1133,7 +1133,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             refresh_poster = menu_clear.addAction("Refresh posters")
             rename = menu.addAction("Rename (F2)")
             fanart = menu.addAction("Fetch Fanart")
-            action = menu.exec_(self.mapToGlobal(event.pos()))
+            action = menu.exec(self.mapToGlobal(event.pos()))
             
             if action in item_m:
                 item_index = item_m.index(action)

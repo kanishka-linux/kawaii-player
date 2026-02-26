@@ -32,7 +32,7 @@ import platform
 from collections import OrderedDict
 from functools import partial
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 from player_functions import write_files, open_files, send_notification
 from thread_modules import DiscoverServer
 
@@ -47,12 +47,12 @@ class PlaylistWidget(QtWidgets.QListWidget):
     def __init__(self, parent, uiwidget=None, home_var=None, tmp=None, logr=None):
         super(PlaylistWidget, self).__init__(parent)
         global MainWindow, home, TMPDIR, logger, ui
-        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.setDefaultDropAction(QtCore.Qt.DropAction.MoveAction)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
-        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
         self.downloadWget = []
         self.downloadWget_cnt = 0
         MainWindow = parent
@@ -668,61 +668,61 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 self.setCurrentRow(row_n)
                 
     def keyPressEvent(self, event):
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Left):
+        if (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Left):
             self.ui.tab_5.setFocus()
-        elif (event.key() == QtCore.Qt.Key_F2):
+        elif (event.key() == QtCore.Qt.Key.Key_F2):
             if self.ui.epn_arr_list:
                 print('F2 Pressed')
                 if self.currentItem():
                     self.edit_name_list2(self.currentRow())
-        elif (event.key() == QtCore.Qt.Key_F3):
+        elif (event.key() == QtCore.Qt.Key.Key_F3):
             if self.ui.epn_arr_list:
                 print('F3 Pressed')
                 if self.currentItem():
                     self.edit_name_in_group(self.currentRow())
-        elif (event.key() == QtCore.Qt.Key_F4):
+        elif (event.key() == QtCore.Qt.Key.Key_F4):
             if self.ui.epn_arr_list:
                 print('Default Name')
                 for item in self.selectedItems():
                     r = self.row(item)
                     self.get_default_name(r, mode='default')
-        elif (event.key() == QtCore.Qt.Key_F5):
+        elif (event.key() == QtCore.Qt.Key.Key_F5):
             if self.ui.epn_arr_list:
                 print('Batch Renaming in database')
                 if self.currentItem():
                     self.get_default_name(self.currentRow(), mode='default_all')
-        elif (event.key() == QtCore.Qt.Key_F6):
+        elif (event.key() == QtCore.Qt.Key.Key_F6):
             if self.ui.list1.currentItem():
                 row = self.ui.list1.currentRow()
             else:
                 row = 0
             if self.currentItem():
                 self.set_search_backend(row)
-        elif (event.key() == QtCore.Qt.Key_F7):
+        elif (event.key() == QtCore.Qt.Key.Key_F7):
             if self.ui.list1.currentItem():
                 row = self.ui.list1.currentRow()
             else:
                 row = 0
             if self.currentItem():
                 self.set_search_backend(row, use_search='ddg')
-        elif (event.key() == QtCore.Qt.Key_F8):
+        elif (event.key() == QtCore.Qt.Key.Key_F8):
             if self.ui.list1.currentItem():
                 row = self.ui.list1.currentRow()
             else:
                 row = 0
             if self.currentItem():
                 self.set_search_backend(row, use_search='g')
-        elif event.key() == QtCore.Qt.Key_F9:
+        elif event.key() == QtCore.Qt.Key.Key_F9:
             self.get_default_name(0, mode='from_summary')
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Up):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Up):
             self.setCurrentRow(0)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Down):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Down):
             self.setCurrentRow(self.count()-1)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_D):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_D):
             item, ok = QtWidgets.QInputDialog.getText(
                 MainWindow, 'Input Dialog', 'Enter Upload Speed in KB\n0 means unlimited', 
                 QtWidgets.QLineEdit.Normal, str(self.ui.setuploadspeed))
@@ -731,9 +731,9 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.ui.setuploadspeed = int(item)
                 else:
                     send_notification('wrong values')
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             self.ui.epnClicked(dock_check=True)
-        elif event.key() == QtCore.Qt.Key_Backspace:
+        elif event.key() == QtCore.Qt.Key.Key_Backspace:
             if self.ui.list1.isHidden() and self.ui.list1.count() > 0:
                 self.hide()
                 self.ui.goto_epn.hide()
@@ -743,7 +743,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 show_hide_titlelist = 1
                 self.ui.set_parameters_value(show_hide_pl=show_hide_playlist,
                                         show_hide_tl=show_hide_titlelist)
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 self.downcount += 1
@@ -753,7 +753,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 self.downcount = 0
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if prev_r == -1:
                 self.upcount += 1
@@ -763,15 +763,15 @@ class PlaylistWidget(QtWidgets.QListWidget):
             else:
                 self.upcount = 0
                 self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_W:
+        elif event.key() == QtCore.Qt.Key.Key_W:
             self.ui.watchToggle()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier and 
-                event.key() == QtCore.Qt.Key_Q):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier and 
+                event.key() == QtCore.Qt.Key.Key_Q):
             if self.ui.player_val == "libmpv":
                 self.ui.gui_signals.queue_item("keyboard_shortcut")
             else:
                 self.queue_item()
-        elif event.key() == QtCore.Qt.Key_Delete:
+        elif event.key() == QtCore.Qt.Key.Key_Delete:
             param_dict = self.ui.get_parameters_value(s='site', b='bookmark', o='opt')
             site = param_dict['site']
             bookmark = param_dict['bookmark']
@@ -851,15 +851,15 @@ class PlaylistWidget(QtWidgets.QListWidget):
                             self.ui.use_playlist_method()
             if row_val < self.count():
                 self.setCurrentRow(row_val)
-        elif event.key() == QtCore.Qt.Key_PageUp:
+        elif event.key() == QtCore.Qt.Key.Key_PageUp:
             row = self.currentRow()
             nrow = row - 1
             self.move_playlist_items(row, nrow, action='pgup')
-        elif event.key() == QtCore.Qt.Key_PageDown:
+        elif event.key() == QtCore.Qt.Key.Key_PageDown:
             row = self.currentRow()
             nrow = row + 1
             self.move_playlist_items(row, nrow, action='pgdown')
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             if self.ui.float_window.isHidden():
                 if not self.ui.list1.isHidden():
                     self.ui.list1.setFocus()
@@ -873,7 +873,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.setCurrentRow(0)
                 else:
                     self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             if self.ui.float_window.isHidden():
                 pass
             else:
@@ -884,55 +884,55 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.setCurrentRow(nextr)
             if self.ui.auto_hide_dock:
                 self.ui.dockWidget_3.hide()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier and 
-                event.key() == QtCore.Qt.Key_O):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier and 
+                event.key() == QtCore.Qt.Key.Key_O):
             self.init_offline_mode()
-        elif event.key() == QtCore.Qt.Key_2: 
+        elif event.key() == QtCore.Qt.Key.Key_2: 
             mirrorNo = 2
             msg = "Mirror No. 2 Selected"
             self.ui.set_parameters_value(mir=mirrorNo)
             send_notification(msg)
-        elif event.key() == QtCore.Qt.Key_4: 
+        elif event.key() == QtCore.Qt.Key.Key_4: 
             mirrorNo = 4
             msg = "Mirror No. 4 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_5: 
+        elif event.key() == QtCore.Qt.Key.Key_5: 
             mirrorNo = 5
             msg = "Mirror No. 5 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_3: 
+        elif event.key() == QtCore.Qt.Key.Key_3: 
             mirrorNo = 3
             msg = "Mirror No. 3 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_1: 
+        elif event.key() == QtCore.Qt.Key.Key_1: 
             mirrorNo = 1
             msg = "Mirror No. 1 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_6: 
+        elif event.key() == QtCore.Qt.Key.Key_6: 
             mirrorNo = 6
             msg = "Mirror No. 6 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_7: 
+        elif event.key() == QtCore.Qt.Key.Key_7: 
             mirrorNo = 7
             msg = "Mirror No. 7 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_8: 
+        elif event.key() == QtCore.Qt.Key.Key_8: 
             mirrorNo = 8
             msg = "Mirror No. 8 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_9: 
+        elif event.key() == QtCore.Qt.Key.Key_9: 
             mirrorNo = 9
             msg = "Mirror No. 9 Selected"
             send_notification(msg)
             self.ui.set_parameters_value(mir=mirrorNo)
-        elif event.key() == QtCore.Qt.Key_F and self.ui.mpvplayer_val.processId() > 0:
+        elif event.key() == QtCore.Qt.Key.Key_F and self.ui.mpvplayer_val.processId() > 0:
             if not MainWindow.isHidden():
                 param_dict = self.ui.get_parameters_value(t='total_till')
                 total_till = param_dict['total_till']
@@ -958,7 +958,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                     self.ui.tab_5.show()
                     self.ui.tab_5.setFocus()
                     if (self.ui.player_val == "mplayer" or self.ui.player_val == "mpv"):
-                        MainWindow.setCursor(QtGself.ui.QCursor(QtCore.Qt.BlankCursor))
+                        MainWindow.setCursor(QtGself.ui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                     MainWindow.showFullScreen()
                 else:
                     self.ui.gridLayout.setSpacing(5)
@@ -972,7 +972,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
 
                     self.ui.frame1.show()
                     if self.ui.player_val == "mplayer" or self.ui.player_val == "mpv":
-                        MainWindow.setCursor(QtGself.ui.QCursor(QtCore.Qt.ArrowCursor))
+                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
                     MainWindow.showNormal()
                     MainWindow.showMaximized()
                     if total_till != 0:
@@ -990,7 +990,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             if self.ui.search_on_type_btn.isHidden():
                 g = self.geometry()
                 txt = event.text()
-                self.ui.search_on_type_btn.setGeometry(g.x(), g.y(), self.width(), 32)
+                self.ui.search_on_type_btn.setGeometry(g.position().x(), g.y(), self.width(), 32)
                 self.ui.search_on_type_btn.show()
                 self.ui.search_on_type_btn.clear()
                 self.ui.search_on_type_btn.setText(txt)
@@ -1677,7 +1677,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             remove_all = thumb_menu.addAction("Remove All")
             remove_selected = thumb_menu.addAction("Remove Selected")
             
-            action = menu.exec_(self.mapToGlobal(event.pos()))
+            action = menu.exec(self.mapToGlobal(event.pos()))
             for i in range(len(item_m)):
                 if action == item_m[i]:
                     self.triggerPlaylist(pls[i])
@@ -1915,7 +1915,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
                 eplist_g = submenu.addAction("Thumbnails and Summary (g) (F8)")
                 eplist_info = True
             
-            eplistM = QtWidgets.QAction("Go To TVDB", self)
+            eplistM = QtGui.QAction("Go To TVDB", self)
             if site.lower() != 'playlists' and site.lower() != 'none':
                 submenu.addAction(eplistM)
                 menu.addMenu(submenu)
@@ -1942,7 +1942,7 @@ class PlaylistWidget(QtWidgets.QListWidget):
             edit_summary_help = summary_menu.addAction("Help Editing Summary")
             
             upspeed = menu.addAction("Set Upload Speed (Ctrl+D)")
-            action = menu.exec_(self.mapToGlobal(event.pos()))
+            action = menu.exec(self.mapToGlobal(event.pos()))
             
             if self.currentItem():
                 for i in range(len(item_m)):

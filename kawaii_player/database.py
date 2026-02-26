@@ -30,8 +30,8 @@ import re
 from typing import Optional, List, Tuple, Dict, Any
 import traceback
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import open_files, send_notification
 
 try:

@@ -41,8 +41,8 @@ from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import send_notification, write_files, open_files
 from player_functions import get_lan_ip, ccurl, naturallysorted, change_opt_file
 from settings_widget import LoginAuth

@@ -1,8 +1,9 @@
 import sys
 import re
-from PyQt5 import QtWidgets
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtCore import QUrl, pyqtSlot, pyqtSignal, QTimer
+from PyQt6 import QtWidgets
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEnginePage
+from PyQt6.QtCore import QUrl, pyqtSlot, pyqtSignal, QTimer
 
 
 class TheTVDBPage(QWebEnginePage):

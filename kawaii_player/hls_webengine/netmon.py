@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with hlspy.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt5 import QtWebEngineCore
-from PyQt5.QtCore import pyqtSignal
+from PyQt6 import QtWebEngineCore
+from PyQt6.QtCore import pyqtSignal
 
 class NetManager(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
     netS = pyqtSignal(str)
