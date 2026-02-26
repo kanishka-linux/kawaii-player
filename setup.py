@@ -35,7 +35,7 @@ system = platform.system().lower()
 install_requires = []
 if system in ["darwin", "nt"]:
     install_requires = [
-        "PyQt5",
+        "PyQt6",
         "pycurl",
         "bs4",
         "Pillow",
@@ -43,7 +43,7 @@ if system in ["darwin", "nt"]:
         "lxml",
         "yt-dlp",
         "certifi",
-        "PyQtWebEngine",
+        "PyQt6-WebEngine",
         "PyOpenGL",
         "python-vlc"
     ]
