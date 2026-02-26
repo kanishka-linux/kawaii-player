@@ -36,7 +36,7 @@ try:
     import pycurl
 except Exception as err:
     print(err)
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 from get_functions import wget_string, get_ca_certificate
 
 OSNAME = os.name
@@ -106,7 +106,7 @@ def qmsg_message(txt):
     frame_timer.timeout.connect(lambda x=0: frame_options(msg))
     frame_timer.setSingleShot(True)
     frame_timer.start(5000)
-    msg.exec_()
+    msg.exec()
     
 def frame_options(box):
     box.hide()

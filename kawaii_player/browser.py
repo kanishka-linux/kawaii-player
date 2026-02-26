@@ -21,13 +21,14 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtWidgets, QtWebEngineWidgets
+from PyQt6 import QtWebEngineCore        
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import write_files, ccurl, send_notification, wget_string
 from hls_webengine.netmon import NetManager
 
 
-class MyPage(QtWebEngineWidgets.QWebEnginePage):
+class MyPage(QtWebEngineCore.QWebEnginePage):
     
     def __init__(self):
         super(MyPage, self).__init__()
@@ -67,7 +68,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             self.hdr = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:61.0) Gecko/20100101 Firefox/61.0'
         self.page().profile().setHttpUserAgent(self.hdr)
         p = NetManager(parent=self.pg, default_block=True)
-        self.page().profile().setRequestInterceptor(p)
+        self.page().profile().setUrlRequestInterceptor(p)
         cache_path = os.path.join(self.ui.tmp_download_folder, 'CacheBrowser')
         if not os.path.exists(cache_path):
             os.makedirs(cache_path)
@@ -413,7 +414,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             for nmenu in arr:
                 action.append(menu.addAction(nmenu))
 
-            act = menu.exec_(event.globalPos())
+            act = menu.exec(event.globalPos())
 
             for i, acts in enumerate(action):
                 if act == acts:

@@ -28,7 +28,7 @@ import subprocess
 import platform
 from functools import partial
 from urllib.parse import urlparse
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 from widgets.optionwidgets import QPushButtonExtra
 from player_functions import ccurl, send_notification, get_lan_ip
 from player_functions import open_files, write_files, change_opt_file
@@ -450,7 +450,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
             self.setCurrentIndex(ui.settings_tab_index)
             if not self.tabs_present:
                 try:
-                    self.font_families = [i for i in QtGui.QFontDatabase().families()]
+                    self.font_families = [i for i in QtGui.QFontDatabase.families()]
                 except Exception as err:
                     logger.error(err)
                 ui.apply_new_font()
@@ -752,7 +752,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line102 = QtWidgets.QLineEdit()
         self.completer = QtWidgets.QCompleter(self.font_families)
-        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
         self.line102.setCompleter(self.completer)
         self.line102.setPlaceholderText(ui.global_font)
         self.text102 = QtWidgets.QLabel()

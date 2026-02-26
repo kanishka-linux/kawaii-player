@@ -23,7 +23,7 @@ import re
 import subprocess
 import time
 import platform
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 from player_functions import write_files
 from widgets.playlist import PlaylistWidget
 
@@ -153,14 +153,14 @@ class ThumbnailWidget(QtWidgets.QLabel):
         ui.slider.setValue(t)
         
     def keyReleaseEvent(self, event):
-        if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
+        if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier or event.key() == QtCore.Qt.Key.Key_Control:
             ui.tab_5.event_dict['ctrl'] = False
             ui.tab_5.event_dict['alt'] = False
             ui.tab_5.event_dict['shift'] = False
-        elif event.modifiers() == QtCore.Qt.AltModifier or event.key() == QtCore.Qt.Key_Alt:
+        elif event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier or event.key() == QtCore.Qt.Key.Key_Alt:
             ui.tab_5.event_dict['alt'] = False
             ui.tab_5.event_dict['shift'] = False
-        elif event.modifiers() == QtCore.Qt.ShiftModifier or event.key() == QtCore.Qt.Key_Shift:
+        elif event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier or event.key() == QtCore.Qt.Key.Key_Shift:
             ui.tab_5.event_dict['shift'] = False
     
     def keyPressEvent(self, event):
@@ -183,11 +183,11 @@ class ThumbnailWidget(QtWidgets.QLabel):
             if ui.tab_6_size_indicator:
                 ui.tab_6_size_indicator.pop()
             ui.tab_6_size_indicator.append(ui.tab_6.width())
-            if event.key() == QtCore.Qt.Key_Equal:
+            if event.key() == QtCore.Qt.Key.Key_Equal:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Minus:
+            elif event.key() == QtCore.Qt.Key.Key_Minus:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Right:
+            elif event.key() == QtCore.Qt.Key.Key_Right:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -206,15 +206,15 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.frameShowHide()
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_1:
+            elif event.key() == QtCore.Qt.Key.Key_1:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_2:
+            elif event.key() == QtCore.Qt.Key.Key_2:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_3:
+            elif event.key() == QtCore.Qt.Key.Key_3:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.modifiers() == QtCore.Qt.ShiftModifier and event.key() == QtCore.Qt.Key_V:
+            elif event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier and event.key() == QtCore.Qt.Key.Key_V:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Left:
+            elif event.key() == QtCore.Qt.Key.Key_Left:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -232,34 +232,34 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.frameShowHide()
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_BracketRight:
+            elif event.key() == QtCore.Qt.Key.Key_BracketRight:
                 if ui.player_val == "mplayer":
                         ui.mpvplayer_val.write(b'\n seek +90 \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_BracketLeft:
+            elif event.key() == QtCore.Qt.Key.Key_BracketLeft:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n seek -5 \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_0:
+            elif event.key() == QtCore.Qt.Key.Key_0:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_9:
+            elif event.key() == QtCore.Qt.Key.Key_9:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_A:
+            elif event.key() == QtCore.Qt.Key.Key_A:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_N:
+            elif event.key() == QtCore.Qt.Key.Key_N:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_L:
+            elif event.key() == QtCore.Qt.Key.Key_L:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_End:
+            elif event.key() == QtCore.Qt.Key.Key_End:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n seek 99 1 \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_P:
+            elif event.key() == QtCore.Qt.Key.Key_P:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Space:
+            elif event.key() == QtCore.Qt.Key.Key_Space:
                 buffering_mplayer = "no"
                 ui.set_parameters_value(bufm=buffering_mplayer)
                 if ui.frame_timer.isActive:
@@ -297,7 +297,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                             cache_empty = 'no'
                             ui.set_parameters_value(
                                 cache_val=cache_empty, mpv_i=mpv_indicator)
-            elif event.key() == QtCore.Qt.Key_Up:
+            elif event.key() == QtCore.Qt.Key.Key_Up:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -315,7 +315,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.frameShowHide()
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Down:
+            elif event.key() == QtCore.Qt.Key.Key_Down:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -333,7 +333,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.frameShowHide()
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_PageUp:
+            elif event.key() == QtCore.Qt.Key.Key_PageUp:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -351,7 +351,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.frameShowHide()
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_PageDown:
+            elif event.key() == QtCore.Qt.Key.Key_PageDown:
                 if ui.player_val == "mplayer":
                     txt = '\n osd 1 \n'
                     ui.mpvplayer_val.write(bytes(txt, 'utf-8'))
@@ -369,19 +369,19 @@ class ThumbnailWidget(QtWidgets.QLabel):
                         self.frameShowHide()
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_O:
+            elif event.key() == QtCore.Qt.Key.Key_O:
                 if ui.player_val == 'mplayer':
                     ui.mpvplayer_val.write(b'\n osd \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_M:
+            elif event.key() == QtCore.Qt.Key.Key_M:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n osd_show_property_text ${filename} \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_I:
+            elif event.key() == QtCore.Qt.Key.Key_I:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_E:
+            elif event.key() == QtCore.Qt.Key.Key_E:
                 if ui.mpvplayer_val.processId() > 0:
                     w=self.width()
                     w = w + (0.05*w)
@@ -389,7 +389,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     h = h + (0.05*h)
                     self.setMaximumSize(w, h)
                     self.setMinimumSize(w, h)
-            elif event.key() == QtCore.Qt.Key_W:
+            elif event.key() == QtCore.Qt.Key.Key_W:
                 if ui.mpvplayer_val.processId() > 0:
                     w=self.width()
                     w = w - (0.05*w)
@@ -397,20 +397,20 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     h = h - (0.05*h)
                     self.setMaximumSize(w, h)
                     self.setMinimumSize(w, h)
-            elif event.key() == QtCore.Qt.Key_R:
+            elif event.key() == QtCore.Qt.Key.Key_R:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n sub_pos -1 \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_T:
+            elif event.key() == QtCore.Qt.Key.Key_T:
                 if ui.player_val == "mplayer":
                     ui.mpvplayer_val.write(b'\n sub_pos +1 \n')
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_J):
+            elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier 
+                and event.key() == QtCore.Qt.Key.Key_J):
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_J:
+            elif event.key() == QtCore.Qt.Key.Key_J:
                 if ui.player_val == "mplayer":
                     if not self.mplayer_OsdTimer.isActive():
                         ui.mpvplayer_val.write(b'\n osd 1 \n')
@@ -421,7 +421,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     self.mplayer_OsdTimer.start(5000)
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_K:
+            elif event.key() == QtCore.Qt.Key.Key_K:
                 if ui.player_val == "mplayer":
                     if not self.mplayer_OsdTimer.isActive():
                         ui.mpvplayer_val.write(b'\n osd 1 \n')
@@ -432,19 +432,19 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     self.mplayer_OsdTimer.start(5000)
                 else:
                     ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Period:
+            elif event.key() == QtCore.Qt.Key.Key_Period:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Comma:
+            elif event.key() == QtCore.Qt.Key.Key_Comma:
                 ui.tab_5.keyPressEvent(event=event)
-            elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_Q):
+            elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_Q):
                 ui.tab_5.keyPressEvent(event=event)
-            elif (event.modifiers() == QtCore.Qt.ShiftModifier
-                    and event.key() == QtCore.Qt.Key_Q):
+            elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier
+                    and event.key() == QtCore.Qt.Key.Key_Q):
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_Q:
+            elif event.key() == QtCore.Qt.Key.Key_Q:
                 ui.tab_5.keyPressEvent(event=event)
-            elif event.key() == QtCore.Qt.Key_F:
+            elif event.key() == QtCore.Qt.Key.Key_F:
                 mode = None
                 if ui.video_mode_index == 1:
                     self.player_thumbnail_fs()
@@ -576,7 +576,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     height=str(int(h))
                     r = ui.current_thumbnail_position[0]
                     c = ui.current_thumbnail_position[1]
-                    ui.gridLayout2.addWidget(widget, r, c, 1, 1, QtCore.Qt.AlignCenter)
+                    ui.gridLayout2.addWidget(widget, r, c, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                     QtWidgets.QApplication.processEvents()
                     if not ui.force_fs:
                         MainWindow.showNormal()
@@ -646,7 +646,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if str(ui.idw) == str(int(self.winId())):
                     if self.arrow_timer.isActive():
                         self.arrow_timer.stop()
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                    self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
                     if ui.mpvplayer_val.processId() > 0:
                         self.arrow_timer.start(2000)
             except Exception as e:
@@ -669,7 +669,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     ui.frame1.hide()
                     ui.gridLayout.setSpacing(5)
         if ui.mpvplayer_val.processId() == 0:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
             
     def change_video_mode(self, var_mode, c_row, restart=None):
         """
@@ -806,7 +806,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             newTitle = newTitle.replace('_', ' ')
             q3="ui.label_epn_"+str(title_num)+".setText((newTitle))"
             exec (q3)
-            q3="ui.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignCenter)"
+            q3="ui.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
             exec(q3)
             t= ui.epn_name_in_list[:20]
             ui.labelFrame2.setText(newTitle)
@@ -829,7 +829,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.tab_6_player = True
             num = ui.cur_row
             self.setFocus()
-            ui.gridLayout2.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
+            ui.gridLayout2.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop|QtCore.Qt.AlignmentFlag.AlignCenter)
             if var_mode == 4:
                 w = float(ui.thumbnail_video_width)
                 #h = float((9*w)/16)
@@ -924,7 +924,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
             ui.thumbnail_label_update(clicked_num=num)
             ui.tab_6_player = True
             self.setFocus()
-            ui.gridLayout2.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
+            ui.gridLayout2.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop|QtCore.Qt.AlignmentFlag.AlignCenter)
             w = float(ui.thumbnail_video_width)
             h = int(w/ui.image_aspect_allowed)
             width=str(int(w))
@@ -1121,7 +1121,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                     label_number.setText(txt)
                 except Exception as e:
                     print(e)
-            label_number.setAlignment(QtCore.Qt.AlignCenter)
+            label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         except Exception as e:
             logger.error(e)
         try:
@@ -1651,11 +1651,11 @@ class TitleListWidgetPoster(PlaylistWidget):
                  tmp=None, logr=None, sw=None, sh=None):
         super(TitleListWidgetPoster, self).__init__(parent, uiwidget, home_var, tmp, logr)
         global MainWindow, home, TMPDIR, logger, ui, screen_width, screen_height
-        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.setDefaultDropAction(QtCore.Qt.DropAction.MoveAction)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
         MainWindow = parent
         ui = uiwidget
         TMPDIR = tmp
@@ -1667,23 +1667,23 @@ class TitleListWidgetPoster(PlaylistWidget):
         self.setMouseTracking(True)
         #ui.verticalLayout_40.addWidget(self)
         ui.horizontalLayout10.addWidget(self)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.itemDoubleClicked['QListWidgetItem*'].connect(self.poster_list_clicked)
         self.currentRowChanged['int'].connect(self.set_title)
         self.hide()
         self.title_clicked = False
         self.setMaximumWidth(screen_width)
-        self.setFlow(QtWidgets.QListWidget.LeftToRight)
+        self.setFlow(QtWidgets.QListView.Flow.LeftToRight)
         self.setWrapping(True)
         #self.setWordWrap(True)
-        self.setTextElideMode(QtCore.Qt.ElideRight)
-        self.setViewMode(QtWidgets.QListView.IconMode)
+        self.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
+        self.setViewMode(QtWidgets.QListView.ViewMode.IconMode)
         self.setBatchSize(10)
         #self.num = int(screen_width/128)
         self.nav_arr = [
-            QtCore.Qt.Key_Left, QtCore.Qt.Key_Right,
-            QtCore.Qt.Key_Up, QtCore.Qt.Key_Down
+            QtCore.Qt.Key.Key_Left, QtCore.Qt.Key.Key_Right,
+            QtCore.Qt.Key.Key_Up, QtCore.Qt.Key.Key_Down
             ]
         self.status_dict_poster = {}
         self.num = 9
@@ -1695,10 +1695,10 @@ class TitleListWidgetPoster(PlaylistWidget):
             ui.labelFrame2.setText('{0}. {1}'.format(num, txt))
     
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Return:
+        if event.key() == QtCore.Qt.Key.Key_Return:
             self.poster_list_clicked()
             self.title_clicked = True
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 self.setCurrentRow(0)
@@ -1710,7 +1710,7 @@ class TitleListWidgetPoster(PlaylistWidget):
                 if nextr == self.count():
                     nextr = 0
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 ui.dockWidget_3.show()
@@ -1725,17 +1725,17 @@ class TitleListWidgetPoster(PlaylistWidget):
                     ui.btn1.setFocus()
                 else:
                     self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Backspace:
+        elif event.key() == QtCore.Qt.Key.Key_Backspace:
             if self.title_clicked:
                 self.show_list(mode="prev")
-        elif event.key() == QtCore.Qt.Key_Minus:
+        elif event.key() == QtCore.Qt.Key.Key_Minus:
             self.num += 1
             self.resizeEvent(None)
-        elif event.key() == QtCore.Qt.Key_Equal:
+        elif event.key() == QtCore.Qt.Key.Key_Equal:
             if self.num > 1:
                 self.num -= 1
                 self.resizeEvent(None)
-        elif event.key() == QtCore.Qt.Key_W:
+        elif event.key() == QtCore.Qt.Key.Key_W:
             if (self.title_clicked and self.currentRow() is not None
                     and isinstance(self.currentRow(), int) and self.currentRow() >= 0):
                 row_epn = self.currentRow()
@@ -1744,7 +1744,7 @@ class TitleListWidgetPoster(PlaylistWidget):
                     ui.watchToggle()
                     txt = ui.list2.item(row_epn).text()
                     self.item(row_epn).setText(txt)
-        elif event.key() in [QtCore.Qt.Key_Down, QtCore.Qt.Key_Up]:
+        elif event.key() in [QtCore.Qt.Key.Key_Down, QtCore.Qt.Key.Key_Up]:
             super(PlaylistWidget, self).keyPressEvent(event)
         elif event.text().isalnum():
             if self.title_clicked:
@@ -1903,7 +1903,7 @@ class TabThumbnail(QtWidgets.QWidget):
         
     def keyPressEvent(self, event):
         ui.tab_6_size_indicator.append(ui.tab_6.width())
-        if event.key() == QtCore.Qt.Key_F:
+        if event.key() == QtCore.Qt.Key.Key_F:
             if self.width() > 500:
                 ui.tab_6_size_indicator.append(self.width())
             if not MainWindow.isFullScreen():

@@ -19,7 +19,7 @@ import urllib.parse
 import re
 import random
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtWidgets
 from player_functions import ccurl, send_notification
 
 
