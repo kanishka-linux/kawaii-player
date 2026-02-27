@@ -163,7 +163,8 @@ class ResponseUrllib(Response):
         self.readable_format = [
             'text/plain', 'text/html', 'text/css', 'text/javascript',
             'application/xhtml+xml', 'application/xml', 'application/json',
-            'application/javascript', 'application/ecmascript'
+            'application/javascript', 'application/ecmascript',
+            'audio/x-mpegurl', 'audio/mpegurl'
             ]
         human_readable = False
         for i in self.readable_format:
