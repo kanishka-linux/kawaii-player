@@ -4,6 +4,7 @@ from PyQt6 import QtWidgets
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtCore import QUrl, pyqtSlot, pyqtSignal, QTimer
+from browser import Browser
 
 
 class TheTVDBPage(QWebEnginePage):
@@ -37,7 +38,7 @@ class TVDBFanart(QtWidgets.QWidget):
         self.browser = None
         self.page = None
         self.callback = None
-        self.app = None
+        self.app = ui.app
 
     def _sanitize_title(self, title):
         # Step 1: Remove bracketed content
@@ -63,12 +64,9 @@ class TVDBFanart(QtWidgets.QWidget):
         self.step = 0
         self.is_processing = True
         
-        self.app = QtWidgets.QApplication.instance()
-        if self.app is None:
-            self.app = QtWidgets.QApplication(sys.argv)
-        
         if self.browser is None:
-            self.browser = QWebEngineView()
+
+            self.browser = Browser(self.ui, self.ui.home_folder, self.ui.screen_size[0], self.ui.quality_val, "video", self.ui.epn_arr_list)
             self.page = TheTVDBPage(self)
             self.browser.setPage(self.page)
             
