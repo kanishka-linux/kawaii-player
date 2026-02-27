@@ -111,7 +111,7 @@ class SidebarWidget(QtWidgets.QListWidget):
                 ui.dockWidget_3.hide()
         elif event.key() == QtCore.Qt.Key.Key_H:
             ui.setPreOpt()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
                 and event.key() == QtCore.Qt.Key.Key_D):
             site = ui.get_parameters_value(s='site')['site']
             if site.lower() == 'myserver':
@@ -462,11 +462,11 @@ class MySlider(QtWidgets.QSlider):
         self.setSliderPosition(val)
     
     def keyPressEvent(self, event):
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
+        if (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
                 and event.key() == QtCore.Qt.Key.Key_Right):
             pos = self.cursor().pos()
             self.cursor().setPos(pos.x()+5, pos.y())
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
                 and event.key() == QtCore.Qt.Key.Key_Left):
             pos = self.cursor().pos()
             self.cursor().setPos(pos.x()-5, pos.y())

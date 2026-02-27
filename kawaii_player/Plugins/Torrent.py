@@ -21,7 +21,7 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import shutil
 from PyQt5 import QtWidgets
-from player_functions import send_notification, ccurl
+from player_functions import send_notification
 
 try:
     import libtorrent as lt
@@ -57,7 +57,7 @@ class Torrent():
                     torrent_dest1 = os.path.join(tmp_dir, name1+'.torrent')
                     if not os.path.exists(torrent_dest1):
                         if item.startswith('http'):
-                            ccurl(item+'#'+'-o'+'#'+torrent_dest1)
+                            ui.vnt_sync.get(item, out=torrent_dest1)
                         else:
                             shutil.copy(item, torrent_dest1)
                     if os.path.exists(torrent_dest1):

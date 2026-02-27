@@ -1596,53 +1596,6 @@ class TitleThumbnailWidget(QtWidgets.QLabel):
             ui.dockWidget_3.hide()
         if ui.search_on_type_btn.isHidden():
             self.setFocus()
-    """
-    def contextMenuEvent(self, event):
-        global name, tmp_name, opt, list1_items, curR, nxtImg_cnt
-
-        t=str(self.objectName())
-        t = re.sub('label_', '', t)
-        num = int(t)
-        try:
-            name = tmp_name[num]
-        except:
-            name = tmp_name[num%len(tmp_name)]
-        logger.info(name)
-        menu = QtWidgets.QMenu(self)
-        rmPoster = menu.addAction("Remove Poster")
-        adPoster = menu.addAction("Find Image")
-        rset = menu.addAction("Reset Counter")
-        adImage = menu.addAction("Replace Image")
-        action = menu.exec_(self.mapToGlobal(event.pos()))
-        if action == rmPoster:
-            t=str(self.objectName())
-            p1 = "ui."+t+".clear()"
-            exec (p1)
-        elif action == adPoster:
-            if site == "SubbedAnime" and base_url == 15:
-                nam = re.sub('[0-9]*', '', name)
-            else:
-                nam = name
-            url = "https://www.google.co.in/search?q="+nam+"anime&tbm=isch"
-            logger.info(url)
-            content = ccurl(url)
-            n = re.findall('imgurl=[^"]*.jpg', content)
-            src= re.sub('imgurl=', '', n[nxtImg_cnt])
-            picn = os.path.join(TMPDIR, name+'.jpg')
-            if os.path.isfile(picn):
-                os.remove(picn)
-            subprocess.call(["curl", "-A", hdr, '--max-filesize', "-L", "-o", picn, src])
-            t=str(self.objectName())
-            img = QtGui.QPixmap(picn, "1")
-            q1="ui."+t+".setPixmap(img)"
-            t=str(self.objectName())
-            exec (q1)
-            nxtImg_cnt = nxtImg_cnt+1
-        elif action == rset:
-            nxtImg_cnt = 0
-        elif action == adImage:
-            ui.copyImg()
-    """
 
 
 class TitleListWidgetPoster(PlaylistWidget):

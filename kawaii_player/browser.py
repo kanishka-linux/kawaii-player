@@ -24,7 +24,7 @@ from bs4 import BeautifulSoup
 from PyQt6 import QtCore, QtWidgets, QtWebEngineWidgets
 from PyQt6 import QtWebEngineCore        
 from PyQt6.QtCore import pyqtSlot, pyqtSignal
-from player_functions import write_files, ccurl, send_notification, wget_string
+from player_functions import write_files, send_notification
 from hls_webengine.netmon import NetManager
 
 
@@ -247,28 +247,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
         url = q_url
         self.hoveredLink = url
 
-    def urlHeaders(self, url):
-        m = []
-        o = []
-        content = ccurl(url, curl_opt='-I')
-        n = content.split('\n')
-        k = 0
-        for i in n:
-            i = re.sub('\r', '', i)
-            if i and ':' in i:
-                p = i.split(': ', 1)
-                if p:
-                    t = (p[0], p[1])
-                else:
-                    t = (i, "None")
-                m.append(t)
-                k = k+1
-            else:
-                t = (i, '')
-                m.append(t)
-        d = dict(m)
-        return d
-
     @pyqtSlot(str, str, str)
     def got_curl_html(self, title, url, file_path):
         t = title + '	'+url+'	'+'NONE'
@@ -424,7 +402,8 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 for i, acts in enumerate(item_m):
                     if act == acts:
                         if not self.title_page:
-                            content = ccurl(url)
+                            content_get = self.ui.vnt_sync.get(url)
+                            content = content_get.html
                             soup = BeautifulSoup(content, 'lxml')
                             self.title_page = soup.title.text.strip().replace('/', '-')
                             self.epn_name_in_list = self.title_page
@@ -549,6 +528,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 self.ui.logger.info(self.get_playlist, '=get_playlist')
                 self.add_playlist(self.playlist_name)
         elif option.lower() == 'download':
+            #  TODO:Cleanup this
             if self.ui.quality_val == 'sd480p':
                 txt = "Video can't be saved in 480p, Saving in either HD or SD"
                 send_notification(txt)
@@ -565,9 +545,6 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 title = os.path.join(self.ui.default_download_location, title)
             else:
                 title = os.path.join(self.ui.tmp_download_folder, title)
-            command = wget_string(finalUrl, title, self.ui.get_fetch_library)
-            self.ui.logger.debug(command)
-            self.ui.infoWget(command, 0)
         elif option.lower() == 'queue item':
             file_path = os.path.join(self.home, 'Playlists', 'Queue')
             if not os.path.exists(file_path):
@@ -614,8 +591,9 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 url = self.media_url
             self.ui.logger.debug('{}--{}--media-url--'.format(url, self.media_url))
             if url:
-                t_content = ccurl(url, curl_opt='-I')
-                if 'image/jpeg' in t_content and not 'Location:' in t_content:
+                content_head = self.ui.vnt_sync.head(url)
+                t_content = f'HTTP/1.1 {content_head.status}\n' + '\n'.join(f'{k}: {v}' for k, v in content_head.info.raw_items())
+                if 'image/jpeg' in content and not 'Location:' in t_content:
                     pass
                 elif 'image/jpeg' in t_content and 'Location:' in t_content:
                     m = re.findall('Location: [^\n]*', t_content)
