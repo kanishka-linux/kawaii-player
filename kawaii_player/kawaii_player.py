@@ -83,28 +83,20 @@ from PyQt6.QtCore import QUrl
 from PyQt6.QtCore import pyqtSlot, pyqtSignal
 
 from mainwindow import MainWindowWidget, EventFilterFloatWindow
-from player_functions import write_files, ccurl, send_notification
-from player_functions import wget_string, open_files, get_config_options
+from player_functions import write_files, send_notification
+from player_functions import open_files, get_config_options
 from player_functions import get_tmp_dir, naturallysorted, set_logger
 from player_functions import get_home_dir, change_opt_file, create_ssl_cert
 from player_functions import set_user_password, get_lan_ip, random_string
 from yt import YTDL
 from ds import CustomList
-from meta_engine import MetaEngine
 from guisignals import GUISignals
 
 HOME_DIR = get_home_dir()
 HOME_OPT_FILE = os.path.join(HOME_DIR, 'other_options.txt')
 BROWSER_BACKEND = get_config_options(HOME_OPT_FILE, 'BROWSER_BACKEND')
 QT_WEB_ENGINE = True
-print(BROWSER_BACKEND)
-if (not BROWSER_BACKEND or (BROWSER_BACKEND != 'QTWEBKIT' 
-        and BROWSER_BACKEND != 'QTWEBENGINE')):
-    if os.path.exists(HOME_OPT_FILE) and not BROWSER_BACKEND:
-        write_files(HOME_OPT_FILE, 'BROWSER_BACKEND=QTWEBENGINE', line_by_line=True)
-    else:
-        change_opt_file(HOME_OPT_FILE, 'BROWSER_BACKEND=', 'BROWSER_BACKEND=QTWEBENGINE')
-    BROWSER_BACKEND = 'QTWEBENGINE'
+BROWSER_BACKEND = 'QTWEBENGINE'
 
 from PyQt6 import QtWebEngineWidgets, QtWebEngineCore
 
@@ -113,7 +105,6 @@ from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from browser import Browser
 from hls_webengine.hls_engine import BrowseUrlT
-QT_WEB_ENGINE = True
 
 TMPDIR = get_tmp_dir()
 
@@ -172,15 +163,14 @@ from widgets.titlelist import TitleListWidget
 from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
 from widgets.optionwidgets import *
 from widgets.scrollwidgets import *
-from thread_modules import FindPosterThread, ThreadingThumbnail, GetSubThread
-from thread_modules import ThreadingExample, DownloadThread, UpdateMusicThread
-from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
+from thread_modules import ThreadingThumbnail, GetSubThread
+from thread_modules import UpdateMusicThread
+from thread_modules import YTdlThread, PlayerWaitThread
 from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
 from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail, observe_prop, Observe
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 from vinanti import Vinanti
-from tvdb_async import TVDB
 from multiprocessing import Process
 from series_info_fetcher.anime import AnimeInfoFetcher
 from series_info_fetcher.tv_shows import TvShowInfoFetcher
@@ -1451,8 +1441,8 @@ class Ui_MainWindow(object):
         self.https_cert_file = os.path.join(home, 'cert.pem')
         self.progress_counter = 0
         self.posterfound_arr = []
-        self.client_auth_arr = ['127.0.0.1', '0.0.0.0']
-        self.local_auth_arr = ['127.0.0.1', '0.0.0.0']
+        self.client_auth_arr = []
+        self.local_auth_arr = []
         self.video_db_location = os.path.join(home, 'VideoDB')
         if not os.path.isdir(self.video_db_location):
             os.makedirs(self.video_db_location)
@@ -1649,7 +1639,6 @@ class Ui_MainWindow(object):
         self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
         self.basedir = BASEDIR
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
-        self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = "libmpv"
         self.chk.setText(self.player_val)
         self.addons_option_arr = []
@@ -1750,7 +1739,7 @@ class Ui_MainWindow(object):
         else:
             verify = False
         self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent}, verify=verify)
-        self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
+        self.vnt_sync = Vinanti(block=True, hdrs={'User-Agent':self.user_agent}, verify=verify)
         self.yt = YTDL(self)
         self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.tvshow_info_fetcher = TvShowInfoFetcher(self)
@@ -2426,7 +2415,7 @@ class Ui_MainWindow(object):
             if j:
                 url = j.split('\t')[1] + '.image'
                 picn = os.path.join(TMPDIR, '{}.jpg'.format(i))
-                ccurl(url, curl_opt='-o', out_file=picn)
+                self.vnt_sync.get(url, out=picn)
                 self.list2.item(i).setIcon(QtGui.QIcon(picn))
                 
     def quick_url_play_method(self):
@@ -5410,16 +5399,6 @@ class Ui_MainWindow(object):
                 external_url = True
         return external_url
     
-    def get_redirected_url_if_any(self, finalUrl, external_url):
-        if not external_url:
-            if finalUrl.startswith('"http') or finalUrl.startswith('http'):
-                finalUrl = finalUrl.replace('"', '')
-                content = ccurl(finalUrl+'#'+'-H')
-                if "Location:" in content:
-                    m = re.findall('Location: [^\n]*', content)
-                    finalUrl = re.sub('Location: |\r', '', m[-1])
-        return finalUrl
-    
     @GUISignals.check_master_mode_playlist('epnclicked')
     def epnClicked(self, dock_check=None):
         global MainWindow
@@ -6261,11 +6240,6 @@ class Ui_MainWindow(object):
             if arr and fan:
                 logger.debug(arr[0])
                 self.vnt.get(arr[0], out=fanart, onfinished=partial(self.copyFanart, nm))
-        elif val == 'episode-info' and eps and vd and epr:
-            self.metaengine.map_episodes(
-                tvdb_dict=obj.episode_summary.copy(), epn_arr=epr.copy(), name=nm,
-                site=st, video_dir=vd
-                )
             
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
@@ -6287,19 +6261,7 @@ class Ui_MainWindow(object):
             elif 'tmdb' in url:
                 backend = 'alter'
         if backend == 'alter':
-            self.posterfound_arr.append(FindPosterThread(
-            self, logger, TMPDIR, name, url, direct_url, copy_fanart,
-            copy_poster, copy_summary, use_search, video_dir))
-            if get_all:
-                self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                    lambda x=0: self.posterfound_thread_all_finished(name, url,
-                        direct_url, copy_fanart, copy_poster, copy_summary, use_search))
-            else:
-                self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                    lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
-                    copy_poster, copy_summary))
-            
-            self.posterfound_arr[len(self.posterfound_arr)-1].start()
+            pass
         else:
             if direct_url:
                 srch_term = url
@@ -6321,8 +6283,6 @@ class Ui_MainWindow(object):
                         pass
                     else:
                         video_dir = ui.original_path_name[i]
-                    ep_arr = self.metaengine.get_epn_arr_list(site, name, video_dir)
-                    #print(ep_arr)
                 if not srch_term.startswith('http'):
                     srch_term = self.name_adjust(srch_term)
                 if direct_url and copy_poster and not copy_fanart:
@@ -6331,17 +6291,6 @@ class Ui_MainWindow(object):
                 elif direct_url and copy_fanart and not copy_poster:
                     fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
                     self.vnt.get(srch_term, out=fanart, onfinished=partial(self.copyFanart, name))
-                else:
-                    if not get_all:
-                        ep_arr = self.epn_arr_list.copy()
-                    self.tvdb.search(
-                            srch_term, backend=backend, episode_summary=get_sum,
-                            onfinished=partial(
-                                self.metadata_fetched, name, copy_fanart,
-                                copy_poster, copy_summary, get_sum, video_dir,
-                                site, ep_arr.copy()
-                            )
-                        )
                     
     def name_adjust(self, name):
         nam = re.sub('-|_|\.', ' ', name)
@@ -6364,22 +6313,8 @@ class Ui_MainWindow(object):
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
             copy_summary=None, direct_url=None, use_search=None, get_all=None,
             video_dir=None):
+        pass
         
-        logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
-        self.posterfound_arr.append(FindPosterThread(
-            self, logger, TMPDIR, name, url, direct_url, copy_fanart,
-            copy_poster, copy_summary, use_search, video_dir))
-        if get_all:
-            self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                lambda x=0: self.posterfound_thread_all_finished(name, url,
-                    direct_url, copy_fanart, copy_poster, copy_summary, use_search))
-        else:
-            self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
-                copy_poster, copy_summary))
-        
-        self.posterfound_arr[len(self.posterfound_arr)-1].start()
-            
             
     def posterfound_thread_finished(self, name, copy_fan, copy_poster, copy_summary):
         logger.info('{0}-{1}-{2}--{3}--posterfound_thread_finished--'.format(name, copy_fan, copy_poster, copy_summary))
@@ -7397,18 +7332,21 @@ class Ui_MainWindow(object):
         print(type(self.site_var), site, '--addon-changed--')
         plugin_path = os.path.join(home, 'src', 'Plugins', site+'.py')
         if os.path.exists(plugin_path):
-            module = imp.import_module(site, plugin_path)
-        self.site_var = getattr(module, site)(TMPDIR)
-        print(type(self.site_var), site, '--addon-changed--')
-        if siteName:
-            self.btnHistory.show()
-        else:
-            if not self.btnHistory.isHidden():
-                self.btnHistory.hide()
-        bookmark = False
-        if not os.path.exists(os.path.join(home, "History", site)):
-            os.makedirs(os.path.join(home, "History", site))
-        self.search()
+            try:
+                module = imp.import_module(site, plugin_path)
+                self.site_var = getattr(module, site)(TMPDIR)
+                print(type(self.site_var), site, '--addon-changed--')
+                if siteName:
+                    self.btnHistory.show()
+                else:
+                    if not self.btnHistory.isHidden():
+                        self.btnHistory.hide()
+                bookmark = False
+                if not os.path.exists(os.path.join(home, "History", site)):
+                    os.makedirs(os.path.join(home, "History", site))
+                self.search()
+            except Exception as err:
+                print(err)
     
     def ka1(self):
         global site, home
@@ -7474,7 +7412,7 @@ class Ui_MainWindow(object):
         original_srch_txt = None
         new_url = ''
         if srch_txt:
-            srch_txt = self.metaengine.name_adjust(srch_txt)
+            srch_txt = self.name_adjust(srch_txt)
             
         if not review_site:
             review_site = self.btnWebReviews.currentText()
@@ -7514,7 +7452,7 @@ class Ui_MainWindow(object):
             name = str(name)
         except:
             name = srch_txt
-        name1 = self.metaengine.name_adjust(name)
+        name1 = self.name_adjust(name)
         logger.info(name1)
         key = ''
         if action:
@@ -8475,10 +8413,9 @@ class Ui_MainWindow(object):
                     poster = os.path.join(music_dir_art_name, 'poster.jpg')
                     fan = os.path.join(music_dir_art_name, 'fanart.jpg')
                     thumb = os.path.join(music_dir_art_name, 'thumbnail.jpg')
-                    if not os.path.exists(poster) and srch != "offline" and self.get_artist_metadata:	
-                        self.threadPool.append(ThreadingExample(nm, logger, TMPDIR))
-                        self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
-                        self.threadPool[len(self.threadPool)-1].start()
+                    if not os.path.exists(poster) and srch != "offline" and self.get_artist_metadata:
+                        # TODO: Add some source
+                        pass
                     else:
                         self.videoImage(poster, thumb, fan, summary)
         else:
@@ -8522,10 +8459,8 @@ class Ui_MainWindow(object):
                 if (not os.path.exists(poster) and srch != "offline" 
                         and artist_name_mplayer.lower() != "none" 
                         and artist_name_mplayer and self.get_artist_metadata):	
-                    print('--starting--thread--')
-                    self.threadPool.append(ThreadingExample(nm, logger, TMPDIR))
-                    self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
-                    self.threadPool[len(self.threadPool)-1].start()
+                    # TODO: Add some source
+                    pass
                 elif os.path.exists(poster) or os.path.exists(fan) or os.path.exists(thumb):
                     self.videoImage(poster, thumb, fan, summary)
                 else:
@@ -10234,22 +10169,7 @@ class Ui_MainWindow(object):
                     folder_name = os.path.join(self.default_download_location, title)
                     if not os.path.exists(folder_name):
                         os.makedirs(folder_name)
-                    npn = os.path.join(folder_name, new_epn)
-                    if finalUrl.startswith('http'):
-                        command = wget_string(finalUrl, npn, self.get_fetch_library)
-                        logger.info(command)
-                        self.infoWget(command, 0)
-                self.download_video = 0
-            elif refererNeeded == True and self.download_video == 1:
-                rfr = finalUrl[1]
-                logger.info(rfr)
-                url1 = re.sub('#', '', finalUrl[0])
-                logger.info(url1)
-                url1 = str(url1)
-                command = wget_string(
-                    url1, os.path.join(TMPDIR, new_epn), self.get_fetch_library, rfr)
-                logger.info(command)
-                self.infoWget(command, 0)
+                    
                 self.download_video = 0
                 
         self.list2.setCurrentRow(row)
@@ -10680,14 +10600,7 @@ class Ui_MainWindow(object):
         else:
             fetch_library = self.get_fetch_library
         command = None
-        if finalUrl.startswith('http'):
-            finalUrl = finalUrl.strip()
-            if not referer:
-                command = wget_string(finalUrl, npn, fetch_library)
-            else:
-                command = wget_string(finalUrl, npn, fetch_library, rfr)
-            logger.info(command)
-        elif finalUrl_hdr:
+        if finalUrl_hdr:
             finalUrl = finalUrl.replace("::", " ")
             command = '{} "{}"'.format(finalUrl, npn)
         if command:
@@ -13500,7 +13413,8 @@ class Ui_MainWindow(object):
                     lines = open_files(t, True)
                     logger.info(lines)
                 elif t.startswith('http'):
-                    content = ccurl(t)
+                    content_sync = self.vnt_sync.get(t)
+                    content = content_sync.html
                     logger.info(content)
                     if content:
                         lines = content.split('\n')
@@ -13567,7 +13481,8 @@ class Ui_MainWindow(object):
             elif t.startswith('http'):
                 site = "PlayLists"
                 t = urllib.parse.unquote(t)
-                content = ccurl(t+'#'+'-I')
+                content_head = self.vnt_sync.head(t)
+                content = f'HTTP/1.1 {content_head.status}\n' + '\n'.join(f'{k}: {v}' for k, v in content_head.info.raw_items())
                 if ('www-authenticate' in content.lower() 
                         or '401 unauthorized' in content.lower()):
                     dlg = LoginAuth(parent=MainWindow, url=t, ui=self, tmp=TMPDIR)
@@ -13577,7 +13492,8 @@ class Ui_MainWindow(object):
                 if 'application/x-bittorrent' in content:
                     torrent_file = True
                 elif ('audio/mpegurl' in content) or ('text/html' in content):
-                    content = ccurl(t)
+                    content_sync = self.vnt_sync.get(t)
+                    content = content_sync.html
                     if '#EXTM3U' in content:
                         m3u_file = True
                 
@@ -15596,11 +15512,7 @@ def main():
         ui.text.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         ui.label_new.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         QtCore.QTimer.singleShot(1000, ui.adjust_fanart_widget)
-    if ui.access_from_outside_network:
-        get_ip_thread = GetIpThread(ui, interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
-        get_ip_thread.start()
-        print('--ip--thread--started--')
-    #MainWindow.setWindowFlags(QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint)
+
     html_default_arr = html_default_arr + ui.addons_option_arr
     if ui.player_theme == "system":
         ui.cover_label.hide()

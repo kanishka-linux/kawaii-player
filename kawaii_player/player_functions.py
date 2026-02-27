@@ -26,18 +26,11 @@ import logging
 import hashlib
 import base64
 import subprocess
-import urllib
 import platform
 import random
 import string
-from tempfile import mkstemp, mkdtemp
-from io import StringIO, BytesIO
-try:
-    import pycurl
-except Exception as err:
-    print(err)
+from tempfile import mkdtemp
 from PyQt6 import QtWidgets, QtCore
-from get_functions import wget_string, get_ca_certificate
 
 OSNAME = os.name
 
@@ -421,25 +414,3 @@ def write_files(file_name, content, line_by_line, mode=None):
     if os.path.exists(tmp_new_file):
         if not write_operation:
             print('Debug:write operation failed hence restored original')
-
-
-get_lib = get_config_options(
-    os.path.join(get_home_dir(), 'other_options.txt'), 'GET_LIBRARY')
-
-
-if get_lib.lower() == 'pycurl':
-    from get_functions import ccurl
-    print('--using pycurl--')
-elif get_lib.lower() == 'curl':
-    from get_functions import ccurlCmd as ccurl
-    print('--using curl--')
-elif get_lib.lower() == 'wget':
-    from get_functions import ccurlWget as ccurl
-    print('--using wget--')
-else:
-    from get_functions import ccurl
-    print('--using default pycurl--')
-
-        
-        
-        

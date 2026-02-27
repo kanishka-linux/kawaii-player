@@ -1,10 +1,9 @@
 import os
 import re
 import time
-import platform
 from collections import OrderedDict
 from PyQt6 import QtCore, QtGui, QtWidgets
-from player_functions import ccurl, open_files
+from player_functions import open_files
 
 
 class PlayerWidget(QtWidgets.QWidget):
@@ -221,36 +220,6 @@ class PlayerWidget(QtWidgets.QWidget):
                         and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                     self.ui.frame1.hide()
                     self.ui.gridLayout.setSpacing(5)
-
-    def ccurl_head(self, url, rfr_url):
-        if rfr_url:
-            content = ccurl(url+'#'+'-Ie'+'#'+rfr_url)
-        else:
-            content = ccurl(url+'#'+'-I')
-        return content
-
-    def url_resolve_size(self, url, rfr_url):
-        m = []
-        content = self.ccurl_head(url, rfr_url)
-        n = content.split('\n')
-        k = 0
-        for i in n:
-            i = re.sub('\r', '', i)
-            if i and ':' in i:
-                p = i.split(': ', 1)
-                if p:
-                    t = (p[0], p[1])
-                else:
-                    t = (i, "None")
-                m.append(t)
-                k = k+1
-            else:
-                t = (i, '')
-                m.append(t)
-        d = dict(m)
-        print(d)
-        result = int(int(d['Content-Length'])/(1024*1024))
-        return result
 
     def set_slider_val(self, val):
         t = self.ui.slider.value()
@@ -1154,14 +1123,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 if self.ui.total_file_size:
                     sz = str(self.ui.total_file_size)+' MB'
                 else:
-                    if (self.ui.final_playing_url.startswith('http') 
-                            and self.ui.final_playing_url.endswith('.mkv')):
-                        self.ui.total_file_size = self.url_resolve_size(
-                            self.ui.final_playing_url, rfr_url)
-                        sz = str(self.ui.total_file_size)+' MB'
-                    else:
-                        self.ui.total_file_size = 0
-                        sz = str(0)
+                    sz= "N/A"
                 t = bytes('\n'+'osd_show_text '+'"'+sz+'"'+' 4000'+'\n', 'utf-8')
                 logger.info(t)
                 self.mpvplayer.write(t)

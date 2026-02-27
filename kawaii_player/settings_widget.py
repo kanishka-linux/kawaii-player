@@ -30,7 +30,7 @@ from functools import partial
 from urllib.parse import urlparse
 from PyQt6 import QtWidgets, QtCore, QtGui
 from widgets.optionwidgets import QPushButtonExtra
-from player_functions import ccurl, send_notification, get_lan_ip
+from player_functions import send_notification, get_lan_ip
 from player_functions import open_files, write_files, change_opt_file
 
 
@@ -110,8 +110,8 @@ class LoginAuth(QtWidgets.QDialog):
             self.repeat_phrase = QtWidgets.QLineEdit(self)
             self.pass_phrase.setPlaceholderText('Enter Passphrase: atleast length 8')
             self.repeat_phrase.setPlaceholderText('Repeat Correct Passphrase')
-            self.pass_phrase.setEchoMode(QtWidgets.QLineEdit.Password)
-            self.repeat_phrase.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.pass_phrase.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+            self.repeat_phrase.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
             self.btn_create = QPushButtonExtra(self)
             self.btn_create.setText("Create SSL Certificate")
             self.btn_create.clicked_connect(self.handleSsl)
@@ -125,7 +125,7 @@ class LoginAuth(QtWidgets.QDialog):
             self.text_pass = QtWidgets.QLineEdit(self)
             self.text_name.setPlaceholderText('USER')
             self.text_pass.setPlaceholderText('PASSWORD')
-            self.text_pass.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.text_pass.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
             if not media_server:
                 self.btn_login = QPushButtonExtra(self)
                 self.btn_login.setText("Login")
@@ -303,7 +303,8 @@ class LoginAuth(QtWidgets.QDialog):
         text_val = self.text_name.text()
         pass_val = self.text_pass.text()
         self.auth_info = text_val+':'+pass_val
-        content = ccurl(self.url+'#'+'-I', user_auth=self.auth_info)
+        content_head = self.ui.vnt_sync.head(self.url, auth=(text_val, pass_val))
+        content = f'HTTP/1.1 {content_head.status}\n' + '\n'.join(f'{k}: {v}' for k, v in content_head.info.raw_items())
         logger.info('content={0}'.format(content))
         if ((not content or 'www-authenticate' in content.lower() 
                 or '401 unauthorized' in content.lower() 
@@ -335,7 +336,7 @@ class LoginPCToPC(QtWidgets.QDialog):
         self.text_pass = QtWidgets.QLineEdit(self)
         self.text_name.setPlaceholderText('USER')
         self.text_pass.setPlaceholderText('PASSWORD')
-        self.text_pass.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.text_pass.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.btn_login = QPushButtonExtra(self)
         self.btn_login.setText('Login')
         self.btn_login.clicked_connect(self.handle_login)

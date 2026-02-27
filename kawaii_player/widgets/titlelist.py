@@ -158,7 +158,6 @@ class TitleListWidget(QtWidgets.QListWidget):
                 row = 0
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(0, row, mycopy)
         elif (event.key() == QtCore.Qt.Key.Key_F7):
             if self.currentItem():
                 row = self.currentRow()
@@ -166,7 +165,6 @@ class TitleListWidget(QtWidgets.QListWidget):
                 row = 0
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(1, row, mycopy)
         elif (event.key() == QtCore.Qt.Key.Key_F8):
             if self.currentItem():
                 row = self.currentRow()
@@ -174,7 +172,6 @@ class TitleListWidget(QtWidgets.QListWidget):
                 row = 0
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(2, row, mycopy)
         elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
                 and event.key() == QtCore.Qt.Key.Key_Delete):
             row = self.currentRow()
