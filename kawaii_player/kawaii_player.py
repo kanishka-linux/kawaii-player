@@ -234,6 +234,7 @@ class Ui_MainWindow(object):
         else:
             icon = QtGui.QIcon("")
         MainWindow.setWindowIcon(icon)
+        self.app = MainWindow.app
         self.superTab = QtWidgets.QWidget(MainWindow)
         self.superTab.setObjectName(_fromUtf8("superTab"))
         self.superGridLayout = QtWidgets.QGridLayout(MainWindow)
@@ -7419,7 +7420,8 @@ class Ui_MainWindow(object):
         if not self.web and review_site:
             try:
                 self.web = Browser(self, home, screen_width, self.quality_val, site, self.epn_arr_list)
-            except NameError:
+            except Exception as err:
+                self.logger.error(f"{str(err)}")
                 site = 'None'
                 self.epn_arr_list = []
                 name = srch_txt
