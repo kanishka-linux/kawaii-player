@@ -528,72 +528,6 @@ class TitleListWidget(QtWidgets.QListWidget):
         nam.strip()
         nam = re.sub('[ ]+', ' ', nam)
         return nam
-            
-    def set_search_backend(self, use_search=None, get_thumb=None):
-        for item in self.selectedItems():
-            row = self.row(item)
-            if use_search is None:
-                use_search = False
-            try:
-                site = ui.get_parameters_value(s='site')['site']
-                nm = ui.get_title_name(row)
-                video_dir = None
-                if site.lower() == 'video':
-                    video_dir = ui.original_path_name[row].split('\t')[-1]
-                elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
-                    pass
-                else:
-                    video_dir = ui.original_path_name[row]
-                if get_thumb is False:
-                    video_dir = None
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=use_search,
-                    video_dir=video_dir)
-            except Exception as e:
-                print(e)
-            
-    def get_all_information(self):
-        backend = ['tvdb', 'tmdb', 'duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
-        backend_dict = {
-            'duckduckgo+tvdb':'tvdb+ddg', 'duckduckgo+tmdb':'tmdb+ddg',
-            'google+tvdb':'tvdb+g', 'google+tmdb':'tmdb+g',
-            'tvdb':'tvdb', 'tmdb':'tmdb'
-            }
-        item, ok = QtWidgets.QInputDialog.getItem(
-            MainWindow, 'Select Search Backend', 'This option will also fetch Episode Thumbnails and Summary for TV Shows\npresent in the TitleList along with relevant posters and fanart. For TV Shows\nselect TVDB based backend and for movies select backend based on TMDB',
-            backend, 0, False)
-        if item and ok:
-            logger.info(item)
-            try:
-                ui.posterfind_batch = 0
-                ui.poster_count_start = 1
-                site = ui.get_parameters_value(s='site')['site']
-                opt = ''
-                if ui.list3.currentItem():
-                    opt = ui.list3.currentItem().text().lower()
-                nm = ui.get_title_name(0)
-                use_search = backend_dict[item]
-                logger.info('\nsite={0}::opt={1}::search={2}\n'.format(site, opt, use_search))
-                video_dir = None
-                if site.lower() == 'video':
-                    video_dir = ui.original_path_name[0].split('\t')[-1]
-                elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
-                    pass
-                else:
-                    video_dir = ui.original_path_name[0]
-                if video_dir and self.currentRow() > 0:
-                    if self.currentRow() < len(ui.original_path_name):
-                        video_dir = ui.original_path_name[self.currentRow()].split('\t')[-1]
-                        nm = ui.get_title_name(self.currentRow())
-                        ui.posterfind_batch = self.currentRow()
-                        ui.poster_count_start = ui.posterfind_batch + 1
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=use_search,
-                    get_all=True, video_dir=video_dir, get_sum=True)
-            except Exception as e:
-                print(e)
                 
     def triggerBookmark(self, val):
         logger.debug(val)
@@ -776,7 +710,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             default_display = 'Enter Title Name Manually\nCurrent Title:\n{0}'.format(default_text)
             item, ok = QtWidgets.QInputDialog.getText(
                 MainWindow, 'Input Dialog', default_display, 
-                QtWidgets.QLineEdit.Normal, default_text
+                QtWidgets.QLineEdit.EchoMode.Normal, default_text
                 )
         else:
             item = self.sanitize_title(default_text)
@@ -796,14 +730,16 @@ class TitleListWidget(QtWidgets.QListWidget):
                         else:
                             logger.debug(msg)
                     else:
+                        cur_name = itemlist.text()
                         home_dir_new = os.path.join(home, 'Local', item)
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
                         old_name, directory = old_val.split('\t')
-                        qr = 'Update Video Set Title=? Where Directory=?'
-                        logger.info('{0}::{1}'.format(nm, directory))
-                        cur.execute(qr, (nm, directory))
+                        qr = 'Update Video Set Title=? Where Directory=? and Title=?'
+                        logger.info('{0}::{1}::{2}'.format(nm, directory, cur_name))
+                        cur.execute(qr, (nm, directory, cur_name))
+                        cur.execute('update series_info set db_title = ? where db_title = ? and directory = ?', (item, cur_name, directory))
                         conn.commit()
                         conn.close()
                         tmp = re.sub('[^	]*', item, old_val, 1)
@@ -1066,10 +1002,6 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenu.setTitle("Bookmark Options")
             menu.addMenu(submenu)
             
-            menu_search = QtWidgets.QMenu(menu)
-            menu_search.setTitle('Poster Options')
-            menu.addMenu(menu_search)
-            
             menu_sanitize = QtWidgets.QMenu(menu)
             menu_sanitize.setTitle('Sanitize Title')
             menu.addMenu(menu_sanitize)
@@ -1108,16 +1040,6 @@ class TitleListWidget(QtWidgets.QListWidget):
             menu_cat.addSeparator()
             add_cat = menu_cat.addAction('Create Category')
             del_cat = menu_cat.addAction('Delete Category')
-            
-            tvdb = menu_search.addAction("Find Poster(TVDB) (Alt+1)")
-            tmdb = menu_search.addAction("Find Poster(TMDB) (Alt+2)")
-            menu_search.addSeparator()
-            ddg_tvdb = menu_search.addAction("Find Poster(ddg+tvdb) (Ctrl+Right)")
-            ddg_tmdb = menu_search.addAction("Find Poster(ddg+tmdb) (Ctrl+Left)")
-            glinks_tvdb = menu_search.addAction("Find Poster(g+tvdb) (Ctrl+Up)")
-            glinks_tmdb = menu_search.addAction("Find Poster(g+tmdb) (Ctrl+Down)")
-            menu_search.addSeparator()
-            poster_all = menu_search.addAction("Find Posters for All")
             
             menu_clear = QtWidgets.QMenu(menu)
             menu_clear.setTitle('Clear')
@@ -1186,7 +1108,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             elif action == add_cat:
                 item, ok = QtWidgets.QInputDialog.getText(
                     MainWindow, 'Input Dialog', 'Add New Category to Video', 
-                    QtWidgets.QLineEdit.Normal, 'Edit')
+                    QtWidgets.QLineEdit.EchoMode.Normal, 'Edit')
                 if item and ok:
                     cat_path = os.path.join(home, 'VideoDB', 'extra_category')
                     if not os.path.isfile(cat_path):
@@ -1247,20 +1169,6 @@ class TitleListWidget(QtWidgets.QListWidget):
                 ui.history_dict_obj = tmpdict.copy()
                 logger.debug(len(ui.history_dict_obj))
                 ui.vnt.clear()
-            elif action == tvdb:
-                self.set_search_backend(use_search=False)
-            elif action == tmdb:
-                self.set_search_backend(use_search='tmdb')
-            elif action == glinks_tvdb:
-                self.set_search_backend(use_search='tvdb+g')
-            elif action == glinks_tmdb:
-                self.set_search_backend(use_search='tmdb+g')
-            elif action == ddg_tvdb:
-                self.set_search_backend(use_search=True)
-            elif action == ddg_tmdb:
-                self.set_search_backend(use_search='tmdb+ddg')
-            elif action == poster_all:
-                self.get_all_information()
             elif action == rename:
                 if ui.original_path_name:
                     print('Renaming')

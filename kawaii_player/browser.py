@@ -23,6 +23,7 @@ import re
 from bs4 import BeautifulSoup
 from PyQt6 import QtCore, QtWidgets, QtWebEngineWidgets
 from PyQt6 import QtWebEngineCore        
+from PyQt6.QtWebEngineCore import QWebEngineContextMenuRequest
 from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import write_files, send_notification
 from hls_webengine.netmon import NetManager
@@ -309,25 +310,30 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
         #self.ui.update_playlist(file_path)
 
     def contextMenuEvent(self, event):
+        
         self.media_url = ''
         self.selected_text = ''
-        menu = self.page().createStandardContextMenu()
+        menu = self.createStandardContextMenu()
+        
         try:
-            data = self.page().contextMenuData()
-            url = data.linkUrl().url()
-            self.title_page = data.linkText()
-            self.selected_text = data.selectedText()
-            self.ui.logger.info(self.selected_text)
-            try:
-                self.title_page = self.title_page.replace('\n', ' - ')
-                self.ui.logger.info(self.title_page)
-            except Exception as err:
-                self.ui.logger.error(err)
-            self.epn_name_in_list = self.title_page
-            if data.mediaType() == 1:
-                self.media_url = data.mediaUrl().url()
-                if not self.media_url.startswith('http'):
-                    self.media_url = ''
+            request = self.lastContextMenuRequest()  # Get the context menu request
+            if request:
+                url = request.linkUrl().url()
+                title = request.linkText()
+                media_url = request.mediaUrl().url()
+                selected_text = request.selectedText()
+                media_type = request.mediaType()
+                
+                self.title_page = title
+                self.selected_text = selected_text
+                self.epn_name_in_list = title
+
+                self.ui.logger.info(f"{url}::{title}::{media_url}::{selected_text}::{media_type}")
+                
+                if media_type == QWebEngineContextMenuRequest.MediaType.MediaTypeImage:
+                    self.media_url = media_url
+                    if not self.media_url.startswith('http'):
+                        self.media_url = ''
         except Exception as err:
             self.ui.logger.error(err)
             url = self.hoveredLink
@@ -457,7 +463,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 for nmenu in arr:
                     action.append(menu.addAction(nmenu))
 
-                act = menu.exec_(event.globalPos())
+                act = menu.exec(event.globalPos())
 
                 for i, acts in enumerate(action):
                     if act == acts:
@@ -493,7 +499,7 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
                 for nmenu in arr:
                     action.append(menu.addAction(nmenu))
 
-                act = menu.exec_(event.globalPos())
+                act = menu.exec(event.globalPos())
 
                 for i, acts in enumerate(action):
                     if act == acts:
@@ -592,11 +598,11 @@ class Browser(QtWebEngineWidgets.QWebEngineView):
             self.ui.logger.debug('{}--{}--media-url--'.format(url, self.media_url))
             if url:
                 content_head = self.ui.vnt_sync.head(url)
-                t_content = f'HTTP/1.1 {content_head.status}\n' + '\n'.join(f'{k}: {v}' for k, v in content_head.info.raw_items())
-                if 'image/jpeg' in content and not 'Location:' in t_content:
+                content = f'HTTP/1.1 {content_head.status}\n' + '\n'.join(f'{k}: {v}' for k, v in content_head.info.raw_items())
+                if 'image/jpeg' in content and not 'Location:' in content:
                     pass
-                elif 'image/jpeg' in t_content and 'Location:' in t_content:
-                    m = re.findall('Location: [^\n]*', t_content)
+                elif 'image/jpeg' in content and 'Location:' in content:
+                    m = re.findall('Location: [^\n]*', content)
                     found = re.sub('Location: |\r', '', m[0])
                     url = found
                 elif self.media_url:
