@@ -71,10 +71,7 @@ from threading import Thread, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 from simple_auth import SimpleAuthManager
-try:
-    import pycurl
-except Exception as err:
-    print(err)
+
 from bs4 import BeautifulSoup
 import PIL
 from PIL import Image, ImageDraw
@@ -2379,7 +2376,7 @@ class Ui_MainWindow(object):
         index = self.btnAddon.findText('Torrent')
         self.btnAddon.setCurrentIndex(index)
         time.sleep(1)
-        list_item = self.list3.findItems('History', QtCore.Qt.MatchExactly)
+        list_item = self.list3.findItems('History', QtCore.Qt.MatchFlag.MatchExactly)
         if len(list_item) > 0:
             for i in list_item:
                 row = self.list3.row(i)
@@ -2390,7 +2387,7 @@ class Ui_MainWindow(object):
                 if item:
                     self.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
         time.sleep(1)
-        list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchExactly)
+        list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchFlag.MatchExactly)
         if len(list_item) > 0:
             for i in list_item:
                 row = self.list1.row(i)
@@ -15398,14 +15395,14 @@ def main():
                 if ui.btn1.currentText() == 'Addons':
                     if option_sitename:
                         siteName = option_sitename
-                        list3_item = ui.list3.findItems(siteName, QtCore.Qt.MatchExactly)
+                        list3_item = ui.list3.findItems(siteName, QtCore.Qt.MatchFlag.MatchExactly)
                         if list3_item:
                             list3_row = ui.list3.row(list3_item[0])
                             ui.list3.setFocus()
                             ui.list3.setCurrentRow(list3_row)
                             ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(list3_item[0])
                                 
-                    list3_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
+                    list3_item = ui.list3.findItems('History', QtCore.Qt.MatchFlag.MatchExactly)
                     if list3_item:
                         list3_row = ui.list3.row(list3_item[0])
                         ui.list3.setFocus()
@@ -15422,7 +15419,7 @@ def main():
         if ('#LAST@TITLE' in ui.history_dict_obj and site.lower() == 'video'
                 and opt.lower() == 'history'):
             list_title = ui.history_dict_obj.get('#LAST@TITLE')[2]
-            list1_srch = ui.list1.findItems(list_title, QtCore.Qt.MatchExactly)
+            list1_srch = ui.list1.findItems(list_title, QtCore.Qt.MatchFlag.MatchExactly)
             if list1_srch:
                 list1_row = ui.list1.row(list1_srch[0])
                 ui.list1.setFocus()

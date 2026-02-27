@@ -1175,7 +1175,6 @@ class OptionsSettings(QtWidgets.QTabWidget):
         
         self.line32 = QtWidgets.QComboBox()
         self.line32.addItem("QTWEBENGINE")
-        self.line32.addItem("QTWEBKIT")
         index = self.line32.findText(str(ui.browser_backend.upper()))
         self.line32.setCurrentIndex(index)
         self.text32 = QtWidgets.QLabel()
@@ -1211,9 +1210,7 @@ class OptionsSettings(QtWidgets.QTabWidget):
         self.other_settings.append('logging_module')
         
         self.line35 = QtWidgets.QComboBox()
-        self.line35.addItem('pycurl')
-        self.line35.addItem('curl')
-        self.line35.addItem('wget')
+        self.line35.addItem('deprecated')
         index = self.line35.findText(str(ui.get_fetch_library))
         self.line35.setCurrentIndex(index)
         self.text35 = QtWidgets.QLabel()
