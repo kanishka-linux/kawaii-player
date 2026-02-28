@@ -517,7 +517,7 @@ def connect_post_title(epn_title, tpath):
         if not os.path.exists(file_name):
             f = open(file_name, 'w').close()
     write_files(file_name, file_entry, True)
-    list_item = ui.list1.findItems(pls_name, QtCore.Qt.MatchExactly)
+    list_item = ui.list1.findItems(pls_name, QtCore.Qt.MatchFlag.MatchExactly)
     item = None
     if len(list_item) > 0:
         for i in list_item:

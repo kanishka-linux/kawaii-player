@@ -5492,7 +5492,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 b = b'Youtube Quick Command Received by Server. Trying To Play Video Directly'
                 self.final_message(b)
                 logger.debug(path)
-                url = self.path.replace('/youtube_quick=', '', 1)
+                url = path.replace('youtube_quick=', '', 1)
                 logger.debug(url)
                 if url.startswith('http') or url.startswith('magnet:'):
                     if ui.web_control == "slave":
