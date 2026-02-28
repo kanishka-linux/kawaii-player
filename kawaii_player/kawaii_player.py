@@ -171,7 +171,7 @@ from vinanti import Vinanti
 from multiprocessing import Process
 from series_info_fetcher.anime import AnimeInfoFetcher
 from series_info_fetcher.tv_shows import TvShowInfoFetcher
-from series_info_fetcher.tvdb_fanart import TVDBFanart
+from series_info_fetcher.tvdb_fanart import TVDBFanart, FanartQueue
 from track_extractor import TrackExtractor
 from webm_transcoder import WebMTranscoder
 from hls_transcoder import HLSTranscoder
@@ -1742,6 +1742,8 @@ class Ui_MainWindow(object):
         self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.tvshow_info_fetcher = TvShowInfoFetcher(self)
         self.tvdb_fanart = TVDBFanart(self) 
+        self.fanart_queue = FanartQueue(self)
+
         self.hls_transcoder = HLSTranscoder(self)
         self.webm_transcoder = WebMTranscoder(self)
         self.track_extractor = TrackExtractor(self)
@@ -7369,35 +7371,11 @@ class Ui_MainWindow(object):
                 os.makedirs(os.path.join(home, "History", site))
             self.search()
         
-    def fetch_fanart_tvdb(self, title):
-        _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
-        images = self.tvdb_fanart.fetch_fanart(title, series_type.lower())
-        return images
+    def fetch_fanart_tvdb_from_contextmenu(self, title):
+        self.fanart_queue.add(f"{title}::{title}")
          
     def fetch_fanart_tvdb_web_client(self):
-        imgs = []
-        url = ""
-        title, srch = self.fetch_fanart_for.split('::')
-        if not srch:
-            srch = title
-        if title:
-            if self.fanart_dict.get(srch):
-                imgs = self.fanart_dict.get(srch)
-                rotation_index = (self.fanart_dict_rotation_index.get(srch) + 1) % len(imgs)
-                url = imgs[rotation_index]
-                self.fanart_dict_rotation_index[srch] = rotation_index
-            else:
-                _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
-                imgs = self.tvdb_fanart.fetch_fanart(srch, series_type.lower())
-                if imgs:
-                    self.fanart_dict[srch] = imgs
-                    self.fanart_dict_rotation_index[srch] = 0
-                    url = imgs[0]
-            if imgs and url:
-                self.posterfound_new(
-                    name=title, site="Video", url=url, direct_url=True, 
-                    copy_summary=False, copy_poster=False, copy_fanart=True
-            )
+        self.fanart_queue.add(self.fetch_fanart_for)
         
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
         global name, nam, old_manager, new_manager, home, screen_width

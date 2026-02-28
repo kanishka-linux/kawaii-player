@@ -1175,25 +1175,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                     if self.currentItem():
                         self.edit_name_list1(self.currentRow())
             elif action == fanart:
-                title = self.currentItem().text()
-                imgs =  []
-                
-                if self.fanart_dict.get(title):
-                    imgs = self.fanart_dict.get(title)
-                    rotation_index = (self.fanart_dict_rotation_index.get(title) + 1) % len(imgs)
-                    url = imgs[rotation_index]
-                    self.fanart_dict_rotation_index[title] = rotation_index
-                else:
-                    imgs = ui.fetch_fanart_tvdb(title)
-                    if imgs:
-                        self.fanart_dict[title] = imgs
-                        self.fanart_dict_rotation_index[title] = 0
-                        url = imgs[0]
-                if imgs:
-                    ui.posterfound_new(
-                        name=title, site="Video", url=url, direct_url=True, 
-                        copy_summary=False, copy_poster=False, copy_fanart=True)
-                print(imgs,  "found fanart")
+                ui.fetch_fanart_tvdb_from_contextmenu(self.currentItem().text())
             elif action == history:
                 ui.setPreOpt('fromtitlelist')
             elif action == rem_fanart:
