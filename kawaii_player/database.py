@@ -1741,6 +1741,12 @@ class MediaDatabase():
             summary = data.get('summary', '')
             series_type = data.get('type', '') 
 
+        if series_type in [None, ""]:
+            series_type = "series"
+        if summary in [None, ""]:
+            summary = "N/A"
+        else:
+            summary = f"{title}\n\n{summary}"
         conn.commit()
         conn.close()
         return image_path, summary, series_type
