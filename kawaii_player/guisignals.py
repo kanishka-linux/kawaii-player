@@ -447,5 +447,6 @@ class GUISignals(QtCore.QObject):
     def apply_episode_metadata(self, num, ep, sumr, path):
         if num < ui.list2.count():
             ui.list2.item(num).setText(ep)
-            ui.list2.item(num).setIcon(QtGui.QIcon(path))
+            scaled_pixel = ui.scaled_icon(path)
+            ui.list2.item(num).setIcon(QtGui.QIcon(scaled_pixel))
             ui.text.setText(sumr)

@@ -1770,7 +1770,8 @@ class TitleListWidgetPoster(PlaylistWidget):
             picn, summary = ui.display_image(i, "image_list", txt_name=txt)
             if os.path.isfile(picn):
                 self.addItem(txt)
-                self.item(i).setIcon(QtGui.QIcon(picn))
+                scaled_pixel = ui.scaled_icon(picn, 256)
+                self.item(i).setIcon(QtGui.QIcon(scaled_pixel))
             else:
                 self.addItem(txt)
             summary = "<html><h1>{0}</h1><head/><body><p>{1}</p></body></html>".format(txt, summary)

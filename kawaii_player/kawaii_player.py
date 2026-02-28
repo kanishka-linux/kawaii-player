@@ -1439,8 +1439,8 @@ class Ui_MainWindow(object):
         self.https_cert_file = os.path.join(home, 'cert.pem')
         self.progress_counter = 0
         self.posterfound_arr = []
-        self.client_auth_arr = []
-        self.local_auth_arr = []
+        self.client_auth_arr = ['127.0.0.1', '0.0.0.0']
+        self.local_auth_arr = ['127.0.0.1', '0.0.0.0']
         self.video_db_location = os.path.join(home, 'VideoDB')
         if not os.path.isdir(self.video_db_location):
             os.makedirs(self.video_db_location)
@@ -2083,7 +2083,15 @@ class Ui_MainWindow(object):
             self.tab_5.get_previous()
         else:
             self.mpvPrevEpnList(*args)
-   
+
+    def scaled_icon(self, path, size=128):
+        pixmap = QtGui.QPixmap(path)
+        scaled_pixmap = pixmap.scaled(size, size, 
+                                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                QtCore.Qt.TransformationMode.SmoothTransformation
+                        )
+        return scaled_pixmap
+
     def set_mainwindow_palette(self, fanart, first_time=None, theme=None, rgb_tuple=None):
         if theme is None or theme == 'default':
             logger.info('\n{0}:  mainwindow background\n'.format(fanart))
@@ -2416,7 +2424,8 @@ class Ui_MainWindow(object):
                 url = j.split('\t')[1] + '.image'
                 picn = os.path.join(TMPDIR, '{}.jpg'.format(i))
                 self.vnt_sync.get(url, out=picn)
-                self.list2.item(i).setIcon(QtGui.QIcon(picn))
+                scaled_pixel = self.scaled_icon(picn)
+                self.list2.item(i).setIcon(QtGui.QIcon(scaled_pixel))
                 
     def quick_url_play_method(self):
         if self.quick_url_play != 'tmp_playlist':
@@ -2443,7 +2452,8 @@ class Ui_MainWindow(object):
             if r < self.list2.count() and self.list_with_thumbnail:
                 icon_new_pixel = self.create_new_image_pixel(dest, 128)
                 if os.path.exists(icon_new_pixel):
-                    self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
+                    scaled_pixel = self.scaled_icon(icon_new_pixel)
+                    self.list2.item(r).setIcon(QtGui.QIcon(scaled_pixel))
         except Exception as err:
             logger.error(err)
         self.downloadWget_cnt += 1
@@ -6752,7 +6762,9 @@ class Ui_MainWindow(object):
                     icon_new_pixel = self.create_new_image_pixel(icon_name, 128)
                     if os.path.exists(icon_new_pixel):
                         try:
-                            self.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+                            
+                            scaled_pixel = self.scaled_icon(icon_new_pixel)
+                            self.list2.item(k).setIcon(QtGui.QIcon(scaled_pixel))
                         except:
                             pass
                 except Exception as e:
@@ -6924,9 +6936,11 @@ class Ui_MainWindow(object):
                 if icon_new_pixel is not None and os.path.exists(icon_new_pixel):
                     try:
                         if row < self.list2.count():
-                            self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+
+                            scaled_pixel = self.scaled_icon(icon_new_pixel)
+                            self.list2.item(row).setIcon(QtGui.QIcon(scaled_pixel))
                             if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:
-                                ui.list_poster.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+                                ui.list_poster.item(row).setIcon(QtGui.QIcon(scaled_pixel))
                     except Exception as err:
                         logger.error(err)
         except Exception as err:
@@ -8349,7 +8363,8 @@ class Ui_MainWindow(object):
         if self.list_with_thumbnail:
             icon_name = self.get_thumbnail_image_path(k, self.epn_arr_list[k])
             if os.path.exists(icon_name):
-                self.list2.item(k).setIcon(QtGui.QIcon(icon_name))
+                scaled_pixel = self.scaled_icon(icon_name)
+                self.list2.item(k).setIcon(QtGui.QIcon(scaled_pixel))
 
     def musicBackground(self, val, srch):
         global name, artist_name_mplayer, site

@@ -164,7 +164,7 @@ class TVDBFanart(QtWidgets.QWidget):
             js_code = f"""
             (function() {{
                 try {{
-                    var searchTerm = {repr(self.current_search_term.lower())};
+                    var searchTerm = {repr(self.current_search_term)};
                     
                     function levenshtein(a, b) {{
                         var dp = Array.from({{length: a.length + 1}}, (_, i) =>

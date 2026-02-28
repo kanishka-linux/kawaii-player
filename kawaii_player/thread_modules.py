@@ -597,16 +597,12 @@ def apply_thumbnail_to_playlist(k, i, title):
                 size = 256
             else:
                 size = 128
-            pixmap = QtGui.QPixmap(icon_name)
-            scaled_pixmap = pixmap.scaled(size, size, 
-                                          QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-                                          QtCore.Qt.TransformationMode.SmoothTransformation)
-
             icon_new_pixel = ui.create_new_image_pixel(icon_name, size)
             if os.path.exists(icon_new_pixel):
-                ui.list2.item(k).setIcon(QtGui.QIcon(scaled_pixmap))
+                scaled_pixel = ui.scaled_icon(icon_new_pixel, size)
+                ui.list2.item(k).setIcon(QtGui.QIcon(scaled_pixel))
                 if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:
-                    ui.list_poster.item(k).setIcon(QtGui.QIcon(scaled_pixmap))
+                    ui.list_poster.item(k).setIcon(QtGui.QIcon(scaled_pixel))
     except Exception as e:
         print(e)
 
