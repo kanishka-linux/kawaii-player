@@ -120,7 +120,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         #p = "ui.label_epn_"+str(ui.thumbnail_label_number[0])+".setFocus()"
         #exec(p)
         self.setFocus()
-        self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         ui.frame1.hide()
         
     def seek_mplayer(self):
@@ -134,7 +134,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
 
     def arrow_hide(self):
         if ui.player_val == "mplayer" or ui.player_val == "mpv":
-            self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         print("arrow hide")
 
     def frameShowHide(self):
@@ -664,7 +664,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
                 if pos.y() <= ht and pos.y()> ht - 5 and ui.frame1.isHidden():
                     ui.gridLayout.setSpacing(0)
                     ui.frame1.show()
-                    ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+                    ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden() :
                     ui.frame1.hide()
                     ui.gridLayout.setSpacing(5)
@@ -1147,7 +1147,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
     def mouseReleaseEvent(self, ev):
         for i in ui.tab_5.event_dict:
             ui.tab_5.event_dict[i] = False
-        if ev.button() == QtCore.Qt.LeftButton:
+        if ev.button() == QtCore.Qt.MouseButton.LeftButton:
             self.setFocus()
             ui.quit_really = "no"
             label_name = str(self.objectName())
@@ -1313,7 +1313,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         thumb = menu.addAction("Show other Thumbnails")
         removeThumb = menu.addAction("Remove Thumbnail")
         list_mode = menu.addAction("Go To List Mode")
-        group = QtWidgets.QActionGroup(submenuR)
+        group = QtGui.QActionGroup(submenuR)
         pls = os.listdir(os.path.join(home, 'Playlists'))
         for i in pls:
             item = submenuR.addAction(i)
@@ -1322,7 +1322,7 @@ class ThumbnailWidget(QtWidgets.QLabel):
         group.triggered.connect(self.triggerPlaylist)
         submenuR.addSeparator()
         new_pls = submenuR.addAction("Create New Playlist")
-        action = menu.exec_(self.mapToGlobal(event.pos()))
+        action = menu.exec(self.mapToGlobal(event.pos()))
         self.setFocus()
         if action == queue_item:
             if (site == "Music" or site == "Video" or site == "Local" 
