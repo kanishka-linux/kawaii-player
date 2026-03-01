@@ -390,7 +390,8 @@ class WidgetStyleSheet:
                     """.format(
                         alpha=alpha, btn=qbtn, color=gui.list_text_color,
                         focus=gui.list_text_color_focus, bold=font_bold,
-                        size=gui.global_font_size, font=gui.global_font)
+                        font=gui.global_font
+                        )
                     )
             
             gui.slider.setStyleSheet("""
@@ -622,11 +623,11 @@ class WidgetStyleSheet:
                 """.format(color=bgcolor)
                 )
             gui.text.setStyleSheet("""
-                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
-                    """.format(gui.list_text_color_focus, bgcolor))
+                    border-radius:3px; background-color :{0}; border: 1px solid rgba(0,0,0,20%);
+                    """.format(bgcolor))
             gui.cover_label.setStyleSheet("""
-                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
-                    """.format(gui.list_text_color_focus, bgcolor))
+                    border-radius:3px; background-color :{0}; border: 1px solid rgba(0,0,0,20%);
+                    """.format(bgcolor))
             gui.list_poster.setStyleSheet("""
                     QListWidget{{
                     font: {bold} {size}px {font};
@@ -838,8 +839,7 @@ class WidgetStyleSheet:
                             size=gui.global_font_size, font=gui.global_font,
                             label_alpha=label_alpha, min_height=min_height,
                             red=red, green=green, blue=blue,
-                            redm=redm, greenm=greenm, bluem=bluem,
-                            size_label=gui.global_font_size+4
+                            redm=redm, greenm=greenm, bluem=bluem
                             )
                         )
                 gui.player_opt.setStyleSheet("""
@@ -948,9 +948,9 @@ class WidgetStyleSheet:
                             focus=gui.list_text_color_focus, bold=font_bold,
                             size=gui.global_font_size, font=gui.global_font,
                             red=red, blue=blue, green=green,
-                            redm=redm, greenm=greenm, bluem=bluem,
-                            size_label=gui.global_font_size+4)
+                            redm=redm, greenm=greenm, bluem=bluem
                         )
+                    )
                 
                 for widget in [gui.progress, gui.progressEpn]:
                     widget.setStyleSheet("""QProgressBar{{
@@ -986,7 +986,7 @@ class WidgetStyleSheet:
                     padding: 1px 2px 1px 2px;
                     }}
                     """.format(
-                            alpha=bg, color=gui.list_text_color,
+                            color=gui.list_text_color,
                             bold=font_bold, size=gui.global_font_size,
                             font=gui.global_font, red=redc, green=greenc, blue=bluec
                             )
