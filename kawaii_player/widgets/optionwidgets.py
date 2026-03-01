@@ -807,7 +807,7 @@ class MySlider(QtWidgets.QSlider):
     def mousePressEvent(self, event, source=None):
         self.preview_counter = 0
         old_val = int(self.value())
-        t = ((event.x() - self.x())/self.width())
+        t = ((event.position().x() - self.x())/self.width())
         if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:            
             seek_per = round((t * 100), 2)
             ui.client_seek_val = seek_per
