@@ -10778,16 +10778,16 @@ class Ui_MainWindow(object):
             event = QtGui.QMouseEvent(
                         QtCore.QEvent.MouseButtonRelease,
                         new_point,
-                        QtCore.Qt.LeftButton,
-                        QtCore.Qt.LeftButton,
+                        QtCore.Qt.MouseButton.LeftButton,
+                        QtCore.Qt.MouseButton.LeftButton,
                         QtCore.Qt.KeyboardModifier.NoModifier,
                     )
         elif val == "mouse_move":
             event = QtGui.QMouseEvent(
                         QtCore.QEvent.MouseMove,
                         new_point,
-                        QtCore.Qt.NoButton,
-                        QtCore.Qt.NoButton,
+                        QtCore.Qt.MouseButton.NoButton,
+                        QtCore.Qt.MouseButton.NoButton,
                         QtCore.Qt.KeyboardModifier.NoModifier,
                     )
         self.gui_signals.mouse_move_method((self.tab_5, event))
