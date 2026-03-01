@@ -6303,12 +6303,12 @@ class Ui_MainWindow(object):
                     self.vnt.get(srch_term, out=fanart, onfinished=partial(self.copyFanart, name))
                     
     def name_adjust(self, name):
-        nam = re.sub('-|_|\.', ' ', name)
+        nam = re.sub(r'-|_|\.', ' ', name)
         nam = nam.lower()
         nam = nam.strip()
-        nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
-        nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
-        nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
+        nam = re.sub(r'\[[^\]]*\]|\([^\)]*\)', '', nam)
+        nam = re.sub(r'\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
+        nam = re.sub(r'\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
         nam = nam.strip()
         if nam.endswith('+'):
             nam = nam[:-1]
@@ -10806,7 +10806,7 @@ class Ui_MainWindow(object):
             if self.player_val in ['vlc', 'cvlc'] and "status change:" in a:
                 self.mpvplayer_val.write(bytes("get_length", "utf-8"))
             if self.player_val in ['vlc', 'cvlc'] and "main playlist debug:" in a:
-                pls_item_search = re.search("main playlist debug: using item (?P<row>\d+)\n", a)
+                pls_item_search = re.search(r"main playlist debug: using item (?P<row>\d+)\n", a)
                 if pls_item_search:
                     pls_item_number = int(pls_item_search.group("row"))
                     if pls_item_number in range(0, self.list2.count()):
@@ -10913,7 +10913,7 @@ class Ui_MainWindow(object):
                         audio_s = (re.search('[(][0-9]+[)]', a_id))
                         if audio_s:
                             audio_id = audio_s.group()
-                            audio_id = re.sub('\)|\(', '', audio_id).strip()
+                            audio_id = re.sub(r'\)|\(', '', audio_id).strip()
                         else:
                             audio_id="auto"
                         self.audio_track.setText("A:"+str(a_id[:8]))
@@ -11018,7 +11018,7 @@ class Ui_MainWindow(object):
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
                     timearr = re.findall("[0-9][0-9]+:[0-9][0-9]+:[0-9][0-9]+", a)
-                    percomp = re.search("[(]*[0-9]*\%[)]*", a)
+                    percomp = re.search(r"[(]*[0-9]*\%[)]*", a)
                     if timearr:
                         val1 = timearr[0].split(':')
                         if val1:
@@ -11044,7 +11044,7 @@ class Ui_MainWindow(object):
                                 per_comp = per_comp + ')'
                         else:
                             txt = self.progressEpn.text()
-                            percomp = re.search("[(]*[0-9]*\%[)]*", txt)
+                            percomp = re.search(r"[(]*[0-9]*\%[)]*", txt)
                             if percomp:
                                 per_comp = percomp.group()
                             elif self.mplayerLength > 1:
@@ -15002,7 +15002,7 @@ def main():
                 elif i.startswith('BG_COLOR_DARK_THEME='):
                     try:
                         color_tuple_string = j.lower()
-                        color_tuple_string = re.sub('\(|\)', '', color_tuple_string)
+                        color_tuple_string = re.sub(r'\(|\)', '', color_tuple_string)
                         r, g, b = color_tuple_string.split(',')
                         ui.bg_color_dark_theme = (int(r), int(g), int(b))
                     except Exception as e:
@@ -15010,7 +15010,7 @@ def main():
                 elif i.startswith('BG_COLOR_CONTROL_FRAME='):
                     try:
                         color_tuple_string = j.lower()
-                        color_tuple_string = re.sub('\(|\)', '', color_tuple_string)
+                        color_tuple_string = re.sub(r'\(|\)', '', color_tuple_string)
                         r, g, b = color_tuple_string.split(',')
                         ui.bg_color_control_frame = (int(r), int(g), int(b))
                     except Exception as e:
