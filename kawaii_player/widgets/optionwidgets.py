@@ -575,7 +575,7 @@ class MySlider(QtWidgets.QSlider):
             t = int(t*self.maximum())
         else:
             t = int(t*ui.mplayerLength)
-        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
+        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.position().x()) / self.width()
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
         elif ui.player_val in ["mpv", "libmpv"]:
@@ -616,7 +616,7 @@ class MySlider(QtWidgets.QSlider):
                     #self.mpv_preview(self.preview_dir, t,
                     #                (ui.label.maximumWidth(), ui.label.maximumHeight()),
                     #                newpicn, ui.final_playing_url)
-                    #self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
+                    #self.preview_generated(newpicn, l, False, t, 0, event.position().x(), event.position().y())
                 if os.path.exists(newpicn):
                     ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.position().x(), event.position().y(), source_val)
         else:
@@ -627,7 +627,7 @@ class MySlider(QtWidgets.QSlider):
                     offset = 25
                 else:
                     offset = 0
-                point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height() - offset)
+                point = QtCore.QPoint(int(self.parent.x()+event.position().x()), int(self.parent.y()+self.parent.height() - offset))
                 rect = QtCore.QRect(self.parent.x(), self.parent.y() - offset , self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video' and ui.player_val not in ["mpv", "libmpv"]:
@@ -639,21 +639,21 @@ class MySlider(QtWidgets.QSlider):
             if self.preview_process.processId() == 0 and not use_existing:
                 self.info_preview(
                     command, picn, l, change_aspect, t, self.preview_counter,
-                    event.x(), event.y(), use_existing, lock=False
+                    event.position().x(), event.position().y(), use_existing, lock=False
                 )
             else:
                 if self.preview_process.processId() > 0 or ui.live_preview == 'slow':
                     self.preview_pending.append(
                         (command, picn, l, change_aspect, t, self.preview_counter,
-                         event.x(), event.y(), use_existing)
+                         event.position().x(), event.position().y(), use_existing)
                     )
                 if ui.live_preview == 'fast' and self.preview_process.processId() == 0:
                     if os.path.isfile(newpicn):
-                        self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
+                        self.apply_pic(newpicn, event.position().x(), event.position().y(), l, resize=True)
                     else:
-                        self.apply_pic(picn, event.x(), event.y(), l, resize=True)
+                        self.apply_pic(picn, event.position().x(), event.position().y(), l, resize=True)
                 elif ui.live_preview == 'fast' and self.preview_process.processId() > 0:
-                    self.apply_pic(picn, event.x(), event.y(), l, resize=True, only_text=True)
+                    self.apply_pic(picn, event.position().x(), event.position().y(), l, resize=True, only_text=True)
                     
                 
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, use_existing=None, lock=None):
@@ -858,12 +858,12 @@ class VolumeSlider(QtWidgets.QSlider):
     def mouseMoveEvent(self, event):
         if ui.frame1.isHidden():
             ui.frame1.show()
-        pos = int((event.x()/self.width())*100)
+        pos = int((event.position().x()/self.width())*100)
     
     def mousePressEvent(self, event):
         self.pressed = True
         self.release = False
-        pos = int((event.x()/self.width())*100)
+        pos = int((event.position().x()/self.width())*100)
         while not self.release:
             print(pos, self.value())
             if pos > self.value():
