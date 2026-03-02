@@ -18,8 +18,7 @@ class WidgetStyleSheet:
         else:
             desktop_session = dsession
 
-    # ── NEW: single method for the dark glass sidebar ─────────────────────────
-    def _apply_dark_glass_sidebar(self):
+    def _apply_glass_sidebar(self):
         """
         Styles only dockWidget_3 and the widgets inside it with a dark-glass look.
         Call this at the END of any apply_stylesheet() branch so it always wins.
@@ -34,7 +33,9 @@ class WidgetStyleSheet:
         # ── dockWidget_3 sidebar container ────────────────────────────────────────────
         gui.dockWidget_3.setStyleSheet("""
             QFrame {
-                background: rgba(14, 14, 20, 0.92);
+                background:rgba(0, 0, 0, 50%);
+                border:rgba(0, 0, 0, 30%);
+                border-radius:3px;
                 border-right: 1px solid rgba(255, 255, 255, 0.07);
             }
         """)
@@ -128,12 +129,14 @@ class WidgetStyleSheet:
                 border-color: rgba(255, 255, 255, 0.14);
                 color: white;
             }}
-            QComboBox::drop-down {{ border: none; width: 20px; }}
+            QComboBox::drop-down {{ 
+                border-radius:3px;
+                border: none; width: 20px; 
+            }}
             QComboBox::down-arrow {{ width: 0px; height: 0px; }}
             QComboBox QAbstractItemView {{
-                background: rgba(20, 20, 28, 0.97);
-                border: 1px solid rgba(255, 255, 255, 0.10);
-                color: rgba(255, 255, 255, 0.75);
+                background:rgba(0, 0, 0, 50%);
+                border:rgba(0, 0, 0, 30%);
                 font-family: {font};
                 font-size: {size}px;
                 padding: 4px;
@@ -250,6 +253,27 @@ class WidgetStyleSheet:
             }}
         """.format(size=size))
 
+        gui.player_menu.setStyleSheet("""
+            QMenu {
+                background: rgba(0, 0, 0, 0.40);
+                border: 1px solid rgba(255, 255, 255, 0.10);
+                color: rgba(255, 255, 255, 0.75);
+                padding: 4px;
+            }
+            QMenu::item {
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 6px;
+                padding: 4px 16px;
+                margin: 2px 4px;
+                min-height: 24px;
+            }
+            QMenu::item:selected {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: white;
+            }
+        """)
     # ─────────────────────────────────────────────────────────────────────────
             
     def change_list2_style(self, mode=None):
@@ -274,8 +298,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
                 color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
-                QMenu{{color:black;
-                background-image:url('1.png');}}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(height, gui.list_text_color, gui.list_text_color_focus,bold=font_bold))
         elif gui.player_theme == 'system':
             gui.list2.setAlternatingRowColors(True)
@@ -370,8 +411,25 @@ class WidgetStyleSheet:
                         """)
                 else:
                     web.setStyleSheet(
-                        """QMenu{color:black;
-                        background-image:url('1.png');}""")
+                        """QMenu {
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }
+                    QMenu::item {
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }
+                    QMenu::item:selected {
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }""")
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
@@ -404,7 +462,7 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, 30%);
                     """.format(alpha=alpha, bold=font_bold,
                                color=gui.list_text_color, font_size=font_size))
-            for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3,  # dockWidget_3 still gets base frame style
+            for frame in [gui.frame2, gui.frame1, gui.frame_web, gui.dockWidget_3,  # dockWidget_3 still gets base frame style
                           gui.goto_epn, gui.btnWebReviews,
                           gui.frame_extra_toolbar.child_frame,
                           gui.frame_extra_toolbar.tab_frame,
@@ -428,7 +486,7 @@ class WidgetStyleSheet:
                     label_alpha = '30%'
                     min_height = ''
                 frame.setStyleSheet("""
-                    QFrame{{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}}
+                    QFrame{{background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 30%);}}
                     QPushButton{{
                         background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, {alpha});
                         color: {color}; font: {bold};
@@ -494,9 +552,13 @@ class WidgetStyleSheet:
                     border-radius: 3px;
                     }}
                     QToolTip {{
-                    font : {bold} {size}px {font};
-                    color: black;
-                    background:rgb(54, 60, 74);
+                        font : {bold} {size}px {font};
+                        background: rgba(20, 20, 28, 0.97);
+                        color: rgba(255, 255, 255, 0.85);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        border-radius: 6px;
+                        font-size: {size}px;
+                        padding: 4px 8px;
                     }}
                     
                     QCheckBox{{
@@ -524,7 +586,11 @@ class WidgetStyleSheet:
                     )
             gui.player_opt.setStyleSheet("""
                 QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
-                QPushButton{border-radius:0px;max-height:64px;}
+                QPushButton{
+                    border-radius:0px;
+                    max-height:64px;
+                    background:rgba(0, 0, 0, 50%);
+                }
                 QPushButton:hover{background-color: yellow;color: black;}
                 """)
             
@@ -669,9 +735,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:inactive {{
                 border:rgba(0, 0, 0, 30%);
                 }}
-                QMenu{{
-                    font: 12px;color:black;background-image:url('1.png');
-                }}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus, bold=font_bold))
             for widget in [gui.scrollArea, gui.scrollArea1]:
                 widget.setStyleSheet("""
@@ -686,8 +768,24 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:inactive {{
                     border:rgba(0, 0, 0, 30%);
                     }}
-                    QMenu{{
-                        font: 12px;color:black;background-image:url('1.png');
+                    QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
                     }}
                     """.format(bold=font_bold))
             for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
@@ -710,8 +808,24 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:inactive {{
                     border:rgba(0, 0, 0, 30%);
                     }}
-                    QMenu{{
-                        font: 12px;color:black;background-image:url('1.png');
+                    QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
                     }}
                     """.format(gui.list_text_color, gui.list_text_color_focus, border,bold=font_bold, height=gui.global_font_size*3))
             if gui.list_with_thumbnail:
@@ -727,8 +841,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
                 color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
-                QMenu{{font: 12px;color:black;
-                background-image:url('1.png');}}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(ht, gui.list_text_color, gui.list_text_color_focus, bold=font_bold))
             for widget in [gui.progress, gui.progressEpn]:
                 widget.setStyleSheet("""QProgressBar{{
@@ -779,8 +910,8 @@ class WidgetStyleSheet:
                 """.format(bold=font_bold, font=gui.global_font,
                            size=gui.global_font_size+3, color=gui.list_text_color)
                         )
-            # ── apply dark glass sidebar on top of default theme ──────────────
-            self._apply_dark_glass_sidebar()
+            # ── apply glass sidebar on top of default theme ──────────────
+            self._apply_glass_sidebar()
 
         elif widget == gui.list2 and (theme is None or theme in ['default', 'transparent', 'mix']):
             if gui.list_with_thumbnail:
@@ -795,8 +926,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
                 color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
-                QMenu{{font: 12px;color:black;
-                background-image:url('1.png');}}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(ht, gui.list_text_color, gui.list_text_color_focus))
         elif theme == 'system':
             bgcol = gui.frame1.palette().color(QtWidgets.QWidget.backgroundRole(gui.frame1))
@@ -824,16 +972,20 @@ class WidgetStyleSheet:
                 #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
                     #widget.setAlternatingRowColors(False)
-                    widget.setStyleSheet("""QListWidget{{
-                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
+                    widget.setStyleSheet("""
+                    QListWidget{{
+                        border-radius:3px;
+                        background-color :{1};
+                        border: 1px solid rgba(0,0,0,20%);
                     }}
                     QListWidget:item {{
-                    height: {height}px;
+                        height: {height}px;
                     }}
                     QListWidget:item:selected:active {{
-                    background:rgba(0, 0, 0, 10%);
-                    color: {0};
+                        background:rgba(0, 0, 0, 10%);
+                        color: {0};
                     }}
+                    
                     """.format(gui.list_text_color_focus, bgcolor, height=gui.global_font_size*3))
                 if gui.list_with_thumbnail:
                     ht = '128px'
@@ -890,8 +1042,6 @@ class WidgetStyleSheet:
                     QProgressBar:chunk {{
                     background-color:{bgcolor};
                     }}""".format(bgcolor=bgcolor))
-            # ── dark glass sidebar for system theme too ───────────────────────
-            self._apply_dark_glass_sidebar()
             
         elif theme == 'dark':
             alpha = '30%'
@@ -1304,5 +1454,5 @@ class WidgetStyleSheet:
                                red=red, green=green, blue=blue, size=gui.global_font_size,
                                redm=redm, greenm=greenm, bluem=bluem)
                             )
-                # ── dark glass sidebar on top of dark theme ───────────────────
-                self._apply_dark_glass_sidebar()
+                # ── glass sidebar on top of dark theme ───────────────────
+                self._apply_glass_sidebar()
