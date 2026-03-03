@@ -22,6 +22,7 @@ const state = {
     playing: false,
     currentTime: 0,
     duration: 0,
+    initialDuration: 0,
     volume: 75,
     syncInterval: null,
     previousIndex: -1,
@@ -370,7 +371,11 @@ function initBrowserPlayer() {
     // Add event listeners
     videoPlayer.addEventListener('timeupdate', updateProgress);
     videoPlayer.addEventListener('loadedmetadata', () => {
-        state.duration = videoPlayer.duration;
+        if (videoPlayer.duration <= 0) {
+            state.duration = state.initialDuration;
+        } else {
+            state.duration = videoPlayer.duration;
+        }
         document.getElementById('totalTime').textContent = formatTime(state.duration);
     });
     videoPlayer.addEventListener('play', () => {
@@ -461,13 +466,25 @@ function updateProgress() {
     if (!videoPlayer) return;
     
     state.currentTime = videoPlayer.currentTime;
-    state.duration = videoPlayer.duration;
-    
+
+    // Prefer manually set initialDuration (from transcode API response)
+    if (state.initialDuration > 0) {
+        state.duration = state.initialDuration;
+    } else if (isFinite(videoPlayer.duration) && videoPlayer.duration > 0) {
+        state.duration = videoPlayer.duration;
+    }
+
     const progressFill = document.getElementById('progressFill');
     const currentTimeEl = document.getElementById('currentTime');
+    const totalTime = document.getElementById('totalTime');
     
-    const percentage = (state.currentTime / state.duration) * 100;
-    progressFill.style.width = `${percentage}%`;
+    if (state.duration > 0) {
+        const percentage = (state.currentTime / state.duration) * 100;
+        progressFill.style.width = `${percentage}%`;
+        totalTime.textContent = formatTime(state.duration);
+        console.log(totalTime.textContent, "what..", state.initialDuration)
+    }
+
     currentTimeEl.textContent = formatTime(state.currentTime);
 }
 
@@ -1344,6 +1361,7 @@ async function startAutoTranscode(episode) {
 
             if (data.duration) {
                 state.duration = data.duration;
+                state.initialDuration  = data.duration;
                 document.getElementById('totalTime').textContent = formatTime(data.duration);
             }
 
