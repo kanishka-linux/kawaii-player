@@ -102,6 +102,7 @@ class HLSTranscoder:
         
         playlist_path = os.path.join(cache_dir_path, 'playlist.m3u8')
         
+        duration = self._get_video_duration(video_path)
         # Check if already exists and completed
         if os.path.exists(playlist_path):
             finished_file = os.path.join(cache_dir_path, '.finished')
@@ -110,7 +111,8 @@ class HLSTranscoder:
                     'success': True,
                     'url': f'/cache/{cache_dirname}/playlist.m3u8',
                     'status': 'completed',
-                    'progress': 100
+                    'progress': 100,
+                    'duration': duration,
                 }
         
         job_key = f"{video_path}_hls_{video_index}_{audio_index}"
@@ -123,10 +125,10 @@ class HLSTranscoder:
                 'url': f'/cache/{cache_dirname}/playlist.m3u8',
                 'status': job.get('status', 'processing'),
                 'progress': job.get('progress', 0),
+                'duration': duration,
                 'eta': job.get('eta', 'calculating...')
             }
         
-        duration = self._get_video_duration(video_path)
         settings = self._get_h264_settings()
         estimated_size = self._estimate_file_size(duration, settings['bitrate'])
         self.estimated_file_size[cache_dirname] = estimated_size
@@ -154,7 +156,8 @@ class HLSTranscoder:
             'status': 'processing',
             'progress': 0,
             'message': 'HLS transcoding started',
-            'estimated_size': estimated_size
+            'estimated_size': estimated_size,
+            'duration': duration
         }
     
     def _transcode_worker(self, video_path, video_index, audio_index, output_dir, job_key, duration):

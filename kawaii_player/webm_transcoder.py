@@ -97,6 +97,7 @@ class WebMTranscoder:
         cache_filename = self._generate_cache_key(video_path, video_index, audio_index)
         cache_path = os.path.join(self.cache_dir, cache_filename)
         
+        duration = self._get_video_duration(video_path)
         # Check if already exists
         if os.path.exists(cache_path):
             file_size = os.path.getsize(cache_path)
@@ -106,7 +107,8 @@ class WebMTranscoder:
                     'url': f'/cache/{cache_filename}',
                     'status': 'completed',
                     'progress': 100,
-                    'size': file_size
+                    'size': file_size,
+                    'duration': duration
                 }
         
         job_key = f"{video_path}_webm_{video_index}_{audio_index}"
@@ -119,10 +121,10 @@ class WebMTranscoder:
                 'url': f'/cache/{cache_filename}',
                 'status': job.get('status', 'processing'),
                 'progress': job.get('progress', 0),
-                'eta': job.get('eta', 'calculating...')
+                'eta': job.get('eta', 'calculating...'),
+                'duration': duration
             }
         
-        duration = self._get_video_duration(video_path)
         settings = self._get_vp8_settings()
         estimated_size = self._estimate_file_size(duration, settings['bitrate'])
         self.estimated_file_size[cache_filename] = estimated_size
@@ -150,7 +152,8 @@ class WebMTranscoder:
             'status': 'processing',
             'progress': 0,
             'message': 'WebM transcoding started',
-            'estimated_size': estimated_size
+            'estimated_size': estimated_size,
+            'duration': duration
         }
     
     def _transcode_worker(self, video_path, video_index, audio_index, output_path, job_key, duration):
