@@ -41,10 +41,10 @@ from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import send_notification, write_files, open_files
-from player_functions import get_lan_ip, ccurl, naturallysorted, change_opt_file
+from player_functions import get_lan_ip, naturallysorted, change_opt_file
 from settings_widget import LoginAuth
 from serverlib import ServerLib
 from simple_auth import require_admin_auth, handle_auth_routes
@@ -1371,17 +1371,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         self.process_POST()
                 elif ui.access_from_outside_network:
                     if not ui.my_public_ip:
-                        try:
-                            logger.debug('trying to get external public ip')
-                            my_ip = str(ccurl('https://diagnostic.opendns.com/myip'))
-                            try:
-                                new_ip_object = ipaddress.ip_address(my_ip)
-                            except Exception as e:
-                                print(e)
-                                my_ip = None
-                        except Exception as e:
-                            print(e)
-                            my_ip = None
+                        # TODO: remove this check
+                        pass
                     else:
                         my_ip = ui.my_public_ip
                     if my_ip:
@@ -5503,7 +5494,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 b = b'Youtube Quick Command Received by Server. Trying To Play Video Directly'
                 self.final_message(b)
                 logger.debug(path)
-                url = self.path.replace('/youtube_quick=', '', 1)
+                url = path.replace('youtube_quick=', '', 1)
                 logger.debug(url)
                 if url.startswith('http') or url.startswith('magnet:'):
                     if ui.web_control == "slave":
@@ -5707,13 +5698,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         loc = os.path.join(loc_dir, title+'.mp4')
         ok_val = False
         if captions and url:
-            sub_name_bytes = bytes(loc, 'utf-8')
-            h = hashlib.sha256(sub_name_bytes)
-            sub_name = h.hexdigest()
-            #get_yt_sub_(
-            #    url, sub_name, ui.yt_sub_folder, TMPDIR, ui.ytdl_path, logger)
+            pass
         try:
-            ccurl(nm+'#'+'-o'+'#'+loc)
+            ui.vnt.get(nm, out=loc)
             ok_val = True
         except Exception as e:
             print(e)
@@ -5788,14 +5775,14 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             img_url = ui.create_img_url(path)
             logger.debug(img_url)
             if not os.path.exists(thumb_path) and img_url:
-                ccurl(img_url, curl_opt='-o', out_file=thumb_path)
+                ui.vnt_sync.get(img_url, out=thumb_path)
                 got_http_image = True
         elif path.startswith('http') and 'abs_path=' in path:
             img_url = path
             if not path.endswith('.image'):
                 img_url = path + '.image'
             if not os.path.exists(thumb_path) and img_url:
-                ccurl(img_url, curl_opt='-o', out_file=thumb_path)
+                ui.vnt_sync.get(img_url, out=thumb_path)
                 got_http_image = True
         logger.debug("path:--thumbnail--{0}".format(path))
         if ((not os.path.exists(thumb_path) and not path.startswith('http') 

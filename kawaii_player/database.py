@@ -30,8 +30,8 @@ import re
 from typing import Optional, List, Tuple, Dict, Any
 import traceback
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import open_files, send_notification
 
 try:
@@ -1645,6 +1645,12 @@ class MediaDatabase():
             summary = data.get('summary', '')
             series_type = data.get('type', '') 
 
+        if series_type in [None, ""]:
+            series_type = "series"
+        if summary in [None, ""]:
+            summary = "N/A"
+        else:
+            summary = f"{title}\n\n{summary}"
         conn.commit()
         conn.close()
         return image_path, summary, series_type

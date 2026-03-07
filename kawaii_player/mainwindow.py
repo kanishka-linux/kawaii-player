@@ -1,7 +1,7 @@
 import os
 import shutil
 from functools import partial
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt6 import QtCore, QtWidgets, QtGui
 
 
 class MainWindowWidget(QtWidgets.QWidget):
@@ -34,7 +34,7 @@ class MainWindowWidget(QtWidgets.QWidget):
     def resizeEvent(self, event):
         if "ui" in globals():
             if hasattr(ui, "screen_size") and hasattr(ui, "gui_signals"):
-                rect = self.app.desktop().availableGeometry(self)
+                rect = self.app.primaryScreen().geometry()
                 size_tuple = (rect.width(), rect.height())
                 if ui.screen_size == size_tuple:
                     ui.logger.debug("same screen dimensions")
@@ -144,7 +144,7 @@ class MainWindowWidget(QtWidgets.QWidget):
                 ht = self.height()
                 if pos.y() <= ht and pos.y() > ht - 5 and ui.frame1.isHidden():
                     ui.frame1.show()
-                    ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+                    ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
                 elif pos.y() <= ht-32 and not ui.frame1.isHidden():
                     site = ui.get_parameters_value(s='site')['site']
                     if site != 'Music' and ui.list2.isHidden() and ui.tab_6.isHidden() and ui.tab_2.isHidden():
@@ -160,7 +160,7 @@ class EventFilterFloatWindow(QtCore.QObject):
         
     def eventFilter(self, receiver, event):
         if event.type():
-            if(event.type() == QtCore.QEvent.Enter):
+            if(event.type() == QtCore.QEvent.Type.Enter):
                 if ui.float_timer.isActive():
                     ui.float_timer.stop()
                 if ui.new_tray_widget.hasFocus():
@@ -168,7 +168,7 @@ class EventFilterFloatWindow(QtCore.QObject):
                 else:
                     print('unFocus')
                 return 0
-            elif(event.type() == QtCore.QEvent.Leave):
+            elif(event.type() == QtCore.QEvent.Type.Leave):
                 if ui.new_tray_widget.remove_toolbar:
                     if ui.float_timer.isActive():
                         ui.float_timer.stop()
