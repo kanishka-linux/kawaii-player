@@ -295,7 +295,7 @@ def find_and_set_index(st, st_o, srch):
     dir_exact = None
     title_exact = None
     if "&db_title=" in srch:
-        dir_exact, title_exact = srch.split("&db_title=")
+        dir_exact, title_exact = urllib.parse.unquote(srch).split("&db_title=")
 
     for i, val in enumerate(ui.original_path_name):
         val = val.strip()
