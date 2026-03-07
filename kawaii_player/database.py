@@ -937,7 +937,6 @@ class MediaDatabase():
             """, (db_title, ))
 
             paths = [row[0] for row in cur.fetchall()]
-            print(paths, db_title)
             paths.sort()
 
             # restore default EP_NAMES and Ordering
@@ -989,6 +988,35 @@ class MediaDatabase():
 
         return success
 
+    def reset_only_series_episodes(self, db_title):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        success = False
+        try:
+            cur.execute("""
+                select Path from Video where Title = ?
+            """, (db_title, ))
+
+            paths = [row[0] for row in cur.fetchall()]
+            paths.sort()
+
+            # restore default EP_NAMES and Ordering
+            for index, path in enumerate(paths):
+                ep_name  = os.path.basename(path)
+                ep_name = re.sub(r'-|_|\.', ' ', ep_name)
+                cur.execute("""
+                    update Video set EPN = ?, EP_NAME = ? where Path = ?
+                """, (index, ep_name, path))
+
+            conn.commit()
+            conn.close()
+            success = True
+        except Exception as err:
+            self.logger.error(f"error in resetting episode details: {db_title}, err: {str(err)}")
+            conn.rollback()
+            conn.close()
+
+        return success
 
     def get_series_count(self, filters: Dict[str, Any]) -> int:
         """Get total count of series matching filters"""

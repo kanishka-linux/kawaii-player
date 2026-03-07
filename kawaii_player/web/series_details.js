@@ -229,6 +229,10 @@ class SeriesDetailsApp {
             <span class="fetch-icon">🎨</span>
             <span class="fetch-text">Fetch Fanart</span>
           </button>
+          <button class="fetch-btn fetch-reset-episodes-btn" id="fetch-reset-episodes-btn" title="Reset episodes">
+            <span class="fetch-icon">🗑️</span>
+            <span class="fetch-text">Reset Episodes</span>
+          </button>
         </div>
       `;
     }
@@ -236,6 +240,7 @@ class SeriesDetailsApp {
     setupFetchMediaHandlers() {
       const metadataBtn = document.getElementById('fetch-metadata-btn');
       const fanartBtn = document.getElementById('fetch-fanart-btn');
+      const resetEpisodesBtn = document.getElementById('fetch-reset-episodes-btn');
       
       if (metadataBtn) {
         metadataBtn.addEventListener('click', () => {
@@ -248,6 +253,95 @@ class SeriesDetailsApp {
           this.showFetchMediaDialog('fanart');
         });
       }
+
+      if (resetEpisodesBtn) {
+        resetEpisodesBtn.addEventListener('click', () => {
+            this.showResetEpisodesDialog();
+        });
+      }
+    }
+
+    showResetEpisodesDialog() {
+      const title = this.seriesData?.series_info?.db_title;
+
+      const modalHtml = `
+        <div class="fetch-modal-overlay active" id="reset-episodes-overlay">
+          <div class="fetch-modal-dialog">
+            <div class="fetch-modal-title">🗑️ Reset Episodes</div>
+            <div class="fetch-modal-subtitle">This will reset all episodes for <strong>${this.escapeHtml(title)}</strong>. This action cannot be undone.</div>
+            <div class="fetch-modal-buttons">
+              <button class="fetch-modal-btn fetch-modal-btn-cancel" id="reset-episodes-cancel-btn">Cancel</button>
+              <button class="fetch-modal-btn fetch-modal-btn-confirm" id="reset-episodes-confirm-btn" style="background:#e53935;">Reset Episodes</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const modalContainer = document.createElement('div');
+      modalContainer.id = 'reset-episodes-container';
+      modalContainer.innerHTML = modalHtml;
+      document.body.appendChild(modalContainer);
+
+      const overlay = document.getElementById('reset-episodes-overlay');
+      const confirmBtn = document.getElementById('reset-episodes-confirm-btn');
+      const cancelBtn = document.getElementById('reset-episodes-cancel-btn');
+
+      const closeModal = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+          const container = document.getElementById('reset-episodes-container');
+          if (container?.parentNode) container.parentNode.removeChild(container);
+        }, 200);
+      };
+
+      cancelBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+      const escapeHandler = (e) => {
+        if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escapeHandler); }
+      };
+      document.addEventListener('keydown', escapeHandler);
+
+      confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="fetch-loading-spinner"></span>Resetting...';
+
+        try {
+          await this.resetSeriesEpisodes(title);
+          closeModal();
+          this.showMessage('Success', 'Episodes reset successfully!', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } catch (error) {
+          console.error('Reset episodes error:', error);
+          this.showMessage('Error', error.message || 'Failed to reset episodes', 'error');
+          confirmBtn.disabled = false;
+          cancelBtn.disabled = false;
+          confirmBtn.innerHTML = 'Reset Episodes';
+        }
+      });
+    }
+
+    async resetSeriesEpisodes(dbTitle) {
+      const response = await fetch('/admin/series-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          action: 'reset_only_series_episodes',
+          db_title: dbTitle,
+          reason: 'reset_entry'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || 'Reset episodes failed');
+      return result;
     }
 
     showFetchMetadataDialog() {
