@@ -2805,3 +2805,191 @@ textarea:focus {
         font-size: 1rem;
     }
 }
+
+/* Edit Multiple Episodes - Compact Styles */
+
+.edit-mode-option {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fafafa;
+    margin-bottom: 15px;
+}
+
+.edit-mode-radio-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.edit-mode-radio-group input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #007bff;
+}
+
+.edit-mode-radio-group input[type="radio"]:focus {
+    outline: none;
+}
+
+.edit-mode-radio-group label {
+    cursor: pointer;
+    margin: 0;
+    font-size: 14px;
+}
+
+.edit-mode-content {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; max-height: 0; overflow: hidden; }
+    to { opacity: 1; max-height: 500px; overflow: visible; }
+}
+
+#edit-mode-preview-mappings-content {
+    display: none;
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+#edit-mode-preview-mappings-content thead {
+    background: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+}
+
+#edit-mode-preview-mappings-content th {
+    padding: 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+}
+
+#edit-mode-preview-mappings-content tbody tr {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+#edit-mode-preview-mappings-content tbody tr:hover {
+    background: #f9f9f9;
+}
+
+#edit-mode-preview-mappings-content td {
+    padding: 8px 10px;
+    word-break: break-all;
+    color: #555;
+}
+
+#edit-mode-preview-mappings-content .edit-mode-file-path {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #666;
+    background: #f9f9f9;
+    border-right: 1px solid #eee;
+    max-width: 60%;
+    word-break: break-word;
+}
+
+#edit-mode-preview-mappings-content .edit-mode-preview-result {
+    color: #007bff;
+    font-weight: 500;
+}
+
+#edit-mode-preview-section.edit-mode-expanded {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 6px;
+    background: #f5f9ff;
+}
+
+.edit-mode-preview-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 10px 0;
+    color: #007bff;
+    text-align: left;
+    width: 100%;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    outline: none;
+}
+
+.edit-mode-preview-toggle-btn:hover {
+    color: #0056b3;
+}
+
+.edit-mode-preview-toggle-btn:focus {
+    outline: none;
+}
+
+.edit-mode-content .field-help {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Episode List Styles */
+.episode-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.episode-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.episode-item:last-child {
+    border-bottom: none;
+}
+
+.episode-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.episode-path {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #666;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+    .edit-mode-option { padding: 12px; margin-bottom: 12px; }
+    .edit-mode-radio-group { gap: 8px; flex-wrap: wrap; }
+    .edit-mode-radio-group label { font-size: 13px; }
+    #edit-mode-preview-mappings-content { font-size: 12px; }
+    #edit-mode-preview-mappings-content th,
+    #edit-mode-preview-mappings-content td { padding: 6px 8px; }
+    .episode-list { max-height: 200px; }
+}
+
+@media (prefers-color-scheme: dark) {
+    .edit-mode-option { background: #2a2a2a; border-color: #444; }
+    #edit-mode-preview-section.edit-mode-expanded { background: #1a2a3a; border-color: #444; }
+    #edit-mode-preview-mappings-content thead { background: #333; border-color: #555; }
+    #edit-mode-preview-mappings-content tbody tr { border-color: #444; }
+    #edit-mode-preview-mappings-content tbody tr:hover { background: #2a2a2a; }
+    #edit-mode-preview-mappings-content td { color: #ccc; }
+    .edit-mode-preview-toggle-btn { color: #66b3ff; }
+    .edit-mode-preview-toggle-btn:hover { color: #99ccff; }
+    .episode-list { border-color: #444; background: #2a2a2a; }
+    .episode-item { border-bottom-color: #3a3a3a; }
+    .episode-path { color: #aaa; }
+}

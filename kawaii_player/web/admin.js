@@ -2081,60 +2081,213 @@ class AdminPanel {
         this.openMultiplePathsEditModal(selectedPaths);
     }
 
-    // FIXED: Remove escapeHtml from JSON string
+    generateNumberedTitles(count, startNumber = 1) {
+        const titles = [];
+        for (let i = 0; i < count; i++) {
+            const episodeNum = startNumber + i;
+            const formatted = `EP${episodeNum.toString().padStart(2, '0')}`;
+            titles.push(formatted);
+        }
+        return titles;
+    }
+
+    updatePreviewMappings() {
+        const mode = document.querySelector('input[name="edit-mode-rename-mode"]:checked').value;
+        const previewContainer = document.getElementById('edit-mode-preview-mappings-content');
+        if (!previewContainer) return;
+
+        let rows = '';
+        const paths = this.currentEditPaths || [];
+         
+        if (mode === 'both') {
+            const baseTitle = document.getElementById('edit-mode-both-title-input').value.trim() || '[Enter title]';
+            const startNum = parseInt(document.getElementById('edit-mode-both-numbers-start').value) || 1;
+            const numbers = this.generateNumberedTitles(paths.length, startNum);
+            paths.forEach((path, i) => {
+                const combined = `${baseTitle} - ${numbers[i]}`;
+                rows += `<tr><td class="edit-mode-file-path">${this.escapeHtml(path)}</td><td class="edit-mode-preview-result">${this.escapeHtml(combined)}</td></tr>`;
+            });
+        }
+        
+        previewContainer.innerHTML = rows || '<tr><td colspan="2" style="text-align:center;color:#999;">No preview</td></tr>';
+    }
+
+    // togglePreviewSection()
+    togglePreviewSection() {
+        const btn = document.getElementById('edit-mode-preview-toggle-btn');
+        const content = document.getElementById('edit-mode-preview-mappings-content');
+        const section = document.getElementById('edit-mode-preview-section');
+        
+        if (!btn || !content || !section) return;
+        
+        const isExpanded = section.classList.contains('edit-mode-expanded');
+        if (isExpanded) {
+            section.classList.remove('edit-mode-expanded');
+            btn.textContent = '▶ Preview';
+            content.style.display = 'none';
+        } else {
+            section.classList.add('edit-mode-expanded');
+            btn.textContent = '▼ Preview';
+            content.style.display = 'table';
+            this.updatePreviewMappings();
+        }
+    }
+
+    // onModeChange()
+    onModeChange() {
+        const mode = document.querySelector('input[name="edit-mode-rename-mode"]:checked').value;
+        document.getElementById('edit-mode-title-only-section').style.display = mode === 'title-only' ? 'block' : 'none';
+        document.getElementById('edit-mode-both-section').style.display = mode === 'both' ? 'block' : 'none';
+        previewSection.style.display = mode === 'both' ? 'block' : 'none';
+        this.updatePreviewMappings();
+    }
+
+    // submitMultiplePathsEdit()
+    async submitMultiplePathsEdit(event) {
+        event.preventDefault();
+        
+        const videoPaths = this.currentEditPaths || [];
+        if (videoPaths.length === 0) {
+            this.showErrorMessage("No episodes selected");
+            return;
+        }
+        
+        const mode = document.querySelector('input[name="edit-mode-rename-mode"]:checked').value;
+        const formData = { action: 'update_multiple_paths', video_paths: videoPaths };
+        
+        // Mode 1: Title Only
+        if (mode === 'title-only') {
+            const newTitle = document.getElementById('edit-mode-title-only-input').value.trim();
+            if (!newTitle) { this.showErrorMessage('Enter a title'); return; }
+            formData.new_title = newTitle;
+        }
+        // Mode 2: Both Title & Numbers
+        else if (mode === 'both') {
+            const baseTitle = document.getElementById('edit-mode-both-title-input').value.trim();
+            if (!baseTitle) { this.showErrorMessage('Enter a series title'); return; }
+            const startNum = parseInt(document.getElementById('edit-mode-both-numbers-start').value) || 1;
+            formData.new_title = baseTitle;
+            formData.episode_ordered_names = this.generateNumberedTitles(videoPaths.length, startNum);
+        }
+        
+        try {
+            this.showUpdateProgress('Updating...');
+            const response = await fetch('/admin/series-update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) throw new Error('Update failed');
+            const result = await response.json();
+            
+            if (result.success) {
+                this.currentEditPaths = null;
+                this.closeEditModal();
+                await this.loadTitles();
+                this.showSuccessMessage(result.message);
+                this.selectedEpisodes.clear();
+                this.updateSelectionUI();
+                if (this.currentTitle) {
+                    await this.showTitleDetails(this.currentTitle.directory_hash, this.currentTitle.title);
+                }
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            this.currentEditPaths = null;
+            this.showErrorMessage('Update failed: ' + error.message);
+        }
+    }
+
     
     openMultiplePathsEditModal(selectedPaths) {
         const pathsToSend = selectedPaths || [];
-        console.log("Paths to send in modal:", pathsToSend); // Debug log
+        console.log("Paths to send in modal:", pathsToSend);
         
         this.currentEditPaths = pathsToSend;
-
+        
+        // Build episode list with proper escaping
+        const episodeListHTML = pathsToSend.map(path => `
+            <div class="episode-item">
+                <div class="episode-path">${this.escapeHtml(path)}</div>
+            </div>
+        `).join('');
+        
         const modalHTML = `
             <div id="edit-modal" class="details-panel active">
                 <div class="details-header">
-                    <h3>Edit Multiple Episodes</h3>
+                    <h3>Edit Multiple Episodes (${pathsToSend.length})</h3>
                     <button class="details-close" onclick="admin.closeEditModal()">&times;</button>
                 </div>
                 
                 <div class="details-content">
-                    <div class="edit-info">
-                        Editing ${pathsToSend.length} episode(s). Only the title will be updated.
-                    </div>
-                    
-                    <form id="edit-form" onsubmit="admin.submitMultiplePathsEdit(event)">
+                    <form id="edit-mode-form" onsubmit="admin.submitMultiplePathsEdit(event)">
                         
-                        <div class="details-section">
-                            <h4>Episode Information</h4>
-                            <div class="series-field">
-                                <span class="field-label">New Title:</span>
-                                <input type="text" id="paths-new-title" placeholder="Enter new title for all selected episodes" required class="field-input">
+                        <!-- Mode 1: Title Only -->
+                        <div class="edit-mode-option">
+                            <div class="edit-mode-radio-group">
+                                <input type="radio" id="edit-mode-title" name="edit-mode-rename-mode" value="title-only" checked onchange="admin.onModeChange()">
+                                <label for="edit-mode-title"><strong>Title Only</strong></label>
+                            </div>
+                            <div class="field-help">All episodes will get the same title</div>
+                            <div id="edit-mode-title-only-section" class="edit-mode-content">
+                                <input type="text" id="edit-mode-title-only-input" placeholder="Enter new title" onkeyup="admin.updatePreviewMappings()" class="field-input">
                             </div>
                         </div>
-
-                        <div class="details-section">
+                        
+                        <!-- Mode 2: Title + Episode Numbers -->
+                        <div class="edit-mode-option">
+                            <div class="edit-mode-radio-group">
+                                <input type="radio" id="edit-mode-both" name="edit-mode-rename-mode" value="both" onchange="admin.onModeChange()">
+                                <label for="edit-mode-both"><strong>Title + Episode Numbers</strong></label>
+                            </div>
+                            <div class="field-help">Each episode will be numbered in order (Series - EP01, Series - EP02...)</div>
+                            <div id="edit-mode-both-section" class="edit-mode-content" style="display:none;">
+                                <div style="margin-left:30px;margin-top:10px;">
+                                    <span class="field-label">Series Title:</span>
+                                    <input type="text" id="edit-mode-both-title-input" placeholder="Series name" onkeyup="admin.updatePreviewMappings()" class="field-input">
+                                </div>
+                                <div style="margin-left:30px;margin-top:10px;">
+                                    <span class="field-label">Starting from:</span>
+                                    <input type="number" id="edit-mode-both-numbers-start" value="1" min="1" onchange="admin.updatePreviewMappings()" class="field-input" style="max-width:100px;">
+                                    <div class="field-help">Creates: Series - EP01, Series - EP02...</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Section -->
+                        <div class="details-section" id="edit-mode-preview-section" style="margin-top:20px;">
+                            <button type="button" id="edit-mode-preview-toggle-btn" class="edit-mode-preview-toggle-btn" onclick="admin.togglePreviewSection()">
+                                ▶ Preview
+                            </button>
+                            <table id="edit-mode-preview-mappings-content">
+                                <thead><tr><th>File Path</th><th>New Name</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Selected Episodes List -->
+                        <div class="details-section" style="margin-top:20px;">
                             <h4>Selected Episodes (${pathsToSend.length})</h4>
                             <div class="episode-list">
-                                ${pathsToSend.map(path => `
-                                    <div class="episode-item">
-                                        <div class="episode-details">
-                                            <div class="episode-path">${this.escapeHtml(path)}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
+                                ${episodeListHTML}
                             </div>
                         </div>
-
+                        
+                        <!-- Action Buttons -->
                         <div class="form-actions-details">
                             <button type="button" class="btn btn-secondary" onclick="admin.closeEditModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Update All</button>
+                            <button type="submit" class="btn btn-primary">Update Episodes</button>
                         </div>
                     </form>
                 </div>
             </div>
         `;
-
+        
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         document.body.style.overflow = 'hidden';
+        setTimeout(() => { this.updatePreviewMappings(); }, 100);
     }
 
     
@@ -3066,66 +3219,6 @@ class AdminPanel {
             }
             
         } catch (error) {
-            this.showErrorMessage('Update failed: ' + error.message);
-        }
-    }
-
-    // Type 3: Submit multiple paths edit
-    async submitMultiplePathsEdit(event) {
-        event.preventDefault();
-        
-        const videoPaths = this.currentEditPaths || [];
-        console.log("Using stored paths:", videoPaths.length, "episodes"); // Debug log
-        
-        if (videoPaths.length === 0) {
-            this.showErrorMessage("No episodes selected for editing.");
-            this.currentEditPaths = null; // Reset on error
-            return;
-        }
-        
-        const formData = {
-            action: 'update_multiple_paths',
-            video_paths: videoPaths,
-            new_title: document.getElementById('paths-new-title').value.trim()
-        };
-
-        console.log("Multiple paths form data to send:", formData.video_paths.length, "paths"); // Debug log
-
-        try {
-            this.showUpdateProgress('Updating multiple episodes...');
-            
-            const response = await fetch('/admin/series-update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            if (!response.ok) {
-                throw new Error('Update failed');
-            }
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // SUCCESS: Reset everything
-                this.currentEditPaths = null;
-                this.closeEditModal();
-                await this.loadTitles();
-                this.showSuccessMessage(result.message || 'Episodes updated successfully');
-                this.selectedEpisodes.clear();
-                this.updateSelectionUI();
-                if (this.currentTitle) {
-                    await this.showTitleDetails(this.currentTitle.directory_hash, this.currentTitle.title);
-                }
-            } else {
-                throw new Error(result.error || 'Update failed');
-            }
-            
-        } catch (error) {
-            // ERROR: Reset and show error
-            this.currentEditPaths = null;
             this.showErrorMessage('Update failed: ' + error.message);
         }
     }

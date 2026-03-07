@@ -3395,56 +3395,44 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             return {'success': False, 'error': f"Database update error: {str(e)}"}
 
     def update_multiple_paths(self, data):
-        """Update title for multiple video paths"""
-        global home, logger
+        global logger, ui
 
-        conn = sqlite3.connect(os.path.join(home, 'VideoDB', 'Video.db'))
+        video_paths = data.get('video_paths', [])
+        new_title = data.get('new_title', '').strip()
+        episode_ordered_names = data.get('episode_ordered_names', [])
+        
+        if not isinstance(video_paths, list) or not video_paths:
+            return {'success': False, 'error': 'Video paths required'}
+        
+        if not new_title and not episode_ordered_names:
+            return {'success': False, 'error': 'Either new_title or episode_ordered_names required'}
+        
+        if episode_ordered_names and len(episode_ordered_names) != len(video_paths):
+            return {'success': False, 'error': f'Mismatch: {len(video_paths)} paths vs {len(episode_ordered_names)} names'}
+        
+        if new_title and not episode_ordered_names:
+            mode_msg = f"Title Only -> '{new_title}'"
+        elif episode_ordered_names and not new_title:
+            mode_msg = "Episode Numbers Only"
+        else:
+            mode_msg = "Both Title & Numbers"
+        
+        logger.info(f"Mode: {mode_msg} - Updating {len(video_paths)} files")
+        
+        # Call DB method
         try:
-            cur = conn.cursor()
-            
-            # Handle video_paths - now expecting array directly
-            video_paths = data.get('video_paths', [])
-            
-            # Ensure it's a list
-            if not isinstance(video_paths, list):
-                logger.error(f"Warning: video_paths is not a list: {type(video_paths)} - {repr(video_paths)}")
-                video_paths = []
-                
-            new_title = data.get('new_title', '').strip()
-            
-            logger.info(f"Updating multiple paths: {len(video_paths)} files -> '{new_title}'")
-            logger.info(f"Video paths: {video_paths}")
-            
-            if not video_paths or not new_title:
-                conn.close()
-                return {'success': False, 'error': 'Video paths and new title are required'}
-
-            updated_count = 0
-            for path in video_paths:
-                cur.execute("update Video set Title = ? where Path = ?", (new_title, path))
-                if cur.rowcount == 1:
-                    logger.info(f"title successfully updated {path} => {new_title}")
-                    updated_count += 1
-                else:
-                    ui.logger.info(f"title successfully updated {path} => {new_title}")
-                    
-            if updated_count != len(video_paths):
-                raise "mismatch in updated count: video_path_count = {len(video_path)}, updated_count = {updated_count}"
-            
-            conn.commit()
-            conn.close()
+            success = ui.media_data.bulk_episode_edit(new_title, video_paths, episode_ordered_names)
+            if not success:
+                return {'success': False, 'error': 'Database operation failed'}
             
             return {
                 'success': True,
-                'message': f"Successfully updated {updated_count} episodes to '{new_title}'"
+                'message': f"Successfully updated {len(video_paths)} episodes ({mode_msg})",
+                'updated_count': len(video_paths)
             }
-            
+        
         except Exception as e:
-            logger.error(f"Error in update_multiple_paths: {e}")
-            import traceback
-            traceback.print_exc()
-            conn.rollback()
-            conn.close()
+            logger.error(f"Error: {str(e)}")
             return {'success': False, 'error': f"Database error: {str(e)}"}
 
     def serve_hls_playlist(self, cache_dirname):

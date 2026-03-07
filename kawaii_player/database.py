@@ -1018,6 +1018,42 @@ class MediaDatabase():
 
         return success
 
+    def bulk_episode_edit(self, new_title, video_paths, episode_ordered_names):
+        success = True
+        updated_count = 0
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cur = conn.cursor()
+                if new_title and video_paths:
+                    for path in video_paths:
+                        cur.execute("UPDATE Video SET Title = ? WHERE Path = ?", (new_title, path))
+                        if cur.rowcount == 1:
+                            self.logger.info(f"Title updated: {path} => {new_title}")
+                            updated_count += 1
+
+                if episode_ordered_names and video_paths:
+                    self.logger.info(f"Mode: Episode Numbers - Updating {len(video_paths)} files")
+                    for path, episode_name in zip(video_paths, episode_ordered_names):
+                        num = int(episode_name.replace('EP', '').strip()) - 1
+                        final_name = episode_name
+                        if new_title:
+                            final_name = f"{new_title} - {episode_name}"
+                        
+                        cur.execute("""
+                        UPDATE Video SET EP_NAME = ?, EPN = ? WHERE Path = ?
+                        """, (final_name, num, path))
+                        
+                        if cur.rowcount == 1:
+                            self.logger.info(f"Title updated: {path} => {final_name} (EPN: {num})")
+                            updated_count += 1
+
+        except Exception as err:
+            success = False
+            self.logger.error(f"Error: str{err}")
+
+        return success
+
+
     def get_series_count(self, filters: Dict[str, Any]) -> int:
         """Get total count of series matching filters"""
         try:
