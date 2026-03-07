@@ -931,12 +931,29 @@ class MediaDatabase():
                 """, (db_title, ))
             directory_path = cur.fetchone()[0]
             directory_name = os.path.split(directory_path)[-1]
+
+            cur.execute("""
+                select Path from Video where Title = ?
+            """, (db_title, ))
+
+            paths = [row[0] for row in cur.fetchall()]
+            print(paths, db_title)
+            paths.sort()
+
+            # restore default EP_NAMES and Ordering
+            for index, path in enumerate(paths):
+                ep_name  = os.path.basename(path)
+                ep_name = re.sub(r'-|_|\.', ' ', ep_name)
+                cur.execute("""
+                    update Video set EPN = ?, EP_NAME = ? where Path = ?
+                """, (index, ep_name, path))
+
+            # restore Title to default title based on directory name
             cur.execute("""
                     update Video
                     set Title = ?
                     where directory  = ?
                 """, (directory_name, directory_path))
-
             self.logger.info(f"{cur.rowcount} -> updated for {directory_path}")
 
             cur.execute("""
