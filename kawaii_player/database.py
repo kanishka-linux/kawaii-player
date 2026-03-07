@@ -777,24 +777,39 @@ class MediaDatabase():
     def _extract_episode_number(self, ep_name: str) -> Optional[int]:
         if not ep_name:
             return None
+
+        # Clean up: remove file extensions
         name = re.sub(r'\.\w{2,4}$', '', ep_name).lower().strip()
+
+        # Remove brackets, parentheses, braces
         name = re.sub(r'\[.*?\]', '', name)
         name = re.sub(r'\(.*?\)', '', name)
         name = re.sub(r'\{.*?\}', '', name)
         name = name.strip()
 
-        for pattern in [
-            r's\d+e(?P<num>\d+)',
-            r's\d+ep(?P<num>\d+)',
-            r'ep(?P<num>\d+)',
-            r'e(?P<num>\d+)',
-            r'episode\s*(?P<num>\d+)',
-            r'#(?P<num>\d+)',
-            r'(?<![a-z])(?<!\d)(?P<num>\d+)(?!\d)',
-        ]:
+        explicit_patterns = [
+            r's\d+e(?P<num>\d+)',      # S01E05
+            r's\d+ep(?P<num>\d+)',     # S01EP05
+            r'ep(?P<num>\d+)',         # EP01
+            r'e(?P<num>\d+)',          # E05
+            r'episode\s*(?P<num>\d+)', # Episode 5
+        ]
+
+        for pattern in explicit_patterns:
             m = re.search(pattern, name)
             if m:
                 return int(m.group('num'))
+
+        other_patterns = [
+            r'#(?P<num>\d+)',          # #01
+            r'(?<![a-z])(?<!\d)(?P<num>\d+)(?!\d)',  # standalone number
+        ]
+
+        for pattern in other_patterns:
+            m = re.search(pattern, name)
+            if m:
+                return int(m.group('num'))
+
         return None
 
     def insert_episode_details(self, suggested_title: str, episode_details: list):
