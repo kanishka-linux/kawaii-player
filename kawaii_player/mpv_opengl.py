@@ -956,12 +956,12 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.fake_mousemove_event = ("libmpv", True)
         pos = self.cursor().pos()
         if not self.pointer_moved:
-            new_point = QtCore.QPoint(pos.x() + 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() + 1, pos.y())
             self.pointer_moved = True
         else:
-            new_point = QtCore.QPoint(pos.x() - 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() - 1, pos.y())
             self.pointer_moved = False
-        self.cursor().setPos(new_point)
+        self.cursor().setPos(new_point.toPoint())
         if val == "mouse_release":
             event = QtGui.QMouseEvent(
                         QtCore.QEvent.Type.MouseButtonRelease,

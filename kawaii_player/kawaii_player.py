@@ -3863,7 +3863,7 @@ class Ui_MainWindow(object):
             self.list_poster.show()
         if self.display_device == "rpitv":
             self.send_fake_event("mouse_move")
-            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         else:
             if self.hide_titlelist_forcefully and self.list1.isHidden():
                 self.list1.show()
@@ -10768,12 +10768,12 @@ class Ui_MainWindow(object):
         self.fake_mousemove_event = ("libmpv", True)
         pos = self.tab_5.cursor().pos()
         if not self.pointer_moved:
-            new_point = QtCore.QPoint(pos.x() + 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() + 1, pos.y())
             self.pointer_moved = True
         else:
-            new_point = QtCore.QPoint(pos.x() - 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() - 1, pos.y())
             self.pointer_moved = False
-        self.tab_5.cursor().setPos(new_point)
+        self.tab_5.cursor().setPos(new_point.toPoint())
         if val == "mouse_release":
             event = QtGui.QMouseEvent(
                         QtCore.QEvent.Type.MouseButtonRelease,
