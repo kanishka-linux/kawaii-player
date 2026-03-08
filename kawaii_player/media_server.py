@@ -4506,7 +4506,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                         elif srch.endswith('.pls'):
                             url_format = 'pls'
                         srch = srch.rsplit('.', 1)[0]
-                    srch = srch.replace('+', ' ')
                 elif i.startswith('exact'):
                     srch_exact = True
                 elif i.startswith('shuffle'):
