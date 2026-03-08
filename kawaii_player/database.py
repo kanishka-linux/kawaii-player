@@ -957,10 +957,10 @@ class MediaDatabase():
             # restore default EP_NAMES and Ordering
             for index, path in enumerate(paths):
                 ep_name  = os.path.basename(path)
-                ep_name = re.sub(r'-|_|\.', ' ', ep_name)
+                ep_name_sanitized = re.sub(r'-|_|\.', ' ', ep_name)
                 cur.execute("""
-                    update Video set EPN = ?, EP_NAME = ? where Path = ?
-                """, (index, ep_name, path))
+                    update Video set EPN = ?, EP_NAME = ?, FileName = ? where Path = ?
+                """, (index, ep_name_sanitized, ep_name, path))
 
             # restore Title to default title based on directory name
             cur.execute("""
@@ -1018,10 +1018,10 @@ class MediaDatabase():
             # restore default EP_NAMES and Ordering
             for index, path in enumerate(paths):
                 ep_name  = os.path.basename(path)
-                ep_name = re.sub(r'-|_|\.', ' ', ep_name)
+                ep_name_sanitized = re.sub(r'-|_|\.', ' ', ep_name)
                 cur.execute("""
-                    update Video set EPN = ?, EP_NAME = ? where Path = ?
-                """, (index, ep_name, path))
+                    update Video set EPN = ?, EP_NAME = ?, FileName = ? where Path = ?
+                """, (index, ep_name_sanitized, ep_name, path))
 
             conn.commit()
             conn.close()
@@ -1055,8 +1055,8 @@ class MediaDatabase():
                             final_name = f"{new_title} - {episode_name}"
                         
                         cur.execute("""
-                        UPDATE Video SET EP_NAME = ?, EPN = ? WHERE Path = ?
-                        """, (final_name, num, path))
+                        UPDATE Video SET EP_NAME = ?, EPN = ?, FileName=? WHERE Path = ?
+                        """, (final_name, num, final_name, path))
                         
                         if cur.rowcount == 1:
                             self.logger.info(f"Title updated: {path} => {final_name} (EPN: {num})")
