@@ -10776,7 +10776,7 @@ class Ui_MainWindow(object):
         self.tab_5.cursor().setPos(new_point)
         if val == "mouse_release":
             event = QtGui.QMouseEvent(
-                        QtCore.QEvent.MouseButtonRelease,
+                        QtCore.QEvent.Type.MouseButtonRelease,
                         new_point,
                         QtCore.Qt.MouseButton.LeftButton,
                         QtCore.Qt.MouseButton.LeftButton,
@@ -10784,7 +10784,7 @@ class Ui_MainWindow(object):
                     )
         elif val == "mouse_move":
             event = QtGui.QMouseEvent(
-                        QtCore.QEvent.MouseMove,
+                        QtCore.QEvent.Type.MouseMove,
                         new_point,
                         QtCore.Qt.MouseButton.NoButton,
                         QtCore.Qt.MouseButton.NoButton,
