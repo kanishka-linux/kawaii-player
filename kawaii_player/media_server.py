@@ -388,7 +388,7 @@ def total_ui_navigation(st, st_o, srch, shuffle):
             ui.list3.setCurrentRow(0)
             item = ui.list3.item(0)
             if srch:
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchFlag.MatchExactly)
                 logger.debug('::::::::{0}'.format(srch))
                 if len(list_item) > 0:
                     for i in list_item:
@@ -425,7 +425,7 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                         time.sleep(0.5)
                         break
                 logger.debug('::::::::{0}'.format(srch))
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchFlag.MatchExactly)
                 if len(list_item) > 0:
                     for i in list_item:
                         row = ui.list1.row(i)
@@ -454,7 +454,7 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                     ui.btnAddon.setCurrentIndex(0)
                     ui.btnAddon.setCurrentIndex(index)
                 time.sleep(0.5)
-                list_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
+                list_item = ui.list3.findItems('History', QtCore.Qt.MatchFlag.MatchExactly)
                 if not ui.list3.currentItem():
                     ui.list3.setFocus()
                     ui.list3.setCurrentRow(0)
@@ -467,7 +467,7 @@ def total_ui_navigation(st, st_o, srch, shuffle):
                         if item:
                             ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
                 time.sleep(0.5)
-                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchExactly)
+                list_item = ui.list1.findItems(srch, QtCore.Qt.MatchFlag.MatchExactly)
                 if len(list_item) > 0:
                     for i in list_item:
                         row = ui.list1.row(i)
@@ -490,7 +490,7 @@ def navigate_player_remotely(nm):
     time.sleep(0.5)
     ui.list3.setFocus()
     ui.list3.setCurrentRow(0)
-    list_item = ui.list1.findItems(nm, QtCore.Qt.MatchExactly)
+    list_item = ui.list1.findItems(nm, QtCore.Qt.MatchFlag.MatchExactly)
     if len(list_item) > 0:
         for i in list_item:
             row = ui.list1.row(i)
