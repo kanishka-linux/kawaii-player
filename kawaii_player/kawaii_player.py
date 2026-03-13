@@ -4000,6 +4000,9 @@ class Ui_MainWindow(object):
                     self.epnfound()
         if platform.system().lower() == "darwin":
             self.gui_signals.cursor_method((self.tab_5, "hide"))
+        elif self.display_device == "rpitv":
+            self.send_fake_event("mouse_move")
+            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         if self.player_val in ["vlc", "cvlc"]:
             txt = "key key-play-pause"
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
