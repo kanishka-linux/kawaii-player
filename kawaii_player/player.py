@@ -53,6 +53,7 @@ class PlayerWidget(QtWidgets.QWidget):
             ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
             ]
         self.fake_mousemove_event = ("regular", False)
+        self.initial_width = 0
     
     def dragEnterEvent(self, event):
         data = event.mimeData()
@@ -276,6 +277,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         MainWindow.showFullScreen()
                         self.ui.fullscreen_video = True
                     if platform.system().lower() == "darwin":
+                        self.initial_width = self.width()
                         self.setMinimumWidth(MainWindow.width())
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(True)
@@ -283,6 +285,9 @@ class PlayerWidget(QtWidgets.QWidget):
                 else:
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(False)
+                    if platform.system().lower() == "darwin":
+                        self.setMinimumWidth(self.initial_width)
+                        self.setMinimumHeight(0)
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(0)
                     self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
