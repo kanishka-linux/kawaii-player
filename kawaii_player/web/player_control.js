@@ -523,7 +523,7 @@ function updateRemoteStatus(status) {
     state.duration = status.total;
     
     // Check if episode changed (index is 1-based from remote)
-    if (status.index !== state.previousIndex) {
+    if (status.index !== state.previousIndex && !state.firstPlay) {
         state.previousIndex = status.index;
         
         // Find episode by number (status.index is already 1-based)
