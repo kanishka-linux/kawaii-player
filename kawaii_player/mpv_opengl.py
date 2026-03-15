@@ -1554,8 +1554,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         gui.mpvplayer_val.write(msg_byt)
 
     def player_fs(self, mode=None):
-        if platform.system().lower() == "darwin":
-            self.mpv.command("set", "pause", "yes")
         if not self.ui.idw or self.ui.idw == self.ui.get_winid():
             if self.player_val == "libmpv":
                 if mode == 'fs':
@@ -1598,8 +1596,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.ui.gui_signals.cursor_method((MainWindow, "hide"))
                     if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
                         #MainWindow.hide()
-                        self.setParent(None)
+                        #self.setParent(None)
                         self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
+                        MainWindow.showFullScreen()
                     else:
                         MainWindow.showFullScreen()
                     self.ui.fullscreen_video = True
@@ -1615,8 +1614,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                     #self.hide()
                     if self.ui.widgets_on_video:
                         self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
-                    if platform.system().lower() == "darwin":
-                        self.mpv.command("set", "pause", "yes")
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(5)
                     self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
