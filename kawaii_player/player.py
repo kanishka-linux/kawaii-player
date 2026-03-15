@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import platform
 from collections import OrderedDict
 from PyQt6 import QtCore, QtGui, QtWidgets
 from player_functions import open_files
@@ -274,6 +275,8 @@ class PlayerWidget(QtWidgets.QWidget):
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                         MainWindow.showFullScreen()
                         self.ui.fullscreen_video = True
+                    if platform.system().lower() == "darwin":
+                        self.setMinimumWidth(MainWindow.width())
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(True)
  
