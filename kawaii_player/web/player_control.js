@@ -659,6 +659,7 @@ function playEpisode(episodeNumber) {
             startAutoTranscode(episode);
         }
     } else {
+        state.firstPlay = false;
         // Play item in desktop player (0-indexed)
         sendRemoteCommand(`/playlist_${episodeNumber - 1}`);
         //sendRemoteCommand(`/playlist_${episode.epn_number}`);
