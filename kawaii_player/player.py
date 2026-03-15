@@ -3,8 +3,8 @@ import re
 import time
 import platform
 from collections import OrderedDict
-from PyQt5 import QtCore, QtGui, QtWidgets
-from player_functions import ccurl, open_files
+from PyQt6 import QtCore, QtGui, QtWidgets
+from player_functions import open_files
 
 
 class PlayerWidget(QtWidgets.QWidget):
@@ -53,6 +53,7 @@ class PlayerWidget(QtWidgets.QWidget):
             ')', '(', '*', '&', '^', '%', '$', '#', '#', '@', '!', '~'
             ]
         self.fake_mousemove_event = ("regular", False)
+        self.initial_width = 0
     
     def dragEnterEvent(self, event):
         data = event.mimeData()
@@ -116,11 +117,11 @@ class PlayerWidget(QtWidgets.QWidget):
     def arrow_hide(self):
         if self.player_val in ["mplayer", "mpv", "libmpv"]:
             if self.ui.frame_extra_toolbar.isHidden() and self.ui.list2.isHidden():
-                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                 self.setFocus()
                 logger.debug("arrow hide")
             elif self.hasFocus():
-                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                 logger.debug('player has focus')
             else:
                 logger.debug('player not focussed')
@@ -193,7 +194,7 @@ class PlayerWidget(QtWidgets.QWidget):
             if api == "libmpv" and value:
                 self.fake_mousemove_event = ("libmpv", False)
             else:
-                self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
                 #self.ui.frame1.show()
                 if self.ui.fullscreen_video:
                     fn = lambda val: time.strftime('%H:%M:%S', time.gmtime(int(val)))
@@ -213,7 +214,7 @@ class PlayerWidget(QtWidgets.QWidget):
             if pos.y() <= ht and pos.y() > ht - 128 and self.ui.frame1.isHidden():
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
-                self.ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+                self.ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
             elif pos.y() <= ht-128 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -221,36 +222,6 @@ class PlayerWidget(QtWidgets.QWidget):
                         and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                     self.ui.frame1.hide()
                     self.ui.gridLayout.setSpacing(5)
-
-    def ccurl_head(self, url, rfr_url):
-        if rfr_url:
-            content = ccurl(url+'#'+'-Ie'+'#'+rfr_url)
-        else:
-            content = ccurl(url+'#'+'-I')
-        return content
-
-    def url_resolve_size(self, url, rfr_url):
-        m = []
-        content = self.ccurl_head(url, rfr_url)
-        n = content.split('\n')
-        k = 0
-        for i in n:
-            i = re.sub('\r', '', i)
-            if i and ':' in i:
-                p = i.split(': ', 1)
-                if p:
-                    t = (p[0], p[1])
-                else:
-                    t = (i, "None")
-                m.append(t)
-                k = k+1
-            else:
-                t = (i, '')
-                m.append(t)
-        d = dict(m)
-        print(d)
-        result = int(int(d['Content-Length'])/(1024*1024))
-        return result
 
     def set_slider_val(self, val):
         t = self.ui.slider.value()
@@ -302,15 +273,21 @@ class PlayerWidget(QtWidgets.QWidget):
                         if not self.ui.tab_2.isHidden():
                             self.ui.tab_2.hide()
                         if self.player_val in ["mplayer", "mpv", "libvlc"]:
-                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                         MainWindow.showFullScreen()
                         self.ui.fullscreen_video = True
+                    if platform.system().lower() == "darwin":
+                        self.initial_width = self.width()
+                        self.setMinimumWidth(MainWindow.width())
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(True)
  
                 else:
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(False)
+                    if platform.system().lower() == "darwin":
+                        self.setMinimumWidth(self.initial_width)
+                        self.setMinimumHeight(0)
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(0)
                     self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)
@@ -321,7 +298,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         self.ui.progress.show()
                     self.ui.frame1.show()
                     if self.player_val in ["mplayer", "mpv", "libvlc"]:
-                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
                     if not self.ui.force_fs:
                         MainWindow.showNormal()
                         MainWindow.showMaximized()
@@ -509,14 +486,14 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.ui.mpv_execute_command(cmd, row)
     
     def keyReleaseEvent(self, event):
-        if event.modifiers() == QtCore.Qt.ControlModifier or event.key() == QtCore.Qt.Key_Control:
+        if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier or event.key() == QtCore.Qt.Key.Key_Control:
             self.event_dict['ctrl'] = False
             self.event_dict['alt'] = False
             self.event_dict['shift'] = False
-        elif event.modifiers() == QtCore.Qt.AltModifier or event.key() == QtCore.Qt.Key_Alt:
+        elif event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier or event.key() == QtCore.Qt.Key.Key_Alt:
             self.event_dict['alt'] = False
             self.event_dict['shift'] = False
-        elif event.modifiers() == QtCore.Qt.ShiftModifier or event.key() == QtCore.Qt.Key_Shift:
+        elif event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier or event.key() == QtCore.Qt.Key.Key_Shift:
             self.event_dict['shift'] = False
         logger.debug('release'.format(event.key()))
         
@@ -528,11 +505,11 @@ class PlayerWidget(QtWidgets.QWidget):
             no_modifier = False
             logger.debug('press {}::{}'.format(event.key(), self.event_dict))
             event_text = event.text()
-            if event.modifiers() == QtCore.Qt.ControlModifier or self.event_dict['ctrl']:
+            if event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier or self.event_dict['ctrl']:
                 modifier = 'ctrl+'
-                if event.key() == QtCore.Qt.Key_Alt:
+                if event.key() == QtCore.Qt.Key.Key_Alt:
                     self.event_dict['alt'] = True
-                if event.key() == QtCore.Qt.Key_Shift:
+                if event.key() == QtCore.Qt.Key.Key_Shift:
                     self.event_dict['shift'] = True
                 if self.event_dict['ctrl'] and self.event_dict['alt']:
                     modifier = 'ctrl+alt+'
@@ -548,9 +525,9 @@ class PlayerWidget(QtWidgets.QWidget):
                     key = modifier + key
                 else:
                     self.event_dict['ctrl'] = True
-            elif event.modifiers() == QtCore.Qt.AltModifier or self.event_dict['alt']:
+            elif event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier or self.event_dict['alt']:
                 self.event_dict['ctrl'] = False
-                if event.key() == QtCore.Qt.Key_Shift:
+                if event.key() == QtCore.Qt.Key.Key_Shift:
                     self.event_dict['shift'] = True
                 if event.key() in self.alphanumeric_keys:
                     keysym = self.alphanumeric_keys.get(event.key())
@@ -561,7 +538,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     key = 'alt+' + self.non_alphanumeric_keys.get(event.key())
                 else:
                     self.event_dict['alt'] = True
-            elif event.modifiers() == QtCore.Qt.ShiftModifier or self.event_dict['shift']:
+            elif event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier or self.event_dict['shift']:
                 self.event_dict['ctrl'] = False
                 self.event_dict['alt'] = False
                 if event.text().isalnum():
@@ -851,10 +828,10 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.ui.mpvplayer_val.write(msg)
                     
     def keyPressEventOld(self, event):
-        if (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_Right):
+        if (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_Right):
             self.ui.list2.setFocus()
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -876,16 +853,16 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek +10 \n')
             #self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_1:
+        elif event.key() == QtCore.Qt.Key.Key_1:
             self.mpvplayer.write(b'\n add chapter -1 \n')
-        elif event.key() == QtCore.Qt.Key_2:
+        elif event.key() == QtCore.Qt.Key.Key_2:
             self.mpvplayer.write(b'\n add chapter 1 \n')
-        elif event.key() == QtCore.Qt.Key_3:
+        elif event.key() == QtCore.Qt.Key.Key_3:
             self.mpvplayer.write(b'\n cycle ass-style-override \n')
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_V):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier 
+                and event.key() == QtCore.Qt.Key.Key_V):
             self.mpvplayer.write(b'\n cycle ass-vsfilter-aspect-compat \n')
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -907,17 +884,17 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek -10 \n')
             #self.frameShowHide()
-        elif event.key() == QtCore.Qt.Key_BracketRight:
+        elif event.key() == QtCore.Qt.Key.Key_BracketRight:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n seek +90 \n')
             else:
                 self.mpvplayer.write(b'\n osd-msg-bar seek +90 \n')
-        elif event.key() == QtCore.Qt.Key_BracketLeft:
+        elif event.key() == QtCore.Qt.Key.Key_BracketLeft:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n seek -5 \n')
             else:
                 self.mpvplayer.write(b'\n osd-msg-bar seek -5 \n')
-        elif event.key() == QtCore.Qt.Key_0:
+        elif event.key() == QtCore.Qt.Key.Key_0:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -927,7 +904,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume +5 \n')
                 self.mpvplayer.write(b'\n print-text volume-print=${ao-volume}\n')
-        elif event.key() == QtCore.Qt.Key_9:
+        elif event.key() == QtCore.Qt.Key.Key_9:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -937,7 +914,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n add ao-volume -5 \n')
                 self.mpvplayer.write(b'\n print-text volume-print=${ao-volume}\n')
-        elif event.key() == QtCore.Qt.Key_A:
+        elif event.key() == QtCore.Qt.Key.Key_A:
             self.ui.mpvplayer_aspect_cycle = (self.ui.mpvplayer_aspect_cycle + 1) % 5
             aspect_val = self.ui.mpvplayer_aspect.get(str(self.ui.mpvplayer_aspect_cycle))
             logger.info('aspect:{0}::value:{1}'.format(self.ui.mpvplayer_aspect_cycle, aspect_val))
@@ -982,24 +959,24 @@ class PlayerWidget(QtWidgets.QWidget):
                             }
                         )
                     self.mpvplayer.kill()
-        elif event.key() == QtCore.Qt.Key_N:
+        elif event.key() == QtCore.Qt.Key.Key_N:
             self.mpvplayer.write(b'\n playlist_next \n')
-        elif event.key() == QtCore.Qt.Key_L:
+        elif event.key() == QtCore.Qt.Key.Key_L:
             #self.ui.tab_5.setFocus()
             self.ui.playerLoopFile(self.ui.player_loop_file)
-        elif event.key() == QtCore.Qt.Key_End:
+        elif event.key() == QtCore.Qt.Key.Key_End:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n seek 99 1 \n')
             else:
                 self.mpvplayer.write(b'\n osd-msg-bar seek 100 absolute-percent \n')
-        elif event.key() == QtCore.Qt.Key_P:
+        elif event.key() == QtCore.Qt.Key.Key_P:
             if self.ui.frame1.isHidden():
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
             else:
                 self.ui.gridLayout.setSpacing(5)
                 self.ui.frame1.hide()
-        elif event.key() == QtCore.Qt.Key_Space:
+        elif event.key() == QtCore.Qt.Key.Key_Space:
             txt = self.ui.player_play_pause.text()
             if txt == self.ui.player_buttons['play']:
                 self.ui.player_play_pause.setText(self.ui.player_buttons['pause'])
@@ -1044,7 +1021,7 @@ class PlayerWidget(QtWidgets.QWidget):
                         cache_empty = 'no'
                         self.ui.set_parameters_value(
                             cache_val=cache_empty, mpv_i=mpv_indicator)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -1066,7 +1043,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek +60 \n')
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -1088,7 +1065,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek -60 \n')
-        elif event.key() == QtCore.Qt.Key_PageUp:
+        elif event.key() == QtCore.Qt.Key.Key_PageUp:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -1110,7 +1087,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek +300 \n')
-        elif event.key() == QtCore.Qt.Key_PageDown:
+        elif event.key() == QtCore.Qt.Key.Key_PageDown:
             if self.player_val == "mplayer":
                 txt = '\n osd 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
@@ -1132,17 +1109,17 @@ class PlayerWidget(QtWidgets.QWidget):
                 txt = '\n set osd-level 1 \n'
                 self.mpvplayer.write(bytes(txt, 'utf-8'))
                 self.mpvplayer.write(b'\n osd-msg-bar seek -300 \n')
-        elif event.key() == QtCore.Qt.Key_O:
+        elif event.key() == QtCore.Qt.Key.Key_O:
             if self.player_val == 'mplayer':
                 self.mpvplayer.write(b'\n osd \n')
             else:
                 self.mpvplayer.write(b'\n cycle osd-level \n')
-        elif event.key() == QtCore.Qt.Key_M:
+        elif event.key() == QtCore.Qt.Key.Key_M:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n osd_show_property_text ${filename} \n')
             else:
                 self.mpvplayer.write(b'\n show-text "${filename}" \n')
-        elif event.key() == QtCore.Qt.Key_I:
+        elif event.key() == QtCore.Qt.Key.Key_I:
             if self.player_val == "mpv":
                 self.mpvplayer.write(b'\n show_text ${file-size} \n')
             else:
@@ -1154,18 +1131,11 @@ class PlayerWidget(QtWidgets.QWidget):
                 if self.ui.total_file_size:
                     sz = str(self.ui.total_file_size)+' MB'
                 else:
-                    if (self.ui.final_playing_url.startswith('http') 
-                            and self.ui.final_playing_url.endswith('.mkv')):
-                        self.ui.total_file_size = self.url_resolve_size(
-                            self.ui.final_playing_url, rfr_url)
-                        sz = str(self.ui.total_file_size)+' MB'
-                    else:
-                        self.ui.total_file_size = 0
-                        sz = str(0)
+                    sz= "N/A"
                 t = bytes('\n'+'osd_show_text '+'"'+sz+'"'+' 4000'+'\n', 'utf-8')
                 logger.info(t)
                 self.mpvplayer.write(t)
-        elif event.key() == QtCore.Qt.Key_E:
+        elif event.key() == QtCore.Qt.Key.Key_E:
             if self.player_val == "mplayer" and MainWindow.isFullScreen():
                 w = self.width()
                 w = w + (0.05*w)
@@ -1174,7 +1144,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.setMaximumSize(w, h)
             else:
                 self.mpvplayer.write(b'\n add video-zoom +0.01 \n')
-        elif event.key() == QtCore.Qt.Key_W:
+        elif event.key() == QtCore.Qt.Key.Key_W:
             if self.player_val == "mplayer" and MainWindow.isFullScreen():
                 w = self.width()
                 w = w - (0.05*w)
@@ -1183,25 +1153,25 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.setMaximumSize(w, h)
             else:
                 self.mpvplayer.write(b'\n add video-zoom -0.01 \n')
-        elif event.key() == QtCore.Qt.Key_R:
+        elif event.key() == QtCore.Qt.Key.Key_R:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n sub_pos -1 \n')
             else:
                 self.mpvplayer.write(b'\n add sub-pos -1 \n')
-        elif event.key() == QtCore.Qt.Key_T:
+        elif event.key() == QtCore.Qt.Key.Key_T:
             if self.player_val == "mplayer":
                 self.mpvplayer.write(b'\n sub_pos +1 \n')
             else:
                 self.mpvplayer.write(b'\n add sub-pos +1 \n')
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_J):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier 
+                and event.key() == QtCore.Qt.Key.Key_J):
             #self.ui.load_external_sub()
             self.load_external_sub()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_J):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_J):
             #self.ui.load_external_sub()
             self.load_external_sub(mode='network')
-        elif event.key() == QtCore.Qt.Key_J:
+        elif event.key() == QtCore.Qt.Key.Key_J:
             if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
                     self.mpvplayer.write(b'\n osd 1 \n')
@@ -1214,7 +1184,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(b'\n cycle sub \n')
                 self.mpvplayer.write(b'\n print-text "SUB_KEY_ID=${sid}" \n')
                 self.mpvplayer.write(b'\n show-text "${sid}" \n')
-        elif event.key() == QtCore.Qt.Key_K:
+        elif event.key() == QtCore.Qt.Key.Key_K:
             if self.player_val == "mplayer":
                 if not self.mplayer_OsdTimer.isActive():
                     self.mpvplayer.write(b'\n osd 1 \n')
@@ -1227,7 +1197,7 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.mpvplayer.write(b'\n cycle audio \n')
                 self.mpvplayer.write(b'\n print-text "AUDIO_KEY_ID=${aid}" \n')
                 self.mpvplayer.write(b'\n show-text "${aid}" \n')
-        elif event.key() == QtCore.Qt.Key_F:
+        elif event.key() == QtCore.Qt.Key.Key_F:
             if not self.ui.force_fs:
                 self.player_fs()
             else:
@@ -1237,21 +1207,21 @@ class PlayerWidget(QtWidgets.QWidget):
                     self.player_fs()
                 else:
                     self.player_fs(mode='fs')
-        elif event.key() == QtCore.Qt.Key_Period:
+        elif event.key() == QtCore.Qt.Key.Key_Period:
             self.ui.mpvNextEpnList()
-        elif event.key() == QtCore.Qt.Key_Comma:
+        elif event.key() == QtCore.Qt.Key.Key_Comma:
             self.ui.mpvPrevEpnList()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_Q):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_Q):
             self.ui.quit_really = "yes"
             msg = '"Stop After current file"'
             msg_byt = bytes('\nshow-text {0}\n'.format(msg), 'utf-8')
             self.mpvplayer.write(msg_byt)
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier
-                and event.key() == QtCore.Qt.Key_Q):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier
+                and event.key() == QtCore.Qt.Key.Key_Q):
             self.ui.quit_really = "yes"
             self.ui.playerStop(msg='remember quit')
-        elif event.key() == QtCore.Qt.Key_Q:
+        elif event.key() == QtCore.Qt.Key.Key_Q:
             self.player_quit()
         #super(PlayerWidget, self).keyPressEvent(event)
 
@@ -1386,64 +1356,64 @@ class KeyBoardShortcuts:
     
     def non_alphanumeric_keys(self):
         non_alphanumeric = {
-            QtCore.Qt.Key_BracketLeft : '[',
-            QtCore.Qt.Key_BracketRight: ']',
-            QtCore.Qt.Key_BraceLeft: '{',
-            QtCore.Qt.Key_BraceRight: '}',
-            QtCore.Qt.Key_ParenLeft: '(',
-            QtCore.Qt.Key_ParenRight: ')',
-            QtCore.Qt.Key_Period: '.',
-            QtCore.Qt.Key_Comma: ',',
-            QtCore.Qt.Key_PageUp: 'pgup',
-            QtCore.Qt.Key_PageDown: 'pgdwn',
-            QtCore.Qt.Key_Left: 'left',
-            QtCore.Qt.Key_Right: 'right',
-            QtCore.Qt.Key_Up: 'up',
-            QtCore.Qt.Key_Down: 'down',
-            QtCore.Qt.Key_End: 'end',
-            QtCore.Qt.Key_Return: 'enter',
-            QtCore.Qt.Key_Space: 'space',
-            QtCore.Qt.Key_Home: 'home',
-            QtCore.Qt.Key_Backspace: 'bs',
-            QtCore.Qt.Key_Tab: 'tab',
-            QtCore.Qt.Key_Backtab: 'backtab',
-            QtCore.Qt.Key_Escape: 'esc',
-            QtCore.Qt.Key_Delete: 'del',
-            QtCore.Qt.Key_Insert: 'ins',
-            QtCore.Qt.Key_F1: 'f1',
-            QtCore.Qt.Key_F2: 'f2',
-            QtCore.Qt.Key_F3: 'f3',
-            QtCore.Qt.Key_F4: 'f4',
-            QtCore.Qt.Key_F5: 'f5',
-            QtCore.Qt.Key_F6: 'f6',
-            QtCore.Qt.Key_F7: 'f7',
-            QtCore.Qt.Key_F8: 'f8',
-            QtCore.Qt.Key_F9: 'f9',
-            QtCore.Qt.Key_F10: 'f10',
-            QtCore.Qt.Key_F11: 'f11',
-            QtCore.Qt.Key_F12: 'f12',
-            QtCore.Qt.Key_Exclam: '!',
-            QtCore.Qt.Key_QuoteDbl: '""',
-            QtCore.Qt.Key_NumberSign: 'sharp',
-            QtCore.Qt.Key_Dollar: '$',
-            QtCore.Qt.Key_Ampersand: '&',
-            QtCore.Qt.Key_Apostrophe: "'",
-            QtCore.Qt.Key_Asterisk: '*',
-            QtCore.Qt.Key_Minus: '-',
-            QtCore.Qt.Key_Plus: '+',
-            QtCore.Qt.Key_Slash: '/',
-            QtCore.Qt.Key_Colon: ':',
-            QtCore.Qt.Key_Semicolon: ';',
-            QtCore.Qt.Key_Less: '<',
-            QtCore.Qt.Key_Equal: '=',
-            QtCore.Qt.Key_Greater: '>',
-            QtCore.Qt.Key_Question: '?',
-            QtCore.Qt.Key_At: '@',
-            QtCore.Qt.Key_Backslash: '\\',
-            QtCore.Qt.Key_Underscore: '_',
-            QtCore.Qt.Key_QuoteLeft: '`',
-            QtCore.Qt.Key_cent: '%',
-            QtCore.Qt.Key_Bar: '|'
+            QtCore.Qt.Key.Key_BracketLeft : '[',
+            QtCore.Qt.Key.Key_BracketRight: ']',
+            QtCore.Qt.Key.Key_BraceLeft: '{',
+            QtCore.Qt.Key.Key_BraceRight: '}',
+            QtCore.Qt.Key.Key_ParenLeft: '(',
+            QtCore.Qt.Key.Key_ParenRight: ')',
+            QtCore.Qt.Key.Key_Period: '.',
+            QtCore.Qt.Key.Key_Comma: ',',
+            QtCore.Qt.Key.Key_PageUp: 'pgup',
+            QtCore.Qt.Key.Key_PageDown: 'pgdwn',
+            QtCore.Qt.Key.Key_Left: 'left',
+            QtCore.Qt.Key.Key_Right: 'right',
+            QtCore.Qt.Key.Key_Up: 'up',
+            QtCore.Qt.Key.Key_Down: 'down',
+            QtCore.Qt.Key.Key_End: 'end',
+            QtCore.Qt.Key.Key_Return: 'enter',
+            QtCore.Qt.Key.Key_Space: 'space',
+            QtCore.Qt.Key.Key_Home: 'home',
+            QtCore.Qt.Key.Key_Backspace: 'bs',
+            QtCore.Qt.Key.Key_Tab: 'tab',
+            QtCore.Qt.Key.Key_Backtab: 'backtab',
+            QtCore.Qt.Key.Key_Escape: 'esc',
+            QtCore.Qt.Key.Key_Delete: 'del',
+            QtCore.Qt.Key.Key_Insert: 'ins',
+            QtCore.Qt.Key.Key_F1: 'f1',
+            QtCore.Qt.Key.Key_F2: 'f2',
+            QtCore.Qt.Key.Key_F3: 'f3',
+            QtCore.Qt.Key.Key_F4: 'f4',
+            QtCore.Qt.Key.Key_F5: 'f5',
+            QtCore.Qt.Key.Key_F6: 'f6',
+            QtCore.Qt.Key.Key_F7: 'f7',
+            QtCore.Qt.Key.Key_F8: 'f8',
+            QtCore.Qt.Key.Key_F9: 'f9',
+            QtCore.Qt.Key.Key_F10: 'f10',
+            QtCore.Qt.Key.Key_F11: 'f11',
+            QtCore.Qt.Key.Key_F12: 'f12',
+            QtCore.Qt.Key.Key_Exclam: '!',
+            QtCore.Qt.Key.Key_QuoteDbl: '""',
+            QtCore.Qt.Key.Key_NumberSign: 'sharp',
+            QtCore.Qt.Key.Key_Dollar: '$',
+            QtCore.Qt.Key.Key_Ampersand: '&',
+            QtCore.Qt.Key.Key_Apostrophe: "'",
+            QtCore.Qt.Key.Key_Asterisk: '*',
+            QtCore.Qt.Key.Key_Minus: '-',
+            QtCore.Qt.Key.Key_Plus: '+',
+            QtCore.Qt.Key.Key_Slash: '/',
+            QtCore.Qt.Key.Key_Colon: ':',
+            QtCore.Qt.Key.Key_Semicolon: ';',
+            QtCore.Qt.Key.Key_Less: '<',
+            QtCore.Qt.Key.Key_Equal: '=',
+            QtCore.Qt.Key.Key_Greater: '>',
+            QtCore.Qt.Key.Key_Question: '?',
+            QtCore.Qt.Key.Key_At: '@',
+            QtCore.Qt.Key.Key_Backslash: '\\',
+            QtCore.Qt.Key.Key_Underscore: '_',
+            QtCore.Qt.Key.Key_QuoteLeft: '`',
+            QtCore.Qt.Key.Key_cent: '%',
+            QtCore.Qt.Key.Key_Bar: '|'
         }
         return non_alphanumeric
     
@@ -1451,11 +1421,11 @@ class KeyBoardShortcuts:
         a = ord('a')
         key_dict = {}
         for i in range(a, a+26):
-            key = 'QtCore.Qt.Key_{}'.format(chr(i).upper())
+            key = 'QtCore.Qt.Key.Key_{}'.format(chr(i).upper())
             key_dict.update({eval(key):chr(i)})
         
         for i in range(0, 10):
-            key = 'QtCore.Qt.Key_{}'.format(i)
+            key = 'QtCore.Qt.Key.Key_{}'.format(i)
             key_dict.update({eval(key):str(i)})
         
         return key_dict

@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
     
@@ -46,7 +46,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     label_number.setText(txt)
                 except Exception as e:
                     print(e)
-            label_number.setAlignment(QtCore.Qt.AlignCenter)
+            label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         except:
             return 0
         if ui.icon_size_arr:
@@ -80,7 +80,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                         label_number.setText(txt)
                     except Exception as e:
                         print(e)
-                label_number.setAlignment(QtCore.Qt.AlignCenter)
+                label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             elif prevR < 0:
                 p1 = "ui.label_"+str(nextR)+".width()"
                 wd1=eval(p1)
@@ -111,7 +111,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
     def keyPressEvent(self, event):
         if self.cur_row >= ui.list1.count():
             self.cur_row = 0
-        if event.key() == QtCore.Qt.Key_Equal:
+        if event.key() == QtCore.Qt.Key.Key_Equal:
             iconv_r_poster = ui.icon_poster_indicator[-1]
             if iconv_r_poster > 1:
                 iconv_r_poster = iconv_r_poster - 1
@@ -127,7 +127,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 width=str(int(w))
                 height=str(int(h))
                 ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r_poster)-1)*h+((ui.cur_row+1)/iconv_r_poster)*10)
-        elif event.key() == QtCore.Qt.Key_Minus:
+        elif event.key() == QtCore.Qt.Key.Key_Minus:
             iconv_r_poster = ui.icon_poster_indicator[-1]
             iconv_r_poster += 1
             ui.icon_poster_indicator.append(iconv_r_poster)
@@ -142,14 +142,14 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                 width=str(int(w))
                 height=str(int(h))
                 ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r_poster)-1)*h+((ui.cur_row+1)/iconv_r_poster)*10)
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
                 nextR = self.cur_row - 1
                 if nextR >=0:
                     self.sizeAdjust(nextR, "backward")
                 else:
                     ui.btn1.setFocus()
                     ui.dockWidget_3.show()
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             iconv_r = ui.icon_poster_indicator[-1]
             nextR = self.cur_row
             if nextR < 0:
@@ -160,7 +160,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     self.sizeAdjust(nextR, "down")
                 else:
                     self.sizeAdjust(nextR-iconv_r, "down")
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             iconv_r = ui.icon_poster_indicator[-1]
             nextR = self.cur_row
             if nextR < 0:
@@ -171,7 +171,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     self.sizeAdjust(nextR, "up")
                 else:
                     self.sizeAdjust(nextR+iconv_r, "up")
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             nextR = self.cur_row
             if nextR < 0:
                 self.sizeAdjust(0, "forward")
@@ -181,7 +181,7 @@ class QtGuiQWidgetScroll(QtWidgets.QScrollArea):
                     self.sizeAdjust(nextR, "forward")
                 else:
                     self.sizeAdjust(nextR-1, "forward")
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             ui.list1.setCurrentRow(self.cur_row)
             #ui.listfound()
             if not ui.lock_process:
@@ -245,7 +245,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                     label_number.setText(txt)
                 except Exception as e:
                     print(e)
-            label_number.setAlignment(QtCore.Qt.AlignCenter)
+            label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         except Exception as e:
             print(e, '--line--4596--')
             return 0
@@ -281,7 +281,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                             label_number.setText(txt)
                         except Exception as e:
                             print(e, '--line--4643--')
-                    label_number.setAlignment(QtCore.Qt.AlignCenter)
+                    label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 elif prevR < 0:
                     p1 = "ui.label_epn_"+str(nextR)+".width()"
                     wd1=eval(p1)
@@ -309,7 +309,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
             ui.text.hide()
             
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Equal:
+        if event.key() == QtCore.Qt.Key.Key_Equal:
             param_dict = ui.get_parameters_value(i='iconv_r', ir='iconv_r_indicator')
             iconv_r = param_dict['iconv_r']
             iconv_r_indicator = param_dict['iconv_r_indicator']
@@ -330,7 +330,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 width=str(int(w))
                 height=str(int(h))
                 ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
-        elif event.key() == QtCore.Qt.Key_Minus:
+        elif event.key() == QtCore.Qt.Key.Key_Minus:
             param_dict = ui.get_parameters_value(i='iconv_r', ir='iconv_r_indicator')
             iconv_r = param_dict['iconv_r']
             iconv_r_indicator = param_dict['iconv_r_indicator']
@@ -351,7 +351,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                 height=str(int(h))
                 ui.scrollArea1.verticalScrollBar().setValue((((ui.cur_row+1)/iconv_r)-1)*h+((ui.cur_row+1)/iconv_r)*10)
         if ui.mpvplayer_val.processId() == 0:
-            if event.key() == QtCore.Qt.Key_Right:
+            if event.key() == QtCore.Qt.Key.Key_Right:
                 nextR = ui.list2.currentRow()
                 if nextR < 0:
                     self.sizeAdjust(0, "forward")
@@ -361,14 +361,14 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                         self.sizeAdjust(nextR, "forward")
                     else:
                         self.sizeAdjust(nextR-1, "forward")
-            elif event.key() == QtCore.Qt.Key_Left:
+            elif event.key() == QtCore.Qt.Key.Key_Left:
                 nextR = ui.list2.currentRow()-1
                 if nextR >=0:
                     self.sizeAdjust(nextR, "backward")
                 else:
                     ui.btn1.setFocus()
                     ui.dockWidget_3.show()
-            elif event.key() == QtCore.Qt.Key_Down:
+            elif event.key() == QtCore.Qt.Key.Key_Down:
                 iconv_r = ui.get_parameters_value(i='iconv_r')['iconv_r']
                 nextR = ui.list2.currentRow()
                 if nextR < 0:
@@ -379,7 +379,7 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                         self.sizeAdjust(nextR, "down")
                     else:
                         self.sizeAdjust(nextR-iconv_r, "down")
-            elif event.key() == QtCore.Qt.Key_Up:
+            elif event.key() == QtCore.Qt.Key.Key_Up:
                 iconv_r = ui.get_parameters_value(i='iconv_r')['iconv_r']
                 nextR = ui.list2.currentRow()
                 if nextR < 0:
@@ -390,13 +390,13 @@ class QtGuiQWidgetScroll1(QtWidgets.QScrollArea):
                         self.sizeAdjust(nextR, "up")
                     else:
                         self.sizeAdjust(nextR+iconv_r, "up")
-            elif event.key() == QtCore.Qt.Key_Backspace:
+            elif event.key() == QtCore.Qt.Key.Key_Backspace:
                 item = ui.list1.currentItem()
                 if item:
                     ui.prev_thumbnails()
                     if ui.view_mode == 'thumbnail':
                         ui.scrollArea.setFocus()
-            elif event.key() == QtCore.Qt.Key_Return:
+            elif event.key() == QtCore.Qt.Key.Key_Return:
                 num = ui.list2.currentRow()
                 txt_count = num + ui.list2.count()
                 p1 = "ui.label_epn_{0}.text()".format(txt_count)

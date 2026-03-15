@@ -21,8 +21,8 @@ import os
 import datetime
 import platform
 from functools import partial
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from widgets.optionwidgets import QPushButtonExtra
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -38,8 +38,8 @@ class QLineProgress(QtWidgets.QProgressBar):
         ui = ui_widget
         
     def mouseMoveEvent(self, event): 
-        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
-        t = ((event.x() - self.x())/self.width())
+        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.position().x()) / self.width()
+        t = ((event.position().x() - self.position().x())/self.width())
         t = t*ui.mplayerLength
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
@@ -53,7 +53,7 @@ class QLineProgress(QtWidgets.QProgressBar):
         
     def mousePressEvent(self, event):
         old_val = int((self.value()*ui.mplayerLength)/100)
-        t = ((event.x() - self.x())/self.width())
+        t = ((event.position().x() - self.position().x())/self.width())
         new_val = int(t*ui.mplayerLength)
         if ui.player_val == 'mplayer':
             print(old_val, new_val, int((new_val-old_val)/1000))
@@ -90,8 +90,8 @@ class FloatWindowWidget(QtWidgets.QWidget):
         self.title = QtWidgets.QLineEdit(self)
         self.title1 = QtWidgets.QLineEdit(self)
 
-        self.title.setAlignment(QtCore.Qt.AlignCenter)
-        self.title1.setAlignment(QtCore.Qt.AlignCenter)
+        self.title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.title1.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         self.title.setReadOnly(True)
         self.title1.setReadOnly(True)
@@ -102,8 +102,8 @@ class FloatWindowWidget(QtWidgets.QWidget):
         self.progress.setMouseTracking(True)
 
         self.f = QtWidgets.QFrame(self)
-        self.f.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.f.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.f.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.f.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.horiz = QtWidgets.QHBoxLayout(self.f)
 
         self.p = QPushButtonExtra(self)
@@ -129,7 +129,7 @@ class FloatWindowWidget(QtWidgets.QWidget):
 
         self.qt = QPushButtonExtra(self)
         self.qt.setText(ui.player_buttons['quit'])
-        self.qt.clicked_connect(QtWidgets.qApp.quit)
+        self.qt.clicked_connect(QtWidgets.QApplication.instance().quit)
         self.qt.setToolTip('Quit Player')
 
         self.lock = QPushButtonExtra(self)
@@ -302,44 +302,44 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
         self.l.setObjectName(_fromUtf8("l_label"))
         self.l.hide()
 
-        self.h_mode = QtWidgets.QAction("&Hide", self)
+        self.h_mode = QtGui.QAction("&Hide", self)
         self.h_mode.triggered.connect(self._hide_mode)
         self.addAction(self.h_mode)
         self.h_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        #self.m_mode = QtWidgets.QAction("&Music Mode", self)
+        #self.m_mode = QtGui.QAction("&Music Mode", self)
         #self.m_mode.triggered.connect(ui.music_mode_layout)
         #self.addAction(self.m_mode)
         #self.m_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        self.v_mode = QtWidgets.QAction("&Video Mode", self)
+        self.v_mode = QtGui.QAction("&Video Mode", self)
         self.v_mode.triggered.connect(ui.video_mode_layout)
         self.addAction(self.v_mode)
         self.v_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        self.d_vid = QtWidgets.QAction("&Detach Video", self)
+        self.d_vid = QtGui.QAction("&Detach Video", self)
         self.d_vid.triggered.connect(self._detach_video)
         self.addAction(self.d_vid)
         self.d_vid.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
         if ui.window_frame == 'true':
-            self.frameless_mode = QtWidgets.QAction("&Remove Window Frame", self)
+            self.frameless_mode = QtGui.QAction("&Remove Window Frame", self)
         else:
-            self.frameless_mode = QtWidgets.QAction("&Allow Window Frame", self)
+            self.frameless_mode = QtGui.QAction("&Allow Window Frame", self)
         self.frameless_mode.triggered.connect(self._remove_frame)
         self.addAction(self.frameless_mode)
         self.frameless_mode.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        self.exitAction = QtWidgets.QAction("&Exit", self)
-        self.exitAction.triggered.connect(QtWidgets.qApp.quit)
+        self.exitAction = QtGui.QAction("&Exit", self)
+        self.exitAction.triggered.connect(QtWidgets.QApplication.instance().quit)
         self.addAction(self.exitAction)
         self.exitAction.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        self.title = QtWidgets.QAction("Title", self)
+        self.title = QtGui.QAction("Title", self)
         self.title.triggered.connect(self.info_action_icon)
         self.title.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
-        self.title1 = QtWidgets.QAction("Title1", self)
+        self.title1 = QtGui.QAction("Title1", self)
         self.title1.triggered.connect(self.info_action_icon)
         self.title1.setFont(QtGui.QFont('SansSerif', 10, italic=False))
 
@@ -357,21 +357,21 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
 
         if txt.lower() == '&remove window frame':
             MainWindow.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint
                 )
             ui.float_window.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
-                | QtCore.Qt.WindowStaysOnTopHint
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint 
+                | QtCore.Qt.WindowType.WindowStaysOnTopHint
                 )
             self.frameless_mode.setText('&Allow Window Frame')
             ui.window_frame = 'false'
         else:
             MainWindow.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.WindowTitleHint
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.WindowTitleHint
                 )
             ui.float_window.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.WindowTitleHint 
-                | QtCore.Qt.WindowStaysOnTopHint
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.WindowTitleHint 
+                | QtCore.Qt.WindowType.WindowStaysOnTopHint
                 )
             self.frameless_mode.setText('&Remove Window Frame')
             ui.window_frame = 'true'
@@ -443,7 +443,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                 ui.float_window_dim[0], ycord, 
                 ui.float_window_dim[2], ui.float_window_dim[3]
                 )
-            ui.list2.setFlow(QtWidgets.QListWidget.LeftToRight)
+            ui.list2.setFlow(QtWidgets.QListView.Flow.LeftToRight)
             ui.list2.setMaximumWidth(16777215)
             if ui.list2.isHidden():
                 ui.list2.show()
@@ -451,7 +451,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             else:
                 self.status_playlist = True
             #ui.list2.setViewMode(QtWidgets.QListWidget.IconMode)
-            #ui.list2.setFlow(QtWidgets.QListWidget.LeftToRight)
+            #ui.list2.setFlow(QtWidgets.QListView.Flow.LeftToRight)
             #ui.list2.setMaximumWidth(screen_width)
 
             if not ui.list_with_thumbnail:
@@ -482,7 +482,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                 c = ui.current_thumbnail_position[1]
                 cur_label = cur_label_num
                 if cur_label >= 0:
-                    p6 = "ui.gridLayout2.addWidget(ui.label_epn_"+str(cur_label)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
+                    p6 = "ui.gridLayout2.addWidget(ui.label_epn_"+str(cur_label)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)"
                     exec(p6)
                     p1 = "ui.label_epn_{0}.show()".format(cur_label_num)
                     exec(p1)
@@ -509,7 +509,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
                                 exec(p1)
                             except Exception as e:
                                 print(e)
-                        p1 = "ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
+                        p1 = "ui.label_epn_{0}.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)".format(new_cnt)
                         exec(p1)
                     except Exception as e:
                         print(e)
@@ -527,7 +527,7 @@ class RightClickMenuIndicator(QtWidgets.QMenu):
             #else:
             #    ui.list2.hide()
             self.h_mode.setText('&Hide')
-            ui.list2.setFlow(QtWidgets.QListWidget.TopToBottom)
+            ui.list2.setFlow(QtWidgets.QListView.Flow.TopToBottom)
             ui.list2.setMaximumWidth(ui.width_allowed)
             print("list1 width is {0}".format(ui.list1.width()))
             ui.list2.setMaximumHeight(16777215)
@@ -600,7 +600,7 @@ class SystemAppIndicator(QtWidgets.QSystemTrayIcon):
 
     def onTrayIconActivated(self, reason):
         print(reason, '--reason--')
-        if reason == QtWidgets.QSystemTrayIcon.Trigger:
+        if reason == QtWidgets.QSystemTrayIcon.ActivationReason.Trigger:
             if not ui.float_window.isHidden():
                 ui.float_window.hide()
                 self.right_menu.h_mode.setText('&Show')

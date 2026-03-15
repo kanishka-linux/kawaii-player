@@ -15,10 +15,10 @@ import urllib.parse
 import hashlib
 from functools import partial 
 from collections import namedtuple
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt, QMetaObject, pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QOpenGLWidget, QApplication
-from PyQt5.QtOpenGL import QGLContext
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt, QMetaObject, pyqtSlot, pyqtSignal
+from PyQt6.QtOpenGLWidgets import QOpenGLWidget
+from PyQt6.QtGui import QOpenGLContext
 import subprocess
 
 from OpenGL import GL
@@ -32,14 +32,14 @@ except Exception as err:
 from player import PlayerWidget, KeyBoardShortcuts
 
 def get_proc_addr(_, name):
-    glctx = QGLContext.currentContext()
+    glctx = QOpenGLContext.currentContext()
     if glctx is None:
         return 0
     addr = int(glctx.getProcAddress(name.decode('utf-8')))
     return addr
 
 if sys.platform == 'win32':
-    from PyQt5.QtOpenGL import QGLContext
+    from PyQt6.QtGui import QOpenGLContext
     try:
         from ctypes import windll
     except Exception as err:
@@ -52,7 +52,7 @@ else:
 
 def getProcAddress(proc: bytes) -> int:
     if sys.platform == 'win32':
-        _ctx = QGLContext.currentContext()
+        _ctx = QOpenGLContext.currentContext()
         if _ctx is None:
             return 0
         _gpa = (_ctx.getProcAddress, proc.decode())
@@ -493,7 +493,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             if "seek" in value:
                 self.mpv_default_modified.update({key:value.split()})
         
-        self.modifiers = set([QtCore.Qt.ShiftModifier, QtCore.Qt.ControlModifier, QtCore.Qt.AltModifier])
+        self.modifiers = set([QtCore.Qt.KeyboardModifier.ShiftModifier, QtCore.Qt.KeyboardModifier.ControlModifier, QtCore.Qt.KeyboardModifier.AltModifier])
         self.total_keys = {**self.alphanumeric_keys, **self.non_alphanumeric_keys}
         self.seek_now = False
         self.aspect_map = {'0':'Original', '1':'16:9', '2':'4:3', '3':'2.35:1', '4':'Disabled'}
@@ -524,7 +524,7 @@ class MpvOpenglWidget(QOpenGLWidget):
 
         self.mpv_gl = None
         self.init_opengl_render()
-        self.frameSwapped.connect(self.swapped, Qt.DirectConnection)
+        self.frameSwapped.connect(self.swapped, QtCore.Qt.ConnectionType.DirectConnection)
 
     def init_opengl_cb(self):
         try:
@@ -766,9 +766,9 @@ class MpvOpenglWidget(QOpenGLWidget):
     def arrow_hide(self):
         if gui.player_val in ['mpv', 'mplayer', 'libmpv']:
             if self.hasFocus():
-                self.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                 logger.debug('player has focus')
-                #QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.BlankCursor);
+                #QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.BlankCursor);
             else:
                 logger.debug('player not focussed')
             if (self.ui.fullscreen_video and self.hasFocus() and self.ui.tab_6.isHidden()
@@ -956,27 +956,27 @@ class MpvOpenglWidget(QOpenGLWidget):
         self.fake_mousemove_event = ("libmpv", True)
         pos = self.cursor().pos()
         if not self.pointer_moved:
-            new_point = QtCore.QPoint(pos.x() + 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() + 1, pos.y())
             self.pointer_moved = True
         else:
-            new_point = QtCore.QPoint(pos.x() - 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() - 1, pos.y())
             self.pointer_moved = False
-        self.cursor().setPos(new_point)
+        self.cursor().setPos(new_point.toPoint())
         if val == "mouse_release":
             event = QtGui.QMouseEvent(
-                        QtCore.QEvent.MouseButtonRelease,
+                        QtCore.QEvent.Type.MouseButtonRelease,
                         new_point,
-                        QtCore.Qt.LeftButton,
-                        QtCore.Qt.LeftButton,
-                        QtCore.Qt.NoModifier,
+                        QtCore.Qt.MouseButton.LeftButton,
+                        QtCore.Qt.MouseButton.LeftButton,
+                        QtCore.Qt.KeyboardModifier.NoModifier,
                     )
         elif val == "mouse_move":
             event = QtGui.QMouseEvent(
-                        QtCore.QEvent.MouseMove,
+                        QtCore.QEvent.Type.MouseMove,
                         new_point,
-                        QtCore.Qt.NoButton,
-                        QtCore.Qt.NoButton,
-                        QtCore.Qt.NoModifier,
+                        QtCore.Qt.MouseButton.NoButton,
+                        QtCore.Qt.MouseButton.NoButton,
+                        QtCore.Qt.KeyboardModifier.NoModifier,
                     )
         self.ui.gui_signals.mouse_move_method((self, event))
         
@@ -1554,8 +1554,6 @@ class MpvOpenglWidget(QOpenGLWidget):
         gui.mpvplayer_val.write(msg_byt)
 
     def player_fs(self, mode=None):
-        if platform.system().lower() == "darwin":
-            self.mpv.command("set", "pause", "yes")
         if not self.ui.idw or self.ui.idw == self.ui.get_winid():
             if self.player_val == "libmpv":
                 if mode == 'fs':
@@ -1598,8 +1596,9 @@ class MpvOpenglWidget(QOpenGLWidget):
                         self.ui.gui_signals.cursor_method((MainWindow, "hide"))
                     if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
                         #MainWindow.hide()
-                        self.setParent(None)
+                        #self.setParent(None)
                         self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
+                        MainWindow.showFullScreen()
                     else:
                         MainWindow.showFullScreen()
                     self.ui.fullscreen_video = True
@@ -1615,8 +1614,6 @@ class MpvOpenglWidget(QOpenGLWidget):
                     #self.hide()
                     if self.ui.widgets_on_video:
                         self.ui.superGridLayout.addWidget(self.ui.frame1, 1, 1, 1, 1)
-                    if platform.system().lower() == "darwin":
-                        self.mpv.command("set", "pause", "yes")
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(5)
                     self.ui.gridLayout.setContentsMargins(5, 5, 5, 5)

@@ -28,7 +28,7 @@ else:
 sys.path.insert(0, BASEDIR)
 
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from hls_engine import BrowseUrlT
 
 def define_path(file_name):
@@ -234,7 +234,7 @@ NoDisplay=false
             get_link=get_link, js_raw=js_raw, js_progress=js_progress, 
             js_progress_log=js_progress_log)
             
-    ret = app.exec_()
+    ret = app.exec()
     sys.exit(ret)
 
 if __name__ == "__main__":

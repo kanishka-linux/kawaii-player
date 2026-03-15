@@ -22,8 +22,8 @@ import datetime
 import platform
 import urllib.parse
 from functools import partial
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from settings_widget import LoginPCToPC
 
 class GUISignals(QtCore.QObject):
@@ -259,12 +259,12 @@ class GUISignals(QtCore.QObject):
     def cursor_function(self, val):
         widget, opt = val
         if opt == "show":
-            widget.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            widget.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
         else:
             if platform.system().lower() == "darwin" and widget == ui.tab_5:
                 widget.arrow_timer.start(1000)
             else:
-                widget.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+                widget.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
             
     @pyqtSlot(int)
     def queue_delete_signal(self, val):
@@ -447,5 +447,6 @@ class GUISignals(QtCore.QObject):
     def apply_episode_metadata(self, num, ep, sumr, path):
         if num < ui.list2.count():
             ui.list2.item(num).setText(ep)
-            ui.list2.item(num).setIcon(QtGui.QIcon(path))
+            scaled_pixel = ui.scaled_icon(path)
+            ui.list2.item(num).setIcon(QtGui.QIcon(scaled_pixel))
             ui.text.setText(sumr)

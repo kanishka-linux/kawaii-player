@@ -35,17 +35,16 @@ system = platform.system().lower()
 install_requires = []
 if system in ["darwin", "nt"]:
     install_requires = [
-        "PyQt5",
-        "pycurl",
+        "PyQt6",
         "bs4",
         "Pillow",
         "mutagen",
         "lxml",
         "yt-dlp",
-        "certifi",
-        "PyQtWebEngine",
+        "PyQt6-WebEngine",
         "PyOpenGL",
-        "python-vlc"
+        "python-vlc",
+        "certifi"
     ]
 
 library_path = None
@@ -68,9 +67,11 @@ setup(
     url='https://github.com/kanishka-linux/kawaii-player',
     long_description="README.md",
     packages=[
-        'kawaii_player', 'kawaii_player.Plugins', 'kawaii_player.widgets',
-        'kawaii_player.hls_webengine', 'kawaii_player.hls_webkit',
-        'kawaii_player.vinanti', 'kawaii_player.tvdb_async',
+        'kawaii_player',
+        'kawaii_player.Plugins',
+        'kawaii_player.widgets',
+        'kawaii_player.hls_webengine',
+        'kawaii_player.vinanti',
         'kawaii_player.series_info_fetcher'
         ],
     include_package_data=True,

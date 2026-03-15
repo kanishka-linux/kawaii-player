@@ -31,9 +31,10 @@ import time
 import calendar
 from datetime import datetime
 from functools import partial
-from PyQt5 import QtCore, QtNetwork, QtWidgets, QtWebEngineWidgets, QtWebEngineCore
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtCore import QUrl, pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtNetwork, QtWidgets, QtWebEngineWidgets, QtWebEngineCore
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEnginePage
+from PyQt6.QtCore import QUrl, pyqtSlot, pyqtSignal
 from netmon import NetManager
 
 

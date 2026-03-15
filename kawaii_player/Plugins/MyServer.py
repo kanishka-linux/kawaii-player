@@ -14,13 +14,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import sys
 import urllib.parse
 import re
-import random
 from bs4 import BeautifulSoup
-from PyQt5 import QtCore, QtWidgets
-from player_functions import ccurl, send_notification
+from PyQt6 import QtWidgets
+from player_functions import send_notification
+from vinanti import Vinanti
 
 
 class LoginWidget(QtWidgets.QDialog):
@@ -37,7 +36,7 @@ class LoginWidget(QtWidgets.QDialog):
         self.text_pass.setPlaceholderText('PASSWORD')
         if self.server.server_name:
             self.server_ip.setText(self.server.server_name)
-        self.text_pass.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.text_pass.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.btn_login = QtWidgets.QPushButton('Login', self)
         self.btn_login.clicked.connect(self.handleLogin)
         self.setWindowTitle('Credentials Required')
@@ -50,6 +49,11 @@ class LoginWidget(QtWidgets.QDialog):
         self.auth_64 = ''
         self.show()
         self.found = True
+        if os.name == 'posix':
+            verify = True
+        else:
+            verify = False
+        self.vnt = Vinanti(block=True, verify=verify, session=True)
 
     def handleLogin(self):
         self.hide()
@@ -63,10 +67,11 @@ class LoginWidget(QtWidgets.QDialog):
             if not url.startswith('http'):
                 send_notification('Enter full IP address starting with http/https properly')
             else:
-                content = ccurl(
-                        '{0}get_all_category.htm#-c#{1}'.format(url, self.server.cookie_file),
-                        user_auth=self.auth_info, verify_peer=False
-                        )
+                content_get = self.vnt.get(
+                        f'{url}get_all_category.htm',
+                        auth=(text_val, pass_val)
+                    )
+                content = content_get.html
                 print(content, '>>>>>')
                 if ('Access Not Allowed, Authentication Failed' in content or
                         'You are not authorized to access the content' in content):
@@ -101,6 +106,11 @@ class MyServer:
         self.login_widget = None
         self.server_list = os.path.join(tmp, 'server_list.txt')
         self.server_name = None
+        if os.name == 'posix':
+            verify = True
+        else:
+            verify = False
+        self.vnt = Vinanti(block=True, verify=verify, session=True)
         
     def getOptions(self):
             criteria = ['Login', 'Logout', 'Discover', 'History', 'newversion']
@@ -109,9 +119,9 @@ class MyServer:
     def getFinalUrl(self, name, epn, mirror, quality):
         if self.url:
             url = self.url+'quality='+quality
-            content = ccurl(
-                    '{0}#-b#{1}'.format(url, self.cookie_file),verify_peer=False
-                    )
+
+            content_get = self.vnt.get(url)
+            content =  content_get.html
             print(content)
         final = epn
         if '\t' in epn:
@@ -131,12 +141,13 @@ class MyServer:
         if not self.url:
             self.login_widget = LoginWidget(server=self)
             self.login_widget.show()
-            #self.login_widget.setWindowModality(QtCore.Qt.WindowModal)
         else:
-            content = ccurl(
-                '{0}get_all_category.htm#-c#{1}'.format(self.url, self.cookie_file),
-                user_auth=self.passwd, verify_peer=False
+            usr, passwd = self.passwd.split(":")
+            content_get = self.vnt.get(
+                f'{self.url}get_all_category.htm',
+                auth=(usr, passwd),
                 )
+            content = content_get.html
             print(content, '>>>>>')
             if ('Access Not Allowed, Authentication Failed' in content 
                     or 'You are not authorized to access the content' in content):
@@ -155,10 +166,12 @@ class MyServer:
             self.handle_login()
             print(self.login_success, 'login_success')
             if self.login_success:
-                content = ccurl(
-                    '{0}get_all_category.htm#-b#{1}'.format(self.url, self.cookie_file),
-                    user_auth=self.passwd, verify_peer=False
-                )
+                usr, passwd = self.passwd.split(":")
+                content_get = self.vnt.get(
+                    f'{self.url}get_all_category.htm',
+                    auth=(usr, passwd),
+                    )
+                content = content_get.html
                 print(content, '>>>>>160')
                 soup = BeautifulSoup(content, 'lxml')
                 print(soup.prettify())
@@ -218,7 +231,8 @@ class MyServer:
                     'site={0}&opt={1}'.format(self.site.lower(), self.opt.lower())
                     )
                 print(url_new)
-                content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
+                content_get = self.vnt.get(url_new)
+                content = content_get.html
                 #print(content)
                 m = content.split('\n')
                 if self.site.lower() == 'video' or self.site.lower() == 'music':
@@ -229,7 +243,8 @@ class MyServer:
             m.append(4)
         elif opt.lower() == 'logout':
             url_new = self.url+'logout'
-            content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
+            content_get = self.vnt.get(url_new)
+            content = content_get.html
             self.opt = opt
             self.url = None
             self.passwd = None
@@ -245,7 +260,8 @@ class MyServer:
                 'site={0}&opt={1}'.format(self.site.lower(), self.opt.lower())
                 )
             print(url_new)
-            content = ccurl(url_new+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
+            content_get = self.vnt.get(url_new)
+            content = content_get.html
             #print(content)
             m = content.split('\n')
             if self.site.lower() == 'video' or self.site.lower() == 'music':
@@ -299,7 +315,8 @@ class MyServer:
             url_new = 'site={0}&opt={1}&s={2}&exact.m3u'.format(self.site.lower(), opt_val, name_val)
             url_new = urllib.parse.quote(url_new)
             url = self.url+url_new
-            content = ccurl(url+'#'+'-b'+'#'+self.cookie_file, verify_peer=False)
+            content_get = self.vnt.get(url)
+            content = content_get.html
             m = self.get_playlist(content)
             record_history = True
         elif self.opt == 'Discover':

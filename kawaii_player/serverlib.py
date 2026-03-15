@@ -3,7 +3,7 @@ import re
 import importlib as imp
 import shutil
 import hashlib
-from player_functions import open_files, write_files, ccurl, send_notification
+from player_functions import open_files, write_files, send_notification
 
 try:
     import libtorrent as lt
@@ -799,7 +799,7 @@ class ServerLib:
             torrent_dest1 = os.path.join(tmp_dir, name1+'.torrent')
             if not os.path.exists(torrent_dest1):
                 if item.startswith('http'):
-                    ccurl(item+'#'+'-o'+'#'+torrent_dest1)
+                    ui.vnt_sync.get(item, out=torrent_dest1)
                 else:
                     shutil.copy(item, torrent_dest1)
             if os.path.exists(torrent_dest1):
