@@ -569,13 +569,13 @@ class SeriesDetailsApp {
             
             <div class="fetch-modal-form">
               <div class="fetch-modal-form-group">
-                <label class="fetch-modal-label">Image URL</label>
+                <label class="fetch-modal-label">Image URL/ Search Title</label>
                 <input 
                   type="text" 
                   class="fetch-modal-input" 
                   id="fetch-url-input" 
-                  placeholder="https://example.com/image.jpg"
-                  value=""
+                  placeholder="https://example.com/image.jpg OR title"
+                  value="${this.escapeHtml(title)}"
                 />
               </div>
             </div>
