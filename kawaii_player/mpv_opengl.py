@@ -663,8 +663,7 @@ class MpvOpenglWidget(QOpenGLWidget):
             pass
             
     def only_fs_tab(self):
-        self.setMinimumWidth(MainWindow.width())
-        self.setMinimumHeight(MainWindow.height())
+        self.setGeometry(0, 0, MainWindow.width(), MainWindow.height())
         
     def parse_mpv_config_file(self, file_path=None):
         self.setup_args_from_gui()
@@ -774,6 +773,8 @@ class MpvOpenglWidget(QOpenGLWidget):
             if (self.ui.fullscreen_video and self.hasFocus() and self.ui.tab_6.isHidden()
                         and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                 self.ui.frame1.hide()
+                if platform.system().lower() == "darwin" and self.ui.fullscreen_video:
+                    self.setGeometry(0, 0, MainWindow.width(), MainWindow.height())
 
     def get_track_property(self, id_val, id_type):
         txt = None
@@ -1483,8 +1484,6 @@ class MpvOpenglWidget(QOpenGLWidget):
             self.ui.mpvplayer_val.write(msg)
             
     def toggle_fullscreen_mode(self):
-        wd = self.width()
-        ht = self.height()
         val = self.mpv.get_property('fullscreen')
         if (val is False or val is None) or (val and not self.ui.fullscreen_video):
             self.mpv.set_property('fullscreen', 'yes')
@@ -1595,21 +1594,17 @@ class MpvOpenglWidget(QOpenGLWidget):
                     if self.player_val in self.ui.playback_engine:
                         self.ui.gui_signals.cursor_method((MainWindow, "hide"))
                     if platform.system().lower() == "darwin" and self.ui.osx_native_fullscreen:
-                        #MainWindow.hide()
-                        #self.setParent(None)
                         self.ui.tab_5_layout.insertWidget(1, self.ui.frame1)
-                        MainWindow.showFullScreen()
-                    else:
-                        MainWindow.showFullScreen()
+                    MainWindow.showFullScreen()
                     self.ui.fullscreen_video = True
                     
                     self.showFullScreen()
                     self.setFocus()
                     self.setMouseTracking(True)
-                    if platform.system().lower() == "darwin":
-                        self.setMinimumWidth(MainWindow.width())
                     if self.ui.widgets_on_video:
                         self.ui.gridLayoutVideo.addWidget(self.ui.frame1, 2, 1, 1, 1)
+                    if platform.system().lower() == "darwin" and not self.fs_timer_now.isActive():
+                        self.fs_timer_now.start(10)
                 elif mode == "nofs":
                     #self.hide()
                     if self.ui.widgets_on_video:
@@ -1659,6 +1654,7 @@ class MpvOpenglWidget(QOpenGLWidget):
                     #MainWindow.showMaximized()
                     self.setMinimumWidth(0)
                     self.setMinimumHeight(0)
+                    self.setGeometry(QtCore.QRect())
                     if not self.mx_timer.isActive() and platform.system().lower() != "darwin":
                         self.mx_timer.start(1000) 
             else:

@@ -30,6 +30,10 @@ class PlayerWidget(QtWidgets.QWidget):
         self.mplayer_OsdTimer.timeout.connect(self.osd_hide)
         self.mplayer_OsdTimer.setSingleShot(True)
 
+        self.fs_timer_now = QtCore.QTimer()
+        self.fs_timer_now.timeout.connect(self.only_fs_tab)
+        self.fs_timer_now.setSingleShot(True)
+
         self.seek_timer = QtCore.QTimer()
         self.seek_timer.timeout.connect(self.seek_mplayer)
         self.seek_timer.setSingleShot(True)
@@ -215,6 +219,8 @@ class PlayerWidget(QtWidgets.QWidget):
                 self.ui.gridLayout.setSpacing(0)
                 self.ui.frame1.show()
                 self.ui.frame1.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+                if platform.system().lower() == "darwin" and self.ui.fullscreen_video:
+                    self.ui.tab_5.setGeometry(0, 0, MainWindow.width(), MainWindow.height())
             elif pos.y() <= ht-128 and not self.ui.frame1.isHidden():
                 param_dict = self.ui.get_parameters_value(st='site')
                 site = param_dict['site']
@@ -222,11 +228,16 @@ class PlayerWidget(QtWidgets.QWidget):
                         and self.ui.list2.isHidden() and self.ui.tab_2.isHidden()):
                     self.ui.frame1.hide()
                     self.ui.gridLayout.setSpacing(5)
+                    if platform.system().lower() == "darwin" and self.ui.fullscreen_video:
+                        self.ui.tab_5.setGeometry(0, 0, MainWindow.width(), MainWindow.height())
 
     def set_slider_val(self, val):
         t = self.ui.slider.value()
         t = t+val
         self.ui.slider.setValue(t)
+
+    def only_fs_tab(self):
+        self.setGeometry(0, 0, MainWindow.width(), MainWindow.height())
     
     def player_fs(self, mode=None):
         if not self.ui.idw or self.ui.idw == str(int(self.winId())) or isinstance(self.ui.idw, int):
@@ -276,17 +287,16 @@ class PlayerWidget(QtWidgets.QWidget):
                             MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
                         MainWindow.showFullScreen()
                         self.ui.fullscreen_video = True
-                    if platform.system().lower() == "darwin":
-                        self.initial_width = self.width()
-                        self.setMinimumWidth(MainWindow.width())
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(True)
+
+                    if platform.system().lower() == "darwin" and not self.fs_timer_now.isActive():
+                        self.fs_timer_now.start(10)
  
                 else:
                     if self.ui.player_val == "libvlc":
                         self.ui.vlc_mediaplayer.set_fullscreen(False)
                     if platform.system().lower() == "darwin":
-                        self.setMinimumWidth(self.initial_width)
                         self.setMinimumHeight(0)
                     self.ui.gridLayout.setSpacing(5)
                     self.ui.superGridLayout.setSpacing(0)
@@ -319,6 +329,7 @@ class PlayerWidget(QtWidgets.QWidget):
                     if self.ui.orientation_dock == 'right':
                         self.ui.superGridLayout.addWidget(self.ui.dockWidget_3, 0, 5, 2, 1)
                     self.ui.fullscreen_video = False
+                    self.setGeometry(QtCore.QRect())
             else:
                 if self.ui.detach_fullscreen:
                     self.ui.detach_fullscreen = False
