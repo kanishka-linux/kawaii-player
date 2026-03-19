@@ -594,7 +594,9 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
 
 * Along with adding PyQt6 support, some good amount of refactoring is done that includes removing support for QtWebkit and PyCurl, making dependency installation much more manageable.
 
-* Curently PyQt6 version is mainly tested on (Raspberry Pi-4B+) Debian Trixie and OSX, and maynot be stable compared to PyQt5 version on other platforms. In case found any issue consider reporting them.
+* Curently PyQt6 version is mainly tested on (Raspberry Pi-4B+) Debian Trixie and OSX, and maynot be stable compared to PyQt5 version on other platforms. In case found any found any issue then please consider reporting them.
+
+* If PyQt6 version is too buggy to use on your platform,then consider using last PyQt5 based release i.e. [v8.1.0](https://github.com/kanishka-linux/kawaii-player/releases/tag/v8.1.0-1)
 
 ### Installation
 
