@@ -9,8 +9,8 @@ import locale
 from functools import partial
 import PIL
 from PIL import Image
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtWidgets, QtGui
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 from player_functions import write_files
 from thread_modules import DiscoverServer
 from mpv_bak import MPV
@@ -26,7 +26,7 @@ class QBrowserWidget(QtWidgets.QWidget):
         
     def mouseMoveEvent(self, event):
         self.setFocus()
-        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
         
 
 class QPushButtonExtra(QtWidgets.QPushButton):
@@ -66,21 +66,21 @@ class SidebarWidget(QtWidgets.QListWidget):
             self.setFocus()
             
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_O:
+        if event.key() == QtCore.Qt.Key.Key_O:
             ui.setPreOpt()
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 self.setCurrentRow(0)
             else:
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 self.setCurrentRow(self.count()-1)
             else:
                 self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             if not ui.list1.isHidden():
                 ui.list1.setFocus()
             elif not ui.scrollArea.isHidden():
@@ -90,10 +90,10 @@ class SidebarWidget(QtWidgets.QListWidget):
             elif not ui.list_poster.isHidden():
                 ui.list_poster.setFocus()
             ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             ui.newoptions('clicked')
             self.setFocus()
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             if not ui.list2.isHidden():
                 if ui.list2.currentItem():
                     index = ui.list2.currentRow()
@@ -109,10 +109,10 @@ class SidebarWidget(QtWidgets.QListWidget):
                 ui.list_poster.setFocus()
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_H:
+        elif event.key() == QtCore.Qt.Key.Key_H:
             ui.setPreOpt()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_D):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_D):
             site = ui.get_parameters_value(s='site')['site']
             if site.lower() == 'myserver':
                 if not ui.discover_thread and not ui.list2.discover_slave_thread:
@@ -124,7 +124,7 @@ class SidebarWidget(QtWidgets.QListWidget):
                     else:
                         ui.discover_thread = DiscoverServer(ui, True)
                         ui.discover_thread.start()
-        elif event.key() == QtCore.Qt.Key_Delete:
+        elif event.key() == QtCore.Qt.Key.Key_Delete:
             param_dict = ui.get_parameters_value(s='site', b='bookmark')
             site = param_dict['site']
             bookmark = param_dict['bookmark']
@@ -187,19 +187,19 @@ class FilterTitleList(QtWidgets.QListWidget):
         home = home_dir
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Down:
+        if event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 ui.go_page.setFocus()
             else:
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 ui.go_page.setFocus()
             else:
                 self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             ui.search_list4_options()
 
     def contextMenuEvent(self, event):
@@ -233,21 +233,21 @@ class FilterPlaylist(QtWidgets.QListWidget):
         logger = logr
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Down:
+        if event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 ui.goto_epn_filter_txt.setFocus()
             else:
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 ui.goto_epn_filter_txt.setFocus()
             else:
                 self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             ui.search_list5_options()
-        elif event.key() == QtCore.Qt.Key_Q:
+        elif event.key() == QtCore.Qt.Key.Key_Q:
             site = ui.get_parameters_value(s='site')['site']
             if (site == "Music" or site == "Video" or site == "Local" 
                     or site == "PlayLists" or site == "None"):
@@ -280,19 +280,19 @@ class QueueListWidget(QtWidgets.QListWidget):
         home = home_dir
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Down:
+        if event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 self.setCurrentRow(0)
             else:
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 self.setCurrentRow(self.count()-1)
             else:
                 self.setCurrentRow(prev_r)
-        elif event.key() == QtCore.Qt.Key_PageUp:
+        elif event.key() == QtCore.Qt.Key.Key_PageUp:
             r = self.currentRow()
             if r > 0:
                 r1 = r - 1
@@ -304,7 +304,7 @@ class QueueListWidget(QtWidgets.QListWidget):
                 del item
                 self.insertItem(r1, txt)
                 self.setCurrentRow(r1)
-        elif event.key() == QtCore.Qt.Key_PageDown:
+        elif event.key() == QtCore.Qt.Key.Key_PageDown:
             r = self.currentRow()
             if r < self.count()-1 and r >= 0:
                 r1 = r + 1
@@ -316,11 +316,11 @@ class QueueListWidget(QtWidgets.QListWidget):
                 del item
                 self.insertItem(r1, txt)
                 self.setCurrentRow(r1)
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             r = self.currentRow()
             if self.item(r):
                 ui.queueList_return_pressed(r)
-        elif event.key() == QtCore.Qt.Key_Delete:
+        elif event.key() == QtCore.Qt.Key.Key_Delete:
             r = self.currentRow()
             if self.item(r):
                 item = self.item(r)
@@ -343,8 +343,8 @@ class ToolTipWidget(QtWidgets.QWidget):
         global ui
         ui = uiwidget
         self.setWindowFlags(
-            QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
-            | QtCore.Qt.WindowStaysOnTopHint
+            QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint 
+            | QtCore.Qt.WindowType.WindowStaysOnTopHint
             )
         self.setMouseTracking(True)
         
@@ -407,7 +407,7 @@ class MySlider(QtWidgets.QSlider):
         ui = uiwidget
         home = home_dir
         MainWindow = mw
-        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         version = QtCore.QT_VERSION_STR
         self.version = tuple([int(i) for i in version.split('.')])
         if self.version >= (5, 9, 0):
@@ -431,7 +431,7 @@ class MySlider(QtWidgets.QSlider):
         self.v.insertWidget(0, self.pic)
         self.txt = QtWidgets.QLabel(self)
         self.v.insertWidget(1, self.txt)
-        self.txt.setAlignment(QtCore.Qt.AlignCenter)
+        self.txt.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.tooltip_widget.setMouseTracking(True)
         self.tooltip_widget.hide()
         self.txt.setStyleSheet('color:white;background:black;')
@@ -462,19 +462,19 @@ class MySlider(QtWidgets.QSlider):
         self.setSliderPosition(val)
     
     def keyPressEvent(self, event):
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Right):
+        if (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Right):
             pos = self.cursor().pos()
             self.cursor().setPos(pos.x()+5, pos.y())
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Left):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Left):
             pos = self.cursor().pos()
             self.cursor().setPos(pos.x()-5, pos.y())
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             ui.mpv_execute_command('seek 5', ui.cur_row)
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             ui.mpv_execute_command('seek -5', ui.cur_row)
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             pos = self.cursor().pos()
             t = ((pos.x() - self.x())/self.width())
             t = int(t*ui.mplayerLength)
@@ -570,12 +570,12 @@ class MySlider(QtWidgets.QSlider):
                 self.create_preview_dir()
                 
         self.preview_counter += 1
-        t = ((event.x() - self.x())/self.width())
+        t = ((event.position().x() - self.x())/self.width())
         if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:
             t = int(t*self.maximum())
         else:
             t = int(t*ui.mplayerLength)
-        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.x()) / self.width()
+        #t = self.minimum() + ((self.maximum()-self.minimum()) * event.position().x()) / self.width()
         if ui.player_val == "mplayer":
             l=str((datetime.timedelta(milliseconds=t)))
         elif ui.player_val in ["mpv", "libmpv"]:
@@ -600,11 +600,11 @@ class MySlider(QtWidgets.QSlider):
             change_aspect = True
             if ui.player_val in ["libmpv", "mpv"]:
                 #if True:
-                self.final_point = (event.x(), event.y())
+                self.final_point = (event.position().x(), event.position().y())
                 func = partial(self.mpv_preview, self.preview_dir, t,
                                (ui.label.maximumWidth(), ui.label.maximumHeight()),
-                               newpicn, ui.final_playing_url, (event.x(), event.y()), timeout=0.5)
-                apply_list = [newpicn, l, False, t, 0, event.x(), event.y(), source_val]
+                               newpicn, ui.final_playing_url, (event.position().x(), event.position().y()), timeout=0.5)
+                apply_list = [newpicn, l, False, t, 0, event.position().x(), event.position().y(), source_val]
                 if ui.live_preview == "fast" and not os.path.exists(newpicn):
                     func()
                     ui.gui_signals.generate_preview(*apply_list.copy())
@@ -616,9 +616,9 @@ class MySlider(QtWidgets.QSlider):
                     #self.mpv_preview(self.preview_dir, t,
                     #                (ui.label.maximumWidth(), ui.label.maximumHeight()),
                     #                newpicn, ui.final_playing_url)
-                    #self.preview_generated(newpicn, l, False, t, 0, event.x(), event.y())
+                    #self.preview_generated(newpicn, l, False, t, 0, event.position().x(), event.position().y())
                 if os.path.exists(newpicn):
-                    ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.x(), event.y(), source_val)
+                    ui.gui_signals.generate_preview(newpicn, l, False, t, 0, event.position().x(), event.position().y(), source_val)
         else:
             if self.tooltip is None:
                 self.setToolTip(l)
@@ -627,7 +627,7 @@ class MySlider(QtWidgets.QSlider):
                     offset = 25
                 else:
                     offset = 0
-                point = QtCore.QPoint(self.parent.x()+event.x(), self.parent.y()+self.parent.height() - offset)
+                point = QtCore.QPoint(int(self.parent.x()+event.position().x()), int(self.parent.y()+self.parent.height() - offset))
                 rect = QtCore.QRect(self.parent.x(), self.parent.y() - offset , self.parent.width(), self.parent.height())
                 self.tooltip.showText(point, l, self, rect, 1000)
         if ui.live_preview in ['fast', 'slow'] and ui.mpvplayer_val.processId() > 0 and self.file_type == 'video' and ui.player_val not in ["mpv", "libmpv"]:
@@ -639,21 +639,21 @@ class MySlider(QtWidgets.QSlider):
             if self.preview_process.processId() == 0 and not use_existing:
                 self.info_preview(
                     command, picn, l, change_aspect, t, self.preview_counter,
-                    event.x(), event.y(), use_existing, lock=False
+                    event.position().x(), event.position().y(), use_existing, lock=False
                 )
             else:
                 if self.preview_process.processId() > 0 or ui.live_preview == 'slow':
                     self.preview_pending.append(
                         (command, picn, l, change_aspect, t, self.preview_counter,
-                         event.x(), event.y(), use_existing)
+                         event.position().x(), event.position().y(), use_existing)
                     )
                 if ui.live_preview == 'fast' and self.preview_process.processId() == 0:
                     if os.path.isfile(newpicn):
-                        self.apply_pic(newpicn, event.x(), event.y(), l, resize=True)
+                        self.apply_pic(newpicn, event.position().x(), event.position().y(), l, resize=True)
                     else:
-                        self.apply_pic(picn, event.x(), event.y(), l, resize=True)
+                        self.apply_pic(picn, event.position().x(), event.position().y(), l, resize=True)
                 elif ui.live_preview == 'fast' and self.preview_process.processId() > 0:
-                    self.apply_pic(picn, event.x(), event.y(), l, resize=True, only_text=True)
+                    self.apply_pic(picn, event.position().x(), event.position().y(), l, resize=True, only_text=True)
                     
                 
     def info_preview(self, command, picn, length, change_aspect, tsec, counter, x, y, use_existing=None, lock=None):
@@ -807,7 +807,7 @@ class MySlider(QtWidgets.QSlider):
     def mousePressEvent(self, event, source=None):
         self.preview_counter = 0
         old_val = int(self.value())
-        t = ((event.x() - self.x())/self.width())
+        t = ((event.position().x() - self.x())/self.width())
         if ui.extra_toolbar_control == 'slave' and ui.mpvplayer_val.processId() == 0:            
             seek_per = round((t * 100), 2)
             ui.client_seek_val = seek_per
@@ -845,25 +845,25 @@ class VolumeSlider(QtWidgets.QSlider):
         MainWindow = mainwidget
         ui = uiwidget
         self.parent = parent
-        self.setOrientation(QtCore.Qt.Horizontal)
+        self.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.setRange(0, 100)
         self.setPageStep(2)
         self.setSingleStep(2)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_volume)
         self.pressed = False
-        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.release = False
     """
     def mouseMoveEvent(self, event):
         if ui.frame1.isHidden():
             ui.frame1.show()
-        pos = int((event.x()/self.width())*100)
+        pos = int((event.position().x()/self.width())*100)
     
     def mousePressEvent(self, event):
         self.pressed = True
         self.release = False
-        pos = int((event.x()/self.width())*100)
+        pos = int((event.position().x()/self.width())*100)
         while not self.release:
             print(pos, self.value())
             if pos > self.value():
@@ -880,9 +880,9 @@ class VolumeSlider(QtWidgets.QSlider):
         self.release = True
     
     def keyPressEvent(self, event):
-        if event.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Left]:
+        if event.key() in [QtCore.Qt.Key.Key_Right, QtCore.Qt.Key.Key_Left]:
             self.pressed = False
-            if event.key() == QtCore.Qt.Key_Right:
+            if event.key() == QtCore.Qt.Key.Key_Right:
                 self.setValue(self.value() + 1)
             else:
                 self.setValue(self.value() - 1)
@@ -966,18 +966,18 @@ class QLineCustom(QtWidgets.QLineEdit):
         
     def keyPressEvent(self, event):
         if self.objectName() == 'go_page':
-            if event.key() == QtCore.Qt.Key_Down:
+            if event.key() == QtCore.Qt.Key.Key_Down:
                 ui.list4.show()
                 ui.list4.setFocus()
                 self.show()
-            elif event.key() == QtCore.Qt.Key_Up:
+            elif event.key() == QtCore.Qt.Key.Key_Up:
                 ui.list4.show()
                 ui.list4.setFocus()
                 self.show()
             else:
                 super(QLineCustom, self).keyPressEvent(event)
         elif self.objectName() == 'label_search':
-            if event.key() in [QtCore.Qt.Key_Down, QtCore.Qt.Key_Return]:
+            if event.key() in [QtCore.Qt.Key.Key_Down, QtCore.Qt.Key.Key_Return]:
                 if not ui.list_poster.isHidden():
                     ui.list_poster.setFocus()
                 elif not ui.scrollArea.isHidden():
@@ -1016,12 +1016,12 @@ class QLineCustomSearch(QtWidgets.QLineEdit):
         
     def keyPressEvent(self, event):
         print("down")
-        if event.key() == QtCore.Qt.Key_Down:
+        if event.key() == QtCore.Qt.Key.Key_Down:
             self.go_to_target()
             self.hide()
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             self.hide()
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             self.go_to_target()
             self.hide()
         else:
@@ -1036,10 +1036,10 @@ class QLineCustomEpn(QtWidgets.QLineEdit):
         
     def keyPressEvent(self, event):
         
-        if (event.type()==QtCore.QEvent.KeyPress) and (event.key() == QtCore.Qt.Key_Down):
+        if (event.type()==QtCore.QEvent.KeyPress) and (event.key() == QtCore.Qt.Key.Key_Down):
             print("Down")
             ui.list5.setFocus()
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             ui.list5.setFocus()
         super(QLineCustomEpn, self).keyPressEvent(event)
 
@@ -1078,7 +1078,7 @@ class SelectButton(QtWidgets.QComboBox):
         ui = ui_widget
         
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Right:
+        if event.key() == QtCore.Qt.Key.Key_Right:
             if not ui.list1.isHidden():
                 ui.list1.setFocus()
             elif not ui.scrollArea.isHidden():
@@ -1089,7 +1089,7 @@ class SelectButton(QtWidgets.QComboBox):
                 ui.list_poster.setFocus()
             if ui.auto_hide_dock:
                 ui.dockWidget_3.hide()
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             if self.currentText() == 'Addons':
                 ui.btnAddon.setFocus()
             else:
@@ -1118,7 +1118,7 @@ class GSBCSlider(QtWidgets.QSlider):
         self.parent = parent
         ui = uiwidget
         self.setObjectName(name)
-        self.setOrientation(QtCore.Qt.Horizontal)
+        self.setOrientation(QtCore.Qt.Orientation.Horizontal)
         if name == 'zoom':
             self.setRange(-2000, 2000)
             self.setSingleStep(10)
@@ -1135,7 +1135,7 @@ class GSBCSlider(QtWidgets.QSlider):
         self.setValue(0)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_gsbc_values)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         #self.setTickPosition(QtWidgets.QSlider.TicksAbove)
         
     def adjust_gsbc_values(self, val):
@@ -1197,7 +1197,7 @@ class SubtitleSlider(QtWidgets.QSlider):
         self.parent = parent
         ui = uiwidget
         self.setObjectName(name)
-        self.setOrientation(QtCore.Qt.Horizontal)
+        self.setOrientation(QtCore.Qt.Orientation.Horizontal)
         if name == 'text':
             self.setRange(0, 100)
             self.setSingleStep(1)
@@ -1240,7 +1240,7 @@ class SubtitleSlider(QtWidgets.QSlider):
                 self.setValue(0)
         self.setMouseTracking(True)
         self.valueChanged.connect(self.adjust_sub_size)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         
     def adjust_sub_size(self, val):
         name = self.objectName()
@@ -1388,9 +1388,9 @@ class ExtraToolBar(QtWidgets.QFrame):
         global ui, MainWindow
         ui = uiwidget
         MainWindow = parent
-        self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-        self.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+        self.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.setObjectName("frame_extra_toolbar")
         self.super_layout = QtWidgets.QVBoxLayout(self)
         self.super_layout.setContentsMargins(0, 0, 0, 0)
@@ -1692,14 +1692,14 @@ class ExtraToolBar(QtWidgets.QFrame):
     
     def generate_subtitle_frame(self):
         try:
-            self.font_families = [i for i in QtGui.QFontDatabase().families()]
+            self.font_families = [i for i in QtGui.QFontDatabase.families()]
         except Exception as err:
             ui.logger.error(err)
             self.font_families = [ui.global_font]
         self.sub_grid = QtWidgets.QGridLayout(self)
         self.sub_layout.insertLayout(0, self.sub_grid)
         self.completer = QtWidgets.QCompleter(self.font_families)
-        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
         self.font_label = QtWidgets.QLabel(self)
         self.font_label.setText('Font')
         self.font_label.setToolTip('<html>Set Subtitle Font. Start typing\

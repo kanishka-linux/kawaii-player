@@ -22,7 +22,7 @@ import re
 import sqlite3
 import shutil
 import platform
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from player_functions import write_files, open_files, send_notification
 
 class TitleListWidget(QtWidgets.QListWidget):
@@ -30,11 +30,11 @@ class TitleListWidget(QtWidgets.QListWidget):
     def __init__(self, parent, uiwidget=None, home_var=None, tmp=None, logr=None):
         super(TitleListWidget, self).__init__(parent)
         global MainWindow, home, TMPDIR, logger, ui
-        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.setDefaultDropAction(QtCore.Qt.DropAction.MoveAction)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
         MainWindow = parent
         ui = uiwidget
         TMPDIR = tmp
@@ -50,8 +50,8 @@ class TitleListWidget(QtWidgets.QListWidget):
     """
     def dropEvent(self, event):
         if (event.source() == self 
-                and (event.dropAction() == QtCore.Qt.MoveAction 
-                or self.dragDropMode() == QtWidgets.QAbstractItemView.InternalMove)):
+                and (event.dropAction() == QtCore.Qt.DropAction.MoveAction 
+                or self.dragDropMode() == QtWidgets.QAbstractItemView.DragDropMode.InternalMove)):
             i = self.currentItem()
             item = i.text()
             itemR = self.currentRow()
@@ -120,63 +120,60 @@ class TitleListWidget(QtWidgets.QListWidget):
     """
     
     def keyPressEvent(self, event):
-        if (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Left):
+        if (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Left):
             self.set_search_backend(use_search='tmdb+ddg', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Right):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Right):
             self.set_search_backend(use_search='tvdb+ddg', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_Right):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_Right):
             self.set_search_backend(use_search='tvdb+ddg', get_thumb=True)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Down):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Down):
             self.set_search_backend(use_search='tmdb+g', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Up):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Up):
             self.set_search_backend(use_search='tvdb+g', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_Up):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_Up):
             self.set_search_backend(use_search='tvdb+g', get_thumb=True)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_1):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_1):
             self.set_search_backend(use_search=False, get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.AltModifier 
-                and event.key() == QtCore.Qt.Key_2):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.AltModifier 
+                and event.key() == QtCore.Qt.Key.Key_2):
             self.set_search_backend(use_search='tmdb', get_thumb=False)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_A):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_A):
             #self.get_all_information()
             super(TitleListWidget, self).keyPressEvent(event)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_C):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_C):
             ui.copyFanart()
-        elif (event.key() == QtCore.Qt.Key_F6):
+        elif (event.key() == QtCore.Qt.Key.Key_F6):
             if self.currentItem():
                 row = self.currentRow()
             else:
                 row = 0
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(0, row, mycopy)
-        elif (event.key() == QtCore.Qt.Key_F7):
+        elif (event.key() == QtCore.Qt.Key.Key_F7):
             if self.currentItem():
                 row = self.currentRow()
             else:
                 row = 0
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(1, row, mycopy)
-        elif (event.key() == QtCore.Qt.Key_F8):
+        elif (event.key() == QtCore.Qt.Key.Key_F8):
             if self.currentItem():
                 row = self.currentRow()
             else:
                 row = 0
             if self.currentItem():
                 mycopy = ui.epn_arr_list.copy()
-                ui.metaengine.find_info_thread(2, row, mycopy)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_Delete):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_Delete):
             row = self.currentRow()
             file_path = ""
             param_dict = ui.get_parameters_value(s='site', sn='siteName')
@@ -197,11 +194,11 @@ class TitleListWidget(QtWidgets.QListWidget):
                     del ui.original_path_name[row]
                     length = self.count()-1
                     write_files(file_path, ui.original_path_name, line_by_line=True)
-        elif (event.modifiers() == QtCore.Qt.ShiftModifier 
-                and event.key() == QtCore.Qt.Key_C):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier 
+                and event.key() == QtCore.Qt.Key.Key_C):
             ui.copySummary()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier 
-                and event.key() == QtCore.Qt.Key_B):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier 
+                and event.key() == QtCore.Qt.Key.Key_B):
             param_dict = ui.get_parameters_value(b='bookmark', o='opt')
             bookmark = param_dict['bookmark']
             opt = param_dict['opt']
@@ -223,7 +220,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                 write_files(file_path, tmp, line_by_line=True)
                 note = name + " is Bookmarked"
                 send_notification(note, code=0)
-        elif event.key() == QtCore.Qt.Key_PageUp:
+        elif event.key() == QtCore.Qt.Key.Key_PageUp:
             param_dict = ui.get_parameters_value(
                 b='bookmark', s='site', o='opt', st='status', sn='siteName')
             bookmark = param_dict['bookmark']
@@ -286,7 +283,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         i = i.split('	')[0]
                     self.addItem(i)
                 self.setCurrentRow(prev_row)
-        elif event.key() == QtCore.Qt.Key_PageDown:
+        elif event.key() == QtCore.Qt.Key.Key_PageDown:
             param_dict = ui.get_parameters_value(
                 b='bookmark', s='site', o='opt', st='status', sn='siteName')
             bookmark = param_dict['bookmark']
@@ -348,7 +345,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         i = i.split('	')[0]
                     self.addItem(i)
                 self.setCurrentRow(next_row)
-        elif event.key() == QtCore.Qt.Key_Delete:
+        elif event.key() == QtCore.Qt.Key.Key_Delete:
             param_dict = ui.get_parameters_value(b='bookmark', s='site')
             bookmark = param_dict['bookmark']
             site= param_dict['site']
@@ -420,50 +417,50 @@ class TitleListWidget(QtWidgets.QListWidget):
                     ui.deleteHistory()
             if r < self.count():
                 self.setCurrentRow(r)
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_H):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_H):
             ui.setPreOpt('fromtitlelist')
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_R):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_R):
             ui.shuffleList()
-        elif (event.modifiers() == QtCore.Qt.ControlModifier
-                and event.key() == QtCore.Qt.Key_T):
+        elif (event.modifiers() == QtCore.Qt.KeyboardModifier.ControlModifier
+                and event.key() == QtCore.Qt.Key.Key_T):
             ui.sortList()
-        elif event.key() == QtCore.Qt.Key_Return:
+        elif event.key() == QtCore.Qt.Key.Key_Return:
             ui.list1_double_clicked()
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key.Key_Right:
             if ui.list2.count() > 0:
                 ui.list2.setCurrentRow(0)
                 ui.list2.setFocus()
-        elif event.key() == QtCore.Qt.Key_F2:
+        elif event.key() == QtCore.Qt.Key.Key_F2:
             if ui.original_path_name:
                 if self.currentItem():
                     self.edit_name_list1(self.currentRow())
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == QtCore.Qt.Key.Key_Left:
             if ui.tab_5.isHidden() and ui.mpvplayer_val.processId() == 0:
                 ui.dockWidget_3.show()
                 ui.btn1.setFocus()
             else:
                 ui.tab_5.setFocus()
-        elif event.key() == QtCore.Qt.Key_Period:
+        elif event.key() == QtCore.Qt.Key.Key_Period:
             site = ui.get_parameters_value(s='site')['site']
             if site == "Music":
                 ui.mpvNextEpnList()
             else:
                 ui.nextp(ui.list3.currentRow())
-        elif event.key() == QtCore.Qt.Key_Comma:
+        elif event.key() == QtCore.Qt.Key.Key_Comma:
             site = ui.get_parameters_value(s='site')['site']
             if site == "Music":
                 ui.mpvPrevEpnList()
             else:
                 ui.backp(ui.list3.currentRow())
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             nextr = self.currentRow() + 1
             if nextr == self.count():
                 self.setCurrentRow(0)
             else:
                 self.setCurrentRow(nextr)
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             prev_r = self.currentRow() - 1
             if self.currentRow() == 0:
                 self.setCurrentRow(self.count()-1)
@@ -531,72 +528,6 @@ class TitleListWidget(QtWidgets.QListWidget):
         nam.strip()
         nam = re.sub('[ ]+', ' ', nam)
         return nam
-            
-    def set_search_backend(self, use_search=None, get_thumb=None):
-        for item in self.selectedItems():
-            row = self.row(item)
-            if use_search is None:
-                use_search = False
-            try:
-                site = ui.get_parameters_value(s='site')['site']
-                nm = ui.get_title_name(row)
-                video_dir = None
-                if site.lower() == 'video':
-                    video_dir = ui.original_path_name[row].split('\t')[-1]
-                elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
-                    pass
-                else:
-                    video_dir = ui.original_path_name[row]
-                if get_thumb is False:
-                    video_dir = None
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=use_search,
-                    video_dir=video_dir)
-            except Exception as e:
-                print(e)
-            
-    def get_all_information(self):
-        backend = ['tvdb', 'tmdb', 'duckduckgo+tvdb', 'duckduckgo+tmdb', 'google+tvdb', 'google+tmdb']
-        backend_dict = {
-            'duckduckgo+tvdb':'tvdb+ddg', 'duckduckgo+tmdb':'tmdb+ddg',
-            'google+tvdb':'tvdb+g', 'google+tmdb':'tmdb+g',
-            'tvdb':'tvdb', 'tmdb':'tmdb'
-            }
-        item, ok = QtWidgets.QInputDialog.getItem(
-            MainWindow, 'Select Search Backend', 'This option will also fetch Episode Thumbnails and Summary for TV Shows\npresent in the TitleList along with relevant posters and fanart. For TV Shows\nselect TVDB based backend and for movies select backend based on TMDB',
-            backend, 0, False)
-        if item and ok:
-            logger.info(item)
-            try:
-                ui.posterfind_batch = 0
-                ui.poster_count_start = 1
-                site = ui.get_parameters_value(s='site')['site']
-                opt = ''
-                if ui.list3.currentItem():
-                    opt = ui.list3.currentItem().text().lower()
-                nm = ui.get_title_name(0)
-                use_search = backend_dict[item]
-                logger.info('\nsite={0}::opt={1}::search={2}\n'.format(site, opt, use_search))
-                video_dir = None
-                if site.lower() == 'video':
-                    video_dir = ui.original_path_name[0].split('\t')[-1]
-                elif site.lower() == 'playlists' or site.lower() == 'none' or site.lower() == 'music':
-                    pass
-                else:
-                    video_dir = ui.original_path_name[0]
-                if video_dir and self.currentRow() > 0:
-                    if self.currentRow() < len(ui.original_path_name):
-                        video_dir = ui.original_path_name[self.currentRow()].split('\t')[-1]
-                        nm = ui.get_title_name(self.currentRow())
-                        ui.posterfind_batch = self.currentRow()
-                        ui.poster_count_start = ui.posterfind_batch + 1
-                ui.posterfound_new(
-                    name=nm, site=site, url=False, copy_poster=True, copy_fanart=True, 
-                    copy_summary=True, direct_url=False, use_search=use_search,
-                    get_all=True, video_dir=video_dir, get_sum=True)
-            except Exception as e:
-                print(e)
                 
     def triggerBookmark(self, val):
         logger.debug(val)
@@ -779,7 +710,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             default_display = 'Enter Title Name Manually\nCurrent Title:\n{0}'.format(default_text)
             item, ok = QtWidgets.QInputDialog.getText(
                 MainWindow, 'Input Dialog', default_display, 
-                QtWidgets.QLineEdit.Normal, default_text
+                QtWidgets.QLineEdit.EchoMode.Normal, default_text
                 )
         else:
             item = self.sanitize_title(default_text)
@@ -799,14 +730,16 @@ class TitleListWidget(QtWidgets.QListWidget):
                         else:
                             logger.debug(msg)
                     else:
+                        cur_name = itemlist.text()
                         home_dir_new = os.path.join(home, 'Local', item)
                         video_db = os.path.join(home, 'VideoDB', 'Video.db')
                         conn = sqlite3.connect(video_db)
                         cur = conn.cursor()
                         old_name, directory = old_val.split('\t')
-                        qr = 'Update Video Set Title=? Where Directory=?'
-                        logger.info('{0}::{1}'.format(nm, directory))
-                        cur.execute(qr, (nm, directory))
+                        qr = 'Update Video Set Title=? Where Directory=? and Title=?'
+                        logger.info('{0}::{1}::{2}'.format(nm, directory, cur_name))
+                        cur.execute(qr, (nm, directory, cur_name))
+                        cur.execute('update series_info set db_title = ? where db_title = ? and directory = ?', (item, cur_name, directory))
                         conn.commit()
                         conn.close()
                         tmp = re.sub('[^	]*', item, old_val, 1)
@@ -921,7 +854,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             thumbnail = menu.addAction("Show Thumbnail Grid View (Ctrl+Z)")
             thumbnail_light = menu.addAction("Show Thumbnail Light View(F1)")
             cache = menu.addAction("Clear Cache")
-            action = menu.exec_(self.mapToGlobal(event.pos()))
+            action = menu.exec(self.mapToGlobal(event.pos()))
 
             for i in range(len(item_m)):
                 if action == item_m[i]:
@@ -1069,10 +1002,6 @@ class TitleListWidget(QtWidgets.QListWidget):
             submenu.setTitle("Bookmark Options")
             menu.addMenu(submenu)
             
-            menu_search = QtWidgets.QMenu(menu)
-            menu_search.setTitle('Poster Options')
-            menu.addMenu(menu_search)
-            
             menu_sanitize = QtWidgets.QMenu(menu)
             menu_sanitize.setTitle('Sanitize Title')
             menu.addMenu(menu_sanitize)
@@ -1112,16 +1041,6 @@ class TitleListWidget(QtWidgets.QListWidget):
             add_cat = menu_cat.addAction('Create Category')
             del_cat = menu_cat.addAction('Delete Category')
             
-            tvdb = menu_search.addAction("Find Poster(TVDB) (Alt+1)")
-            tmdb = menu_search.addAction("Find Poster(TMDB) (Alt+2)")
-            menu_search.addSeparator()
-            ddg_tvdb = menu_search.addAction("Find Poster(ddg+tvdb) (Ctrl+Right)")
-            ddg_tmdb = menu_search.addAction("Find Poster(ddg+tmdb) (Ctrl+Left)")
-            glinks_tvdb = menu_search.addAction("Find Poster(g+tvdb) (Ctrl+Up)")
-            glinks_tmdb = menu_search.addAction("Find Poster(g+tmdb) (Ctrl+Down)")
-            menu_search.addSeparator()
-            poster_all = menu_search.addAction("Find Posters for All")
-            
             menu_clear = QtWidgets.QMenu(menu)
             menu_clear.setTitle('Clear')
             menu.addMenu(menu_clear)
@@ -1133,7 +1052,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             refresh_poster = menu_clear.addAction("Refresh posters")
             rename = menu.addAction("Rename (F2)")
             fanart = menu.addAction("Fetch Fanart")
-            action = menu.exec_(self.mapToGlobal(event.pos()))
+            action = menu.exec(self.mapToGlobal(event.pos()))
             
             if action in item_m:
                 item_index = item_m.index(action)
@@ -1189,7 +1108,7 @@ class TitleListWidget(QtWidgets.QListWidget):
             elif action == add_cat:
                 item, ok = QtWidgets.QInputDialog.getText(
                     MainWindow, 'Input Dialog', 'Add New Category to Video', 
-                    QtWidgets.QLineEdit.Normal, 'Edit')
+                    QtWidgets.QLineEdit.EchoMode.Normal, 'Edit')
                 if item and ok:
                     cat_path = os.path.join(home, 'VideoDB', 'extra_category')
                     if not os.path.isfile(cat_path):
@@ -1250,45 +1169,13 @@ class TitleListWidget(QtWidgets.QListWidget):
                 ui.history_dict_obj = tmpdict.copy()
                 logger.debug(len(ui.history_dict_obj))
                 ui.vnt.clear()
-            elif action == tvdb:
-                self.set_search_backend(use_search=False)
-            elif action == tmdb:
-                self.set_search_backend(use_search='tmdb')
-            elif action == glinks_tvdb:
-                self.set_search_backend(use_search='tvdb+g')
-            elif action == glinks_tmdb:
-                self.set_search_backend(use_search='tmdb+g')
-            elif action == ddg_tvdb:
-                self.set_search_backend(use_search=True)
-            elif action == ddg_tmdb:
-                self.set_search_backend(use_search='tmdb+ddg')
-            elif action == poster_all:
-                self.get_all_information()
             elif action == rename:
                 if ui.original_path_name:
                     print('Renaming')
                     if self.currentItem():
                         self.edit_name_list1(self.currentRow())
             elif action == fanart:
-                title = self.currentItem().text()
-                imgs =  []
-                
-                if self.fanart_dict.get(title):
-                    imgs = self.fanart_dict.get(title)
-                    rotation_index = (self.fanart_dict_rotation_index.get(title) + 1) % len(imgs)
-                    url = imgs[rotation_index]
-                    self.fanart_dict_rotation_index[title] = rotation_index
-                else:
-                    imgs = ui.fetch_fanart_tvdb(title)
-                    if imgs:
-                        self.fanart_dict[title] = imgs
-                        self.fanart_dict_rotation_index[title] = 0
-                        url = imgs[0]
-                if imgs:
-                    ui.posterfound_new(
-                        name=title, site="Video", url=url, direct_url=True, 
-                        copy_summary=False, copy_poster=False, copy_fanart=True)
-                print(imgs,  "found fanart")
+                ui.fetch_fanart_tvdb_from_contextmenu(self.currentItem().text())
             elif action == history:
                 ui.setPreOpt('fromtitlelist')
             elif action == rem_fanart:

@@ -71,76 +71,37 @@ from threading import Thread, Lock
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn, TCPServer
 from simple_auth import SimpleAuthManager
-try:
-    import pycurl
-except Exception as err:
-    print(err)
+
 from bs4 import BeautifulSoup
 import PIL
 from PIL import Image, ImageDraw
-from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets
-from PyQt5.QtCore import QUrl
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtNetwork, QtWidgets
+from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 
 from mainwindow import MainWindowWidget, EventFilterFloatWindow
-from player_functions import write_files, ccurl, send_notification
-from player_functions import wget_string, open_files, get_config_options
+from player_functions import write_files, send_notification
+from player_functions import open_files, get_config_options
 from player_functions import get_tmp_dir, naturallysorted, set_logger
 from player_functions import get_home_dir, change_opt_file, create_ssl_cert
 from player_functions import set_user_password, get_lan_ip, random_string
 from yt import YTDL
 from ds import CustomList
-from meta_engine import MetaEngine
 from guisignals import GUISignals
 
 HOME_DIR = get_home_dir()
 HOME_OPT_FILE = os.path.join(HOME_DIR, 'other_options.txt')
 BROWSER_BACKEND = get_config_options(HOME_OPT_FILE, 'BROWSER_BACKEND')
 QT_WEB_ENGINE = True
-print(BROWSER_BACKEND)
-if (not BROWSER_BACKEND or (BROWSER_BACKEND != 'QTWEBKIT' 
-        and BROWSER_BACKEND != 'QTWEBENGINE')):
-    if os.path.exists(HOME_OPT_FILE) and not BROWSER_BACKEND:
-        write_files(HOME_OPT_FILE, 'BROWSER_BACKEND=QTWEBENGINE', line_by_line=True)
-    else:
-        change_opt_file(HOME_OPT_FILE, 'BROWSER_BACKEND=', 'BROWSER_BACKEND=QTWEBENGINE')
-    BROWSER_BACKEND = 'QTWEBENGINE'
+BROWSER_BACKEND = 'QTWEBENGINE'
 
-if BROWSER_BACKEND == 'QTWEBENGINE':
-    try:
-        from PyQt5 import QtWebEngineWidgets, QtWebEngineCore
-        from PyQt5.QtWebEngineWidgets import QWebEngineView
-        from browser import Browser
-        from hls_webengine.hls_engine import BrowseUrlT
-        QT_WEB_ENGINE = True
-        print('Using QTWEBENGINE')
-    except Exception as err_msg:
-        print(err_msg)
-        try:
-            from PyQt5 import QtWebKitWidgets
-            from PyQt5.QtWebKitWidgets import QWebView
-            from browser_webkit import Browser
-            from hls_webkit.hls_engine_webkit import BrowseUrlT
-            QT_WEB_ENGINE = False
-            print('Using QTWEBKIT')
-            change_opt_file(HOME_OPT_FILE, 'BROWSER_BACKEND=', 'BROWSER_BACKEND=QTWEBKIT')
-            BROWSER_BACKEND = 'QTWEBKIT'
-        except Exception as err_msg:
-            print(err_msg)
-            msg_txt = 'Browser Backend Not Available. Install either QtWebKit or QtWebEngine'
-            send_notification(msg_txt, code=0)
-elif BROWSER_BACKEND == 'QTWEBKIT':
-    try:
-        from PyQt5 import QtWebKitWidgets
-        from PyQt5.QtWebKitWidgets import QWebView
-        from browser_webkit import Browser
-        from hls_webkit.hls_engine_webkit import BrowseUrlT
-        QT_WEB_ENGINE = False
-        print('Directly Using QTWEBKIT')
-    except Exception as err_msg:
-        print(err_msg)
-        msg_txt = 'QTWEBKIT Not Available, Try QTWEBENGINE'
-        send_notification(msg_txt, code=0)
+from PyQt6 import QtWebEngineWidgets, QtWebEngineCore
+
+from PyQt6.QtWebEngineCore import QWebEnginePage
+
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from browser import Browser
+from hls_webengine.hls_engine import BrowseUrlT
 
 TMPDIR = get_tmp_dir()
 
@@ -199,19 +160,18 @@ from widgets.titlelist import TitleListWidget
 from widgets.traywidget import SystemAppIndicator, FloatWindowWidget
 from widgets.optionwidgets import *
 from widgets.scrollwidgets import *
-from thread_modules import FindPosterThread, ThreadingThumbnail, GetSubThread
-from thread_modules import ThreadingExample, DownloadThread, UpdateMusicThread
-from thread_modules import GetIpThread, YTdlThread, PlayerWaitThread
+from thread_modules import ThreadingThumbnail, GetSubThread
+from thread_modules import UpdateMusicThread
+from thread_modules import YTdlThread, PlayerWaitThread
 from thread_modules import DiscoverServer, BroadcastServer, SetThumbnailGrid
 from thread_modules import GetServerEpisodeInfo, PlayerGetEpn, SetThumbnail, observe_prop, Observe
 from stylesheet import WidgetStyleSheet
 from serverlib import ServerLib
 from vinanti import Vinanti
-from tvdb_async import TVDB
 from multiprocessing import Process
 from series_info_fetcher.anime import AnimeInfoFetcher
 from series_info_fetcher.tv_shows import TvShowInfoFetcher
-from series_info_fetcher.tvdb_fanart import TVDBFanart
+from series_info_fetcher.tvdb_fanart import TVDBFanart, FanartQueue
 from track_extractor import TrackExtractor
 from webm_transcoder import WebMTranscoder
 from hls_transcoder import HLSTranscoder
@@ -274,6 +234,7 @@ class Ui_MainWindow(object):
         else:
             icon = QtGui.QIcon("")
         MainWindow.setWindowIcon(icon)
+        self.app = MainWindow.app
         self.superTab = QtWidgets.QWidget(MainWindow)
         self.superTab.setObjectName(_fromUtf8("superTab"))
         self.superGridLayout = QtWidgets.QGridLayout(MainWindow)
@@ -319,7 +280,7 @@ class Ui_MainWindow(object):
                                      logger, screen_width, screen_height,
                                      'label_new')
         self.label_new.setMouseTracking(True)
-        #self.label_new.setFrameStyle(QtWidgets.QFrame.StyledPanel)
+        #self.label_new.setFrameStyle(QtWidgets.QFrame.Shape.StyledPanel)
         #self.text = QtWidgets.QTextBrowser(MainWindow)
         self.text = QtWidgets.QTextEdit(MainWindow)
         self.text.setAcceptRichText(False)
@@ -354,14 +315,14 @@ class Ui_MainWindow(object):
         #self.VerticalLayoutLabel.setStretch(1, 2)
         ##self.VerticalLayoutLabel.addStretch(1)#after label + text
         #self.text.hide()
-        self.label.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
-        self.label_new.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
-        self.text.setAlignment(QtCore.Qt.AlignCenter)
-        self.VerticalLayoutLabel.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignBottom)
+        self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.label_new.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.text.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.VerticalLayoutLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignBottom)
         self.VerticalLayoutLabel.setSpacing(5)
         self.VerticalLayoutLabel.setContentsMargins(0, 0, 0, 0)
         
-        self.vertical_layout_new.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+        self.vertical_layout_new.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
         self.vertical_layout_new.setSpacing(5)
         self.vertical_layout_new.setContentsMargins(0, 0, 0, 0)
 
@@ -381,13 +342,13 @@ class Ui_MainWindow(object):
         self.list2.setObjectName(_fromUtf8("list2"))
         self.list2.setMouseTracking(True)
         
-        self.verticalLayout_40.setAlignment(QtCore.Qt.AlignBottom)
+        self.verticalLayout_40.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom)
         
         #self.verticalLayout_50.insertWidget(0, self.list1, 0)
         self.verticalLayout_50.insertWidget(0, self.list2, 0)
         #self.verticalLayout_50.insertWidget(2, self.text, 0)
         #self.verticalLayout_50.insertWidget(3, self.label, 0)
-        self.verticalLayout_50.setAlignment(QtCore.Qt.AlignBottom)
+        self.verticalLayout_50.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom)
         
         self.list4 = FilterTitleList(MainWindow, self, home)
         self.list4.setObjectName(_fromUtf8("list4"))
@@ -416,8 +377,8 @@ class Ui_MainWindow(object):
         msg = re.sub(' +', ' ', msg)
         self.list6.addItem(msg)
         self.frame = QtWidgets.QFrame(MainWindow)
-        self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
         
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.frame)
@@ -470,8 +431,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.insertWidget(5, self.hide_btn_list1, 0)
         
         self.goto_epn = QtWidgets.QFrame(MainWindow)
-        self.goto_epn.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.goto_epn.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.goto_epn.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.goto_epn.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.goto_epn.setObjectName(_fromUtf8("goto_epn"))
         self.horizontalLayout_goto_epn = QtWidgets.QHBoxLayout(self.goto_epn)
         self.horizontalLayout_goto_epn.setObjectName(_fromUtf8("horizontalLayout_goto_epn"))
@@ -505,8 +466,8 @@ class Ui_MainWindow(object):
         self.torrent_frame = QtWidgets.QFrame(MainWindow)
         self.is_torrent_active = False
         #self.torrent_frame.setMaximumSize(QtCore.QSize(300, 16777215))
-        self.torrent_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.torrent_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.torrent_frame.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.torrent_frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.torrent_frame.setObjectName(_fromUtf8("torrent_frame"))
         self.verticalLayout_50.insertWidget(4, self.torrent_frame, 0)
         self.horizontalLayout_torrent_frame = QtWidgets.QGridLayout(self.torrent_frame)
@@ -539,8 +500,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_torrent_frame.addWidget(self.label_torrent_status, 1, 0, 5, 3)
         
         self.frame1 = QtWidgets.QFrame(MainWindow)
-        self.frame1.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.frame1.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame1.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.frame1.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame1.setObjectName(_fromUtf8("frame1"))
         self.horizontalLayout_31 = QtWidgets.QVBoxLayout(self.frame1)
         self.horizontalLayout_31.setContentsMargins(0, 0, 0, 0)
@@ -550,8 +511,8 @@ class Ui_MainWindow(object):
         
         self.frame2 = QtWidgets.QFrame(MainWindow)
         #self.frame2.setMaximumSize(QtCore.QSize(16777215, 32))
-        self.frame2.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.frame2.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame2.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.frame2.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame2.setObjectName(_fromUtf8("frame2"))
         self.horizontalLayout_101= QtWidgets.QHBoxLayout(self.frame2)
         self.horizontalLayout_101.setContentsMargins(0, 0, 0, 0)
@@ -574,7 +535,7 @@ class Ui_MainWindow(object):
             os.makedirs(self.preview_download_folder)
         self.slider = MySlider(self.frame1, self, home, MainWindow)
         self.slider.setObjectName(_fromUtf8("slider"))
-        self.slider.setOrientation(QtCore.Qt.Horizontal)
+        self.slider.setOrientation(QtCore.Qt.Orientation.Horizontal)
         
         self.slider.setRange(0, 100)
         self.slider.setMouseTracking(True)
@@ -637,24 +598,24 @@ class Ui_MainWindow(object):
         #self.label.setMinimumSize(QtCore.QSize(280, 250))
         
         #self.list1.setWordWrap(True)
-        self.list1.setTextElideMode(QtCore.Qt.ElideRight)
+        self.list1.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
         #self.list2.setWordWrap(True)
-        self.list2.setTextElideMode(QtCore.Qt.ElideRight)
+        self.list2.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
         self.list2.setBatchSize(10)
         #self.list4.setWordWrap(True)
-        self.list4.setTextElideMode(QtCore.Qt.ElideRight)
+        self.list4.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
         #self.list5.setWordWrap(True)
-        self.list5.setTextElideMode(QtCore.Qt.ElideRight)
+        self.list5.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
         #self.list6.setWordWrap(True)
-        self.list6.setTextElideMode(QtCore.Qt.ElideRight)
+        self.list6.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
         
-        #self.gridLayout.setAlignment(QtCore.Qt.AlignLeft)#Can cause video disappear in fullscreen mode
-        #self.superGridLayout.setAlignment(QtCore.Qt.AlignRight)Can cause video disappear in fullscreen mode
+        #self.gridLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)#Can cause video disappear in fullscreen mode
+        #self.superGridLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)Can cause video disappear in fullscreen mode
         #self.verticalLayout_40.insertWidget(1, self.frame, 0)
         
         self.player_opt = QtWidgets.QFrame(self.frame1)
-        self.player_opt.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.player_opt.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.player_opt.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.player_opt.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.player_opt.setObjectName(_fromUtf8("player_opt"))
         self.horizontalLayout_player_opt = QtWidgets.QHBoxLayout(self.player_opt)
         self.horizontalLayout_player_opt.setObjectName(_fromUtf8("horizontalLayout_player_opt"))
@@ -1019,7 +980,7 @@ class Ui_MainWindow(object):
         self.tab_5_layout = QtWidgets.QVBoxLayout(self.tab_5)
         self.tab_5_layout.setContentsMargins(0,0,0,0)
         self.tab_5_layout.setSpacing(0)
-        self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+        self.tab_5_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
         #self.tab_5 = tab5(None)
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         #self.tabWidget1.addTab(self.tab_5, _fromUtf8(""))
@@ -1049,8 +1010,8 @@ class Ui_MainWindow(object):
         self.dockWidget_3 = QtWidgets.QFrame(MainWindow)
         self.dock_vert = QtWidgets.QVBoxLayout(self.dockWidget_3)
         self.dock_vert.setContentsMargins(0, 0, 0, 0)
-        self.dockWidget_3.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.dockWidget_3.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.dockWidget_3.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+        self.dockWidget_3.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         #self.dockWidget_3.setStyleSheet("""QFrame{background-color:gray;border: 1px solid rgba(0, 0, 0, 40%)};""")
         self.dockWidget_3.setMouseTracking(True)
         self.dockWidget_3.setObjectName(_fromUtf8("dockWidget_3"))
@@ -1087,7 +1048,7 @@ class Ui_MainWindow(object):
         self.btnAddon.setObjectName(_fromUtf8("btnAddon"))
         self.btnAddon.hide()
         #self.btn1.setEditable(True)
-        #self.btn1.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
+        #self.btn1.lineEdit().setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         
         #self.dockWidget_3.setWidget(self.dockWidgetContents_3)
         #MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidget_3)
@@ -1119,8 +1080,8 @@ class Ui_MainWindow(object):
         ##self.gridLayout.addWidget(self.tab_2, 2, 1, 1, 1)
         #self.web.hide()
         self.frame_web = QtWidgets.QFrame(MainWindow)
-        self.frame_web.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.frame_web.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_web.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.frame_web.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_web.setObjectName(_fromUtf8("frame_web"))
         
         self.horizLayout_web = QtWidgets.QHBoxLayout(self.frame_web)
@@ -1195,15 +1156,15 @@ class Ui_MainWindow(object):
         self.btn3.setMinimumHeight(30)
         
         self.thumbnail_text_color_dict = {
-            'white':QtCore.Qt.white, 'black':QtCore.Qt.black,
-            'red':QtCore.Qt.red, 'darkred':QtCore.Qt.darkRed,
-            'green':QtCore.Qt.green, 'darkgreen':QtCore.Qt.darkGreen,
-            'blue':QtCore.Qt.blue, 'darkblue':QtCore.Qt.darkBlue,
-            'cyan':QtCore.Qt.cyan, 'darkcyan':QtCore.Qt.darkCyan,
-            'magenta':QtCore.Qt.magenta, 'darkmagenta':QtCore.Qt.darkMagenta,
-            'yellow':QtCore.Qt.yellow,  'darkyellow':QtCore.Qt.darkYellow,
-            'gray':QtCore.Qt.gray, 'darkgray':QtCore.Qt.darkGray,
-            'lightgray':QtCore.Qt.lightGray, 'transparent':QtCore.Qt.transparent
+            'white':QtCore.Qt.GlobalColor.white, 'black':QtCore.Qt.GlobalColor.black,
+            'red':QtCore.Qt.GlobalColor.red, 'darkred':QtCore.Qt.GlobalColor.darkRed,
+            'green':QtCore.Qt.GlobalColor.green, 'darkgreen':QtCore.Qt.GlobalColor.darkGreen,
+            'blue':QtCore.Qt.GlobalColor.blue, 'darkblue':QtCore.Qt.GlobalColor.darkBlue,
+            'cyan':QtCore.Qt.GlobalColor.cyan, 'darkcyan':QtCore.Qt.GlobalColor.darkCyan,
+            'magenta':QtCore.Qt.GlobalColor.magenta, 'darkmagenta':QtCore.Qt.GlobalColor.darkMagenta,
+            'yellow':QtCore.Qt.GlobalColor.yellow,  'darkyellow':QtCore.Qt.GlobalColor.darkYellow,
+            'gray':QtCore.Qt.GlobalColor.gray, 'darkgray':QtCore.Qt.GlobalColor.darkGray,
+            'lightgray':QtCore.Qt.GlobalColor.lightGray, 'transparent':QtCore.Qt.GlobalColor.transparent
             }
         self.thumbnail_text_color = 'white'
         self.thumbnail_text_color_focus = 'green'
@@ -1247,8 +1208,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_20 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_20.setObjectName(_fromUtf8("horizontalLayout_20"))
         self.gridLayout1.addLayout(self.horizontalLayout_20, 0, 1, 1, 1)
-        self.gridLayout1.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
-        self.gridLayout2.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignCenter)
+        self.gridLayout1.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop|QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.gridLayout2.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop|QtCore.Qt.AlignmentFlag.AlignCenter)
         self.gridLayout2.setSpacing(5)
         
         
@@ -1277,7 +1238,7 @@ class Ui_MainWindow(object):
         self.labelFrame2 = QtWidgets.QLabel(self.scrollAreaWidgetContents)
         self.labelFrame2.setObjectName(_fromUtf8("labelFrame2"))
         self.labelFrame2.setScaledContents(True)
-        self.labelFrame2.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelFrame2.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         
         self.label_search = QLineCustom(self.scrollAreaWidgetContents, self)
         self.label_search.setObjectName(_fromUtf8("label_search"))
@@ -1298,9 +1259,9 @@ class Ui_MainWindow(object):
             self.float_window.setWindowIcon(icon)
         except Exception as err:
             print(err, '--2170--')
-        #self.float_window.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
+        #self.float_window.setWindowFlags(QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint)
         self.float_window.setWindowFlags(
-            QtCore.Qt.Window | QtCore.Qt.WindowStaysOnTopHint)
+            QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.WindowStaysOnTopHint)
         self.float_window_layout.setContentsMargins(0, 0, 0, 0)
         self.float_window_layout.setSpacing(0)
         
@@ -1356,8 +1317,8 @@ class Ui_MainWindow(object):
         self.go_opt.hide()
         #####################################################
         self.close_frame = QtWidgets.QFrame(MainWindow)
-        self.close_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.close_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.close_frame.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.close_frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.horiz_close_frame = QtWidgets.QHBoxLayout(self.close_frame)
         self.horiz_close_frame.setSpacing(0)
         self.horiz_close_frame.setContentsMargins(0, 0, 0, 0)
@@ -1386,7 +1347,7 @@ class Ui_MainWindow(object):
         self.btn_quit.setMinimumHeight(30)
         self.btn_quit.setText(self.player_buttons['quit'])
         self.btn_quit.setToolTip('Quit')
-        self.btn_quit.clicked_connect(QtWidgets.qApp.quit)
+        self.btn_quit.clicked_connect(QtWidgets.QApplication.instance().quit)
         
         self.horiz_close_frame.insertWidget(0, self.btn_quit, 0)
         self.horiz_close_frame.insertWidget(1, self.btn_orient, 0)
@@ -1434,7 +1395,7 @@ class Ui_MainWindow(object):
         self.mplayer_timer = QtCore.QTimer()
         self.mplayer_timer.timeout.connect(self.mplayer_unpause)
         self.mplayer_timer.setSingleShot(True)
-        self.version_number = (8, 0, 0, 1)
+        self.version_number = (9, 0, 0, 1)
         self.threadPool = []
         self.threadPoolthumb = []
         self.thumbnail_cnt = 0
@@ -1676,7 +1637,6 @@ class Ui_MainWindow(object):
         self.mpv_socket = "/tmp/mpv-socket-{}".format(random_string(10))
         self.basedir = BASEDIR
         self.widget_style = WidgetStyleSheet(self, home, BASEDIR, MainWindow)
-        self.metaengine = MetaEngine(self, logger, TMPDIR, home)
         self.player_val = "libmpv"
         self.chk.setText(self.player_val)
         self.addons_option_arr = []
@@ -1758,7 +1718,7 @@ class Ui_MainWindow(object):
         #self.settings_close_btn.hide()
         self.settings_box = OptionsSettings(MainWindow, self, TMPDIR)
         self.settings_box.setMaximumWidth(screen_width-self.width_allowed-35)
-        #self.settings_box.setElideMode(QtCore.Qt.ElideRight)
+        #self.settings_box.setElideMode(QtCore.Qt.TextElideMode.ElideRight)
         self.vertical_layout_new.insertWidget(0, self.settings_box)
         #self.settings_box.setTabPosition(QtWidgets.QTabWidget.West)
         self.settings_box.setUsesScrollButtons(False)
@@ -1777,11 +1737,13 @@ class Ui_MainWindow(object):
         else:
             verify = False
         self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent}, verify=verify)
-        self.tvdb = TVDB(lang='en', wait=0.2, hdrs={'User-Agent':self.user_agent})
+        self.vnt_sync = Vinanti(block=True, hdrs={'User-Agent':self.user_agent}, verify=verify)
         self.yt = YTDL(self)
         self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.tvshow_info_fetcher = TvShowInfoFetcher(self)
         self.tvdb_fanart = TVDBFanart(self) 
+        self.fanart_queue = FanartQueue(self)
+
         self.hls_transcoder = HLSTranscoder(self)
         self.webm_transcoder = WebMTranscoder(self)
         self.track_extractor = TrackExtractor(self)
@@ -1853,27 +1815,27 @@ class Ui_MainWindow(object):
             'Ctrl+9': (self.change_fanart_aspect, 9),
             }
         for i in self.global_shortcut_keys:
-            QtWidgets.QShortcut(
+            QtGui.QShortcut(
                 QtGui.QKeySequence(i), MainWindow,
                 partial(self.global_shortcuts, i ,self.global_shortcut_keys[i])
                 )
-        self.list1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list2.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list2.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.text.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list3.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list3.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list4.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list4.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list5.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list5.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list6.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.list6.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.scrollArea1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.scrollArea1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.list1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list2.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list2.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.text.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list3.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list3.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list4.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list4.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list5.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list5.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list6.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list6.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.retranslateUi(MainWindow)
         
         self.player_opt_toolbar.clicked_connect(self.player_opt_toolbar_dock)
@@ -2121,7 +2083,15 @@ class Ui_MainWindow(object):
             self.tab_5.get_previous()
         else:
             self.mpvPrevEpnList(*args)
-   
+
+    def scaled_icon(self, path, size=128):
+        pixmap = QtGui.QPixmap(path)
+        scaled_pixmap = pixmap.scaled(size, size, 
+                                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                QtCore.Qt.TransformationMode.SmoothTransformation
+                        )
+        return scaled_pixmap
+
     def set_mainwindow_palette(self, fanart, first_time=None, theme=None, rgb_tuple=None):
         if theme is None or theme == 'default':
             logger.info('\n{0}:  mainwindow background\n'.format(fanart))
@@ -2137,7 +2107,7 @@ class Ui_MainWindow(object):
             if os.path.isfile(fanart):
                 if not self.keep_background_constant or first_time:
                     palette	= QtGui.QPalette()
-                    palette.setBrush(QtGui.QPalette.Background, 
+                    palette.setBrush(QtGui.QPalette.ColorRole.Window, 
                                      QtGui.QBrush(QtGui.QPixmap(fanart)))
                     MainWindow.setPalette(palette)
                     self.current_background = fanart
@@ -2223,18 +2193,18 @@ class Ui_MainWindow(object):
                 value = val
             if modifier == 'Shift':
                 modifier_event = QtGui.QKeyEvent(
-                    QtCore.QEvent.KeyPress, QtCore.Qt.Key_Shift,
-                    QtCore.Qt.ShiftModifier, None, False, 1
+                    QtCore.QEvent.KeyPress, QtCore.Qt.Key.Key_Shift,
+                    QtCore.Qt.KeyboardModifier.ShiftModifier, None, False, 1
                 )
             elif modifier == 'Ctrl':
                 modifier_event = QtGui.QKeyEvent(
-                    QtCore.QEvent.KeyPress, QtCore.Qt.Key_Control,
-                    QtCore.Qt.ControlModifier, 'control', False, 1
+                    QtCore.QEvent.KeyPress, QtCore.Qt.Key.Key_Control,
+                    QtCore.Qt.KeyboardModifier.ControlModifier, 'control', False, 1
                 )
             elif modifier == 'Alt':
                 modifier_event = QtGui.QKeyEvent(
-                    QtCore.QEvent.KeyPress, QtCore.Qt.Key_Control,
-                    QtCore.Qt.AltModifier, 'alt', False, 1
+                    QtCore.QEvent.KeyPress, QtCore.Qt.Key.Key_Control,
+                    QtCore.Qt.KeyboardModifier.AltModifier, 'alt', False, 1
                 )
             if modifier_event:
                 self.tab_5.keyPressEvent(modifier_event)
@@ -2243,19 +2213,19 @@ class Ui_MainWindow(object):
                 key = None
                 val_string = ''
                 if value == 'F1':
-                    key = QtCore.Qt.Key_F1
+                    key = QtCore.Qt.Key.Key_F1
                 elif value == 'ESC':
-                    key = QtCore.Qt.Key_Escape
+                    key = QtCore.Qt.Key.Key_Escape
                 else:
                     try:
-                        key = eval('QtCore.Qt.Key_{}'.format(value))
+                        key = eval('QtCore.Qt.Key.Key_{}'.format(value))
                     except Exception as err:
                         logger.error(err)
                 logger.debug(key)
                 if key:
                     key_event =  QtGui.QKeyEvent(
                         QtCore.QEvent.KeyPress, key,
-                        QtCore.Qt.NoModifier, value.lower(), False, 1
+                        QtCore.Qt.KeyboardModifier.NoModifier, value.lower(), False, 1
                         )
                     self.tab_5.keyPressEvent(key_event)
                 else:
@@ -2417,7 +2387,7 @@ class Ui_MainWindow(object):
         index = self.btnAddon.findText('Torrent')
         self.btnAddon.setCurrentIndex(index)
         time.sleep(1)
-        list_item = self.list3.findItems('History', QtCore.Qt.MatchExactly)
+        list_item = self.list3.findItems('History', QtCore.Qt.MatchFlag.MatchExactly)
         if len(list_item) > 0:
             for i in list_item:
                 row = self.list3.row(i)
@@ -2428,7 +2398,7 @@ class Ui_MainWindow(object):
                 if item:
                     self.list3.itemDoubleClicked['QListWidgetItem*'].emit(item)
         time.sleep(1)
-        list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchExactly)
+        list_item = self.list1.findItems(hist_name, QtCore.Qt.MatchFlag.MatchExactly)
         if len(list_item) > 0:
             for i in list_item:
                 row = self.list1.row(i)
@@ -2453,8 +2423,9 @@ class Ui_MainWindow(object):
             if j:
                 url = j.split('\t')[1] + '.image'
                 picn = os.path.join(TMPDIR, '{}.jpg'.format(i))
-                ccurl(url, curl_opt='-o', out_file=picn)
-                self.list2.item(i).setIcon(QtGui.QIcon(picn))
+                self.vnt_sync.get(url, out=picn)
+                scaled_pixel = self.scaled_icon(picn)
+                self.list2.item(i).setIcon(QtGui.QIcon(scaled_pixel))
                 
     def quick_url_play_method(self):
         if self.quick_url_play != 'tmp_playlist':
@@ -2481,7 +2452,8 @@ class Ui_MainWindow(object):
             if r < self.list2.count() and self.list_with_thumbnail:
                 icon_new_pixel = self.create_new_image_pixel(dest, 128)
                 if os.path.exists(icon_new_pixel):
-                    self.list2.item(r).setIcon(QtGui.QIcon(icon_new_pixel))
+                    scaled_pixel = self.scaled_icon(icon_new_pixel)
+                    self.list2.item(r).setIcon(QtGui.QIcon(scaled_pixel))
         except Exception as err:
             logger.error(err)
         self.downloadWget_cnt += 1
@@ -3587,7 +3559,7 @@ class Ui_MainWindow(object):
                 exec(p1)
             except Exception as e:
                 logger.debug('{0}::Second try'.format(e))
-        p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(index)
+        p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)".format(index)
         exec(p1)
     
     def mark_epn_thumbnail_label(self, num, old_num=None):
@@ -3651,7 +3623,7 @@ class Ui_MainWindow(object):
             c = self.current_thumbnail_position[1]
             print(r, c, '--thumbnail--7323--')
             thumbnail_index = self.thumbnail_label_number[0]
-            p6 = "self.gridLayout2.addWidget(self.label_epn_"+str(thumbnail_index)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignCenter)"
+            p6 = "self.gridLayout2.addWidget(self.label_epn_"+str(thumbnail_index)+", "+str(r)+", "+str(c)+", 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)"
             exec(p6)
             p2 = "self.label_epn_"+str(thumbnail_index)+".setMaximumSize(QtCore.QSize("+width+", "+height+"))"
             p3 = "self.label_epn_"+str(thumbnail_index)+".setMinimumSize(QtCore.QSize("+width+", "+height+"))"
@@ -3891,7 +3863,7 @@ class Ui_MainWindow(object):
             self.list_poster.show()
         if self.display_device == "rpitv":
             self.send_fake_event("mouse_move")
-            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.BlankCursor))
+            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         else:
             if self.hide_titlelist_forcefully and self.list1.isHidden():
                 self.list1.show()
@@ -3916,7 +3888,7 @@ class Ui_MainWindow(object):
         self.list2.setFocus()
                                 
     def show_cursor_now(self):
-        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
             
     def playerPlaylist1(self, val):
         if val == "Shuffle":
@@ -4028,6 +4000,9 @@ class Ui_MainWindow(object):
                     self.epnfound()
         if platform.system().lower() == "darwin":
             self.gui_signals.cursor_method((self.tab_5, "hide"))
+        elif self.display_device == "rpitv":
+            self.send_fake_event("mouse_move")
+            self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         if self.player_val in ["vlc", "cvlc"]:
             txt = "key key-play-pause"
             self.mpvplayer_val.write(bytes(txt, "utf-8"))
@@ -4143,7 +4118,7 @@ class Ui_MainWindow(object):
                 if not self.fullscreen_video:
                     show_hide_playlist = 1
                 if MainWindow.isFullScreen():
-                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                    MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
                 if self.list_with_thumbnail:
                     if self.title_list_changed:
                         self.update_list2()
@@ -4179,7 +4154,7 @@ class Ui_MainWindow(object):
                         if not self.fullscreen_video:
                             show_hide_titlelist = 1
                         if MainWindow.isFullScreen():
-                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+                            MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
         elif val == "Lock File":
             v = str(self.action_player_menu[5].text())
             if v == "Lock File":
@@ -4648,7 +4623,7 @@ class Ui_MainWindow(object):
                 sumry = "<html><h1>"+str(name1)+"</h1><head/><body><p>"+str(summary)+"</p>"+"</body></html>"
             q4="self.label_"+str(length+browse_cnt)+".setToolTip((sumry))"			
             exec (q4)
-            p8="self.label_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignCenter)"
+            p8="self.label_"+str(length+browse_cnt)+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
             exec(p8)
             if value_str == 'deleted':
                 total_till = total_till+2
@@ -4755,8 +4730,8 @@ class Ui_MainWindow(object):
                 label_title.setMaximumSize(QtCore.QSize(height, width))
                 label_title.setMinimumSize(QtCore.QSize(height, width))
                 label_title.setObjectName(_fromUtf8('label_{0}'.format(i)))
-                self.gridLayout1.addWidget(label_title, j, k, 1, 1, QtCore.Qt.AlignCenter)
-                label_title.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+                self.gridLayout1.addWidget(label_title, j, k, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+                label_title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
                 label_title.setMouseTracking(True)
                 
                 if value_str == "deleted":
@@ -4770,10 +4745,10 @@ class Ui_MainWindow(object):
                 label_title_txt.setMinimumHeight(hei_ght)
                 label_title_txt.setWordWrap(True)
                 label_title_txt.setObjectName('label_{0}'.format(length+i))
-                self.gridLayout1.addWidget(label_title_txt, j1, k, 1, 1, QtCore.Qt.AlignCenter)
+                self.gridLayout1.addWidget(label_title_txt, j1, k, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                 #label_title_txt.setReadOnly(True)
-                #label_title_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-                #label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                #label_title_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                #label_title_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_title_txt.setStyleSheet(
@@ -4888,7 +4863,7 @@ class Ui_MainWindow(object):
                     label_epn.setMaximumSize(QtCore.QSize(width, height))
                     label_epn.setMinimumSize(QtCore.QSize(width, height))
                     label_epn.setObjectName(_fromUtf8('label_epn_{0}'.format(i)))
-                    self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
+                    self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                     label_epn.show()
                 i=i+1
                 k = k+1
@@ -4902,7 +4877,7 @@ class Ui_MainWindow(object):
                     label_epn_txt.setMinimumWidth(width)
                     label_epn_txt.setMaximumWidth(width)
                     label_epn_txt.setObjectName(_fromUtf8('label_epn_{0}'.format(ii)))
-                    self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
+                    self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                     label_epn_txt.show()
                 else:
                     label_epn_txt.hide()
@@ -4990,7 +4965,7 @@ class Ui_MainWindow(object):
                     label_epn.setMinimumSize(QtCore.QSize(width, height))
                     label_epn.setObjectName(_fromUtf8('label_epn_{0}'.format(i)))
                     label_epn.show()
-                self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
+                self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                 counter = i
                 if not label_hide:
                     if site in ["Video", "Music", 'PlayLists', 'MyServer', 'None']:
@@ -5054,7 +5029,7 @@ class Ui_MainWindow(object):
                     label_epn_txt.show()
                 else:
                     label_epn_txt.hide()
-                self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
+                self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                 ii += 1
                 kk += 1
                 if kk == iconv_r:
@@ -5252,8 +5227,8 @@ class Ui_MainWindow(object):
                 label_epn.setMaximumSize(QtCore.QSize(width, height))
                 label_epn.setMinimumSize(QtCore.QSize(width, height))
                 label_epn.setObjectName(_fromUtf8('label_epn_{0}'.format(i)))
-                self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignCenter)
-                label_epn.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+                self.gridLayout2.addWidget(label_epn, j, k, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+                label_epn.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
                 label_epn.setMouseTracking(True)
                 if self.player_theme == 'dark':
                     label_epn.setStyleSheet("""
@@ -5344,12 +5319,12 @@ class Ui_MainWindow(object):
                 label_epn_txt = eval('self.label_epn_{0}'.format(ii))
                 label_epn_txt.setMinimumWidth(width)
                 label_epn_txt.setObjectName(_fromUtf8('label_epn_{}'.format(ii)))
-                self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignCenter)
+                self.gridLayout2.addWidget(label_epn_txt, jj, kk, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
                 label_epn_txt.setMinimumHeight(hei_ght)
                 label_epn_txt.setWordWrap(True)
                 #label_epn_txt.setReadOnly(True)
-                #label_epn_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-                #label_epn_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+                #label_epn_txt.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                #label_epn_txt.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
                     
                 if nameEpn.startswith('#'):
                     nameEpn = nameEpn.replace('#', self.check_symbol, 1)
@@ -5365,7 +5340,7 @@ class Ui_MainWindow(object):
                     sumry = sumry.replace('\n', '<br>')
                     sumry = "<html>"+sumry+"</html>"
                 label_epn_txt.setText(nameEpn)
-                label_epn_txt.setAlignment(QtCore.Qt.AlignCenter)
+                label_epn_txt.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 if self.global_font != 'default':
                     if self.player_theme == 'default':
                         label_epn_txt.setStyleSheet(
@@ -5436,16 +5411,6 @@ class Ui_MainWindow(object):
             if not private_ip:
                 external_url = True
         return external_url
-    
-    def get_redirected_url_if_any(self, finalUrl, external_url):
-        if not external_url:
-            if finalUrl.startswith('"http') or finalUrl.startswith('http'):
-                finalUrl = finalUrl.replace('"', '')
-                content = ccurl(finalUrl+'#'+'-H')
-                if "Location:" in content:
-                    m = re.findall('Location: [^\n]*', content)
-                    finalUrl = re.sub('Location: |\r', '', m[-1])
-        return finalUrl
     
     @GUISignals.check_master_mode_playlist('epnclicked')
     def epnClicked(self, dock_check=None):
@@ -5879,7 +5844,7 @@ class Ui_MainWindow(object):
                 self.setLabelTextStyle(label_number, self.thumbnail_text_color_focus)
                 txt = label_number.text()
                 label_number.setText(txt)
-                label_number.setAlignment(QtCore.Qt.AlignCenter)
+                label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 self.labelFrame2.setText(txt)
                 self.list1.setCurrentRow(row)
             elif mode == 'epn':
@@ -5896,7 +5861,7 @@ class Ui_MainWindow(object):
                 self.setLabelTextStyle(label_number, self.thumbnail_text_color_focus)
                 txt = label_number.text()
                 label_number.setText(txt)
-                label_number.setAlignment(QtCore.Qt.AlignCenter)
+                label_number.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 self.labelFrame2.setText(txt)
             QtWidgets.QApplication.processEvents()
     
@@ -6288,11 +6253,6 @@ class Ui_MainWindow(object):
             if arr and fan:
                 logger.debug(arr[0])
                 self.vnt.get(arr[0], out=fanart, onfinished=partial(self.copyFanart, nm))
-        elif val == 'episode-info' and eps and vd and epr:
-            self.metaengine.map_episodes(
-                tvdb_dict=obj.episode_summary.copy(), epn_arr=epr.copy(), name=nm,
-                site=st, video_dir=vd
-                )
             
     def posterfound_new(
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
@@ -6314,19 +6274,7 @@ class Ui_MainWindow(object):
             elif 'tmdb' in url:
                 backend = 'alter'
         if backend == 'alter':
-            self.posterfound_arr.append(FindPosterThread(
-            self, logger, TMPDIR, name, url, direct_url, copy_fanart,
-            copy_poster, copy_summary, use_search, video_dir))
-            if get_all:
-                self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                    lambda x=0: self.posterfound_thread_all_finished(name, url,
-                        direct_url, copy_fanart, copy_poster, copy_summary, use_search))
-            else:
-                self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                    lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
-                    copy_poster, copy_summary))
-            
-            self.posterfound_arr[len(self.posterfound_arr)-1].start()
+            pass
         else:
             if direct_url:
                 srch_term = url
@@ -6348,8 +6296,6 @@ class Ui_MainWindow(object):
                         pass
                     else:
                         video_dir = ui.original_path_name[i]
-                    ep_arr = self.metaengine.get_epn_arr_list(site, name, video_dir)
-                    #print(ep_arr)
                 if not srch_term.startswith('http'):
                     srch_term = self.name_adjust(srch_term)
                 if direct_url and copy_poster and not copy_fanart:
@@ -6358,25 +6304,14 @@ class Ui_MainWindow(object):
                 elif direct_url and copy_fanart and not copy_poster:
                     fanart = os.path.join(TMPDIR, name+'-fanart.jpg')
                     self.vnt.get(srch_term, out=fanart, onfinished=partial(self.copyFanart, name))
-                else:
-                    if not get_all:
-                        ep_arr = self.epn_arr_list.copy()
-                    self.tvdb.search(
-                            srch_term, backend=backend, episode_summary=get_sum,
-                            onfinished=partial(
-                                self.metadata_fetched, name, copy_fanart,
-                                copy_poster, copy_summary, get_sum, video_dir,
-                                site, ep_arr.copy()
-                            )
-                        )
                     
     def name_adjust(self, name):
-        nam = re.sub('-|_|\.', ' ', name)
+        nam = re.sub(r'-|_|\.', ' ', name)
         nam = nam.lower()
         nam = nam.strip()
-        nam = re.sub('\[[^\]]*\]|\([^\)]*\)', '', nam)
-        nam = re.sub('\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
-        nam = re.sub('\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
+        nam = re.sub(r'\[[^\]]*\]|\([^\)]*\)', '', nam)
+        nam = re.sub(r'\+sub|\+dub|subbed|dubbed|online|720p|1080p|480p|.mkv|.mp4', '', nam)
+        nam = re.sub(r'\+season[^"]*|\+special[^"]*|xvid|bdrip|brrip|ac3|hdtv|dvdrip', '', nam)
         nam = nam.strip()
         if nam.endswith('+'):
             nam = nam[:-1]
@@ -6391,22 +6326,8 @@ class Ui_MainWindow(object):
             self, name, site=None, url=None, copy_poster=None, copy_fanart=None, 
             copy_summary=None, direct_url=None, use_search=None, get_all=None,
             video_dir=None):
+        pass
         
-        logger.info('{0}-{1}-{2}--posterfound--new--'.format(url, direct_url, name))
-        self.posterfound_arr.append(FindPosterThread(
-            self, logger, TMPDIR, name, url, direct_url, copy_fanart,
-            copy_poster, copy_summary, use_search, video_dir))
-        if get_all:
-            self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                lambda x=0: self.posterfound_thread_all_finished(name, url,
-                    direct_url, copy_fanart, copy_poster, copy_summary, use_search))
-        else:
-            self.posterfound_arr[len(self.posterfound_arr)-1].finished.connect(
-                lambda x=0: self.posterfound_thread_finished(name, copy_fanart, 
-                copy_poster, copy_summary))
-        
-        self.posterfound_arr[len(self.posterfound_arr)-1].start()
-            
             
     def posterfound_thread_finished(self, name, copy_fan, copy_poster, copy_summary):
         logger.info('{0}-{1}-{2}--{3}--posterfound_thread_finished--'.format(name, copy_fan, copy_poster, copy_summary))
@@ -6844,7 +6765,9 @@ class Ui_MainWindow(object):
                     icon_new_pixel = self.create_new_image_pixel(icon_name, 128)
                     if os.path.exists(icon_new_pixel):
                         try:
-                            self.list2.item(k).setIcon(QtGui.QIcon(icon_new_pixel))
+                            
+                            scaled_pixel = self.scaled_icon(icon_new_pixel)
+                            self.list2.item(k).setIcon(QtGui.QIcon(scaled_pixel))
                         except:
                             pass
                 except Exception as e:
@@ -7016,9 +6939,11 @@ class Ui_MainWindow(object):
                 if icon_new_pixel is not None and os.path.exists(icon_new_pixel):
                     try:
                         if row < self.list2.count():
-                            self.list2.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+
+                            scaled_pixel = self.scaled_icon(icon_new_pixel)
+                            self.list2.item(row).setIcon(QtGui.QIcon(scaled_pixel))
                             if ui.view_mode == "thumbnail_light" and ui.list_poster.title_clicked:
-                                ui.list_poster.item(row).setIcon(QtGui.QIcon(icon_new_pixel))
+                                ui.list_poster.item(row).setIcon(QtGui.QIcon(scaled_pixel))
                     except Exception as err:
                         logger.error(err)
         except Exception as err:
@@ -7424,18 +7349,21 @@ class Ui_MainWindow(object):
         print(type(self.site_var), site, '--addon-changed--')
         plugin_path = os.path.join(home, 'src', 'Plugins', site+'.py')
         if os.path.exists(plugin_path):
-            module = imp.import_module(site, plugin_path)
-        self.site_var = getattr(module, site)(TMPDIR)
-        print(type(self.site_var), site, '--addon-changed--')
-        if siteName:
-            self.btnHistory.show()
-        else:
-            if not self.btnHistory.isHidden():
-                self.btnHistory.hide()
-        bookmark = False
-        if not os.path.exists(os.path.join(home, "History", site)):
-            os.makedirs(os.path.join(home, "History", site))
-        self.search()
+            try:
+                module = imp.import_module(site, plugin_path)
+                self.site_var = getattr(module, site)(TMPDIR)
+                print(type(self.site_var), site, '--addon-changed--')
+                if siteName:
+                    self.btnHistory.show()
+                else:
+                    if not self.btnHistory.isHidden():
+                        self.btnHistory.hide()
+                bookmark = False
+                if not os.path.exists(os.path.join(home, "History", site)):
+                    os.makedirs(os.path.join(home, "History", site))
+                self.search()
+            except Exception as err:
+                print(err)
     
     def ka1(self):
         global site, home
@@ -7460,35 +7388,11 @@ class Ui_MainWindow(object):
                 os.makedirs(os.path.join(home, "History", site))
             self.search()
         
-    def fetch_fanart_tvdb(self, title):
-        _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
-        images = self.tvdb_fanart.fetch_fanart(title, series_type.lower())
-        return images
+    def fetch_fanart_tvdb_from_contextmenu(self, title):
+        self.fanart_queue.add(f"{title}::{title}")
          
     def fetch_fanart_tvdb_web_client(self):
-        imgs = []
-        url = ""
-        title, srch = self.fetch_fanart_for.split('::')
-        if not srch:
-            srch = title
-        if title:
-            if self.fanart_dict.get(srch):
-                imgs = self.fanart_dict.get(srch)
-                rotation_index = (self.fanart_dict_rotation_index.get(srch) + 1) % len(imgs)
-                url = imgs[rotation_index]
-                self.fanart_dict_rotation_index[srch] = rotation_index
-            else:
-                _, _, series_type = self.media_data.fetch_series_metadata_for_desktop(title)
-                imgs = self.tvdb_fanart.fetch_fanart(srch, series_type.lower())
-                if imgs:
-                    self.fanart_dict[srch] = imgs
-                    self.fanart_dict_rotation_index[srch] = 0
-                    url = imgs[0]
-            if imgs and url:
-                self.posterfound_new(
-                    name=title, site="Video", url=url, direct_url=True, 
-                    copy_summary=False, copy_poster=False, copy_fanart=True
-            )
+        self.fanart_queue.add(self.fetch_fanart_for)
         
     def reviewsWeb(self, srch_txt=None, review_site=None, action=None):
         global name, nam, old_manager, new_manager, home, screen_width
@@ -7501,7 +7405,7 @@ class Ui_MainWindow(object):
         original_srch_txt = None
         new_url = ''
         if srch_txt:
-            srch_txt = self.metaengine.name_adjust(srch_txt)
+            srch_txt = self.name_adjust(srch_txt)
             
         if not review_site:
             review_site = self.btnWebReviews.currentText()
@@ -7511,7 +7415,8 @@ class Ui_MainWindow(object):
         if not self.web and review_site:
             try:
                 self.web = Browser(self, home, screen_width, self.quality_val, site, self.epn_arr_list)
-            except NameError:
+            except Exception as err:
+                self.logger.error(f"{str(err)}")
                 site = 'None'
                 self.epn_arr_list = []
                 name = srch_txt
@@ -7541,7 +7446,7 @@ class Ui_MainWindow(object):
             name = str(name)
         except:
             name = srch_txt
-        name1 = self.metaengine.name_adjust(name)
+        name1 = self.name_adjust(name)
         logger.info(name1)
         key = ''
         if action:
@@ -8461,7 +8366,8 @@ class Ui_MainWindow(object):
         if self.list_with_thumbnail:
             icon_name = self.get_thumbnail_image_path(k, self.epn_arr_list[k])
             if os.path.exists(icon_name):
-                self.list2.item(k).setIcon(QtGui.QIcon(icon_name))
+                scaled_pixel = self.scaled_icon(icon_name)
+                self.list2.item(k).setIcon(QtGui.QIcon(scaled_pixel))
 
     def musicBackground(self, val, srch):
         global name, artist_name_mplayer, site
@@ -8502,10 +8408,9 @@ class Ui_MainWindow(object):
                     poster = os.path.join(music_dir_art_name, 'poster.jpg')
                     fan = os.path.join(music_dir_art_name, 'fanart.jpg')
                     thumb = os.path.join(music_dir_art_name, 'thumbnail.jpg')
-                    if not os.path.exists(poster) and srch != "offline" and self.get_artist_metadata:	
-                        self.threadPool.append(ThreadingExample(nm, logger, TMPDIR))
-                        self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
-                        self.threadPool[len(self.threadPool)-1].start()
+                    if not os.path.exists(poster) and srch != "offline" and self.get_artist_metadata:
+                        # TODO: Add some source
+                        pass
                     else:
                         self.videoImage(poster, thumb, fan, summary)
         else:
@@ -8549,10 +8454,8 @@ class Ui_MainWindow(object):
                 if (not os.path.exists(poster) and srch != "offline" 
                         and artist_name_mplayer.lower() != "none" 
                         and artist_name_mplayer and self.get_artist_metadata):	
-                    print('--starting--thread--')
-                    self.threadPool.append(ThreadingExample(nm, logger, TMPDIR))
-                    self.threadPool[len(self.threadPool)-1].finished.connect(lambda x=nm: self.finishedM(nm))
-                    self.threadPool[len(self.threadPool)-1].start()
+                    # TODO: Add some source
+                    pass
                 elif os.path.exists(poster) or os.path.exists(fan) or os.path.exists(thumb):
                     self.videoImage(poster, thumb, fan, summary)
                 else:
@@ -10261,22 +10164,7 @@ class Ui_MainWindow(object):
                     folder_name = os.path.join(self.default_download_location, title)
                     if not os.path.exists(folder_name):
                         os.makedirs(folder_name)
-                    npn = os.path.join(folder_name, new_epn)
-                    if finalUrl.startswith('http'):
-                        command = wget_string(finalUrl, npn, self.get_fetch_library)
-                        logger.info(command)
-                        self.infoWget(command, 0)
-                self.download_video = 0
-            elif refererNeeded == True and self.download_video == 1:
-                rfr = finalUrl[1]
-                logger.info(rfr)
-                url1 = re.sub('#', '', finalUrl[0])
-                logger.info(url1)
-                url1 = str(url1)
-                command = wget_string(
-                    url1, os.path.join(TMPDIR, new_epn), self.get_fetch_library, rfr)
-                logger.info(command)
-                self.infoWget(command, 0)
+                    
                 self.download_video = 0
                 
         self.list2.setCurrentRow(row)
@@ -10707,14 +10595,7 @@ class Ui_MainWindow(object):
         else:
             fetch_library = self.get_fetch_library
         command = None
-        if finalUrl.startswith('http'):
-            finalUrl = finalUrl.strip()
-            if not referer:
-                command = wget_string(finalUrl, npn, fetch_library)
-            else:
-                command = wget_string(finalUrl, npn, fetch_library, rfr)
-            logger.info(command)
-        elif finalUrl_hdr:
+        if finalUrl_hdr:
             finalUrl = finalUrl.replace("::", " ")
             command = '{} "{}"'.format(finalUrl, npn)
         if command:
@@ -10890,27 +10771,27 @@ class Ui_MainWindow(object):
         self.fake_mousemove_event = ("libmpv", True)
         pos = self.tab_5.cursor().pos()
         if not self.pointer_moved:
-            new_point = QtCore.QPoint(pos.x() + 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() + 1, pos.y())
             self.pointer_moved = True
         else:
-            new_point = QtCore.QPoint(pos.x() - 1, pos.y())
+            new_point = QtCore.QPointF(pos.x() - 1, pos.y())
             self.pointer_moved = False
-        self.tab_5.cursor().setPos(new_point)
+        self.tab_5.cursor().setPos(new_point.toPoint())
         if val == "mouse_release":
             event = QtGui.QMouseEvent(
-                        QtCore.QEvent.MouseButtonRelease,
+                        QtCore.QEvent.Type.MouseButtonRelease,
                         new_point,
-                        QtCore.Qt.LeftButton,
-                        QtCore.Qt.LeftButton,
-                        QtCore.Qt.NoModifier,
+                        QtCore.Qt.MouseButton.LeftButton,
+                        QtCore.Qt.MouseButton.LeftButton,
+                        QtCore.Qt.KeyboardModifier.NoModifier,
                     )
         elif val == "mouse_move":
             event = QtGui.QMouseEvent(
-                        QtCore.QEvent.MouseMove,
+                        QtCore.QEvent.Type.MouseMove,
                         new_point,
-                        QtCore.Qt.NoButton,
-                        QtCore.Qt.NoButton,
-                        QtCore.Qt.NoModifier,
+                        QtCore.Qt.MouseButton.NoButton,
+                        QtCore.Qt.MouseButton.NoButton,
+                        QtCore.Qt.KeyboardModifier.NoModifier,
                     )
         self.gui_signals.mouse_move_method((self.tab_5, event))
                                 
@@ -10928,7 +10809,7 @@ class Ui_MainWindow(object):
             if self.player_val in ['vlc', 'cvlc'] and "status change:" in a:
                 self.mpvplayer_val.write(bytes("get_length", "utf-8"))
             if self.player_val in ['vlc', 'cvlc'] and "main playlist debug:" in a:
-                pls_item_search = re.search("main playlist debug: using item (?P<row>\d+)\n", a)
+                pls_item_search = re.search(r"main playlist debug: using item (?P<row>\d+)\n", a)
                 if pls_item_search:
                     pls_item_number = int(pls_item_search.group("row"))
                     if pls_item_number in range(0, self.list2.count()):
@@ -11035,7 +10916,7 @@ class Ui_MainWindow(object):
                         audio_s = (re.search('[(][0-9]+[)]', a_id))
                         if audio_s:
                             audio_id = audio_s.group()
-                            audio_id = re.sub('\)|\(', '', audio_id).strip()
+                            audio_id = re.sub(r'\)|\(', '', audio_id).strip()
                         else:
                             audio_id="auto"
                         self.audio_track.setText("A:"+str(a_id[:8]))
@@ -11140,7 +11021,7 @@ class Ui_MainWindow(object):
                             self.gridLayout.setSpacing(0)
                             self.frame1.show()
                     timearr = re.findall("[0-9][0-9]+:[0-9][0-9]+:[0-9][0-9]+", a)
-                    percomp = re.search("[(]*[0-9]*\%[)]*", a)
+                    percomp = re.search(r"[(]*[0-9]*\%[)]*", a)
                     if timearr:
                         val1 = timearr[0].split(':')
                         if val1:
@@ -11166,7 +11047,7 @@ class Ui_MainWindow(object):
                                 per_comp = per_comp + ')'
                         else:
                             txt = self.progressEpn.text()
-                            percomp = re.search("[(]*[0-9]*\%[)]*", txt)
+                            percomp = re.search(r"[(]*[0-9]*\%[)]*", txt)
                             if percomp:
                                 per_comp = percomp.group()
                             elif self.mplayerLength > 1:
@@ -11407,7 +11288,7 @@ class Ui_MainWindow(object):
                             length_1 = self.list2.count()
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText(self.epn_name_in_list)"
                             exec(q3)
-                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
+                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
                             exec(q3)
                         if site in ["Video", "Music", "PlayLists", "None", "MyServer"]:
                             if queue_item is None or isinstance(queue_item, tuple):
@@ -11709,7 +11590,7 @@ class Ui_MainWindow(object):
                             length_1 = self.list2.count()
                             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
                             exec (q3)
-                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
+                            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
                             exec(q3)
                             QtWidgets.QApplication.processEvents()
                     elif self.quit_really == "yes":
@@ -11724,7 +11605,7 @@ class Ui_MainWindow(object):
             length_1 = self.list2.count()
             q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setText((self.epn_name_in_list))"
             exec(q3)
-            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignCenter)"
+            q3="self.label_epn_"+str(length_1+self.thumbnail_label_number[0])+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
             exec(q3)
             QtWidgets.QApplication.processEvents()
         logger.debug("Process Started")
@@ -11900,7 +11781,7 @@ class Ui_MainWindow(object):
                 exec (q4)
                 q3="self.label_epn_"+str(title_num)+".setText((newTitle))"
                 exec (q3)
-                q3="self.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignCenter)"
+                q3="self.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
                 exec(q3)
                 QtWidgets.QApplication.processEvents()
                 
@@ -11926,7 +11807,7 @@ class Ui_MainWindow(object):
                         exec(p1)
                     except Exception as e:
                         print(e)
-                p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
+                p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)".format(new_cnt)
                 exec(p1)
                 QtWidgets.QApplication.processEvents()
             except Exception as e:
@@ -11946,7 +11827,7 @@ class Ui_MainWindow(object):
                     exec (q4)
                     q3="self.label_epn_"+str(title_num)+".setText((newTitle))"
                     exec (q3)
-                    q3="self.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignCenter)"
+                    q3="self.label_epn_"+str(title_num)+".setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)"
                     exec(q3)
                     QtWidgets.QApplication.processEvents()
                     
@@ -11972,7 +11853,7 @@ class Ui_MainWindow(object):
                             exec(p1)
                         except Exception as e:
                             print(e)
-                    p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(new_cnt)
+                    p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)".format(new_cnt)
                     exec(p1)
                     
                     init_cnt = self.thumbnail_label_number[0] + self.list2.count()
@@ -11991,7 +11872,7 @@ class Ui_MainWindow(object):
                             exec(p1)
                         except Exception as e:
                             print(e)
-                    p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignCenter)".format(init_cnt)
+                    p1="self.label_epn_{0}.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)".format(init_cnt)
                     exec(p1)
                 except Exception as e:
                     logger.error(e)
@@ -13462,16 +13343,16 @@ class Ui_MainWindow(object):
         txt = self.window_frame
         if txt.lower() == 'false':
             MainWindow.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint)
             self.float_window.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint 
-                | QtCore.Qt.WindowStaysOnTopHint)
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.FramelessWindowHint 
+                | QtCore.Qt.WindowType.WindowStaysOnTopHint)
         else:
-            MainWindow.setWindowFlags(QtCore.Qt.Window 
-                                      | QtCore.Qt.WindowTitleHint)
+            MainWindow.setWindowFlags(QtCore.Qt.WindowType.Window 
+                                      | QtCore.Qt.WindowType.WindowTitleHint)
             self.float_window.setWindowFlags(
-                QtCore.Qt.Window | QtCore.Qt.WindowTitleHint 
-                | QtCore.Qt.WindowStaysOnTopHint)
+                QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.WindowTitleHint 
+                | QtCore.Qt.WindowType.WindowStaysOnTopHint)
         MainWindow.show()
         
     def apply_new_style(self, mode=None):
@@ -13527,7 +13408,8 @@ class Ui_MainWindow(object):
                     lines = open_files(t, True)
                     logger.info(lines)
                 elif t.startswith('http'):
-                    content = ccurl(t)
+                    content_sync = self.vnt_sync.get(t)
+                    content = content_sync.html
                     logger.info(content)
                     if content:
                         lines = content.split('\n')
@@ -13594,7 +13476,8 @@ class Ui_MainWindow(object):
             elif t.startswith('http'):
                 site = "PlayLists"
                 t = urllib.parse.unquote(t)
-                content = ccurl(t+'#'+'-I')
+                content_head = self.vnt_sync.head(t)
+                content = f'HTTP/1.1 {content_head.status}\n' + '\n'.join(f'{k}: {v}' for k, v in content_head.info.raw_items())
                 if ('www-authenticate' in content.lower() 
                         or '401 unauthorized' in content.lower()):
                     dlg = LoginAuth(parent=MainWindow, url=t, ui=self, tmp=TMPDIR)
@@ -13604,7 +13487,8 @@ class Ui_MainWindow(object):
                 if 'application/x-bittorrent' in content:
                     torrent_file = True
                 elif ('audio/mpegurl' in content) or ('text/html' in content):
-                    content = ccurl(t)
+                    content_sync = self.vnt_sync.get(t)
+                    content = content_sync.html
                     if '#EXTM3U' in content:
                         m3u_file = True
                 
@@ -13800,13 +13684,13 @@ class Ui_MainWindow(object):
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         self.gridLayoutVideo = QtWidgets.QGridLayout(self.tab_5)
         self.gridLayoutVideo.setObjectName(_fromUtf8("gridLayoutVideo"))
-        self.gridLayoutVideo.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignBottom)
+        self.gridLayoutVideo.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignBottom)
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
         
         self.gridLayoutVideoPls = QtWidgets.QGridLayout(self.tab_5)
         self.gridLayoutVideo.addLayout(self.gridLayoutVideoPls, 0, 1, 1, 1)
         self.gridLayoutVideoPls.setObjectName(_fromUtf8("gridLayoutVideoPls"))
-        self.gridLayoutVideoPls.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignBottom)
+        self.gridLayoutVideoPls.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignBottom)
         
         
         self.gridLayout.addWidget(self.tab_5, 0, 1, 1, 1)
@@ -13821,7 +13705,7 @@ class Ui_MainWindow(object):
         self.gridLayoutVideo.setSpacing(5)
         self.gridLayoutVideoPls.setContentsMargins(0, 0, 0, 0)
         self.gridLayoutVideoPls.setSpacing(5)
-        self.tab_5_layout.setAlignment(QtCore.Qt.AlignCenter|QtCore.Qt.AlignBottom)
+        self.tab_5_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter|QtCore.Qt.AlignmentFlag.AlignBottom)
         #self.idw = str(int(self.tab_5.winId()))
         self.idw = "-1"
         #self.tab_5_layout.insertWidget(1, self.frame1)
@@ -14304,8 +14188,9 @@ def main():
     print(OSNAME, desktop_session)
     app = QtWidgets.QApplication(sys.argv)
     media_data = MediaDatabase(home=home, logger=logger)
-    screen_resolution = app.desktop().screenGeometry()
-    scr = QtWidgets.QDesktopWidget().screenGeometry()
+    screen_resolution = app.primaryScreen().geometry()
+    from PyQt6.QtGui import QGuiApplication
+    scr = QGuiApplication.primaryScreen().geometry()
     print(scr.width(), scr.height())
     screen_width = screen_resolution.width()
     screen_height = screen_resolution.height()
@@ -15120,7 +15005,7 @@ def main():
                 elif i.startswith('BG_COLOR_DARK_THEME='):
                     try:
                         color_tuple_string = j.lower()
-                        color_tuple_string = re.sub('\(|\)', '', color_tuple_string)
+                        color_tuple_string = re.sub(r'\(|\)', '', color_tuple_string)
                         r, g, b = color_tuple_string.split(',')
                         ui.bg_color_dark_theme = (int(r), int(g), int(b))
                     except Exception as e:
@@ -15128,7 +15013,7 @@ def main():
                 elif i.startswith('BG_COLOR_CONTROL_FRAME='):
                     try:
                         color_tuple_string = j.lower()
-                        color_tuple_string = re.sub('\(|\)', '', color_tuple_string)
+                        color_tuple_string = re.sub(r'\(|\)', '', color_tuple_string)
                         r, g, b = color_tuple_string.split(',')
                         ui.bg_color_control_frame = (int(r), int(g), int(b))
                     except Exception as e:
@@ -15164,6 +15049,7 @@ def main():
                             ui.global_font_size = int(global_font_size)
                     except Exception as e:
                         logger.error(e)
+                    print(ui.global_font_size, ":font-size")
                 elif i.startswith('SCREENSHOT_DIRECTORY='):
                     try:
                         if os.path.exists(j):
@@ -15349,6 +15235,11 @@ def main():
         elif isinstance(ui.global_font_size, int):
             font = QtGui.QFont('default', ui.global_font_size)
             app.setFont(font)
+        for widget in QtWidgets.QApplication.topLevelWidgets():
+            widget.setFont(app.font())
+            # Recursively update children
+            for child in widget.findChildren(QtWidgets.QWidget):
+                child.setFont(app.font())
         logger.debug('{}{}'.format(ui.global_font, ui.global_font_size))
     except Exception as err:
         logger.error(err)
@@ -15502,14 +15393,14 @@ def main():
                 if ui.btn1.currentText() == 'Addons':
                     if option_sitename:
                         siteName = option_sitename
-                        list3_item = ui.list3.findItems(siteName, QtCore.Qt.MatchExactly)
+                        list3_item = ui.list3.findItems(siteName, QtCore.Qt.MatchFlag.MatchExactly)
                         if list3_item:
                             list3_row = ui.list3.row(list3_item[0])
                             ui.list3.setFocus()
                             ui.list3.setCurrentRow(list3_row)
                             ui.list3.itemDoubleClicked['QListWidgetItem*'].emit(list3_item[0])
                                 
-                    list3_item = ui.list3.findItems('History', QtCore.Qt.MatchExactly)
+                    list3_item = ui.list3.findItems('History', QtCore.Qt.MatchFlag.MatchExactly)
                     if list3_item:
                         list3_row = ui.list3.row(list3_item[0])
                         ui.list3.setFocus()
@@ -15526,7 +15417,7 @@ def main():
         if ('#LAST@TITLE' in ui.history_dict_obj and site.lower() == 'video'
                 and opt.lower() == 'history'):
             list_title = ui.history_dict_obj.get('#LAST@TITLE')[2]
-            list1_srch = ui.list1.findItems(list_title, QtCore.Qt.MatchExactly)
+            list1_srch = ui.list1.findItems(list_title, QtCore.Qt.MatchFlag.MatchExactly)
             if list1_srch:
                 list1_row = ui.list1.row(list1_srch[0])
                 ui.list1.setFocus()
@@ -15616,11 +15507,7 @@ def main():
         ui.text.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         ui.label_new.setMaximumWidth(ui.text.maximumWidth()+ui.width_allowed)
         QtCore.QTimer.singleShot(1000, ui.adjust_fanart_widget)
-    if ui.access_from_outside_network:
-        get_ip_thread = GetIpThread(ui, interval=ui.get_ip_interval, ip_file=ui.cloud_ip_file)
-        get_ip_thread.start()
-        print('--ip--thread--started--')
-    #MainWindow.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
+
     html_default_arr = html_default_arr + ui.addons_option_arr
     if ui.player_theme == "system":
         ui.cover_label.hide()
@@ -15718,7 +15605,7 @@ def main():
     if ui.player_volume.isnumeric():
         ui.frame_extra_toolbar.slider_volume.setValue(int(ui.player_volume))
     signal.signal(signal.SIGTERM, sigterm_handler)
-    ret = app.exec_()
+    ret = app.exec()
     
     """Starting of Final code which will be Executed just before 
     Application Quits"""

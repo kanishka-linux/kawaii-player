@@ -35,6 +35,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Addons (Plugins) Structure](#addon-structure)
 
+- [Dependencies and Installation - with PyQt6](#dependencies-and-installation---with-pyqt6)
+
 - [Dependencies and Installation](#dependencies-and-installation)
 
 - [MPV Input IPC Server](#mpv-input-ipc-server)
@@ -586,7 +588,47 @@ For using this feature with ytdl, set YTDL path to automatic or write full path 
     
     Go to Preferences->Player. There users will find options related to live preview. Select options, then start video and after that hover mouse pointer over seekbar to see live preview. If there are some problems in displayed preview images, consider clearing cache folder (option available in Title List ContextMenu).
 
+## Dependencies and Installation - with PyQt6
+
+* PyQt6 support is added from v9.0.0
+
+* Along with adding PyQt6 support, some good amount of refactoring is done that includes removing support for QtWebkit and PyCurl, making dependency installation much more manageable.
+
+* Curently PyQt6 version is mainly tested on (Raspberry Pi-4B+) Debian Trixie and OSX, and maynot be stable compared to PyQt5 version on other platforms. In case found any found any issue then please consider reporting them.
+
+* If PyQt6 version is too buggy to use on your platform,then consider using last PyQt5 based release i.e. [v8.1.0](https://github.com/kanishka-linux/kawaii-player/releases/tag/v8.1.0-1)
+
+### Installation
+
+    ** Debian/ubuntu based systesm - Minimum Debian Trixie compatible distro
+        
+        $ sudo apt install git python3-pip unzip libmpv-dev
+		
+		$ git clone https://github.com/kanishka-linux/kawaii-player (or directly fetch tar.bz2 or .zip from release section and extract it, if user wants stable release)
+             
+		$ cd kawaii-player/ubuntu
+            
+		$ python3 create_deb.py (then install .deb file using apt)
+
+
+    ** Instructions for macOs/OSX ** - 2025/2026
+
+        $ brew install mpv ffmpeg wget openssl terminal-notifier libtorrent-rasterbar
+        $ brew install --cask vlc (if one wants to use vlc as a backend)
+        $ brew install python@3.12 (kawaii-player is compatible with both python 3.11 and 3.12, so either python version is fine)
+        $ git clone https://github.com/kanishka-linux/kawaii-player
+        $ cd kawaii-player
+        $ python3.12 -m venv venv
+        $ source venv/bin/activate
+        $ (venv) export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix)/lib
+        $ (venv) export LDFLAGS="-L$(brew --prefix)/lib"
+        $ (venv) export CPPFLAGS="-I$(brew --prefix)/include"
+        $ (venv) pip install -e .
+        $ (venv) kawaii-player
+
 ## Dependencies and Installation
+
+Note: [v8.1.0](https://github.com/kanishka-linux/kawaii-player/releases/tag/v8.1.0-1) is the last PyQt5 based release. All the new releases will be based on PyQt6.  
 
 Note: From v6.0 onwards and with deprecation of older libmpv opengl-cb API- installation process has been changed, In order to use libmpv-render API one needs to install pympv - which has alrady been added to kawaii-player repository to simplify  build and install process. The `setup.py` has been updated accordingly and also added `pyproject.toml` with build dependencies to build ext_modules with cython. Kawaii-Player can be installed using `$ pip install -e .` , but there can be issues with some versions of cython and people may need to change setup.py accordingly to install the player.
 

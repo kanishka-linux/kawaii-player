@@ -523,7 +523,7 @@ function updateRemoteStatus(status) {
     state.duration = status.total;
     
     // Check if episode changed (index is 1-based from remote)
-    if (status.index !== state.previousIndex) {
+    if (status.index !== state.previousIndex && !state.firstPlay) {
         state.previousIndex = status.index;
         
         // Find episode by number (status.index is already 1-based)
@@ -659,6 +659,7 @@ function playEpisode(episodeNumber) {
             startAutoTranscode(episode);
         }
     } else {
+        state.firstPlay = false;
         // Play item in desktop player (0-indexed)
         sendRemoteCommand(`/playlist_${episodeNumber - 1}`);
         //sendRemoteCommand(`/playlist_${episode.epn_number}`);

@@ -25,8 +25,8 @@ import base64
 import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSlot, pyqtSignal
 import libtorrent as lt
 from player_functions import send_notification, get_home_dir, get_lan_ip
 

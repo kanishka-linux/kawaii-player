@@ -18,12 +18,10 @@ along with kawaii-player.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import re
 import time
 import json
 import subprocess
-from PyQt5 import QtCore
-from player_functions import send_notification, ccurl
+from player_functions import send_notification
 from vinanti import Vinanti
 
 class YTDL:
@@ -34,7 +32,6 @@ class YTDL:
             verify = True
         else:
             verify = False
-        self.vnt = Vinanti(block=True, hdrs={'User-Agent':self.ui.user_agent}, verify=verify)
 
     def get_yt_url(self, url, quality, ytdl_path,
                    logger, mode=None, reqfrom=None):
@@ -58,10 +55,10 @@ class YTDL:
                         send_notification('Please Wait! Getting Latest youtube-dl')
                         youtube_dl = ytdl_path
                         if ytdl_path.endswith('yt-dlp'):
-                            ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'+'#-o#'+ytdl_path)
+                            self.ui.vnt_sync.get('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp', out=ytdl_path)
                             subprocess.Popen(['chmod', '+x', ytdl_path])
                         else:
-                            ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe'+'#-o#'+ytdl_path)
+                            self.ui.vnt_sync.get('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe', out=ytdl_path)
                         update_time = str(int(time.time()))
                         if not os.path.exists(ytdl_stamp):
                             f = open(ytdl_stamp, 'w')
@@ -151,10 +148,10 @@ class YTDL:
                 if not updated_already:
                     send_notification('Please Wait! Getting Latest youtube-dl')
                     if ytdl_path.endswith('ytdl'):
-                        ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp'+'#-o#'+ytdl_path)
+                        self.ui.vnt_sync.get('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp', out=ytdl_path)
                         subprocess.Popen(['chmod', '+x', ytdl_path])
                     else:
-                        ccurl('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe'+'#-o#'+ytdl_path)
+                        self.ui.vnt_sync.get('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe', out=ytdl_path)
                     send_notification('Updated youtube-dl, Now Try Playing Video Again!')
                     update_time = str(int(time.time()))
                     if os.path.exists(ytdl_stamp):

@@ -1,5 +1,5 @@
 import os
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 class WidgetStyleSheet:
     
@@ -17,6 +17,264 @@ class WidgetStyleSheet:
                 desktop_session = 'lxde'
         else:
             desktop_session = dsession
+
+    def _apply_glass_sidebar(self):
+        """
+        Styles only dockWidget_3 and the widgets inside it with a dark-glass look.
+        Call this at the END of any apply_stylesheet() branch so it always wins.
+        """
+        font       = gui.global_font
+        size       = gui.global_font_size
+        item_h     = gui.global_font_size * 3
+
+        gui.VerticalLayoutLabel_Dock3.setSpacing(4)
+        gui.VerticalLayoutLabel_Dock3.setContentsMargins(6, 8, 6, 6)
+
+        # ── dockWidget_3 sidebar container ────────────────────────────────────────────
+        gui.dockWidget_3.setStyleSheet("""
+            QFrame {
+                background:rgba(0, 0, 0, 50%);
+                border:rgba(0, 0, 0, 30%);
+                border-radius:3px;
+                border-right: 1px solid rgba(255, 255, 255, 0.07);
+            }
+        """)
+
+        # ── dockWidgetContents_3 (inner widget) ───────────────────────────────
+        gui.dockWidgetContents_3.setStyleSheet("""
+            QWidget { background: transparent; }
+        """)
+
+        # ── list3 — nav list ──────────────────────────────────────────────────
+        gui.list3.setStyleSheet("""
+            QListWidget {{
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: {font};
+                font-size: {size}px;
+                color: rgba(255, 255, 255, 0.50);
+                padding: 4px 6px;
+            }}
+            QListWidget::item {{
+                height: {item_h}px;
+                border-radius: 8px;
+                padding-left: 6px;
+                margin: 1px 2px;
+                border: 1px solid transparent;
+            }}
+            QListWidget::item:hover {{
+                background: rgba(255, 255, 255, 0.06);
+                color: rgba(255, 255, 255, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+            }}
+            QListWidget::item:selected:active {{
+                background: rgba(255, 255, 255, 0.10);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }}
+            QListWidget::item:selected:inactive {{
+                background: rgba(255, 255, 255, 0.07);
+                color: rgba(255, 255, 255, 0.80);
+                border: 1px solid transparent;
+            }}
+            QMenu {{
+                background: rgba(20, 20, 28, 0.97);
+                border: 1px solid rgba(255, 255, 255, 0.10);
+                color: rgba(255, 255, 255, 0.75);
+                padding: 4px;
+            }}
+            QMenu::item {{
+                padding: 6px 16px;
+                border-radius: 5px;
+            }}
+            QMenu::item:selected {{
+                background: rgba(255, 255, 255, 0.10);
+                color: white;
+            }}
+        """.format(font=font, size=size, item_h=item_h))
+
+        # ── line — search input ───────────────────────────────────────────────
+        gui.line.setStyleSheet("""
+            QLineEdit {{
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                color: white;
+                font-family: {font};
+                font-size: {size}px;
+                padding: 0px 10px;
+                selection-background-color: rgba(255, 255, 255, 0.20);
+            }}
+            QLineEdit:focus {{
+                background: rgba(255, 255, 255, 0.10);
+                border: 1px solid rgba(255, 255, 255, 0.20);
+            }}
+        """.format(font=font, size=size))
+
+        # ── btn1 / btnAddon — SelectButton (QComboBox) ────────────────────────
+        _combo = """
+            QComboBox {{
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.55);
+                font-family: {font};
+                font-size: {size}px;
+                padding: 0px 10px;
+                min-height: 30px;
+            }}
+            QComboBox:hover {{
+                background: rgba(255, 255, 255, 0.09);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: white;
+            }}
+            QComboBox::drop-down {{ 
+                border-radius:3px;
+                border: none; width: 20px; 
+            }}
+            QComboBox::down-arrow {{ width: 0px; height: 0px; }}
+            QComboBox QAbstractItemView {{
+                background:rgba(0, 0, 0, 50%);
+                border:rgba(0, 0, 0, 30%);
+                font-family: {font};
+                font-size: {size}px;
+                padding: 4px;
+                outline: none;
+                selection-background-color: rgba(255, 255, 255, 0.10);
+                selection-color: white;
+            }}
+            QToolTip {{
+                background: rgba(20, 20, 28, 0.97);
+                color: rgba(255, 255, 255, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.10);
+                border-radius: 6px;
+                font-size: {size}px;
+                padding: 4px 8px;
+            }}
+        """.format(font=font, size=size)
+        gui.btn1.setStyleSheet(_combo)
+        gui.btnAddon.setStyleSheet(_combo)
+        gui.comboView.setStyleSheet(_combo)
+
+        # ── btn3 / btnHistory — push buttons ────────────────────────────
+        _back = """
+            QPushButton {{
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.50);
+                font-family: {font};
+                font-size: {size}px;
+                min-height: 30px;
+                margin-top: 6px;
+                margin-bottom: 6px;
+
+            }}
+            QPushButton:hover {{
+                background: rgba(255, 255, 255, 0.09);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: white;
+            }}
+            QPushButton:pressed {{
+                background: rgba(255, 255, 255, 0.14);
+            }}
+        """.format(font=font, size=size)
+        gui.btn3.setStyleSheet(_back)
+        gui.btnHistory.setStyleSheet(_back)
+
+        # ── chk — engine indicator ───────────────────────────────────────
+        gui.chk.setStyleSheet("""
+            QPushButton {
+                background: rgba(74, 222, 128, 0.08);
+                border: 1px solid rgba(74, 222, 128, 0.18);
+                border-radius: 8px;
+                color: rgba(74, 222, 128, 0.85);
+                font-size: 11px;
+                min-height: 30px;
+                margin-top: 6px;
+                margin-bottom: 6px;
+            }
+            QPushButton:hover {
+                background: rgba(74, 222, 128, 0.14);
+                border-color: rgba(74, 222, 128, 0.30);
+                color: rgb(74, 222, 128);
+            }
+        """)
+
+        # ── bottom buttons: quit / orient / auto-hide ─────────────────────────
+        gui.btn_quit.setStyleSheet("""
+            QPushButton {{
+                background: rgba(255, 60, 60, 0.07);
+                border: 1px solid rgba(255, 60, 60, 0.12);
+                border-radius: 7px;
+                color: rgba(255, 100, 100, 0.60);
+                font-size: {size}px;
+                min-height: 30px;
+            }}
+            QPushButton:hover {{
+                background: rgba(255, 60, 60, 0.18);
+                border-color: rgba(255, 60, 60, 0.30);
+                color: rgb(255, 100, 100);
+            }}
+        """.format(size=size))
+
+        gui.btn_orient.setStyleSheet("""
+            QPushButton {{
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 7px;
+                color: rgba(255, 255, 255, 0.35);
+                font-size: {size}px;
+                min-height: 30px;
+                margin-left: 2px;
+                margin-right: 2px;
+            }}
+            QPushButton:hover {{
+                background: rgba(255, 255, 255, 0.09);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: rgba(255, 255, 255, 0.75);
+            }}
+        """.format(size=size))
+
+        gui.btn4.setStyleSheet("""
+            QPushButton {{
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 7px;
+                color: rgba(255, 255, 255, 0.35);
+                font-size: {size}px;
+                min-height: 30px;
+            }}
+            QPushButton:hover {{
+                background: rgba(255, 255, 255, 0.09);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: rgba(255, 255, 255, 0.75);
+            }}
+        """.format(size=size))
+
+        gui.player_menu.setStyleSheet("""
+            QMenu {
+                background: rgba(0, 0, 0, 0.40);
+                border: 1px solid rgba(255, 255, 255, 0.10);
+                color: rgba(255, 255, 255, 0.75);
+                padding: 4px;
+            }
+            QMenu::item {
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 6px;
+                padding: 4px 16px;
+                margin: 2px 4px;
+                min-height: 24px;
+            }
+            QMenu::item:selected {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.14);
+                color: white;
+            }
+        """)
+    # ─────────────────────────────────────────────────────────────────────────
             
     def change_list2_style(self, mode=None):
         if isinstance(mode, bool):
@@ -40,8 +298,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
                 color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
-                QMenu{{color:black;
-                background-image:url('1.png');}}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(height, gui.list_text_color, gui.list_text_color_focus,bold=font_bold))
         elif gui.player_theme == 'system':
             gui.list2.setAlternatingRowColors(True)
@@ -136,8 +411,25 @@ class WidgetStyleSheet:
                         """)
                 else:
                     web.setStyleSheet(
-                        """QMenu{color:black;
-                        background-image:url('1.png');}""")
+                        """QMenu {
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }
+                    QMenu::item {
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }
+                    QMenu::item:selected {
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }""")
         except NameError as e:
             print(e)
             desktop_session = 'lxde'
@@ -170,7 +462,7 @@ class WidgetStyleSheet:
                     background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, 30%);
                     """.format(alpha=alpha, bold=font_bold,
                                color=gui.list_text_color, font_size=font_size))
-            for frame in [gui.frame2, gui.frame_web, gui.dockWidget_3,
+            for frame in [gui.frame2, gui.frame1, gui.frame_web, gui.dockWidget_3,  # dockWidget_3 still gets base frame style
                           gui.goto_epn, gui.btnWebReviews,
                           gui.frame_extra_toolbar.child_frame,
                           gui.frame_extra_toolbar.tab_frame,
@@ -194,13 +486,13 @@ class WidgetStyleSheet:
                     label_alpha = '30%'
                     min_height = ''
                 frame.setStyleSheet("""
-                    QFrame{{background:rgba(0, 0, 0, 30%);border:rgba(0, 0, 0, 30%);}}
+                    QFrame{{background:rgba(0, 0, 0, 50%);border:rgba(0, 0, 0, 30%);}}
                     QPushButton{{
                         background:rgba(0, 0, 0, {alpha});border:rgba(0, 0, 0, {alpha});
                         color: {color}; font: {bold};
                         {min_height};
                         }}
-                    QPushButton::hover{{background-color: yellow;color: black;}}
+                    QPushButton:hover{{background-color: yellow;color: black;}}
                     QLineEdit{{
                         font:{bold};color:white;background:rgba(0,0,0,30%);
                         {min_height};border:rgba(0, 0, 0, 30%);}}
@@ -227,16 +519,16 @@ class WidgetStyleSheet:
                         color: {color};
                         font: {bold};
                      }}
-                    QComboBox::hover{{background-color: rgba(0, 0, 0, 50%);color: {focus};}}
+                    QComboBox:hover{{background-color: rgba(0, 0, 0, 50%);color: {focus};}}
                     QComboBox::drop-down {{
                     width: 22px;
                     border: 0px;
                     color:black;
                     }}
-                    QComboBox::focus {{
+                    QComboBox:focus {{
                     color:{focus};
                     }}
-                    QComboBox::focus {{
+                    QComboBox:focus {{
                         background-color:rgba(0,0,0,50%);color: {focus};
                     }}
                     
@@ -260,9 +552,13 @@ class WidgetStyleSheet:
                     border-radius: 3px;
                     }}
                     QToolTip {{
-                    font : {bold} {size}px {font};
-                    color: black;
-                    background:rgb(54, 60, 74);
+                        font : {bold} {size}px {font};
+                        background: rgba(20, 20, 28, 0.97);
+                        color: rgba(255, 255, 255, 0.85);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        border-radius: 6px;
+                        font-size: {size}px;
+                        padding: 4px 8px;
                     }}
                     
                     QCheckBox{{
@@ -290,8 +586,12 @@ class WidgetStyleSheet:
                     )
             gui.player_opt.setStyleSheet("""
                 QFrame{background:rgba(0, 0, 0, 0%);border:rgba(0, 0, 0, 0%);}
-                QPushButton{border-radius:0px;max-height:64px;}
-                QPushButton::hover{background-color: yellow;color: black;}
+                QPushButton{
+                    border-radius:0px;
+                    max-height:64px;
+                    background:rgba(0, 0, 0, 50%);
+                }
+                QPushButton:hover{background-color: yellow;color: black;}
                 """)
             
             
@@ -335,7 +635,7 @@ class WidgetStyleSheet:
                     
                     QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                     max-height:40px; font: {bold};}}
-                    QPushButton::hover{{background-color: yellow;color: black;}}
+                    QPushButton:hover{{background-color: yellow;color: black;}}
                     QLineEdit{{color:{color};background:rgba(0,0,0,10%);
                     max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {font};}}
                     QTextEdit{{color:{color};background:rgba(0,0,0,10%);
@@ -374,13 +674,13 @@ class WidgetStyleSheet:
                         padding: 0px 2px 0px 4px;
                         font: {bold} {font};
                      }}
-                    QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
+                    QComboBox:hover{{background-color: rgba(0,0,0,40%);color: {color};}}
                     QComboBox::drop-down {{
                     width: 22px;
                     border: 2px;
                     color:white;
                     }}
-                    QComboBox::focus {{
+                    QComboBox:focus {{
                     background-color:rgba(0,0,0,40%);color: {focus};
                     }}
                     QComboBox::down-arrow {{
@@ -390,7 +690,8 @@ class WidgetStyleSheet:
                     """.format(
                         alpha=alpha, btn=qbtn, color=gui.list_text_color,
                         focus=gui.list_text_color_focus, bold=font_bold,
-                        size=gui.global_font_size, font=gui.global_font)
+                        font=gui.global_font
+                        )
                     )
             
             gui.slider.setStyleSheet("""
@@ -434,9 +735,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:inactive {{
                 border:rgba(0, 0, 0, 30%);
                 }}
-                QMenu{{
-                    font: 12px;color:black;background-image:url('1.png');
-                }}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(gui.thumbnail_text_color, gui.thumbnail_text_color_focus, bold=font_bold))
             for widget in [gui.scrollArea, gui.scrollArea1]:
                 widget.setStyleSheet("""
@@ -451,8 +768,24 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:inactive {{
                     border:rgba(0, 0, 0, 30%);
                     }}
-                    QMenu{{
-                        font: 12px;color:black;background-image:url('1.png');
+                    QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
                     }}
                     """.format(bold=font_bold))
             for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
@@ -475,8 +808,24 @@ class WidgetStyleSheet:
                     QListWidget:item:selected:inactive {{
                     border:rgba(0, 0, 0, 30%);
                     }}
-                    QMenu{{
-                        font: 12px;color:black;background-image:url('1.png');
+                    QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
                     }}
                     """.format(gui.list_text_color, gui.list_text_color_focus, border,bold=font_bold, height=gui.global_font_size*3))
             if gui.list_with_thumbnail:
@@ -492,8 +841,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
                 color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
-                QMenu{{font: 12px;color:black;
-                background-image:url('1.png');}}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(ht, gui.list_text_color, gui.list_text_color_focus, bold=font_bold))
             for widget in [gui.progress, gui.progressEpn]:
                 widget.setStyleSheet("""QProgressBar{{
@@ -525,8 +891,8 @@ class WidgetStyleSheet:
                     border: 0px;
                     color:black;
                     }
-                    QComboBox::hover{background-color: lightgray;color: white;}
-                    QComboBox::focus {
+                    QComboBox:hover{background-color: lightgray;color: white;}
+                    QComboBox:focus {
                         background-color:rgba(0,0,0,60%);color: white;
                     }
                     QComboBox::down-arrow {
@@ -544,6 +910,9 @@ class WidgetStyleSheet:
                 """.format(bold=font_bold, font=gui.global_font,
                            size=gui.global_font_size+3, color=gui.list_text_color)
                         )
+            # ── apply glass sidebar on top of default theme ──────────────
+            self._apply_glass_sidebar()
+
         elif widget == gui.list2 and (theme is None or theme in ['default', 'transparent', 'mix']):
             if gui.list_with_thumbnail:
                 ht = '128px'
@@ -557,8 +926,25 @@ class WidgetStyleSheet:
                 QListWidget:item:selected:active {{background:rgba(0, 0, 0, 20%);
                 color: {2};}}
                 QListWidget:item:selected:inactive {{border:rgba(0, 0, 0, 30%);}}
-                QMenu{{font: 12px;color:black;
-                background-image:url('1.png');}}
+                QMenu {{
+                        background: rgba(0, 0, 0, 50%);
+                        border: 1px solid rgba(255, 255, 255, 0.10);
+                        color: rgba(255, 255, 255, 0.75);
+                        padding: 4px;
+                    }}
+                    QMenu::item {{
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.06);
+                        border-radius: 6px;
+                        padding: 4px 16px;
+                        margin: 2px 4px;
+                        min-height: 24px;
+                    }}
+                    QMenu::item:selected {{
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: rgba(255, 255, 255, 0.14);
+                        color: white;
+                    }}
                 """.format(ht, gui.list_text_color, gui.list_text_color_focus))
         elif theme == 'system':
             bgcol = gui.frame1.palette().color(QtWidgets.QWidget.backgroundRole(gui.frame1))
@@ -586,16 +972,20 @@ class WidgetStyleSheet:
                 #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6]:
                     #widget.setAlternatingRowColors(False)
-                    widget.setStyleSheet("""QListWidget{{
-                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
+                    widget.setStyleSheet("""
+                    QListWidget{{
+                        border-radius:3px;
+                        background-color :{1};
+                        border: 1px solid rgba(0,0,0,20%);
                     }}
                     QListWidget:item {{
-                    height: {height}px;
+                        height: {height}px;
                     }}
                     QListWidget:item:selected:active {{
-                    background:rgba(0, 0, 0, 10%);
-                    color: {0};
+                        background:rgba(0, 0, 0, 10%);
+                        color: {0};
                     }}
+                    
                     """.format(gui.list_text_color_focus, bgcolor, height=gui.global_font_size*3))
                 if gui.list_with_thumbnail:
                     ht = '128px'
@@ -622,11 +1012,11 @@ class WidgetStyleSheet:
                 """.format(color=bgcolor)
                 )
             gui.text.setStyleSheet("""
-                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
-                    """.format(gui.list_text_color_focus, bgcolor))
+                    border-radius:3px; background-color :{0}; border: 1px solid rgba(0,0,0,20%);
+                    """.format(bgcolor))
             gui.cover_label.setStyleSheet("""
-                    border-radius:3px; background-color :{1}; border: 1px solid rgba(0,0,0,20%);
-                    """.format(gui.list_text_color_focus, bgcolor))
+                    border-radius:3px; background-color :{0}; border: 1px solid rgba(0,0,0,20%);
+                    """.format(bgcolor))
             gui.list_poster.setStyleSheet("""
                     QListWidget{{
                     font: {bold} {size}px {font};
@@ -749,7 +1139,7 @@ class WidgetStyleSheet:
                         QFrame{{color:white;background:rgba({red},{green},{blue},{alpha});border:rgba(0,0,0,{alpha});}}
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                         {min_height}; font: {bold} {size}px {font};}}
-                        QPushButton::hover{{background-color: yellow;color: black;}}
+                        QPushButton:hover{{background-color: yellow;color: black;}}
                         QLineEdit{{
                             color:white;background:rgba(0,0,0,{label_alpha});
                             {min_height};border:rgba(0, 0, 0, {label_alpha}); font: {bold} {size}px {font};
@@ -765,7 +1155,7 @@ class WidgetStyleSheet:
                         padding: 2px 0px 2px 4px;
                         font: {bold} {size}px {font};
                         }}
-                        QComboBox::hover{{background-color: rgba(0,0,0,60%);color: {color};}}
+                        QComboBox:hover{{background-color: rgba(0,0,0,60%);color: {color};}}
                         QComboBox::drop-down {{
                         width: 22px;
                         border: 2px;
@@ -777,7 +1167,7 @@ class WidgetStyleSheet:
                         color: {color};
                         font: {bold} {size}px {font};
                         }}
-                        QComboBox::focus {{
+                        QComboBox:focus {{
                         background-color:rgba(0,0,0,60%);color: {focus};
                         }}
                         QComboBox::down-arrow {{
@@ -838,8 +1228,7 @@ class WidgetStyleSheet:
                             size=gui.global_font_size, font=gui.global_font,
                             label_alpha=label_alpha, min_height=min_height,
                             red=red, green=green, blue=blue,
-                            redm=redm, greenm=greenm, bluem=bluem,
-                            size_label=gui.global_font_size+4
+                            redm=redm, greenm=greenm, bluem=bluem
                             )
                         )
                 gui.player_opt.setStyleSheet("""
@@ -848,7 +1237,7 @@ class WidgetStyleSheet:
                                 background:rgba({red},{green},{blue},40%);
                                 border:rgba(0, 0, 0, 30%);
                                 font: {bold} {size}px {font};}}
-                    QPushButton::hover{{background-color: yellow;color: black;}}
+                    QPushButton:hover{{background-color: yellow;color: black;}}
                     """.format(red=redc, green=greenc, blue=bluec,
                                bold=font_bold, size=gui.global_font_size, font=gui.global_font))
                 
@@ -892,7 +1281,7 @@ class WidgetStyleSheet:
                         
                         QPushButton{{color:{color};background:rgba(0,0,0,{btn});border:rgba(0,0,0,{btn});
                         max-height:40px; font: {bold} {size}px {font};}}
-                        QPushButton::hover{{background-color: yellow;color: black;}}
+                        QPushButton:hover{{background-color: yellow;color: black;}}
                         QLineEdit{{color:{color};background:rgba(0,0,0,10%);
                         max-height:40px;border:rgba(0, 0, 0, 10%); font: {bold} {size}px {font};}}
                         QTextEdit{{color:{color};background:rgba(0,0,0,10%);
@@ -931,13 +1320,13 @@ class WidgetStyleSheet:
                         color: {color};
                         font: {bold} {size}px {font};
                         }}
-                        QComboBox::hover{{background-color: rgba(0,0,0,40%);color: {color};}}
+                        QComboBox:hover{{background-color: rgba(0,0,0,40%);color: {color};}}
                         QComboBox::drop-down {{
                         width: 22px;
                         border: 2px;
                         color:white;
                         }}
-                        QComboBox::focus {{
+                        QComboBox:focus {{
                         background-color:rgba(0,0,0,40%);color: {focus};
                         }}
                         QComboBox::down-arrow {{
@@ -948,9 +1337,9 @@ class WidgetStyleSheet:
                             focus=gui.list_text_color_focus, bold=font_bold,
                             size=gui.global_font_size, font=gui.global_font,
                             red=red, blue=blue, green=green,
-                            redm=redm, greenm=greenm, bluem=bluem,
-                            size_label=gui.global_font_size+4)
+                            redm=redm, greenm=greenm, bluem=bluem
                         )
+                    )
                 
                 for widget in [gui.progress, gui.progressEpn]:
                     widget.setStyleSheet("""QProgressBar{{
@@ -986,7 +1375,7 @@ class WidgetStyleSheet:
                     padding: 1px 2px 1px 2px;
                     }}
                     """.format(
-                            alpha=bg, color=gui.list_text_color,
+                            color=gui.list_text_color,
                             bold=font_bold, size=gui.global_font_size,
                             font=gui.global_font, red=redc, green=greenc, blue=bluec
                             )
@@ -1028,8 +1417,6 @@ class WidgetStyleSheet:
                                size=gui.global_font_size, font=gui.global_font,
                                bold=font_bold, red=red, blue=blue, green=green)
                     )
-                #gui.VerticalLayoutLabel_Dock3.setSpacing(0)
-                #gui.VerticalLayoutLabel_Dock3.setContentsMargins(5, 5, 5, 5)
                 for widget in [gui.list1, gui.list3, gui.list4, gui.list5, gui.list6, gui.player_menu]:
                     widget.setStyleSheet("""QListWidget{{
                     color:{0};background:rgba({red},{green},{blue},30%);border:rgba(0,0,0,30%);
@@ -1067,3 +1454,5 @@ class WidgetStyleSheet:
                                red=red, green=green, blue=blue, size=gui.global_font_size,
                                redm=redm, greenm=greenm, bluem=bluem)
                             )
+                # ── glass sidebar on top of dark theme ───────────────────
+                self._apply_glass_sidebar()
