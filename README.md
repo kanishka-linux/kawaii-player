@@ -35,7 +35,7 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 - [Addons (Plugins) Structure](#addon-structure)
 
-- [Dependencies and Installation - with PyQt6](#dependencies-and-installation-with-pyqt6)
+- [Dependencies and Installation - with PyQt6](#dependencies-and-installation---with-pyqt6)
 
 - [Dependencies and Installation](#dependencies-and-installation)
 
