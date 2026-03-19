@@ -4,6 +4,8 @@ Kawaii-Player is Audio/Video manager and mutlimedia player (based on mpv and mpl
 
 ![kawaii-player](/Images/Video.png)
 
+![kawaii-player-web](/Images/web-browse.png)
+
 
 ## Index
 
@@ -144,7 +146,7 @@ Thumbnails of local video files are automatically generated with the help of 'ff
 
 The media server functionality can be started by selecting **'More->Start Media Server'** option. By default media server will start on 'http://127.0.0.1:9001' i.e. default loop-back address of your machine. In order to use it as media server which can be accessed from any device on the same local network, you have to change this loop-back address '127.0.0.1' to your local network address which normally starts with '192.168.x.y'. User can check and change the default address from **'More->Preferences->Media Server'**. 
 
-![kawaii-player](/Images/Web_New.png)
+![kawaii-player](/Images/web-series-details.png)
 
 **Note:** from `v7.0.0` web interface has undergone significant change.
 
@@ -504,6 +506,8 @@ For using remote control, see the following section.
 ###### [Index](#index)
 
 ![kawaii-player](/Images/Remote.png)
+
+![kawaii-player](/Images/web-player-control.png)
 
 (Web Based Remote Control for controlling the player)
 
