@@ -60,7 +60,7 @@ else:
 
 setup(
     name='kawaii-player',
-    version='8.0.0',
+    version='9.0.0',
     license='GPLv3',
     author='kanishka-linux',
     author_email='kanishka.linux@gmail.com',
