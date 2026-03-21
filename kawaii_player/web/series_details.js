@@ -565,7 +565,7 @@ class SeriesDetailsApp {
         <div class="fetch-modal-overlay active" id="fetch-modal-overlay">
           <div class="fetch-modal-dialog">
             <div class="fetch-modal-title">${mode === 'poster' ? '🖼️ Fetch Poster' : '🎨 Fetch Fanart'}</div>
-            <div class="fetch-modal-subtitle">Enter image URL/ or search word for ${this.escapeHtml(title)}</div>
+            <div class="fetch-modal-subtitle">Enter image URL/ or search word for ${this.escapeHtml(title)}. This image will be used as a backdrop for the series in the desktop client.</div>
             
             <div class="fetch-modal-form">
               <div class="fetch-modal-form-group">
