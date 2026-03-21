@@ -1397,6 +1397,7 @@ class AdminPanel {
         }
 
         let category = detailsData.series_info?.category || "anime";
+        let externalID = detailsData.series_info?.external_id || "";
 
         if (detailsData.series_info)  {
             const series = detailsData.series_info;
@@ -1441,6 +1442,7 @@ class AdminPanel {
                         <button class="btn btn-warning"
                             data-original-title="${this.escapeHtml(detailsData.title)}"
                             data-episode-count="${episodes.length}"
+                            data-external-id="${externalID}"
                             onclick="admin.openCustomFetchModal(event, ${episodes.length})">
 
                             🔄 Try Custom Fetch
@@ -1519,6 +1521,7 @@ class AdminPanel {
     openCustomFetchModal(event) {
             const titleName = event.target.dataset.originalTitle;
             const episodeCount = event.target.dataset.episodeCount;
+            const externalID = event.target.dataset.externalId;
     
             console.log(`Title: ${titleName}, Episodes: ${episodeCount}`);
             const modalHTML = `
@@ -1550,25 +1553,30 @@ class AdminPanel {
                                             <div class="field-help">Enter the exact series title you want to search for</div>
                                         </div>
                      
-                                        <div class="form-row-details">
-                                            <div class="series-field">
-                                                <span class="field-label">Category:</span>
-                                                <select id="custom-category" required class="field-input">
-                                                    <option value="anime">Anime</option>
-                                                    <option value="anime movies">Anime Movies</option>
-                                                    <option value="tv shows">TV Shows</option>
-                                                    <option value="movies">Movies</option>
-                                                    <option value="cartoons">Cartoons</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="series-field">
-                                                <span class="field-label">Use Cache:</span>
-                                                <select id="custom-use-cache" class="field-input">
-                                                    <option value="yes">Yes</option>
-                                                    <option value="no">No (Fresh fetch)</option>
-                                                </select>
-                                            </div>
+                                        <div class="series-field">
+                                            <span class="field-label">External ID (Optional):</span>
+                                            <input type="text" id="custom-external-id" value="${externalID}" placeholder="e.g., 5114 (MyAnimeList ID)" class="field-input">
+
+                                            <div class="field-help">Enter External ID - If present it will take precedence over Title</div>
+                                        </div>
+
+                                        <div class="series-field">
+                                            <span class="field-label">Category:</span>
+                                            <select id="custom-category" required class="field-input">
+                                                <option value="anime">Anime</option>
+                                                <option value="anime movies">Anime Movies</option>
+                                                <option value="tv shows">TV Shows</option>
+                                                <option value="movies">Movies</option>
+                                                <option value="cartoons">Cartoons</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="series-field">
+                                            <span class="field-label">Use Cache:</span>
+                                            <select id="custom-use-cache" class="field-input">
+                                                <option value="yes">Yes</option>
+                                                <option value="no">No</option>
+                                            </select>
                                         </div>
                                     </div>
           
@@ -1808,6 +1816,7 @@ class AdminPanel {
         const originalTitle = document.getElementById('original-title').value.trim();  // Get from hidden input
         const category = document.getElementById('custom-category').value;
         const useCache = document.getElementById('custom-use-cache').value;
+        const externalID = document.getElementById('custom-external-id').value;
         
         if (!customTitle) {
             alert('Please enter a custom search title');
@@ -1835,7 +1844,8 @@ class AdminPanel {
                     use_cache: useCache,
                     media_type: "video",
                     db_title: originalTitle,             // Original title from hidden input
-                    series_title: originalTitle          // Original title from hidden input
+                    series_title: originalTitle,        // Original title from hidden input
+                    external_id: externalID
                 };
                 
                 const response = await fetch('/fetch_series_metadata', {
