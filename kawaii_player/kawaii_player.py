@@ -12986,10 +12986,10 @@ class Ui_MainWindow(object):
                         \nFrom it. Do You Want To Continue?')
                 msg = re.sub('[ ]+', ' ', msg)
                 msgreply = QtWidgets.QMessageBox.question(
-                    MainWindow, 'Total Update', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
-                    QtWidgets.QMessageBox.No
+                    MainWindow, 'Total Update', msg ,QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No,
+                    QtWidgets.QMessageBox.StandardButton.No
                     )
-                if msgreply == QtWidgets.QMessageBox.Yes:
+                if msgreply == QtWidgets.QMessageBox.StandardButton.Yes:
                     self.media_data.update_on_start_video_db(video_db, video_file, video_file_bak, video_opt)
                     logger.debug('Proceed With Removing unreachable links')
                 else:
@@ -13004,10 +13004,10 @@ class Ui_MainWindow(object):
                         \nDo You Want To Continue?')
                 msg = re.sub('[ ]+', ' ', msg)
                 msgreply = QtWidgets.QMessageBox.question(
-                    MainWindow, 'Total Update', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
-                    QtWidgets.QMessageBox.No
+                    MainWindow, 'Total Update', msg ,QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No,
+                    QtWidgets.QMessageBox.StandardButton.No
                     )
-                if msgreply == QtWidgets.QMessageBox.Yes:
+                if msgreply == QtWidgets.QMessageBox.StandardButton.Yes:
                     self.media_data.migrate_based_on_checksum(video_db, video_file, video_file_bak, video_opt)
                     logger.debug('Proceed With Migration based on checksum')
                 else:

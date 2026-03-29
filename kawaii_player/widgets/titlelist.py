@@ -1069,13 +1069,13 @@ class TitleListWidget(QtWidgets.QListWidget):
                 else:
                     msg = ('Do You Want To Sanitize All Titles?')
                     msgreply = QtWidgets.QMessageBox.question(
-                        MainWindow, 'Sanitize All', msg ,QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No,
-                        QtWidgets.QMessageBox.No
+                        MainWindow, 'Sanitize All', msg ,QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No,
+                        QtWidgets.QMessageBox.StandardButton.No
                         )
                     ui.progressEpn.setValue(0)
                     ui.progressEpn.setFormat(('Wait!'))
                     QtWidgets.QApplication.processEvents()
-                    if msgreply == QtWidgets.QMessageBox.Yes:
+                    if msgreply == QtWidgets.QMessageBox.StandardButton.Yes:
                         for row_index in range(0, self.count()):
                             self.edit_name_list1(row_index, sanitize=True)
                     ui.progressEpn.setValue(0)
