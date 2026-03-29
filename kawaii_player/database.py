@@ -2069,6 +2069,13 @@ class MediaDatabase():
 
                 cur.execute("SELECT Path FROM Video")
                 existing_paths = {row[0] for row in cur.fetchall()}
+                if video_opt.lower() == "updateall":
+                    unreachable_paths = {path for path in list(existing_paths) if not os.path.exists(path)}
+                    existing_paths = existing_paths - unreachable_paths
+                    for path in list(unreachable_paths):
+                        cur.execute('DELETE FROM Video WHERE Path=?', (path,))
+                        if cur.rowcount > 0:
+                            self.logger.info(f"[UpdateAll] Deleted, since not reachable: {path}")
                 
                 for file_path in m_files:
                     file_path = file_path.strip()
