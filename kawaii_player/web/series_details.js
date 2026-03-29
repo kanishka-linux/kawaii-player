@@ -214,6 +214,7 @@ class SeriesDetailsApp {
         
         // Setup episode click handlers
         this.setupEpisodeHandlers();
+        this.setupDeleteStaleEntryHandler();
         this.initLabelSelector();
         this.setupFetchMediaHandlers();
     }
@@ -865,6 +866,11 @@ class SeriesDetailsApp {
                         <div class="empty-episodes-icon">📺</div>
                         <h3>No Episodes Available</h3>
                         <p>Episodes for this series are not yet available.</p>
+                        <br>
+                        <button class="fetch-btn" id="delete-stale-entry-btn" title="Delete stale entry to refresh data">
+                            <span class="fetch-icon">🗑️</span>
+                            <span class="fetch-text">Delete Stale Entry</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -935,6 +941,52 @@ class SeriesDetailsApp {
         // Setup thumbnail preview buttons
         this.setupThumbnailPreviews();
         this.setupEpisodeWatchButtons();
+    }
+
+    setupDeleteStaleEntryHandler() {
+        const btn = document.getElementById('delete-stale-entry-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async () => {
+            const titleName = this.seriesData?.series_info?.db_title;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="fetch-icon">⏳</span><span class="fetch-text">Deleting...</span>';
+
+            this.showMessage('Info', 'Deleting stale entry... This may take a moment.', 'info');
+
+            try {
+                const requestData = {
+                    action: "delete_series_info",
+                    db_title: titleName,
+                    reason: "stale_entry"
+                };
+
+                const response = await fetch('/admin/series-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Delete failed');
+
+                this.showMessage('Success', 'Stale entry deleted successfully!', 'success');
+                setTimeout(() => window.location.href = '/browse', 1500);
+
+            } catch (error) {
+                console.error('Delete stale entry error:', error);
+                this.showMessage('Error', error.message || 'Failed to delete entry', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="fetch-icon">🗑️</span><span class="fetch-text">Delete Stale Entry</span>';
+            }
+        });
     }
 
     setupThumbnailPreviews() {
