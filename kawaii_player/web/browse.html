@@ -45,7 +45,7 @@
                 <!-- Filters Sidebar -->
                 <aside class="filters-sidebar" id="filters-sidebar">
                     <div class="sidebar-header">
-                        <h2>Filter & Search</h2>
+                        <h2>Filter Options</h2>
                         <button class="sidebar-close" id="sidebar-close" aria-label="Close filters">
                             <span class="close-icon">×</span>
                         </button>
@@ -55,7 +55,7 @@
                         <form method="GET" action="/browse" id="browse-form">
                             <input type="hidden" name="limit" id="limit-hidden" value="$current_limit">
                             <input type="hidden" name="view" id="view-hidden" value="$current_view">
-                            <div class="filter-group">
+                            <div class="filter-group filter-group-search">
                                 <label for="search">Search:</label>
                                 <input type="text" name="search" id="search" value="$search" 
                                        placeholder="Search titles..." autocomplete="off">
@@ -159,9 +159,18 @@
                             </div>
                         </div>
 <div class="results-left">
-                            <div class="results-info" aria-live="polite">
-                                Showing $results_start-$results_end of $total_count series
-                            </div>
+
+                            
+                            <form id="quick-search-form" style="display: contents;">
+                                <div class="header-search">
+                                    <input type="text" id="quick-search-main" 
+                                           placeholder="Showing $results_start-$results_end of $total_count"
+                                           aria-label="Quick search"
+                                           value="$search">
+                                    <button type="button" id="quick-search-clear" class="quick-search-clear" aria-label="Clear search">×</button>
+                                </div>
+                            </form>
+
                             <!-- NEW: Pagination Limit Control -->
                             <div class="limit-control">
                                 <select name="limit" id="limit" class="js-limit-select">

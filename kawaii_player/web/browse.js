@@ -403,6 +403,7 @@ const BrowseApp = {
         this.initLimitControl();
         this.initAlphabetNav();
         this.initQuickSort();
+        this.initQuickSearchMain();
     },
     
     initMultiSelect() {
@@ -419,6 +420,61 @@ const BrowseApp = {
                 }
             }
         });
+    },
+
+    initQuickSearchMain() {
+        const mainSearch = document.getElementById('quick-search-main');
+        const sidebarSearch = document.getElementById('search');
+        const clearBtn = document.getElementById('quick-search-clear');
+        const quickSearchForm = document.getElementById('quick-search-form');
+        const form = document.getElementById('browse-form');
+        
+        if (!mainSearch || !sidebarSearch || !form || !quickSearchForm) return;
+        
+        // Show × only when there's an active search (server-rendered value)
+        const toggleClearBtn = () => {
+            if (clearBtn) {
+                clearBtn.classList.toggle('visible', mainSearch.value.length > 0);
+            }
+        };
+        toggleClearBtn();
+        
+        // Submit via native form submission (Enter / mobile "Go" key)
+        quickSearchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const value = mainSearch.value.trim();
+            FormValidator.clearFieldError(mainSearch);
+            
+            if (value.length > 0) {
+                const validation = FormValidator.validateSearchInput(value);
+                if (!validation.valid) {
+                    FormValidator.showFieldError(mainSearch, validation.message);
+                    return;
+                }
+            }
+            
+            sidebarSearch.value = value;
+            this.showLoadingState();
+            form.submit();
+        });
+        
+        // Show/hide × as user types + clear errors
+        mainSearch.addEventListener('input', () => {
+            FormValidator.clearFieldError(mainSearch);
+            toggleClearBtn();
+        });
+        
+        // Clear: strip `search` param from URL, keep everything else, reload
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('search');
+                url.searchParams.set('page', '1');  // reset to first page
+                this.showLoadingState();
+                window.location.href = url.toString();
+            });
+        }
     },
 
     initLimitControl() {
