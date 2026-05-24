@@ -1068,6 +1068,44 @@ class MediaDatabase():
 
         return success
 
+    def duplicate_series_info_row(self, old_title, new_title):
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+ 
+                cur.execute("SELECT * FROM series_info WHERE db_title = ?", (old_title,))
+                row = cur.fetchone()
+
+                if not row:
+                    return False
+
+                cur.execute("SELECT 1 FROM series_info WHERE db_title = ?", (new_title,))
+                if cur.fetchone():
+                    self.logger.info(f"series_info row with db_title='{new_title}' already exists, skipping")
+                    return False
+
+                row_dict = dict(row)
+                row_dict['db_title'] = new_title
+                row_dict['title'] = new_title
+                row_dict['english_title'] = new_title
+                record_id = str(uuid.uuid4())
+                row_dict['id'] = record_id
+
+                cols = ', '.join(row_dict.keys())
+                placeholders = ', '.join(['?'] * len(row_dict))
+                values = list(row_dict.values())
+
+                cur.execute(
+                    f"INSERT INTO series_info ({cols}) VALUES ({placeholders})",
+                    values
+                )
+
+                return True
+        except Exception as err:
+            self.logger.error(f"duplicate_series_info_row error: {err}")
+            raise
+
 
     def get_series_count(self, filters: Dict[str, Any]) -> int:
         """Get total count of series matching filters"""
