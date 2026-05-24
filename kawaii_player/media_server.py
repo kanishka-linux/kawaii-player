@@ -3390,6 +3390,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         video_paths = data.get('video_paths', [])
         new_title = data.get('new_title', '').strip()
+        old_title = data.get('old_title', '').strip()
+        source = data.get('source', '').strip()
         episode_ordered_names = data.get('episode_ordered_names', [])
         
         if not isinstance(video_paths, list) or not video_paths:
@@ -3409,7 +3411,20 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             mode_msg = "Both Title & Numbers"
         
         logger.info(f"Mode: {mode_msg} - Updating {len(video_paths)} files")
-        
+
+        # NEW: Duplicate series_info row only when called from series-details edit flow
+        if source == 'series_details' and new_title and old_title and new_title != old_title:
+            try:
+                duplicated = ui.media_data.duplicate_series_info_row(old_title, new_title)
+                if duplicated:
+                    logger.info(f"Duplicated series_info row: '{old_title}' -> '{new_title}'")
+                else:
+                    logger.error(f"No series_info row found for '{old_title}', skipping duplication")
+                    return {'success': False, 'error': f"Invalid Old Existing Titles: {old_title}"}
+            except Exception as e:
+                logger.error(f"Error duplicating series_info: {str(e)}")
+                return {'success': False, 'error': f"Failed to duplicate series_info: {str(e)}"}
+                
         # Call DB method
         try:
             success = ui.media_data.bulk_episode_edit(new_title, video_paths, episode_ordered_names)

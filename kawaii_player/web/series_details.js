@@ -9,6 +9,8 @@ class SeriesDetailsApp {
         this.seriesData = null;
         this.currentLabel = null;
         this.isUpdatingLabel = false;
+        this.editMode = false;
+        this.selectedEpisodes = new Set();
     }
     
     init() {
@@ -234,6 +236,10 @@ class SeriesDetailsApp {
             <span class="fetch-icon">🗑️</span>
             <span class="fetch-text">Reset Episodes</span>
           </button>
+          <button class="fetch-btn fetch-edit-episodes-btn" id="fetch-edit-episodes-btn" title="Edit episode titles">
+            <span class="fetch-icon">✏️</span>
+            <span class="fetch-text">Edit Episodes</span>
+          </button>
         </div>
       `;
     }
@@ -242,6 +248,7 @@ class SeriesDetailsApp {
       const metadataBtn = document.getElementById('fetch-metadata-btn');
       const fanartBtn = document.getElementById('fetch-fanart-btn');
       const resetEpisodesBtn = document.getElementById('fetch-reset-episodes-btn');
+      const editEpisodesBtn = document.getElementById('fetch-edit-episodes-btn');
       
       if (metadataBtn) {
         metadataBtn.addEventListener('click', () => {
@@ -260,6 +267,272 @@ class SeriesDetailsApp {
             this.showResetEpisodesDialog();
         });
       }
+      
+      if (editEpisodesBtn) {
+        editEpisodesBtn.addEventListener('click', () => this.toggleEditMode());
+      }
+    }
+
+    toggleEditMode() {
+        if (this.editMode) {
+            this.exitEditMode();
+        } else {
+            this.enterEditMode();
+        }
+    }
+
+    
+    enterEditMode() {
+        this.editMode = true;
+        this.selectedEpisodes.clear();
+
+        const episodesList = document.querySelector('.episodes-list');
+        if (!episodesList) return;
+        
+        // Add edit-mode class to enable CSS-driven UI changes
+        episodesList.classList.add('edit-mode');
+        
+        // Insert checkboxes into each episode row by cloning template
+        const checkboxTpl = document.getElementById('tpl-episode-checkbox');
+        document.querySelectorAll('.episode-item').forEach(item => {
+            if (item.querySelector('.episode-checkbox-wrapper')) return; // already added
+            const checkbox = checkboxTpl.content.cloneNode(true);
+            const wrapper = checkbox.querySelector('.episode-checkbox-wrapper');
+            const cb = checkbox.querySelector('.episode-edit-checkbox');
+            cb.dataset.path = item.querySelector('.episode-watch-btn')?.dataset.episodePath || '';
+            cb.addEventListener('change', () => this.onEpisodeCheckboxChange(cb));
+            cb.addEventListener('click', (e) => e.stopPropagation());
+            wrapper.addEventListener('click', (e) => e.stopPropagation());
+            item.prepend(checkbox);
+        });
+        
+        // Insert edit-controls bar above episodes list
+        const controlsTpl = document.getElementById('tpl-edit-controls');
+        const controls = controlsTpl.content.cloneNode(true);
+        controls.querySelector('.js-select-all').addEventListener('click', () => this.selectAllEpisodesForEdit());
+        controls.querySelector('.js-deselect-all').addEventListener('click', () => this.deselectAllEpisodesForEdit());
+        controls.querySelector('.js-edit-selected').addEventListener('click', () => this.openEditSelectedModal());
+        episodesList.parentNode.insertBefore(controls, episodesList);
+        
+        // Flip button label
+        const btn = document.getElementById('fetch-edit-episodes-btn');
+        if (btn) {
+            btn.querySelector('.fetch-text').textContent = 'Cancel Edit';
+            btn.querySelector('.fetch-icon').textContent = '✕';
+            btn.classList.add('active');
+        }
+    }
+
+    exitEditMode() {
+        this.editMode = false;
+        this.selectedEpisodes.clear();
+
+        const episodesList = document.querySelector('.episodes-list');
+        if (episodesList) {
+            episodesList.classList.remove('edit-mode');
+        }
+        
+        // Remove checkboxes
+        document.querySelectorAll('.episode-checkbox-wrapper').forEach(el => el.remove());
+        
+        // Remove controls bar
+        const controlsBar = document.querySelector('.edit-controls-bar');
+        if (controlsBar) controlsBar.remove();
+        
+        // Restore button label
+        const btn = document.getElementById('fetch-edit-episodes-btn');
+        if (btn) {
+            btn.querySelector('.fetch-text').textContent = 'Edit Episodes';
+            btn.querySelector('.fetch-icon').textContent = '✏️';
+            btn.classList.remove('active');
+        }
+    }
+
+    onEpisodeCheckboxChange(checkbox) {
+        const path = checkbox.dataset.path;
+        if (!path) return;
+        
+        if (checkbox.checked) {
+            this.selectedEpisodes.add(path);
+        } else {
+            this.selectedEpisodes.delete(path);
+        }
+        this.updateEditControlsBar();
+    }
+
+    updateEditControlsBar() {
+        const count = this.selectedEpisodes.size;
+        const countEl = document.querySelector('.edit-controls-bar .js-selected-count');
+        const editBtn = document.querySelector('.edit-controls-bar .js-edit-selected');
+        
+        if (countEl) countEl.textContent = count;
+        if (editBtn) editBtn.disabled = count === 0;
+    }
+
+    selectAllEpisodesForEdit() {
+        document.querySelectorAll('.episode-edit-checkbox').forEach(cb => {
+            cb.checked = true;
+            if (cb.dataset.path) this.selectedEpisodes.add(cb.dataset.path);
+        });
+        this.updateEditControlsBar();
+    }
+
+    deselectAllEpisodesForEdit() {
+        document.querySelectorAll('.episode-edit-checkbox').forEach(cb => cb.checked = false);
+        this.selectedEpisodes.clear();
+        this.updateEditControlsBar();
+    }
+
+    
+    openEditSelectedModal() {
+        if (this.selectedEpisodes.size === 0) return;
+        
+        const paths = Array.from(this.selectedEpisodes);
+        const tpl = document.getElementById('tpl-edit-episodes-modal');
+        const modalFragment = tpl.content.cloneNode(true);
+        const overlay = modalFragment.querySelector('.fetch-modal-overlay');
+        
+        // Fill in episode count
+        overlay.querySelector('.js-episode-count').textContent = paths.length;
+        
+        // Prepopulate inputs with current series title
+        const currentTitle = this.seriesData?.series_info?.db_title || this.seriesData?.series_info?.title || '';
+        overlay.querySelector('.js-title-only-input').value = currentTitle;
+        overlay.querySelector('.js-both-title-input').value = currentTitle;
+        
+        // Append to body
+        const container = document.createElement('div');
+        container.id = 'edit-episodes-container';
+        container.appendChild(modalFragment);
+        document.body.appendChild(container);
+        
+        // Wire up controls
+        const dialog = container.querySelector('.edit-episodes-dialog');
+        const modeRadios = dialog.querySelectorAll('.js-mode-radio');
+        const titleOnlySection = dialog.querySelector('.js-mode-title-only');
+        const bothSection = dialog.querySelector('.js-mode-both');
+        const titleOnlyInput = dialog.querySelector('.js-title-only-input');
+        const bothTitleInput = dialog.querySelector('.js-both-title-input');
+        const bothStartInput = dialog.querySelector('.js-both-start-input');
+        const previewToggle = dialog.querySelector('.js-preview-toggle');
+        const previewContent = dialog.querySelector('.js-preview-content');
+        const previewRows = dialog.querySelector('.js-preview-rows');
+        const cancelBtn = dialog.querySelector('.js-cancel-btn');
+        const confirmBtn = dialog.querySelector('.js-confirm-btn');
+        
+        const updatePreview = () => {
+            const mode = dialog.querySelector('.js-mode-radio:checked').value;
+            let rows = '';
+            if (mode === 'title-only') {
+                const title = titleOnlyInput.value.trim() || '[Enter title]';
+                paths.forEach(path => {
+                    rows += `<tr><td>${this.escapeHtml(path)}</td><td>${this.escapeHtml(title)}</td></tr>`;
+                });
+            } else {
+                const baseTitle = bothTitleInput.value.trim() || '[Enter title]';
+                const start = parseInt(bothStartInput.value) || 1;
+                paths.forEach((path, i) => {
+                    const epNum = start + i;
+                    const newName = `${baseTitle} - EP${epNum.toString().padStart(2, '0')}`;
+                    rows += `<tr><td>${this.escapeHtml(path)}</td><td>${this.escapeHtml(newName)}</td></tr>`;
+                });
+            }
+            previewRows.innerHTML = rows;
+        };
+        
+        // Mode switch
+        modeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const mode = radio.value;
+                titleOnlySection.style.display = mode === 'title-only' ? 'block' : 'none';
+                bothSection.style.display = mode === 'both' ? 'block' : 'none';
+                updatePreview();
+            });
+        });
+        
+        // Inputs trigger preview refresh
+        [titleOnlyInput, bothTitleInput, bothStartInput].forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+        
+        // Preview toggle
+        previewToggle.addEventListener('click', () => {
+            const isOpen = previewContent.style.display === 'block';
+            previewContent.style.display = isOpen ? 'none' : 'block';
+            previewToggle.textContent = isOpen ? '▶ Preview' : '▼ Preview';
+            if (!isOpen) updatePreview();
+        });
+        
+        // Close handlers
+        const closeModal = () => {
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                if (container.parentNode) container.parentNode.removeChild(container);
+            }, 200);
+        };
+        cancelBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escapeHandler); }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        
+        // Submit
+        confirmBtn.addEventListener('click', async () => {
+            const mode = dialog.querySelector('.js-mode-radio:checked').value;
+            const formData = { 
+                action: 'update_multiple_paths', 
+                video_paths: paths,
+                old_title: this.seriesData?.series_info?.db_title || '',
+                source: 'series_details'
+            };
+            
+            if (mode === 'title-only') {
+                const newTitle = titleOnlyInput.value.trim();
+                if (!newTitle) { this.showMessage('Error', 'Enter a title', 'error'); return; }
+                formData.new_title = newTitle;
+            } else {
+                const baseTitle = bothTitleInput.value.trim();
+                if (!baseTitle) { this.showMessage('Error', 'Enter a series title', 'error'); return; }
+                const start = parseInt(bothStartInput.value) || 1;
+                formData.new_title = baseTitle;
+                formData.episode_ordered_names = paths.map((_, i) => {
+                    const epNum = start + i;
+                    return `EP${epNum.toString().padStart(2, '0')}`;
+                });
+            }
+            
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="fetch-loading-spinner"></span>Updating...';
+            
+            try {
+                const response = await fetch('/admin/series-update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(formData)
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Update failed');
+                
+                closeModal();
+                this.showMessage('Success', result.message || 'Episodes updated!', 'success');
+                setTimeout(() => location.reload(), 1200);
+                
+            } catch (error) {
+                console.error('Edit episodes error:', error);
+                this.showMessage('Error', error.message || 'Update failed', 'error');
+                confirmBtn.disabled = false;
+                cancelBtn.disabled = false;
+                confirmBtn.innerHTML = 'Update Episodes';
+            }
+        });
+        
+        // Initial preview
+        updatePreview();
+        setTimeout(() => { titleOnlyInput.focus(); titleOnlyInput.select(); }, 100);
     }
 
     showResetEpisodesDialog() {
@@ -1139,6 +1412,8 @@ class SeriesDetailsApp {
     }
 
     playEpisode(episodeElement) {
+        if (this.editMode) return;
+
         const episodeNumber = episodeElement.dataset.episodeNumber;
         const seriesId = episodeElement.dataset.seriesId;
         

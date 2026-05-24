@@ -54,6 +54,87 @@
     <button class="back-to-top" id="back-to-top" aria-label="Back to top">
         <span class="back-to-top-icon">↑</span>
     </button>
+
+    <!-- ============================================
+     TEMPLATES for Edit Episodes feature
+     ============================================ -->
+
+<!-- Edit-mode controls bar (shown above episodes when edit mode is on) -->
+<template id="tpl-edit-controls">
+    <div class="edit-controls-bar">
+        <button type="button" class="edit-control-btn js-select-all">Select All</button>
+        <button type="button" class="edit-control-btn js-deselect-all">Deselect All</button>
+        <button type="button" class="edit-control-btn edit-control-primary js-edit-selected" disabled>
+            Edit Selected (<span class="js-selected-count">0</span>)
+        </button>
+    </div>
+</template>
+
+<!-- Episode checkbox (cloned into each episode row when entering edit mode) -->
+<template id="tpl-episode-checkbox">
+    <div class="episode-checkbox-wrapper">
+        <input type="checkbox" class="episode-edit-checkbox" aria-label="Select episode">
+    </div>
+</template>
+
+<!-- Edit modal (mode picker + preview + submit) -->
+<template id="tpl-edit-episodes-modal">
+    <div class="fetch-modal-overlay active" id="edit-episodes-overlay">
+        <div class="fetch-modal-dialog edit-episodes-dialog">
+            <div class="fetch-modal-title">✏️ Edit Episodes</div>
+            <div class="fetch-modal-subtitle">
+                Editing <span class="js-episode-count">0</span> episode(s)
+            </div>
+
+            <div class="fetch-modal-form">
+                <!-- Mode: Title Only -->
+                <div class="edit-mode-option">
+                    <label class="edit-mode-radio-label">
+                        <input type="radio" name="edit-mode" value="title-only" class="js-mode-radio" checked>
+                        <strong>Title Only</strong>
+                    </label>
+                    <div class="edit-mode-help">All selected episodes will get the same title.</div>
+                    <div class="edit-mode-content js-mode-title-only">
+                        <input type="text" class="fetch-modal-input js-title-only-input" placeholder="Enter new title">
+                    </div>
+                </div>
+
+                <!-- Mode: Title + Episode Numbers -->
+                <div class="edit-mode-option">
+                    <label class="edit-mode-radio-label">
+                        <input type="radio" name="edit-mode" value="both" class="js-mode-radio">
+                        <strong>Title + Episode Numbers</strong>
+                    </label>
+                    <div class="edit-mode-help">Each episode numbered in order (e.g. "Series - EP01", "Series - EP02").</div>
+                    <div class="edit-mode-content js-mode-both" style="display: none;">
+                        <label class="fetch-modal-label">Series title</label>
+                        <input type="text" class="fetch-modal-input js-both-title-input" placeholder="Series name">
+                        <label class="fetch-modal-label" style="margin-top: 8px;">Starting from</label>
+                        <input type="number" class="fetch-modal-input js-both-start-input" value="1" min="1" style="max-width: 120px;">
+                    </div>
+                </div>
+
+                <!-- Preview (collapsible) -->
+                <div class="edit-preview-section">
+                    <button type="button" class="edit-preview-toggle js-preview-toggle">▶ Preview</button>
+                    <div class="edit-preview-content js-preview-content" style="display: none;">
+                        <table class="edit-preview-table">
+                            <thead>
+                                <tr><th>File Path</th><th>New Name</th></tr>
+                            </thead>
+                            <tbody class="js-preview-rows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fetch-modal-buttons">
+                <button type="button" class="fetch-modal-btn fetch-modal-btn-cancel js-cancel-btn">Cancel</button>
+                <button type="button" class="fetch-modal-btn fetch-modal-btn-confirm js-confirm-btn">Update Episodes</button>
+            </div>
+        </div>
+    </div>
+</template>
     
     <!-- Base JavaScript -->
     <script>
