@@ -870,6 +870,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             value = "widget={}".format(content.get("widget"))
             self.final_message(bytes('Command Recieved', 'utf-8'))
             ui.gui_signals.player_command(param.replace('+', ' '), value.replace('+', ' '))
+        elif self.path.startswith('/get_fanart_list'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            search_word = content.get("search_word", "") or ""
+
+            imgs = ui.fanart_dict.get(search_word, [])
+            self.send_json_response({"success": True, "images": imgs})
         elif self.path.startswith('/fetch-posters'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
@@ -885,13 +894,19 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 ui.fetch_fanart(site_option, url, title, "poster")
             elif mode == "fanart" and title is not None and url is not None and url.startswith("http"):
                 ui.remove_fanart(site_option, title, "remove_fanart")
-                ui.fetch_fanart(site_option, url, title, "fanart")
+                #ui.fetch_fanart(site_option, url, title, "fanart")
+                ui.fetch_fanart_for = f"{title}::{url}"
+                self.nav_signals.control_signal(-1000, 'fetch_fanart')
             elif mode == "fanart" and title:
                 srch_word = ""
                 if url and not url.startswith('http'):
                     srch_word = url
-                ui.fetch_fanart_for = f"{title}::{srch_word}"
-                self.nav_signals.control_signal(-1000, 'fetch_fanart')
+                if ui.fanart_dict.get(srch_word):
+                    imgs = ui.fanart_dict[srch_word]
+                    print(imgs)
+                else:
+                    ui.fetch_fanart_for = f"{title}::{srch_word}"
+                    self.nav_signals.control_signal(-1000, 'fetch_fanart')
             self.final_message(bytes('Command Recieved', 'utf-8'))
         elif self.path.startswith('/modify_category'):
             content = self.rfile.read(int(self.headers['Content-Length']))

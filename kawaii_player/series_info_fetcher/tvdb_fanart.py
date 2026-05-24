@@ -44,8 +44,14 @@ class FanartQueue(QObject):
         self.current_srch = srch
         
         print(self.queue, "qq")
-        
-        if self.ui.fanart_dict.get(srch):
+
+        if srch.startswith("http"):
+            self.ui.posterfound_new(
+                    name=title, site="Video", url=srch, direct_url=True,
+                    copy_summary=False, copy_poster=False, copy_fanart=True
+                )
+            self._process_next()
+        elif self.ui.fanart_dict.get(srch):
             imgs = self.ui.fanart_dict[srch]
             rotation_index = (self.ui.fanart_dict_rotation_index.get(srch, 0) + 1) % len(imgs)
             self.ui.fanart_dict_rotation_index[srch] = rotation_index
