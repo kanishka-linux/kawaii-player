@@ -1383,8 +1383,14 @@
 /* Responsive */
 @media (max-width: 768px) {
   .fetch-media-buttons {
-    display: flex;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .fetch-media-buttons .fetch-btn {
+    width: 100%;
+    justify-content: center;
   }
   
   .fetch-modal-dialog {
@@ -1508,4 +1514,195 @@
   .fetch-modal-form-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* === Edit Episodes feature === */
+
+/* Active state on edit toggle button */
+.fetch-btn.active {
+    background: #e53935;
+    color: white;
+}
+
+/* Edit controls bar */
+.edit-controls-bar {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.edit-control-btn {
+    padding: 8px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.edit-control-btn:hover:not(:disabled) {
+    background: #f0f0f0;
+    border-color: #007bff;
+}
+
+.edit-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.edit-control-primary {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.edit-control-primary:hover:not(:disabled) {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Episode checkbox wrapper */
+.episode-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    flex-shrink: 0;
+}
+
+.episode-edit-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* In edit mode, disable watch and preview buttons to avoid accidents */
+.episodes-list.edit-mode .episode-watch-btn,
+.episodes-list.edit-mode .thumbnail-preview-btn {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+/* In edit mode, hint the row is selectable */
+.episodes-list.edit-mode .episode-item {
+    cursor: default;
+}
+
+/* === Edit modal === */
+
+.edit-episodes-dialog {
+    max-width: 600px;
+}
+
+.edit-mode-option {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.edit-mode-option:last-of-type {
+    border-bottom: none;
+}
+
+.edit-mode-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.edit-mode-help {
+    font-size: 12px;
+    color: #666;
+    margin: 4px 0 8px 24px;
+}
+
+.edit-mode-content {
+    margin-left: 24px;
+}
+
+.edit-preview-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+.edit-preview-toggle {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.edit-preview-toggle:hover {
+    text-decoration: underline;
+}
+
+.edit-preview-content {
+    margin-top: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.edit-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.edit-preview-table th,
+.edit-preview-table td {
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    word-break: break-all;
+}
+
+.edit-preview-table th {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+}
+
+@media (max-width: 768px) {
+    .edit-controls-bar {
+        gap: 6px;
+        padding: 10px;
+    }
+    
+    .edit-control-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
+    .edit-preview-table {
+        font-size: 11px;
+    }
+}
+
+/* === Edit modal: stack "Both" mode fields vertically === */
+
+.js-mode-both .fetch-modal-label,
+.js-mode-both .fetch-modal-input {
+    display: block;
+    width: 100%;
+}
+
+.js-mode-both .fetch-modal-input.js-both-start-input {
+    max-width: 120px;
+}
+
+.js-mode-both .fetch-modal-label + .fetch-modal-input + .fetch-modal-label {
+    margin-top: 14px;
 }
