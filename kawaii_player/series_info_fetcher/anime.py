@@ -306,6 +306,55 @@ class AnimeInfoFetcher:
         self._save_cache()
         return episode_detail
 
+    def get_posters(self, mal_id: int, use_cache: bool = True) -> List[str]:
+        cache_key = f"posters::{mal_id}"
+
+        if use_cache and self.cache.get(cache_key):
+            self.ui.logger.info(f"returning posters from cache for mal_id={mal_id}")
+            return self.cache[cache_key]
+
+        self._rate_limit()
+        url = f"{self.base_url}/anime/{mal_id}/pictures"
+
+        try:
+            response = self.vnt.get(url)
+
+            if response.status != 200:
+                self.ui.logger.warning(
+                    f"Failed to fetch posters for mal_id={mal_id}: HTTP {response.status}"
+                )
+                return []
+
+            body = json.loads(response.html)
+            pictures_data = body.get('data', [])
+
+            if not pictures_data:
+                return []
+
+            posters = []
+            for pic in pictures_data:
+                jpg = pic.get('jpg', {})
+                webp = pic.get('webp', {})
+
+                # Prefer jpg large, fall back to webp large, then jpg medium
+                large = (jpg.get('large_image_url') 
+                         or webp.get('large_image_url') 
+                         or jpg.get('image_url'))
+
+                if large:
+                    posters.append(large)
+
+            self.cache[cache_key] = posters
+            self._save_cache()
+
+            self.ui.logger.info(f"fetched {len(posters)} posters for mal_id={mal_id}")
+            return posters
+
+        except Exception as err:
+            self.ui.logger.error(f"error fetching posters for mal_id={mal_id}: {err}")
+            self.ui.logger.exception(f"Traceback:\n {traceback.format_exc()}")
+            return []
+
     def get_all_episodes(
         self,
         mal_id: int,
