@@ -1073,6 +1073,31 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                     "data": None
                 }
                 self.send_json_response(error_response, status_code=422)
+        elif self.path.startswith('/get_posters'):
+            content = self.rfile.read(int(self.headers['Content-Length']))
+            if isinstance(content, bytes):
+                content = str(content, 'utf-8')
+            content = json.loads(content)
+            external_id = content.get("external_id")
+            category = (content.get("category") or '').strip().lower()
+
+            try:
+                external_id = int(external_id)
+            except (ValueError, TypeError):
+                self.send_json_response({"success": False, "error": "Invalid external_id", "posters": []}, status_code=400)
+                return
+
+            # Route by category — currently only anime sources are wired up
+            if category in ('anime', 'anime movies'):
+                posters = ui.anime_info_fetcher.get_posters(external_id)
+                self.send_json_response({"success": True, "posters": posters})
+            else:
+                # Other categories (tv shows, movies, cartoons) have no poster source yet
+                self.send_json_response({
+                    "success": True,
+                    "posters": [],
+                    "message": f"Poster browsing not available for category: {category or 'unknown'}"
+                }, status_code=200)
         elif self.path.startswith('/fetch_image_poster'):
             content = self.rfile.read(int(self.headers['Content-Length']))
             if isinstance(content, bytes):
