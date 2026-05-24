@@ -219,6 +219,181 @@ class SeriesDetailsApp {
         this.setupDeleteStaleEntryHandler();
         this.initLabelSelector();
         this.setupFetchMediaHandlers();
+        this.setupPosterEditHandler();
+    }
+
+    setupPosterEditHandler() {
+        const btn = document.getElementById('poster-edit-btn');
+        if (!btn) return;
+        
+        btn.addEventListener('click', () => this.showChangePosterDialog());
+    }
+
+    
+    showChangePosterDialog() {
+        const currentTitle = this.seriesData?.series_info?.db_title || 
+                             this.seriesData?.series_info?.title || '';
+        const currentPosterUrl = this.seriesData?.series_info?.image_poster_large || '';
+        
+        const tpl = document.getElementById('tpl-change-poster-modal');
+        const modalFragment = tpl.content.cloneNode(true);
+        
+        // Fill in dynamic content
+        modalFragment.querySelector('.js-series-title').textContent = currentTitle;
+        const urlInput = modalFragment.querySelector('.js-poster-url-input');
+        urlInput.value = currentPosterUrl;
+        
+        // Append to body
+        const container = document.createElement('div');
+        container.id = 'change-poster-container';
+        container.appendChild(modalFragment);
+        document.body.appendChild(container);
+        
+        const dialog = container.querySelector('.fetch-modal-dialog');
+        const overlayEl = container.querySelector('.fetch-modal-overlay');
+        const cancelBtn = dialog.querySelector('.js-cancel-btn');
+        const confirmBtn = dialog.querySelector('.js-confirm-btn');
+        const browseBtn = dialog.querySelector('.js-browse-btn');
+        const gridContainer = dialog.querySelector('.js-poster-grid-container');
+        const gridStatus = dialog.querySelector('.js-poster-grid-status');
+        const grid = dialog.querySelector('.js-poster-grid');
+        
+        const closeModal = () => {
+            overlayEl.classList.remove('active');
+            setTimeout(() => {
+                if (container.parentNode) container.parentNode.removeChild(container);
+            }, 200);
+        };
+        
+        cancelBtn.addEventListener('click', closeModal);
+        overlayEl.addEventListener('click', (e) => { if (e.target === overlayEl) closeModal(); });
+        
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escapeHandler); }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        
+        urlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmBtn.click();
+            }
+        });
+        
+        // Browse Available Posters button
+        browseBtn.addEventListener('click', async () => {
+            const externalId = this.seriesData?.series_info?.external_id;
+            if (!externalId) {
+                gridContainer.style.display = 'block';
+                gridStatus.style.display = 'block';
+                gridStatus.textContent = 'No external ID available for this series';
+                return;
+            }
+            
+            gridContainer.style.display = 'block';
+            gridStatus.style.display = 'block';
+            gridStatus.textContent = 'Loading posters...';
+            grid.innerHTML = '';
+            browseBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/get_posters', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        external_id: externalId,
+                        category: this.seriesData?.series_info?.category || ''
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    gridStatus.textContent = result.error || 'Failed to load posters';
+                    browseBtn.disabled = false;
+                    return;
+                }
+                
+                const posters = result.posters || [];
+                
+                if (posters.length === 0) {
+                    gridStatus.textContent = result.message || 'No alternative posters available';
+                    browseBtn.disabled = false;
+                    return;
+                }
+                
+                gridStatus.style.display = 'none';
+                
+                // Render thumbnails
+                posters.forEach(url => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'poster-thumb';
+                    thumb.innerHTML = `<img src="${this.escapeHtml(url)}" alt="Poster option" loading="lazy">`;
+                    thumb.addEventListener('click', () => {
+                        urlInput.value = url;
+                        grid.querySelectorAll('.poster-thumb').forEach(t => t.classList.remove('selected'));
+                        thumb.classList.add('selected');
+                    });
+                    grid.appendChild(thumb);
+                });
+                
+                browseBtn.textContent = `🔄 Reload Posters (${posters.length} found)`;
+                browseBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Browse posters error:', error);
+                gridStatus.textContent = 'Error loading posters: ' + error.message;
+                browseBtn.disabled = false;
+            }
+        });
+        
+        // Update Poster (submit) button
+        confirmBtn.addEventListener('click', async () => {
+            const newUrl = urlInput.value.trim();
+            if (!newUrl) {
+                this.showMessage('Error', 'Please enter an image URL', 'error');
+                return;
+            }
+            
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            urlInput.disabled = true;
+            browseBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="fetch-loading-spinner"></span>Updating...';
+            
+            try {
+                const response = await fetch('/fetch_image_poster', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        db_title: currentTitle,
+                        img_url: newUrl,
+                        media_type: 'video'
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Failed to update poster');
+                
+                closeModal();
+                this.showMessage('Success', 'Poster updated!', 'success');
+                setTimeout(() => location.reload(), 1200);
+                
+            } catch (error) {
+                console.error('Change poster error:', error);
+                this.showMessage('Error', error.message || 'Failed to update poster', 'error');
+                confirmBtn.disabled = false;
+                cancelBtn.disabled = false;
+                urlInput.disabled = false;
+                browseBtn.disabled = false;
+                confirmBtn.innerHTML = 'Update Poster';
+            }
+        });
+        
+        setTimeout(() => { urlInput.focus(); urlInput.select(); }, 100);
     }
 
     renderFetchMediaButtons() {
@@ -1022,6 +1197,10 @@ class SeriesDetailsApp {
                     `<div class="series-poster-placeholder">📺</div>`
                 }
                 ${score !== 'N/A' ? `<div class="poster-score-badge">${score} ⭐</div>` : ''}
+                <button class="poster-edit-btn" id="poster-edit-btn" aria-label="Change poster image" title="Change poster image">
+                    <span class="poster-edit-icon">✏️</span>
+                    <span class="poster-edit-text">Change Image</span>
+                </button>
             </div>
         `;
     }
