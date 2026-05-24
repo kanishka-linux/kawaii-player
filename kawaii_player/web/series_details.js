@@ -1028,6 +1028,17 @@ class SeriesDetailsApp {
                 />
               </div>
             </div>
+
+            <div class="poster-browse-section">
+                <button type="button" class="fetch-modal-btn fetch-modal-btn-cancel js-fanart-browse-btn" id="fanart-browse-btn">
+                  🔍 Browse Available Fanart
+                </button>
+                
+                <div class="poster-grid-container" id="fanart-grid-container" style="display: none;">
+                  <div class="poster-grid-status" id="fanart-grid-status">Loading...</div>
+                  <div class="poster-grid" id="fanart-grid"></div>
+                </div>
+            </div>
             
             <div class="fetch-modal-buttons">
               <button class="fetch-modal-btn fetch-modal-btn-cancel" id="fetch-cancel-btn">Cancel</button>
@@ -1049,6 +1060,10 @@ class SeriesDetailsApp {
       const urlInput = document.getElementById('fetch-url-input');
       const confirmBtn = document.getElementById('fetch-confirm-btn');
       const cancelBtn = document.getElementById('fetch-cancel-btn');
+      const browseBtn = document.getElementById('fanart-browse-btn');
+      const gridContainer = document.getElementById('fanart-grid-container');
+      const gridStatus = document.getElementById('fanart-grid-status');
+      const grid = document.getElementById('fanart-grid');
       
       // Auto-focus input
       setTimeout(() => urlInput.focus(), 100);
@@ -1077,6 +1092,73 @@ class SeriesDetailsApp {
         }
       };
       document.addEventListener('keydown', escapeHandler);
+
+      // Browse Available Fanart (only for fanart mode)
+      if (mode === 'fanart' && browseBtn) {
+        browseBtn.addEventListener('click', async () => {
+            const searchWord = urlInput.value.trim() || title;
+            
+            // Don't trigger search if user pasted a URL
+            if (searchWord.startsWith('http')) {
+                this.showMessage('Info', 'Enter a search title (not a URL) to browse fanart', 'info');
+                return;
+            }
+            
+            gridContainer.style.display = 'block';
+            gridStatus.style.display = 'block';
+            gridStatus.textContent = 'Triggering fanart search...';
+            grid.innerHTML = '';
+            browseBtn.disabled = true;
+            
+            try {
+                // Step 1: Trigger async fanart fetch on backend
+                await fetch('/fetch-posters', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        title: title,
+                        url: searchWord,  // non-http triggers search mode on backend
+                        mode: 'fanart',
+                        site_option: 'video'
+                    })
+                });
+                
+                // Step 2: Poll for results
+                gridStatus.textContent = 'Searching for fanart...';
+                const images = await this.pollForFanart(searchWord);
+                
+                if (images.length === 0) {
+                    gridStatus.textContent = 'No fanart found. Try a different search term or paste a URL directly.';
+                    browseBtn.disabled = false;
+                    return;
+                }
+                
+                gridStatus.style.display = 'none';
+                
+                // Render thumbnails
+                images.forEach(url => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'poster-thumb fanart';
+                    thumb.innerHTML = `<img src="${this.escapeHtml(url)}" alt="Fanart option" loading="lazy">`;
+                    thumb.addEventListener('click', () => {
+                        urlInput.value = url;
+                        grid.querySelectorAll('.poster-thumb').forEach(t => t.classList.remove('selected'));
+                        thumb.classList.add('selected');
+                    });
+                    grid.appendChild(thumb);
+                });
+                
+                browseBtn.textContent = `🔄 Reload Fanart (${images.length} found)`;
+                browseBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Browse fanart error:', error);
+                gridStatus.textContent = 'Error: ' + error.message;
+                browseBtn.disabled = false;
+            }
+        });
+      }
       
       // Confirm handler
       confirmBtn.addEventListener('click', async () => {
@@ -1113,6 +1195,42 @@ class SeriesDetailsApp {
           confirmBtn.click();
         }
       });
+    }
+
+    async pollForFanart(searchWord, maxAttempts = 15, intervalMs = 2000) {
+        
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await new Promise(resolve => setTimeout(resolve, intervalMs));
+            
+            try {
+                const response = await fetch('/get_fanart_list', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ search_word: searchWord })
+                });
+                
+                if (!response.ok) continue;
+                
+                const result = await response.json();
+                const images = result.images || [];
+                
+                if (images.length > 0) {
+                    return images;
+                }
+                
+                // Update status with attempt count for visual feedback
+                const gridStatus = document.getElementById('fanart-grid-status');
+                if (gridStatus) {
+                    gridStatus.textContent = `Searching for fanart... (${attempt + 1}/${maxAttempts})`;
+                }
+                
+            } catch (error) {
+                console.warn(`Poll attempt ${attempt + 1} failed:`, error);
+            }
+        }
+        
+        return [];  // timed out, no results
     }
 
     async fetchMediaContent(mode, url, title) {

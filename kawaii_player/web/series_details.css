@@ -1843,3 +1843,8 @@
         max-height: 280px;
     }
 }
+
+/* Fanart thumbs: widescreen aspect ratio */
+.poster-thumb.fanart {
+    aspect-ratio: 16/9;
+}
