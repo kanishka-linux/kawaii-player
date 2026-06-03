@@ -23,7 +23,7 @@ class AnimeInfoFetcher:
             verify = True
         else:
             verify = False
-        self.vnt = Vinanti(block=True, hdrs={'User-Agent':self.ui.user_agent}, verify=verify)
+        self.vnt = Vinanti(block=True, hdrs={'User-Agent':self.ui.user_agent}, verify=verify, timeout=5)
         if os.path.exists(self.cache_file):
              with open(self.cache_file, 'rb') as f:
                 self.cache = pickle.load(f)

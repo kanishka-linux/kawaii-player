@@ -27,7 +27,7 @@ class TvShowInfoFetcher:
             verify = True
         else:
             verify = False
-        self.vnt = Vinanti(block=True, hdrs={'User-Agent': self.ui.user_agent}, verify=verify)
+        self.vnt = Vinanti(block=True, hdrs={'User-Agent': self.ui.user_agent}, verify=verify, timeout=5)
         
         # Load existing cache
         if os.path.exists(self.cache_file):
