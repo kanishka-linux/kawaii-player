@@ -1737,7 +1737,7 @@ class Ui_MainWindow(object):
         else:
             verify = False
         self.vnt = Vinanti(block=False, hdrs={'User-Agent':self.user_agent}, verify=verify)
-        self.vnt_sync = Vinanti(block=True, hdrs={'User-Agent':self.user_agent}, verify=verify, timeout=5)
+        self.vnt_sync = Vinanti(block=True, hdrs={'User-Agent':self.user_agent}, verify=verify)
         self.yt = YTDL(self)
         self.anime_info_fetcher = AnimeInfoFetcher(self)
         self.tvshow_info_fetcher = TvShowInfoFetcher(self)
