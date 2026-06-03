@@ -1149,7 +1149,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 conn.commit()
                 conn.close()
                 if img_path:
-                    ui.vnt.get(img_url, out=img_path)
+                    ui.anime_info_fetcher.vnt.get(img_url, out=img_path)
                 self.send_json_response(response_data)
             else:
                 error_response = {
