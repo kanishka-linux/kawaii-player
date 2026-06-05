@@ -3868,8 +3868,8 @@ class Ui_MainWindow(object):
             if self.hide_titlelist_forcefully and self.list1.isHidden():
                 self.list1.show()
             if self.stop_from_client:
-                if self.list1.isHidden():
-                    self.list1.show()
+                if not self.list1.isHidden():
+                    self.list1.hide()
                 if self.list2.isHidden():
                     self.list2.show()
         self.stop_from_client = False
