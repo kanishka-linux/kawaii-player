@@ -3870,8 +3870,8 @@ class Ui_MainWindow(object):
             if self.stop_from_client:
                 if not self.list1.isHidden():
                     self.list1.hide()
-                if self.list2.isHidden():
-                    self.list2.show()
+                if not self.list2.isHidden():
+                    self.list2.hide()
         self.stop_from_client = False
             
     
