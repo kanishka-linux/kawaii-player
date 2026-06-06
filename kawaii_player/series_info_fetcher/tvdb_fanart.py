@@ -222,38 +222,45 @@ class TVDBFanart(QtWidgets.QWidget):
             self.step = 2
             
             js_code = """
-            (function() {
-                try {
-                    var tab = document.querySelector('[role="tab"][href="#artwork"]');
-                    if (tab) {
-                        var images = Array.from(
-                            document.querySelectorAll('#artwork-backgrounds .lightbox')
-                        ).map(a => ({
-                            url: a.href,
-                            description: a.getAttribute('data-description')
-                        }));
-
-                        tab.click();
-
-                        return {
-                            success: true,
-                            images: images,
-                            count: images.length
-                        };
-                    } else {
+                (function() {
+                    try {
+                        var tab = document.querySelector('[role="tab"][href="#artwork"]');
+                        if (tab) {
+                            var backgrounds = Array.from(
+                                document.querySelectorAll('#artwork-backgrounds .lightbox')
+                            ).map(a => ({
+                                url: a.href,
+                                description: a.getAttribute('data-description'),
+                                type: 'background'
+                            }));
+                            var posters = Array.from(
+                                document.querySelectorAll('#artwork-posters .lightbox')
+                            ).map(a => ({
+                                url: a.href,
+                                description: a.getAttribute('data-description'),
+                                type: 'poster'
+                            }));
+                            var images = backgrounds.concat(posters);
+                            tab.click();
+                            return {
+                                success: true,
+                                images: images,
+                                count: images.length
+                            };
+                        } else {
+                            return {
+                                success: false,
+                                error: 'Artwork tab not found',
+                                images: []
+                            };
+                        }
+                    } catch(e) {
                         return {
                             success: false,
-                            error: 'Artwork tab not found',
+                            error: e.message,
                             images: []
                         };
                     }
-                } catch(e) {
-                    return {
-                        success: false,
-                        error: e.message,
-                        images: []
-                    };
-                }
             })();
             """
             self.page.runJavaScript(js_code, self.on_js_result)
