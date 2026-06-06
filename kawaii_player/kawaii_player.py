@@ -3865,13 +3865,15 @@ class Ui_MainWindow(object):
             self.send_fake_event("mouse_move")
             self.tab_5.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.BlankCursor))
         else:
-            if self.hide_titlelist_forcefully and self.list1.isHidden():
+            if self.hide_titlelist_forcefully and self.list1.isHidden() and not self.stop_from_client:
                 self.list1.show()
-            if self.stop_from_client:
-                if not self.list1.isHidden():
-                    self.list1.hide()
-                if not self.list2.isHidden():
-                    self.list2.hide()
+            if MainWindow.isFullScreen() and self.stop_from_client:
+                self.list1.hide()
+                self.list2.hide()
+            elif self.stop_from_client:
+                self.list1.show()
+                self.list2.show()
+
         self.stop_from_client = False
             
     
