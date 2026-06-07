@@ -306,13 +306,6 @@ class MediaDatabase():
             self.ui.text.setText('Update Complete!')
             print('--191---update-complete--')
             QtWidgets.QApplication.processEvents()
-    
-    def adjust_video_dict_mark(self, epname, path, rownum=None):
-        dir_name, file_name = os.path.split(path)
-        plist = [epname, path]
-        self.logger.info('214----{0}-----database.py--'.format(plist))
-        if rownum is not None and dir_name in self.ui.video_dict:
-            self.ui.video_dict[dir_name][rownum] = plist
 
     def init_video_db(self):
         conn = sqlite3.connect(self.db_path)
@@ -552,16 +545,36 @@ class MediaDatabase():
             conn.close()
 
     def mark_episode_as_watched(self, file_path: str) -> bool:
-        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
-
             cursor.execute("""
                 UPDATE Video SET EP_NAME = '#' || EP_NAME
                 WHERE path = ?
                 AND EP_NAME NOT LIKE '#%'
+                RETURNING Directory, Title
             """, (file_path,))
+
+            result = cursor.fetchone()
+
+            directory = None
+            title = None
+            if result:
+                directory, title = result
+            else:
+                cursor.execute("""
+                    select Directory, Title from Video
+                    where Path = ?
+                """, (file_path,))
+                result = cursor.fetchone()
+                if result:
+                    directory, title = result
+
+            if directory and title:
+                cursor.execute("""
+                    UPDATE series_info SET last_accessed_at = datetime('now')
+                    WHERE directory = ? AND db_title = ?
+                """, (directory, title))
 
             conn.commit()
             conn.close()
@@ -598,27 +611,41 @@ class MediaDatabase():
             return [("", "")]
 
     def fetch_recently_accessed(self) -> List[Tuple[str, str]]:
-        db_path = os.path.join(self.home, 'VideoDB', 'Video.db')
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
+            cursor.execute("""
+            SELECT db_title, directory FROM series_info
+            WHERE last_accessed_at IS NOT NULL
+            ORDER BY last_accessed_at DESC
+            """)
+            seen = set()
+            result = []
+            for row in cursor.fetchall():
+                if row not in seen:
+                    seen.add(row)
+                    result.append(row)
 
             cursor.execute("""
-                select distinct Directory, Title from Video
+                select Title, Directory, Path from Video
                 where EP_NAME like '#%'
             """)
 
-            rows  = [(row[1], row[0]) for row in cursor.fetchall() if os.path.exists(row[0])]
+            rows  = [(row[0], row[1], row[2]) for row in cursor.fetchall() if os.path.exists(row[2])]
 
             # Sort by when directory was last modified
             # with recent first
             sorted_rows = sorted(
-                    rows, key=lambda x: os.path.getatime(x[1]),
+                    rows, key=lambda x: os.path.getatime(x[2]),
                     reverse=True)
 
-            conn.commit()
+            for title, directory, _ in sorted_rows:
+                if (title, directory) not in seen:
+                    seen.add((title, directory))
+                    result.append((title, directory))
+
             conn.close()
-            return sorted_rows
+            return result
         except Exception as e:
             conn.close()
             print(f"  ✗ Fetch error: {e}")
@@ -668,35 +695,51 @@ class MediaDatabase():
 
 
     def toggle_watch_status(self, file_path: str) -> str:
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-
         ep_name = ""
-        cursor.execute('SELECT EP_NAME from Video Where Path=?', (file_path, ))
-        result = [row[0] for row in cursor.fetchall()]
-        if result:
-            ep_name = result[0]
-            if ep_name.startswith("#"):
-                ep_name = ep_name.replace("#", "")
-            else:
-                ep_name = f"#{ep_name}"
-            try:
-                cursor.execute("""
-                    UPDATE Video SET EP_NAME = ? WHERE path = ?
-                """, (ep_name, file_path))
-                conn.commit()
-                conn.close()
-            except Exception as e:
-                conn.close()
-                print(f"  ✗ Update error: {e}")
-
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT EP_NAME from Video Where Path=?', (file_path,))
+                result = [row[0] for row in cursor.fetchall()]
+                if result:
+                    ep_name = result[0]
+                    if ep_name.startswith("#"):
+                        ep_name = ep_name.replace("#", "")
+                    else:
+                        ep_name = f"#{ep_name}"
+                    cursor.execute("""
+                        UPDATE Video
+                        SET EP_NAME = ?
+                        WHERE path = ?
+                        RETURNING Directory, Title
+                    """, (ep_name, file_path))
+                    row = cursor.fetchone()
+                    if row:
+                        directory, title = row
+                        if ep_name.startswith("#"):
+                            cursor.execute("""
+                                UPDATE series_info SET last_accessed_at = datetime('now')
+                                WHERE directory = ? AND db_title = ?
+                            """, (directory, title))
+                        else:
+                            cursor.execute("""
+                                SELECT COUNT(*) FROM Video
+                                WHERE Directory = ? AND Title = ?
+                                AND EP_NAME LIKE '#%'
+                            """, (directory, title))
+                            if cursor.fetchone()[0] == 0:
+                                cursor.execute("""
+                                    UPDATE series_info SET last_accessed_at = NULL
+                                    WHERE directory = ? AND db_title = ?
+                                """, (directory, title))
+        except Exception as e:
+            print(f"  ✗ Update error: {e}")
         if ep_name:
-             ep_name = re.sub(r'[-_.]+', ' ', ep_name)
-             ep_name = re.sub(r'\s+', ' ', ep_name).strip()
+            ep_name = re.sub(r'[-_.]+', ' ', ep_name)
+            ep_name = re.sub(r'\s+', ' ', ep_name).strip()
         if ep_name and ep_name.startswith("#"):
-             ep_name = ep_name.replace('#', "")
-             ep_name = '✅ ' + ep_name
-
+            ep_name = ep_name.replace('#', "")
+            ep_name = '✅ ' + ep_name
         return ep_name
 
     def create_series_info_table(self):
@@ -1929,51 +1972,14 @@ class MediaDatabase():
     def update_video_count(self, qType, qVal, rownum=None):
         qVal = qVal.replace('"', '')
         qVal = str(qVal)
-        conn = sqlite3.connect(os.path.join(self.home, 'VideoDB', 'Video.db'))
-        cur = conn.cursor()
+        conn = sqlite3.connect(self.db_path)
         self.logger.info('{0}:{1}:{2}::::::database.py:::240'.format(qType, qVal, rownum))
-        if qType == "mark":
-            #qVal = '"'+qVal+'"'
-            #cur.execute("Update Music Set LastPlayed=? Where Path=?", (datetime.datetime.now(), qVal))
-            self.logger.info("----------"+qVal)
-            cur.execute('Select FileName, EP_NAME from Video Where Path=?', (qVal, ))
-            r = cur.fetchall()
-            self.logger.info(r)
-            for i in r:
-                fname = i[0]
-                epName = i[1]
-                break
+        if qType in ["mark", "unmark"]:
+            self.toggle_watch_status(qVal)
 
-            if not fname.startswith('#'):
-                fname = '#'+fname
-                epName = '#'+epName
-            #cur.execute("Update Music Set Playcount=? Where Path=?", (incr, qVal))
-            qr = 'Update Video Set FileName=?, EP_NAME=? Where Path=?'
-            cur.execute(qr, (fname, epName, qVal))
-        elif qType == "unmark":    
-            self.logger.info("----------"+qVal)
-            cur.execute('Select FileName, EP_NAME from Video Where Path=?', (qVal, ))
-            r = cur.fetchall()
-
-            self.logger.info(r)
-            for i in r:
-                fname = i[0]
-                epName = i[1]
-                break
-
-            if fname.startswith('#'):
-                fname = fname.replace('#', '', 1)
-                epName = epName.replace('#', '', 1)
-            qr = 'Update Video Set FileName=?, EP_NAME=? Where Path=?'
-            cur.execute(qr, (fname, epName, qVal))
-
-        self.logger.info("Number of rows updated: %d" % cur.rowcount)
         conn.commit()
         conn.close()
         
-        if qType == 'mark' or qType == 'unmark':
-            self.adjust_video_dict_mark(epName, qVal, rownum)
-
     def migrate_based_on_checksum(self, video_db, video_file, video_file_bak,
                                  video_opt, update_progress_show=None):
         if (update_progress_show is None or update_progress_show) and self.ui:
