@@ -1683,7 +1683,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             validated['labels'] = filters['labels'].strip()
 
         # Sort
-        valid_sorts = ['title', 'year', 'score', 'popularity', 'rank']
+        valid_sorts = ['title', 'year', 'score', 'popularity', 'rank', 'random']
         sort_field = filters.get('sort', 'title')
         validated['sort'] = sort_field if sort_field in valid_sorts else 'title'
         
@@ -1800,6 +1800,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         attrs['score_selected'] = 'selected' if sort_value == 'score' else ''
         attrs['popularity_selected'] = 'selected' if sort_value == 'popularity' else ''
         attrs['rank_selected'] = 'selected' if sort_value == 'rank' else ''
+        attrs['random_selected'] = 'selected' if sort_value == 'random' else ''
         
         # Order selection
         order_value = filters.get('order', 'asc')

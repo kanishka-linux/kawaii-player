@@ -1459,8 +1459,13 @@ class MediaDatabase():
                         'rank': 'rank'
                     }
 
-                    db_sort_field = sort_mapping.get(sort_field, 'title')
-                    query += f" ORDER BY {db_sort_field} {order}"
+                    print(sort_field, "---------")
+
+                    if sort_field == 'random':
+                        query += " ORDER BY RANDOM()"
+                    else:
+                        db_sort_field = sort_mapping.get(sort_field, 'title')
+                        query += f" ORDER BY {db_sort_field} {order}"
 
                 # Add pagination
                 query += " LIMIT ? OFFSET ?"
