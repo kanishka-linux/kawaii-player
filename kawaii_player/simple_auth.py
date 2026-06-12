@@ -207,7 +207,7 @@ def clear_session_cookie():
     cookies['adminSession']['httponly'] = True
     return cookies['adminSession'].OutputString()
 
-def set_session_cookie(session_id, max_age=86400):
+def set_session_cookie(session_id, max_age=30 * 24 * 60 * 60):
     """Set session cookie"""
     cookies = SimpleCookie()
     cookies['adminSession'] = session_id
