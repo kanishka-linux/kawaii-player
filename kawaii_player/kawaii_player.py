@@ -3875,6 +3875,10 @@ class Ui_MainWindow(object):
                 self.list1.show()
                 self.list2.show()
 
+        if self.cur_row < self.list2.count():
+            self.list2.setCurrentRow(0)
+            self.list2.setCurrentRow(self.cur_row)
+
         self.stop_from_client = False
             
     
