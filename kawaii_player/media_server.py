@@ -585,6 +585,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
     nav_signals = DoGETSignal()
     old_path = []
     last_view = []
+    image_cache = {}
     
     def process_HEAD(self):
         global ui, logger, getdb
@@ -1150,6 +1151,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 conn.close()
                 if img_path:
                     ui.anime_info_fetcher.vnt.get(img_url, out=img_path)
+                    if self.image_cache.get(img_path):
+                        del self.image_cache[img_path]
                 self.send_json_response(response_data)
             else:
                 error_response = {
@@ -4128,27 +4131,46 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             url = f"{url}.image"
         return url
 
-    def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
-        global ui, home, html_default_arr, logger, getdb
-        global site
 
-        if self.path.startswith("/images/"):
-            local_image = self.path.rsplit("/", 1)[-1]
-            poster_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, local_image)
-            if os.path.exists(poster_path):
-                content = open(poster_path, 'rb').read()
-            else:
-                default_file = os.path.join(ui.home_folder, '480px.default.jpg')
-                content = open(default_file, 'rb').read()
+    def serve_image(self):
+        """Serve image from cache or disk"""
+        local_image = self.path.rsplit("/", 1)[-1]
+        poster_path = os.path.join(ui.anime_info_fetcher.thumbnail_dir, local_image)
+
+        if os.path.exists(poster_path):
+            file_path = poster_path
+        else:
+            file_path = os.path.join(ui.home_folder, '480px.default.jpg')
+
+        if file_path in self.image_cache:
+            content = self.image_cache[file_path]
+            logger.info(f'serving image from cache: {file_path}')
+        else:
+            try:
+                with open(file_path, 'rb') as f:
+                    content = f.read()
+                self.image_cache[file_path] = content
+            except Exception as e:
+                print(f"Error reading image: {e}")
+                self.send_response(500)
+                self.end_headers()
+
+        try:
             self.send_response(200)
             self.send_header('Content-type', 'image/jpeg')
             self.send_header('Content-Length', len(content))
             self.send_header('Connection', 'close')
             self.end_headers()
-            try:
-                self.wfile.write(content)
-            except Exception as e:
-                print(e)
+            self.wfile.write(content)
+        except Exception as e:
+            print(f"Error sending image: {e}")
+
+    def get_the_content(self, path, get_bytes, my_ip_addr=None, play_id=None):
+        global ui, home, html_default_arr, logger, getdb
+        global site
+
+        if self.path.startswith("/images/"):
+            self.serve_image()
 
         arg_dict = ui.get_parameters_value(s='site')
         epnArrList = ui.epn_arr_list.copy()
