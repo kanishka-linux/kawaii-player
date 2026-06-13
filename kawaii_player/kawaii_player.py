@@ -285,6 +285,7 @@ class Ui_MainWindow(object):
         self.text = QtWidgets.QTextEdit(MainWindow)
         self.text.setAcceptRichText(False)
         self.text.setObjectName(_fromUtf8("text"))
+        self.text.setReadOnly(True)
         
         self.cover_label = QtWidgets.QWidget(MainWindow)
         #self.cover_label.setAcceptRichText(False)
