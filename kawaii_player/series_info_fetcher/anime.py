@@ -12,7 +12,7 @@ from datetime import datetime
 
 class AnimeInfoFetcher:
     def __init__(self, ui):
-        self.base_url = "https://api.jikan.moe/v4"
+        self.base_url = "https://api.tenrai.org/v1"
         self.last_request = 0
         self.cache = {}
         self.ui = ui
