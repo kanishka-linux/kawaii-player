@@ -119,18 +119,19 @@ class DatabaseMigrationWorker(QtCore.QThread):
     def update(self, media_path):
         checksum = self.db_instance.calculate_file_checksum(media_path)
         old_path = None
+        db_title = None
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                    SELECT Path from Video
+                    SELECT Path, Title from Video
                     WHERE file_checksum = ?
                     """, (checksum,))
-            result = [row[0] for row in cursor.fetchall()]
+            result = [(row[0], row[1]) for row in cursor.fetchall()]
             print(result)
             if result:
-                old_path = result[0]
+                old_path, db_title = result[0]
 
             conn.commit()
             conn.close()
@@ -154,6 +155,12 @@ class DatabaseMigrationWorker(QtCore.QThread):
                 SET Path = ?, Directory = ?
                 WHERE file_checksum = ?
                 """, (media_path, directory, checksum))
+
+                cursor.execute("""
+                UPDATE series_info
+                SET directory = ?
+                WHERE db_title = ?
+                """, (directory, db_title))
                 conn.commit()
                 conn.close()
             except Exception as err:
