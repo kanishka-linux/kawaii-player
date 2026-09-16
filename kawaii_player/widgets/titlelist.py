@@ -739,7 +739,7 @@ class TitleListWidget(QtWidgets.QListWidget):
                         qr = 'Update Video Set Title=? Where Directory=? and Title=?'
                         logger.info('{0}::{1}::{2}'.format(nm, directory, cur_name))
                         cur.execute(qr, (nm, directory, cur_name))
-                        cur.execute('update series_info set db_title = ? where db_title = ? and directory = ?', (item, cur_name, directory))
+                        cur.execute('update series_info set db_title = ? where db_title = ? and directory = ? AND NOT EXISTS (SELECT 1 FROM series_info WHERE db_title = ?)', (item, cur_name, directory, item))
                         conn.commit()
                         conn.close()
                         tmp = re.sub('[^	]*', item, old_val, 1)
