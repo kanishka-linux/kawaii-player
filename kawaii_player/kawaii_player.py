@@ -8299,18 +8299,28 @@ class Ui_MainWindow(object):
                 art_n = self.list1.item(row_select).text()
                 dir_path = os.path.join(home, 'Local', art_n)
                 poster_image, summary_series, _  = self.media_data.fetch_series_metadata_for_desktop(art_n)
+                already_copied = True
                 if os.path.exists(dir_path):
                     if poster_image and os.path.isfile(poster_image):
                         legacy_picn = os.path.join(home, 'Local', art_n, 'poster.jpg')
-                        if not os.path.exists(legacy_picn):
+                        if os.path.isfile(legacy_picn):
+                            already_copied = os.stat(legacy_picn).st_size == os.stat(poster_image).st_size
+
+                        if not os.path.exists(legacy_picn) or not already_copied:
                             shutil.copy(poster_image, legacy_picn)
 
                     picn = os.path.join(home, 'Local', art_n, 'poster.jpg')
                     thumbnail = os.path.join(home, 'Local', art_n, 'thumbnail.jpg')
+                    if os.path.exists(thumbnail) and not already_copied:
+                        os.remove(thumbnail)
                     fanart = os.path.join(home, 'Local', art_n, 'fanart.jpg')
                     summary1 = os.path.join(home, 'Local', art_n, 'summary.txt')
                     if summary_series:
                         summary = summary_series
+                        if not os.path.exists(summary1) or (os.path.isfile(summary1) and os.path.getsize(summary1) != len(summary.encode('utf-8'))):
+                            write_files(summary1, summary, line_by_line=False)
+
+
                     elif os.path.exists(summary1):
                         summary = open_files(summary1, False)
                     else:
