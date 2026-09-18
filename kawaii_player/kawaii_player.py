@@ -1697,12 +1697,13 @@ class Ui_MainWindow(object):
         self.music_dict = {}
         self.browser_bookmark = {
             'Reviews': 'Reviews',
+            'AdminWebUI': f'http://localhost:{self.local_port_stream or 9001}/admin',
+            'BrowseWebUI': f'http://localhost:{self.local_port_stream or 9001}/browse',
             'ANN': 'http://www.animenewsnetwork.com/encyclopedia/search/name?q=',
             'AniDB': 'http://anidb.net/perl-bin/animedb.pl?show=animelist&do.search=search&adb.search=',
             'Zerochan': 'http://www.zerochan.net/search?q=',
             'MyAnimeList': 'http://myanimelist.net/anime.php?q=',
             'Anime-Planet': 'http://www.anime-planet.com/anime/all?name=',
-            'Anime-Source': 'http://www.anime-source.com/banzai/modules.php?name=NuSearch&type=all&action=search&info=',
             'TVDB': 'https://thetvdb.com/search?query=',
             'TMDB': 'https://www.themoviedb.org/search?query=',
             'Google': 'https://www.google.com/search?q=',
@@ -7454,6 +7455,7 @@ class Ui_MainWindow(object):
         name1 = self.name_adjust(name)
         logger.info(name1)
         key = ''
+        
         if action:
             if action == 'return_pressed':
                 key = self.btnWebReviews_search.text()
@@ -7519,7 +7521,10 @@ class Ui_MainWindow(object):
             self.web.setHtml('<html>Reviews:</html>')
         else:
             if self.browser_bookmark.get(review_site):
-                self.web.load(QUrl(self.browser_bookmark.get(review_site)+name1))
+                if review_site in ['AdminWebUI', 'BrowseWebUI']:
+                    self.web.load(QUrl(self.browser_bookmark.get(review_site)))
+                else:
+                    self.web.load(QUrl(self.browser_bookmark.get(review_site)+name1))
         if review_site:
             self.btnWebReviews_search.setPlaceholderText('Search ' + review_site)
         
